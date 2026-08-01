@@ -94,6 +94,7 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
     private int searchRange;
     private ItemStack offeredItem = ItemStack.EMPTY;
     private boolean reservesInstantBrazier;
+    private boolean resetsSpellCooldownOnCancel;
     private String targetLabel = "";
     private @Nullable net.minecraft.resources.ResourceLocation ignoredOfferItemId;
     private int ignoredOfferUntilTick;
@@ -136,6 +137,10 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
 
     public void setReservesInstantBrazier(boolean reservesInstantBrazier) {
         this.reservesInstantBrazier = reservesInstantBrazier;
+    }
+
+    public void setResetsSpellCooldownOnCancel(boolean resetsSpellCooldownOnCancel) {
+        this.resetsSpellCooldownOnCancel = resetsSpellCooldownOnCancel;
     }
 
     public int getInitialRange() {
@@ -609,7 +614,9 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
 
         if (phase == Phase.IDLE) {
             if (player.isShiftKeyDown() && offeredItem.isEmpty()) {
-                resetOwnerCooldown(owner);
+                if (resetsSpellCooldownOnCancel) {
+                    resetOwnerCooldown(owner);
+                }
                 discard();
                 return InteractionResult.CONSUME;
             }

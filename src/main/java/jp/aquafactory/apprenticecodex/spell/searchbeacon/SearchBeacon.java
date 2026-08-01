@@ -106,12 +106,11 @@ public class SearchBeacon extends AbstractSpell {
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (level instanceof ServerLevel serverLevel && entity instanceof ServerPlayer serverPlayer) {
-            SearchBeaconSummoning.summon(
+            SearchBeaconSummoning.summonFromSpell(
                     serverLevel,
                     serverPlayer,
                     getInitialRange(spellLevel, entity),
-                    getAdditionalRangePerItem(spellLevel, entity),
-                    net.minecraft.world.item.ItemStack.EMPTY
+                    getAdditionalRangePerItem(spellLevel, entity)
             );
         }
 

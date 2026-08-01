@@ -26,12 +26,32 @@ public final class SearchBeaconSummoning {
         return resolveSummonPosition(level, owner) == null ? Failure.CANNOT_PLACE : Failure.NONE;
     }
 
-    public static @Nullable SearchBeaconEntity summon(
+    public static @Nullable SearchBeaconEntity summonFromSpell(
+            ServerLevel level,
+            ServerPlayer owner,
+            int initialRange,
+            int additionalRangePerItem
+    ) {
+        return summon(level, owner, initialRange, additionalRangePerItem, ItemStack.EMPTY, true);
+    }
+
+    public static @Nullable SearchBeaconEntity summonFromInstantBrazier(
             ServerLevel level,
             ServerPlayer owner,
             int initialRange,
             int additionalRangePerItem,
             ItemStack preSearchRefund
+    ) {
+        return summon(level, owner, initialRange, additionalRangePerItem, preSearchRefund, false);
+    }
+
+    private static @Nullable SearchBeaconEntity summon(
+            ServerLevel level,
+            ServerPlayer owner,
+            int initialRange,
+            int additionalRangePerItem,
+            ItemStack preSearchRefund,
+            boolean resetsSpellCooldownOnCancel
     ) {
         var summonPosition = resolveSummonPosition(level, owner);
         if (summonPosition == null) {
@@ -48,6 +68,7 @@ public final class SearchBeaconSummoning {
             return null;
         }
         beacon.setReservesInstantBrazier(reservesInstantBrazier);
+        beacon.setResetsSpellCooldownOnCancel(resetsSpellCooldownOnCancel);
         beacon.moveTo(summonPosition.x, summonPosition.y, summonPosition.z, owner.getYRot(), 0.0F);
         if (level.addFreshEntity(beacon)) {
             return beacon;

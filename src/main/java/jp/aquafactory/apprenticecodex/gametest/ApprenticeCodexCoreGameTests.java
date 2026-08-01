@@ -97,6 +97,11 @@ public final class ApprenticeCodexCoreGameTests {
         InstantSearchBrazierGameTestScenarios.unloadingBeaconReturnsBrazierToOwnerInventory(helper);
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void instantSearchBrazierCancelDoesNotResetSpellCooldown(GameTestHelper helper) {
+        InstantSearchBrazierGameTestScenarios.cancelOnlyResetsCooldownForSpellSummonedBeacon(helper);
+    }
+
     @GameTest(template = TEMPLATE, timeoutTicks = 400)
     public static void villagerCanClaimApprenticeDeskAsErrandMageJobSite(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.villagerCanClaimApprenticeDeskAsErrandMageJobSite(helper);
