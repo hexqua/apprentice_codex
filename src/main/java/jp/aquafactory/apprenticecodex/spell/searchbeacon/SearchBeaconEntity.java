@@ -93,6 +93,7 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
     private int additionalRangePerItem;
     private int searchRange;
     private ItemStack offeredItem = ItemStack.EMPTY;
+    private ItemStack preSearchRefund = ItemStack.EMPTY;
     private String targetLabel = "";
     private @Nullable net.minecraft.resources.ResourceLocation ignoredOfferItemId;
     private int ignoredOfferUntilTick;
@@ -131,6 +132,18 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
     public void setSearchTuning(int initialRange, int additionalRangePerItem) {
         this.initialRange = Math.max(0, initialRange);
         this.additionalRangePerItem = Math.max(0, additionalRangePerItem);
+    }
+
+    public void setPreSearchRefund(ItemStack refundStack) {
+        preSearchRefund = refundStack.copyWithCount(Math.min(1, refundStack.getCount()));
+    }
+
+    public int getInitialRange() {
+        return initialRange;
+    }
+
+    public int getAdditionalRangePerItem() {
+        return additionalRangePerItem;
     }
 
     @Override
@@ -310,6 +323,7 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
         ).withStyle(ChatFormatting.YELLOW));
         level.playSound(null, blockPosition(), SoundRegistry.VANILLA_START_SEARCH.get(), SoundSource.BLOCKS, 0.8f, 1.15f);
         transitionTo(Phase.SEARCHING);
+        preSearchRefund = ItemStack.EMPTY;
     }
 
     private SearchBeaconState resolveSpellState() {
@@ -681,6 +695,15 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
     @Override
     public boolean hurt(@NotNull DamageSource source, float amount) {
         return false;
+    }
+
+    @Override
+    public void remove(@NotNull RemovalReason reason) {
+        if (!level().isClientSide && !isRemoved() && !preSearchRefund.isEmpty()) {
+            spawnAtLocation(preSearchRefund.copy());
+            preSearchRefund = ItemStack.EMPTY;
+        }
+        super.remove(reason);
     }
 
     @Override

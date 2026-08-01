@@ -145,6 +145,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get());
         output.accept(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get());
         output.accept(ItemRegistry.GRIMOIRE_MANIFEST.get());
+        output.accept(ItemRegistry.INSTANT_SEARCH_BRAZIER.get());
         output.accept(ItemRegistry.SCARLET_THIRST.get());
         output.accept(ItemRegistry.CRAFTSMANS_DELIGHT.get());
         output.accept(ItemRegistry.SPELL_CAST_PARRYING_RING.get());
