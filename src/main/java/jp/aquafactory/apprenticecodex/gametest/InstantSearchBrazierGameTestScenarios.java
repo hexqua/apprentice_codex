@@ -1,8 +1,10 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconEntity;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconRefundManager;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSummoning;
@@ -74,7 +76,7 @@ public final class InstantSearchBrazierGameTestScenarios {
                 "instant_search_brazier_search_test"
         );
         player.setXRot(90.0F);
-        var beacon = SearchBeaconSummoning.summon(
+        var beacon = SearchBeaconSummoning.summonFromInstantBrazier(
                 helper.getLevel(),
                 player,
                 500,
@@ -127,7 +129,8 @@ public final class InstantSearchBrazierGameTestScenarios {
         player.setXRot(90.0F);
         var refundStack = new ItemStack(ItemRegistry.INSTANT_SEARCH_BRAZIER.get());
         refundStack.set(DataComponents.CUSTOM_NAME, Component.literal("Persisted Test Brazier"));
-        var beacon = SearchBeaconSummoning.summon(helper.getLevel(), player, 500, 0, refundStack);
+        var beacon = SearchBeaconSummoning.summonFromInstantBrazier(
+                helper.getLevel(), player, 500, 0, refundStack);
         helper.assertTrue(beacon != null, "Instant Search Brazier test should summon a Search Beacon");
 
         var spellData = Capabilities.getSpellDataOrNull(player);
@@ -165,7 +168,7 @@ public final class InstantSearchBrazierGameTestScenarios {
                 "instant_search_brazier_unload_test"
         );
         player.setXRot(90.0F);
-        var beacon = SearchBeaconSummoning.summon(
+        var beacon = SearchBeaconSummoning.summonFromInstantBrazier(
                 helper.getLevel(),
                 player,
                 500,
@@ -179,6 +182,40 @@ public final class InstantSearchBrazierGameTestScenarios {
                 "Unloading a Search Beacon should return its brazier to the online owner");
         helper.assertTrue(!SearchBeaconRefundManager.hasPending(player),
                 "Returning an unloaded Search Beacon should clear its persisted refund");
+        helper.succeed();
+    }
+
+    static void cancelOnlyResetsCooldownForSpellSummonedBeacon(GameTestHelper helper) {
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                helper,
+                new BlockPos(0, 2, 0),
+                "instant_search_brazier_cancel_cooldown_test"
+        );
+        player.setXRot(90.0F);
+        player.setShiftKeyDown(true);
+        var spell = SpellRegistry.SEARCH_BEACON.get();
+        var magicData = MagicData.getPlayerMagicData(player);
+        magicData.getPlayerCooldowns().addCooldown(spell, 1200, 1200);
+
+        var itemBeacon = SearchBeaconSummoning.summonFromInstantBrazier(
+                helper.getLevel(),
+                player,
+                500,
+                0,
+                new ItemStack(ItemRegistry.INSTANT_SEARCH_BRAZIER.get())
+        );
+        helper.assertTrue(itemBeacon != null, "Instant Search Brazier test should summon a Search Beacon");
+        itemBeacon.mobInteract(player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                "Cancelling an item-summoned Search Beacon must keep the spell cooldown");
+        helper.getLevel().getEntitiesOfClass(ItemEntity.class, player.getBoundingBox().inflate(16.0D))
+                .forEach(ItemEntity::discard);
+
+        var spellBeacon = SearchBeaconSummoning.summonFromSpell(helper.getLevel(), player, 500, 100);
+        helper.assertTrue(spellBeacon != null, "Search Beacon spell test should summon a Search Beacon");
+        spellBeacon.mobInteract(player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(!magicData.getPlayerCooldowns().isOnCooldown(spell),
+                "Cancelling a spell-summoned Search Beacon should reset its spell cooldown");
         helper.succeed();
     }
 

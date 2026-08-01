@@ -52,7 +52,7 @@ public final class InstantSearchBrazier extends Item {
         }
 
         var consumedItem = serverPlayer.getAbilities().instabuild ? ItemStack.EMPTY : stack.copyWithCount(1);
-        var beacon = SearchBeaconSummoning.summon(
+        var beacon = SearchBeaconSummoning.summonFromInstantBrazier(
                 serverLevel,
                 serverPlayer,
                 ApprenticeCodexServerConfig.instantSearchBrazierInitialRange(),
