@@ -423,18 +423,6 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.scarletThirstRecoverEmergencyMana();
     }
 
-    public static boolean craftsmansDelightCanImbueEnchantment() {
-        return ITEMS_CONFIG.craftsmansDelightCanImbueEnchantment();
-    }
-
-    public static float craftsmansDelightRequiredMana() {
-        return ITEMS_CONFIG.craftsmansDelightRequiredMana();
-    }
-
-    public static int craftsmansDelightFortuneLevel() {
-        return ITEMS_CONFIG.craftsmansDelightFortuneLevel();
-    }
-
     public static double craftsmansDelightCooldownMultiplier() {
         return ITEMS_CONFIG.craftsmansDelightCooldownMultiplier();
     }

@@ -1,7 +1,5 @@
 package jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight;
 
-import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.compat.Curios;
@@ -12,18 +10,10 @@ import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
-import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -32,11 +22,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.item.enchantment.ItemEnchantments;
-import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.registries.DeferredHolder;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
@@ -91,11 +77,9 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
             result.add(Component.literal(" ")
                     .append(Component.translatable(getDescriptionId() + ".desc"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            if (ApprenticeCodexServerConfig.craftsmansDelightCanImbueEnchantment()) {
-                result.add(Component.literal(" ")
-                        .append(Component.translatable(getDescriptionId() + ".desc_enchant"))
-                        .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            }
+            result.add(Component.literal(" ")
+                    .append(Component.translatable(getDescriptionId() + ".desc_enchant"))
+                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
             appendTargetSpellHintOrTooltips(result);
         }
 
@@ -135,57 +119,8 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
     }
 
     @Override
-    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
-        var stack = player.getItemInHand(usedHand);
-        if (!player.isShiftKeyDown()) {
-            return super.use(level, player, usedHand);
-        }
-
-        // 設定が無効なら通常挙動に戻す。
-        if (!ApprenticeCodexServerConfig.craftsmansDelightCanImbueEnchantment()) {
-            return super.use(level, player, usedHand);
-        }
-
-        if (!level.isClientSide) {
-            if (!consumeManaForSneakUse(player, stack)) {
-                return InteractionResultHolder.fail(stack);
-            }
-
-            AudioTools.playSoundFromEntity(level, player, SoundRegistry.VANILLA_INSCRIBE_MANA.get(), SoundSource.PLAYERS);
-            applySneakUseEnchantment(player, stack);
-        }
-
-        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
-    }
-
-    @Override
     public boolean canEquipFromUse(SlotContext slotContext, ItemStack stack) {
-        return !slotContext.entity().isShiftKeyDown();
-    }
-
-    private static void applySneakUseEnchantment(Player player, ItemStack stack) {
-        var enchantmentRegistry = player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-        var fortune = enchantmentRegistry.getOrThrow(Enchantments.FORTUNE);
-        var silkTouch = enchantmentRegistry.getOrThrow(Enchantments.SILK_TOUCH);
-
-        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
-        var fortuneLevel = ApprenticeCodexServerConfig.craftsmansDelightFortuneLevel();
-        if (enchantments.isEmpty()) {
-            stack.enchant(fortune, fortuneLevel);
-            return;
-        }
-
-        var hasNonFortune = enchantments.keySet().stream()
-                .anyMatch(enchantment -> !enchantment.is(Enchantments.FORTUNE));
-
-        EnchantmentHelper.setEnchantments(stack, ItemEnchantments.EMPTY);
-
-        if (hasNonFortune) {
-            stack.enchant(fortune, fortuneLevel);
-            return;
-        }
-
-        stack.enchant(silkTouch, 1);
+        return true;
     }
 
     @Override
@@ -272,18 +207,13 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
         ));
     }
 
-    public static ItemStack applyEnchantsToTool(ItemStack baseTool, @Nullable LivingEntity entity) {
-        if (entity == null) {
+    public static ItemStack applyMainHandEnchantmentsToTool(ItemStack baseTool, @Nullable LivingEntity entity) {
+        if (entity == null || !isEquippedBy(entity)) {
             return baseTool;
         }
 
-        var stack = getEquippedStack(entity);
-        if (stack.isEmpty()) {
-            return baseTool;
-        }
-
-        // 指輪に付いたエンチャントを魔法処理用ツールへ転写する。
-        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
+        // 外部 MOD の採掘エンチャントも扱えるよう、破壊時点のメインハンドから全件転写する。
+        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(entity.getMainHandItem());
         if (!enchantments.isEmpty()) {
             EnchantmentHelper.setEnchantments(baseTool, enchantments);
         }
@@ -291,100 +221,16 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
         return baseTool;
     }
 
-    public static ItemStack createTouchDigTool(@Nullable LivingEntity entity) {
-        if (entity == null) {
-            return ItemStack.EMPTY;
-        }
-
-        var ringStack = getEquippedStack(entity);
-        var mainHandStack = entity.getMainHandItem();
-        if (!mainHandStack.isEmpty()) {
-            return applyMiningEnchants(mainHandStack, ringStack, entity);
-        }
-
-        if (!hasMiningEnchantments(ringStack)) {
-            return ItemStack.EMPTY;
-        }
-
-        // TouchDig は素手だと downstream に空スタックが渡り、追加の採掘エンチャント効果が発火しない。
-        return applyMiningEnchants(new ItemStack(Items.DIAMOND_PICKAXE), ringStack, entity);
-    }
-
     public static ItemStack createSpectralHammerTool(@Nullable LivingEntity entity) {
-        if (entity == null) {
+        if (entity == null || !isEquippedBy(entity)) {
             return ItemStack.EMPTY;
         }
 
-        var ringStack = getEquippedStack(entity);
-        if (!hasMiningEnchantments(ringStack)) {
-            return ItemStack.EMPTY;
-        }
-
-        return applyMiningEnchants(new ItemStack(Items.DIAMOND_PICKAXE), ringStack, entity);
+        return entity.getMainHandItem().copy();
     }
 
     public static ItemStack createHeavenlyFistCrystalHarvestTool(@Nullable LivingEntity entity) {
-        if (entity == null) {
-            return new ItemStack(Items.DIAMOND_PICKAXE);
-        }
-
-        return applyMiningEnchants(new ItemStack(Items.DIAMOND_PICKAXE), getEquippedStack(entity), entity);
-    }
-
-    private static ItemStack applyMiningEnchants(ItemStack baseTool, ItemStack ringStack, @Nullable LivingEntity entity) {
-        if (baseTool.isEmpty()) {
-            return ItemStack.EMPTY;
-        }
-
-        var tool = baseTool.copy();
-        if (ringStack.isEmpty()) {
-            return tool;
-        }
-
-        var baseFortuneLevel = getFortuneLevel(tool);
-        var ringFortuneLevel = getFortuneLevel(ringStack);
-        var hasSilkTouch = getSilkTouchLevel(tool) > 0 || getSilkTouchLevel(ringStack) > 0;
-        if (ringFortuneLevel <= 0 && !hasSilkTouch) {
-            return tool;
-        }
-
-        if (entity == null) {
-            return tool;
-        }
-
-        var enchantmentRegistry = entity.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-        var fortune = enchantmentRegistry.getOrThrow(Enchantments.FORTUNE);
-        var silkTouch = enchantmentRegistry.getOrThrow(Enchantments.SILK_TOUCH);
-        var enchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
-        for (var entry : EnchantmentHelper.getEnchantmentsForCrafting(tool).entrySet()) {
-            var enchantment = entry.getKey();
-            if (enchantment == null
-                    || enchantment.is(Enchantments.FORTUNE)
-                    || enchantment.is(Enchantments.SILK_TOUCH)) {
-                continue;
-            }
-            enchantments.set(enchantment, entry.getValue());
-        }
-
-        if (hasSilkTouch) {
-            enchantments.set(silkTouch, 1);
-        } else {
-            enchantments.set(fortune, Math.max(baseFortuneLevel, ringFortuneLevel));
-        }
-        EnchantmentHelper.setEnchantments(tool, enchantments.toImmutable());
-        return tool;
-    }
-
-    private static boolean hasMiningEnchantments(ItemStack stack) {
-        return getFortuneLevel(stack) > 0 || getSilkTouchLevel(stack) > 0;
-    }
-
-    private static int getFortuneLevel(ItemStack stack) {
-        return jp.aquafactory.apprenticecodex.enchantment.Enchantments.getLevel(stack, Enchantments.FORTUNE);
-    }
-
-    private static int getSilkTouchLevel(ItemStack stack) {
-        return jp.aquafactory.apprenticecodex.enchantment.Enchantments.getLevel(stack, Enchantments.SILK_TOUCH);
+        return applyMainHandEnchantmentsToTool(new ItemStack(Items.DIAMOND_PICKAXE), entity);
     }
 
     private static ItemStack getEquippedStack(LivingEntity entity) {
@@ -408,46 +254,4 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
                 .orElse(ItemStack.EMPTY);
     }
 
-    private static boolean consumeManaForSneakUse(Player player, ItemStack stack) {
-        var requiredMana = ApprenticeCodexServerConfig.craftsmansDelightRequiredMana();
-        var maxMana = (float) player.getAttributeValue(AttributeRegistry.MAX_MANA);
-        if (maxMana < requiredMana) {
-            sendUnsatisfiedMaxManaMessage(player, stack, requiredMana);
-            return false;
-        }
-
-        var magicData = MagicData.getPlayerMagicData(player);
-        if (magicData == null || magicData.getMana() < requiredMana) {
-            sendManaLackMessage(player, stack);
-            return false;
-        }
-
-        // addManaは負値で消費できる。
-        magicData.addMana(-requiredMana);
-        return true;
-    }
-
-    private static void sendUnsatisfiedMaxManaMessage(Player player, ItemStack stack, float requiredMana) {
-        if (!(player instanceof ServerPlayer serverPlayer)) {
-            return;
-        }
-
-        serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
-                Component.translatable(
-                        "ui.apprenticecodex.unsatisfied_max_mana_for_enchant",
-                        stack.getHoverName(),
-                        Math.round(requiredMana)
-                ).withStyle(ChatFormatting.RED)
-        ));
-    }
-
-    private static void sendManaLackMessage(Player player, ItemStack stack) {
-        if (!(player instanceof ServerPlayer serverPlayer)) {
-            return;
-        }
-
-        serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
-                Component.translatable("ui.irons_spellbooks.cast_error_mana", stack.getHoverName()).withStyle(ChatFormatting.RED)
-        ));
-    }
 }

@@ -1919,18 +1919,18 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
-    public static void touchDigMergesRingMiningEnchantments(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.touchDigMergesRingMiningEnchantments(helper);
+    public static void touchDigIgnoresCraftsmansDelightRingEnchantments(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.touchDigIgnoresCraftsmansDelightRingEnchantments(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
-    public static void touchDigUsesRingMiningEnchantmentsWhenCastBareHanded(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.touchDigUsesRingMiningEnchantmentsWhenCastBareHanded(helper);
+    public static void craftsmansDelightDummyToolsCopyAllCurrentMainHandEnchantments(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightDummyToolsCopyAllCurrentMainHandEnchantments(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
-    public static void spectralHammerUsesCraftsmansDelightRingMiningEnchantments(GameTestHelper helper) {
-        EquipmentSpellBehaviorBridgeGameTestScenarios.spectralHammerUsesCraftsmansDelightRingMiningEnchantments(helper);
+    public static void spectralHammerCopiesCurrentMainHandWithCraftsmansDelight(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.spectralHammerCopiesCurrentMainHandWithCraftsmansDelight(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
