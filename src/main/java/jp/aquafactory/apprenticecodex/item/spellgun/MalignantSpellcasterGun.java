@@ -47,6 +47,18 @@ public class MalignantSpellcasterGun extends AbstractSpellGunItem
     }
 
     @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        // Malumのhiddenは登録済みの他アイテムも非表示側に倒すため、このアイテム自体のJEI説明を除外する。
+        return null;
+    }
+
+    @Override
+    public String getJeiInfoGroupId() {
+        // Malumのhiddenは登録済みの他アイテムも非表示側に倒すため、このアイテム自体のJEI説明を除外する。
+        return null;
+    }
+
+    @Override
     public void initializeClient(Consumer<IClientItemExtensions> consumer) {
         consumer.accept(new IClientItemExtensions() {
             private MalignantSpellcasterGunRenderer renderer;
