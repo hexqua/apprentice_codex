@@ -96,7 +96,7 @@ public class TinyLumberjack extends AbstractSummonWeaponSpell<TinyLumberjackSawE
 
     public static ItemStack createDummyTool(@Nullable LivingEntity entity) {
         var baseTool = new ItemStack(Items.IRON_AXE);
-        return CraftsmansDelight.applyEnchantsToTool(baseTool, entity);
+        return CraftsmansDelight.applyMainHandEnchantmentsToTool(baseTool, entity);
     }
 
     private int getBreakBestTime(int spellLevel, LivingEntity entity){

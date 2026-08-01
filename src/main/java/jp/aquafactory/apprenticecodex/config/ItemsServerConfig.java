@@ -260,18 +260,6 @@ final class ItemsServerConfig {
         return scarletThirstConfig.recoverEmergencyMana();
     }
 
-    boolean craftsmansDelightCanImbueEnchantment() {
-        return craftsmansDelightConfig.canImbueEnchantment();
-    }
-
-    float craftsmansDelightRequiredMana() {
-        return craftsmansDelightConfig.requiredMana();
-    }
-
-    int craftsmansDelightFortuneLevel() {
-        return craftsmansDelightConfig.fortuneLevel();
-    }
-
     double craftsmansDelightCooldownMultiplier() {
         return craftsmansDelightConfig.cooldownMultiplier();
     }

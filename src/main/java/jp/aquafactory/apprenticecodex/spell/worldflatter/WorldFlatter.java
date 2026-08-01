@@ -102,7 +102,7 @@ public class WorldFlatter extends AbstractSummonWeaponSpell<WorldFlatterDrillEnt
 
     public static ItemStack createDummyTool(@Nullable LivingEntity entity) {
         var baseTool = new ItemStack(CraftsmansDelight.isEquippedBy(entity) ? Items.NETHERITE_PICKAXE : Items.IRON_PICKAXE);
-        return CraftsmansDelight.applyEnchantsToTool(baseTool, entity);
+        return CraftsmansDelight.applyMainHandEnchantmentsToTool(baseTool, entity);
     }
 
     public static Tier getHarvestTier(@Nullable LivingEntity entity) {

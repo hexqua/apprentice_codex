@@ -11317,26 +11317,6 @@ public class ApprenticeCodexGameTestScenarios {
         prepareElevatedStonePlatform(helper, centerPos);
     }
 
-    static ItemStack getEquippedCraftsmansDelight(FakePlayer player) {
-        return top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
-                .flatMap(inventory -> inventory.findFirstCurio(ItemRegistry.CRAFTSMANS_DELIGHT.get())
-                        .map(slotResult -> slotResult.stack().copy()))
-                .orElse(ItemStack.EMPTY);
-    }
-
-    static void setCraftsmansDelightEnchantments(
-            FakePlayer player,
-            java.util.function.Consumer<ItemEnchantments.Mutable> enchantmentApplier
-    ) {
-        var equippedRing = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
-                .flatMap(inventory -> inventory.findFirstCurio(ItemRegistry.CRAFTSMANS_DELIGHT.get())
-                        .map(top.theillusivec4.curios.api.SlotResult::stack))
-                .orElseThrow(() -> new IllegalStateException("Missing equipped CraftsmansDelight for GameTest"));
-        var enchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
-        enchantmentApplier.accept(enchantments);
-        EnchantmentHelper.setEnchantments(equippedRing, enchantments.toImmutable());
-    }
-
     static void equipNecklaceCurio(FakePlayer player, ItemStack necklaceStack) {
         equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, necklaceStack);
     }
