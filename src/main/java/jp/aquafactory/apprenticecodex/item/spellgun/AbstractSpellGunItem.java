@@ -61,6 +61,8 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
 import net.minecraft.tags.TagKey;
 import net.neoforged.fml.ModList;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -1002,7 +1004,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                 "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_no_mana"
         ));
 
-        var overriddenCooldownTicks = getOverriddenCooldownTicks();
+        var overriddenCooldownTicks = spellGunConfig.tooltipOverriddenSpellCooldownTicks();
         if (overriddenCooldownTicks != null) {
             translatedLines.add(ImbueTooltipHelper.translatableGray(
                     "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_reduce_recast",
@@ -1012,8 +1014,8 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             ));
         }
 
-        var cooldownReductionTicks = spellGunConfig.cooldownReductionTicks();
-        var reducedCooldownMinimumTicks = spellGunConfig.reducedCooldownMinimumTicks();
+        var cooldownReductionTicks = spellGunConfig.tooltipCooldownReductionTicks();
+        var reducedCooldownMinimumTicks = spellGunConfig.tooltipReducedCooldownMinimumTicks();
         if (cooldownReductionTicks != null && reducedCooldownMinimumTicks != null) {
             translatedLines.add(ImbueTooltipHelper.translatableGray(
                     "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_subtract_cooldown",
@@ -1027,7 +1029,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                     "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant"
             ));
         }
-        if (spellGunConfig.ignoreMaxMana()) {
+        if (spellGunConfig.tooltipIgnoreMaxMana()) {
             translatedLines.add(ImbueTooltipHelper.translatableGray(
                     "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_ignore_max_mana"
             ));
@@ -1041,7 +1043,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
     private List<Component> collectSpellGunRestrictTooltipSection() {
         var translatedLines = new ArrayList<>(ImbueTooltipHelper.collectCastTypeRestrictionLines(spellGunConfig.supportedCastTypes()));
-        ImbueTooltipHelper.appendMaxCooldownRestrictionLine(translatedLines, spellGunConfig.maxInstantImbueCooldownTicks());
+        ImbueTooltipHelper.appendMaxCooldownRestrictionLine(translatedLines, spellGunConfig.tooltipMaxInstantImbueCooldownTicks());
         ImbueTooltipHelper.appendNoRecastRestrictionLine(translatedLines, spellGunConfig.requireZeroInstantRecast());
         return translatedLines;
     }
@@ -1158,7 +1160,8 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             @Nullable IntSupplier cooldownReductionTicksSupplier,
             @Nullable IntSupplier reducedCooldownMinimumTicksSupplier,
             boolean instantLongCast,
-            BooleanSupplier ignoreMaxManaSupplier
+            BooleanSupplier ignoreMaxManaSupplier,
+            @Nullable SpellgunTier tooltipTier
     ) {
         public SpellGunConfig {
             supportedCastTypes = Set.copyOf(Objects.requireNonNull(supportedCastTypes));
@@ -1179,12 +1182,39 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             return ignoreMaxManaSupplier.getAsBoolean();
         }
 
+        public boolean tooltipIgnoreMaxMana() {
+            var clientTooltipConfig = clientTooltipConfig();
+            if (clientTooltipConfig == null) {
+                return ignoreMaxMana();
+            }
+            return switch (clientTooltipConfig.tier()) {
+                case IRON -> clientTooltipConfig.values().ironIgnoreMaxMana();
+                case COPPER -> clientTooltipConfig.values().copperIgnoreMaxMana();
+                case GOLD -> clientTooltipConfig.values().goldIgnoreMaxMana();
+                case DIAMOND -> clientTooltipConfig.values().diamondIgnoreMaxMana();
+            };
+        }
+
         @Nullable
         public Integer maxInstantImbueCooldownTicks() {
             if (maxInstantImbueCooldownTicksSupplier == null) {
                 return null;
             }
             var ticks = maxInstantImbueCooldownTicksSupplier.getAsInt();
+            return ticks <= 0 ? null : ticks;
+        }
+
+        @Nullable
+        public Integer tooltipMaxInstantImbueCooldownTicks() {
+            var clientTooltipConfig = clientTooltipConfig();
+            if (clientTooltipConfig == null) {
+                return maxInstantImbueCooldownTicks();
+            }
+            var ticks = switch (clientTooltipConfig.tier()) {
+                case IRON -> clientTooltipConfig.values().ironMaxInstantImbueCooldownTicks();
+                case COPPER -> clientTooltipConfig.values().copperMaxInstantImbueCooldownTicks();
+                default -> 0;
+            };
             return ticks <= 0 ? null : ticks;
         }
 
@@ -1196,6 +1226,19 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         }
 
         @Nullable
+        public Integer tooltipOverriddenSpellCooldownTicks() {
+            var clientTooltipConfig = clientTooltipConfig();
+            if (clientTooltipConfig == null) {
+                return overriddenSpellCooldownTicks();
+            }
+            return switch (clientTooltipConfig.tier()) {
+                case IRON -> clientTooltipConfig.values().ironOverriddenSpellCooldownTicks();
+                case COPPER -> clientTooltipConfig.values().copperOverriddenSpellCooldownTicks();
+                default -> null;
+            };
+        }
+
+        @Nullable
         public Integer cooldownReductionTicks() {
             return cooldownReductionTicksSupplier == null
                     ? null
@@ -1203,10 +1246,40 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         }
 
         @Nullable
+        public Integer tooltipCooldownReductionTicks() {
+            var clientTooltipConfig = clientTooltipConfig();
+            return clientTooltipConfig != null && clientTooltipConfig.tier() == SpellgunTier.GOLD
+                    ? Integer.valueOf(clientTooltipConfig.values().goldCooldownReductionTicks())
+                    : cooldownReductionTicks();
+        }
+
+        @Nullable
         public Integer reducedCooldownMinimumTicks() {
             return reducedCooldownMinimumTicksSupplier == null
                     ? null
                     : Math.max(0, reducedCooldownMinimumTicksSupplier.getAsInt());
+        }
+
+        @Nullable
+        public Integer tooltipReducedCooldownMinimumTicks() {
+            var clientTooltipConfig = clientTooltipConfig();
+            return clientTooltipConfig != null && clientTooltipConfig.tier() == SpellgunTier.GOLD
+                    ? Integer.valueOf(clientTooltipConfig.values().goldReducedCooldownMinimumTicks())
+                    : reducedCooldownMinimumTicks();
+        }
+
+        @Nullable
+        private ClientTooltipConfig clientTooltipConfig() {
+            return FMLEnvironment.dist == Dist.CLIENT && tooltipTier != null
+                    ? new ClientTooltipConfig(tooltipTier, SpellgunConfigState.values())
+                    : null;
+        }
+
+        private record ClientTooltipConfig(SpellgunTier tier, SpellgunConfigState.Values values) {
+            private ClientTooltipConfig {
+                Objects.requireNonNull(tier);
+                Objects.requireNonNull(values);
+            }
         }
 
         @Nullable
@@ -1227,6 +1300,13 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             // 短縮能力で元のクールダウンを延長しないよう、設定下限より短い魔法は元値を維持する。
             return Math.min(originalTicks, reducedTicks);
         }
+    }
+
+    public enum SpellgunTier {
+        IRON,
+        COPPER,
+        GOLD,
+        DIAMOND
     }
 
     protected record AmmoTooltipEntry(Item item, @Nullable String conditionTranslationKey) {

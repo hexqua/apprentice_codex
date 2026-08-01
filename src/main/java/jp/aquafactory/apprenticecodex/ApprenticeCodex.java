@@ -18,6 +18,7 @@ import jp.aquafactory.apprenticecodex.event.ManaForceBladeConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ManaShieldCharmConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ManaThrusterConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.SoulstainedSteelSwingcastStaffConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.SpellgunConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ModEntityAttributeEvent;
 import jp.aquafactory.apprenticecodex.event.ZenithStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.client.ClientModBusEvents;
@@ -92,6 +93,7 @@ public class ApprenticeCodex
         IronSwingcastStaffConfigSyncEvents.register(modEventBus);
         HighTierSwingcastStaffConfigSyncEvents.register(modEventBus);
         SoulstainedSteelSwingcastStaffConfigSyncEvents.register(modEventBus);
+        SpellgunConfigSyncEvents.register(modEventBus);
         EquipmentSpellTimingConfigSyncEvents.register(modEventBus);
         ChargecastCatalystbookConfigSyncEvents.register(modEventBus);
         ElementalBowConfigSyncEvents.register(modEventBus);
