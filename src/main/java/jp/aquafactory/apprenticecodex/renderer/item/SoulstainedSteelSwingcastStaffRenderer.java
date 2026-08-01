@@ -2,9 +2,12 @@ package jp.aquafactory.apprenticecodex.renderer.item;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import jp.aquafactory.apprenticecodex.item.ClientItemRenderContext;
 import jp.aquafactory.apprenticecodex.item.ImbuedSpellCoreClientEffectState;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SoulstainedSteelSwingcastStaff;
+import jp.aquafactory.apprenticecodex.item.swingstaff.SoulstainedSteelSwingcastStaffClientManaCost;
 import jp.aquafactory.apprenticecodex.model.SoulstainedSteelSwingcastStaffModel;
+import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -36,13 +39,19 @@ public final class SoulstainedSteelSwingcastStaffRenderer extends GeoItemRendere
             int packedOverlay,
             int colour
     ) {
-        if (isBoneOrChildOf(bone, ORB_CONTAIN_BONE)) {
+        if (isBoneOrChildOf(bone, ORB_NONE_BONE)) {
             return;
         }
 
         if (isBoneOrChildOf(bone, STAFF_CORE_BONE)) {
             var stack = currentItemStack != null ? currentItemStack : ItemStack.EMPTY;
-            var coreState = ImbuedSpellCoreClientEffectState.resolve(stack, partialTick);
+            var requiredMana = SoulstainedSteelSwingcastStaffClientManaCost.resolveFullBurstManaCost();
+            var coreState = ImbuedSpellCoreClientEffectState.resolveWithManaRequirement(
+                    stack,
+                    ClientItemRenderContext.getRenderingEntity(),
+                    partialTick,
+                    requiredMana
+            );
             var emissiveRenderType = RenderType.entityTranslucent(getTextureLocation(animatable));
             super.renderRecursively(
                     poseStack,
@@ -60,18 +69,21 @@ public final class SoulstainedSteelSwingcastStaffRenderer extends GeoItemRendere
             return;
         }
 
-        if (isBoneOrChildOf(bone, ORB_NONE_BONE)) {
-            var translucentRenderType = RenderType.entityTranslucent(getTextureLocation(animatable));
+        if (isBoneOrChildOf(bone, ORB_CONTAIN_BONE)) {
+            var additiveRenderType = ApprenticeRenderTypes.entityAdditiveGlowNoCull(
+                    "soulstained_steel_swingcast_staff_orb_contain_additive",
+                    getTextureLocation(animatable)
+            );
             super.renderRecursively(
                     poseStack,
                     animatable,
                     bone,
-                    translucentRenderType,
+                    additiveRenderType,
                     bufferSource,
-                    bufferSource.getBuffer(translucentRenderType),
+                    bufferSource.getBuffer(additiveRenderType),
                     isReRender,
                     partialTick,
-                    packedLight,
+                    LightTexture.FULL_BRIGHT,
                     packedOverlay,
                     colour
             );
