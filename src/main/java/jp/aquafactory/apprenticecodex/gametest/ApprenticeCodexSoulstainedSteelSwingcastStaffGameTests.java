@@ -297,9 +297,11 @@ public final class ApprenticeCodexSoulstainedSteelSwingcastStaffGameTests {
         var before = countHexBolts(helper);
 
         boolean triggered;
+        boolean repeatedInSameTick;
         try (var ignored = ApprenticeCodexServerConfig
                 .useSoulstainedSteelSwingcastStaffConfigOverrideForGameTest(0.0D)) {
             triggered = item.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true);
+            repeatedInSameTick = item.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true);
         }
         if (!MalumMnemonicBladeBridge.isAvailable()) {
             helper.assertFalse(triggered, "Soulstained Steel Swingcast Staff should stay inert without Malum");
@@ -308,11 +310,48 @@ public final class ApprenticeCodexSoulstainedSteelSwingcastStaffGameTests {
         }
 
         helper.assertTrue(triggered, "Zero configured mana cost should allow a free full burst");
+        helper.assertFalse(repeatedInSameTick,
+                "A client-provided charge bypass should not allow two free bursts in the same server tick");
         helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-6F,
                 "A free full burst should not consume mana");
         helper.runAfterDelay(1, () -> {
             helper.assertTrue(countHexBolts(helper) - before == 3,
                     "Zero configured mana cost should spawn the full three-blade burst");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void soulstainedSteelSwingcastStaffRejectsOverlappingBursts(GameTestHelper helper) {
+        var item = (SoulstainedSteelSwingcastStaff) ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get();
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                helper,
+                new BlockPos(0, 4, 0),
+                "soulstained_staff_burst_interval"
+        );
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(item));
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Soulstained Steel Swingcast Staff interval test requires MagicData");
+        magicData.setMana(1000.0F);
+
+        var firstTriggered = item.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true);
+        if (!MalumMnemonicBladeBridge.isAvailable()) {
+            helper.assertFalse(firstTriggered, "Soulstained Steel Swingcast Staff should stay inert without Malum");
+            helper.succeed();
+            return;
+        }
+        helper.assertTrue(firstTriggered, "The first Mnemonic Blade burst should fire");
+
+        helper.runAfterDelay(SoulstainedSteelSwingcastStaff.MIN_BURST_INTERVAL_TICKS - 1, () ->
+                helper.assertFalse(
+                        item.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
+                        "A second burst should stay blocked until the previous 0/3/6-tick burst completes"
+                ));
+        helper.runAfterDelay(SoulstainedSteelSwingcastStaff.MIN_BURST_INTERVAL_TICKS, () -> {
+            helper.assertTrue(
+                    item.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
+                    "A second burst should be allowed after the seven-tick server interval"
+            );
             helper.succeed();
         });
     }
