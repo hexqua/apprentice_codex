@@ -29,7 +29,8 @@ public class DiamondSpellcasterGun extends AbstractSpellGunItem implements GeoIt
             null,
             null,
             true,
-            ApprenticeCodexServerConfig::diamondSpellgunIgnoreMaxMana
+            ApprenticeCodexServerConfig::diamondSpellgunIgnoreMaxMana,
+            SpellgunTier.DIAMOND
     );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 

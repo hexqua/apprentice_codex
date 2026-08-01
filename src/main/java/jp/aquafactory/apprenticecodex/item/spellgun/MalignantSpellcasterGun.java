@@ -33,7 +33,8 @@ public class MalignantSpellcasterGun extends AbstractSpellGunItem
             null,
             null,
             true,
-            () -> true
+            () -> true,
+            null
     );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
