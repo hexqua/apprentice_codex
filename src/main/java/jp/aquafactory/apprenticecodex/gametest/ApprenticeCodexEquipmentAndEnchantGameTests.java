@@ -169,6 +169,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellSideEdgeBridgeIncludesEnchantmentAttributeModifiers(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.spellSideEdgeBridgeIncludesEnchantmentAttributeModifiers(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellSideEdgeBridgeIncludesMalumHauntedMagicDamage(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.spellSideEdgeBridgeIncludesMalumHauntedMagicDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellSideEdgeBridgeDoesNotDoubleApplyUpgradeOrbModifiers(GameTestHelper helper) {
         SpellSideEdgeGameTestScenarios.spellSideEdgeBridgeDoesNotDoubleApplyUpgradeOrbModifiers(helper);
     }

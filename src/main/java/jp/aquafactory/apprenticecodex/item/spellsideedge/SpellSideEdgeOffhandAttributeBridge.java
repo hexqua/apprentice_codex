@@ -11,7 +11,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.ItemAttributeModifiers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,8 +62,8 @@ public final class SpellSideEdgeOffhandAttributeBridge {
         }
 
         return buildBridgeModifiers(
-                filterBySlot(resolveRuntimeModifiers(offhandStack), net.minecraft.world.entity.EquipmentSlot.MAINHAND),
-                filterBySlot(resolveRuntimeModifiers(offhandStack), net.minecraft.world.entity.EquipmentSlot.OFFHAND)
+                resolveRuntimeModifiers(offhandStack, net.minecraft.world.entity.EquipmentSlot.MAINHAND),
+                resolveRuntimeModifiers(offhandStack, net.minecraft.world.entity.EquipmentSlot.OFFHAND)
         );
     }
 
@@ -151,24 +150,13 @@ public final class SpellSideEdgeOffhandAttributeBridge {
         return buildBridgeModifiers(player.getOffhandItem());
     }
 
-    private static java.util.List<ItemAttributeModifiers.Entry> resolveRuntimeModifiers(ItemStack stack) {
-        return stack.getAttributeModifiers().modifiers();
-    }
-
-    private static Multimap<Holder<Attribute>, AttributeModifier> filterBySlot(
-            java.util.List<ItemAttributeModifiers.Entry> modifiers,
+    private static Multimap<Holder<Attribute>, AttributeModifier> resolveRuntimeModifiers(
+            ItemStack stack,
             net.minecraft.world.entity.EquipmentSlot slot
     ) {
-        if (modifiers == null || modifiers.isEmpty()) {
-            return ImmutableMultimap.of();
-        }
-
         var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
-        for (var entry : modifiers) {
-            if (entry.slot().test(slot)) {
-                builder.put(entry.attribute(), entry.modifier());
-            }
-        }
+        // 1.21.1のAttributeエンチャントはDataComponent本体ではなく、この列挙時に合成される。
+        stack.forEachModifier(slot, builder::put);
         return builder.build();
     }
 
