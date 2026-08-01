@@ -24,7 +24,9 @@ import jp.aquafactory.apprenticecodex.spell.edgedancer.EdgeDancerManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
@@ -44,7 +46,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.minecraft.world.item.enchantment.LevelBasedValue;
+import net.minecraft.world.item.enchantment.effects.EnchantmentAttributeEffect;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import net.neoforged.fml.ModList;
@@ -251,6 +259,149 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
                     0.12D,
                     "Spell Side Edge bridge should include stack AttributeModifiers NBT"
+            );
+        });
+    }
+
+    static void spellSideEdgeBridgeIncludesEnchantmentAttributeModifiers(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spellPower = AttributeRegistry.SPELL_POWER;
+            var stack = new ItemStack(Items.STICK);
+            var spellPowerAmount = LevelBasedValue.perLevel(0.04F);
+            var expectedSpellPowerAmount = (double) spellPowerAmount.calculate(2);
+            var enchantment = Holder.direct(
+                    Enchantment.enchantment(
+                                    Enchantment.definition(
+                                            HolderSet.direct(BuiltInRegistries.ITEM.wrapAsHolder(Items.STICK)),
+                                            1,
+                                            2,
+                                            Enchantment.constantCost(1),
+                                            Enchantment.constantCost(1),
+                                            1,
+                                            EquipmentSlotGroup.MAINHAND
+                                    )
+                            )
+                            .withEffect(
+                                    EnchantmentEffectComponents.ATTRIBUTES,
+                                    new EnchantmentAttributeEffect(
+                                            ResourceLocation.fromNamespaceAndPath(
+                                                    "apprenticecodex",
+                                                    "gametest/spell_side_edge_enchanted_spell_power"
+                                            ),
+                                            spellPower,
+                                            spellPowerAmount,
+                                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                                    )
+                            )
+                            .withEffect(
+                                    EnchantmentEffectComponents.ATTRIBUTES,
+                                    new EnchantmentAttributeEffect(
+                                            ResourceLocation.fromNamespaceAndPath(
+                                                    "apprenticecodex",
+                                                    "gametest/spell_side_edge_enchanted_attack_speed"
+                                            ),
+                                            Attributes.ATTACK_SPEED,
+                                            LevelBasedValue.constant(0.5F),
+                                            AttributeModifier.Operation.ADD_VALUE
+                                    )
+                            )
+                            .build(ResourceLocation.fromNamespaceAndPath(
+                                    "apprenticecodex",
+                                    "gametest_spell_side_edge_attribute"
+                            ))
+            );
+            setEnchantment(stack, enchantment, 2);
+
+            var bridgedModifiers = SpellSideEdgeOffhandAttributeBridge.buildBridgeModifiers(stack);
+            assertSingleModifierAmount(
+                    helper,
+                    bridgedModifiers.get(spellPower),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
+                    expectedSpellPowerAmount,
+                    "Spell Side Edge bridge should include enchantment Attribute effects"
+            );
+            helper.assertTrue(bridgedModifiers.get(Attributes.ATTACK_SPEED).isEmpty(),
+                    "Spell Side Edge bridge should still exclude enchanted attack speed: "
+                            + describeModifiers(bridgedModifiers));
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "spell_side_edge_enchantment_attribute_resync_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SPELL_SIDE_EDGE.get()));
+            player.setItemInHand(InteractionHand.OFF_HAND, stack);
+            var spellPowerInstance = player.getAttribute(spellPower);
+            helper.assertTrue(spellPowerInstance != null,
+                    "Spell Side Edge enchantment bridge test could not resolve player spell power attribute");
+
+            SpellSideEdgeOffhandAttributeBridge.sync(player);
+            var enchantedAmount = sumModifierAmount(
+                    spellPowerInstance.getModifiers(),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+            );
+            helper.assertTrue(Math.abs(enchantedAmount - expectedSpellPowerAmount) < TOLERANCE,
+                    "Spell Side Edge bridge should apply enchantment Attribute effects, got "
+                            + enchantedAmount + " modifiers=" + spellPowerInstance.getModifiers());
+
+            setEnchantment(stack, enchantment, 1);
+            SpellSideEdgeOffhandAttributeBridge.sync(player);
+            var changedLevelAmount = sumModifierAmount(
+                    spellPowerInstance.getModifiers(),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+            );
+            var expectedChangedLevelAmount = (double) spellPowerAmount.calculate(1);
+            helper.assertTrue(Math.abs(changedLevelAmount - expectedChangedLevelAmount) < TOLERANCE,
+                    "Spell Side Edge bridge should resync changed enchantment levels, got "
+                            + changedLevelAmount + " modifiers=" + spellPowerInstance.getModifiers());
+
+            EnchantmentHelper.setEnchantments(stack, ItemEnchantments.EMPTY);
+            SpellSideEdgeOffhandAttributeBridge.sync(player);
+            var clearedAmount = sumModifierAmount(
+                    spellPowerInstance.getModifiers(),
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+            );
+            helper.assertTrue(Math.abs(clearedAmount) < TOLERANCE,
+                    "Spell Side Edge bridge should clear removed enchantment Attribute effects, got "
+                            + clearedAmount + " modifiers=" + spellPowerInstance.getModifiers());
+        });
+    }
+
+    static void spellSideEdgeBridgeIncludesMalumHauntedMagicDamage(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded("malum")) {
+                return;
+            }
+
+            var sword = BuiltInRegistries.ITEM.getOptional(ResourceLocation.fromNamespaceAndPath(
+                    "malum",
+                    "soul_stained_steel_sword"
+            )).orElse(null);
+            var magicDamage = BuiltInRegistries.ATTRIBUTE.getOptional(ResourceLocation.fromNamespaceAndPath(
+                    "lodestone",
+                    "magic_damage"
+            )).orElse(null);
+            var enchantmentRegistry = helper.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT);
+            var haunted = enchantmentRegistry.getHolder(
+                    net.minecraft.resources.ResourceKey.create(
+                            Registries.ENCHANTMENT,
+                            ResourceLocation.fromNamespaceAndPath("malum", "haunted")
+                    )
+            ).orElse(null);
+            helper.assertTrue(sword != null, "Missing malum:soul_stained_steel_sword item");
+            helper.assertTrue(magicDamage != null, "Missing lodestone:magic_damage attribute");
+            helper.assertTrue(haunted != null, "Missing malum:haunted enchantment");
+            if (sword == null || magicDamage == null || haunted == null) {
+                return;
+            }
+
+            var stack = new ItemStack(sword);
+            setEnchantment(stack, haunted, 2);
+            var magicDamageHolder = BuiltInRegistries.ATTRIBUTE.wrapAsHolder(magicDamage);
+            var bridgedModifiers = SpellSideEdgeOffhandAttributeBridge.buildBridgeModifiers(stack);
+            assertSingleModifierAmount(
+                    helper,
+                    bridgedModifiers.get(magicDamageHolder),
+                    AttributeModifier.Operation.ADD_VALUE,
+                    5.0D,
+                    "Spell Side Edge bridge should include Soulstained Steel Sword and Haunted II magic damage"
             );
         });
     }
@@ -829,6 +980,12 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
                 modifier("stack_spell_power", amount, AttributeModifier.Operation.ADD_MULTIPLIED_BASE)
         );
         return stack;
+    }
+
+    private static void setEnchantment(ItemStack stack, Holder<Enchantment> enchantment, int level) {
+        var enchantments = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+        enchantments.set(enchantment, level);
+        EnchantmentHelper.setEnchantments(stack, enchantments.toImmutable());
     }
 
     private static void addStackAttributeModifier(

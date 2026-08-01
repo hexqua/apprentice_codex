@@ -49,6 +49,8 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
                     AttributeEnchantmentPolicy.ALL_ATTRIBUTE_ENCHANTMENTS, "Spell Gun");
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get()),
                     GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS, "Swingcast Staff");
+            assertDefinitionSurface(helper, new ItemStack(ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get()),
+                    GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS, "Soulstained Steel Swingcast Staff");
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()),
                     GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS, "Mithril Freecast Staff");
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get()),
@@ -88,6 +90,8 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
             assertDirectAttributePolicy(helper, ItemRegistry.IRON_SPELLCASTER_GUN.get(),
                     AttributeEnchantmentPolicy.ALL_ATTRIBUTE_ENCHANTMENTS);
             assertDirectAttributePolicy(helper, ItemRegistry.COPPER_SWINGCAST_STAFF.get(),
+                    GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS);
+            assertDirectAttributePolicy(helper, ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get(),
                     GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS);
             assertDirectAttributePolicy(helper, ItemRegistry.MITHRIL_FREECAST_STAFF.get(),
                     GENERAL_STAFF_AND_ARMOR_ENCHANTMENTS);

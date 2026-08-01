@@ -66,6 +66,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> MALUM_SOUL_SHATTER_CAPABLE_WEAPON = createTag("malum", "soul_shatter_capable_weapon");
     private static final TagKey<Item> MALUM_SOULWOVEN_POUCH_EFFICIENT = createTag("malum", "soulwoven_pouch_efficient");
     private static final TagKey<Item> MALUM_REPLENISHING_ENCHANTABLE = createTag("malum", "enchantable/replenishing");
+    private static final TagKey<Item> MALUM_HIDDEN_UNTIL_VOID = createTag("malum", "hidden_items/void");
+    private static final TagKey<Item> MALUM_HIDDEN_UNTIL_BLACK_CRYSTAL =
+            createTag("malum", "hidden_items/black_crystal");
     private static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = createTag("traveloptics", "can_cast_reversal");
     private static final TagKey<Item> HIDDEN_FROM_RECIPE_VIEWERS = createTag("c", "hidden_from_recipe_viewers");
     private static final TagKey<Item> ALACRITY_ENCHANTABLE = Enchantments.ALACRITY_ENCHANTABLE;
@@ -119,6 +122,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var malumSoulShatterCapableWeaponTag = tag(MALUM_SOUL_SHATTER_CAPABLE_WEAPON);
         var malumSoulwovenPouchEfficientTag = tag(MALUM_SOULWOVEN_POUCH_EFFICIENT);
         var malumReplenishingEnchantableTag = tag(MALUM_REPLENISHING_ENCHANTABLE);
+        tag(MALUM_HIDDEN_UNTIL_VOID).add(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get());
+        tag(MALUM_HIDDEN_UNTIL_BLACK_CRYSTAL).add(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get());
         var tomagicReversalWeaponTag = tag(TOMAGIC_REVERSAL_WEAPON);
         var transcendenceEnchantableTag = tag(TRANSCENDENCE_ENCHANTABLE);
         var wisdomEnchantableTag = tag(WISDOM_ENCHANTABLE);

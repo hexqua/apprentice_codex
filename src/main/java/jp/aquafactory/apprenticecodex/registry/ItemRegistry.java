@@ -75,6 +75,7 @@ import jp.aquafactory.apprenticecodex.item.offhand.IronSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.NetheriteSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.offhand.SilverSpellAmplifier;
+import jp.aquafactory.apprenticecodex.item.offhand.SoulstainedSteelSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeSheathItem;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
@@ -88,6 +89,7 @@ import jp.aquafactory.apprenticecodex.item.spellgun.CopperSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.DiamondSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.GoldSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.IronSpellcasterGun;
+import jp.aquafactory.apprenticecodex.item.spellgun.MalignantSpellcasterGun;
 import net.minecraft.core.registries.Registries;
 import jp.aquafactory.apprenticecodex.item.swingstaff.CopperSwingcastStaff;
 import jp.aquafactory.apprenticecodex.item.swingstaff.DiamondSwingcastStaff;
@@ -95,6 +97,7 @@ import jp.aquafactory.apprenticecodex.item.swingstaff.GoldSwingcastStaff;
 import jp.aquafactory.apprenticecodex.item.swingstaff.IronSwingcastStaff;
 import jp.aquafactory.apprenticecodex.item.swingstaff.NetheriteSwingcastStaff;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SilverSwingcastStaff;
+import jp.aquafactory.apprenticecodex.item.swingstaff.SoulstainedSteelSwingcastStaff;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ArmorItem;
@@ -366,6 +369,8 @@ public final class ItemRegistry {
             ITEMS.register("gold_spellcaster_gun", GoldSpellcasterGun::new);
     public static final DeferredHolder<Item, Item> DIAMOND_SPELLCASTER_GUN =
             ITEMS.register("diamond_spellcaster_gun", DiamondSpellcasterGun::new);
+    public static final DeferredHolder<Item, Item> MALIGNANT_SPELLCASTER_GUN =
+            ITEMS.register("malignant_spellcaster_gun", MalignantSpellcasterGun::new);
     public static final DeferredHolder<Item, Item> IRON_SPELL_AMPLIFIER =
             ITEMS.register("iron_spell_amplifier", IronSpellAmplifier::new);
     public static final DeferredHolder<Item, Item> COPPER_SPELL_AMPLIFIER =
@@ -378,6 +383,8 @@ public final class ItemRegistry {
             ITEMS.register("silver_spell_amplifier", SilverSpellAmplifier::new);
     public static final DeferredHolder<Item, Item> NETHERITE_SPELL_AMPLIFIER =
             ITEMS.register("netherite_spell_amplifier", NetheriteSpellAmplifier::new);
+    public static final DeferredHolder<Item, Item> SOULSTAINED_STEEL_SPELL_AMPLIFIER =
+            ITEMS.register("soulstained_steel_spell_amplifier", SoulstainedSteelSpellAmplifier::new);
     public static final DeferredHolder<Item, Item> PHOTON_SIPHON =
             ITEMS.register("photon_siphon", PhotonSiphon::new);
     public static final DeferredHolder<Item, Item> EXPLORERS_CANE =
@@ -436,6 +443,8 @@ public final class ItemRegistry {
             ITEMS.register("diamond_swingcast_staff", DiamondSwingcastStaff::new);
     public static final DeferredHolder<Item, Item> NETHERITE_SWINGCAST_STAFF =
             ITEMS.register("netherite_swingcast_staff", NetheriteSwingcastStaff::new);
+    public static final DeferredHolder<Item, Item> SOULSTAINED_STEEL_SWINGCAST_STAFF =
+            ITEMS.register("soulstained_steel_swingcast_staff", SoulstainedSteelSwingcastStaff::new);
     public static final DeferredHolder<Item, Item> MITHRIL_FREECAST_STAFF =
             ITEMS.register("mithril_freecast_staff", MithrilFreecastStaff::new);
     public static final DeferredHolder<Item, Item> REVOLVERCAST_STAFF =

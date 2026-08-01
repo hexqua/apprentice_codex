@@ -2,8 +2,7 @@ package jp.aquafactory.apprenticecodex.item.spellgun;
 
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
-import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
-import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -26,7 +25,9 @@ public class DiamondSpellcasterGun extends AbstractSpellGunItem implements GeoIt
             null,
             null,
             null,
-            true
+            true,
+            ApprenticeCodexServerConfig::diamondSpellgunIgnoreMaxMana,
+            SpellgunTier.DIAMOND
     );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 

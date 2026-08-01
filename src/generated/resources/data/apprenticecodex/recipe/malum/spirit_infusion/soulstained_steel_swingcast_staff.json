@@ -1,0 +1,43 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "malum"
+    }
+  ],
+  "type": "malum:spirit_infusion",
+  "extraInputs": [
+    {
+      "count": 8,
+      "item": "malum:refined_brilliance"
+    },
+    {
+      "count": 4,
+      "item": "malum:soul_stained_steel_ingot"
+    },
+    {
+      "count": 8,
+      "item": "malum:hex_ash"
+    }
+  ],
+  "input": {
+    "item": "apprenticecodex:iron_swingcast_staff"
+  },
+  "result": {
+    "id": "apprenticecodex:soulstained_steel_swingcast_staff"
+  },
+  "spirits": [
+    {
+      "type": "malum:wicked",
+      "count": 32
+    },
+    {
+      "type": "malum:arcane",
+      "count": 16
+    },
+    {
+      "type": "malum:eldritch",
+      "count": 8
+    }
+  ]
+}

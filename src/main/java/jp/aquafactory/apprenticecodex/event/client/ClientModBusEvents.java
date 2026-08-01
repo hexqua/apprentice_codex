@@ -59,6 +59,7 @@ import jp.aquafactory.apprenticecodex.renderer.item.ExplorersCaneRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.FocusStaffbowRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.GoldSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IronSpellcasterGunRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.MalignantSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IlluminateStellarStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.LuminousDeviceRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.MithrilFreecastStaffRenderer;
@@ -72,6 +73,7 @@ import jp.aquafactory.apprenticecodex.renderer.item.ParrycastBucklerRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.ScrollcasterGauntletRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.SpellAmplifierRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.SwingcastStaffRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.SoulstainedSteelSwingcastStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.UniteLunaStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.tooltip.SpellcasterAmmoPouchClientTooltipComponent;
 import jp.aquafactory.apprenticecodex.spell.anchorblink.AnchorBlinkDaggerRenderer;
@@ -485,6 +487,17 @@ public final class ClientModBusEvents {
                 ItemRegistry.DIAMOND_SWINGCAST_STAFF.get(),
                 ItemRegistry.NETHERITE_SWINGCAST_STAFF.get());
         event.registerItem(new IClientItemExtensions() {
+            private SoulstainedSteelSwingcastStaffRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new SoulstainedSteelSwingcastStaffRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get());
+        event.registerItem(new IClientItemExtensions() {
             private IronSpellcasterGunRenderer renderer;
 
             @Override
@@ -529,6 +542,17 @@ public final class ClientModBusEvents {
             }
         }, ItemRegistry.DIAMOND_SPELLCASTER_GUN.get());
         event.registerItem(new IClientItemExtensions() {
+            private MalignantSpellcasterGunRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new MalignantSpellcasterGunRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get());
+        event.registerItem(new IClientItemExtensions() {
             private SpellAmplifierRenderer renderer;
 
             @Override
@@ -544,7 +568,8 @@ public final class ClientModBusEvents {
                 ItemRegistry.GOLD_SPELL_AMPLIFIER.get(),
                 ItemRegistry.DIAMOND_SPELL_AMPLIFIER.get(),
                 ItemRegistry.SILVER_SPELL_AMPLIFIER.get(),
-                ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get());
+                ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get(),
+                ItemRegistry.SOULSTAINED_STEEL_SPELL_AMPLIFIER.get());
         event.registerItem(new IClientItemExtensions() {
             private ExplorersCaneRenderer renderer;
 
