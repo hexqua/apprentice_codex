@@ -5,8 +5,12 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumMnemonicBladeBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SoulstainedSteelSwingcastStaffServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
+import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -35,9 +39,10 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public final class SoulstainedSteelSwingcastStaff extends AbstractRightClickMagicWeaponItem
-        implements SwingTriggeredMagicItem, GeoItem {
+        implements SwingTriggeredMagicItem, GeoItem, AttributeEnchantmentPolicy {
     public static final double DEFAULT_MANA_COST_PER_BLADE =
             SoulstainedSteelSwingcastStaffServerConfig.DEFAULT_MANA_COST_PER_BLADE;
     public static final double MIN_CHARGE_RECOVERY_RATE = 0.01D;
@@ -46,6 +51,12 @@ public final class SoulstainedSteelSwingcastStaff extends AbstractRightClickMagi
     public static final double MAGIC_DAMAGE_BONUS = 3.0D;
     public static final int ENCHANTMENT_VALUE = 16;
     private static final String ITEM_KEY = "soulstained_steel_swingcast_staff";
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.ALACRITY,
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR,
+            AttributeEnchantmentType.TENSE
+    );
     private static final ResourceLocation MAGIC_DAMAGE =
             ResourceLocation.fromNamespaceAndPath("lodestone", "magic_damage");
     private static final ResourceLocation MAGIC_DAMAGE_MODIFIER =
@@ -155,21 +166,35 @@ public final class SoulstainedSteelSwingcastStaff extends AbstractRightClickMagi
     @Override
     public @NotNull ItemAttributeModifiers getDefaultAttributeModifiers(@NotNull ItemStack stack) {
         var baseModifiers = super.getDefaultAttributeModifiers(stack);
-        var magicDamage = BuiltInRegistries.ATTRIBUTE.getOptional(MAGIC_DAMAGE).orElse(null);
-        if (magicDamage == null) {
-            return baseModifiers;
-        }
-
         var builder = ItemAttributeModifiers.builder();
         for (var entry : baseModifiers.modifiers()) {
             builder.add(entry.attribute(), entry.modifier(), entry.slot());
         }
-        builder.add(
+
+        BuiltInRegistries.ATTRIBUTE.getOptional(MAGIC_DAMAGE).ifPresent(magicDamage -> builder.add(
                 BuiltInRegistries.ATTRIBUTE.wrapAsHolder(magicDamage),
                 new AttributeModifier(MAGIC_DAMAGE_MODIFIER, MAGIC_DAMAGE_BONUS, AttributeModifier.Operation.ADD_VALUE),
                 EquipmentSlotGroup.MAINHAND
+        ));
+
+        var hasEnchantmentModifiers = AttributeEnchantmentResolver.addModifiers(
+                builder,
+                stack,
+                EquipmentSlotGroup.MAINHAND,
+                ITEM_KEY + "_mainhand_enchant"
         );
-        return builder.build();
+        if (!hasEnchantmentModifiers) {
+            return builder.build();
+        }
+        return MagicAttributeModifierHelper.mergeLinearMagicModifiers(
+                builder.build(),
+                ITEM_KEY + "_mainhand_merged"
+        );
+    }
+
+    @Override
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
     }
 
     @Override
