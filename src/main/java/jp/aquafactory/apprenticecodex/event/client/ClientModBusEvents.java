@@ -59,6 +59,7 @@ import jp.aquafactory.apprenticecodex.renderer.item.ExplorersCaneRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.FocusStaffbowRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.GoldSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IronSpellcasterGunRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.MalignantSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.IlluminateStellarStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.LuminousDeviceRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.MithrilFreecastStaffRenderer;
@@ -540,6 +541,17 @@ public final class ClientModBusEvents {
                 return renderer;
             }
         }, ItemRegistry.DIAMOND_SPELLCASTER_GUN.get());
+        event.registerItem(new IClientItemExtensions() {
+            private MalignantSpellcasterGunRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new MalignantSpellcasterGunRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get());
         event.registerItem(new IClientItemExtensions() {
             private SpellAmplifierRenderer renderer;
 

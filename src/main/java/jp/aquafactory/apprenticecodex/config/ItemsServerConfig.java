@@ -528,6 +528,34 @@ final class ItemsServerConfig {
         return spellgunConfig.goldCooldownReductionTicks();
     }
 
+    boolean ironSpellgunIgnoreMaxMana() {
+        return spellgunConfig.ironIgnoreMaxMana();
+    }
+
+    boolean copperSpellgunIgnoreMaxMana() {
+        return spellgunConfig.copperIgnoreMaxMana();
+    }
+
+    boolean goldSpellgunIgnoreMaxMana() {
+        return spellgunConfig.goldIgnoreMaxMana();
+    }
+
+    boolean diamondSpellgunIgnoreMaxMana() {
+        return spellgunConfig.diamondIgnoreMaxMana();
+    }
+
+    double malignantSpellgunForcedSpellPower() {
+        return spellgunConfig.malignantForcedSpellPower();
+    }
+
+    double malignantSpellgunForcedSchoolSpellPower() {
+        return spellgunConfig.malignantForcedSchoolSpellPower();
+    }
+
+    double malignantSpellgunForcedSummonDamage() {
+        return spellgunConfig.malignantForcedSummonDamage();
+    }
+
     boolean isCircuitHeatStaffSpellDenied(ResourceLocation spellId) {
         return circuitHeatStaffConfig.isSpellDenied(spellId);
     }

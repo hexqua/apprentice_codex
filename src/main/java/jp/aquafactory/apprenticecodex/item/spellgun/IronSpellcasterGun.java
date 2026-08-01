@@ -3,8 +3,6 @@ package jp.aquafactory.apprenticecodex.item.spellgun;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
-import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -26,7 +24,8 @@ public class IronSpellcasterGun extends AbstractSpellGunItem implements GeoItem 
             ApprenticeCodexServerConfig::ironSpellgunOverriddenSpellCooldownTicks,
             null,
             null,
-            false
+            false,
+            ApprenticeCodexServerConfig::ironSpellgunIgnoreMaxMana
     );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 

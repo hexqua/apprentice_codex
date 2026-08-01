@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunCastContext;
 import jp.aquafactory.apprenticecodex.item.RightClickSpellItemHelper;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -52,6 +53,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestScenarios {
+    private static final ResourceLocation MALIGNANT_SPELLCASTER_GUN_SPIRIT_INFUSION_RECIPE =
+            ResourceLocation.fromNamespaceAndPath(
+                    ApprenticeCodex.MODID,
+                    "malum/spirit_infusion/malignant_spellcaster_gun"
+            );
     private static final ResourceLocation FIXED_COOLDOWN_REDUCTION_TEST_MODIFIER_ID =
             ResourceLocation.fromNamespaceAndPath(
                     ApprenticeCodex.MODID,
@@ -699,6 +705,20 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                     "Gold Spellcaster Gun reduced cooldown minimum default changed");
             helper.assertTrue(ApprenticeCodexServerConfig.goldSpellgunCooldownReductionTicks() == 200,
                     "Gold Spellcaster Gun cooldown reduction default changed");
+            helper.assertFalse(ApprenticeCodexServerConfig.ironSpellgunIgnoreMaxMana(),
+                    "Iron Spellcaster Gun should not ignore maximum mana by default");
+            helper.assertFalse(ApprenticeCodexServerConfig.copperSpellgunIgnoreMaxMana(),
+                    "Copper Spellcaster Gun should not ignore maximum mana by default");
+            helper.assertFalse(ApprenticeCodexServerConfig.goldSpellgunIgnoreMaxMana(),
+                    "Gold Spellcaster Gun should not ignore maximum mana by default");
+            helper.assertFalse(ApprenticeCodexServerConfig.diamondSpellgunIgnoreMaxMana(),
+                    "Diamond Spellcaster Gun should not ignore maximum mana by default");
+            helper.assertTrue(ApprenticeCodexServerConfig.malignantSpellgunForcedSpellPower() == 1.0D,
+                    "Malignant Spellcaster Gun forced generic spell power default changed");
+            helper.assertTrue(ApprenticeCodexServerConfig.malignantSpellgunForcedSchoolSpellPower() == 1.0D,
+                    "Malignant Spellcaster Gun forced school spell power default changed");
+            helper.assertTrue(ApprenticeCodexServerConfig.malignantSpellgunForcedSummonDamage() == 1.0D,
+                    "Malignant Spellcaster Gun forced summon damage default changed");
 
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellgun_default_config_test");
             var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
@@ -1119,6 +1139,128 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
         });
     }
 
+    static void spellgunMaximumManaBypassIsExplicitAndScoped(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var diamond = (AbstractSpellGunItem) ItemRegistry.DIAMOND_SPELLCASTER_GUN.get();
+            var diamondStack = new ItemStack(diamond);
+            applyRestrictedImbueNormalization(helper, diamondStack, diamond, spell, 1);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellgun_max_mana_scope_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, diamondStack);
+            player.getInventory().add(new ItemStack(ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get()));
+            var maxMana = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA);
+            helper.assertTrue(maxMana != null, "Spellgun maximum mana test requires MAX_MANA");
+            maxMana.setBaseValue(0.0D);
+            MagicData.getPlayerMagicData(player).setMana(0.0F);
+
+            helper.assertFalse(diamond.tryTriggerImbuedSpell(player, InteractionHand.MAIN_HAND, null),
+                    "Default Diamond Spellgun must reject a spell above maximum mana");
+            var error = createUnsatisfiedMaxManaError(helper, diamondStack);
+            assertTranslatableKey(helper, error, "ui.apprenticecodex.spellgun.unsatisfied_max_mana",
+                    "Maximum mana failure should use the dedicated Spellgun error");
+
+            try (var ignored = ApprenticeCodexServerConfig.useSpellgunConfigOverrideForGameTest(
+                    new SpellgunServerConfig.Values(
+                            20 * 5, 4, 20 * 20, 20, 10, 200,
+                            false, false, false, true,
+                            1.0D, 1.0D, 1.0D
+                    ))) {
+                helper.assertTrue(diamond.tryTriggerImbuedSpell(player, InteractionHand.MAIN_HAND, null),
+                        "Configured Diamond Spellgun should initiate at zero maximum mana");
+                helper.assertTrue(MagicData.getPlayerMagicData(player).isCasting(),
+                        "Maximum mana bypass should enter Iron's normal casting state");
+                MagicData.getPlayerMagicData(player).resetCastingState();
+            }
+
+            var outsideContext = spell.canBeCastedBy(
+                    1,
+                    CastSource.SWORD,
+                    MagicData.getPlayerMagicData(player),
+                    player
+            );
+            helper.assertFalse(outsideContext.isSuccess(),
+                    "CastSource.SWORD without Spellgun context must remain mana-gated");
+        });
+    }
+
+    static void malignantSpellgunForcesOnlyActivationPower(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (AbstractSpellGunItem) ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get();
+            var stack = new ItemStack(item);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "malignant_spellgun_power_test");
+            var genericPower = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER);
+            var summonDamage = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SUMMON_DAMAGE);
+            helper.assertTrue(genericPower != null && summonDamage != null,
+                    "Malignant Spellgun power test requires Iron's power attributes");
+            genericPower.setBaseValue(0.0D);
+            summonDamage.setBaseValue(0.0D);
+
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var basePower = spell.getSpellPower(1, null);
+            helper.assertTrue(spell.getSpellPower(1, player) == 0.0F,
+                    "Zero generic spell power should remain zero outside Malignant context");
+
+            try (var config = ApprenticeCodexServerConfig.useSpellgunConfigOverrideForGameTest(
+                    new SpellgunServerConfig.Values(
+                            20 * 5, 4, 20 * 20, 20, 10, 200,
+                            false, false, false, false,
+                            2.0D, 3.0D, 4.0D
+                    ))) {
+                try (var ignored = SpellgunCastContext.openInitiation(player, spell, stack, true)) {
+                    helper.assertTrue(Math.abs(spell.getSpellPower(1, player) - basePower * 6.0F) < 1.0e-4F,
+                            "Malignant initiation should replace generic and school spell power");
+                    helper.assertTrue(player.getAttributeValue(
+                                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SUMMON_DAMAGE) == 0.0D,
+                            "Summon damage must not be replaced during pre-cast checks");
+                }
+
+                var magicData = MagicData.getPlayerMagicData(player);
+                magicData.setPlayerCastingItem(stack);
+                try (var ignored = SpellgunCastContext.openActivation(player, spell, magicData)) {
+                    helper.assertTrue(Math.abs(spell.getSpellPower(1, player) - basePower * 6.0F) < 1.0e-4F,
+                            "Malignant activation should replace generic and school spell power");
+                    helper.assertTrue(player.getAttributeValue(
+                                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SUMMON_DAMAGE) == 4.0D,
+                            "Malignant activation should replace summon damage");
+                }
+            }
+
+            helper.assertTrue(spell.getSpellPower(1, player) == 0.0F,
+                    "Malignant spell power override must end with its context");
+            helper.assertTrue(player.getAttributeValue(
+                            io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SUMMON_DAMAGE) == 0.0D,
+                    "Malignant summon damage override must end with its context");
+            helper.assertTrue(item.getAmmoItem(stack, new SpellData(spell, 1, false))
+                            == ItemRegistry.SPELL_DOMINATOR_ROUND.get(),
+                    "Malignant Spellgun must always use Spell Dominator Rounds");
+            var diamondItem = (AbstractSpellGunItem) ItemRegistry.DIAMOND_SPELLCASTER_GUN.get();
+            helper.assertTrue(item.directlyApplicableAttributeEnchantments()
+                            .equals(diamondItem.directlyApplicableAttributeEnchantments()),
+                    "Malignant Spellgun must keep Diamond Spellgun Attribute enchantment policy");
+            var abilityLines = collectSpellgunAbilityTooltipLines(helper, item);
+            helper.assertTrue(containsTranslatableKey(abilityLines,
+                            "item.apprenticecodex.spellgun.tooltip.ability_ignore_max_mana"),
+                    "Malignant Spellgun should show maximum mana bypass ability");
+            helper.assertTrue(containsTranslatableKey(abilityLines,
+                            "item.apprenticecodex.spellgun.tooltip.ability_force_spell_power"),
+                    "Malignant Spellgun should show forced spell power ability");
+        });
+    }
+
+    static void malignantSpellgunSpiritInfusionRecipeFollowsMalumAvailability(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var recipe = helper.getLevel().getRecipeManager()
+                    .byKey(MALIGNANT_SPELLCASTER_GUN_SPIRIT_INFUSION_RECIPE);
+            if (ModList.get().isLoaded("malum")) {
+                helper.assertTrue(recipe.isPresent(),
+                        "Malignant Spellgun Spirit Infusion recipe should be loaded with Malum");
+            } else {
+                helper.assertTrue(recipe.isEmpty(),
+                        "Malignant Spellgun Spirit Infusion recipe should not be loaded without Malum");
+            }
+        });
+    }
+
     private static void assertSpellgunAbilityTooltipKeys(
             GameTestHelper helper,
             AbstractSpellGunItem item,
@@ -1195,6 +1337,20 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             return (Component) method.invoke(null, player, stack, spellData);
         } catch (ReflectiveOperationException exception) {
             helper.fail("Spellgun invalid spell error reflection failed: " + exception);
+            return Component.empty();
+        }
+    }
+
+    private static Component createUnsatisfiedMaxManaError(GameTestHelper helper, ItemStack stack) {
+        try {
+            var method = AbstractSpellGunItem.class.getDeclaredMethod(
+                    "createUnsatisfiedMaxManaError",
+                    ItemStack.class
+            );
+            method.setAccessible(true);
+            return (Component) method.invoke(null, stack);
+        } catch (ReflectiveOperationException exception) {
+            helper.fail("Spellgun maximum mana error reflection failed: " + exception);
             return Component.empty();
         }
     }

@@ -38,6 +38,7 @@
     "LivingEntityPhalanxGuardMixin",
     "PotionContentsMixin",
     "LivingEntitySpectralWingMixin",
+    "LivingEntitySpellgunPowerMixin",
     "ItemCostMixin",
     "MagicDataMixin",
     "MagicManagerMixin",

@@ -1,9 +1,11 @@
 package jp.aquafactory.apprenticecodex.item.spellgun;
 
 import io.redspace.ironsspellbooks.api.spells.SpellData;
-import io.redspace.ironsspellbooks.api.spells.SpellRarity;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
@@ -17,24 +19,25 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.EnumSet;
 import java.util.List;
 
-public class GoldSpellcasterGun extends AbstractSpellGunItem implements GeoItem {
+public class MalignantSpellcasterGun extends AbstractSpellGunItem
+        implements GeoItem, ForcedSpellPowerSpellgun {
     private static final SpellGunConfig SPELL_GUN_CONFIG = new SpellGunConfig(
-            EnumSet.of(SpellGunCastType.INSTANT),
+            EnumSet.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
             null,
             false,
             null,
-            ApprenticeCodexServerConfig::goldSpellgunCooldownReductionTicks,
-            ApprenticeCodexServerConfig::goldSpellgunReducedCooldownMinimumTicks,
-            false,
-            ApprenticeCodexServerConfig::goldSpellgunIgnoreMaxMana
+            null,
+            null,
+            true,
+            () -> true
     );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
-    public GoldSpellcasterGun() {
+    public MalignantSpellcasterGun() {
         super(
-                new Properties().stacksTo(1).rarity(Rarity.COMMON),
+                new Properties().stacksTo(1).rarity(Rarity.COMMON).fireResistant(),
                 SPELL_GUN_CONFIG,
-                "GoldSpellcasterGun"
+                "MalignantSpellcasterGun"
         );
         GeoItem.registerSyncedAnimatable(this);
     }
@@ -54,31 +57,38 @@ public class GoldSpellcasterGun extends AbstractSpellGunItem implements GeoItem 
 
     @Override
     public Item getAmmoItem(ItemStack stack, @Nullable SpellData spellData) {
-        if (spellData == null) {
-            return ItemRegistry.BASIC_SPELLCASTER_ROUND.get();
-        }
-
-        return spellData.getRarity().compareRarity(SpellRarity.EPIC) > 0
-                ? ItemRegistry.ARCANE_SPELLCASTER_ROUND.get()
-                : ItemRegistry.BASIC_SPELLCASTER_ROUND.get();
+        return ItemRegistry.SPELL_DOMINATOR_ROUND.get();
     }
 
     @Override
     protected List<AmmoTooltipEntry> getAmmoTooltipEntries(ItemStack stack) {
-        return List.of(
-                new AmmoTooltipEntry(
-                        ItemRegistry.BASIC_SPELLCASTER_ROUND.get(),
-                        "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare"
-                ),
-                new AmmoTooltipEntry(
-                        ItemRegistry.ARCANE_SPELLCASTER_ROUND.get(),
-                        "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic"
-                )
-        );
+        return List.of(new AmmoTooltipEntry(ItemRegistry.SPELL_DOMINATOR_ROUND.get(), null));
     }
-    
+
+    @Override
+    protected void appendAdditionalSpellGunAbilityTooltipLines(List<Component> translatedLines) {
+        translatedLines.add(ImbueTooltipHelper.translatableGray(
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_force_spell_power"
+        ));
+    }
+
     @Override
     public int getEnchantmentValue(@NotNull ItemStack stack) {
-        return 22;
+        return 10;
+    }
+
+    @Override
+    public double forcedSpellPower() {
+        return ApprenticeCodexServerConfig.malignantSpellgunForcedSpellPower();
+    }
+
+    @Override
+    public double forcedSchoolSpellPower() {
+        return ApprenticeCodexServerConfig.malignantSpellgunForcedSchoolSpellPower();
+    }
+
+    @Override
+    public double forcedSummonDamage() {
+        return ApprenticeCodexServerConfig.malignantSpellgunForcedSummonDamage();
     }
 }
