@@ -12,12 +12,10 @@ public final class SoulstainedSteelSwingcastStaffClientTooltip {
     }
 
     public static @Nullable Component createLine() {
-        var baseManaCost = SoulstainedSteelSwingcastStaffConfigState.manaCostPerBlade();
-        if (baseManaCost <= 0.0D) {
+        var displayedManaCost = SoulstainedSteelSwingcastStaffClientManaCost.resolveDisplayedFullBurstManaCost();
+        if (displayedManaCost <= 0L) {
             return null;
         }
-
-        var displayedManaCost = SoulstainedSteelSwingcastStaff.resolveDisplayedTotalManaCost(baseManaCost);
         return Component.translatable(
                 "item.apprenticecodex.soulstained_steel_swingcast_staff.mana_cost",
                 displayedManaCost
