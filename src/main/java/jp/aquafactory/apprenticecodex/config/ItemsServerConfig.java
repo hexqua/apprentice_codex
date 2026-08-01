@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.config.item.FocusStaffbowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.HighTierSwingcastStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.IronSwingcastStaffServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.InstantSearchBrazierServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SoulstainedSteelSwingcastStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagicArmorServerConfig;
@@ -75,6 +76,7 @@ final class ItemsServerConfig {
     private final SatelliteFollowcastAmuletServerConfig satelliteFollowcastAmuletConfig;
     private final RemoteOwnerCastServerConfig remoteOwnerCastConfig;
     private final LuminousDeviceServerConfig luminousDeviceConfig;
+    private final InstantSearchBrazierServerConfig instantSearchBrazierConfig;
 
     private ItemsServerConfig(
             ArcaneCinderServerConfig arcaneCinderConfig,
@@ -110,7 +112,8 @@ final class ItemsServerConfig {
             ArchivistsGrimoireServerConfig archivistsGrimoireConfig,
             SatelliteFollowcastAmuletServerConfig satelliteFollowcastAmuletConfig,
             RemoteOwnerCastServerConfig remoteOwnerCastConfig,
-            LuminousDeviceServerConfig luminousDeviceConfig
+            LuminousDeviceServerConfig luminousDeviceConfig,
+            InstantSearchBrazierServerConfig instantSearchBrazierConfig
     ) {
         this.arcaneCinderConfig = arcaneCinderConfig;
         this.absorptionAmplifyAmuletConfig = absorptionAmplifyAmuletConfig;
@@ -146,6 +149,7 @@ final class ItemsServerConfig {
         this.satelliteFollowcastAmuletConfig = satelliteFollowcastAmuletConfig;
         this.remoteOwnerCastConfig = remoteOwnerCastConfig;
         this.luminousDeviceConfig = luminousDeviceConfig;
+        this.instantSearchBrazierConfig = instantSearchBrazierConfig;
     }
 
     static ItemsServerConfig define(ModConfigSpec.Builder builder) {
@@ -184,6 +188,7 @@ final class ItemsServerConfig {
         var satelliteFollowcastAmuletConfig = SatelliteFollowcastAmuletServerConfig.define(builder);
         var remoteOwnerCastConfig = RemoteOwnerCastServerConfig.define(builder);
         var luminousDeviceConfig = LuminousDeviceServerConfig.define(builder);
+        var instantSearchBrazierConfig = InstantSearchBrazierServerConfig.define(builder);
         builder.pop();
 
         return new ItemsServerConfig(
@@ -220,7 +225,8 @@ final class ItemsServerConfig {
                 archivistsGrimoireConfig,
                 satelliteFollowcastAmuletConfig,
                 remoteOwnerCastConfig,
-                luminousDeviceConfig
+                luminousDeviceConfig,
+                instantSearchBrazierConfig
         );
     }
 
@@ -844,6 +850,10 @@ final class ItemsServerConfig {
         return luminousDeviceConfig.mageLightExtendedRange();
     }
 
+    int instantSearchBrazierInitialRange() {
+        return instantSearchBrazierConfig.initialRange();
+    }
+
     List<String> multipurposeStaffrifleSpellDenylist() {
         return multipurposeStaffrifleConfig.spellDenylist();
     }
@@ -1153,6 +1163,10 @@ final class ItemsServerConfig {
 
     void setLuminousDeviceMageLightExtendedRangeForGameTest(double range) {
         luminousDeviceConfig.setMageLightExtendedRangeForGameTest(range);
+    }
+
+    void setInstantSearchBrazierInitialRangeForGameTest(int initialRange) {
+        instantSearchBrazierConfig.setForGameTest(initialRange);
     }
 
     void setLuminousDeviceCleanConfigForGameTest(

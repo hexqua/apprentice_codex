@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.event.EquipmentSpellTimingConfigSyncEvents
 import jp.aquafactory.apprenticecodex.event.HighTierSwingcastStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.IsekaiTravelGuidebookConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.IronSwingcastStaffConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.InstantSearchBrazierConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ManaForceBladeConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ManaShieldCharmConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ManaThrusterConfigSyncEvents;
@@ -99,6 +100,7 @@ public class ApprenticeCodex
         ElementalBowConfigSyncEvents.register(modEventBus);
         FocusStaffbowConfigSyncEvents.register(modEventBus);
         IsekaiTravelGuidebookConfigSyncEvents.register(modEventBus);
+        InstantSearchBrazierConfigSyncEvents.register(modEventBus);
         ManaForceBladeConfigSyncEvents.register(modEventBus);
         ManaShieldCharmConfigSyncEvents.register(modEventBus);
         ManaThrusterConfigSyncEvents.register(modEventBus);

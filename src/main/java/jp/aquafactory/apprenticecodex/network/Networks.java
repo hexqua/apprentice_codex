@@ -43,6 +43,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncChargecastCatalystbookC
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncInstantSearchBrazierConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncLuminousDeviceConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMageLightConfigPacket;
@@ -74,7 +75,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "74";
+    private static final String PROTOCOL_VERSION = "75";
 
     private Networks() {
     }
@@ -179,6 +180,11 @@ public final class Networks {
                 SyncIsekaiTravelGuidebookConfigPacket.TYPE,
                 SyncIsekaiTravelGuidebookConfigPacket.STREAM_CODEC,
                 SyncIsekaiTravelGuidebookConfigPacket::handle
+        );
+        registrar.playToClient(
+                SyncInstantSearchBrazierConfigPacket.TYPE,
+                SyncInstantSearchBrazierConfigPacket.STREAM_CODEC,
+                SyncInstantSearchBrazierConfigPacket::handle
         );
         registrar.playToClient(
                 SyncApprenticeDeskConfigPacket.TYPE,
