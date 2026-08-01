@@ -42,6 +42,18 @@ public class MalignantSpellcasterGun extends AbstractSpellGunItem
         GeoItem.registerSyncedAnimatable(this);
     }
 
+    @Override
+    public String getJeiInfoTranslationKeyPrefix() {
+        // Malumのhiddenは登録されている他のアイテムを巻き込んで非表示側に倒れるため、このアイテム自体のJEI説明を除外.
+        return null;
+    }
+
+    @Override
+    public String getJeiInfoGroupId() {
+        // Malumのhiddenは登録されている他のアイテムを巻き込んで非表示側に倒れるため、このアイテム自体のJEI説明を除外.
+        return null;
+    }
+
     public boolean hasCustomRendering() {
         return true;
     }
