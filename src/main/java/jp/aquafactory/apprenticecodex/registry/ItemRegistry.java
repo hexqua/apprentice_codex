@@ -71,6 +71,7 @@ import jp.aquafactory.apprenticecodex.item.spellgun.CopperSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.DiamondSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.GoldSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.IronSpellcasterGun;
+import jp.aquafactory.apprenticecodex.item.spellgun.MalignantSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.swingstaff.CopperSwingcastStaff;
 import jp.aquafactory.apprenticecodex.item.swingstaff.DiamondSwingcastStaff;
 import jp.aquafactory.apprenticecodex.item.swingstaff.GoldSwingcastStaff;
@@ -349,6 +350,8 @@ public final class ItemRegistry {
             ITEMS.register("gold_spellcaster_gun", GoldSpellcasterGun::new);
     public static final RegistryObject<Item> DIAMOND_SPELLCASTER_GUN =
             ITEMS.register("diamond_spellcaster_gun", DiamondSpellcasterGun::new);
+    public static final RegistryObject<Item> MALIGNANT_SPELLCASTER_GUN =
+            ITEMS.register("malignant_spellcaster_gun", MalignantSpellcasterGun::new);
     public static final RegistryObject<Item> IRON_SPELL_AMPLIFIER =
             ITEMS.register("iron_spell_amplifier", IronSpellAmplifier::new);
     public static final RegistryObject<Item> COPPER_SPELL_AMPLIFIER =

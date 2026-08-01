@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
@@ -64,6 +65,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
@@ -658,16 +660,18 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             return false;
         }
 
+        var bypassMaxMana = supportsMaxManaBypass(spell);
+        if (magicData != null
+                && !player.isCreative()
+                && !isRecastCast(magicData, spell)
+                && spell.getManaCost(spellLevel) > player.getAttributeValue(AttributeRegistry.MAX_MANA.get())
+                && !bypassMaxMana) {
+            sendUnsatisfiedMaxManaError(player, stack);
+            return false;
+        }
+
         if (magicData == null || player.isCreative()) {
-            var casted = spell.attemptInitiateCast(
-                    stack,
-                    spellLevel,
-                    player.level(),
-                    player,
-                    CastSource.SWORD,
-                    true,
-                    slotId
-            );
+            var casted = attemptInitiateCast(player, stack, spellLevel, slotId, spell, bypassMaxMana);
             if (casted) {
                 TriggeredSpellCastHelper.applyLongCastDurationOverride(
                         player,
@@ -692,21 +696,17 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             return false;
         }
 
-        var borrowedMana = Math.max(0f, spell.getManaCost(spellLevel) - magicData.getMana());
-        if (borrowedMana > 0f) {
+        var manaBeforeBorrow = magicData.getMana();
+        var requestedBorrowedMana = bypassMaxMana
+                ? 0.0F
+                : Math.max(0f, spell.getManaCost(spellLevel) - manaBeforeBorrow);
+        if (requestedBorrowedMana > 0f) {
             // 魔法詠唱はマナがいるため、事前に満たす量だけ補充する(後で剥奪する)
-            magicData.addMana(borrowedMana);
+            magicData.addMana(requestedBorrowedMana);
         }
+        var borrowedMana = Math.max(0.0F, magicData.getMana() - manaBeforeBorrow);
 
-        var casted = spell.attemptInitiateCast(
-                stack,
-                spellLevel,
-                player.level(),
-                player,
-                CastSource.SWORD,
-                true,
-                slotId
-        );
+        var casted = attemptInitiateCast(player, stack, spellLevel, slotId, spell, bypassMaxMana);
         if (!casted && borrowedMana > 0f) {
             magicData.setMana(Math.max(0f, magicData.getMana() - borrowedMana));
             return false;
@@ -731,6 +731,36 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         return true;
     }
 
+    private boolean attemptInitiateCast(
+            Player player,
+            ItemStack stack,
+            int spellLevel,
+            String slotId,
+            AbstractSpell spell,
+            boolean bypassManaCheck
+    ) {
+        try (var ignored = SpellgunCastContext.openInitiation(player, spell, stack, bypassManaCheck)) {
+            return spell.attemptInitiateCast(
+                    stack,
+                    spellLevel,
+                    player.level(),
+                    player,
+                    CastSource.SWORD,
+                    true,
+                    slotId
+            );
+        }
+    }
+
+    private boolean supportsMaxManaBypass(AbstractSpell spell) {
+        if (!spellGunConfig.ignoreMaxMana()) {
+            return false;
+        }
+        // tickを跨ぐ通常LONG / CONTINUOUSはContextの永続化が必要になるため対象外。
+        return spell.getCastType() == CastType.INSTANT
+                || (spell.getCastType() == CastType.LONG && spellGunConfig.instantLongCast());
+    }
+
     private static void sendNotImbuedError(ServerPlayer player, ItemStack stack) {
         player.connection.send(new ClientboundSetActionBarTextPacket(
                 Component.translatable("ui.apprenticecodex.spellgun.not_imbued", stack.getHoverName())
@@ -742,6 +772,21 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         player.connection.send(new ClientboundSetActionBarTextPacket(
                 createInvalidSpellError(player, stack, spellData)
         ));
+    }
+
+    private static void sendUnsatisfiedMaxManaError(Player player, ItemStack stack) {
+        if (player instanceof ServerPlayer serverPlayer) {
+            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                    createUnsatisfiedMaxManaError(stack)
+            ));
+        }
+    }
+
+    private static Component createUnsatisfiedMaxManaError(ItemStack stack) {
+        return Component.translatable(
+                "ui.apprenticecodex.spellgun.unsatisfied_max_mana",
+                stack.getHoverName()
+        ).withStyle(ChatFormatting.RED);
     }
 
     private static Component createInvalidSpellError(Player player, ItemStack stack, SpellData spellData) {
@@ -857,7 +902,16 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                     "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant"
             ));
         }
+        if (spellGunConfig.ignoreMaxMana()) {
+            translatedLines.add(ImbueTooltipHelper.translatableGray(
+                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_ignore_max_mana"
+            ));
+        }
+        appendAdditionalSpellGunAbilityTooltipLines(translatedLines);
         return translatedLines;
+    }
+
+    protected void appendAdditionalSpellGunAbilityTooltipLines(List<Component> translatedLines) {
     }
 
     private List<Component> collectSpellGunRestrictTooltipSection() {
@@ -999,7 +1053,8 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             @Nullable IntSupplier overriddenSpellCooldownTicksSupplier,
             @Nullable IntSupplier cooldownReductionTicksSupplier,
             @Nullable IntSupplier reducedCooldownMinimumTicksSupplier,
-            boolean instantLongCast
+            boolean instantLongCast,
+            BooleanSupplier ignoreMaxManaSupplier
     ) {
         public SpellGunConfig {
             supportedCastTypes = Set.copyOf(Objects.requireNonNull(supportedCastTypes));
@@ -1009,10 +1064,15 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             if (overriddenSpellCooldownTicksSupplier != null && cooldownReductionTicksSupplier != null) {
                 throw new IllegalArgumentException("Cooldown override and reduction cannot be configured together");
             }
+            ignoreMaxManaSupplier = Objects.requireNonNull(ignoreMaxManaSupplier);
         }
 
         public boolean supports(SpellGunCastType castType) {
             return supportedCastTypes.contains(castType);
+        }
+
+        public boolean ignoreMaxMana() {
+            return ignoreMaxManaSupplier.getAsBoolean();
         }
 
         @Nullable

@@ -495,6 +495,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         EquipmentSpellGunGameTestScenarios.spellgunCastAttemptPreservesExistingCast(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = SPELLGUN_CONFIG_BATCH)
+    public static void spellgunMaximumManaBypassIsExplicitAndScoped(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellgunMaximumManaBypassIsExplicitAndScoped(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = SPELLGUN_CONFIG_BATCH)
+    public static void malignantSpellgunForcesOnlyActivationPower(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.malignantSpellgunForcesOnlyActivationPower(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void malignantSpellgunSpiritInfusionRecipeFollowsMalumAvailability(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.malignantSpellgunSpiritInfusionRecipeFollowsMalumAvailability(helper);
+    }
+
     @GameTest(template = TEMPLATE)
     public static void copperSwingcastStaffReplacementSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
         SwingcastStaffGameTestScenarios.copperSwingcastStaffReplacementSpellStaysRemovableAfterNormalization(helper);

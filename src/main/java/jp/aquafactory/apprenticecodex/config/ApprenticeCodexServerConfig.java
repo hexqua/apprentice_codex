@@ -705,6 +705,34 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.goldSpellgunCooldownReductionTicks();
     }
 
+    public static boolean ironSpellgunIgnoreMaxMana() {
+        return ITEMS_CONFIG.ironSpellgunIgnoreMaxMana();
+    }
+
+    public static boolean copperSpellgunIgnoreMaxMana() {
+        return ITEMS_CONFIG.copperSpellgunIgnoreMaxMana();
+    }
+
+    public static boolean goldSpellgunIgnoreMaxMana() {
+        return ITEMS_CONFIG.goldSpellgunIgnoreMaxMana();
+    }
+
+    public static boolean diamondSpellgunIgnoreMaxMana() {
+        return ITEMS_CONFIG.diamondSpellgunIgnoreMaxMana();
+    }
+
+    public static double malignantSpellgunForcedSpellPower() {
+        return ITEMS_CONFIG.malignantSpellgunForcedSpellPower();
+    }
+
+    public static double malignantSpellgunForcedSchoolSpellPower() {
+        return ITEMS_CONFIG.malignantSpellgunForcedSchoolSpellPower();
+    }
+
+    public static double malignantSpellgunForcedSummonDamage() {
+        return ITEMS_CONFIG.malignantSpellgunForcedSummonDamage();
+    }
+
     public static boolean isCircuitHeatStaffSpellDenied(ResourceLocation spellId) {
         return ITEMS_CONFIG.isCircuitHeatStaffSpellDenied(spellId);
     }

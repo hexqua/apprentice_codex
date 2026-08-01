@@ -1,15 +1,18 @@
 package jp.aquafactory.apprenticecodex.item.spellgun;
 
 import io.redspace.ironsspellbooks.api.spells.SpellData;
-import io.redspace.ironsspellbooks.api.spells.SpellRarity;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import jp.aquafactory.apprenticecodex.renderer.item.DiamondSpellcasterGunRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.MalignantSpellcasterGunRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -20,7 +23,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class DiamondSpellcasterGun extends AbstractSpellGunItem implements GeoItem {
+public class MalignantSpellcasterGun extends AbstractSpellGunItem
+        implements GeoItem, ForcedSpellPowerSpellgun {
     private static final SpellGunConfig SPELL_GUN_CONFIG = new SpellGunConfig(
             EnumSet.of(SpellGunCastType.INSTANT, SpellGunCastType.LONG),
             null,
@@ -29,15 +33,15 @@ public class DiamondSpellcasterGun extends AbstractSpellGunItem implements GeoIt
             null,
             null,
             true,
-            ApprenticeCodexServerConfig::diamondSpellgunIgnoreMaxMana
+            () -> true
     );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
-    public DiamondSpellcasterGun() {
+    public MalignantSpellcasterGun() {
         super(
                 new Properties().stacksTo(1).rarity(Rarity.COMMON).fireResistant(),
                 SPELL_GUN_CONFIG,
-                "DiamondSpellcasterGun"
+                "MalignantSpellcasterGun"
         );
         GeoItem.registerSyncedAnimatable(this);
     }
@@ -45,14 +49,13 @@ public class DiamondSpellcasterGun extends AbstractSpellGunItem implements GeoIt
     @Override
     public void initializeClient(Consumer<IClientItemExtensions> consumer) {
         consumer.accept(new IClientItemExtensions() {
-            private DiamondSpellcasterGunRenderer renderer;
+            private MalignantSpellcasterGunRenderer renderer;
 
             @Override
             public BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
-                    renderer = new DiamondSpellcasterGunRenderer();
+                    renderer = new MalignantSpellcasterGunRenderer();
                 }
-
                 return renderer;
             }
         });
@@ -69,29 +72,38 @@ public class DiamondSpellcasterGun extends AbstractSpellGunItem implements GeoIt
 
     @Override
     public Item getAmmoItem(ItemStack stack, @Nullable SpellData spellData) {
-        if (spellData == null){
-            return ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get();
-        }
-
-        return spellData.getRarity().compareRarity(SpellRarity.EPIC) > 0 ? ItemRegistry.SPELL_DOMINATOR_ROUND.get() : ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get();
+        return ItemRegistry.SPELL_DOMINATOR_ROUND.get();
     }
 
     @Override
     protected List<AmmoTooltipEntry> getAmmoTooltipEntries(ItemStack stack) {
-        return List.of(
-                new AmmoTooltipEntry(
-                        ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get(),
-                        "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare"
-                ),
-                new AmmoTooltipEntry(
-                        ItemRegistry.SPELL_DOMINATOR_ROUND.get(),
-                        "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic"
-                )
-        );
+        return List.of(new AmmoTooltipEntry(ItemRegistry.SPELL_DOMINATOR_ROUND.get(), null));
     }
-    
+
     @Override
-    public int getEnchantmentValue(ItemStack stack) {
+    protected void appendAdditionalSpellGunAbilityTooltipLines(List<Component> translatedLines) {
+        translatedLines.add(ImbueTooltipHelper.translatableGray(
+                "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_force_spell_power"
+        ));
+    }
+
+    @Override
+    public int getEnchantmentValue(@NotNull ItemStack stack) {
         return 10;
+    }
+
+    @Override
+    public double forcedSpellPower() {
+        return ApprenticeCodexServerConfig.malignantSpellgunForcedSpellPower();
+    }
+
+    @Override
+    public double forcedSchoolSpellPower() {
+        return ApprenticeCodexServerConfig.malignantSpellgunForcedSchoolSpellPower();
+    }
+
+    @Override
+    public double forcedSummonDamage() {
+        return ApprenticeCodexServerConfig.malignantSpellgunForcedSummonDamage();
     }
 }

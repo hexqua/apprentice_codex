@@ -86,7 +86,6 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.DIAMOND_SPELL_AMPLIFIER.get());
         output.accept(ItemRegistry.SILVER_SPELL_AMPLIFIER.get());
         output.accept(ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get());
-        addMalumItemsToTab(output);
         output.accept(ItemRegistry.IRON_SWINGCAST_STAFF.get());
         output.accept(ItemRegistry.COPPER_SWINGCAST_STAFF.get());
         output.accept(ItemRegistry.GOLD_SWINGCAST_STAFF.get());
@@ -129,7 +128,6 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.ENCHANTRESS_ROBE.get());
         output.accept(ItemRegistry.ENCHANTRESS_LEGGINGS.get());
         output.accept(ItemRegistry.ENCHANTRESS_BOOTS.get());
-        addMalumRelatedItemsToTab(output);
         output.accept(ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get());
         output.accept(ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get());
         output.accept(ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get());
@@ -168,6 +166,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.EXPLORERS_CODEX.get());
         output.accept(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get());
         output.accept(ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get());
+        addMalumRelatedItemsToTab(output);
         addSpellScrollsToTab(output);
     }
 
@@ -183,22 +182,19 @@ public final class CreativeTabRegistry {
     }
 
     private static void addMalumRelatedItemsToTab(CreativeModeTab.Output output) {
-        // todo:Compatクラスを用意してそちらに移動する?
+        // ID名は早々変わらないため、決め打ちで持つ.
+        // 機能そのものは入っていなくても安全に無効化されるため、単に見栄え対応用.
         if (!ModList.get().isLoaded("malum")) {
             return;
         }
 
+        output.accept(ItemRegistry.SOULSTAINED_STEEL_SPELL_AMPLIFIER.get());
+        output.accept(ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get());
+        output.accept(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get());
         output.accept(ItemRegistry.SOULCOLLECTOR_HAT.get());
         output.accept(ItemRegistry.SOULCOLLECTOR_ROBE.get());
         output.accept(ItemRegistry.SOULCOLLECTOR_LEGGINGS.get());
         output.accept(ItemRegistry.SOULCOLLECTOR_BOOTS.get());
-    }
-
-    private static void addMalumItemsToTab(CreativeModeTab.Output output) {
-        if (ModList.get().isLoaded("malum")) {
-            output.accept(ItemRegistry.SOULSTAINED_STEEL_SPELL_AMPLIFIER.get());
-            output.accept(ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get());
-        }
     }
 
     private static void addSpellScrollsToTab(CreativeModeTab.Output output) {

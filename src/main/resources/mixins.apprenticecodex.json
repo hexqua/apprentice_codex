@@ -35,6 +35,7 @@
     "LivingEntityMistFormMixin",
     "LivingEntityPhalanxGuardMixin",
     "LivingEntitySpectralWingMixin",
+    "LivingEntitySpellgunPowerMixin",
     "MagicDataAccessor",
     "MagicDataMixin",
     "MagicManagerMixin",
