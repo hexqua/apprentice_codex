@@ -46,8 +46,10 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.function.Consumer;
 
 public final class SoulstainedSteelSwingcastStaff extends AbstractRightClickMagicWeaponItem
@@ -55,6 +57,7 @@ public final class SoulstainedSteelSwingcastStaff extends AbstractRightClickMagi
     public static final double DEFAULT_MANA_COST_PER_BLADE =
             SoulstainedSteelSwingcastStaffServerConfig.DEFAULT_MANA_COST_PER_BLADE;
     public static final int MAX_BLADE_COUNT = 3;
+    public static final int MIN_BURST_INTERVAL_TICKS = 7;
     private static final double MANA_COST_CEILING_EPSILON = 1.0e-9D;
     public static final double MAGIC_DAMAGE_BONUS = 3.0D;
     public static final int ENCHANTMENT_VALUE = 16;
@@ -70,6 +73,7 @@ public final class SoulstainedSteelSwingcastStaff extends AbstractRightClickMagi
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/" + ITEM_KEY + ".png");
     private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
+    private static final Map<ServerPlayer, Long> NEXT_ALLOWED_BURST_TICKS = new WeakHashMap<>();
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
@@ -108,7 +112,8 @@ public final class SoulstainedSteelSwingcastStaff extends AbstractRightClickMagi
         if (!(player instanceof ServerPlayer serverPlayer)
                 || hand != InteractionHand.MAIN_HAND
                 || player.getMainHandItem().getItem() != this
-                || (!bypassChargeCheck && !isFullyChargedAttack(player))) {
+                || (!bypassChargeCheck && !isFullyChargedAttack(player))
+                || isBurstRateLimited(serverPlayer)) {
             return false;
         }
 
@@ -124,12 +129,24 @@ public final class SoulstainedSteelSwingcastStaff extends AbstractRightClickMagi
         if (bladeCount <= 0 || !MalumMnemonicBladeBridge.fire(serverPlayer, player.getMainHandItem(), bladeCount)) {
             return false;
         }
+        recordSuccessfulBurst(serverPlayer);
 
         if (!player.getAbilities().instabuild) {
             magicData.setMana(Math.max(0.0F, (float) (magicData.getMana() - bladeCount * manaCostPerBlade)));
         }
         player.awardStat(Stats.ITEM_USED.get(this));
         return true;
+    }
+
+    private static boolean isBurstRateLimited(ServerPlayer player) {
+        var nextAllowedTick = NEXT_ALLOWED_BURST_TICKS.get(player);
+        return nextAllowedTick != null && player.level().getGameTime() < nextAllowedTick;
+    }
+
+    private static void recordSuccessfulBurst(ServerPlayer player) {
+        // client申告の攻撃経路や外部MODの攻撃速度を信用せず、0/3/6tickの全弾が発射されるまで次を拒否する。
+        // ItemCooldownsは右クリック詠唱まで妨げるため、server playerの生存期間だけ保持する専用状態を使う。
+        NEXT_ALLOWED_BURST_TICKS.put(player, player.level().getGameTime() + MIN_BURST_INTERVAL_TICKS);
     }
 
     public static int resolveBladeCount(float availableMana) {
