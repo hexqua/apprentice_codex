@@ -307,6 +307,16 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.luminousDeviceMageLightExtendedRange();
     }
 
+    public static int instantSearchBrazierInitialRange() {
+        return ITEMS_CONFIG.instantSearchBrazierInitialRange();
+    }
+
+    public static GameTestConfigOverride useInstantSearchBrazierInitialRangeOverrideForGameTest(int initialRange) {
+        var previousRange = ITEMS_CONFIG.instantSearchBrazierInitialRange();
+        ITEMS_CONFIG.setInstantSearchBrazierInitialRangeForGameTest(initialRange);
+        return () -> ITEMS_CONFIG.setInstantSearchBrazierInitialRangeForGameTest(previousRange);
+    }
+
     public static GameTestConfigOverride useLuminousDeviceMageLightExtendedRangeOverrideForGameTest(double range) {
         var previousRange = ITEMS_CONFIG.luminousDeviceMageLightExtendedRange();
         ITEMS_CONFIG.setLuminousDeviceMageLightExtendedRangeForGameTest(range);
