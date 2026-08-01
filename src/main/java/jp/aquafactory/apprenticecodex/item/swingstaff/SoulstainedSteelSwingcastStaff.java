@@ -5,9 +5,15 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumMnemonicBladeBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SoulstainedSteelSwingcastStaffServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
 import jp.aquafactory.apprenticecodex.renderer.item.SoulstainedSteelSwingcastStaffRenderer;
+import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
@@ -16,11 +22,14 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.api.distmarker.Dist;
@@ -38,10 +47,11 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public final class SoulstainedSteelSwingcastStaff extends AbstractRightClickMagicWeaponItem
-        implements SwingTriggeredMagicItem, GeoItem {
+        implements SwingTriggeredMagicItem, GeoItem, AttributeEnchantmentPolicy {
     public static final double DEFAULT_MANA_COST_PER_BLADE =
             SoulstainedSteelSwingcastStaffServerConfig.DEFAULT_MANA_COST_PER_BLADE;
     public static final int MAX_BLADE_COUNT = 3;
@@ -49,6 +59,12 @@ public final class SoulstainedSteelSwingcastStaff extends AbstractRightClickMagi
     public static final double MAGIC_DAMAGE_BONUS = 3.0D;
     public static final int ENCHANTMENT_VALUE = 16;
     private static final String ITEM_KEY = "soulstained_steel_swingcast_staff";
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.ALACRITY,
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR,
+            AttributeEnchantmentType.TENSE
+    );
     private static final ResourceLocation MAGIC_DAMAGE =
             ResourceLocation.fromNamespaceAndPath("lodestone", "magic_damage");
     private static final ResourceLocation TEXTURE =
@@ -138,6 +154,40 @@ public final class SoulstainedSteelSwingcastStaff extends AbstractRightClickMagi
             return 0L;
         }
         return (long) Math.ceil(baseManaCostPerBlade * MAX_BLADE_COUNT - MANA_COST_CEILING_EPSILON);
+    }
+
+    @Override
+    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
+        var baseModifiers = super.getAttributeModifiers(slot, stack);
+        if (slot != EquipmentSlot.MAINHAND) {
+            return baseModifiers;
+        }
+
+        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+        builder.putAll(baseModifiers);
+        if (!AttributeEnchantmentResolver.addModifiers(
+                builder,
+                stack,
+                "apprenticecodex." + ITEM_KEY + ".mainhand.enchant"
+        )) {
+            return baseModifiers;
+        }
+        return MagicAttributeModifierHelper.mergeLinearMagicModifiers(
+                builder.build(),
+                "apprenticecodex." + ITEM_KEY + ".mainhand.merged"
+        );
+    }
+
+    @Override
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
+    }
+
+    @Override
+    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
+        return AttributeEnchantmentType.from(enchantment)
+                .map(this::supportsDirectAttributeEnchantment)
+                .orElseGet(() -> super.canApplyAtEnchantingTable(stack, enchantment));
     }
 
     @Override

@@ -84,6 +84,13 @@ final class EnchantmentApplicationGameTestScenarios {
             assertCategoryEnchantments(helper, "Swingcast Staff",
                     item -> item instanceof AbstractSwingcastStaffItem,
                     EnchantmentApplicationGameTestScenarios::expectedSwingcastStaffEnchantments);
+            var soulstainedStaff = new ItemStack(ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get());
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    soulstainedStaff,
+                    expectedSwingcastStaffEnchantments(soulstainedStaff),
+                    "Soulstained Steel Swingcast Staff"
+            );
             assertCategoryEnchantments(helper, "Spellcasters Flask",
                     item -> item.getClass() == SpellcastersFlask.class,
                     stack -> expectedFlaskEnchantments());
@@ -333,6 +340,9 @@ final class EnchantmentApplicationGameTestScenarios {
                 new AttributePolicyCase(ItemRegistry.COPPER_SPELL_AMPLIFIER.get(), all),
                 new AttributePolicyCase(ItemRegistry.ENCHANTED_CIRCLET.get(), all),
                 new AttributePolicyCase(ItemRegistry.IRON_SPELLCASTER_GUN.get(), all),
+                new AttributePolicyCase(ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get(),
+                        Set.of(AttributeEnchantmentType.ALACRITY, AttributeEnchantmentType.REFLUX,
+                                AttributeEnchantmentType.RESERVOIR, AttributeEnchantmentType.TENSE)),
                 new AttributePolicyCase(ItemRegistry.SCROLLCASTER_GAUNTLET.get(), Set.of()),
                 new AttributePolicyCase(ItemRegistry.MANA_FORCE_BLADE.get(),
                         Set.of(AttributeEnchantmentType.SURGE, AttributeEnchantmentType.ATTUNEMENT)),

@@ -362,6 +362,8 @@ final class AttributeEnchantmentEffectGameTestScenarios extends ApprenticeCodexG
 
         addCase(cases, coveredItems, ItemRegistry.MITHRIL_FREECAST_STAFF.get(), ModifierTarget.mainhand(),
                 BASIC_MAGIC_ENCHANTMENTS);
+        addCase(cases, coveredItems, ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get(), ModifierTarget.mainhand(),
+                BASIC_MAGIC_ENCHANTMENTS);
         addCase(cases, coveredItems, ItemRegistry.REVOLVERCAST_STAFF.get(), ModifierTarget.mainhand(),
                 BASIC_MAGIC_ENCHANTMENTS);
         addCase(cases, coveredItems, ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(), ModifierTarget.mainhand(),
