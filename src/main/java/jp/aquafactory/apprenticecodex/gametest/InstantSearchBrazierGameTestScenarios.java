@@ -1,11 +1,15 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconEntity;
+import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconRefundManager;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSummoning;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
@@ -39,6 +43,8 @@ public final class InstantSearchBrazierGameTestScenarios {
                     "Instant Search Brazier should use the configured initial range");
             helper.assertTrue(beacon.getAdditionalRangePerItem() == 0,
                     "Instant Search Brazier should keep additional range fixed at zero");
+            helper.assertTrue(SearchBeaconRefundManager.hasPending(player),
+                    "Using an Instant Search Brazier should persist its pending refund");
 
             heldStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
             helper.assertTrue(heldStack.getCount() == 1,
@@ -55,6 +61,8 @@ public final class InstantSearchBrazierGameTestScenarios {
                     .sum();
             helper.assertTrue(refundedCount == 1,
                     "Removing an unstarted item-summoned Search Beacon should refund one brazier");
+            helper.assertTrue(!SearchBeaconRefundManager.hasPending(player),
+                    "Refunding an Instant Search Brazier should clear its persisted refund");
         }
         helper.succeed();
     }
@@ -94,6 +102,8 @@ public final class InstantSearchBrazierGameTestScenarios {
                 "A zero-additional-range Search Beacon should leave additional offered items untouched");
 
         beacon.mobInteract(player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(!SearchBeaconRefundManager.hasPending(player),
+                "Starting a search should consume the persisted brazier refund");
         var dropPos = beacon.blockPosition();
         beacon.discard();
         var refundedCount = helper.getLevel().getEntitiesOfClass(
@@ -106,6 +116,77 @@ public final class InstantSearchBrazierGameTestScenarios {
         helper.assertTrue(refundedCount == 0,
                 "Removing a Search Beacon after search start should not refund the brazier");
         helper.succeed();
+    }
+
+    static void pendingBrazierSurvivesSpellDataRoundTripAndRecoversOnce(GameTestHelper helper) {
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                helper,
+                new BlockPos(0, 2, 0),
+                "instant_search_brazier_save_test"
+        );
+        player.setXRot(90.0F);
+        var refundStack = new ItemStack(ItemRegistry.INSTANT_SEARCH_BRAZIER.get());
+        refundStack.set(DataComponents.CUSTOM_NAME, Component.literal("Persisted Test Brazier"));
+        var beacon = SearchBeaconSummoning.summon(helper.getLevel(), player, 500, 0, refundStack);
+        helper.assertTrue(beacon != null, "Instant Search Brazier test should summon a Search Beacon");
+
+        var spellData = Capabilities.getSpellDataOrNull(player);
+        helper.assertTrue(spellData != null, "Test player should have CodexSpellData");
+        var saved = spellData.saveAll();
+        helper.assertTrue(SearchBeaconRefundManager.consume(player, beacon.getUUID()),
+                "Test setup should clear the live pending refund before loading saved data");
+        spellData.loadAll(saved);
+
+        SearchBeaconRefundManager.recoverPending(player);
+        helper.assertTrue(countBraziersInInventory(player) == 1,
+                "Loading saved CodexSpellData should recover one Instant Search Brazier");
+        var recoveredStack = player.getInventory().items.stream()
+                .filter(stack -> stack.is(ItemRegistry.INSTANT_SEARCH_BRAZIER.get()))
+                .findFirst()
+                .orElse(ItemStack.EMPTY);
+        helper.assertTrue(recoveredStack.getHoverName().getString().equals("Persisted Test Brazier"),
+                "Recovered Instant Search Brazier should keep its data components");
+        helper.assertTrue(!SearchBeaconRefundManager.hasPending(player),
+                "Recovering the saved brazier should consume its persisted refund");
+
+        SearchBeaconRefundManager.recoverPending(player);
+        beacon.tick();
+        helper.assertTrue(countBraziersInInventory(player) == 1,
+                "Repeated recovery and a stale Search Beacon must not duplicate the brazier");
+        helper.assertTrue(beacon.isRemoved(),
+                "A Search Beacon whose refund was already recovered should remove itself");
+        helper.succeed();
+    }
+
+    static void unloadingBeaconReturnsBrazierToOwnerInventory(GameTestHelper helper) {
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                helper,
+                new BlockPos(0, 2, 0),
+                "instant_search_brazier_unload_test"
+        );
+        player.setXRot(90.0F);
+        var beacon = SearchBeaconSummoning.summon(
+                helper.getLevel(),
+                player,
+                500,
+                0,
+                new ItemStack(ItemRegistry.INSTANT_SEARCH_BRAZIER.get())
+        );
+        helper.assertTrue(beacon != null, "Instant Search Brazier test should summon a Search Beacon");
+
+        beacon.remove(net.minecraft.world.entity.Entity.RemovalReason.UNLOADED_TO_CHUNK);
+        helper.assertTrue(countBraziersInInventory(player) == 1,
+                "Unloading a Search Beacon should return its brazier to the online owner");
+        helper.assertTrue(!SearchBeaconRefundManager.hasPending(player),
+                "Returning an unloaded Search Beacon should clear its persisted refund");
+        helper.succeed();
+    }
+
+    private static int countBraziersInInventory(net.minecraft.server.level.ServerPlayer player) {
+        return player.getInventory().items.stream()
+                .filter(stack -> stack.is(ItemRegistry.INSTANT_SEARCH_BRAZIER.get()))
+                .mapToInt(ItemStack::getCount)
+                .sum();
     }
 
     private static SearchBeaconEntity findSingleBeacon(GameTestHelper helper, AABB searchBox) {

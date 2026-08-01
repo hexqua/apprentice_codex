@@ -20,7 +20,7 @@ public final class SearchBeaconSummoning {
     }
 
     public static Failure validate(ServerLevel level, ServerPlayer owner) {
-        if (hasActiveBeacon(level, owner.getUUID())) {
+        if (SearchBeaconRefundManager.hasPending(owner) || hasActiveBeacon(level, owner.getUUID())) {
             return Failure.ALREADY_ACTIVE;
         }
         return resolveSummonPosition(level, owner) == null ? Failure.CANNOT_PLACE : Failure.NONE;
@@ -42,9 +42,20 @@ public final class SearchBeaconSummoning {
         beacon.setOwner(owner);
         beacon.setAnchor(summonPosition);
         beacon.setSearchTuning(initialRange, additionalRangePerItem);
-        beacon.setPreSearchRefund(preSearchRefund);
+        var reservesInstantBrazier = !preSearchRefund.isEmpty();
+        if (reservesInstantBrazier
+                && !SearchBeaconRefundManager.reserve(owner, beacon.getUUID(), preSearchRefund)) {
+            return null;
+        }
+        beacon.setReservesInstantBrazier(reservesInstantBrazier);
         beacon.moveTo(summonPosition.x, summonPosition.y, summonPosition.z, owner.getYRot(), 0.0F);
-        return level.addFreshEntity(beacon) ? beacon : null;
+        if (level.addFreshEntity(beacon)) {
+            return beacon;
+        }
+        if (reservesInstantBrazier) {
+            SearchBeaconRefundManager.consume(owner, beacon.getUUID());
+        }
+        return null;
     }
 
     private static boolean hasActiveBeacon(ServerLevel level, UUID ownerId) {

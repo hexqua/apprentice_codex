@@ -86,6 +86,17 @@ public final class ApprenticeCodexCoreGameTests {
                 .searchStartStopsBrazierRefundAndRejectsAdditionalOffer(helper);
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void instantSearchBrazierPendingRefundSurvivesSpellDataRoundTrip(GameTestHelper helper) {
+        InstantSearchBrazierGameTestScenarios
+                .pendingBrazierSurvivesSpellDataRoundTripAndRecoversOnce(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void instantSearchBrazierUnloadReturnsBrazierToOwnerInventory(GameTestHelper helper) {
+        InstantSearchBrazierGameTestScenarios.unloadingBeaconReturnsBrazierToOwnerInventory(helper);
+    }
+
     @GameTest(template = TEMPLATE, timeoutTicks = 400)
     public static void villagerCanClaimApprenticeDeskAsErrandMageJobSite(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.villagerCanClaimApprenticeDeskAsErrandMageJobSite(helper);
