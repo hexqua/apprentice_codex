@@ -13,12 +13,10 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import jp.aquafactory.apprenticecodex.spell.IMagiAgentSuitAffectedSpell;
-import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -50,8 +48,6 @@ public class DualAcrobat extends AbstractSummonWeaponSpell<DualAcrobatSmgEntity>
     public List<MutableComponent> getUniqueInfo(int spellLevel, @Nullable LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(), 2)),
-                Component.translatable("ui.apprenticecodex.charge_up_ammo_per_second", Utils.stringTruncation(getLoadAmmoCountSpeed(spellLevel, caster), 2)),
-                Component.translatable("ui.apprenticecodex.charge_up_ammo_maximum", getMaximumLoadAmmoCount(spellLevel, caster)),
                 Component.translatable("ui.irons_spellbooks.distance", getRange())
         );
     }
@@ -59,14 +55,6 @@ public class DualAcrobat extends AbstractSummonWeaponSpell<DualAcrobatSmgEntity>
     private float getDamage() {
         var rawDamage = 2;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.DUAL_ACROBAT);
-    }
-
-    private float getLoadAmmoCountSpeed(int spellLevel, @Nullable LivingEntity entity) {
-        return getSpellPower(spellLevel, entity) / 100.0f;
-    }
-
-    private int getMaximumLoadAmmoCount(int spellLevel, @Nullable LivingEntity entity) {
-        return Math.round(getLoadAmmoCountSpeed(spellLevel, entity) * 5);
     }
 
     public int getRange(){
@@ -119,8 +107,6 @@ public class DualAcrobat extends AbstractSummonWeaponSpell<DualAcrobatSmgEntity>
         var summonWeapon = new DualAcrobatSmgEntity(EntityRegistry.DUAL_ACROBAT_SMG.get(), level, entity);
         summonWeapon.setDamage(getDamage());
         summonWeapon.setRange(getRange());
-        summonWeapon.setLoadAmmoCountSpeed(getLoadAmmoCountSpeed(spellLevel, entity));
-        summonWeapon.setMaximumLoadAmmoCount(getMaximumLoadAmmoCount(spellLevel, entity));
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }
@@ -128,20 +114,12 @@ public class DualAcrobat extends AbstractSummonWeaponSpell<DualAcrobatSmgEntity>
     @Override
     public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData,
                                      @NotNull DualAcrobatSmgEntity weapon) {
-        weapon.loadAmmo();
     }
 
     @Override
     public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity,
                                                       MagicData playerMagicData, boolean cancelled,
                                                       @NotNull DualAcrobatSmgEntity weapon) {
-        if (DualAcrobatCounterSpellEvent.consumeCounterspellInterrupted(entity)) {
-            weapon.startCounterspellInterruptedShooting();
-            return CompleteCastTypes.KEEP_WEAPON;
-        }
-
-        AudioTools.playSoundFromEntity(level, entity, SoundRegistry.VANILLA_HOLD_WEAPON.get(), SoundSource.PLAYERS);
-        weapon.startShooting();
-        return CompleteCastTypes.KEEP_WEAPON;
+        return CompleteCastTypes.RELEASE_WEAPON;
     }
 }
