@@ -16,7 +16,6 @@ import java.util.List;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class DualAcrobatCounterSpellEvent {
-    private static final String COUNTERSPELL_INTERRUPTED_TAG = "ApprenticeCodexDualAcrobatCounterspellInterrupted";
     private static final double FALLBACK_WEAPON_SEARCH_RADIUS = 16.0D;
 
     private DualAcrobatCounterSpellEvent() {
@@ -42,15 +41,7 @@ public final class DualAcrobatCounterSpellEvent {
             return;
         }
 
-        interruptCastingSmg(target, magicData, nearbyWeapons);
-        target.getPersistentData().putBoolean(COUNTERSPELL_INTERRUPTED_TAG, true);
-    }
-
-    public static boolean consumeCounterspellInterrupted(LivingEntity entity) {
-        var tag = entity.getPersistentData();
-        var interrupted = tag.getBoolean(COUNTERSPELL_INTERRUPTED_TAG);
-        tag.remove(COUNTERSPELL_INTERRUPTED_TAG);
-        return interrupted;
+        discardCastingSmg(target, magicData, nearbyWeapons);
     }
 
     private static boolean isDualAcrobatCasting(LivingEntity target, MagicData magicData) {
@@ -66,7 +57,8 @@ public final class DualAcrobatCounterSpellEvent {
                 && castData.getEntity(serverLevel) instanceof DualAcrobatSmgEntity;
     }
 
-    private static void interruptCastingSmg(LivingEntity target, MagicData magicData, List<DualAcrobatSmgEntity> nearbyWeapons) {
+    private static void discardCastingSmg(LivingEntity target, MagicData magicData,
+                                          List<DualAcrobatSmgEntity> nearbyWeapons) {
         if (!(target.level() instanceof ServerLevel serverLevel)) {
             return;
         }
@@ -75,7 +67,7 @@ public final class DualAcrobatCounterSpellEvent {
         if (magicData.getAdditionalCastData() instanceof AbstractSummonWeaponSpell.SummonWeaponSpellCastData castData
                 && castData.getEntity(serverLevel) instanceof DualAcrobatSmgEntity weapon) {
             if (shouldCounterspellInterruptWeapon(target, weapon)) {
-                weapon.startCounterspellInterruptedShooting();
+                weapon.discard();
                 castingWeapon = weapon;
             }
         }
@@ -84,7 +76,7 @@ public final class DualAcrobatCounterSpellEvent {
             if (weapon == castingWeapon) {
                 continue;
             }
-            weapon.startCounterspellInterruptedShooting();
+            weapon.discard();
         }
     }
 
@@ -103,7 +95,6 @@ public final class DualAcrobatCounterSpellEvent {
     private static boolean shouldCounterspellInterruptWeapon(LivingEntity target, DualAcrobatSmgEntity weapon) {
         var owner = weapon.getOwner();
         return !weapon.isRemoved()
-                && weapon.isCharging()
                 && owner != null
                 && owner.getUUID().equals(target.getUUID());
     }

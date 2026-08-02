@@ -27,41 +27,31 @@ import org.jetbrains.annotations.NotNull;
 public class DualAcrobatSmgEntity extends SummonWeaponEntity {
     public static final double SIDE_OFFSET = 0.7;
     public static final double RENDER_Y_OFFSET = -0.15;
-    public static final int SHOOTING_START_DELAY_TICKS = 10;
-    public static final int SHOOTING_START_SETTLE_TICKS = 5;
+    public static final int STARTUP_TICKS = 10;
+    public static final int STARTUP_SETTLE_TICKS = 5;
     public static final float SPIN_DEGREES_PER_TICK = 72.0f;
 
     private static final double BACK_OFFSET = -0.5;
     private static final double Y_OFFSET = -0.25;
     private static final int FIRE_INTERVAL_TICKS = 2;
     private static final int RECOIL_DURATION_TICKS = 3;
-    private static final int DISCARD_AFTER_EMPTY_TICKS = 10;
 
-    private static final EntityDataAccessor<Boolean> IS_CHARGING =
-            SynchedEntityData.defineId(DualAcrobatSmgEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Float> FORMATION_YAW =
             SynchedEntityData.defineId(DualAcrobatSmgEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Integer> RIGHT_RECOIL_TICKS =
             SynchedEntityData.defineId(DualAcrobatSmgEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> LEFT_RECOIL_TICKS =
             SynchedEntityData.defineId(DualAcrobatSmgEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> SHOOTING_START_DELAY_REMAINING =
+    private static final EntityDataAccessor<Integer> STARTUP_TICKS_REMAINING =
             SynchedEntityData.defineId(DualAcrobatSmgEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Float> SHOOTING_START_SPIN_DEGREES =
+    private static final EntityDataAccessor<Float> STARTUP_SETTLE_SPIN_DEGREES =
             SynchedEntityData.defineId(DualAcrobatSmgEntity.class, EntityDataSerializers.FLOAT);
 
     private float damage;
     private float range;
-    private float loadAmmoCountSpeed;
-    private int maximumLoadAmmoCount;
-    private float loadedAmmoCount;
-    private int remainingAmmoCount;
     private int shootingTick;
-    private int discardTick;
-    private boolean shooting;
-    private boolean waitingDiscard;
     private boolean nextShotRight = true;
-    private boolean nextLoadSoundRight = true;
+    private boolean nextStartupSoundRight = true;
 
     public DualAcrobatSmgEntity(EntityType<?> entityType, Level level) {
         super(entityType, level);
@@ -73,12 +63,11 @@ public class DualAcrobatSmgEntity extends SummonWeaponEntity {
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        builder.define(IS_CHARGING, true);
         builder.define(FORMATION_YAW, 0.0f);
         builder.define(RIGHT_RECOIL_TICKS, 0);
         builder.define(LEFT_RECOIL_TICKS, 0);
-        builder.define(SHOOTING_START_DELAY_REMAINING, 0);
-        builder.define(SHOOTING_START_SPIN_DEGREES, 0.0f);
+        builder.define(STARTUP_TICKS_REMAINING, STARTUP_TICKS);
+        builder.define(STARTUP_SETTLE_SPIN_DEGREES, 0.0f);
     }
 
     @Override
@@ -86,20 +75,13 @@ public class DualAcrobatSmgEntity extends SummonWeaponEntity {
         super.readAdditionalSaveData(tag);
         damage = tag.getFloat("Damage");
         range = tag.getFloat("Range");
-        loadAmmoCountSpeed = tag.getFloat("LoadAmmoCountSpeed");
-        maximumLoadAmmoCount = tag.getInt("MaximumLoadAmmoCount");
-        loadedAmmoCount = tag.getFloat("LoadedAmmoCount");
-        remainingAmmoCount = tag.getInt("RemainingAmmoCount");
         shootingTick = tag.getInt("ShootingTick");
-        discardTick = tag.getInt("DiscardTick");
-        shooting = tag.getBoolean("Shooting");
-        waitingDiscard = tag.getBoolean("WaitingDiscard");
         nextShotRight = !tag.contains("NextShotRight") || tag.getBoolean("NextShotRight");
-        nextLoadSoundRight = !tag.contains("NextLoadSoundRight") || tag.getBoolean("NextLoadSoundRight");
-        entityData.set(IS_CHARGING, !shooting && !waitingDiscard);
+        nextStartupSoundRight = !tag.contains("NextStartupSoundRight") || tag.getBoolean("NextStartupSoundRight");
         entityData.set(FORMATION_YAW, tag.getFloat("FormationYaw"));
-        entityData.set(SHOOTING_START_DELAY_REMAINING, tag.getInt("ShootingStartDelayRemaining"));
-        entityData.set(SHOOTING_START_SPIN_DEGREES, tag.getFloat("ShootingStartSpinDegrees"));
+        entityData.set(STARTUP_TICKS_REMAINING,
+                tag.contains("StartupTicksRemaining") ? tag.getInt("StartupTicksRemaining") : STARTUP_TICKS);
+        entityData.set(STARTUP_SETTLE_SPIN_DEGREES, tag.getFloat("StartupSettleSpinDegrees"));
     }
 
     @Override
@@ -107,19 +89,12 @@ public class DualAcrobatSmgEntity extends SummonWeaponEntity {
         super.addAdditionalSaveData(tag);
         tag.putFloat("Damage", damage);
         tag.putFloat("Range", range);
-        tag.putFloat("LoadAmmoCountSpeed", loadAmmoCountSpeed);
-        tag.putInt("MaximumLoadAmmoCount", maximumLoadAmmoCount);
-        tag.putFloat("LoadedAmmoCount", loadedAmmoCount);
-        tag.putInt("RemainingAmmoCount", remainingAmmoCount);
         tag.putInt("ShootingTick", shootingTick);
-        tag.putInt("DiscardTick", discardTick);
-        tag.putBoolean("Shooting", shooting);
-        tag.putBoolean("WaitingDiscard", waitingDiscard);
         tag.putBoolean("NextShotRight", nextShotRight);
-        tag.putBoolean("NextLoadSoundRight", nextLoadSoundRight);
+        tag.putBoolean("NextStartupSoundRight", nextStartupSoundRight);
         tag.putFloat("FormationYaw", entityData.get(FORMATION_YAW));
-        tag.putInt("ShootingStartDelayRemaining", getShootingStartDelayRemaining());
-        tag.putFloat("ShootingStartSpinDegrees", entityData.get(SHOOTING_START_SPIN_DEGREES));
+        tag.putInt("StartupTicksRemaining", getStartupTicksRemaining());
+        tag.putFloat("StartupSettleSpinDegrees", entityData.get(STARTUP_SETTLE_SPIN_DEGREES));
     }
 
     @Override
@@ -144,46 +119,28 @@ public class DualAcrobatSmgEntity extends SummonWeaponEntity {
     public void tickOnServer(ServerLevel level) {
         tickRecoil();
 
-        if (waitingDiscard) {
-            ++discardTick;
-            if (discardTick >= DISCARD_AFTER_EMPTY_TICKS) {
-                discard();
-            }
-            return;
-        }
-
         if (!(getOwner() instanceof LivingEntity owner)) {
             discard();
             return;
         }
 
         updateFormation(owner);
-        if (!shooting) {
+        if (getStartupTicksRemaining() > 0) {
             setYRot(owner.getYRot());
             setXRot(0.0f);
             setRot(getYRot(), getXRot());
             hasImpulse = true;
-            return;
+            if (!tickStartup(level, owner)) {
+                return;
+            }
         }
 
         var aimResult = RaycastTools.raycastFromEye(owner, range, 0.5, e -> CombatTools.isValidCombatTarget(e, this));
         faceTargetFrom(position(), aimResult.hitPosition());
-        if (tickShootingStartDelay()) {
-            return;
-        }
-
-        if (remainingAmmoCount <= 0) {
-            beginDiscardCountdown();
-            return;
-        }
 
         if (shootingTick % FIRE_INTERVAL_TICKS == 0) {
             fire(level, owner, nextShotRight);
             nextShotRight = !nextShotRight;
-            --remainingAmmoCount;
-            if (remainingAmmoCount <= 0) {
-                beginDiscardCountdown();
-            }
         }
         ++shootingTick;
     }
@@ -211,80 +168,20 @@ public class DualAcrobatSmgEntity extends SummonWeaponEntity {
         range = newRange;
     }
 
-    public void setLoadAmmoCountSpeed(float newLoadAmmoCountSpeed) {
-        loadAmmoCountSpeed = newLoadAmmoCountSpeed;
-    }
-
-    public void setMaximumLoadAmmoCount(int newMaximumLoadAmmoCount) {
-        maximumLoadAmmoCount = Math.max(0, newMaximumLoadAmmoCount);
-    }
-
-    public void loadAmmo() {
-        if (loadedAmmoCount >= maximumLoadAmmoCount) {
-            loadedAmmoCount = maximumLoadAmmoCount;
-            return;
-        }
-
-        loadedAmmoCount += loadAmmoCountSpeed / 20.0f;
-        if (loadedAmmoCount >= maximumLoadAmmoCount) {
-            loadedAmmoCount = maximumLoadAmmoCount;
-            return;
-        }
-
-        if (tickCount % 2 == 0) {
-            AudioTools.playSoundFromPosition(
-                    level(),
-                    getSidePosition(nextLoadSoundRight),
-                    SoundRegistry.VANILLA_FEED_AMMO.get(),
-                    SoundSource.PLAYERS,
-                    0.8f,
-                    1.0f
-            );
-            nextLoadSoundRight = !nextLoadSoundRight;
-        }
-    }
-
-    public void startShooting() {
-        shooting = true;
-        remainingAmmoCount = Math.max(0, (int) loadedAmmoCount);
-        shootingTick = 0;
-        nextShotRight = true;
-        entityData.set(IS_CHARGING, false);
-        entityData.set(SHOOTING_START_DELAY_REMAINING, SHOOTING_START_DELAY_TICKS);
-        entityData.set(SHOOTING_START_SPIN_DEGREES, Mth.positiveModulo(tickCount * SPIN_DEGREES_PER_TICK, 360.0f));
-    }
-
-    public void startCounterspellInterruptedShooting() {
-        loadedAmmoCount = 0.0f;
-        startShooting();
-    }
-
-    public boolean isCharging() {
-        return entityData.get(IS_CHARGING);
-    }
-
     public float getFormationYaw() {
         return entityData.get(FORMATION_YAW);
-    }
-
-    public float getLoadedAmmoCount() {
-        return loadedAmmoCount;
-    }
-
-    public int getRemainingAmmoCount() {
-        return remainingAmmoCount;
     }
 
     public int getRecoilTicks(boolean rightSide) {
         return entityData.get(rightSide ? RIGHT_RECOIL_TICKS : LEFT_RECOIL_TICKS);
     }
 
-    public int getShootingStartDelayRemaining() {
-        return entityData.get(SHOOTING_START_DELAY_REMAINING);
+    public int getStartupTicksRemaining() {
+        return entityData.get(STARTUP_TICKS_REMAINING);
     }
 
-    public float getShootingStartSpinDegrees() {
-        return entityData.get(SHOOTING_START_SPIN_DEGREES);
+    public float getStartupSettleSpinDegrees() {
+        return entityData.get(STARTUP_SETTLE_SPIN_DEGREES);
     }
 
     private void fire(Level level, LivingEntity owner, boolean rightSide) {
@@ -295,7 +192,7 @@ public class DualAcrobatSmgEntity extends SummonWeaponEntity {
         if (aimResult.hitEntity() != null) {
             var target = CombatTools.resolutePartEntity(aimResult.hitEntity());
             var source = createCombatDamageSource(DamageTypes.DUAL_ACROBAT);
-            CombatTools.applyDamage(target, damage, source, SpellRegistry.DUAL_ACROBAT.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+            CombatTools.applyDamage(target, damage, source, SpellRegistry.DUAL_ACROBAT.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
         }
 
         if (level instanceof ServerLevel server) {
@@ -347,15 +244,6 @@ public class DualAcrobatSmgEntity extends SummonWeaponEntity {
         return right.scale(SIDE_OFFSET * sideSign);
     }
 
-    private void beginDiscardCountdown() {
-        shooting = false;
-        waitingDiscard = true;
-        discardTick = 0;
-        entityData.set(IS_CHARGING, false);
-        entityData.set(SHOOTING_START_DELAY_REMAINING, 0);
-        setDeltaMovement(Vec3.ZERO);
-    }
-
     private void faceTargetFrom(Vec3 origin, Vec3 target) {
         var targetVec = target.subtract(origin);
         if (targetVec.lengthSqr() <= 1.0e-6) {
@@ -385,14 +273,36 @@ public class DualAcrobatSmgEntity extends SummonWeaponEntity {
         entityData.set(rightSide ? RIGHT_RECOIL_TICKS : LEFT_RECOIL_TICKS, RECOIL_DURATION_TICKS);
     }
 
-    private boolean tickShootingStartDelay() {
-        var delayRemaining = getShootingStartDelayRemaining();
-        if (delayRemaining <= 0) {
-            return false;
+    private boolean tickStartup(ServerLevel level, LivingEntity owner) {
+        var remaining = getStartupTicksRemaining();
+        if (remaining > STARTUP_SETTLE_TICKS && tickCount % 2 == 0) {
+            AudioTools.playSoundFromPosition(
+                    level,
+                    getSidePosition(nextStartupSoundRight),
+                    SoundRegistry.VANILLA_FEED_AMMO.get(),
+                    SoundSource.PLAYERS,
+                    0.8f,
+                    1.0f
+            );
+            nextStartupSoundRight = !nextStartupSoundRight;
         }
 
-        entityData.set(SHOOTING_START_DELAY_REMAINING, delayRemaining - 1);
-        return true;
+        var nextRemaining = remaining - 1;
+        entityData.set(STARTUP_TICKS_REMAINING, nextRemaining);
+        if (nextRemaining == STARTUP_SETTLE_TICKS) {
+            entityData.set(
+                    STARTUP_SETTLE_SPIN_DEGREES,
+                    Mth.positiveModulo(tickCount * SPIN_DEGREES_PER_TICK, 360.0f)
+            );
+            AudioTools.playSoundFromEntity(
+                    level,
+                    owner,
+                    SoundRegistry.VANILLA_HOLD_WEAPON.get(),
+                    SoundSource.PLAYERS
+            );
+        }
+
+        return nextRemaining <= 0;
     }
 
     private void createRingParticleAtSide(boolean rightSide) {

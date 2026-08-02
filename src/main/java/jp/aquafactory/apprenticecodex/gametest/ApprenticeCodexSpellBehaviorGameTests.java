@@ -1006,24 +1006,24 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         MoonLightCounterspellGameTestScenarios.chargeCutAppliesCounterspellEffects(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH)
-    public static void dualAcrobatAmmoStopsAtMaximum(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.dualAcrobatAmmoStopsAtMaximum(helper);
+    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void dualAcrobatStartsFiringAfterStartupAndContinuesWhileCasting(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.dualAcrobatStartsFiringAfterStartupAndContinuesWhileCasting(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 200)
-    public static void dualAcrobatReleaseFiresLoadedAmmoAndExpires(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.dualAcrobatReleaseFiresLoadedAmmoAndExpires(helper);
+    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void dualAcrobatCompletionDiscardsImmediately(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.dualAcrobatCompletionDiscardsImmediately(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 200)
-    public static void dualAcrobatCancelledInterruptionStillFiresLoadedAmmoAndExpires(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.dualAcrobatCancelledInterruptionStillFiresLoadedAmmoAndExpires(helper);
+    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void dualAcrobatCancelledInterruptionDiscardsImmediately(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.dualAcrobatCancelledInterruptionDiscardsImmediately(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 200)
-    public static void dualAcrobatCounterspellInterruptDiscardsWithoutShooting(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.dualAcrobatCounterspellInterruptDiscardsWithoutShooting(helper);
+    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void dualAcrobatCounterspellInterruptDiscardsImmediately(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.dualAcrobatCounterspellInterruptDiscardsImmediately(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 40)
