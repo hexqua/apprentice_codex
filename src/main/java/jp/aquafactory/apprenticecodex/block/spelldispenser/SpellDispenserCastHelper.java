@@ -164,7 +164,16 @@ public final class SpellDispenserCastHelper {
         if (casterProfile == null) {
             return CastResult.missingOwnerProfile(validation);
         }
-        var proxy = createProxy(level, castBasePosition, forward, casterProfile, profile);
+        var localCastTransform = resolveCastTransform(castBasePosition, forward, profile);
+        var castFrame = SpellDispenserCastFrameBridge.project(
+                level,
+                castBasePosition,
+                new SpellDispenserCastFrameBridge.CastFrame(
+                        localCastTransform.origin(),
+                        Vec3.directionFromRotation(localCastTransform.pitch(), localCastTransform.yaw())
+                )
+        );
+        var proxy = createProxy(level, resolveCastTransform(castFrame), casterProfile, profile);
         var trackedAnchor = createTrackedAnchorForExplicitProfile(level, proxy, profile, spell.getCastType());
         var spellCaster = resolveSpellCaster(proxy, trackedAnchor);
 
@@ -652,6 +661,15 @@ public final class SpellDispenserCastHelper {
             SpellDispenserSpellProfile profile
     ) {
         var castTransform = resolveCastTransform(castBasePosition, forward, profile);
+        return createProxy(level, castTransform, casterProfile, profile);
+    }
+
+    private static LivingEntity createProxy(
+            ServerLevel level,
+            CastTransform castTransform,
+            GameProfile casterProfile,
+            SpellDispenserSpellProfile profile
+    ) {
         return switch (resolveCasterMode(profile)) {
             case FAKE_PLAYER -> createFakePlayerProxy(level, casterProfile, castTransform);
             case NEUTRAL_LIVING -> createNeutralLivingProxy(level, castTransform);
@@ -721,6 +739,11 @@ public final class SpellDispenserCastHelper {
         var yaw = resolveYaw(normalizedForward) + profile.yawOffset();
         var pitch = Mth.clamp(resolvePitch(normalizedForward) + profile.pitchOffset(), -90.0F, 90.0F);
         return new CastTransform(resolveCastOrigin(castBasePosition, normalizedForward, profile), yaw, pitch);
+    }
+
+    private static CastTransform resolveCastTransform(SpellDispenserCastFrameBridge.CastFrame frame) {
+        var normalizedForward = normalizeForward(frame.forward());
+        return new CastTransform(frame.origin(), resolveYaw(normalizedForward), resolvePitch(normalizedForward));
     }
 
     private static Vec3 resolveCastOrigin(Vec3 castBasePosition, Vec3 forward, SpellDispenserSpellProfile profile) {

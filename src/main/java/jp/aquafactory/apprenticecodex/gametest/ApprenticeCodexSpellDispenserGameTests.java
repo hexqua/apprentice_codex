@@ -329,4 +329,19 @@ public final class ApprenticeCodexSpellDispenserGameTests {
     public static void spellDispenserCastHelperSupportsSpectralHammer(GameTestHelper helper) {
         SpellDispenserGameTestScenarios.spellDispenserCastHelperSupportsSpectralHammer(helper);
     }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserCastFrameProjectionMovesAndRotatesMagicMissile(GameTestHelper helper) {
+        SpellDispenserGameTestScenarios.spellDispenserCastFrameProjectionMovesAndRotatesMagicMissile(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserCastFrameProjectionKeepsShockEndpointsInWorldFrame(GameTestHelper helper) {
+        SpellDispenserGameTestScenarios.spellDispenserCastFrameProjectionKeepsShockEndpointsInWorldFrame(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellDispenserCastFrameProjectionAppliesProfileOffsetsBeforeProjection(GameTestHelper helper) {
+        SpellDispenserGameTestScenarios.spellDispenserCastFrameProjectionAppliesProfileOffsetsBeforeProjection(helper);
+    }
 }

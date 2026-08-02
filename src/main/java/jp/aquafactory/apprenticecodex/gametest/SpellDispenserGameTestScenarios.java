@@ -12,6 +12,7 @@ import io.redspace.ironsspellbooks.entity.spells.spectral_hammer.SpectralHammer;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastAnchorMode;
+import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastFrameBridge;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastHelper;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCasterMode;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaFluidHelper;
@@ -27,6 +28,7 @@ import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
+import jp.aquafactory.apprenticecodex.spell.shock.ShockBoltEntity;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -64,6 +66,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 final class SpellDispenserGameTestScenarios {
 
@@ -301,6 +304,131 @@ final class SpellDispenserGameTestScenarios {
         helper.assertTrue(!(owner instanceof Player), "Spell Dispenser neutral living cast used a Player owner: " + owner);
         helper.assertTrue(!(owner instanceof FakePlayer), "Spell Dispenser neutral living cast used a FakePlayer owner: " + owner);
         assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser neutral living cast left proxy state behind");
+        helper.succeed();
+    }
+
+    static void spellDispenserCastFrameProjectionMovesAndRotatesMagicMissile(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var castBasePosition = helper.absoluteVec(new Vec3(1.5D, 2.5D, 1.5D));
+        var projectedOrigin = helper.absoluteVec(new Vec3(4.5D, 3.0D, 4.5D));
+        var projectedForward = new Vec3(1.0D, 0.0D, 0.0D);
+        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        var spawnedProjectiles = new ArrayList<io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile>();
+        java.util.function.Consumer<EntityJoinLevelEvent> projectileListener = event -> {
+            if (event.getLevel() == level
+                    && event.getEntity() instanceof io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile projectile) {
+                spawnedProjectiles.add(projectile);
+            }
+        };
+
+        NeoForge.EVENT_BUS.addListener(projectileListener);
+        try (var ignored = SpellDispenserCastFrameBridge.useProjectorForGameTest((serverLevel, sourcePosition, frame) ->
+                new SpellDispenserCastFrameBridge.CastFrame(projectedOrigin, projectedForward))) {
+            var result = SpellDispenserCastHelper.tryCast(
+                    level,
+                    castBasePosition,
+                    new Vec3(0.0D, 0.0D, 1.0D),
+                    createSpellScroll(spell),
+                    null
+            );
+            helper.assertTrue(result.succeeded(), "Projected Spell Dispenser Magic Missile cast failed");
+        } finally {
+            NeoForge.EVENT_BUS.unregister(projectileListener);
+        }
+
+        helper.assertTrue(!spawnedProjectiles.isEmpty(), "Projected Spell Dispenser cast did not spawn Magic Missile");
+        var projectile = spawnedProjectiles.get(0);
+        helper.assertTrue(Math.abs(projectile.getX() - projectedOrigin.x) < 0.01D
+                        && Math.abs(projectile.getZ() - projectedOrigin.z) < 0.01D,
+                "Magic Missile did not spawn at the projected cast origin: " + projectile.position());
+        var movement = projectile.getDeltaMovement().normalize();
+        helper.assertTrue(movement.dot(projectedForward) > 0.999D,
+                "Magic Missile did not use the projected forward direction: " + projectile.getDeltaMovement());
+        helper.assertTrue(Math.abs(projectile.getDeltaMovement().y) < 1.0E-6D
+                        && Math.abs(projectile.getDeltaMovement().z) < 1.0E-6D,
+                "Magic Missile received an unexpected velocity component: " + projectile.getDeltaMovement());
+        helper.succeed();
+    }
+
+    static void spellDispenserCastFrameProjectionKeepsShockEndpointsInWorldFrame(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var castBasePosition = helper.absoluteVec(new Vec3(1.5D, 2.5D, 1.5D));
+        var projectedOrigin = helper.absoluteVec(new Vec3(3.5D, 2.5D, 2.5D));
+        var projectedForward = new Vec3(0.0D, 0.0D, 1.0D);
+        var targetPos = new BlockPos(3, 2, 6);
+        helper.setBlock(targetPos, Blocks.GOLD_BLOCK);
+
+        try (var ignored = SpellDispenserCastFrameBridge.useProjectorForGameTest((serverLevel, sourcePosition, frame) ->
+                new SpellDispenserCastFrameBridge.CastFrame(projectedOrigin, projectedForward))) {
+            var result = SpellDispenserCastHelper.tryCast(
+                    level,
+                    castBasePosition,
+                    new Vec3(1.0D, 0.0D, 0.0D),
+                    createSpellScroll(SpellRegistry.SHOCK.get()),
+                    null
+            );
+            helper.assertTrue(result.succeeded(), "Projected Spell Dispenser Shock cast failed");
+        }
+
+        var bolts = level.getEntitiesOfClass(
+                ShockBoltEntity.class,
+                new AABB(projectedOrigin, helper.absoluteVec(Vec3.atCenterOf(targetPos))).inflate(2.0D)
+        );
+        helper.assertTrue(!bolts.isEmpty(), "Projected Spell Dispenser cast did not spawn Shock Bolt");
+        var bolt = bolts.get(0);
+        var expectedStart = projectedOrigin.add(0.0D, -0.22D, 0.0D).add(projectedForward.scale(0.55D));
+        assertVecClose(helper, expectedStart, bolt.position(), 0.01D,
+                "Shock Bolt start was not projected into the world frame");
+
+        var end = bolt.getEndPosition();
+        var targetCenter = Vec3.atCenterOf(helper.absolutePos(targetPos));
+        // Shock Bolt の同期終点は float のため、GameTest が配置される大座標では1ブロック程度丸められる。
+        helper.assertTrue(end.distanceToSqr(targetCenter) <= 4.0D,
+                "Shock Bolt did not stop near the projected target block: end=" + end + ", target=" + targetCenter);
+        helper.assertTrue(end.subtract(bolt.position()).normalize().dot(projectedForward) > 0.8D,
+                "Shock Bolt end remained in a different coordinate frame: " + end);
+        helper.succeed();
+    }
+
+    static void spellDispenserCastFrameProjectionAppliesProfileOffsetsBeforeProjection(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var castBasePosition = helper.absoluteVec(new Vec3(2.5D, 2.5D, 2.5D));
+        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        var profile = new SpellDispenserSpellProfile(
+                SpellDispenserCastAnchorMode.AUTO,
+                SpellDispenserCasterMode.NEUTRAL_LIVING,
+                0.3D,
+                0.5D,
+                0.25D,
+                90.0F,
+                0.0F,
+                false
+        );
+        var capturedFrame = new AtomicReference<SpellDispenserCastFrameBridge.CastFrame>();
+
+        try (var ignoredProfiles = SpellDispenserSpellProfileManager.useProfilesForGameTest(Map.of(spell.getSpellResource(), profile));
+             var ignoredProjector = SpellDispenserCastFrameBridge.useProjectorForGameTest((serverLevel, sourcePosition, frame) -> {
+                 capturedFrame.set(frame);
+                 return frame;
+             })) {
+            var result = SpellDispenserCastHelper.tryCast(
+                    level,
+                    castBasePosition,
+                    new Vec3(0.0D, 0.0D, 1.0D),
+                    createSpellScroll(spell),
+                    null
+            );
+            helper.assertTrue(result.succeeded(), "Offset Spell Dispenser Magic Missile cast failed");
+        }
+
+        var frame = capturedFrame.get();
+        helper.assertTrue(frame != null, "Spell Dispenser cast frame projector was not invoked");
+        var expectedOrigin = castBasePosition.add(-0.25D, 0.5D, 1.0D);
+        assertVecClose(helper, expectedOrigin, frame.origin(), 1.0E-6D,
+                "Spell profile position offsets were not applied before projection");
+        var expectedForward = Vec3.directionFromRotation(0.0F, 90.0F).normalize();
+        helper.assertTrue(frame.forward().normalize().dot(expectedForward) > 0.999D,
+                "Spell profile angle offsets were not applied before projection: " + frame.forward());
         helper.succeed();
     }
     static void spellDispenserCastHelperCompletesLongCastImmediately(GameTestHelper helper) {
@@ -1773,6 +1901,17 @@ final class SpellDispenserGameTestScenarios {
 
         var remainingAnchors = helper.getLevel().getEntitiesOfClass(SpellDispenserAnchorEntity.class, proxyBox);
         helper.assertTrue(remainingAnchors.isEmpty(), message + " (tracked anchors): " + remainingAnchors.size());
+    }
+
+    private static void assertVecClose(
+            GameTestHelper helper,
+            Vec3 expected,
+            Vec3 actual,
+            double tolerance,
+            String message
+    ) {
+        helper.assertTrue(expected.distanceToSqr(actual) <= tolerance * tolerance,
+                message + ": expected=" + expected + ", actual=" + actual);
     }
 
     private static Object createSpellDispenserMovementHarness(
