@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.mixin;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.ICastData;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
@@ -12,6 +13,7 @@ import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastS
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffCastHelper;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunCastContext;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
+import jp.aquafactory.apprenticecodex.network.CastDataNetworkSnapshot;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.core.Holder;
@@ -25,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -33,6 +36,21 @@ import java.util.Optional;
 
 @Mixin(value = AbstractSpell.class, remap = false)
 public abstract class AbstractSpellMixin {
+    @ModifyArg(
+            method = "castSpell",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lio/redspace/ironsspellbooks/network/casting/OnClientCastPacket;<init>(Ljava/lang/String;ILio/redspace/ironsspellbooks/api/spells/CastSource;Lio/redspace/ironsspellbooks/api/spells/ICastData;)V"
+            ),
+            index = 3
+    )
+    private ICastData apprentice_codex$snapshotCastDataBeforeAsyncEncoding(ICastData castData) {
+        return CastDataNetworkSnapshot.snapshotForAsyncPacketEncoding(
+                (AbstractSpell) (Object) this,
+                castData
+        );
+    }
+
     @Redirect(
             method = {"getSpellPower", "getEntityPowerMultiplier"},
             at = @At(
