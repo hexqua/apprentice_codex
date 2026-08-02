@@ -12,7 +12,6 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -28,28 +27,24 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 public class BulletStreamMinigunEntity extends SummonWeaponEntity implements GeoEntity {
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private static final RawAnimation ROTATE = RawAnimation.begin().thenLoop("spin");
-    private static final float MAX_SPIN_ANIMATION_SPEED = 4.0f;
+    private static final RawAnimation SPIN_UP_TO_FIRE = RawAnimation.begin().thenPlay("spinup").thenLoop("spining");
+    private static final RawAnimation SPIN_FINISH = RawAnimation.begin().thenPlayAndHold("spin_finish");
+    private static final int FIRING_SOUND_INTERVAL_TICKS = 10;
+    private static final int RELEASE_DURATION_TICKS = 10;
 
     private static final EntityDataAccessor<Boolean> IS_RECOIL_TICK =
             SynchedEntityData.defineId(BulletStreamMinigunEntity.class, EntityDataSerializers.BOOLEAN);
 
-    // クライアント処理に流すために公開.
-    public static final EntityDataAccessor<Boolean> IS_SOUND_LOOP_MODE =
+    private static final EntityDataAccessor<Boolean> IS_SPINNING_DOWN =
             SynchedEntityData.defineId(BulletStreamMinigunEntity.class, EntityDataSerializers.BOOLEAN);
-
-    private static final EntityDataAccessor<Float> SPIN_ANIMATION_SPEED =
-            SynchedEntityData.defineId(BulletStreamMinigunEntity.class, EntityDataSerializers.FLOAT);
 
     private float damage;
     private float range;
     private int spellLevel;
 
     private int currentTick;
-    private int currentWarmUpDelayTick;
-    private int warmUpBaseDelay;
-    private int warmUpStartTick;
-    private int warmUpFinishTick;
+    private int firingTick;
+    private int spinUpDelayTick;
     private boolean isStarted;
     private boolean isReleased;
     private int releasedTick;
@@ -64,8 +59,7 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         builder.define(IS_RECOIL_TICK, false);
-        builder.define(IS_SOUND_LOOP_MODE, false);
-        builder.define(SPIN_ANIMATION_SPEED, 0.0f);
+        builder.define(IS_SPINNING_DOWN, false);
     }
 
     @Override
@@ -110,11 +104,6 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
     public void tickOnServer(ServerLevel level) {
         if (isReleased) {
             --releasedTick;
-            if (entityData.get(IS_SOUND_LOOP_MODE) || isStarted) {
-                isStarted = false;
-                entityData.set(IS_SOUND_LOOP_MODE, false);
-                AudioTools.playSoundFromEntity(level, this, SoundRegistry.MINIGUN_FINISH.get(), SoundSource.PLAYERS);
-            }
             if (releasedTick <= 0) {
                 discard();
             }
@@ -143,47 +132,34 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
         hasImpulse = true;
 
         ++currentTick;
-        if (currentTick >= warmUpStartTick){
-            if (currentTick >= warmUpFinishTick){
-                if (!entityData.get(IS_RECOIL_TICK)) {
-                    entityData.set(IS_RECOIL_TICK, true);
-                }
-                if (!entityData.get(IS_SOUND_LOOP_MODE)) {
-                    entityData.set(IS_SOUND_LOOP_MODE, true);
-                }
-                fire(level, true);
-            } else if (currentWarmUpDelayTick <= 0) {
-                fire(level, entityData.get(IS_SOUND_LOOP_MODE));
-                var warmUpTick = currentTick - warmUpStartTick;
-                var warmUpDuration = warmUpFinishTick - warmUpStartTick;
-                var t = Mth.clamp(warmUpTick, 0, warmUpDuration) / (float) warmUpDuration;
-                currentWarmUpDelayTick = Mth.lerpInt(1-t, 0, warmUpBaseDelay);
-                entityData.set(IS_RECOIL_TICK, true);
-                if (currentWarmUpDelayTick <= 2 && !entityData.get(IS_SOUND_LOOP_MODE)) {
-                    entityData.set(IS_SOUND_LOOP_MODE, true);
-                }
-            } else {
-                --currentWarmUpDelayTick;
-                if (entityData.get(IS_RECOIL_TICK)) {
-                    entityData.set(IS_RECOIL_TICK, false);
-                }
+        if (currentTick >= spinUpDelayTick) {
+            entityData.set(IS_RECOIL_TICK, true);
+            fire(level);
+            if (firingTick % FIRING_SOUND_INTERVAL_TICKS == 0) {
+                AudioTools.playSoundFromEntity(level, this, SoundRegistry.MINIGUN_FIRING.get(), SoundSource.PLAYERS);
             }
-        }
-
-        if (currentTick <= warmUpFinishTick) {
-            var currentSpinAnimationSpeed = Mth.lerp(currentTick / (float) warmUpFinishTick, 0.0f, MAX_SPIN_ANIMATION_SPEED);
-            entityData.set(SPIN_ANIMATION_SPEED, currentSpinAnimationSpeed);
+            ++firingTick;
         }
     }
 
     @Override
     public void releaseWeapon(){
+        if (isReleased) {
+            return;
+        }
+
         isReleased = true;
-        releasedTick = 10;
+        releasedTick = RELEASE_DURATION_TICKS;
         entityData.set(IS_RECOIL_TICK, false);
+        if (firingTick > 0) {
+            entityData.set(IS_SPINNING_DOWN, true);
+            if (level() instanceof ServerLevel serverLevel) {
+                AudioTools.playSoundFromEntity(serverLevel, this, SoundRegistry.MINIGUN_FINISH.get(), SoundSource.PLAYERS);
+            }
+        }
     }
 
-    private void fire(Level level, boolean isHighSpeedMode) {
+    private void fire(Level level) {
         var owner = getOwner();
         var hitResult = RaycastTools.raycastFromEye(owner, range, 0.5, e -> CombatTools.isValidCombatTarget(e, this) && e != owner);
         if (hitResult.hitEntity() != null) {
@@ -193,7 +169,7 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
         }
 
         if (level instanceof ServerLevel server) {
-            if (!isHighSpeedMode || (tickCount % 2 == 0)) {
+            if (tickCount % 2 == 0) {
                 var firePosition = position().add(getLookAngle().normalize().scale(1));
                 server.sendParticles(new MuzzleFlashParticleOptions(1f), firePosition.x, firePosition.y, firePosition.z, 1, .05, .05, .05, 0);
             }
@@ -205,10 +181,6 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
             if (hitResult.hitType() == RaycastTools.TargetType.BLOCK && tickCount % 2 == 0) {
                 server.sendParticles(ParticleTypes.SMOKE, hitPosition.x, hitPosition.y, hitPosition.z, 1, .1, .1, .1, 0);
             }
-        }
-
-        if (!isHighSpeedMode) {
-            AudioTools.playSoundFromEntity(level, this, SoundRegistry.MINIGUN_SINGLE.get(), SoundSource.PLAYERS);
         }
     }
 
@@ -230,13 +202,14 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
     public void setRange(float range) {
         this.range = range;
     }
-    public void setTickSettings(int warmUpBaseDelay, int warmUpStartTick, int warmUpFinishTick) {
-        this.warmUpBaseDelay = warmUpBaseDelay;
-        this.warmUpStartTick = warmUpStartTick;
-        this.warmUpFinishTick = warmUpFinishTick;
+    public void setSpinUpDelayTick(int spinUpDelayTick) {
+        this.spinUpDelayTick = spinUpDelayTick;
     }
     public boolean getIsRecoilTick() {
         return entityData.get(IS_RECOIL_TICK);
+    }
+    public boolean isSpinningDown() {
+        return entityData.get(IS_SPINNING_DOWN);
     }
 
     private float resolveCurrentDamage(net.minecraft.world.entity.Entity owner) {
@@ -252,8 +225,7 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
         controllerRegistrar.add(new AnimationController<>(
                 this, "main", 0,
                 state -> {
-                    state.setAnimation(ROTATE);
-                    state.getController().setAnimationSpeed(entityData.get(SPIN_ANIMATION_SPEED));
+                    state.setAnimation(entityData.get(IS_SPINNING_DOWN) ? SPIN_FINISH : SPIN_UP_TO_FIRE);
                     return PlayState.CONTINUE;
                 }
         ));
