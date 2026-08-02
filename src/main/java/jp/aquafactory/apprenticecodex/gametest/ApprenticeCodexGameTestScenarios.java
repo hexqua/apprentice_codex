@@ -9624,13 +9624,13 @@ public class ApprenticeCodexGameTestScenarios {
                             "Dual Acrobat shots should not knock targets back");
                     helper.assertFalse(weapon.isRemoved(),
                             "Dual Acrobat SMGs should remain while CONTINUOUS casting is active");
-                    var healthAfterContinuedFire = target.getHealth();
+                    var healthBeforeSustainedContinuousFire = target.getHealth();
 
                     helper.runAtTickTime(30, () -> {
-                        helper.assertTrue(target.getHealth() < healthAfterContinuedFire,
-                                "Dual Acrobat should keep firing beyond the former maximum loaded-ammo burst");
+                        helper.assertTrue(target.getHealth() < healthBeforeSustainedContinuousFire,
+                                "Dual Acrobat should continue firing throughout a sustained CONTINUOUS cast");
                         helper.assertFalse(weapon.isRemoved(),
-                                "Dual Acrobat SMGs should not expire from a removed ammo limit");
+                                "Dual Acrobat SMGs should remain active throughout a sustained CONTINUOUS cast");
                         spell.onServerCastComplete(level, 1, player, magicData, true);
                         helper.succeed();
                     });
@@ -9667,7 +9667,7 @@ public class ApprenticeCodexGameTestScenarios {
 
                 helper.runAtTickTime(DualAcrobatSmgEntity.STARTUP_TICKS + 10L, () -> {
                     helper.assertTrue(Math.abs(target.getHealth() - healthAtCompletion) < 1.0e-6f,
-                            "Completed Dual Acrobat should not deal delayed damage");
+                            "Completed Dual Acrobat should not deal damage after its SMGs are discarded");
                     helper.succeed();
                 });
             });
@@ -9701,7 +9701,7 @@ public class ApprenticeCodexGameTestScenarios {
 
                 helper.runAtTickTime(DualAcrobatSmgEntity.STARTUP_TICKS + 3L, () -> {
                     helper.assertTrue(Math.abs(target.getHealth() - initialHealth) < 1.0e-6f,
-                            "Cancelled Dual Acrobat should not reach its delayed firing point");
+                            "Cancelled Dual Acrobat should not start firing after the interruption");
                     helper.succeed();
                 });
             });
