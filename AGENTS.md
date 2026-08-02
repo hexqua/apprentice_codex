@@ -46,6 +46,7 @@
 ```powershell
 .\scripts\use-java.ps1
 ./gradlew.bat runGameTestServerCompat
+./gradlew.bat runGameTestServerCreateSableAeronautics
 ./gradlew.bat runGameTestServerEasyMagic
 ./gradlew.bat runGameTestServerBetterCombat
 ./gradlew.bat runGameTestServerEpicFight
@@ -59,6 +60,7 @@
 ```powershell
 .\scripts\use-java.ps1
 ./gradlew.bat runClientCompat
+./gradlew.bat runClientCreateSableAeronautics
 ./gradlew.bat runClientEasyMagic
 ./gradlew.bat runClientBetterCombat
 ./gradlew.bat runClientEpicFight
@@ -87,6 +89,7 @@ Get-ChildItem build\libs\*.jar
 - `runGameTestServer` はサーバー側の登録、データ読込、レシピ、生成まわりの検証に使う。renderer / screen など client 専用の起動不良は別途 `runClient` で確認する。
 - `runGameTestServer` は専用 world `run/codex_gametest_clean` を毎回初期化してから起動する。通常の手動確認用 `run/world` は削除しない。
 - `runGameTestServerCompat` は Farmer's Delight / Create / Lodestone / Malum / Atlas API / Iron's Gems 'n Jewelry 連携の確認に使う。
+- `runGameTestServerCreateSableAeronautics` は Create / Sable / Create Simulated / Create Aeronautics / Create Offroad の導入とサーバー起動確認に使う。
 - `runGameTestServerEasyMagic` は Puzzles Lib / Easy Magic 連携の確認に使う。
 - `runGameTestServerBetterCombat` は Cloth Config / Better Combat 連携の確認に使う。
 - `runGameTestServerEpicFight` は Epic Fight 連携の確認に使う。
@@ -95,6 +98,7 @@ Get-ChildItem build\libs\*.jar
 - 実行ツール側の timeout で中断した場合は、初回失敗の記録を保持したまま、同じ source で強制終了 timeout を前回の 2 倍以上へ延長して追加実行する。GameTest 自身が報告した test timeout にはこの延長規則を適用しない。
 - いずれかの GameTest task が一度でも失敗した場合は、後続実行が成功しても失敗を省略せず、`.codex/skills/report-gametest-failure` を使用して観測結果を最終報告に残す。
 - `runClientEpicFightController` は Epic Fight / Controlify / YACL を入れ、実機コントローラー入力を確認する。
+- `runClientCreateSableAeronautics` は通常の client 環境へ Create / Sable / Create Aeronautics bundled jar を追加する。bundled jar には Create Simulated / Create Aeronautics / Create Offroad が含まれる。
 - `runClientCompatEasyBetter` は compat + Easy Magic + Better Combat を入れた実環境寄りの手動バランス確認用。Epic Fight は含めず、自動テスト対象にも含めない。
 - IntelliJ IDEA から client 構成を起動して `Unsupported major.minor version 65.0` が出る場合は、Project SDK / Gradle JVM / 古い実行構成が Java 17 を参照している。IDEA 側を JDK 21 にそろえ、`neoForgeIdeSync` を再実行し、必要なら古い Minecraft run configuration を削除して再生成する。
 - Botania は 1.21.1 側で API 依存を置いていないため、optional MOD profile には含めない。
@@ -125,6 +129,7 @@ Get-ChildItem build\libs\*.jar
 7. `main` から `1.20.1-main` への backport では、1.20.1 側で `./gradlew.bat runGameTestServer` と `./gradlew.bat build` を成功させる。
 8. optional MOD 連携に影響する変更では、対象に応じて特殊 GameTest / client 構成を追加実行する。
    - Create / Lodestone / Malum / Farmer's Delight / Atlas API / Iron's Gems 'n Jewelry: `./gradlew.bat runGameTestServerCompat`
+   - Create Aeronautics / Sable / Create Simulated / Create Offroad: `./gradlew.bat runGameTestServerCreateSableAeronautics`
    - Easy Magic / エンチャントメニュー: `./gradlew.bat runGameTestServerEasyMagic`
    - Better Combat / offhand / weapon_attributes: `./gradlew.bat runGameTestServerBetterCombat`
    - Epic Fight / mixin / capabilities / item_skins: `./gradlew.bat runGameTestServerEpicFight`

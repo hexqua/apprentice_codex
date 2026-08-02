@@ -46,9 +46,30 @@ repositories {
         url = uri("https://maven.theillusivec4.top/")
     }
 
+    // Sable が提供する optional 互換 API.
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "SableCompanion"
+                url = uri("https://maven.ryanhcode.dev/releases")
+            }
+        }
+        filter {
+            includeGroup("dev.ryanhcode.sable-companion")
+        }
+    }
+
     // Create が同梱している Registrate API を compileOnly 参照するため.
-    maven {
-        url = uri("https://maven.tterrag.com/")
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Registrate"
+                url = uri("https://mvn.devos.one/snapshots")
+            }
+        }
+        filter {
+            includeGroup("com.tterrag.registrate")
+        }
     }
 }
 
@@ -71,6 +92,8 @@ def requiredOptionalModsProperty = 'apprenticecodex.requiredOptionalMods'
 
 def optionalRuntimeModuleConfigurations = [
         create         : 'createRuntimeOnly',
+        sable          : 'sableRuntimeOnly',
+        create_aeronautics: 'createAeronauticsRuntimeOnly',
         puzzles_lib    : 'puzzlesLibRuntimeOnly',
         easy_magic     : 'easyMagicRuntimeOnly',
         cloth_config   : 'clothConfigRuntimeOnly',
@@ -91,6 +114,7 @@ def clientRuntimeModuleConfigurations = [
 
 def optionalRuntimeProfileModules = [
         compat              : ['create', 'lodestone', 'malum', 'atlas_api', 'irons_jewelry'],
+        create_sable_aeronautics: ['create', 'sable', 'create_aeronautics'],
         easy_magic          : ['puzzles_lib', 'easy_magic'],
         better_combat       : ['cloth_config', 'better_combat'],
         epic_fight          : ['epic_fight'],
@@ -106,6 +130,10 @@ def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
         epicfightcontroller: ['epic_fight', 'yacl', 'controlify'],
         controlify    : ['yacl', 'controlify'],
         create        : ['create'],
+        sable         : ['sable'],
+        createaeronautics: ['create', 'sable', 'create_aeronautics'],
+        create_aeronautics: ['create', 'sable', 'create_aeronautics'],
+        aeronautics   : ['create', 'sable', 'create_aeronautics'],
         lodestone     : ['lodestone'],
         malum         : ['lodestone', 'malum'],
         atlasapi      : ['atlas_api'],
@@ -116,6 +144,7 @@ def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
 
 def optionalRuntimeRequiredModIds = [
         compat       : 'create,lodestone,malum,atlas_api,irons_jewelry',
+        create_sable_aeronautics: 'create,sable,simulated,aeronautics,offroad,aeronautics_bundled',
         easy_magic   : 'puzzleslib,easymagic',
         better_combat: 'cloth_config,bettercombat',
         epic_fight   : 'epicfight',
@@ -182,6 +211,11 @@ neoForge {
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
+        clientCreateSableAeronautics {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
         clientEasyMagic {
             client()
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
@@ -211,6 +245,13 @@ neoForge {
             type = "gameTestServer"
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
             systemProperty requiredOptionalModsProperty, optionalRuntimeRequiredModIds.compat
+            programArguments.addAll '--world', gameTestServerWorldName
+        }
+
+        gameTestServerCreateSableAeronautics {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty requiredOptionalModsProperty, optionalRuntimeRequiredModIds.create_sable_aeronautics
             programArguments.addAll '--world', gameTestServerWorldName
         }
 
@@ -283,17 +324,19 @@ configurations {
     }
 }
 
-['client', 'clientCompat', 'clientEasyMagic', 'clientBetterCombat', 'clientEpicFight', 'clientEpicFightController', 'clientCompatEasyBetter'].each {
+['client', 'clientCompat', 'clientCreateSableAeronautics', 'clientEasyMagic', 'clientBetterCombat', 'clientEpicFight', 'clientEpicFightController', 'clientCompatEasyBetter'].each {
     extendRunJavaClasspathWithClientRuntimeModules(it)
 }
 
 extendRunJavaClasspathWithOptionalRuntimeModules('clientCompat', expandOptionalRuntimeModules(['compat']))
+extendRunJavaClasspathWithOptionalRuntimeModules('clientCreateSableAeronautics', expandOptionalRuntimeModules(['create_sable_aeronautics']))
 extendRunJavaClasspathWithOptionalRuntimeModules('clientEasyMagic', expandOptionalRuntimeModules(['easy_magic']))
 extendRunJavaClasspathWithOptionalRuntimeModules('clientBetterCombat', expandOptionalRuntimeModules(['better_combat']))
 extendRunJavaClasspathWithOptionalRuntimeModules('clientEpicFight', expandOptionalRuntimeModules(['epic_fight']))
 extendRunJavaClasspathWithOptionalRuntimeModules('clientEpicFightController', expandOptionalRuntimeModules(['epic_fight_controller']))
 extendRunJavaClasspathWithOptionalRuntimeModules('clientCompatEasyBetter', expandOptionalRuntimeModules(['compat_easy_better']))
 extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerCompat', expandOptionalRuntimeModules(['compat']))
+extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerCreateSableAeronautics', expandOptionalRuntimeModules(['create_sable_aeronautics']))
 extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerEasyMagic', expandOptionalRuntimeModules(['easy_magic']))
 extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerBetterCombat', expandOptionalRuntimeModules(['better_combat']))
 extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerEpicFight', expandOptionalRuntimeModules(['epic_fight']))
@@ -325,9 +368,17 @@ dependencies {
     // Create.
     // Create 連携のコンパイル用.
     // ランタイム検証では compat profile から読み込む.
-    compileOnly "maven.modrinth:create:88L641Un"
+    compileOnly "maven.modrinth:create:${create_modrinth_version_id}"
     compileOnly "com.tterrag.registrate:Registrate:${registrate_version}"
-    add(optionalRuntimeModuleConfigurations.create, "maven.modrinth:create:88L641Un")
+    add(optionalRuntimeModuleConfigurations.create, "maven.modrinth:create:${create_modrinth_version_id}")
+
+    // Sable / Create Aeronautics.
+    // Sable 本体の内部 API へ結合せず、optional 互換 API として Companion を参照する。
+    // ランタイムは専用 profile に閉じ、通常環境へ物理 sub-level 実装を持ち込まない。
+    compileOnly "dev.ryanhcode.sable-companion:sable-companion-common-${minecraft_version}:${sable_companion_version}"
+    add(optionalRuntimeModuleConfigurations.sable, "maven.modrinth:sable:${sable_modrinth_version_id}")
+    add(optionalRuntimeModuleConfigurations.create_aeronautics,
+            "maven.modrinth:create-aeronautics:${create_aeronautics_modrinth_version_id}")
 
     // EasyMagic.
     // easy_magic profile から読み込む。通常開発ではエンチャント挙動の変化を避ける.
@@ -429,6 +480,8 @@ tasks.named('processResources', ProcessResources).configure {
             neo_version            : neo_version,
             loader_version_range   : loader_version_range,
             create_version         : create_version,
+            sable_version          : sable_version,
+            simulated_project_version: simulated_project_version,
             jade_version           : jade_version,
             lodestone_version      : lodestone_version,
             malum_version          : malum_version,
