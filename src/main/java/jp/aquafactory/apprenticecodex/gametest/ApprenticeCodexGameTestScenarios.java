@@ -9626,7 +9626,7 @@ public class ApprenticeCodexGameTestScenarios {
                             "Dual Acrobat SMGs should remain while CONTINUOUS casting is active");
                     var healthAfterContinuedFire = target.getHealth();
 
-                    helper.runAtTickTime(70, () -> {
+                    helper.runAtTickTime(30, () -> {
                         helper.assertTrue(target.getHealth() < healthAfterContinuedFire,
                                 "Dual Acrobat should keep firing beyond the former maximum loaded-ammo burst");
                         helper.assertFalse(weapon.isRemoved(),

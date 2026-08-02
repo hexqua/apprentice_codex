@@ -37,30 +37,29 @@ public class DualAcrobat extends AbstractSummonWeaponSpell<DualAcrobatSmgEntity>
 
     public DualAcrobat() {
         super(DualAcrobatSmgEntity.class);
-        baseSpellPower = 500;
-        spellPowerPerLevel = 100;
+        baseSpellPower = 75;
+        spellPowerPerLevel = 65;
         baseManaCost = 5;
         manaCostPerLevel = 5;
-        castTime = 100;
+        castTime = 60;
     }
 
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, @Nullable LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(), 2)),
+                Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
                 Component.translatable("ui.irons_spellbooks.distance", getRange())
         );
     }
 
-    private float getDamage() {
-        var rawDamage = 2;
+    private float getDamage(int spellLevel, @Nullable LivingEntity caster) {
+        var rawDamage = getSpellPower(spellLevel, caster) / 100.0f;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.DUAL_ACROBAT);
     }
 
     public int getRange(){
-        return 24;
+        return 16;
     }
-
 
     @Override
     public ResourceLocation getSpellResource() {
@@ -105,7 +104,7 @@ public class DualAcrobat extends AbstractSummonWeaponSpell<DualAcrobatSmgEntity>
     @Override
     public DualAcrobatSmgEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var summonWeapon = new DualAcrobatSmgEntity(EntityRegistry.DUAL_ACROBAT_SMG.get(), level, entity);
-        summonWeapon.setDamage(getDamage());
+        summonWeapon.setDamage(getDamage(spellLevel, entity));
         summonWeapon.setRange(getRange());
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
@@ -114,6 +113,8 @@ public class DualAcrobat extends AbstractSummonWeaponSpell<DualAcrobatSmgEntity>
     @Override
     public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData,
                                      @NotNull DualAcrobatSmgEntity weapon) {
+        // FocusStaffbowは魔法力が伸びるため、ダメージを再計算しなおす.
+        weapon.setDamage(getDamage(spellLevel, entity));
     }
 
     @Override
