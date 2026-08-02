@@ -22,9 +22,8 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> HANDGUN = reg("handgun");
     public static final RegistryObject<SoundEvent> SHOTGUN = reg("shotgun");
     public static final RegistryObject<SoundEvent> MUSKET = reg("musket");
-    public static final RegistryObject<SoundEvent> MINIGUN_SINGLE = reg("minigun_single");
-    public static final RegistryObject<SoundEvent> MINIGUN_LOOP = reg("minigun_loop");
     public static final RegistryObject<SoundEvent> MINIGUN_WARMUP = reg("minigun_warmup");
+    public static final RegistryObject<SoundEvent> MINIGUN_FIRING = reg("minigun_firing");
     public static final RegistryObject<SoundEvent> MINIGUN_FINISH = reg("minigun_finish");
     public static final RegistryObject<SoundEvent> ARCANE_BLAST = reg("arcane_blast");
     public static final RegistryObject<SoundEvent> SAW_START = reg("saw_start");
@@ -111,7 +110,6 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> VANILLA_FEED_AMMO = reg("vanilla_feed_ammo");
     public static final RegistryObject<SoundEvent> VANILLA_CAST_BOOK = reg("vanilla_cast_book");
     public static final RegistryObject<SoundEvent> VANILLA_CRYSTALLIZE_MANA = reg("vanilla_crystallize_mana");
-
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);
     }
