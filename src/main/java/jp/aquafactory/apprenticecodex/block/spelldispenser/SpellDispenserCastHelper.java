@@ -164,7 +164,12 @@ public final class SpellDispenserCastHelper {
         if (casterProfile == null) {
             return CastResult.missingOwnerProfile(validation);
         }
-        var proxy = createProxy(level, castBasePosition, forward, casterProfile, profile);
+        var proxy = createProxy(
+                level,
+                resolveProjectedCastTransform(level, castBasePosition, forward, profile),
+                casterProfile,
+                profile
+        );
         var trackedAnchor = createTrackedAnchorForExplicitProfile(level, proxy, profile, spell.getCastType());
         var spellCaster = resolveSpellCaster(proxy, trackedAnchor);
 
@@ -355,7 +360,12 @@ public final class SpellDispenserCastHelper {
         }
 
         var spellId = spell.getSpellResource();
-        var proxy = createProxy(level, castBasePosition, forward, casterProfile, profile);
+        var proxy = createProxy(
+                level,
+                resolveProjectedCastTransform(level, castBasePosition, forward, profile),
+                casterProfile,
+                profile
+        );
         var trackedAnchor = createTrackedAnchorForExplicitProfile(level, proxy, profile, spell.getCastType());
         var spellCaster = resolveSpellCaster(proxy, trackedAnchor);
         var magicData = MagicData.getPlayerMagicData(proxy);
@@ -424,12 +434,22 @@ public final class SpellDispenserCastHelper {
         );
     }
 
-    public static void syncContinuousCastTransform(ContinuousCastSession session, Vec3 castBasePosition, Vec3 forward) {
+    public static void syncContinuousCastTransform(
+            ServerLevel level,
+            ContinuousCastSession session,
+            Vec3 castBasePosition,
+            Vec3 forward
+    ) {
         if (session.isFinished()) {
             return;
         }
 
-        var castTransform = resolveCastTransform(castBasePosition, forward, session.profile());
+        var castTransform = resolveProjectedCastTransform(
+                level,
+                castBasePosition,
+                forward,
+                session.profile()
+        );
         moveCaster(session.proxy(), castTransform);
         syncTrackedAnchor(session);
     }
@@ -646,12 +666,10 @@ public final class SpellDispenserCastHelper {
 
     private static LivingEntity createProxy(
             ServerLevel level,
-            Vec3 castBasePosition,
-            Vec3 forward,
+            CastTransform castTransform,
             GameProfile casterProfile,
             SpellDispenserSpellProfile profile
     ) {
-        var castTransform = resolveCastTransform(castBasePosition, forward, profile);
         return switch (resolveCasterMode(profile)) {
             case FAKE_PLAYER -> createFakePlayerProxy(level, casterProfile, castTransform);
             case NEUTRAL_LIVING -> createNeutralLivingProxy(level, castTransform);
@@ -721,6 +739,29 @@ public final class SpellDispenserCastHelper {
         var yaw = resolveYaw(normalizedForward) + profile.yawOffset();
         var pitch = Mth.clamp(resolvePitch(normalizedForward) + profile.pitchOffset(), -90.0F, 90.0F);
         return new CastTransform(resolveCastOrigin(castBasePosition, normalizedForward, profile), yaw, pitch);
+    }
+
+    private static CastTransform resolveCastTransform(SpellDispenserCastFrameBridge.CastFrame frame) {
+        var normalizedForward = normalizeForward(frame.forward());
+        return new CastTransform(frame.origin(), resolveYaw(normalizedForward), resolvePitch(normalizedForward));
+    }
+
+    private static CastTransform resolveProjectedCastTransform(
+            ServerLevel level,
+            Vec3 castBasePosition,
+            Vec3 forward,
+            SpellDispenserSpellProfile profile
+    ) {
+        var localCastTransform = resolveCastTransform(castBasePosition, forward, profile);
+        var projectedFrame = SpellDispenserCastFrameBridge.project(
+                level,
+                castBasePosition,
+                new SpellDispenserCastFrameBridge.CastFrame(
+                        localCastTransform.origin(),
+                        Vec3.directionFromRotation(localCastTransform.pitch(), localCastTransform.yaw())
+                )
+        );
+        return resolveCastTransform(projectedFrame);
     }
 
     private static Vec3 resolveCastOrigin(Vec3 castBasePosition, Vec3 forward, SpellDispenserSpellProfile profile) {

@@ -138,7 +138,12 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
                 return;
             }
 
-            SpellDispenserCastHelper.syncContinuousCastTransform(runtime.session(), resolveCastBasePosition(context), resolveForward(context));
+            SpellDispenserCastHelper.syncContinuousCastTransform(
+                    serverLevel,
+                    runtime.session(),
+                    resolveCastBasePosition(context),
+                    resolveForward(context)
+            );
             if (!SpellDispenserCastHelper.tickContinuousCast(serverLevel, runtime.session())) {
                 startCooldown(context, runtime.session().consumeFinishedCooldownTicks());
                 getOrCreateRuntimeState(context).setContinuousRuntime(null);

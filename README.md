@@ -78,12 +78,14 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
 
 ```powershell
 ./gradlew.bat runGameTestServerCompat
+./gradlew.bat runGameTestServerCreateSableAeronautics
 ./gradlew.bat runGameTestServerEasyMagic
 ./gradlew.bat runGameTestServerBetterCombat
 ./gradlew.bat runGameTestServerEpicFight
 ```
 
 - `runGameTestServerCompat` は Farmer's Delight / Create / Lodestone / Malum / Atlas API / Iron's Gems 'n Jewelry 連携を確認します。
+- `runGameTestServerCreateSableAeronautics` は Create / Sable / Create Simulated / Create Aeronautics / Create Offroad の導入とサーバー起動を確認します。
 - `runGameTestServerEasyMagic` は Puzzles Lib / Easy Magic 連携を確認します。
 - `runGameTestServerBetterCombat` は Cloth Config / Better Combat 連携を確認します。
 - `runGameTestServerEpicFight` は Epic Fight 連携を確認します。
@@ -112,6 +114,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
 - IDEA から起動して `Unsupported major.minor version 65.0` が出る場合は、IDEA が Java 17 の Project SDK / Gradle JVM / 古い実行構成を掴んでいます。Project SDK と Gradle JVM を JDK 21 にしてから `neoForgeIdeSync` を再実行し、必要なら古い Minecraft run configuration を削除して再生成してください。
 - Gradle 同期後、通常の `runClient` に加えて次の client 構成を使えます。
   - `runClientCompat`
+  - `runClientCreateSableAeronautics`
   - `runClientEasyMagic`
   - `runClientBetterCombat`
   - `runClientEpicFight`
@@ -119,15 +122,17 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
   - `runClientCompatEasyBetter`
 - `runClientEpicFightController` は Epic Fight / Controlify / YACL を入れ、実機コントローラー入力を確認する構成です。
 - `runClientCompat` は Farmer's Delight / Create / Lodestone / Malum / Atlas API / Iron's Gems 'n Jewelry を入れた連携確認用の構成です。
+- `runClientCreateSableAeronautics` は通常の client 環境へ Create / Sable / Create Aeronautics bundled jar を追加します。bundled jar には、物理 contraption の中核である Create Simulated、飛行部品を提供する Create Aeronautics、地上車両部品を提供する Create Offroad が含まれます。
 - `runClientCompatEasyBetter` は compat + Easy Magic + Better Combat を入れた実環境寄りの手動バランス確認用です。Epic Fight は含めず、自動テスト対象にもしていません。
 - 一時的な組み合わせ確認では Gradle プロパティでも追加できます。
 
 ```powershell
 ./gradlew.bat runClient "-PdevRuntimeMods=create,malum"
 ./gradlew.bat runClient "-PdevRuntimeMods=epic_fight"
+./gradlew.bat runClient "-PdevRuntimeMods=create_sable_aeronautics"
 ```
 
-- `devRuntimeMods` には `compat`, `easy_magic`, `better_combat`, `epic_fight`, `epic_fight_controller`, `compat_easy_better` または個別名（`create`, `lodestone`, `malum`, `atlas_api`, `irons_jewelry`, `controlify` など）をカンマ区切りで指定できます。`irons_jewelry` は Atlas API も同時に追加します。
+- `devRuntimeMods` には `compat`, `create_sable_aeronautics`, `easy_magic`, `better_combat`, `epic_fight`, `epic_fight_controller`, `compat_easy_better` または個別名（`create`, `sable`, `aeronautics`, `lodestone`, `malum`, `atlas_api`, `irons_jewelry`, `controlify` など）をカンマ区切りで指定できます。`aeronautics` は Create と Sable、`irons_jewelry` は Atlas API も同時に追加します。
 - Botania は 1.21.1 側で API 依存を置いていないため、optional MOD profile には含めていません。
 - Better Combat と Epic Fight は干渉が大きいため、同時投入は通常確認では避けます。
 

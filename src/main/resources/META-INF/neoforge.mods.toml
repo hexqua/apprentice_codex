@@ -66,6 +66,34 @@ config="mixins.apprenticecodex.json"
     side="BOTH"
 
 [[dependencies.${mod_id}]]
+    modId="sable"
+    type="optional"
+    versionRange="[${sable_version},)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="simulated"
+    type="optional"
+    versionRange="[${simulated_project_version},)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="aeronautics"
+    type="optional"
+    versionRange="[${simulated_project_version},)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="offroad"
+    type="optional"
+    versionRange="[${simulated_project_version},)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
     modId="jade"
     type="optional"
     versionRange="[${jade_version},)"
