@@ -52,11 +52,11 @@ public class DualAcrobatSmgRenderer extends EntityRenderer<DualAcrobatSmgEntity>
         poseStack.mulPose(Axis.XP.rotationDegrees(yawPitch.pitch()));
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0f));
 
-        if (entity.isCharging()) {
+        if (entity.getStartupTicksRemaining() > DualAcrobatSmgEntity.STARTUP_SETTLE_TICKS) {
             var spin = (entity.tickCount + partialTicks) * DualAcrobatSmgEntity.SPIN_DEGREES_PER_TICK * (float) sideSign;
             poseStack.mulPose(Axis.XP.rotationDegrees(spin));
-        } else if (entity.getShootingStartDelayRemaining() > 0) {
-            poseStack.mulPose(Axis.XP.rotationDegrees(calculateShootingStartSpin(entity, partialTicks, (float) sideSign)));
+        } else if (entity.getStartupTicksRemaining() > 0) {
+            poseStack.mulPose(Axis.XP.rotationDegrees(calculateStartupSettleSpin(entity, partialTicks, (float) sideSign)));
         }
 
         applyRecoil(entity, partialTicks, poseStack, rightSide);
@@ -85,15 +85,15 @@ public class DualAcrobatSmgRenderer extends EntityRenderer<DualAcrobatSmgEntity>
         poseStack.translate(0.0f, 0.0f, -RECOIL_DISTANCE * recoil);
     }
 
-    private float calculateShootingStartSpin(DualAcrobatSmgEntity entity, float partialTicks, float sideSign) {
-        var delayRemaining = entity.getShootingStartDelayRemaining();
-        var elapsed = DualAcrobatSmgEntity.SHOOTING_START_DELAY_TICKS - delayRemaining + partialTicks;
-        if (elapsed >= DualAcrobatSmgEntity.SHOOTING_START_SETTLE_TICKS) {
+    private float calculateStartupSettleSpin(DualAcrobatSmgEntity entity, float partialTicks, float sideSign) {
+        var remaining = entity.getStartupTicksRemaining();
+        var elapsed = DualAcrobatSmgEntity.STARTUP_SETTLE_TICKS - remaining + partialTicks;
+        if (elapsed >= DualAcrobatSmgEntity.STARTUP_SETTLE_TICKS) {
             return 0.0f;
         }
 
-        var progress = Mth.clamp(elapsed / DualAcrobatSmgEntity.SHOOTING_START_SETTLE_TICKS, 0.0f, 1.0f);
-        var spin = Mth.lerp(progress, entity.getShootingStartSpinDegrees(), 360.0f);
+        var progress = Mth.clamp(elapsed / DualAcrobatSmgEntity.STARTUP_SETTLE_TICKS, 0.0f, 1.0f);
+        var spin = Mth.lerp(progress, entity.getStartupSettleSpinDegrees(), 360.0f);
         return spin * sideSign;
     }
 }

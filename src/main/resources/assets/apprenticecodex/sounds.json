@@ -36,21 +36,16 @@
   },
   "minigun_finish": {
     "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.minigun_finish",
     "sounds": [
       "apprenticecodex:minigun_finish"
     ]
   },
-  "minigun_loop": {
+  "minigun_firing": {
     "category": "player",
-    "subtitle": "subtitle.apprenticecodex.sound.minigun_loop",
+    "subtitle": "subtitle.apprenticecodex.sound.minigun_firing",
     "sounds": [
-      "apprenticecodex:minigun_loop"
-    ]
-  },
-  "minigun_single": {
-    "category": "player",
-    "sounds": [
-      "apprenticecodex:minigun_single"
+      "apprenticecodex:minigun_firing"
     ]
   },
   "minigun_warmup": {
