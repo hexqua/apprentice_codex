@@ -26,7 +26,10 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.fujin.FujinKatanaEntity;
+import jp.aquafactory.apprenticecodex.spell.fujin.FujinSlashProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
 import jp.aquafactory.apprenticecodex.spell.shock.ShockBoltEntity;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
@@ -578,6 +581,289 @@ final class SpellDispenserGameTestScenarios {
             SpellDispenserCastHelper.finishContinuousCast(level, session, true);
             assertNoSpellDispenserProxy(helper, castPos, scrollStack, "Spell Dispenser tracked anchor was left behind after Fire Breath cleanup");
         });
+    }
+    static void spellDispenserContinuousProjectionUpdatesFireBreathAnchor(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+            var castBasePosition = helper.absoluteVec(new Vec3(1.5D, 2.5D, 1.5D));
+            var projectedOrigin = helper.absoluteVec(new Vec3(4.5D, 3.0D, 4.5D));
+            var projectedForward = new Vec3(1.0D, 0.0D, 0.0D);
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
+            var scrollStack = createSpellScroll(spell);
+
+            try (var ignored = SpellDispenserCastFrameBridge.useProjectorForGameTest((serverLevel, sourcePosition, frame) ->
+                    new SpellDispenserCastFrameBridge.CastFrame(projectedOrigin, projectedForward))) {
+                var startResult = SpellDispenserCastHelper.tryStartContinuousCast(
+                        level,
+                        castBasePosition,
+                        new Vec3(0.0D, 0.0D, 1.0D),
+                        SpellDispenserSpellValidator.validate(scrollStack),
+                        scrollStack,
+                        null
+                );
+                helper.assertTrue(startResult.result().succeeded() && startResult.session() != null,
+                        "Projected Spell Dispenser Fire Breath did not start");
+
+                var session = startResult.session();
+                SpellDispenserCastHelper.syncContinuousCastTransform(
+                        level,
+                        session,
+                        castBasePosition,
+                        new Vec3(0.0D, 0.0D, 1.0D)
+                );
+                SpellDispenserCastHelper.tickContinuousCast(level, session);
+
+                var anchor = session.trackedAnchor();
+                helper.assertTrue(anchor != null, "Projected Fire Breath did not create its tracked anchor");
+                helper.assertTrue(anchor.getLookAngle().normalize().dot(projectedForward) > 0.999D,
+                        "Projected Fire Breath anchor did not use the projected direction: " + anchor.getLookAngle());
+                helper.assertTrue(anchor.getEyePosition().distanceToSqr(session.proxy().getEyePosition()) < 1.0E-6D,
+                        "Projected Fire Breath anchor did not follow the proxy caster");
+
+                var projectiles = level.getEntitiesOfClass(
+                        FireBreathProjectile.class,
+                        new AABB(projectedOrigin, projectedOrigin).inflate(4.0D)
+                );
+                helper.assertTrue(!projectiles.isEmpty(), "Projected Fire Breath did not spawn in the world frame");
+                helper.assertTrue(projectiles.get(0).getOwner() == anchor,
+                        "Projected Fire Breath did not retain its tracked anchor owner");
+
+                SpellDispenserCastHelper.finishContinuousCast(level, session, true);
+                helper.assertTrue(anchor.isRemoved(), "Projected Fire Breath anchor remained after cleanup");
+        }
+        helper.succeed();
+    }
+    static void spellDispenserContinuousProjectionUpdatesBlazeStormShots(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+            var castBasePosition = helper.absoluteVec(new Vec3(1.5D, 2.5D, 1.5D));
+            var projectedOrigin = helper.absoluteVec(new Vec3(4.5D, 3.0D, 4.5D));
+            var projectedForward = new Vec3(-1.0D, 0.0D, 0.0D);
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "blaze_storm")
+            );
+            var scrollStack = createSpellScroll(spell);
+
+            try (var ignored = SpellDispenserCastFrameBridge.useProjectorForGameTest((serverLevel, sourcePosition, frame) ->
+                    new SpellDispenserCastFrameBridge.CastFrame(projectedOrigin, projectedForward))) {
+                var startResult = SpellDispenserCastHelper.tryStartContinuousCast(
+                        level,
+                        castBasePosition,
+                        new Vec3(0.0D, 0.0D, 1.0D),
+                        createSpellDispenserValidation(scrollStack, spell),
+                        scrollStack,
+                        null
+                );
+                helper.assertTrue(startResult.result().succeeded() && startResult.session() != null,
+                        "Projected Spell Dispenser Blaze Storm did not start");
+
+                var session = startResult.session();
+                SpellDispenserCastHelper.syncContinuousCastTransform(
+                        level,
+                        session,
+                        castBasePosition,
+                        new Vec3(0.0D, 0.0D, 1.0D)
+                );
+                SpellDispenserCastHelper.tickContinuousCast(level, session);
+
+                var fireballs = level.getEntitiesOfClass(
+                        SmallMagicFireball.class,
+                        new AABB(projectedOrigin, projectedOrigin).inflate(4.0D)
+                );
+                helper.assertTrue(!fireballs.isEmpty(), "Projected Blaze Storm did not spawn a fireball");
+                helper.assertTrue(fireballs.get(0).getDeltaMovement().normalize().dot(projectedForward) > 0.995D,
+                        "Projected Blaze Storm fireball used the wrong direction: " + fireballs.get(0).getDeltaMovement());
+
+                SpellDispenserCastHelper.finishContinuousCast(level, session, true);
+        }
+        helper.succeed();
+    }
+    static void spellDispenserContinuousProjectionUpdatesArcaneBeam(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+            var castBasePosition = helper.absoluteVec(new Vec3(1.5D, 2.5D, 1.5D));
+            var projectedFrame = new AtomicReference<>(new SpellDispenserCastFrameBridge.CastFrame(
+                    helper.absoluteVec(new Vec3(3.5D, 3.0D, 3.5D)),
+                    new Vec3(1.0D, 0.0D, 0.0D)
+            ));
+            var spell = SpellRegistry.ARCANE_BEAM.get();
+            var scrollStack = createSpellScroll(spell);
+
+            try (var ignored = SpellDispenserCastFrameBridge.useProjectorForGameTest((serverLevel, sourcePosition, frame) ->
+                    projectedFrame.get())) {
+                var startResult = SpellDispenserCastHelper.tryStartContinuousCast(
+                        level,
+                        castBasePosition,
+                        new Vec3(0.0D, 0.0D, 1.0D),
+                        SpellDispenserSpellValidator.validate(scrollStack),
+                        scrollStack,
+                        null
+                );
+                helper.assertTrue(startResult.result().succeeded() && startResult.session() != null,
+                        "Projected Spell Dispenser Arcane Beam did not start");
+
+                var session = startResult.session();
+                SpellDispenserCastHelper.tickContinuousCast(level, session);
+                var beams = level.getEntitiesOfClass(
+                        ArcaneBeamEntity.class,
+                        new AABB(projectedFrame.get().origin(), projectedFrame.get().origin()).inflate(8.0D)
+                );
+                helper.assertTrue(beams.size() == 1, "Projected Arcane Beam did not create exactly one beam");
+
+                projectedFrame.set(new SpellDispenserCastFrameBridge.CastFrame(
+                        helper.absoluteVec(new Vec3(5.5D, 3.5D, 5.5D)),
+                        new Vec3(0.0D, 0.0D, -1.0D)
+                ));
+                SpellDispenserCastHelper.syncContinuousCastTransform(
+                        level,
+                        session,
+                        castBasePosition,
+                        new Vec3(0.0D, 0.0D, 1.0D)
+                );
+                SpellDispenserCastHelper.tickContinuousCast(level, session);
+
+                var beam = beams.get(0);
+                var expectedPosition = session.proxy().getEyePosition().add(0.0D, -0.7D, 0.0D)
+                        .add(projectedFrame.get().forward().scale(0.75D));
+                assertVecClose(helper, expectedPosition, beam.position(), 0.01D,
+                        "Arcane Beam did not follow the updated projected origin");
+                helper.assertTrue(beam.getLookAngle().normalize().dot(projectedFrame.get().forward()) > 0.999D,
+                        "Arcane Beam did not follow the updated projected direction: " + beam.getLookAngle());
+
+                SpellDispenserCastHelper.finishContinuousCast(level, session, true);
+                helper.assertTrue(beam.isRemoved(), "Projected Arcane Beam remained after cleanup");
+        }
+        helper.succeed();
+    }
+    static void spellDispenserContinuousProjectionUpdatesFujinWeapon(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+            var castBasePosition = helper.absoluteVec(new Vec3(1.5D, 2.5D, 1.5D));
+            var projectedFrame = new AtomicReference<>(new SpellDispenserCastFrameBridge.CastFrame(
+                    helper.absoluteVec(new Vec3(3.5D, 3.0D, 3.5D)),
+                    new Vec3(1.0D, 0.0D, 0.0D)
+            ));
+            var spell = SpellRegistry.FUJIN.get();
+            var scrollStack = createSpellScroll(spell);
+
+            try (var ignored = SpellDispenserCastFrameBridge.useProjectorForGameTest((serverLevel, sourcePosition, frame) ->
+                    projectedFrame.get())) {
+                var startResult = SpellDispenserCastHelper.tryStartContinuousCast(
+                        level,
+                        castBasePosition,
+                        new Vec3(0.0D, 0.0D, 1.0D),
+                        SpellDispenserSpellValidator.validate(scrollStack),
+                        scrollStack,
+                        null
+                );
+                helper.assertTrue(startResult.result().succeeded() && startResult.session() != null,
+                        "Projected Spell Dispenser Fujin did not start");
+
+                var session = startResult.session();
+                for (var tick = 0; tick < 10 && !session.hasReachedOnCast(); tick++) {
+                    SpellDispenserCastHelper.tickContinuousCast(level, session);
+                }
+                helper.assertTrue(session.hasReachedOnCast(),
+                        "Projected Fujin did not reach its first CONTINUOUS onCast interval");
+                var weapons = level.getEntitiesOfClass(
+                        FujinKatanaEntity.class,
+                        new AABB(projectedFrame.get().origin(), projectedFrame.get().origin()).inflate(4.0D)
+                );
+                helper.assertTrue(weapons.size() == 1,
+                        "Projected Fujin did not create exactly one katana: " + weapons.size());
+                var weapon = weapons.get(0);
+                helper.assertTrue(weapon.getOwner() == session.proxy(),
+                        "Projected Fujin katana did not retain the proxy caster as owner");
+
+                projectedFrame.set(new SpellDispenserCastFrameBridge.CastFrame(
+                        helper.absoluteVec(new Vec3(5.5D, 3.5D, 5.5D)),
+                        new Vec3(0.0D, 0.0D, -1.0D)
+                ));
+                SpellDispenserCastHelper.syncContinuousCastTransform(
+                        level,
+                        session,
+                        castBasePosition,
+                        new Vec3(0.0D, 0.0D, 1.0D)
+                );
+                var slashes = new ArrayList<FujinSlashProjectileEntity>();
+                java.util.function.Consumer<EntityJoinLevelEvent> slashListener = event -> {
+                    if (event.getLevel() == level && event.getEntity() instanceof FujinSlashProjectileEntity slash) {
+                        slashes.add(slash);
+                    }
+                };
+                NeoForge.EVENT_BUS.addListener(slashListener);
+                try {
+                    // 発射周期そのものはFujin固有テストに任せ、ここでは投影後の向きによる発射だけを固定tickで確認する。
+                    weapon.tickCount = 10;
+                    weapon.tickOnServer(level);
+                } finally {
+                    NeoForge.EVENT_BUS.unregister(slashListener);
+                }
+
+                helper.assertTrue(weapon.position().distanceToSqr(session.proxy().position()) < 4.0D,
+                        "Projected Fujin katana did not follow the updated proxy position: " + weapon.position());
+                helper.assertTrue(!slashes.isEmpty(), "Projected Fujin katana did not fire a slash");
+                helper.assertTrue(slashes.get(0).getDeltaMovement().normalize().dot(projectedFrame.get().forward()) > 0.999D,
+                        "Projected Fujin slash used the wrong direction: " + slashes.get(0).getDeltaMovement());
+
+                SpellDispenserCastHelper.finishContinuousCast(level, session, true);
+                helper.assertTrue(weapon.isRemoved(), "Projected Fujin katana remained after cleanup");
+        }
+        helper.succeed();
+    }
+    static void spellDispenserBlockEntityReprojectsContinuousCastEachTick(GameTestHelper helper) {
+        var level = (ServerLevel) helper.getLevel();
+        var pos = new BlockPos(0, 1, 0);
+        helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
+        helper.setBlock(pos, helper.getBlockState(pos).setValue(SpellDispenser.TRIGGERED, true));
+
+        var blockEntity = helper.getBlockEntity(pos);
+        helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity,
+                "Spell Dispenser block entity was not created for projected CONTINUOUS tick test");
+        var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
+        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(
+                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "blaze_storm")
+        );
+        var scrollStack = createSpellScroll(spell);
+        spellDispenser.getInventory().setStackInSlot(0, scrollStack);
+
+        var projectedFrame = new AtomicReference<>(new SpellDispenserCastFrameBridge.CastFrame(
+                helper.absoluteVec(new Vec3(2.5D, 2.5D, 2.5D)),
+                new Vec3(1.0D, 0.0D, 0.0D)
+        ));
+        var projectionCount = new AtomicInteger();
+        try (var ignored = SpellDispenserCastFrameBridge.useProjectorForGameTest((serverLevel, sourcePosition, frame) -> {
+            projectionCount.incrementAndGet();
+            return projectedFrame.get();
+        })) {
+            var startResult = SpellDispenserCastHelper.tryStartContinuousCast(
+                    level,
+                    pos,
+                    Direction.NORTH,
+                    createSpellDispenserValidation(scrollStack, spell),
+                    scrollStack,
+                    null
+            );
+            helper.assertTrue(startResult.result().succeeded() && startResult.session() != null,
+                    "Spell Dispenser did not start projected BlockEntity CONTINUOUS test session");
+            var session = startResult.session();
+            spellDispenser.startContinuousCast(session);
+
+            projectedFrame.set(new SpellDispenserCastFrameBridge.CastFrame(
+                    helper.absoluteVec(new Vec3(5.5D, 3.5D, 5.5D)),
+                    new Vec3(0.0D, 0.0D, -1.0D)
+            ));
+            SpellDispenserBlockEntity.serverTick(level, pos, helper.getBlockState(pos), spellDispenser);
+
+            helper.assertTrue(projectionCount.get() >= 2,
+                    "Spell Dispenser BlockEntity tick did not re-run CONTINUOUS cast projection");
+            assertVecClose(helper, projectedFrame.get().origin(), session.proxy().getEyePosition(), 0.01D,
+                    "Spell Dispenser BlockEntity tick did not move the CONTINUOUS proxy to the projected origin");
+            helper.assertTrue(session.proxy().getLookAngle().normalize().dot(projectedFrame.get().forward()) > 0.999D,
+                    "Spell Dispenser BlockEntity tick did not rotate the CONTINUOUS proxy to the projected direction");
+
+            helper.setBlock(pos, helper.getBlockState(pos).setValue(SpellDispenser.TRIGGERED, false));
+            SpellDispenserBlockEntity.serverTick(level, pos, helper.getBlockState(pos), spellDispenser);
+            helper.assertFalse(spellDispenser.hasActiveContinuousCast(),
+                    "Projected BlockEntity CONTINUOUS test session remained after signal loss");
+        }
+        helper.succeed();
     }
     static void spellDispenserBlockEntityStopsContinuousCastWhenSignalTurnsOff(GameTestHelper helper) {
         var level = (ServerLevel) helper.getLevel();

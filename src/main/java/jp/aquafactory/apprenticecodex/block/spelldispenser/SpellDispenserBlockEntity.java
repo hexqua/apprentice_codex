@@ -20,6 +20,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -276,7 +277,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity
             return;
         }
 
-        if (!(state.getBlock() instanceof SpellDispenser)) {
+        if (!(state.getBlock() instanceof SpellDispenser spellDispenser)) {
             stopContinuousCast(true);
             return;
         }
@@ -306,6 +307,12 @@ public final class SpellDispenserBlockEntity extends BlockEntity
             return;
         }
 
+        SpellDispenserCastHelper.syncContinuousCastTransform(
+                level,
+                activeContinuousCast,
+                Vec3.atCenterOf(pos),
+                Vec3.atLowerCornerOf(spellDispenser.getFacing(state).getNormal())
+        );
         if (!SpellDispenserCastHelper.tickContinuousCast(level, activeContinuousCast)) {
             startCooldown(activeContinuousCast.consumeFinishedCooldownTicks());
             activeContinuousCast = null;
