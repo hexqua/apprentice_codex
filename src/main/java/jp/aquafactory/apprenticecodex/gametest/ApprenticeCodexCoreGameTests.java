@@ -118,6 +118,21 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void randomSpellImbueCreatesLockedLevelOneWand(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.randomSpellImbueCreatesLockedLevelOneWand(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void randomSpellImbueUsesOnlyConfiguredEnabledSpells(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.randomSpellImbueUsesOnlyConfiguredEnabledSpells(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void randomSpellImbueFallsBackWhenNoSpellIsEligible(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.randomSpellImbueFallsBackWhenNoSpellIsEligible(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void errandMageOffersAcceptTaggedErrandMagePayments(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.errandMageOffersAcceptTaggedErrandMagePayments(helper);
     }
