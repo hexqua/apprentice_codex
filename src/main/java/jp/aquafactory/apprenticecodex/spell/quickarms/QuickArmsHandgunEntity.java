@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.spell.quickarms;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -9,6 +11,7 @@ import jp.aquafactory.apprenticecodex.utility.*;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -17,6 +20,9 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public class QuickArmsHandgunEntity extends SummonWeaponEntity {
+
+    private static final float TRACER_SPEED_BLOCKS_PER_TICK = 24.0F;
+    private static final float TRACER_LENGTH = 8.0F;
 
     private float range;
 
@@ -141,6 +147,15 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
                 case LIVING_ENTITY:
                     server.sendParticles(ParticleTypes.ENCHANTED_HIT, target.x, target.y, target.z, 6, .15, .15, .15, .1);
                     break;
+            }
+
+            if (getOwner() instanceof ServerPlayer serverPlayer) {
+                Networks.sendToTrackingEntityAndSelf(serverPlayer, new GunSpellTracerPacket(
+                        firePosition,
+                        target,
+                        TRACER_SPEED_BLOCKS_PER_TICK,
+                        TRACER_LENGTH
+                ));
             }
         }
 

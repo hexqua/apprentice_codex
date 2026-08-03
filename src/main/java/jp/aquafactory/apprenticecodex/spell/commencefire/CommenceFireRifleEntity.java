@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.spell.commencefire;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
@@ -16,6 +18,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -33,6 +36,8 @@ public class CommenceFireRifleEntity extends SummonWeaponEntity {
     }
 
     public static final int MAX_RECOIL_TICK = 8;
+    private static final float TRACER_SPEED_BLOCKS_PER_TICK = 28.0F;
+    private static final float TRACER_LENGTH = 12.0F;
 
     private static final EntityDataAccessor<Integer> CASTING_TICK =
             SynchedEntityData.defineId(CommenceFireRifleEntity.class, EntityDataSerializers.INT);
@@ -225,6 +230,15 @@ public class CommenceFireRifleEntity extends SummonWeaponEntity {
             if (isHeadShot) {
                 AudioTools.playSoundFromEntity(level, this, SoundRegistry.VANILLA_CRITICAL_SHOT.get(), SoundSource.PLAYERS, 1.0f, 2.0f);
                 server.sendParticles(ParticleTypes.CRIT, target.x, target.y, target.z, 24, .35, .35, .35, .2);
+            }
+
+            if (getOwner() instanceof ServerPlayer serverPlayer) {
+                Networks.sendToTrackingEntityAndSelf(serverPlayer, new GunSpellTracerPacket(
+                        firePosition,
+                        target,
+                        TRACER_SPEED_BLOCKS_PER_TICK,
+                        TRACER_LENGTH
+                ));
             }
         }
 

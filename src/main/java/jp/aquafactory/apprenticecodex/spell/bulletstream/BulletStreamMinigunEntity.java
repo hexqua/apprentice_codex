@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.spell.bulletstream;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -11,6 +13,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -31,6 +34,8 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
     private static final RawAnimation SPIN_FINISH = RawAnimation.begin().thenPlayAndHold("spin_finish");
     private static final int FIRING_SOUND_INTERVAL_TICKS = 10;
     private static final int RELEASE_DURATION_TICKS = 10;
+    private static final float TRACER_SPEED_BLOCKS_PER_TICK = 24.0F;
+    private static final float TRACER_LENGTH = 8.0F;
 
     private static final EntityDataAccessor<Boolean> IS_RECOIL_TICK =
             SynchedEntityData.defineId(BulletStreamMinigunEntity.class, EntityDataSerializers.BOOLEAN);
@@ -169,8 +174,8 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
         }
 
         if (level instanceof ServerLevel server) {
+            var firePosition = position().add(getLookAngle().normalize().scale(1));
             if (tickCount % 2 == 0) {
-                var firePosition = position().add(getLookAngle().normalize().scale(1));
                 server.sendParticles(new MuzzleFlashParticleOptions(1f), firePosition.x, firePosition.y, firePosition.z, 1, .05, .05, .05, 0);
             }
 
@@ -180,6 +185,16 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
             }
             if (hitResult.hitType() == RaycastTools.TargetType.BLOCK && tickCount % 2 == 0) {
                 server.sendParticles(ParticleTypes.SMOKE, hitPosition.x, hitPosition.y, hitPosition.z, 1, .1, .1, .1, 0);
+            }
+
+            // todo:Rendererで入れてるピッチヨーの継続的リコイルが反映されてないのでレンダリングブレがトレーサーに反映されるようにする.
+            if (owner instanceof ServerPlayer serverPlayer) {
+                Networks.sendToTrackingEntityAndSelf(serverPlayer, new GunSpellTracerPacket(
+                        firePosition,
+                        hitPosition,
+                        TRACER_SPEED_BLOCKS_PER_TICK,
+                        TRACER_LENGTH
+                ));
             }
         }
     }
