@@ -188,14 +188,12 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
             }
 
             // todo:Rendererで入れてるピッチヨーの継続的リコイルが反映されてないのでレンダリングブレがトレーサーに反映されるようにする.
-            if (owner instanceof ServerPlayer serverPlayer) {
-                Networks.sendToTrackingEntityAndSelf(serverPlayer, new GunSpellTracerPacket(
-                        firePosition,
-                        hitPosition,
-                        TRACER_SPEED_BLOCKS_PER_TICK,
-                        TRACER_LENGTH
-                ));
-            }
+            Networks.sendToTrackingEntityAndSelf(owner, new GunSpellTracerPacket(
+                    firePosition,
+                    hitPosition,
+                    TRACER_SPEED_BLOCKS_PER_TICK,
+                    TRACER_LENGTH
+            ));
         }
     }
 

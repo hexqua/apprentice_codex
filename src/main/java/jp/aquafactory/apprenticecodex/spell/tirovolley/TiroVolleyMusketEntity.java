@@ -219,14 +219,12 @@ public class TiroVolleyMusketEntity extends SummonWeaponEntity implements GeoEnt
         level.sendParticles(ParticleTypes.ENCHANTED_HIT, hitPosition.x, hitPosition.y, hitPosition.z, 8, .18, .18, .18, .08);
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.MUSKET.get(), SoundSource.PLAYERS, 1.0f);
 
-        if (getOwner() instanceof ServerPlayer serverPlayer) {
-            Networks.sendToTrackingEntityAndSelf(serverPlayer, new GunSpellTracerPacket(
-                    muzzle,
-                    hitPosition,
-                    TRACER_SPEED_BLOCKS_PER_TICK,
-                    TRACER_LENGTH
-            ));
-        }
+        Networks.sendToTrackingEntityAndSelf(getOwner(), new GunSpellTracerPacket(
+                muzzle,
+                hitPosition,
+                TRACER_SPEED_BLOCKS_PER_TICK,
+                TRACER_LENGTH
+        ));
 
         fired = true;
         recoilTick = MAX_RECOIL_TICK;
