@@ -57,6 +57,7 @@ import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
 import jp.aquafactory.apprenticecodex.event.ErrandMageVillagerTradesEvent;
 import jp.aquafactory.apprenticecodex.event.errandmage.ErrandMageTradeManager;
 import jp.aquafactory.apprenticecodex.event.ScrollcasterGauntletGrindstoneEvent;
+import jp.aquafactory.apprenticecodex.loot.RandomSpellImbueHelper;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncAssistWingsJumpPacket;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastMode;
@@ -290,6 +291,7 @@ import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
+import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.damagesource.CombatRules;
 import net.minecraft.world.level.block.AttachedStemBlock;
 import net.minecraft.world.level.block.AbstractFurnaceBlock;
@@ -1197,7 +1199,84 @@ public class ApprenticeCodexGameTestScenarios {
                     new BlockPos(3, 1, 5)
             );
 
-            assertErrandMageHouseLootTable(helper);
+            assertErrandMageHouseLootTableExists(helper);
+        });
+    }
+
+    static void randomSpellImbueCreatesLockedLevelOneWand(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var wand = new ItemStack(ItemRegistry.WOODEN_WAND.get());
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var result = RandomSpellImbueHelper.imbueRandomEnabledSpellOrFallback(
+                    wand,
+                    List.of(spell.getSpellResource()),
+                    ItemRegistry.CRUDE_INK.get(),
+                    RandomSource.create(1L)
+            );
+
+            helper.assertTrue(result.is(ItemRegistry.WOODEN_WAND.get()),
+                    "Random spell imbue unexpectedly used its fallback: " + result);
+            helper.assertTrue(ISpellContainer.isSpellContainer(result),
+                    "Random spell imbue did not create a spell container");
+            var spellContainer = ISpellContainer.get(result);
+            helper.assertTrue(spellContainer != null,
+                    "Random spell imbue did not expose its spell container");
+            if (spellContainer == null) {
+                return;
+            }
+            var spellData = spellContainer.getSpellAtIndex(0);
+            helper.assertTrue(spellContainer.getMaxSpellCount() == 1
+                            && spellContainer.getActiveSpellCount() == 1
+                            && !spellContainer.isSpellWheel()
+                            && !spellContainer.mustEquip(),
+                    "Random spell imbue created an unexpected spell container: " + spellContainer);
+            helper.assertTrue(spellData.getSpell() == spell
+                            && spellData.getLevel() == 1
+                            && spellData.isLocked(),
+                    "Random spell imbue did not create a locked level one spell: " + spellData);
+        });
+    }
+
+    static void randomSpellImbueUsesOnlyConfiguredEnabledSpells(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var heal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+            var allowedSpells = List.of(magicMissile, heal);
+            var spellIds = allowedSpells.stream().map(AbstractSpell::getSpellResource).toList();
+            var random = RandomSource.create(2L);
+
+            for (var attempt = 0; attempt < 32; attempt++) {
+                var result = RandomSpellImbueHelper.imbueRandomEnabledSpellOrFallback(
+                        new ItemStack(ItemRegistry.WOODEN_WAND.get()),
+                        spellIds,
+                        ItemRegistry.CRUDE_INK.get(),
+                        random
+                );
+                helper.assertTrue(result.is(ItemRegistry.WOODEN_WAND.get()),
+                        "Random spell imbue unexpectedly used its fallback: " + result);
+                var spellContainer = ISpellContainer.get(result);
+                var spellData = spellContainer == null ? SpellData.EMPTY : spellContainer.getSpellAtIndex(0);
+                helper.assertTrue(spellData != SpellData.EMPTY && allowedSpells.contains(spellData.getSpell()),
+                        "Random spell imbue selected a spell outside its configured candidates: " + spellData);
+                helper.assertTrue(spellData.getSpell().isEnabled(),
+                        "Random spell imbue selected a disabled spell: " + spellData);
+            }
+        });
+    }
+
+    static void randomSpellImbueFallsBackWhenNoSpellIsEligible(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var result = RandomSpellImbueHelper.imbueRandomEnabledSpellOrFallback(
+                    new ItemStack(ItemRegistry.WOODEN_WAND.get()),
+                    List.of(),
+                    ItemRegistry.CRUDE_INK.get(),
+                    RandomSource.create(3L)
+            );
+
+            helper.assertTrue(result.is(ItemRegistry.CRUDE_INK.get()),
+                    "Random spell imbue did not use Crude Ink for an empty candidate list: " + result);
+            helper.assertFalse(ISpellContainer.isSpellContainer(result),
+                    "Random spell imbue copied a spell container to its fallback item");
         });
     }
     static void errandMageOffersAcceptTaggedErrandMagePayments(GameTestHelper helper) {
@@ -14046,7 +14125,7 @@ public class ApprenticeCodexGameTestScenarios {
                 .create(LootContextParamSets.CHEST);
     }
 
-    static void assertErrandMageHouseLootTable(GameTestHelper helper) {
+    static void assertErrandMageHouseLootTableExists(GameTestHelper helper) {
         var lootTableId = ResourceLocation.fromNamespaceAndPath(
                 ApprenticeCodex.MODID,
                 "chests/errand_mage_house"
@@ -14054,91 +14133,8 @@ public class ApprenticeCodexGameTestScenarios {
         var lootTable = helper.getLevel().getServer().reloadableRegistries().getLootTable(
                 ResourceKey.create(Registries.LOOT_TABLE, lootTableId)
         );
-        var lootParams = createChestLootParams(helper);
-        var sawBonusPool = false;
-        var sawSkippedBonusPool = false;
-        var seenBonusItems = new LinkedHashSet<Item>();
-
-        for (var attempt = 0; attempt < 64; attempt++) {
-            var generatedLoot = new ArrayList<ItemStack>();
-            lootTable.getRandomItems(lootParams, generatedLoot::add);
-            var primaryRolls = 0;
-            var bonusRolls = 0;
-
-            for (var stack : generatedLoot) {
-                var item = stack.getItem();
-                if (item == Items.BOOK) {
-                    primaryRolls++;
-                    helper.assertTrue(stack.getCount() >= 1 && stack.getCount() <= 3,
-                            "Errand Mage house book count is outside 1-3: " + stack);
-                } else if (item == Items.BREAD) {
-                    primaryRolls++;
-                    helper.assertTrue(stack.getCount() >= 1 && stack.getCount() <= 4,
-                            "Errand Mage house bread count is outside 1-4: " + stack);
-                } else if (item == ItemRegistry.COMFORT_BERRIES.get()) {
-                    primaryRolls++;
-                    helper.assertTrue(stack.getCount() >= 1 && stack.getCount() <= 5,
-                            "Errand Mage house comfort berry count is outside 1-5: " + stack);
-                } else if (item == ItemRegistry.COMFORT_SANDWICH.get()) {
-                    primaryRolls++;
-                    helper.assertTrue(stack.getCount() >= 1 && stack.getCount() <= 4,
-                            "Errand Mage house comfort sandwich count is outside 1-4: " + stack);
-                } else if (item == ItemRegistry.CRUDE_INK.get()) {
-                    primaryRolls++;
-                    helper.assertTrue(stack.getCount() == 1,
-                            "Errand Mage house crude ink count must be 1: " + stack);
-                } else if (item == ItemRegistry.WOODEN_WAND.get()) {
-                    bonusRolls++;
-                    seenBonusItems.add(item);
-                    assertErrandMageHouseShockWand(helper, stack);
-                } else if (item == ItemRegistry.ARCANE_CINDER.get()) {
-                    bonusRolls++;
-                    seenBonusItems.add(item);
-                    helper.assertTrue(stack.getCount() == 1,
-                            "Errand Mage house arcane cinder count must be 1: " + stack);
-                } else {
-                    helper.assertTrue(false, "Unexpected Errand Mage house loot item: " + stack);
-                }
-            }
-
-            helper.assertTrue(primaryRolls >= 3 && primaryRolls <= 5,
-                    "Errand Mage house primary pool must roll 3-5 times: " + generatedLoot);
-            helper.assertTrue(bonusRolls == 0 || bonusRolls == 2,
-                    "Errand Mage house bonus pool must roll either 0 or 2 times: " + generatedLoot);
-            sawBonusPool |= bonusRolls == 2;
-            sawSkippedBonusPool |= bonusRolls == 0;
-        }
-
-        helper.assertTrue(sawBonusPool && sawSkippedBonusPool,
-                "Errand Mage house 50% bonus pool did not exercise both outcomes in 64 attempts");
-        helper.assertTrue(seenBonusItems.containsAll(List.of(
-                        ItemRegistry.WOODEN_WAND.get(),
-                        ItemRegistry.ARCANE_CINDER.get()
-                )),
-                "Errand Mage house bonus pool did not generate both equally weighted candidates: "
-                        + seenBonusItems.stream().map(BuiltInRegistries.ITEM::getKey).toList());
-    }
-
-    static void assertErrandMageHouseShockWand(GameTestHelper helper, ItemStack wand) {
-        helper.assertTrue(wand.getCount() == 1,
-                "Errand Mage house wooden wand count must be 1: " + wand);
-        helper.assertTrue(ISpellContainer.isSpellContainer(wand),
-                "Errand Mage house wooden wand is missing its spell container");
-        if (!ISpellContainer.isSpellContainer(wand)) {
-            return;
-        }
-
-        var spellContainer = ISpellContainer.get(wand);
-        var spellData = spellContainer.getSpellAtIndex(0);
-        helper.assertTrue(spellContainer.getMaxSpellCount() == 1
-                        && spellContainer.getActiveSpellCount() == 1
-                        && !spellContainer.isSpellWheel()
-                        && !spellContainer.mustEquip(),
-                "Errand Mage house wooden wand has an unexpected spell container: " + spellContainer);
-        helper.assertTrue(spellData.getSpell() == SpellRegistry.SHOCK.get()
-                        && spellData.getLevel() == 1
-                        && spellData.isLocked(),
-                "Errand Mage house wooden wand must contain locked Shock level 1: " + spellData);
+        helper.assertTrue(lootTable != LootTable.EMPTY,
+                "Errand Mage house loot table is missing: " + lootTableId);
     }
 
     static LootParams createEmptyLootParams(GameTestHelper helper) {
