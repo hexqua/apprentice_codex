@@ -216,7 +216,7 @@ public class DualAcrobatSmgEntity extends SummonWeaponEntity {
             }
 
             Networks.sendToTrackingEntityAndSelf(this, new GunSpellTracerPacket(
-                    firePosition,
+                    muzzlePosition,
                     target,
                     TRACER_SPEED_BLOCKS_PER_TICK,
                     TRACER_LENGTH
