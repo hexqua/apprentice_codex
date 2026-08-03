@@ -172,6 +172,7 @@ public final class ItemRegistry {
                     .build())));
 
     public static final RegistryObject<Item> SPELLSTAINED_ARCANE_INGOT = simple("spellstained_arcane_ingot");
+    public static final RegistryObject<Item> EMBERSTAINED_NETHERITE_INGOT = simple("emberstained_netherite_ingot");
     public static final RegistryObject<Item> ARCANE_PROPELLANT_CHARGE =
             ITEMS.register("arcane_propellant_charge", RoundIncompleteMaterialItem::new);
     public static final RegistryObject<Item> SPELL_BULLET_HEAD =
