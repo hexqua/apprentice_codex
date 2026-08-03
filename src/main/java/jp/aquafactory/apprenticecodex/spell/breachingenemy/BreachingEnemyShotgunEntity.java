@@ -192,7 +192,7 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
             // 命中に貢献しなかった弾もトレーサーを出す.
             // todo:近隣プレイヤー配信のため、ペレット数分のパケットをまとめる対応を入れるかは実プレイ検証を踏まえて考慮.
             for (var hitPosition : allHitPositionList) {
-                Networks.sendToTrackingEntityAndSelf(getOwner(), new GunSpellTracerPacket(
+                Networks.sendToTrackingEntityAndSelf(this, new GunSpellTracerPacket(
                         firePosition,
                         hitPosition,
                         TRACER_SPEED_BLOCKS_PER_TICK,
