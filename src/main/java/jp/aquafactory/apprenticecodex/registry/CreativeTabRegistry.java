@@ -55,6 +55,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.ESSENCE_SMOKER.get());
         output.accept(ItemRegistry.ATELIER_STATION.get());
         output.accept(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get());
+        output.accept(ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get());
         output.accept(ItemRegistry.ARCANE_CINDER.get());
         output.accept(ItemRegistry.WISDOM_SHARD.get());
         output.accept(ItemRegistry.SPELL_EXTRACT_SHARD.get());

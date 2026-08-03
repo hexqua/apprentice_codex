@@ -189,6 +189,7 @@ public final class ItemRegistry {
                     .build())));
 
     public static final DeferredHolder<Item, Item> SPELLSTAINED_ARCANE_INGOT = simple("spellstained_arcane_ingot");
+    public static final DeferredHolder<Item, Item> EMBERSTAINED_NETHERITE_INGOT = simple("emberstained_netherite_ingot");
     public static final DeferredHolder<Item, Item> ARCANE_PROPELLANT_CHARGE =
             ITEMS.register("arcane_propellant_charge", RoundIncompleteMaterialItem::new);
     public static final DeferredHolder<Item, Item> SPELL_BULLET_HEAD =
