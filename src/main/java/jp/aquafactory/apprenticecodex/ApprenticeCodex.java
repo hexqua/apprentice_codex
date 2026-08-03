@@ -37,6 +37,7 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.GlobalLootModifierRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.LootConditionRegistry;
+import jp.aquafactory.apprenticecodex.registry.LootFunctionRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.PoiTypeRegistry;
@@ -87,6 +88,7 @@ public class ApprenticeCodex
         ParticleRegistry.PARTICLES.register(modEventBus);
         RecipeRegistry.register(modEventBus);
         LootConditionRegistry.register(modEventBus);
+        LootFunctionRegistry.register(modEventBus);
         GlobalLootModifierRegistry.register(modEventBus);
         AttachmentRegistry.register(modEventBus);
         ModEntityAttributeEvent.register(modEventBus);

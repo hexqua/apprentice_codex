@@ -1,0 +1,111 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 3.0,
+                "min": 1.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "apprenticecodex:comfort_berries",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 4.0,
+                "min": 2.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "apprenticecodex:comfort_sandwich",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 2.0,
+                "min": 1.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "apprenticecodex:crude_ink"
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 3.0,
+                "min": 2.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "apprenticecodex:crystalline_arcane_shard"
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "max": 5.0,
+        "min": 3.0
+      }
+    },
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "fallback_item": "apprenticecodex:crude_ink",
+              "function": "apprenticecodex:random_spell_imbue",
+              "spells": [
+                "irons_spellbooks:magic_missile",
+                "irons_spellbooks:heal",
+                "irons_spellbooks:recall",
+                "irons_spellbooks:touch_dig",
+                "apprenticecodex:shock",
+                "apprenticecodex:mage_light"
+              ]
+            }
+          ],
+          "name": "apprenticecodex:wooden_wand",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "apprenticecodex:arcane_cinder"
+        },
+        {
+          "type": "minecraft:empty",
+          "weight": 5
+        }
+      ],
+      "rolls": 3.0
+    }
+  ],
+  "random_sequence": "apprenticecodex:chests/errand_mage_house"
+}

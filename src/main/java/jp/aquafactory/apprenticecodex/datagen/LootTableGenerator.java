@@ -14,7 +14,10 @@ public final class LootTableGenerator extends LootTableProvider {
         super(
                 output,
                 Set.of(),
-                List.of(new SubProviderEntry(BlockLootTableGenerator::new, LootContextParamSets.BLOCK)),
+                List.of(
+                        new SubProviderEntry(BlockLootTableGenerator::new, LootContextParamSets.BLOCK),
+                        new SubProviderEntry(registries -> new ChestLootTableGenerator(), LootContextParamSets.CHEST)
+                ),
                 lookupProvider
         );
     }
