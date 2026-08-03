@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.spell.breachingenemy;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -28,6 +30,8 @@ import java.util.HashMap;
 public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
 
     public static final int MAX_RECOIL_TICK = 10;
+    private static final float TRACER_SPEED_BLOCKS_PER_TICK = 12.0F;
+    private static final float TRACER_LENGTH = 8.0F;
 
     private static final EntityDataAccessor<Integer> RECOIL_TICK =
             SynchedEntityData.defineId(BreachingEnemyShotgunEntity.class, EntityDataSerializers.INT);
@@ -142,6 +146,7 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
         var entities = new HashMap<Integer, Entity>();
         var blockHitPositionList = new ArrayList<Vec3>();
         var entityHitPositionList = new ArrayList<Vec3>();
+        var allHitPositionList = new ArrayList<Vec3>();
         var blockCounts = new HashMap<Long, Integer>();
 
         var baseAngle = getLookAngle();
@@ -168,6 +173,9 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
                     blockHitPositionList.add(hitPosition);
                     break;
             }
+
+            // トレーサー用に無条件に詰める.
+            allHitPositionList.add(hitPosition);
         }
 
         if (level instanceof ServerLevel server) {
@@ -179,6 +187,17 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
             }
             for (var hitPosition : entityHitPositionList) {
                 server.sendParticles(ParticleTypes.ENCHANTED_HIT, hitPosition.x, hitPosition.y, hitPosition.z, 2, .1, .1, .1, .1);
+            }
+            
+            // 命中に貢献しなかった弾もトレーサーを出す.
+            // todo:近隣プレイヤー配信のため、ペレット数分のパケットをまとめる対応を入れるかは実プレイ検証を踏まえて考慮.
+            for (var hitPosition : allHitPositionList) {
+                Networks.sendToTrackingEntityAndSelf(this, new GunSpellTracerPacket(
+                        firePosition,
+                        hitPosition,
+                        TRACER_SPEED_BLOCKS_PER_TICK,
+                        TRACER_LENGTH
+                ));
             }
         }
 

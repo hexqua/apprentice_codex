@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.spell.quickarms;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -19,6 +21,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class QuickArmsHandgunEntity extends SummonWeaponEntity {
 
+    private static final float TRACER_SPEED_BLOCKS_PER_TICK = 24.0F;
+    private static final float TRACER_LENGTH = 8.0F;
+
     private float range;
 
     private float standbyDamage;
@@ -34,7 +39,7 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+    protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
         // do nothing.
     }
 
@@ -143,6 +148,13 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
                     server.sendParticles(ParticleTypes.ENCHANTED_HIT, target.x, target.y, target.z, 6, .15, .15, .15, .1);
                     break;
             }
+
+            Networks.sendToTrackingEntityAndSelf(this, new GunSpellTracerPacket(
+                    firePosition,
+                    target,
+                    TRACER_SPEED_BLOCKS_PER_TICK,
+                    TRACER_LENGTH
+            ));
         }
 
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.HANDGUN.get(), SoundSource.PLAYERS, 1.0f);

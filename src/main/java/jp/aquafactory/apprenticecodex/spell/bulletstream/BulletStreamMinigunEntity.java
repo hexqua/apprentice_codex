@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.spell.bulletstream;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -31,6 +33,8 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
     private static final RawAnimation SPIN_FINISH = RawAnimation.begin().thenPlayAndHold("spin_finish");
     private static final int FIRING_SOUND_INTERVAL_TICKS = 10;
     private static final int RELEASE_DURATION_TICKS = 10;
+    private static final float TRACER_SPEED_BLOCKS_PER_TICK = 24.0F;
+    private static final float TRACER_LENGTH = 8.0F;
 
     private static final EntityDataAccessor<Boolean> IS_RECOIL_TICK =
             SynchedEntityData.defineId(BulletStreamMinigunEntity.class, EntityDataSerializers.BOOLEAN);
@@ -169,8 +173,8 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
         }
 
         if (level instanceof ServerLevel server) {
+            var firePosition = position().add(getLookAngle().normalize().scale(1));
             if (tickCount % 2 == 0) {
-                var firePosition = position().add(getLookAngle().normalize().scale(1));
                 server.sendParticles(new MuzzleFlashParticleOptions(1f), firePosition.x, firePosition.y, firePosition.z, 1, .05, .05, .05, 0);
             }
 
@@ -181,7 +185,26 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
             if (hitResult.hitType() == RaycastTools.TargetType.BLOCK && tickCount % 2 == 0) {
                 server.sendParticles(ParticleTypes.SMOKE, hitPosition.x, hitPosition.y, hitPosition.z, 1, .1, .1, .1, 0);
             }
+
+            // 完全一致で違和感が強いため、0.05ブロック範囲でランダムにずらす.
+            // XYZ全てでやることで平面投影などの計算は省く. あくまで軽量にシンプルに.
+            // 終着点もずらさないとズレたのにズレを考慮して収束するという違和感が出るため、演出だけもあり着弾点も見た目だけずらす.
+            var tracerRecoilPosition = getRandomPositionRange(0.05f);
+            Networks.sendToTrackingEntityAndSelf(this, new GunSpellTracerPacket(
+                    firePosition.add(tracerRecoilPosition),
+                    hitPosition.add(tracerRecoilPosition),
+                    TRACER_SPEED_BLOCKS_PER_TICK,
+                    TRACER_LENGTH
+            ));
         }
+    }
+
+    private Vec3 getRandomPositionRange(float range) {
+        return new Vec3(getRandomFloatRange(range), getRandomFloatRange(range), getRandomFloatRange(range));
+    }
+
+    private float getRandomFloatRange(float range) {
+        return (random.nextFloat() * 2 * range) - range;
     }
 
     @Override

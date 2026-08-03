@@ -4,6 +4,8 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -33,6 +35,8 @@ public class LethalAssaultRifleEntity extends SummonWeaponEntity implements Anti
     private static final int SECOND_FIRE_TICK = 8;
     private static final int LAST_FIRE_TICK = 11;
     private static final int DISCARD_TICK = 20;
+    private static final float TRACER_SPEED_BLOCKS_PER_TICK = 24.0F;
+    private static final float TRACER_LENGTH = 8.0F;
 
     private static final EntityDataAccessor<Integer> RECOIL_TICK =
             SynchedEntityData.defineId(LethalAssaultRifleEntity.class, EntityDataSerializers.INT);
@@ -211,6 +215,13 @@ public class LethalAssaultRifleEntity extends SummonWeaponEntity implements Anti
             var normal = target.subtract(position()).normalize();
             var firePosition = position().add(normal.scale(1));
             server.sendParticles(new MuzzleFlashParticleOptions(1.0f), firePosition.x, firePosition.y, firePosition.z, 0, 0, 0, 0, 0);
+
+            Networks.sendToTrackingEntityAndSelf(this, new GunSpellTracerPacket(
+                    firePosition,
+                    target,
+                    TRACER_SPEED_BLOCKS_PER_TICK,
+                    TRACER_LENGTH
+            ));
 
             switch (aimResult.hitType()) {
                 case NONE:

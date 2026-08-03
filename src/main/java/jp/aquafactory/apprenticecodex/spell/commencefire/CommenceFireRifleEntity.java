@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.spell.commencefire;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
@@ -33,6 +35,8 @@ public class CommenceFireRifleEntity extends SummonWeaponEntity {
     }
 
     public static final int MAX_RECOIL_TICK = 8;
+    private static final float TRACER_SPEED_BLOCKS_PER_TICK = 28.0F;
+    private static final float TRACER_LENGTH = 12.0F;
 
     private static final EntityDataAccessor<Integer> CASTING_TICK =
             SynchedEntityData.defineId(CommenceFireRifleEntity.class, EntityDataSerializers.INT);
@@ -226,6 +230,13 @@ public class CommenceFireRifleEntity extends SummonWeaponEntity {
                 AudioTools.playSoundFromEntity(level, this, SoundRegistry.VANILLA_CRITICAL_SHOT.get(), SoundSource.PLAYERS, 1.0f, 2.0f);
                 server.sendParticles(ParticleTypes.CRIT, target.x, target.y, target.z, 24, .35, .35, .35, .2);
             }
+
+            Networks.sendToTrackingEntityAndSelf(this, new GunSpellTracerPacket(
+                    firePosition,
+                    target,
+                    TRACER_SPEED_BLOCKS_PER_TICK,
+                    TRACER_LENGTH
+            ));
         }
 
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.RIFLE.get(), SoundSource.PLAYERS, 1.0f);
