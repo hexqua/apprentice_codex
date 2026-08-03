@@ -28,9 +28,9 @@ public final class GunSpellTracerRenderEvent {
     private static final RenderType TRACER_RENDER_TYPE =
             RenderType.entityTranslucentEmissive(TRACER_TEXTURE);
     private static final int MAX_ACTIVE_TRACERS = 64;
-    private static final float MAX_LIFETIME_TICKS = 3.0F;
-    private static final double FADE_OUT_START_DISTANCE = 32.0D;
-    private static final double FADE_OUT_END_DISTANCE = 64.0D;
+    private static final float MAX_LIFETIME_TICKS = 5.0F;
+    private static final double FADE_OUT_START_DISTANCE = 48.0D;
+    private static final double FADE_OUT_END_DISTANCE = 128.0D;
     private static final double TRACER_WIDTH = 1.0D / 16.0D;
     private static final double MIN_DIRECTION_LENGTH_SQR = 1.0E-8D;
     private static final Deque<ActiveTracer> ACTIVE_TRACERS = new ArrayDeque<>();
