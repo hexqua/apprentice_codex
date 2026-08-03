@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_spellstained_arcane_ingot": {
+    "has_spellstained_diamond": {
       "conditions": {
         "items": [
           {
-            "items": "apprenticecodex:spellstained_arcane_ingot"
+            "items": "apprenticecodex:spellstained_diamond"
           }
         ]
       },
@@ -21,7 +21,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_spellstained_arcane_ingot"
+      "has_spellstained_diamond"
     ]
   ],
   "rewards": {

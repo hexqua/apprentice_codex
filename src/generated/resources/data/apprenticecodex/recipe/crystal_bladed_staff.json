@@ -6,16 +6,19 @@
       "item": "irons_spellbooks:arcane_ingot"
     },
     "D": {
-      "item": "minecraft:diamond"
+      "item": "apprenticecodex:spellstained_diamond"
     },
     "S": {
       "item": "minecraft:diamond_sword"
+    },
+    "W": {
+      "tag": "minecraft:planks"
     }
   },
   "pattern": [
     " DS",
-    " AD",
-    "D  "
+    " WD",
+    "A  "
   ],
   "result": {
     "components": {

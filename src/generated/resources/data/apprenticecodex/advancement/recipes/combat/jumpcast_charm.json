@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_mithril_scrap": {
+    "has_spellstained_diamond": {
       "conditions": {
         "items": [
           {
-            "items": "irons_spellbooks:mithril_scrap"
+            "items": "apprenticecodex:spellstained_diamond"
           }
         ]
       },
@@ -21,7 +21,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_mithril_scrap"
+      "has_spellstained_diamond"
     ]
   ],
   "rewards": {

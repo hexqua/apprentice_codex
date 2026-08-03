@@ -3,7 +3,7 @@
   "category": "equipment",
   "key": {
     "D": {
-      "item": "minecraft:diamond"
+      "item": "apprenticecodex:spellstained_diamond"
     },
     "I": {
       "item": "minecraft:heavy_core"
