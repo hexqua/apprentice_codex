@@ -1,0 +1,12 @@
+{
+  "type": "apprenticecodex:essence_smoker",
+  "catalyst": {
+    "item": "irons_spellbooks:scroll"
+  },
+  "material": {
+    "item": "minecraft:diamond"
+  },
+  "result": {
+    "id": "apprenticecodex:spellstained_diamond"
+  }
+}
