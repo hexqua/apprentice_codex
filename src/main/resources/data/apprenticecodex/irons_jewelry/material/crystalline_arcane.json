@@ -8,7 +8,7 @@
   "bonusParameters": {
     "irons_jewelry:attribute": {
       "attribute": "irons_spellbooks:spell_power",
-      "amount": 0.01,
+      "amount": 0.03,
       "operation": "add_multiplied_total"
     }
   }
