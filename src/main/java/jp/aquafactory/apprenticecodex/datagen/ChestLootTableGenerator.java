@@ -7,7 +7,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.data.loot.LootTableSubProvider;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -37,20 +36,19 @@ public final class ChestLootTableGenerator implements LootTableSubProvider {
                         new IntRange(3, 5),
                         1.0F,
                         List.of(
-                                entry(Items.BOOK, 10, 1, 3),
-                                entry(Items.BREAD, 5, 1, 4),
-                                entry(ItemRegistry.COMFORT_BERRIES.get(), 5, 1, 5),
-                                entry(ItemRegistry.COMFORT_SANDWICH.get(), 1, 1, 4),
-                                entry(ItemRegistry.CRUDE_INK.get(), 1, 1, 1)
+                                entry(ItemRegistry.COMFORT_BERRIES.get(), 5, 1, 3),
+                                entry(ItemRegistry.COMFORT_SANDWICH.get(), 3, 2, 4),
+                                entry(ItemRegistry.CRUDE_INK.get(), 1, 1, 2),
+                                entry(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get(), 1, 2, 3)
                         )
                 ),
                 new PoolDefinition(
-                        new IntRange(2, 2),
-                        0.5F,
+                        new IntRange(3, 3),
+                        1.0F,
                         List.of(
                                 entry(
                                         ItemRegistry.WOODEN_WAND.get(),
-                                        1,
+                                        4,
                                         1,
                                         1,
                                         RandomSpellImbueLootFunction.builder(
@@ -58,7 +56,8 @@ public final class ChestLootTableGenerator implements LootTableSubProvider {
                                                 ItemRegistry.CRUDE_INK.get()
                                         )
                                 ),
-                                entry(ItemRegistry.ARCANE_CINDER.get(), 1, 1, 1)
+                                entry(ItemRegistry.ARCANE_CINDER.get(), 1, 1, 1),
+                                emptyEntry(5)
                         )
                 )
         )));
