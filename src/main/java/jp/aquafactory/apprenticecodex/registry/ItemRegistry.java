@@ -121,6 +121,10 @@ public final class ItemRegistry {
         return ITEMS.register(id, () -> new Item(new Item.Properties()));
     }
 
+    private static DeferredHolder<Item, Item> simpleFireImmune(String id) {
+        return ITEMS.register(id, () -> new Item(new Item.Properties().fireResistant()));
+    }
+
     private static DeferredHolder<Item, Item> block(String id, Supplier<? extends Block> block) {
         return ITEMS.register(id, () -> new BlockItem(block.get(), new Item.Properties()));
     }
@@ -189,6 +193,8 @@ public final class ItemRegistry {
                     .build())));
 
     public static final DeferredHolder<Item, Item> SPELLSTAINED_ARCANE_INGOT = simple("spellstained_arcane_ingot");
+    public static final DeferredHolder<Item, Item> SPELLSTAINED_DIAMOND = simple("spellstained_diamond");
+    public static final DeferredHolder<Item, Item> EMBERSTAINED_NETHERITE_INGOT = simpleFireImmune("emberstained_netherite_ingot");
     public static final DeferredHolder<Item, Item> ARCANE_PROPELLANT_CHARGE =
             ITEMS.register("arcane_propellant_charge", RoundIncompleteMaterialItem::new);
     public static final DeferredHolder<Item, Item> SPELL_BULLET_HEAD =

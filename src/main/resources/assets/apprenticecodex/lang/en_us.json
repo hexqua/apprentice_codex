@@ -5,7 +5,11 @@
   "curios.modifiers.feet": "When on feet:",
   "curios.apprenticecodex.modifier.for_quiver": "When worn on the back or waist:",
 
-  "material.apprenticecodex.spellstained_arcane": "Spell-stained",
+  "material.apprenticecodex.spellstained_arcane": "Spell-stained Arcane",
+  "material.apprenticecodex.emberstained_netherite": "Ember-stained Netherite",
+  "material.apprenticecodex.crystalline_arcane": "Crystalline Arcane",
+  "material.apprenticecodex.spellstained_diamond": "Spell-stained Diamond",
+  "material.apprenticecodex.wisdom": "Wisdom",
 
   "attribute.name.apprenticecodex.max_enchantment_table_level": "Max Enchantment Table Level",
 
@@ -43,7 +47,9 @@
   "item.apprenticecodex.comfort_berries": "Comfort Berries",
   "item.apprenticecodex.comfort_sandwich": "Comfort Sandwich",
   "item.apprenticecodex.instant_search_brazier": "Instant Brazier of Search",
+  "item.apprenticecodex.spellstained_diamond": "Spell-stained Diamond",
   "item.apprenticecodex.spellstained_arcane_ingot": "Spell-stained Arcane Ingot",
+  "item.apprenticecodex.emberstained_netherite_ingot": "Ember-stained Netherite Ingot",
   "item.apprenticecodex.rapid_spellcaster_round": "Rapid Spellcaster Round",
   "item.apprenticecodex.basic_spellcaster_round": "Basic Spellcaster Round",
   "item.apprenticecodex.arcane_spellcaster_round": "Arcane Spellcaster Round",

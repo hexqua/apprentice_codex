@@ -5,7 +5,11 @@
   "curios.modifiers.feet": "足に装備した時:",
   "curios.apprenticecodex.modifier.for_quiver": "背中か腰に装備したとき：",
 
-  "material.apprenticecodex.spellstained_arcane": "魔術染め",
+  "material.apprenticecodex.spellstained_arcane": "魔術染めの秘術",
+  "material.apprenticecodex.emberstained_netherite": "残り火染めのネザライト",
+  "material.apprenticecodex.crystalline_arcane": "結晶化した秘術",
+  "material.apprenticecodex.spellstained_diamond": "魔術染めのダイヤモンド",
+  "material.apprenticecodex.wisdom": "叡智",
 
   "attribute.name.apprenticecodex.max_enchantment_table_level": "最大エンチャントテーブルレベル",
 
@@ -43,7 +47,9 @@
   "item.apprenticecodex.comfort_berries": "安楽の果実",
   "item.apprenticecodex.comfort_sandwich": "安楽ベリーサンド",
   "item.apprenticecodex.instant_search_brazier": "探知の即席火鉢",
+  "item.apprenticecodex.spellstained_diamond": "魔術染めのダイヤモンド",
   "item.apprenticecodex.spellstained_arcane_ingot": "魔術染めの秘術のインゴット",
+  "item.apprenticecodex.emberstained_netherite_ingot": "残り火染めのネザライトインゴット",
   "item.apprenticecodex.rapid_spellcaster_round": "高速詠唱銃弾",
   "item.apprenticecodex.basic_spellcaster_round": "通常用詠唱銃弾",
   "item.apprenticecodex.arcane_spellcaster_round": "秘術の詠唱銃弾",
