@@ -17,38 +17,6 @@
               "function": "minecraft:set_count"
             }
           ],
-          "name": "minecraft:book",
-          "weight": 10
-        },
-        {
-          "type": "minecraft:item",
-          "functions": [
-            {
-              "add": false,
-              "count": {
-                "type": "minecraft:uniform",
-                "max": 4.0,
-                "min": 1.0
-              },
-              "function": "minecraft:set_count"
-            }
-          ],
-          "name": "minecraft:bread",
-          "weight": 5
-        },
-        {
-          "type": "minecraft:item",
-          "functions": [
-            {
-              "add": false,
-              "count": {
-                "type": "minecraft:uniform",
-                "max": 5.0,
-                "min": 1.0
-              },
-              "function": "minecraft:set_count"
-            }
-          ],
           "name": "apprenticecodex:comfort_berries",
           "weight": 5
         },
@@ -60,16 +28,43 @@
               "count": {
                 "type": "minecraft:uniform",
                 "max": 4.0,
+                "min": 2.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "apprenticecodex:comfort_sandwich",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 2.0,
                 "min": 1.0
               },
               "function": "minecraft:set_count"
             }
           ],
-          "name": "apprenticecodex:comfort_sandwich"
+          "name": "apprenticecodex:crude_ink"
         },
         {
           "type": "minecraft:item",
-          "name": "apprenticecodex:crude_ink"
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 3.0,
+                "min": 2.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "apprenticecodex:crystalline_arcane_shard"
         }
       ],
       "rolls": {
@@ -80,12 +75,6 @@
     },
     {
       "bonus_rolls": 0.0,
-      "conditions": [
-        {
-          "chance": 0.5,
-          "condition": "minecraft:random_chance"
-        }
-      ],
       "entries": [
         {
           "type": "minecraft:item",
@@ -103,14 +92,19 @@
               ]
             }
           ],
-          "name": "apprenticecodex:wooden_wand"
+          "name": "apprenticecodex:wooden_wand",
+          "weight": 4
         },
         {
           "type": "minecraft:item",
           "name": "apprenticecodex:arcane_cinder"
+        },
+        {
+          "type": "minecraft:empty",
+          "weight": 5
         }
       ],
-      "rolls": 2.0
+      "rolls": 3.0
     }
   ],
   "random_sequence": "apprenticecodex:chests/errand_mage_house"
