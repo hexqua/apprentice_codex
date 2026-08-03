@@ -1,12 +1,12 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_mithril_scrap": {
+    "has_emberstained_netherite_ingot": {
       "conditions": {
         "items": [
           {
             "items": [
-              "irons_spellbooks:mithril_scrap"
+              "apprenticecodex:emberstained_netherite_ingot"
             ]
           }
         ]
@@ -22,7 +22,7 @@
   },
   "requirements": [
     [
-      "has_mithril_scrap",
+      "has_emberstained_netherite_ingot",
       "has_the_recipe"
     ]
   ],

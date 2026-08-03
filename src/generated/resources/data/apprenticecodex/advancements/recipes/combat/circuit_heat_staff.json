@@ -1,12 +1,12 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_pyrium_ingot": {
+    "has_emberstained_netherite_ingot": {
       "conditions": {
         "items": [
           {
             "items": [
-              "irons_spellbooks:pyrium_ingot"
+              "apprenticecodex:emberstained_netherite_ingot"
             ]
           }
         ]
@@ -22,7 +22,7 @@
   },
   "requirements": [
     [
-      "has_pyrium_ingot",
+      "has_emberstained_netherite_ingot",
       "has_the_recipe"
     ]
   ],
