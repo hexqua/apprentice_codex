@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifl
 import jp.aquafactory.apprenticecodex.network.packet.ClientSpellgunCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
+import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HeavenlyFistPulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
@@ -75,7 +76,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "75";
+    private static final String PROTOCOL_VERSION = "76";
 
     private Networks() {
     }
@@ -410,6 +411,11 @@ public final class Networks {
                 TerraResonanceHighlightsPacket.TYPE,
                 TerraResonanceHighlightsPacket.STREAM_CODEC,
                 TerraResonanceHighlightsPacket::handle
+        );
+        registrar.playToClient(
+                GunSpellTracerPacket.TYPE,
+                GunSpellTracerPacket.STREAM_CODEC,
+                GunSpellTracerPacket::handle
         );
     }
 
