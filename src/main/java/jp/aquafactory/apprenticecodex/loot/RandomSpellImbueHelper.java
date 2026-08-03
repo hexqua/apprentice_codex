@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.loot;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
@@ -24,7 +25,11 @@ public final class RandomSpellImbueHelper {
     ) {
         var enabledSpells = new LinkedHashSet<AbstractSpell>();
         for (var spellId : spellIds) {
-            var spell = SpellRegistry.getSpell(spellId);
+            var spell = SpellRegistry.REGISTRY.get().getValue(spellId);
+            if (spell == null) {
+                ApprenticeCodex.LOGGER.warn("Random spell imbue skipped unknown spell id {}; the fallback item will be used if no enabled spells remain.", spellId);
+                continue;
+            }
             if (spell != SpellRegistry.none() && spell.isEnabled()) {
                 enabledSpells.add(spell);
             }
