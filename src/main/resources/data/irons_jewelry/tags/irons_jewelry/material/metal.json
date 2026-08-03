@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "apprenticecodex:spellstained_arcane"
+    "apprenticecodex:spellstained_arcane",
+    "apprenticecodex:emberstained_netherite"
   ]
 }

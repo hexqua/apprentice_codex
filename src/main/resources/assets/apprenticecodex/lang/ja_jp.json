@@ -5,7 +5,11 @@
   "curios.modifiers.feet": "足に装備した時:",
   "curios.apprenticecodex.modifier.for_quiver": "背中か腰に装備したとき：",
 
-  "material.apprenticecodex.spellstained_arcane": "魔術染め",
+  "material.apprenticecodex.spellstained_arcane": "魔術染めの秘術",
+  "material.apprenticecodex.emberstained_netherite": "残り火染めのネザライト",
+  "material.apprenticecodex.crystalline_arcane": "結晶化した秘術",
+  "material.apprenticecodex.spellstained_diamond": "魔術染めのダイヤモンド",
+  "material.apprenticecodex.wisdom": "叡智",
 
   "attribute.name.apprenticecodex.max_enchantment_table_level": "最大エンチャントテーブルレベル",
 
