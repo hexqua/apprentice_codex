@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.spell.silentassassin;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -16,6 +18,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -32,6 +35,8 @@ public class SilentAssassinRifleEntity extends SummonWeaponEntity {
     }
 
     public static final int MAX_RECOIL_TICK = 10;
+    private static final float TRACER_SPEED_BLOCKS_PER_TICK = 32.0F;
+    private static final float TRACER_LENGTH = 16.0F;
 
     private static final EntityDataAccessor<Integer> CASTING_TICK =
             SynchedEntityData.defineId(SilentAssassinRifleEntity.class, EntityDataSerializers.INT);
@@ -220,6 +225,16 @@ public class SilentAssassinRifleEntity extends SummonWeaponEntity {
                 server.sendParticles(ParticleTypes.CRIT, target.x, target.y, target.z, 20, .3, .3, .3, .15);
             } else if (hasUnawareBonus) {
                 server.sendParticles(ParticleTypes.CRIT, target.x, target.y, target.z, 8, .2, .2, .2, .08);
+            }
+
+            // 魔法の性質上、これは相当なバランス変更になる点に注意.
+            if (getOwner() instanceof ServerPlayer serverPlayer) {
+                Networks.sendToTrackingEntityAndSelf(serverPlayer, new GunSpellTracerPacket(
+                        firePosition,
+                        target,
+                        TRACER_SPEED_BLOCKS_PER_TICK,
+                        TRACER_LENGTH
+                ));
             }
         }
 

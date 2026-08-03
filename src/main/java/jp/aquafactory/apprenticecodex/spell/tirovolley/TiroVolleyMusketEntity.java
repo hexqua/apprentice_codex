@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.spell.tirovolley;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -16,6 +18,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -38,6 +41,8 @@ import java.util.UUID;
 
 public class TiroVolleyMusketEntity extends SummonWeaponEntity implements GeoEntity {
     public static final int MAX_RECOIL_TICK = 10;
+    private static final float TRACER_SPEED_BLOCKS_PER_TICK = 32.0F;
+    private static final float TRACER_LENGTH = 16.0F;
 
     private static final RawAnimation APPEAR_TO_IDLE = RawAnimation.begin().thenPlay("appear").thenLoop("idle");
     // サーバー側はGeckoLibの実ロケーター行列を持たないため、geo上のmuzzle座標を姿勢から近似する。
@@ -213,6 +218,15 @@ public class TiroVolleyMusketEntity extends SummonWeaponEntity implements GeoEnt
         level.sendParticles(new MuzzleFlashParticleOptions(0.7f), muzzle.x, muzzle.y, muzzle.z, 0, 0, 0, 0, 0);
         level.sendParticles(ParticleTypes.ENCHANTED_HIT, hitPosition.x, hitPosition.y, hitPosition.z, 8, .18, .18, .18, .08);
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.MUSKET.get(), SoundSource.PLAYERS, 1.0f);
+
+        if (getOwner() instanceof ServerPlayer serverPlayer) {
+            Networks.sendToTrackingEntityAndSelf(serverPlayer, new GunSpellTracerPacket(
+                    muzzle,
+                    hitPosition,
+                    TRACER_SPEED_BLOCKS_PER_TICK,
+                    TRACER_LENGTH
+            ));
+        }
 
         fired = true;
         recoilTick = MAX_RECOIL_TICK;

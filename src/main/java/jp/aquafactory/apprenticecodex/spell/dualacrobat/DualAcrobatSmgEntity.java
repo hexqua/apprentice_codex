@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.spell.dualacrobat;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -16,6 +18,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
@@ -35,6 +38,8 @@ public class DualAcrobatSmgEntity extends SummonWeaponEntity {
     private static final double Y_OFFSET = -0.25;
     private static final int FIRE_INTERVAL_TICKS = 2;
     private static final int RECOIL_DURATION_TICKS = 3;
+    private static final float TRACER_SPEED_BLOCKS_PER_TICK = 24.0F;
+    private static final float TRACER_LENGTH = 8.0F;
 
     private static final EntityDataAccessor<Float> FORMATION_YAW =
             SynchedEntityData.defineId(DualAcrobatSmgEntity.class, EntityDataSerializers.FLOAT);
@@ -209,6 +214,15 @@ public class DualAcrobatSmgEntity extends SummonWeaponEntity {
                 case LIVING_ENTITY:
                     server.sendParticles(ParticleTypes.ENCHANTED_HIT, target.x, target.y, target.z, 6, .15, .15, .15, .1);
                     break;
+            }
+
+            if (getOwner() instanceof ServerPlayer serverPlayer) {
+                Networks.sendToTrackingEntityAndSelf(serverPlayer, new GunSpellTracerPacket(
+                        firePosition,
+                        target,
+                        TRACER_SPEED_BLOCKS_PER_TICK,
+                        TRACER_LENGTH
+                ));
             }
         }
 
