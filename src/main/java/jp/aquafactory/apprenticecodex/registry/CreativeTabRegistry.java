@@ -60,6 +60,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.WISDOM_SHARD.get());
         output.accept(ItemRegistry.SPELL_EXTRACT_SHARD.get());
         output.accept(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get());
+        output.accept(ItemRegistry.SPELLSTAINED_DIAMOND.get());
         output.accept(ItemRegistry.COMFORT_BERRIES.get());
         output.accept(ItemRegistry.COMFORT_SANDWICH.get());
         output.accept(ItemRegistry.RAPID_SPELLCASTER_ROUND.get());
