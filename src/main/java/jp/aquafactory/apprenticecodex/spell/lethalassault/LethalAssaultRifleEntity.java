@@ -218,7 +218,7 @@ public class LethalAssaultRifleEntity extends SummonWeaponEntity implements Anti
             server.sendParticles(new MuzzleFlashParticleOptions(1.0f), firePosition.x, firePosition.y, firePosition.z, 0, 0, 0, 0, 0);
 
             if (owner instanceof ServerPlayer serverPlayer) {
-                Networks.sendToPlayer(serverPlayer, new GunSpellTracerPacket(
+                Networks.sendToTrackingEntityAndSelf(serverPlayer, new GunSpellTracerPacket(
                         firePosition,
                         target,
                         TRACER_SPEED_BLOCKS_PER_TICK,
