@@ -274,11 +274,11 @@ public final class RecipeGenerator extends RecipeProvider {
                 .pattern("I I")
                 .pattern("ADA")
                 .pattern(" M ")
-                .define('D', Items.DIAMOND)
+                .define('D', ItemRegistry.SPELLSTAINED_DIAMOND.get())
                 .define('I', Items.CHAIN)
                 .define('A', ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get())
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
-                .unlockedBy(getHasName(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get()), has(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get()))
+                .unlockedBy(getHasName(ItemRegistry.SPELLSTAINED_DIAMOND.get()), has(ItemRegistry.SPELLSTAINED_DIAMOND.get()))
                 .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.MANA_THRUSTER.get())
@@ -295,10 +295,10 @@ public final class RecipeGenerator extends RecipeProvider {
                 .pattern("S S")
                 .pattern("D D")
                 .pattern("M M")
-                .define('D', Items.DIAMOND)
+                .define('D', ItemRegistry.SPELLSTAINED_DIAMOND.get())
                 .define('S', ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get())
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
-                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()))
+                .unlockedBy(getHasName(ItemRegistry.SPELLSTAINED_DIAMOND.get()), has(ItemRegistry.SPELLSTAINED_DIAMOND.get()))
                 .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.ASHEN_CIRCLET.get())
@@ -379,7 +379,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .pattern("CBC")
                 .pattern("MWM")
                 .define('B', io.redspace.ironsspellbooks.registries.ItemRegistry.RUINED_BOOK.get())
-                .define('D', Items.DIAMOND)
+                .define('D', ItemRegistry.SPELLSTAINED_DIAMOND.get())
                 .define('C', Tags.Items.CHESTS)
                 .define('W', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get())
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
@@ -423,11 +423,12 @@ public final class RecipeGenerator extends RecipeProvider {
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.CRYSTAL_BLADED_STAFF.get())
                 .pattern(" DS")
-                .pattern(" AD")
-                .pattern("D  ")
+                .pattern(" WD")
+                .pattern("A  ")
                 .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
                 .define('S', Items.DIAMOND_SWORD)
-                .define('D', Items.DIAMOND)
+                .define('W', ItemTags.PLANKS)
+                .define('D', ItemRegistry.SPELLSTAINED_DIAMOND.get())
                 .unlockedBy(getHasName(Items.DIAMOND_SWORD), has(Items.DIAMOND_SWORD))
                 .save(recipeWriter);
 
@@ -477,7 +478,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .pattern(" AS")
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
                 .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
-                .define('D', Items.DIAMOND)
+                .define('D', ItemRegistry.SPELLSTAINED_DIAMOND.get())
                 .define('S', Items.STRING)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()))
                 .save(recipeWriter);
@@ -500,7 +501,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('N', Items.NETHER_STAR)
                 .define('S', Items.NETHERITE_SWORD)
                 .define('Y', Items.YELLOW_STAINED_GLASS)
-                .define('D', Items.DIAMOND)
+                .define('D', ItemRegistry.SPELLSTAINED_DIAMOND.get())
                 .unlockedBy(getHasName(Items.NETHER_STAR), has(Items.NETHER_STAR))
                 .save(recipeWriter);
 
@@ -511,7 +512,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('R', io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
                 .define('S', Items.NETHERITE_SWORD)
                 .define('P', Items.PURPLE_STAINED_GLASS)
-                .define('D', Items.DIAMOND)
+                .define('D', ItemRegistry.SPELLSTAINED_DIAMOND.get())
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()))
                 .save(recipeWriter);
 
@@ -533,7 +534,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('I', Items.IRON_BLOCK) // 申し送り:1.21.1ではヘビーコアにしたい.
                 .define('W', io.redspace.ironsspellbooks.registries.ItemRegistry.WEAPON_PARTS.get()) // 申し送り:1.21.1ではブリーズロッドにしたい.
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
-                .define('D', Items.DIAMOND)
+                .define('D', ItemRegistry.SPELLSTAINED_DIAMOND.get())
                 .unlockedBy(getHasName(Items.IRON_BLOCK), has(Items.IRON_BLOCK))
                 .save(recipeWriter);
 
@@ -542,7 +543,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .pattern("MDM")
                 .pattern("LBL")
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
-                .define('D', Items.DIAMOND)
+                .define('D', ItemRegistry.SPELLSTAINED_DIAMOND.get())
                 .define('L', Items.LEATHER)
                 .define('B', Items.CHISELED_BOOKSHELF)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()))
@@ -683,7 +684,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .pattern("A  ")
                 .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
                 .define('W', ItemTags.PLANKS)
-                .define('D', Items.DIAMOND)
+                .define('D', ItemRegistry.SPELLSTAINED_DIAMOND.get())
                 .define('L', Items.LEATHER)
                 .define('S', io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()))
@@ -695,21 +696,22 @@ public final class RecipeGenerator extends RecipeProvider {
                 .pattern("I  ")
                 .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
                 .define('W', ItemTags.PLANKS)
-                .define('D', Items.DIAMOND)
+                .define('D', ItemRegistry.SPELLSTAINED_DIAMOND.get())
                 .define('L', Items.LEATHER)
                 .define('I', Items.GOLD_INGOT)
-                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()))
+                .unlockedBy(getHasName(ItemRegistry.SPELLSTAINED_DIAMOND.get()), has(ItemRegistry.SPELLSTAINED_DIAMOND.get()))
                 .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.DIAMOND_SWINGCAST_STAFF.get())
-                .pattern(" AD")
+                .pattern(" AS")
                 .pattern("LWD")
                 .pattern("D  ")
                 .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
                 .define('W', ItemTags.PLANKS)
                 .define('L', Items.LEATHER)
+                .define('S', ItemRegistry.SPELLSTAINED_DIAMOND.get())
                 .define('D', Items.DIAMOND)
-                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()))
+                .unlockedBy(getHasName(ItemRegistry.SPELLSTAINED_DIAMOND.get()), has(ItemRegistry.SPELLSTAINED_DIAMOND.get()))
                 .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.MITHRIL_FREECAST_STAFF.get())
@@ -730,7 +732,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .pattern("P  ")
                 .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
                 .define('W', ItemTags.PLANKS)
-                .define('D', Items.DIAMOND)
+                .define('D', ItemRegistry.SPELLSTAINED_DIAMOND.get())
                 .define('L', io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get())
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_INGOT.get())
                 .define('P', ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get())
