@@ -138,6 +138,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void randomSpellImbueFallsBackForUnknownSpell(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.randomSpellImbueFallsBackForUnknownSpell(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void errandMageOffersAcceptTaggedErrandMagePayments(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.errandMageOffersAcceptTaggedErrandMagePayments(helper);
     }

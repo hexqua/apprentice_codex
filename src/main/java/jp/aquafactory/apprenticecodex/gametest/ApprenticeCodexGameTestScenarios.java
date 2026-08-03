@@ -1279,6 +1279,23 @@ public class ApprenticeCodexGameTestScenarios {
                     "Random spell imbue copied a spell container to its fallback item");
         });
     }
+
+    static void randomSpellImbueFallsBackForUnknownSpell(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var result = RandomSpellImbueHelper.imbueRandomEnabledSpellOrFallback(
+                    new ItemStack(ItemRegistry.WOODEN_WAND.get()),
+                    List.of(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "missing_spell")),
+                    ItemRegistry.CRUDE_INK.get(),
+                    RandomSource.create(4L)
+            );
+
+            helper.assertTrue(result.is(ItemRegistry.CRUDE_INK.get()),
+                    "Random spell imbue did not use Crude Ink for an unknown spell id: " + result);
+            helper.assertFalse(ISpellContainer.isSpellContainer(result),
+                    "Random spell imbue copied a spell container to its fallback item for an unknown spell id");
+        });
+    }
+
     static void errandMageOffersAcceptTaggedErrandMagePayments(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var taggedScroll = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
