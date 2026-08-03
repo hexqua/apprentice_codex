@@ -231,7 +231,7 @@ public class CommenceFireRifleEntity extends SummonWeaponEntity {
                 server.sendParticles(ParticleTypes.CRIT, target.x, target.y, target.z, 24, .35, .35, .35, .2);
             }
 
-            Networks.sendToTrackingEntityAndSelf(getOwner(), new GunSpellTracerPacket(
+            Networks.sendToTrackingEntityAndSelf(this, new GunSpellTracerPacket(
                     firePosition,
                     target,
                     TRACER_SPEED_BLOCKS_PER_TICK,

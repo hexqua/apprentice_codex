@@ -190,7 +190,7 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
             // XYZ全てでやることで平面投影などの計算は省く. あくまで軽量にシンプルに.
             // 終着点もずらさないとズレたのにズレを考慮して収束するという違和感が出るため、演出だけもあり着弾点も見た目だけずらす.
             var tracerRecoilPosition = getRandomPositionRange(0.05f);
-            Networks.sendToTrackingEntityAndSelf(owner, new GunSpellTracerPacket(
+            Networks.sendToTrackingEntityAndSelf(this, new GunSpellTracerPacket(
                     firePosition.add(tracerRecoilPosition),
                     hitPosition.add(tracerRecoilPosition),
                     TRACER_SPEED_BLOCKS_PER_TICK,
