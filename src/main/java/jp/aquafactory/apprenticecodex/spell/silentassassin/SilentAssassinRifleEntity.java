@@ -228,14 +228,13 @@ public class SilentAssassinRifleEntity extends SummonWeaponEntity {
             }
 
             // 魔法の性質上、これは相当なバランス変更になる点に注意.
-            if (getOwner() instanceof ServerPlayer serverPlayer) {
-                Networks.sendToTrackingEntityAndSelf(serverPlayer, new GunSpellTracerPacket(
-                        firePosition,
-                        target,
-                        TRACER_SPEED_BLOCKS_PER_TICK,
-                        TRACER_LENGTH
-                ));
-            }
+            // 配信の視認の問題上、あまりにも遠距離だと配信から漏れるのは認識済み、厳密対応が重いので対応しない.
+            Networks.sendToTrackingEntityAndSelf(getOwner(), new GunSpellTracerPacket(
+                    firePosition,
+                    target,
+                    TRACER_SPEED_BLOCKS_PER_TICK,
+                    TRACER_LENGTH
+            ));
         }
 
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.SUPPRESS_RIFLE.get(), SoundSource.PLAYERS, 1.0f);

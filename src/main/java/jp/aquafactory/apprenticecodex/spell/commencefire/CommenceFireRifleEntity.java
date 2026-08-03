@@ -232,14 +232,12 @@ public class CommenceFireRifleEntity extends SummonWeaponEntity {
                 server.sendParticles(ParticleTypes.CRIT, target.x, target.y, target.z, 24, .35, .35, .35, .2);
             }
 
-            if (getOwner() instanceof ServerPlayer serverPlayer) {
-                Networks.sendToTrackingEntityAndSelf(serverPlayer, new GunSpellTracerPacket(
-                        firePosition,
-                        target,
-                        TRACER_SPEED_BLOCKS_PER_TICK,
-                        TRACER_LENGTH
-                ));
-            }
+            Networks.sendToTrackingEntityAndSelf(getOwner(), new GunSpellTracerPacket(
+                    firePosition,
+                    target,
+                    TRACER_SPEED_BLOCKS_PER_TICK,
+                    TRACER_LENGTH
+            ));
         }
 
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.RIFLE.get(), SoundSource.PLAYERS, 1.0f);

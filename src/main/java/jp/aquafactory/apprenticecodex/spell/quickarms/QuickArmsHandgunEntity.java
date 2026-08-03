@@ -149,14 +149,12 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
                     break;
             }
 
-            if (getOwner() instanceof ServerPlayer serverPlayer) {
-                Networks.sendToTrackingEntityAndSelf(serverPlayer, new GunSpellTracerPacket(
-                        firePosition,
-                        target,
-                        TRACER_SPEED_BLOCKS_PER_TICK,
-                        TRACER_LENGTH
-                ));
-            }
+            Networks.sendToTrackingEntityAndSelf(getOwner(), new GunSpellTracerPacket(
+                    firePosition,
+                    target,
+                    TRACER_SPEED_BLOCKS_PER_TICK,
+                    TRACER_LENGTH
+            ));
         }
 
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.HANDGUN.get(), SoundSource.PLAYERS, 1.0f);
