@@ -1,7 +1,7 @@
 {
   "attributes": {
     "attack_range": 2.75,
-    "category": "mace",
+    "category": "staff",
     "attacks": [
       {
         "hitbox": "HORIZONTAL_PLANE",
