@@ -1,9 +1,9 @@
 {
   "attributes": {
-    "attack_range": 3.5,
+    "range_bonus": 0.75,
     "pose": "bettercombat:pose_two_handed_polearm",
     "two_handed": true,
-    "category": "halberd",
+    "category": "polearm",
     "attacks": [
       {
         "hitbox": "HORIZONTAL_PLANE",

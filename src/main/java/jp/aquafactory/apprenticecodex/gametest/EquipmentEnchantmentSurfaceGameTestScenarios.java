@@ -665,9 +665,9 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                 var normalAttributes = getAttributes.invoke(null, normalStack);
                 var chargedAttributes = getAttributes.invoke(null, overchargedStack);
 
-                helper.assertTrue(readBetterCombatAttackRange(normalAttributes) == 3.0D,
+                helper.assertTrue(readBetterCombatRangeBonus(normalAttributes) == 0.75D,
                         "Spellcharged Greatsword normal Better Combat attack range should come from the base file");
-                helper.assertTrue(readBetterCombatAttackRange(chargedAttributes) == 3.5D,
+                helper.assertTrue(readBetterCombatRangeBonus(chargedAttributes) == 1.25D,
                         "Spellcharged Greatsword overcharge Better Combat attack range should come from the charged file");
                 helper.assertTrue(readBetterCombatAttackCount(chargedAttributes) == 2,
                         "Spellcharged Greatsword overcharge Better Combat attacks should come from the charged file");
@@ -1009,8 +1009,9 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                 message + ": expected " + expected + " but got " + actual);
     }
 
-    private static double readBetterCombatAttackRange(Object attributes) throws ReflectiveOperationException {
-        return ((Number) attributes.getClass().getMethod("attackRange").invoke(attributes)).doubleValue();
+    private static double readBetterCombatRangeBonus(Object attributes) throws ReflectiveOperationException {
+        // 1.21.1ではattackRangeはdeprecatedでrangeBonusに置き換わっている.
+        return ((Number) attributes.getClass().getMethod("rangeBonus").invoke(attributes)).doubleValue();
     }
 
     private static int readBetterCombatAttackCount(Object attributes) throws ReflectiveOperationException {
