@@ -1624,6 +1624,12 @@ public class ApprenticeCodexGameTestScenarios {
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/mixing/arcane_propellant_charge"),
                         ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "mixing"));
                 assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/crushing/crystalline_arcane_shard"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "crushing"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/haunting/comfort_berries"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "haunting"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/deploying/spell_bullet_head"),
                         ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "deploying"));
                 assertRecipeLoadedWithSerializerId(helper, recipeManager,
