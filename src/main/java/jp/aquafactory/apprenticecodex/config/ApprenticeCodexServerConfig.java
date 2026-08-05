@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.config;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.block.ArcanumInAJarServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
@@ -12,9 +14,14 @@ import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSett
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 
 import java.util.List;
 
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public final class ApprenticeCodexServerConfig {
     public interface GameTestConfigOverride extends AutoCloseable {
         @Override
@@ -52,6 +59,17 @@ public final class ApprenticeCodexServerConfig {
     }
 
     private ApprenticeCodexServerConfig() {
+    }
+
+    @SubscribeEvent
+    public static void onConfigLoading(ModConfigEvent.Loading event) {
+        if (event.getConfig().getType() != ModConfig.Type.SERVER
+                || !ApprenticeCodex.MODID.equals(event.getConfig().getModId())) {
+            return;
+        }
+
+        // 実行中の自動再読込では変更せず、world/serverのSERVER config読込時だけ確定する。
+        BLOCKS_CONFIG.captureArcanumInAJarItemSettingsOnConfigLoad();
     }
 
     public static int savedAbsoluteTickClampMaxTicks() {
@@ -136,6 +154,40 @@ public final class ApprenticeCodexServerConfig {
 
     public static int arcanumInAJarTicksPerStoredParameter() {
         return BLOCKS_CONFIG.arcanumInAJarTicksPerStoredParameter();
+    }
+
+    public static GameTestConfigOverride useArcanumInAJarTicksPerStoredParameterOverrideForGameTest(int value) {
+        var previousValue = BLOCKS_CONFIG.arcanumInAJarTicksPerStoredParameter();
+        BLOCKS_CONFIG.setArcanumInAJarTicksPerStoredParameterForGameTest(value);
+        return () -> BLOCKS_CONFIG.setArcanumInAJarTicksPerStoredParameterForGameTest(previousValue);
+    }
+
+    public static ArcanumInAJarServerConfig.ItemSettings arcanumInAJarItemSettings() {
+        return BLOCKS_CONFIG.arcanumInAJarItemSettings();
+    }
+
+    public static void warnInvalidArcanumInAJarItemSettingsOnce() {
+        if (!BLOCKS_CONFIG.markArcanumInAJarInvalidItemSettingsWarningLogged()) {
+            return;
+        }
+
+        var settings = arcanumInAJarItemSettings();
+        ApprenticeCodex.LOGGER.warn(
+                "Arcanum in a Jar item settings are invalid: materialItemId='{}', productItemId='{}'",
+                settings.materialItemId(),
+                settings.productItemId()
+        );
+    }
+
+    public static GameTestConfigOverride useArcanumInAJarItemSettingsOverrideForGameTest(
+            String materialItemId,
+            String productItemId
+    ) {
+        var previousSettings = BLOCKS_CONFIG.arcanumInAJarItemSettings();
+        BLOCKS_CONFIG.setArcanumInAJarItemSettingsForGameTest(
+                new ArcanumInAJarServerConfig.ItemSettings(materialItemId, productItemId)
+        );
+        return () -> BLOCKS_CONFIG.setArcanumInAJarItemSettingsForGameTest(previousSettings);
     }
 
     public static boolean spellDispenserEnable() {

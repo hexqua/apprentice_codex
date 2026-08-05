@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex.block.arcanuminajar;
 
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -11,19 +10,17 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -36,10 +33,8 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
     private static final String DISPENSING_TAG = "Dispensing";
     private static final String NEXT_RELEASE_GAME_TIME_TAG = "NextReleaseGameTime";
     private static final String LEGACY_PLACED_GAME_TIME_TAG = "PlacedGameTime";
-    private static final int INITIAL_RELEASE_DELAY_TICKS = 20;
-    private static final int REPEAT_RELEASE_DELAY_TICKS = 10;
-    private static final ResourceLocation ARCANE_ESSENCE_ITEM_ID =
-            ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "arcane_essence");
+    private static final int INITIAL_RELEASE_DELAY_TICKS = 10;
+
 
     private int storedParameterCount;
     private int remainingOperationCount;
@@ -52,19 +47,19 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         super(BlockEntityRegistry.ARCANUM_IN_A_JAR.get(), pos, state);
     }
 
-    public int getStoredParameterCount() {
+    public int getStoredProductCount() {
         return storedParameterCount;
     }
 
-    public float getFillRatio() {
-        return getStoredParameterCount() / (float)MAX_STORED_PARAMETER;
+    public float getStoredProductRatio() {
+        return getStoredProductCount() / (float)MAX_STORED_PARAMETER;
     }
 
-    public int getRemainingOperationCount() {
+    public int getRemainingMaterialCount() {
         return remainingOperationCount;
     }
 
-    public float getRemainingOperationRatio() {
+    public float getRemainingMaterialRatio() {
         return remainingOperationCount / (float)MAX_STORED_PARAMETER;
     }
 
@@ -76,7 +71,7 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         return dispensing;
     }
 
-    public boolean canAcceptMoreRedstone() {
+    public boolean canAcceptMoreMaterial() {
         return remainingOperationCount < MAX_STORED_PARAMETER;
     }
 
@@ -92,7 +87,7 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         return remainingTicks > 0L ? remainingTicks : ticksPerParameter;
     }
 
-    public int insertRedstone(long gameTime, int availableCount) {
+    public int insertMaterial(long gameTime, int availableCount) {
         var capacity = MAX_STORED_PARAMETER - remainingOperationCount;
         if (capacity <= 0 || availableCount <= 0) {
             return 0;
@@ -123,19 +118,12 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         syncToClient();
     }
 
-    public void skipDispenseSequence() {
-        if (!(level instanceof ServerLevel serverLevel) || !dispensing) {
-            return;
-        }
-
-        updateProduction(serverLevel.getGameTime());
-        var stored = storedParameterCount;
-        if (stored > 0 && !spawnArcaneEssence(serverLevel, stored)) {
-            return;
-        }
-
-        consumeStoredParameters(serverLevel.getGameTime(), stored);
-        finishDispenseSequence();
+    public void cancelDispenseSequence() {
+        dispensing = false;
+        nextReleaseGameTime = -1L;
+        setOpen(false);
+        setChanged();
+        syncToClient();
     }
 
     @Override
@@ -144,6 +132,9 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         if (level != null && !level.isClientSide) {
             migrateLegacyState(level.getGameTime());
             sanitizePersistentGameTimes(level.getGameTime());
+            if (dispensing && !itemSettings().isValid()) {
+                cancelDispenseSequence();
+            }
             if (shouldProcess() && progressStartGameTime < 0L) {
                 progressStartGameTime = level.getGameTime();
             }
@@ -202,6 +193,11 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         blockEntity.sanitizePersistentGameTimes(serverLevel.getGameTime());
         blockEntity.updateProduction(serverLevel.getGameTime());
 
+        if (blockEntity.dispensing && !itemSettings().isValid()) {
+            blockEntity.cancelDispenseSequence();
+            return;
+        }
+
         if (!blockEntity.dispensing) {
             return;
         }
@@ -215,18 +211,12 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
             return;
         }
 
-        if (!blockEntity.spawnArcaneEssence(serverLevel, 1)) {
+        var stored = blockEntity.storedParameterCount;
+        if (!blockEntity.spawnProducts(serverLevel, stored)) {
             return;
         }
 
-        var remaining = blockEntity.consumeStoredParameters(serverLevel.getGameTime(), 1);
-        if (remaining > 0) {
-            blockEntity.nextReleaseGameTime = serverLevel.getGameTime() + REPEAT_RELEASE_DELAY_TICKS;
-            blockEntity.setChanged();
-            blockEntity.syncToClient();
-            return;
-        }
-
+        blockEntity.consumeStoredParameters(serverLevel.getGameTime(), stored);
         blockEntity.finishDispenseSequence();
     }
 
@@ -277,11 +267,10 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         }
 
         if (nextReleaseGameTime >= 0L) {
-            var releaseDelayTicks = Math.max(INITIAL_RELEASE_DELAY_TICKS, REPEAT_RELEASE_DELAY_TICKS);
             var sanitizedNextReleaseGameTime = PersistentGameTimeSanitizer.repairPersistedFutureUntil(
                     gameTime,
                     nextReleaseGameTime,
-                    releaseDelayTicks
+                    INITIAL_RELEASE_DELAY_TICKS
             );
             if (sanitizedNextReleaseGameTime != nextReleaseGameTime) {
                 nextReleaseGameTime = sanitizedNextReleaseGameTime;
@@ -295,33 +284,36 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         }
     }
 
-    private boolean spawnArcaneEssence(ServerLevel serverLevel, int count) {
-        var arcaneEssence = ForgeRegistries.ITEMS.getValue(ARCANE_ESSENCE_ITEM_ID);
-        if (arcaneEssence == null) {
-            ApprenticeCodex.LOGGER.warn("Missing item: {}", ARCANE_ESSENCE_ITEM_ID);
+    private boolean spawnProducts(ServerLevel serverLevel, int count) {
+        var productItem = itemSettings().productItem();
+        if (productItem == null || count <= 0) {
             return false;
         }
 
         var spawnPos = Vec3.atCenterOf(worldPosition.above());
-        var spawned = new ItemEntity(serverLevel, spawnPos.x, spawnPos.y, spawnPos.z, new ItemStack(arcaneEssence, count));
-        spawned.setDeltaMovement(Vec3.ZERO);
-        serverLevel.addFreshEntity(spawned);
+        for (var i = 0; i < count; i++) {
+            var spawned = new ItemEntity(serverLevel, spawnPos.x, spawnPos.y, spawnPos.z, new ItemStack(productItem));
+            spawned.setDeltaMovement(Vec3.ZERO);
+            serverLevel.addFreshEntity(spawned);
+        }
         AudioTools.playSoundFromPosition(serverLevel, spawnPos, SoundEvents.BUBBLE_COLUMN_BUBBLE_POP, SoundSource.BLOCKS, 0.9f, 1.15f, 0.0f);
         return true;
     }
 
     public void appendRemovalDrops(List<ItemStack> drops) {
-        var counts = getRemovalDropCounts();
-        if (counts.storedParameterCount > 0) {
-            var arcaneEssence = ForgeRegistries.ITEMS.getValue(ARCANE_ESSENCE_ITEM_ID);
-            if (arcaneEssence == null) {
-                ApprenticeCodex.LOGGER.warn("Missing item: {}", ARCANE_ESSENCE_ITEM_ID);
-            } else {
-                drops.add(new ItemStack(arcaneEssence, counts.storedParameterCount));
-            }
+        var settings = itemSettings();
+        if (!settings.isValid()) {
+            return;
         }
-        if (counts.remainingOperationCount > 0) {
-            drops.add(new ItemStack(Items.REDSTONE, counts.remainingOperationCount));
+
+        var counts = getRemovalDropCounts();
+        appendSingleItemDrops(drops, settings.productItem(), counts.storedParameterCount);
+        appendSingleItemDrops(drops, settings.materialItem(), counts.remainingOperationCount);
+    }
+
+    private static void appendSingleItemDrops(List<ItemStack> drops, Item item, int count) {
+        for (var i = 0; i < count; i++) {
+            drops.add(new ItemStack(item));
         }
     }
 
@@ -420,6 +412,10 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         }
 
         return new RemovalDropCounts(effectiveStoredParameterCount, effectiveRemainingOperationCount);
+    }
+
+    private static jp.aquafactory.apprenticecodex.config.block.ArcanumInAJarServerConfig.ItemSettings itemSettings() {
+        return ApprenticeCodexServerConfig.arcanumInAJarItemSettings();
     }
 
     private static long ticksPerStoredParameter() {
