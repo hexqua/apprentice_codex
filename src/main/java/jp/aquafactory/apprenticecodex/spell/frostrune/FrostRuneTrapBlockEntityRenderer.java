@@ -52,7 +52,9 @@ public class FrostRuneTrapBlockEntityRenderer extends GeoBlockRenderer<FrostRune
             animationState.setData(DataTickets.TICK, animatable.getTick(animatable));
             animationState.setData(DataTickets.BLOCK_ENTITY, animatable);
             currentModel.addAdditionalStateData(animatable, instanceId, animationState::setData);
-            poseStack.translate(0.5D, 0.5D, 0.5D);
+            // 1.21.1 の GeoBlockRenderer は preRender で X/Z をブロック中央へ補正済み。
+            // 1.20.1 では actuallyRender 側の補正が必要なため、backport 時は X/Z の 0.5D を復元する。
+            poseStack.translate(0.0D, 0.5D, 0.0D);
             poseStack.mulPose(createOrientation(animatable));
             poseStack.translate(0.0D, -0.5D, 0.0D);
             currentModel.setCustomAnimations(animatable, instanceId, animationState);

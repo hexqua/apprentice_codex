@@ -9,7 +9,10 @@ import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.util.Mth;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -25,13 +28,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 public class AssistWingsWingEntity extends SummonWeaponEntity implements AntiMagicSusceptible {
-    private static final double MAX_FALL_SPEED = -0.08D;
-    private static final EntityDataAccessor<Integer> DATA_OWNER_ID =
-            SynchedEntityData.defineId(AssistWingsWingEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Boolean> DATA_GLIDE_BLOCKED =
+    private static final int REMOVAL_GRACE_TICKS = 10;
+    private static final EntityDataAccessor<Boolean> DATA_FALL_PROTECTION_BLOCKED =
             SynchedEntityData.defineId(AssistWingsWingEntity.class, EntityDataSerializers.BOOLEAN);
 
-    private int KeepTick = 10;
+    private int removalGraceTicks = REMOVAL_GRACE_TICKS;
 
     public AssistWingsWingEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -39,21 +40,11 @@ public class AssistWingsWingEntity extends SummonWeaponEntity implements AntiMag
 
     public AssistWingsWingEntity(EntityType<?> pEntityType, Level pLevel, LivingEntity owner) {
         super(pEntityType, pLevel, owner);
-        entityData.set(DATA_OWNER_ID, owner.getId());
     }
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        builder.define(DATA_OWNER_ID, -1);
-        builder.define(DATA_GLIDE_BLOCKED, false);
-    }
-
-    @Override
-    public void tick() {
-        super.tick();
-        if (level().isClientSide) {
-            tickOnClient();
-        }
+        builder.define(DATA_FALL_PROTECTION_BLOCKED, false);
     }
 
     @Override
@@ -93,56 +84,45 @@ public class AssistWingsWingEntity extends SummonWeaponEntity implements AntiMag
         var locatePosition = getBackPosition(owner);
         followTargetPosition(locatePosition);
 
-        if (KeepTick > 0) {
-            --KeepTick;
+        var removalGraceActive = removalGraceTicks > 0;
+        if (removalGraceActive) {
+            --removalGraceTicks;
         }
 
-        var blockingItem = findGlideBlockingItem(owner);
-        updateGlideBlocked(owner, blockingItem);
-        applyGlide(owner, !blockingItem.isEmpty());
+        var blockingItem = findFallProtectionBlockingItem(owner);
+        updateFallProtectionBlocked(owner, blockingItem);
 
-        if (owner.onGround() && KeepTick <= 0) {
-            Capabilities.withSpellData(owner, data -> data.edit(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE, spell -> {
-                spell.localEntityId = -1;
-                spell.doneJump = 0;
-                this.discard();
-            }));
+        if (!removalGraceActive && (owner.onGround() || isTouchingWater(owner))) {
+            finishFlight(owner);
+            return;
         }
+
+        applyFallProtection(owner, !blockingItem.isEmpty());
 
         setYRot(owner.getYRot());
         setXRot(0);
         setRot(getYRot(), getXRot());
     }
 
-    private void tickOnClient() {
-        int ownerId = entityData.get(DATA_OWNER_ID);
-        if (ownerId < 0 || !(level().getEntity(ownerId) instanceof Player owner) || !owner.isLocalPlayer()) {
-            return;
-        }
-
-        // ポーション効果を使わないため、操作中の本人にも同じ落下制御を適用して予測ずれを抑える。
-        applyGlide(owner, isGlideBlocked());
-    }
-
-    private void updateGlideBlocked(Player owner, ItemStack blockingItem) {
+    private void updateFallProtectionBlocked(Player owner, ItemStack blockingItem) {
         var blocked = !blockingItem.isEmpty();
-        var wasBlocked = entityData.get(DATA_GLIDE_BLOCKED);
+        var wasBlocked = entityData.get(DATA_FALL_PROTECTION_BLOCKED);
         if (blocked == wasBlocked) {
             return;
         }
 
-        entityData.set(DATA_GLIDE_BLOCKED, blocked);
+        entityData.set(DATA_FALL_PROTECTION_BLOCKED, blocked);
         if (blocked && owner instanceof ServerPlayer serverPlayer) {
             serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
                     Component.translatable(
-                            "ui.apprenticecodex.assist_wings.too_heavy_for_glide",
+                            "ui.apprenticecodex.assist_wings.fall_protection_blocked",
                             blockingItem.getHoverName()
                     ).withStyle(ChatFormatting.YELLOW)
             ));
         }
     }
 
-    private static ItemStack findGlideBlockingItem(Player owner) {
+    private static ItemStack findFallProtectionBlockingItem(Player owner) {
         var mainHandItem = owner.getMainHandItem();
         if (mainHandItem.is(TagRegistry.Items.ASSIST_WINGS_ONLY_JUMP_ITEMS)) {
             return mainHandItem;
@@ -156,29 +136,57 @@ public class AssistWingsWingEntity extends SummonWeaponEntity implements AntiMag
         return ItemStack.EMPTY;
     }
 
-    private static void applyGlide(Player owner, boolean glideBlocked) {
-        if (glideBlocked || !isAirborneGlideTarget(owner)) {
+    private static void applyFallProtection(Player owner, boolean fallProtectionBlocked) {
+        if (fallProtectionBlocked) {
             return;
         }
 
         owner.fallDistance = 0.0F;
-        if (owner.isShiftKeyDown()) {
-            return;
-        }
-
-        var movement = owner.getDeltaMovement();
-        if (movement.y < MAX_FALL_SPEED) {
-            owner.setDeltaMovement(movement.x, MAX_FALL_SPEED, movement.z);
-        }
     }
 
-    private static boolean isAirborneGlideTarget(Player owner) {
-        return !owner.isInWaterOrBubble() && !owner.isFallFlying() && !owner.getAbilities().flying
-                && !owner.onClimbable() && !owner.isPassenger() && !owner.isSwimming() && !owner.onGround();
+    private static boolean isTouchingWater(Player owner) {
+        var level = owner.level();
+        var box = owner.getBoundingBox().deflate(1.0E-4D);
+        var minX = Mth.floor(box.minX);
+        var maxX = Mth.floor(box.maxX);
+        var minY = Mth.floor(box.minY);
+        var maxY = Mth.floor(box.maxY);
+        var minZ = Mth.floor(box.minZ);
+        var maxZ = Mth.floor(box.maxZ);
+
+        var mutablePos = new BlockPos.MutableBlockPos();
+        for (var y = minY; y <= maxY; ++y) {
+            for (var x = minX; x <= maxX; ++x) {
+                for (var z = minZ; z <= maxZ; ++z) {
+                    mutablePos.set(x, y, z);
+                    var fluidState = level.getFluidState(mutablePos);
+                    if (!fluidState.is(FluidTags.WATER)) {
+                        continue;
+                    }
+
+                    var fluidTop = y + fluidState.getHeight(level, mutablePos);
+                    if (box.maxY > y && box.minY < fluidTop) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
-    public boolean isGlideBlocked() {
-        return entityData.get(DATA_GLIDE_BLOCKED);
+    private void finishFlight(Player owner) {
+        Capabilities.withSpellData(owner, data -> data.edit(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE, state -> {
+            if (state.localEntityId == getId()) {
+                state.localEntityId = -1;
+                state.doneJump = 0;
+            }
+        }));
+        discard();
+    }
+
+    public boolean isFallProtectionBlocked() {
+        return entityData.get(DATA_FALL_PROTECTION_BLOCKED);
     }
 
     @Override

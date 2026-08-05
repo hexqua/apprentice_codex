@@ -788,23 +788,33 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
-    public static void assistWingsTaggedGroundCastKeepsWingAndBlocksGlide(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.assistWingsTaggedGroundCastKeepsWingAndBlocksGlide(helper);
+    public static void assistWingsTaggedGroundCastKeepsWingAndBlocksFallProtection(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsTaggedGroundCastKeepsWingAndBlocksFallProtection(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
-    public static void assistWingsTaggedOffhandBlocksGlideWithoutDiscardingWing(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.assistWingsTaggedOffhandBlocksGlideWithoutDiscardingWing(helper);
+    public static void assistWingsTaggedOffhandBlocksFallProtectionWithoutDiscardingWing(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsTaggedOffhandBlocksFallProtectionWithoutDiscardingWing(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
-    public static void assistWingsRemovingTaggedItemRestoresCustomGlide(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.assistWingsRemovingTaggedItemRestoresCustomGlide(helper);
+    public static void assistWingsRemovingTaggedItemRestoresFallProtectionWithoutSlowingFall(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsRemovingTaggedItemRestoresFallProtectionWithoutSlowingFall(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
     public static void assistWingsTaggedLandingResetsAirJumpsAndAllowsNextAirCast(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.assistWingsTaggedLandingResetsAirJumpsAndAllowsNextAirCast(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
+    public static void assistWingsWaterRemovalUsesGraceAndResetsAirJumps(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsWaterRemovalUsesGraceAndResetsAirJumps(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
+    public static void assistWingsLavaContactDoesNotRemoveWing(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsLavaContactDoesNotRemoveWing(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
