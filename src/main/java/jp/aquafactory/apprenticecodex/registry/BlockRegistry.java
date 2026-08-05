@@ -84,6 +84,7 @@ public final class BlockRegistry {
                     () -> (FlowerPotBlock) Blocks.FLOWER_POT,
                     COMFORT_BERRY_BUSH,
                     BlockBehaviour.Properties.ofFullCopy(Blocks.POTTED_BLUE_ORCHID)
+                            .lightLevel(state -> 10)
             ));
 
     public static void register(IEventBus eventBus) {

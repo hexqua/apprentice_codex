@@ -46,6 +46,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void comfortBerriesHaveAppleTierCompostChance(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.comfortBerriesHaveAppleTierCompostChance(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void assistWingsOnlyJumpItemsTagIncludesSmashcastScepter(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.assistWingsOnlyJumpItemsTagIncludesSmashcastScepter(helper);
     }

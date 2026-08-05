@@ -342,6 +342,8 @@ import net.neoforged.neoforge.event.village.VillagerTradesEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.registries.datamaps.builtin.Compostable;
+import net.neoforged.neoforge.registries.datamaps.builtin.NeoForgeDataMaps;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.fml.ModList;
 import io.netty.buffer.Unpooled;
@@ -667,6 +669,8 @@ public class ApprenticeCodexGameTestScenarios {
             var pottedComfortBerryBush = (FlowerPotBlock) BlockRegistry.POTTED_COMFORT_BERRY_BUSH.get();
             helper.assertTrue(pottedComfortBerryBush.getPotted() == BlockRegistry.COMFORT_BERRY_BUSH.get(),
                     "Potted Comfort Berry Bush should contain the Comfort Berry Bush block");
+            helper.assertTrue(pottedComfortBerryBush.defaultBlockState().getLightEmission(helper.getLevel(), helper.absolutePos(new BlockPos(1, 1, 1))) == 10,
+                    "Potted Comfort Berry Bush should emit light level 10");
 
             var potPos = new BlockPos(1, 1, 1);
             var absolutePotPos = helper.absolutePos(potPos);
@@ -688,6 +692,25 @@ public class ApprenticeCodexGameTestScenarios {
                     "Potted Comfort Berries should consume one berry item outside creative mode");
         });
     }
+
+    static void comfortBerriesHaveAppleTierCompostChance(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            // 1.20.1 へ backport する際はこのデータマップを移植せず、Forge の ComposterBlock 登録で
+            // 同じ 0.65F と農民不可を再実装し、この契約テストも登録値を読む形へ置き換える。
+            Compostable compostable = ItemRegistry.COMFORT_BERRIES.get().builtInRegistryHolder()
+                    .getData(NeoForgeDataMaps.COMPOSTABLES);
+            helper.assertTrue(compostable != null, "Comfort Berries should be registered as compostable");
+            if (compostable == null) {
+                return;
+            }
+
+            helper.assertTrue(Float.compare(compostable.chance(), 0.65F) == 0,
+                    "Comfort Berries should have the apple-tier compost chance of 0.65");
+            helper.assertFalse(compostable.canVillagerCompost(),
+                    "Farmer villagers should not compost Comfort Berries");
+        });
+    }
+
     static void assistWingsOnlyJumpItemsTagIncludesSmashcastScepter(GameTestHelper helper) {
         helper.succeedIf(() -> helper.assertTrue(
                 new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()).is(TagRegistry.Items.ASSIST_WINGS_ONLY_JUMP_ITEMS),
@@ -1600,6 +1623,12 @@ public class ApprenticeCodexGameTestScenarios {
                 assertRecipeLoadedWithSerializerId(helper, recipeManager,
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/mixing/arcane_propellant_charge"),
                         ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "mixing"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/crushing/crystalline_arcane_shard"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "crushing"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/haunting/comfort_berries"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "haunting"));
                 assertRecipeLoadedWithSerializerId(helper, recipeManager,
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/deploying/spell_bullet_head"),
                         ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "deploying"));
