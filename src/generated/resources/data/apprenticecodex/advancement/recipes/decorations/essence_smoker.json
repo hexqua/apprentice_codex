@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_blood_vial": {
+    "has_arcane_essence": {
       "conditions": {
         "items": [
           {
-            "items": "irons_spellbooks:blood_vial"
+            "items": "irons_spellbooks:arcane_essence"
           }
         ]
       },
@@ -21,7 +21,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_blood_vial"
+      "has_arcane_essence"
     ]
   ],
   "rewards": {
