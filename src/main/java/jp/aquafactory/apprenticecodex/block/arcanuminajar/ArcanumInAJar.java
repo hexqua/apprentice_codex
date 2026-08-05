@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.block.arcanuminajar;
 
 import com.mojang.serialization.MapCodec;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.utility.AdvancementTools;
 import net.minecraft.ChatFormatting;
@@ -13,7 +14,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -40,7 +40,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("deprecation")
 public class ArcanumInAJar extends BaseEntityBlock {
     public static final MapCodec<ArcanumInAJar> CODEC = simpleCodec(ArcanumInAJar::new);
     public static final BooleanProperty OPEN = BlockStateProperties.OPEN;
@@ -110,7 +109,7 @@ public class ArcanumInAJar extends BaseEntityBlock {
             return 0;
         }
 
-        return Mth.clamp(blockEntity.getStoredParameterCount(), 0, ArcanumInAJarBlockEntity.MAX_STORED_PARAMETER);
+        return Mth.clamp(blockEntity.getStoredProductCount(), 0, ArcanumInAJarBlockEntity.MAX_STORED_PARAMETER);
     }
 
     @Override
@@ -122,22 +121,29 @@ public class ArcanumInAJar extends BaseEntityBlock {
     protected @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack, @NotNull BlockState state, @NotNull Level level,
                                                        @NotNull BlockPos pos, @NotNull Player player, @NotNull InteractionHand hand,
                                                        @NotNull BlockHitResult hitResult) {
-        if (hand != InteractionHand.MAIN_HAND) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-        }
-
         if (!(level.getBlockEntity(pos) instanceof ArcanumInAJarBlockEntity blockEntity)) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
-        if (!stack.is(Items.REDSTONE)) {
+        if (rejectInvalidItemSettings(level, player)) {
+            return level.isClientSide ? ItemInteractionResult.SUCCESS : ItemInteractionResult.CONSUME;
+        }
+
+        if (hand != InteractionHand.MAIN_HAND) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
-        if (!blockEntity.canAcceptMoreRedstone()) {
+        var materialItem = ApprenticeCodexServerConfig.arcanumInAJarItemSettings().materialItem();
+        if (!stack.is(materialItem)) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+
+        if (!blockEntity.canAcceptMoreMaterial()) {
             if (!level.isClientSide) {
-                player.displayClientMessage(Component.translatable("ui.apprenticecodex.max_supply_redstone")
-                        .withStyle(ChatFormatting.RED), true);
+                player.displayClientMessage(Component.translatable(
+                                "ui.apprenticecodex.arcane_in_a_jar.max_supply_material",
+                                materialItem.getDescription()
+                        ).withStyle(ChatFormatting.RED), true);
             }
             // FAIL にすると手前に設置を試みてしまうので CONSUME にする.
             return ItemInteractionResult.CONSUME;
@@ -147,7 +153,7 @@ public class ArcanumInAJar extends BaseEntityBlock {
             return ItemInteractionResult.SUCCESS;
         }
 
-        var inserted = blockEntity.insertRedstone(level.getGameTime(), stack.getCount());
+        var inserted = blockEntity.insertMaterial(level.getGameTime(), stack.getCount());
         if (inserted <= 0) {
             return ItemInteractionResult.CONSUME;
         }
@@ -169,23 +175,29 @@ public class ArcanumInAJar extends BaseEntityBlock {
             return InteractionResult.PASS;
         }
 
+        if (rejectInvalidItemSettings(level, player)) {
+            return InteractionResult.CONSUME;
+        }
+
         if (blockEntity.isDispensing()) {
-            blockEntity.skipDispenseSequence();
             return InteractionResult.CONSUME;
         }
 
         if (isTopBlocked(level, pos)) {
-            player.displayClientMessage(Component.translatable("ui.apprenticecodex.not_open_top")
+            player.displayClientMessage(Component.translatable("ui.apprenticecodex.arcane_in_a_jar.not_open_top")
                     .withStyle(ChatFormatting.RED), true);
             return InteractionResult.CONSUME;
         }
 
-        var storedParameterCount = blockEntity.getStoredParameterCount();
-        if (storedParameterCount <= 0) {
-            var messageKey = blockEntity.hasNoWorkLoaded()
-                    ? "ui.apprenticecodex.not_supply_redstone"
-                    : "ui.apprenticecodex.not_stored_essence";
-            player.displayClientMessage(Component.translatable(messageKey).withStyle(ChatFormatting.RED), true);
+        var storedProductCount = blockEntity.getStoredProductCount();
+        if (storedProductCount <= 0) {
+            var message = blockEntity.hasNoWorkLoaded()
+                    ? Component.translatable(
+                            "ui.apprenticecodex.arcane_in_a_jar.not_supply_material",
+                            ApprenticeCodexServerConfig.arcanumInAJarItemSettings().materialItem().getDescription()
+                    )
+                    : Component.translatable("ui.apprenticecodex.arcane_in_a_jar.not_stored_product");
+            player.displayClientMessage(message.withStyle(ChatFormatting.RED), true);
             return InteractionResult.CONSUME;
         }
 
@@ -193,7 +205,7 @@ public class ArcanumInAJar extends BaseEntityBlock {
             AdvancementTools.award(serverPlayer,
                     AdvancementTools.RETRIEVE_ONCE_ARCANUM_IN_A_JAR,
                     AdvancementTools.RETRIEVE_ARCANE_ESSENCE_CRITERION);
-            if (storedParameterCount >= ArcanumInAJarBlockEntity.MAX_STORED_PARAMETER) {
+            if (storedProductCount >= ArcanumInAJarBlockEntity.MAX_STORED_PARAMETER) {
                 AdvancementTools.award(serverPlayer,
                         AdvancementTools.RETRIEVE_MAX_ARCANUM_IN_A_JAR,
                         AdvancementTools.RETRIEVE_FULLY_CHARGED_ARCANUM_CRITERION);
@@ -228,6 +240,20 @@ public class ArcanumInAJar extends BaseEntityBlock {
 
         blockEntity.appendRemovalDrops(drops);
         return drops;
+    }
+
+    private static boolean rejectInvalidItemSettings(Level level, Player player) {
+        if (ApprenticeCodexServerConfig.arcanumInAJarItemSettings().isValid()) {
+            return false;
+        }
+
+        if (!level.isClientSide) {
+            player.displayClientMessage(Component.translatable(
+                    "ui.apprenticecodex.arcane_in_a_jar.error_item_settings"
+            ).withStyle(ChatFormatting.RED), true);
+            ApprenticeCodexServerConfig.warnInvalidArcanumInAJarItemSettingsOnce();
+        }
+        return true;
     }
 
     private static boolean isTopBlocked(Level level, BlockPos pos) {

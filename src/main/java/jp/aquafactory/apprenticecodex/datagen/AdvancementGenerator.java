@@ -255,7 +255,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
 
         var retrieveOnceJar = Advancement.Builder.advancement()
                 .parent(jar)
-                .display(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get(),
+                .display(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.retrieve_once_arcanum_in_a_jar.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.retrieve_once_arcanum_in_a_jar.description"),
                         null,

@@ -76,6 +76,26 @@ final class BlocksServerConfig {
         return arcanumInAJarConfig.ticksPerStoredParameter();
     }
 
+    void setArcanumInAJarTicksPerStoredParameterForGameTest(int value) {
+        arcanumInAJarConfig.setTicksPerStoredParameterForGameTest(value);
+    }
+
+    ArcanumInAJarServerConfig.ItemSettings arcanumInAJarItemSettings() {
+        return arcanumInAJarConfig.itemSettings();
+    }
+
+    void captureArcanumInAJarItemSettingsOnConfigLoad() {
+        arcanumInAJarConfig.captureItemSettingsOnConfigLoad();
+    }
+
+    boolean markArcanumInAJarInvalidItemSettingsWarningLogged() {
+        return arcanumInAJarConfig.markInvalidItemSettingsWarningLogged();
+    }
+
+    void setArcanumInAJarItemSettingsForGameTest(ArcanumInAJarServerConfig.ItemSettings settings) {
+        arcanumInAJarConfig.setItemSettingsForGameTest(settings);
+    }
+
     boolean spellDispenserEnable() {
         return spellDispenserConfig.enable();
     }

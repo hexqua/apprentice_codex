@@ -69,6 +69,7 @@ public class ApprenticeCodex
         modContainer.registerConfig(ModConfig.Type.COMMON, ApprenticeCodexCommonConfig.SPEC);
         modContainer.registerConfig(ModConfig.Type.SERVER, ApprenticeCodexServerConfig.SPEC);
         ApprenticeCodexCommonConfig.register(modEventBus);
+        ApprenticeCodexServerConfig.register(modEventBus);
         BlockRegistry.register(modEventBus);
         BlockEntityRegistry.register(modEventBus);
         EntityRegistry.register(modEventBus);
