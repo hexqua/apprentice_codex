@@ -51,7 +51,7 @@ public class AssistWingsWingRenderer extends EntityRenderer<AssistWingsWingEntit
 
     private void renderWing(AssistWingsWingEntity entity, PoseStack poseStack,
                             MultiBufferSource buffer, int packedLight) {
-        if (entity.isGlideBlocked()) {
+        if (entity.isFallProtectionBlocked()) {
             ExtrudedSpriteRenderer.render(
                     poseStack,
                     buffer,
