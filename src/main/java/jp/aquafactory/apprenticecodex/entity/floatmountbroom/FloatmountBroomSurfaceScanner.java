@@ -24,8 +24,8 @@ public final class FloatmountBroomSurfaceScanner {
                     // MistFormと同様、流水も検知したブロックの上面を液面として扱う。
                     return OptionalDouble.of(pos.getY() + 1.0D);
                 }
-                // 溶岩ブロック自身のcollision shapeを安全な地表として解釈しない。
-                continue;
+                // 溶岩の下に固体があっても、安全な降車先として解釈しない。
+                return OptionalDouble.empty();
             }
             var shape = state.getCollisionShape(level, pos, context);
             if (!shape.isEmpty()) {
