@@ -12,6 +12,8 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPa
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientFloatmountBroomDescentPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientFloatmountBroomDismountInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSpellgunCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
@@ -76,7 +78,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "76";
+    private static final String PROTOCOL_VERSION = "78";
 
     private Networks() {
     }
@@ -156,6 +158,16 @@ public final class Networks {
                 ClientManaThrusterInputPacket.TYPE,
                 ClientManaThrusterInputPacket.STREAM_CODEC,
                 ClientManaThrusterInputPacket::handle
+        );
+        registrar.playToServer(
+                ClientFloatmountBroomDescentPacket.TYPE,
+                ClientFloatmountBroomDescentPacket.STREAM_CODEC,
+                ClientFloatmountBroomDescentPacket::handle
+        );
+        registrar.playToServer(
+                ClientFloatmountBroomDismountInputPacket.TYPE,
+                ClientFloatmountBroomDismountInputPacket.STREAM_CODEC,
+                ClientFloatmountBroomDismountInputPacket::handle
         );
         registrar.playToServer(
                 ClientJumpcastCharmCastPacket.TYPE,

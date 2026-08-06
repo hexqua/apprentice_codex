@@ -55,6 +55,8 @@ import jp.aquafactory.apprenticecodex.renderer.item.CopperSpellcasterGunRenderer
 import jp.aquafactory.apprenticecodex.renderer.item.CrystalBladedStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.DiamondSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.ElementalBowRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.FloatmountBroomItemRenderer;
+import jp.aquafactory.apprenticecodex.renderer.entity.FloatmountBroomRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.ExplorersCaneRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.FocusStaffbowRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.GoldSpellcasterGunRenderer;
@@ -348,6 +350,17 @@ public final class ClientModBusEvents {
     }
 
     private static void registerClientExtensions(RegisterClientExtensionsEvent event) {
+        event.registerItem(new IClientItemExtensions() {
+            private FloatmountBroomItemRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new FloatmountBroomItemRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.FLOATMOUNT_BROOM.get());
         event.registerItem(new IClientItemExtensions() {
             private LuminousDeviceRenderer renderer;
 
@@ -827,6 +840,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.REMOTE_OWNER_CAST_ANCHOR.get(), RemoteOwnerCastAnchorRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FUJIN_KATANA.get(), FujinKatanaRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FUJIN_SLASH_PROJECTILE.get(), FujinSlashProjectileRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.FLOATMOUNT_BROOM.get(), FloatmountBroomRenderer::new);
     }
 }
 
