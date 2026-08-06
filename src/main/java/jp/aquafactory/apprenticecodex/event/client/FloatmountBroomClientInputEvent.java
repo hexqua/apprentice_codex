@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.event.client;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomEntity;
 import jp.aquafactory.apprenticecodex.network.Networks;
-import jp.aquafactory.apprenticecodex.network.packet.ClientFloatmountBroomDescentPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientFloatmountBroomInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFloatmountBroomDismountInputPacket;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
@@ -15,7 +15,8 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 public final class FloatmountBroomClientInputEvent {
     private static final int HEARTBEAT_TICKS = 10;
     private static final int DISMOUNT_TRACKING_GRACE_TICKS = FloatmountBroomEntity.DISMOUNT_CONFIRM_TICKS;
-    private static boolean lastSentDescending;
+    private static ClientFloatmountBroomInputPacket lastSentInput = ClientFloatmountBroomInputPacket.inactive();
+    private static boolean inputActive;
     private static int heartbeat;
     private static int trackedBroomId = -1;
     private static boolean lastSentSneaking;
@@ -36,6 +37,7 @@ public final class FloatmountBroomClientInputEvent {
         if (player.getVehicle() instanceof FloatmountBroomEntity broom
                 && broom.getControllingPassenger() == player) {
             if (trackedBroomId != broom.getId()) {
+                resetInput();
                 trackedBroomId = broom.getId();
                 lastSentSneaking = false;
             }
@@ -76,19 +78,22 @@ public final class FloatmountBroomClientInputEvent {
         var descending = options.keySprint.isDown();
         broom.setLocalInput(strafe, forward, ascending, descending);
 
+        var input = new ClientFloatmountBroomInputPacket(strafe, forward, ascending, descending);
         heartbeat++;
-        if (descending != lastSentDescending || heartbeat >= HEARTBEAT_TICKS) {
-            Networks.sendToServer(new ClientFloatmountBroomDescentPacket(descending));
-            lastSentDescending = descending;
+        if (!input.equals(lastSentInput) || heartbeat >= HEARTBEAT_TICKS) {
+            Networks.sendToServer(input);
+            lastSentInput = input;
+            inputActive = true;
             heartbeat = 0;
         }
     }
 
     private static void resetInput() {
-        if (lastSentDescending) {
-            Networks.sendToServer(new ClientFloatmountBroomDescentPacket(false));
+        if (inputActive && !lastSentInput.equals(ClientFloatmountBroomInputPacket.inactive())) {
+            Networks.sendToServer(ClientFloatmountBroomInputPacket.inactive());
         }
-        lastSentDescending = false;
+        lastSentInput = ClientFloatmountBroomInputPacket.inactive();
+        inputActive = false;
         heartbeat = 0;
     }
 

@@ -1,6 +1,9 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
 import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomDismountEvents;
 import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomEntity;
 import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomSurfaceScanner;
@@ -10,6 +13,7 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -96,6 +100,130 @@ public final class FloatmountBroomGameTests {
         broom.hurt(source, 4.0F);
         helper.assertTrue(broom.isRemoved(), "Damage above forty should break the broom");
         helper.assertTrue(countDroppedBrooms(helper) == 1, "Broken broom should drop exactly one fresh item");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void mountingRequiresConfiguredManaButCreativeIsExempt(GameTestHelper helper) {
+        var config = new FloatmountBroomServerConfig.Values(100, 50, 1.0D, 1.0D, 1.5D);
+        try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
+            var broom = spawnBroom(helper, 1.5D);
+            var player = player(helper, "floatmount_broom_mount_mana");
+            var magicData = magicData(helper, player);
+            magicData.setMana(99.0F);
+
+            broom.interact(player, InteractionHand.MAIN_HAND);
+            helper.assertFalse(player.isPassenger(), "Player below the normal flight threshold must not mount");
+
+            magicData.setMana(100.0F);
+            broom.interact(player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(player.getVehicle() == broom, "Player at the normal flight threshold should mount");
+            helper.assertTrue(Math.abs(magicData.getMana() - 100.0F) < 1.0e-4F,
+                    "Mounting must not consume mana");
+
+            player.stopRiding();
+            var creativeBroom = spawnBroom(helper, 1.5D);
+            player.getAbilities().instabuild = true;
+            magicData.setMana(0.0F);
+            creativeBroom.interact(player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(player.getVehicle() == creativeBroom, "Creative players must mount with zero mana");
+            creativeBroom.acceptServerInput(player, 0.0F, 1.0F, true, false);
+            creativeBroom.tick();
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Creative broom movement must not consume mana");
+            helper.assertFalse(creativeBroom.isEmergencyLanding(),
+                    "Creative broom movement must not enter emergency landing");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void movementInputsUseConfiguredManaCosts(GameTestHelper helper) {
+        var config = new FloatmountBroomServerConfig.Values(100, 50, 1.0D, 2.0D, 3.5D);
+        try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
+            assertMovementManaCost(helper, "floatmount_broom_horizontal_cost", 1.0F,
+                    0.0F, 1.0F, false, false);
+            assertMovementManaCost(helper, "floatmount_broom_ascending_cost", 2.0F,
+                    0.0F, 0.0F, true, false);
+            assertMovementManaCost(helper, "floatmount_broom_combined_cost", 3.5F,
+                    0.0F, -1.0F, true, false);
+            assertMovementManaCost(helper, "floatmount_broom_turning_free", 0.0F,
+                    1.0F, 0.0F, false, false);
+            assertMovementManaCost(helper, "floatmount_broom_descending_free", 0.0F,
+                    0.0F, 0.0F, false, true);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void depletionEmergencyRecoveryAndSavedStateFollowServerRules(GameTestHelper helper) {
+        var config = new FloatmountBroomServerConfig.Values(100, 50, 1.0D, 1.0D, 1.5D);
+        try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
+            var broom = spawnBroom(helper, 1.5D);
+            var player = player(helper, "floatmount_broom_emergency");
+            var magicData = magicData(helper, player);
+            magicData.setMana(0.5F);
+            helper.assertTrue(player.startRiding(broom, true), "Emergency test player should mount directly");
+            broom.acceptServerInput(player, 0.0F, 1.0F, false, false);
+
+            broom.tick();
+
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "A movement cost above the remaining mana should consume the remainder");
+            helper.assertTrue(broom.isEmergencyLanding(), "Movement depletion should enter emergency landing");
+
+            magicData.setMana(10.0F);
+            broom.acceptServerInput(player, 0.0F, 1.0F, true, false);
+            broom.tick();
+            helper.assertTrue(Math.abs(magicData.getMana() - 10.0F) < 1.0e-4F,
+                    "Emergency movement must not consume mana");
+
+            var saved = new CompoundTag();
+            broom.saveWithoutId(saved);
+            var loaded = new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), helper.getLevel());
+            loaded.load(saved);
+            helper.assertTrue(loaded.isEmergencyLanding(), "Emergency landing must persist in entity NBT");
+
+            magicData.setMana(100.0F);
+            broom.tick();
+            helper.assertFalse(broom.isEmergencyLanding(),
+                    "Reaching the normal flight threshold should recover normal flight");
+            helper.assertTrue(Math.abs(magicData.getMana() - 100.0F) < 1.0e-4F,
+                    "Recovery tick must not immediately consume mana");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void externalDepletionWaitsForPaidInputAndEmergencyForcesDismountWarning(GameTestHelper helper) {
+        var config = new FloatmountBroomServerConfig.Values(100, 50, 1.0D, 1.0D, 1.5D);
+        try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
+            var broom = spawnBroom(helper, 1.5D);
+            var player = player(helper, "floatmount_broom_external_depletion");
+            var magicData = magicData(helper, player);
+            magicData.setMana(0.0F);
+            helper.assertTrue(player.startRiding(broom, true), "External depletion test player should mount directly");
+
+            broom.tick();
+            helper.assertFalse(broom.isEmergencyLanding(),
+                    "External zero mana must not trigger emergency landing while idle");
+            var warningState = new CompoundTag();
+            broom.saveWithoutId(warningState);
+            helper.assertTrue(warningState.getBoolean("LowManaWarningShown"),
+                    "Low mana warning latch should be stored on the broom entity");
+
+            broom.acceptServerInput(player, 0.0F, 1.0F, false, false);
+            broom.tick();
+            helper.assertTrue(broom.isEmergencyLanding(),
+                    "Paid movement attempted at zero mana should trigger emergency landing");
+            helper.assertTrue(broom.isDangerousDismount(),
+                    "Emergency landing must force dismount confirmation even near the ground");
+
+            FloatmountBroomDismountEvents.handleSneakInput(player, broom, true);
+            var first = new EntityMountEvent(player, broom, helper.getLevel(), false);
+            FloatmountBroomDismountEvents.onDismount(first);
+            helper.assertTrue(first.isCanceled(), "First emergency dismount should be canceled");
+        }
         helper.succeed();
     }
 
@@ -199,6 +327,35 @@ public final class FloatmountBroomGameTests {
 
     private static Player player(GameTestHelper helper, String name) {
         return helper.makeMockPlayer(GameType.SURVIVAL);
+    }
+
+    private static MagicData magicData(GameTestHelper helper, Player player) {
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Floatmount Broom test could not resolve player mana data");
+        return magicData;
+    }
+
+    private static void assertMovementManaCost(
+            GameTestHelper helper,
+            String playerName,
+            float expectedCost,
+            float strafe,
+            float forward,
+            boolean ascending,
+            boolean descending
+    ) {
+        var broom = spawnBroom(helper, 1.5D);
+        var player = player(helper, playerName);
+        var magicData = magicData(helper, player);
+        magicData.setMana(200.0F);
+        helper.assertTrue(player.startRiding(broom, true), playerName + " should mount directly");
+        broom.acceptServerInput(player, strafe, forward, ascending, descending);
+
+        broom.tick();
+
+        helper.assertTrue(Math.abs(magicData.getMana() - (200.0F - expectedCost)) < 1.0e-4F,
+                playerName + " used an unexpected mana cost: " + magicData.getMana());
+        player.stopRiding();
     }
 
     private static int countDroppedBrooms(GameTestHelper helper) {

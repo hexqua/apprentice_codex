@@ -1374,5 +1374,9 @@
   "subtitle.apprenticecodex.sound.vanilla_feed_ammo": "Ammo loads",
   "subtitle.apprenticecodex.sound.vanilla_cast_book": "Book used",
   "subtitle.apprenticecodex.sound.vanilla_crystallize_mana": "Mana crystallizes",
-  "ui.apprenticecodex.floatmount_broom.warning_dismount": "Press %s again to dismount"
+  "ui.apprenticecodex.floatmount_broom.insufficient_mana": "You need at least %d mana to ride the Floatmount Broom",
+  "ui.apprenticecodex.floatmount_broom.warning_dismount": "Press %s again to dismount",
+  "ui.apprenticecodex.floatmount_broom.warning_low_mana": "The broom cannot maintain flight if your mana is depleted!",
+  "ui.apprenticecodex.floatmount_broom.warning_emergency_landing": "Mana depleted! The broom is making an emergency landing!",
+  "ui.apprenticecodex.floatmount_broom.recover_emergency_landing": "Mana restored. Normal flight has resumed."
 }
