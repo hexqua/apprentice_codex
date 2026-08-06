@@ -304,6 +304,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -981,7 +983,7 @@ public class ApprenticeCodexGameTestScenarios {
                     helper,
                     templatePoolRegistry,
                     ResourceLocation.withDefaultNamespace("village/snowy/houses"),
-                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/snowy/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("empty"),
                     3
             );
@@ -989,10 +991,52 @@ public class ApprenticeCodexGameTestScenarios {
                     helper,
                     templatePoolRegistry,
                     ResourceLocation.withDefaultNamespace("village/taiga/houses"),
-                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/taiga/errand_mage_house"),
                     ResourceLocation.withDefaultNamespace("mossify_10_percent"),
                     3
             );
+        });
+    }
+    static void errandMageVillageHouseTemplatesAreLoadableAndKeepRequiredJigsaws(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var structureTemplateManager = helper.getLevel().getStructureManager();
+            assertVillageHouseTemplateLoadsWithRequiredBlocks(
+                    helper,
+                    structureTemplateManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/plains/errand_mage_house"),
+                    ResourceLocation.withDefaultNamespace("village/plains/villagers"),
+                    new BlockPos(3, 1, 5)
+            );
+            assertVillageHouseTemplateLoadsWithRequiredBlocks(
+                    helper,
+                    structureTemplateManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/desert/errand_mage_house"),
+                    ResourceLocation.withDefaultNamespace("village/desert/villagers"),
+                    new BlockPos(2, 1, 4)
+            );
+            assertVillageHouseTemplateLoadsWithRequiredBlocks(
+                    helper,
+                    structureTemplateManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/savanna/errand_mage_house"),
+                    ResourceLocation.withDefaultNamespace("village/savanna/villagers"),
+                    new BlockPos(3, 1, 5)
+            );
+            assertVillageHouseTemplateLoadsWithRequiredBlocks(
+                    helper,
+                    structureTemplateManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/snowy/errand_mage_house"),
+                    ResourceLocation.withDefaultNamespace("village/snowy/villagers"),
+                    new BlockPos(3, 1, 5)
+            );
+            assertVillageHouseTemplateLoadsWithRequiredBlocks(
+                    helper,
+                    structureTemplateManager,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "village/taiga/errand_mage_house"),
+                    ResourceLocation.withDefaultNamespace("village/taiga/villagers"),
+                    new BlockPos(3, 1, 5)
+            );
+
+            assertErrandMageHouseLootTable(helper);
         });
     }
     static void errandMageOffersAcceptTaggedErrandMagePayments(GameTestHelper helper) {
@@ -12500,10 +12544,170 @@ public class ApprenticeCodexGameTestScenarios {
         return expectedStructureId.equals(structureId) && expectedProcessorId.equals(processorId);
     }
 
+    static void assertVillageHouseTemplateLoadsWithRequiredBlocks(
+            GameTestHelper helper,
+            net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager structureTemplateManager,
+            ResourceLocation structureId,
+            ResourceLocation expectedVillagerPool,
+            BlockPos expectedLootChestPos
+    ) {
+        var template = structureTemplateManager.get(structureId).orElse(null);
+        helper.assertTrue(template != null, "Missing village house template: " + structureId);
+
+        var jigsawBlocks = template != null
+                ? template.filterBlocks(BlockPos.ZERO, new StructurePlaceSettings(), Blocks.JIGSAW, true)
+                : List.<StructureTemplate.StructureBlockInfo>of();
+        helper.assertTrue(jigsawBlocks.size() == 2,
+                "Unexpected jigsaw count for " + structureId + ": " + jigsawBlocks.size());
+
+        boolean hasBottom = false;
+        boolean hasEntrance = false;
+        for (var jigsawBlock : jigsawBlocks) {
+            var nbt = jigsawBlock.nbt();
+            helper.assertTrue(nbt != null,
+                    "Village house jigsaw is missing NBT: " + structureId + " at " + jigsawBlock.pos());
+            if (nbt == null) {
+                continue;
+            }
+
+            var name = ResourceLocation.tryParse(nbt.getString("name"));
+            var target = ResourceLocation.tryParse(nbt.getString("target"));
+            var pool = ResourceLocation.tryParse(nbt.getString("pool"));
+            if (ResourceLocation.withDefaultNamespace("bottom").equals(name)
+                    && ResourceLocation.withDefaultNamespace("bottom").equals(target)
+                    && expectedVillagerPool.equals(pool)) {
+                hasBottom = true;
+            }
+            if (ResourceLocation.withDefaultNamespace("building_entrance").equals(name)
+                    && ResourceLocation.withDefaultNamespace("building_entrance").equals(target)
+                    && ResourceLocation.withDefaultNamespace("empty").equals(pool)) {
+                hasEntrance = true;
+            }
+        }
+
+        helper.assertTrue(hasBottom, "Village house is missing villager spawn jigsaw: " + structureId);
+        helper.assertTrue(hasEntrance, "Village house is missing building entrance jigsaw: " + structureId);
+
+        var lootChests = template != null
+                ? template.filterBlocks(BlockPos.ZERO, new StructurePlaceSettings(), Blocks.CHEST, true)
+                : List.<StructureTemplate.StructureBlockInfo>of();
+        helper.assertTrue(lootChests.size() == 1,
+                "Unexpected loot chest count for " + structureId + ": " + lootChests.size());
+        if (lootChests.size() != 1) {
+            return;
+        }
+
+        var lootChest = lootChests.get(0);
+        helper.assertTrue(expectedLootChestPos.equals(lootChest.pos()),
+                "Unexpected loot chest position for " + structureId + ": " + lootChest.pos());
+        var chestNbt = lootChest.nbt();
+        helper.assertTrue(chestNbt != null,
+                "Village house loot chest is missing NBT: " + structureId + " at " + lootChest.pos());
+        if (chestNbt != null) {
+            helper.assertTrue("minecraft:chest".equals(chestNbt.getString("id")),
+                    "Village house loot chest has an unexpected block entity id: " + structureId);
+            helper.assertTrue("apprenticecodex:chests/errand_mage_house".equals(chestNbt.getString("LootTable")),
+                    "Village house loot chest has an unexpected loot table: " + structureId);
+        }
+    }
+
     static LootParams createChestLootParams(GameTestHelper helper) {
         return new LootParams.Builder(helper.getLevel())
                 .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(new BlockPos(0, 1, 0)))
                 .create(LootContextParamSets.CHEST);
+    }
+
+    static void assertErrandMageHouseLootTable(GameTestHelper helper) {
+        var lootTableId = ResourceLocation.fromNamespaceAndPath(
+                ApprenticeCodex.MODID,
+                "chests/errand_mage_house"
+        );
+        var lootTable = helper.getLevel().getServer().getLootData().getLootTable(lootTableId);
+        var lootParams = createChestLootParams(helper);
+        var sawBonusPool = false;
+        var sawSkippedBonusPool = false;
+        var seenBonusItems = new LinkedHashSet<Item>();
+
+        for (var attempt = 0; attempt < 64; attempt++) {
+            var generatedLoot = new ArrayList<ItemStack>();
+            lootTable.getRandomItems(lootParams, generatedLoot::add);
+            var primaryRolls = 0;
+            var bonusRolls = 0;
+
+            for (var stack : generatedLoot) {
+                var item = stack.getItem();
+                if (item == Items.BOOK) {
+                    primaryRolls++;
+                    helper.assertTrue(stack.getCount() >= 1 && stack.getCount() <= 3,
+                            "Errand Mage house book count is outside 1-3: " + stack);
+                } else if (item == Items.BREAD) {
+                    primaryRolls++;
+                    helper.assertTrue(stack.getCount() >= 1 && stack.getCount() <= 4,
+                            "Errand Mage house bread count is outside 1-4: " + stack);
+                } else if (item == ItemRegistry.COMFORT_BERRIES.get()) {
+                    primaryRolls++;
+                    helper.assertTrue(stack.getCount() >= 1 && stack.getCount() <= 5,
+                            "Errand Mage house comfort berry count is outside 1-5: " + stack);
+                } else if (item == ItemRegistry.COMFORT_SANDWICH.get()) {
+                    primaryRolls++;
+                    helper.assertTrue(stack.getCount() >= 1 && stack.getCount() <= 4,
+                            "Errand Mage house comfort sandwich count is outside 1-4: " + stack);
+                } else if (item == ItemRegistry.CRUDE_INK.get()) {
+                    primaryRolls++;
+                    helper.assertTrue(stack.getCount() == 1,
+                            "Errand Mage house crude ink count must be 1: " + stack);
+                } else if (item == ItemRegistry.WOODEN_WAND.get()) {
+                    bonusRolls++;
+                    seenBonusItems.add(item);
+                    assertErrandMageHouseShockWand(helper, stack);
+                } else if (item == ItemRegistry.ARCANE_CINDER.get()) {
+                    bonusRolls++;
+                    seenBonusItems.add(item);
+                    helper.assertTrue(stack.getCount() == 1,
+                            "Errand Mage house arcane cinder count must be 1: " + stack);
+                } else {
+                    helper.assertTrue(false, "Unexpected Errand Mage house loot item: " + stack);
+                }
+            }
+
+            helper.assertTrue(primaryRolls >= 3 && primaryRolls <= 5,
+                    "Errand Mage house primary pool must roll 3-5 times: " + generatedLoot);
+            helper.assertTrue(bonusRolls == 0 || bonusRolls == 2,
+                    "Errand Mage house bonus pool must roll either 0 or 2 times: " + generatedLoot);
+            sawBonusPool |= bonusRolls == 2;
+            sawSkippedBonusPool |= bonusRolls == 0;
+        }
+
+        helper.assertTrue(sawBonusPool && sawSkippedBonusPool,
+                "Errand Mage house 50% bonus pool did not exercise both outcomes in 64 attempts");
+        helper.assertTrue(seenBonusItems.containsAll(List.of(
+                        ItemRegistry.WOODEN_WAND.get(),
+                        ItemRegistry.ARCANE_CINDER.get()
+                )),
+                "Errand Mage house bonus pool did not generate both equally weighted candidates: "
+                        + seenBonusItems.stream().map(BuiltInRegistries.ITEM::getKey).toList());
+    }
+
+    static void assertErrandMageHouseShockWand(GameTestHelper helper, ItemStack wand) {
+        helper.assertTrue(wand.getCount() == 1,
+                "Errand Mage house wooden wand count must be 1: " + wand);
+        helper.assertTrue(ISpellContainer.isSpellContainer(wand),
+                "Errand Mage house wooden wand is missing its spell container");
+        if (!ISpellContainer.isSpellContainer(wand)) {
+            return;
+        }
+
+        var spellContainer = ISpellContainer.get(wand);
+        var spellData = spellContainer.getSpellAtIndex(0);
+        helper.assertTrue(spellContainer.getMaxSpellCount() == 1
+                        && spellContainer.getActiveSpellCount() == 1
+                        && !spellContainer.isSpellWheel()
+                        && !spellContainer.mustEquip(),
+                "Errand Mage house wooden wand has an unexpected spell container: " + spellContainer);
+        helper.assertTrue(spellData.getSpell() == SpellRegistry.SHOCK.get()
+                        && spellData.getLevel() == 1
+                        && spellData.isLocked(),
+                "Errand Mage house wooden wand must contain locked Shock level 1: " + spellData);
     }
 
     static LootParams createEmptyLootParams(GameTestHelper helper) {
