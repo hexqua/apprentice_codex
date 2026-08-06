@@ -6363,12 +6363,17 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static void companionTrunkClimbsOneBlockStepWhenFollowingOwner(GameTestHelper helper) {
-        var trunkPos = new BlockPos(-2, 12, 0);
-        var ownerPos = new BlockPos(3, 13, 0);
-        prepareSummonedEntityIsolationArea(helper, trunkPos);
+        // GameTest の管理範囲外に tick 必須のエンティティを生成すると、隣接 chunk が entity-ticking にならず、
+        // tickCount=0 のまま timeout する flaky テストになり得る。対処はエンティティと移動経路を
+        // template が管理する水平範囲の正の相対座標へ収めることであり、setChunkForced 等の
+        // chunk 強制 load は使用しない。
+        // 強制 load は誤ったテスト配置でも動作させて症状を隠し、本来のテスト環境と異なる条件を作るためである。
+        var trunkPos = new BlockPos(0, 12, 2);
+        var ownerPos = new BlockPos(4, 13, 2);
         for (var x = 0; x <= 4; ++x) {
-            for (var z = -1; z <= 1; ++z) {
-                helper.setBlock(new BlockPos(x, 12, z), Blocks.STONE);
+            for (var z = 1; z <= 3; ++z) {
+                helper.setBlock(new BlockPos(x, 11, z), Blocks.STONE);
+                helper.setBlock(new BlockPos(x, 12, z), x >= 2 ? Blocks.STONE : Blocks.AIR);
                 helper.setBlock(new BlockPos(x, 13, z), Blocks.AIR);
                 helper.setBlock(new BlockPos(x, 14, z), Blocks.AIR);
                 helper.setBlock(new BlockPos(x, 15, z), Blocks.AIR);
