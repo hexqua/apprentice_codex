@@ -81,6 +81,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void errandMageVillageHouseTemplatesAreLoadableAndKeepRequiredJigsaws(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.errandMageVillageHouseTemplatesAreLoadableAndKeepRequiredJigsaws(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void errandMageOffersAcceptTaggedErrandMagePayments(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.errandMageOffersAcceptTaggedErrandMagePayments(helper);
     }
