@@ -107,6 +107,7 @@ public final class FloatmountBroomGameTests {
         var lava = helper.absolutePos(new BlockPos(4, 1, 1));
         level.setBlockAndUpdate(solid, Blocks.STONE.defaultBlockState());
         level.setBlockAndUpdate(water, Blocks.WATER.defaultBlockState());
+        level.setBlockAndUpdate(lava.below(), Blocks.STONE.defaultBlockState());
         level.setBlockAndUpdate(lava, Blocks.LAVA.defaultBlockState());
 
         helper.assertTrue(FloatmountBroomSurfaceScanner.findSurfaceBelow(
@@ -119,8 +120,13 @@ public final class FloatmountBroomGameTests {
                 level, lava.getX() + 0.5D, lava.getY() + 2.0D, lava.getZ() + 0.5D, 3, true).isPresent(),
                 "Lava should be a hover surface");
         helper.assertTrue(FloatmountBroomSurfaceScanner.findSurfaceBelow(
-                        level, lava.getX() + 0.5D, lava.getY() + 2.0D, lava.getZ() + 0.5D, 2, false).isEmpty(),
-                "Lava surface must be skipped by the safe dismount scan");
+                        level, lava.getX() + 0.5D, lava.getY() + 2.0D, lava.getZ() + 0.5D, 3, false).isEmpty(),
+                "Lava must make the safe dismount scan fail even with solid ground beneath it");
+
+        var broom = new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), level);
+        broom.setPos(lava.getX() + 0.5D, lava.getY() + 1.5D, lava.getZ() + 0.5D);
+        helper.assertTrue(broom.isDangerousDismount(),
+                "Lava below the broom must always be classified as a dangerous dismount surface");
         helper.succeed();
     }
 
