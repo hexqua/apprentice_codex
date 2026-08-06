@@ -1373,5 +1373,6 @@
   "subtitle.apprenticecodex.sound.vanilla_card_throw": "Card thrown",
   "subtitle.apprenticecodex.sound.vanilla_feed_ammo": "Ammo loads",
   "subtitle.apprenticecodex.sound.vanilla_cast_book": "Book used",
-  "subtitle.apprenticecodex.sound.vanilla_crystallize_mana": "Mana crystallizes"
+  "subtitle.apprenticecodex.sound.vanilla_crystallize_mana": "Mana crystallizes",
+  "ui.apprenticecodex.floatmount_broom.warning_dismount": "Press %s again to dismount"
 }

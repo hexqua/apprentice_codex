@@ -42,6 +42,7 @@ import jp.aquafactory.apprenticecodex.renderer.curio.ManaThrusterCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.SpellcasterAmmoPouchCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.SpellcasterQuiverCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.extrudedsprite.ExtrudedSpriteManager;
+import jp.aquafactory.apprenticecodex.renderer.entity.FloatmountBroomRenderer;
 import jp.aquafactory.apprenticecodex.renderer.tooltip.SpellcasterAmmoPouchClientTooltipComponent;
 import jp.aquafactory.apprenticecodex.spell.anchorblink.AnchorBlinkDaggerRenderer;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamRenderer;
@@ -394,6 +395,6 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.REMOTE_OWNER_CAST_ANCHOR.get(), RemoteOwnerCastAnchorRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FUJIN_KATANA.get(), FujinKatanaRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FUJIN_SLASH_PROJECTILE.get(), FujinSlashProjectileRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.FLOATMOUNT_BROOM.get(), FloatmountBroomRenderer::new);
     }
 }
-
