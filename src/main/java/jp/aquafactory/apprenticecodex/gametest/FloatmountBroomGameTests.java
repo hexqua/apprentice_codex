@@ -100,6 +100,18 @@ public final class FloatmountBroomGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void unoccupiedBroomUsesCoastDamping(GameTestHelper helper) {
+        var broom = spawnBroom(helper, 1.5D);
+        broom.setDeltaMovement(0.2D, 0.0D, 0.0D);
+
+        broom.tick();
+
+        helper.assertTrue(Math.abs(broom.getDeltaMovement().x - 0.17D) < 1.0e-6D,
+                "Unoccupied broom should retain eighty-five percent of horizontal speed per tick");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void surfaceScannerTreatsSolidWaterAndLavaAsHoverSurfaces(GameTestHelper helper) {
         var level = helper.getLevel();
         var solid = helper.absolutePos(new BlockPos(1, 1, 1));

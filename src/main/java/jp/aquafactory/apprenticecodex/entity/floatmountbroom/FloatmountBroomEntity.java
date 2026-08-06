@@ -40,12 +40,14 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
     private static final double MAX_UNMOUNTED_FALL_SPEED = 0.1D;
     private static final double MAX_UNMOUNTED_RISE_SPEED = 0.1D;
     private static final double HORIZONTAL_ACCELERATION = 0.04D;
-    private static final double MAX_HORIZONTAL_SPEED = 0.10D;
+    private static final double MAX_HORIZONTAL_SPEED = 0.35D;
     private static final double VERTICAL_ACCELERATION = 0.05D;
     private static final double MAX_VERTICAL_SPEED = 0.15D;
     private static final float TURN_ACCELERATION = 1.0F;
     private static final float MAX_TURN_SPEED = 10.0F;
-    private static final double MOVEMENT_DAMPING = 0.9D;
+    private static final double POWERED_HORIZONTAL_DAMPING = 0.9D;
+    private static final double COAST_HORIZONTAL_DAMPING = 0.85D;
+    private static final float TURN_DAMPING = 0.9F;
     /**
      * 箒のEntity原点から乗員のvehicle attachmentまでの高さ。モデル調整ではこの値だけを変更する。
      */
@@ -159,15 +161,19 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
     }
 
     private void applyControlledMovement() {
-        turnSpeed = Mth.clamp((turnSpeed + localStrafeInput * TURN_ACCELERATION) * (float) MOVEMENT_DAMPING,
+        turnSpeed = Mth.clamp((turnSpeed + localStrafeInput * TURN_ACCELERATION) * TURN_DAMPING,
                 -MAX_TURN_SPEED, MAX_TURN_SPEED);
         setYRot(getYRot() + turnSpeed);
 
         var movement = getDeltaMovement();
         var yaw = getYRot() * Mth.DEG_TO_RAD;
         var forward = new Vec3(-Mth.sin(yaw), 0.0D, Mth.cos(yaw));
+        // 高所作業で停止しやすくしつつ、入力中はボート相当の滑らかな加速を維持する。
+        var horizontalDamping = Math.abs(localForwardInput) > 1.0e-4F
+                ? POWERED_HORIZONTAL_DAMPING
+                : COAST_HORIZONTAL_DAMPING;
         var horizontal = new Vec3(movement.x, 0.0D, movement.z)
-                .scale(MOVEMENT_DAMPING)
+                .scale(horizontalDamping)
                 .add(forward.scale(localForwardInput * HORIZONTAL_ACCELERATION));
         if (horizontal.length() > MAX_HORIZONTAL_SPEED) {
             horizontal = horizontal.normalize().scale(MAX_HORIZONTAL_SPEED);
@@ -182,7 +188,8 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
 
     private void applyUnoccupiedMovement() {
         var movement = getDeltaMovement();
-        var horizontal = new Vec3(movement.x * MOVEMENT_DAMPING, 0.0D, movement.z * MOVEMENT_DAMPING);
+        var horizontal = new Vec3(movement.x * COAST_HORIZONTAL_DAMPING, 0.0D,
+                movement.z * COAST_HORIZONTAL_DAMPING);
         var vertical = movement.y;
 
         if (isInWaterOrBubble() || isInLava() || !level().noCollision(this, getBoundingBox().deflate(0.01D))) {
@@ -203,7 +210,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
 
         setDeltaMovement(horizontal.x, vertical, horizontal.z);
         move(MoverType.SELF, getDeltaMovement());
-        turnSpeed *= MOVEMENT_DAMPING;
+        turnSpeed = turnSpeed * (float)COAST_HORIZONTAL_DAMPING;
     }
 
     @Override
