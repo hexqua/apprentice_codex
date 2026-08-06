@@ -7320,9 +7320,10 @@ public class ApprenticeCodexGameTestScenarios {
         helper.setBlock(new BlockPos(0, 1, 0), Blocks.STONE);
         var staff = createFieldOverseerTestEntity(helper, owner, anchorPos, 100.0F, 40);
 
-        var highHealthTarget = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(3, 2, 0));
-        var mediumHealthTarget = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(0, 2, 3));
-        var lowHealthTarget = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(-3, 2, 0));
+        // 日光耐性のあるハスクを使う.
+        var highHealthTarget = helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(3, 2, 0));
+        var mediumHealthTarget = helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(0, 2, 3));
+        var lowHealthTarget = helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(-3, 2, 0));
         highHealthTarget.setHealth(20.0F);
         mediumHealthTarget.setHealth(10.0F);
         lowHealthTarget.setHealth(5.0F);
