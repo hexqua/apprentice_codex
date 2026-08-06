@@ -7309,21 +7309,23 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static void fieldOverseerPrioritizesHealthAndTransfersMana(GameTestHelper helper) {
-        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, -2), "field_overseer_attack_test");
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(2, 2, 0), "field_overseer_attack_test");
         var manaRegen = owner.getAttribute(AttributeRegistry.MANA_REGEN.get());
         if (manaRegen != null) {
             manaRegen.setBaseValue(0.0D);
         }
         var ownerMagicData = MagicData.getPlayerMagicData(owner);
         ownerMagicData.setMana(75.0F);
-        var anchorPos = helper.absolutePos(new BlockPos(0, 2, 0));
-        helper.setBlock(new BlockPos(0, 1, 0), Blocks.STONE);
+        var anchorPos = helper.absolutePos(new BlockPos(2, 2, 2));
+        helper.setBlock(new BlockPos(2, 1, 2), Blocks.STONE);
         var staff = createFieldOverseerTestEntity(helper, owner, anchorPos, 100.0F, 40);
+        // 並列実行中の別構造内の敵を拾わないよう、このテストでは構造内に収まる射程へ絞る.
+        staff.configure(anchorPos, 4.0F, 4.0D, 40, 100.0F, 20);
 
-        // 日光耐性のあるハスクを使う.
-        var highHealthTarget = helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(3, 2, 0));
-        var mediumHealthTarget = helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(0, 2, 3));
-        var lowHealthTarget = helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(-3, 2, 0));
+        // 日光や構造外への落下で攻撃対象から外れないよう、床内にハスクを配置する.
+        var highHealthTarget = helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(4, 2, 2));
+        var mediumHealthTarget = helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(2, 2, 4));
+        var lowHealthTarget = helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(0, 2, 2));
         highHealthTarget.setHealth(20.0F);
         mediumHealthTarget.setHealth(10.0F);
         lowHealthTarget.setHealth(5.0F);
