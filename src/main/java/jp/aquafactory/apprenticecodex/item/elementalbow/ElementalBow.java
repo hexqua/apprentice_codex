@@ -88,8 +88,6 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     private static final String SHOT_MODE_TAG = "ElementalBowShotMode";
     private static final String AMMO_SELECTION_TAG = "ElementalBowAmmoSelection";
     private static final ItemStack ENCHANTMENT_PROBE_STACK = new ItemStack(Items.BOW);
-    private static final ResourceLocation CREATE_POTATO_RECOVERY_ID =
-            ResourceLocation.fromNamespaceAndPath("create", "potato_recovery");
     private static final float MANA_SAFE_MARGIN = 0.001F;
     private static final int OVERHEAT_WARNING_INTERVAL_TICKS = 10;
     private static final float DRAW_ANIMATION_SOURCE_SECONDS = 0.32F;
@@ -278,16 +276,14 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return !isUnsupportedElementalBowEnchantment(enchantment)
-                && (Items.BOW.canApplyAtEnchantingTable(ENCHANTMENT_PROBE_STACK, enchantment)
-                || isSupportedAdditionalElementalBowEnchantment(enchantment));
+        return Items.BOW.canApplyAtEnchantingTable(ENCHANTMENT_PROBE_STACK, enchantment)
+                || isSupportedAdditionalElementalBowEnchantment(enchantment);
     }
 
     @Override
     public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
-        return !bookContainsUnsupportedElementalBowEnchantment(book)
-                && (Items.BOW.isBookEnchantable(ENCHANTMENT_PROBE_STACK, book)
-                || bookContainsOnlySupportedAdditionalElementalBowEnchantments(book));
+        return Items.BOW.isBookEnchantable(ENCHANTMENT_PROBE_STACK, book)
+                || bookContainsOnlySupportedAdditionalElementalBowEnchantments(book);
     }
 
     @Override
@@ -1474,17 +1470,6 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
                 || (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
                 || (EnchantmentRegistry.PLUNDER.isPresent() && enchantment == EnchantmentRegistry.PLUNDER.get())
                 || (EnchantmentRegistry.SYNTHESIS.isPresent() && enchantment == EnchantmentRegistry.SYNTHESIS.get());
-    }
-
-    private static boolean isUnsupportedElementalBowEnchantment(Enchantment enchantment) {
-        // Createのポテト回収はBOWカテゴリでItem側判定に成功するが、ポテト回収自身がポテトキャノン以外は弾くため、サバイバルでは出ない.
-        // ただし、Item側の低レベル判定などから判定するとポテト回収側を無視するため、Item側でも明示的に拒否する目的で指定.
-        return CREATE_POTATO_RECOVERY_ID.equals(ForgeRegistries.ENCHANTMENTS.getKey(enchantment));
-    }
-
-    private static boolean bookContainsUnsupportedElementalBowEnchantment(ItemStack book) {
-        return EnchantmentHelper.getEnchantments(book).keySet().stream()
-                .anyMatch(ElementalBow::isUnsupportedElementalBowEnchantment);
     }
 
     private static boolean bookContainsOnlySupportedAdditionalElementalBowEnchantments(ItemStack book) {

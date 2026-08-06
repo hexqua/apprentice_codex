@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import com.mojang.authlib.GameProfile;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
@@ -21,12 +22,17 @@ import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.inventory.AnvilMenu;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -36,6 +42,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.MALUM_ANIMATED;
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.MALUM_MOD_ID;
@@ -248,17 +255,36 @@ final class EnchantmentApplicationGameTestScenarios {
     private static void assertElementalBowSurfaces(GameTestHelper helper) {
         var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
         var table = expectedElementalBowEnchantments();
-        assertExactEnchantmentSurfaces(helper, stack, table, expectedElementalBowBookEnchantments(), table,
+        var anvil = new LinkedHashSet<>(table);
+        anvil.remove(CREATE_POTATO_RECOVERY);
+        assertExactEnchantmentSurfaces(helper, stack, table, expectedElementalBowBookEnchantments(), anvil,
                 "Elemental Bow");
         var potatoRecovery = ForgeRegistries.ENCHANTMENTS.getValue(CREATE_POTATO_RECOVERY);
         if (potatoRecovery != null) {
-            helper.assertFalse(stack.getItem().canApplyAtEnchantingTable(stack, potatoRecovery),
-                    "Elemental Bow should reject Create Potato Recovery at the enchanting table");
-            helper.assertFalse(stack.getItem().isBookEnchantable(stack, createEnchantedBook(potatoRecovery)),
-                    "Elemental Bow should reject Create Potato Recovery from enchanted books");
             helper.assertFalse(potatoRecovery.canEnchant(stack),
-                    "Elemental Bow should reject Create Potato Recovery at the anvil");
+                    "Create Potato Recovery should reject Elemental Bow at the anvil");
+            assertElementalBowMixedBookAnvilApplication(helper, potatoRecovery);
         }
+    }
+
+    private static void assertElementalBowMixedBookAnvilApplication(
+            GameTestHelper helper, Enchantment potatoRecovery) {
+        var mixedBook = createEnchantedBook(Enchantments.POWER_ARROWS);
+        EnchantedBookItem.addEnchantment(mixedBook, new EnchantmentInstance(potatoRecovery, 1));
+        var player = new FakePlayer(helper.getLevel(),
+                new GameProfile(UUID.randomUUID(), "elemental_bow_mixed_enchantment_book_test"));
+        var menu = new AnvilMenu(0, player.getInventory(), ContainerLevelAccess.NULL);
+        menu.getSlot(0).set(new ItemStack(ItemRegistry.ELEMENTAL_BOW.get()));
+        menu.getSlot(1).set(mixedBook);
+        menu.createResult();
+
+        var result = menu.getSlot(2).getItem();
+        helper.assertFalse(result.isEmpty(),
+                "Elemental Bow should accept applicable enchantments from a mixed enchanted book");
+        helper.assertTrue(result.getEnchantmentLevel(Enchantments.POWER_ARROWS) == 1,
+                "Elemental Bow should retain Power from a mixed enchanted book");
+        helper.assertTrue(result.getEnchantmentLevel(potatoRecovery) == 0,
+                "Elemental Bow should discard Create Potato Recovery from a mixed enchanted book");
     }
 
     private static void assertOffhandSurfaces(GameTestHelper helper) {
@@ -786,7 +812,6 @@ final class EnchantmentApplicationGameTestScenarios {
         var expected = collectAllowedEnchantments(enchantment -> Items.BOW.canApplyAtEnchantingTable(bow, enchantment));
         expected.addAll(registryIdSet(EnchantmentRegistry.TRANSCENDENCE, EnchantmentRegistry.WISDOM,
                 EnchantmentRegistry.PLUNDER, EnchantmentRegistry.SYNTHESIS));
-        expected.remove(CREATE_POTATO_RECOVERY);
         return expected;
     }
 
@@ -796,7 +821,6 @@ final class EnchantmentApplicationGameTestScenarios {
                 Items.BOW.isBookEnchantable(bow, createEnchantedBook(enchantment)));
         expected.addAll(registryIdSet(EnchantmentRegistry.TRANSCENDENCE, EnchantmentRegistry.WISDOM,
                 EnchantmentRegistry.PLUNDER, EnchantmentRegistry.SYNTHESIS));
-        expected.remove(CREATE_POTATO_RECOVERY);
         return expected;
     }
 
