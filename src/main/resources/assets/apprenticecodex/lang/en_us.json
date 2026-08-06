@@ -131,6 +131,7 @@
   "item.apprenticecodex.spellcharged_greatsword": "Spell-Charged Greatsword",
   "item.apprenticecodex.bound_sword": "Bound Sword",
   "item.apprenticecodex.bound_bow": "Bound Bow",
+  "item.apprenticecodex.floatmount_broom": "Broom of Floatmount",
   "item.apprenticecodex.smashcast_scepter": "Smashcast Scepter",
   "item.apprenticecodex.reflectcast_shield": "Reflectcast Shield",
   "item.apprenticecodex.bulwark_greatshield": "Greatshield of Spellcaster-Bulwark",
@@ -631,6 +632,7 @@
   "entity.apprenticecodex.servant_gaze_staff": "Servant Gaze Staff",
   "entity.apprenticecodex.fujin_katana": "Edge of Fujin",
   "entity.apprenticecodex.fujin_slash_projectile": "Wind Blade",
+  "entity.apprenticecodex.floatmount_broom": "Broom of Floatmount",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "Errand Mage",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "Errand Mage",
