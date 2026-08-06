@@ -55,6 +55,8 @@ import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGame
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.registryIdSet;
 
 final class EnchantmentApplicationGameTestScenarios {
+    private static final ResourceLocation CREATE_POTATO_RECOVERY =
+            ResourceLocation.fromNamespaceAndPath("create", "potato_recovery");
     private static final Map<AttributeEnchantmentType, TagKey<Item>> ATTRIBUTE_ENCHANTABLE_TAGS = Map.of(
             AttributeEnchantmentType.ALACRITY, TagRegistry.Items.ALACRITY_ENCHANTABLE,
             AttributeEnchantmentType.REFLUX, TagRegistry.Items.REFLUX_ENCHANTABLE,
@@ -248,6 +250,15 @@ final class EnchantmentApplicationGameTestScenarios {
         var table = expectedElementalBowEnchantments();
         assertExactEnchantmentSurfaces(helper, stack, table, expectedElementalBowBookEnchantments(), table,
                 "Elemental Bow");
+        var potatoRecovery = ForgeRegistries.ENCHANTMENTS.getValue(CREATE_POTATO_RECOVERY);
+        if (potatoRecovery != null) {
+            helper.assertFalse(stack.getItem().canApplyAtEnchantingTable(stack, potatoRecovery),
+                    "Elemental Bow should reject Create Potato Recovery at the enchanting table");
+            helper.assertFalse(stack.getItem().isBookEnchantable(stack, createEnchantedBook(potatoRecovery)),
+                    "Elemental Bow should reject Create Potato Recovery from enchanted books");
+            helper.assertFalse(potatoRecovery.canEnchant(stack),
+                    "Elemental Bow should reject Create Potato Recovery at the anvil");
+        }
     }
 
     private static void assertOffhandSurfaces(GameTestHelper helper) {
@@ -775,6 +786,7 @@ final class EnchantmentApplicationGameTestScenarios {
         var expected = collectAllowedEnchantments(enchantment -> Items.BOW.canApplyAtEnchantingTable(bow, enchantment));
         expected.addAll(registryIdSet(EnchantmentRegistry.TRANSCENDENCE, EnchantmentRegistry.WISDOM,
                 EnchantmentRegistry.PLUNDER, EnchantmentRegistry.SYNTHESIS));
+        expected.remove(CREATE_POTATO_RECOVERY);
         return expected;
     }
 
@@ -784,6 +796,7 @@ final class EnchantmentApplicationGameTestScenarios {
                 Items.BOW.isBookEnchantable(bow, createEnchantedBook(enchantment)));
         expected.addAll(registryIdSet(EnchantmentRegistry.TRANSCENDENCE, EnchantmentRegistry.WISDOM,
                 EnchantmentRegistry.PLUNDER, EnchantmentRegistry.SYNTHESIS));
+        expected.remove(CREATE_POTATO_RECOVERY);
         return expected;
     }
 
