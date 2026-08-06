@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.config;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.block.ArcanumInAJarServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
@@ -695,6 +696,10 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.manaThrusterManaCostPerTick();
     }
 
+    public static FloatmountBroomServerConfig.Values floatmountBroomConfig() {
+        return ITEMS_CONFIG.floatmountBroomConfig();
+    }
+
     public static int multicastEchoStaffDelayTicks() {
         return ITEMS_CONFIG.multicastEchoStaffDelayTicks();
     }
@@ -1174,6 +1179,14 @@ public final class ApprenticeCodexServerConfig {
 
         ITEMS_CONFIG.setManaThrusterConfigForGameTest(manaCostPerTick);
         return () -> ITEMS_CONFIG.setManaThrusterConfigForGameTest(previousManaCostPerTick);
+    }
+
+    public static GameTestConfigOverride useFloatmountBroomConfigOverrideForGameTest(
+            FloatmountBroomServerConfig.Values values
+    ) {
+        var previous = ITEMS_CONFIG.floatmountBroomConfig();
+        ITEMS_CONFIG.setFloatmountBroomConfigForGameTest(values);
+        return () -> ITEMS_CONFIG.setFloatmountBroomConfigForGameTest(previous);
     }
 
     public static GameTestConfigOverride useMagiCompressorGadgetConfigOverrideForGameTest(
