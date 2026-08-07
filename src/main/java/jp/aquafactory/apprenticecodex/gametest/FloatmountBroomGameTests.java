@@ -299,6 +299,30 @@ public final class FloatmountBroomGameTests {
         helper.succeed();
     }
 
+    @GameTest(template = TEMPLATE, timeoutTicks = 40)
+    public static void damagedUnoccupiedBroomRisesOutOfLava(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var lava = helper.absolutePos(TEST_POS);
+        level.setBlockAndUpdate(lava, Blocks.LAVA.defaultBlockState());
+        level.setBlockAndUpdate(lava.above(), Blocks.LAVA.defaultBlockState());
+        level.setBlockAndUpdate(lava.above(2), Blocks.LAVA.defaultBlockState());
+
+        var broom = spawnBroom(helper, 0.2D);
+        broom.hurt(level.damageSources().fellOutOfWorld(), 20.0F);
+        broom.setDeltaMovement(0.0D, -0.15D, 0.0D);
+        var startY = broom.getY();
+
+        helper.runAfterDelay(12, () -> {
+            helper.assertTrue(broom.isDamaged(), "Lava recovery must not clear the damaged state");
+            helper.assertFalse(broom.isVehicle(), "Lava recovery test broom must remain unoccupied");
+            helper.assertTrue(broom.getDeltaMovement().y > 0.0D,
+                    "Damaged unoccupied broom should reverse its downward motion while in lava");
+            helper.assertTrue(broom.getY() > startY,
+                    "Damaged unoccupied broom should rise toward the lava surface");
+            helper.succeed();
+        });
+    }
+
     @GameTest(template = TEMPLATE)
     public static void surfaceScannerTreatsSolidWaterAndLavaAsHoverSurfaces(GameTestHelper helper) {
         var level = helper.getLevel();
