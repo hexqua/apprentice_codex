@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item;
 
 import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomEntity;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -50,6 +51,9 @@ public class FloatmountBroomItem extends Item implements GeoItem {
         }
 
         var broom = new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), level);
+        var customName = stack.get(DataComponents.CUSTOM_NAME);
+        broom.setCustomName(customName);
+        broom.setCustomNameVisible(customName != null);
         broom.setPos(hit.getLocation().x, hit.getLocation().y, hit.getLocation().z);
         broom.setYRot(player.getYRot());
         var spawnBox = broom.getBoundingBox();

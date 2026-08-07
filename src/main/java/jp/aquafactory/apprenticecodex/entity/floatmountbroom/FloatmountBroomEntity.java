@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -390,7 +391,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         ejectPassengers();
         if (level() instanceof ServerLevel serverLevel
                 && serverLevel.getGameRules().getBoolean(GameRules.RULE_DOENTITYDROPS)) {
-            spawnAtLocation(new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get()));
+            spawnAtLocation(createRecoveredStack());
         }
         discard();
     }
@@ -427,11 +428,22 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
     }
 
     private void recoverAsItem(Player player) {
-        var stack = new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get());
+        var stack = createRecoveredStack();
         if (!player.getInventory().add(stack)) {
             player.drop(stack, false);
         }
         discard();
+    }
+
+    private ItemStack createRecoveredStack() {
+        // 回収は修復を兼ねるため、Entity側の状態は持ち帰らず固有名だけを新品へ引き継ぐ。
+        // 今後調整スロット要素が増えたらそれも引き継ぐ(引き続きEntity時のみに持っている情報は持ち帰らない)
+        var stack = new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get());
+        var customName = getCustomName();
+        if (customName != null) {
+            stack.set(DataComponents.CUSTOM_NAME, customName);
+        }
+        return stack;
     }
 
     @Override
