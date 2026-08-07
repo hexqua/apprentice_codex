@@ -15,6 +15,11 @@ public class FloatmountBroomRenderer extends GeoEntityRenderer<FloatmountBroomEn
     }
 
     @Override
+    public boolean shouldShowName(FloatmountBroomEntity broom) {
+        return !broom.isVehicle() && super.shouldShowName(broom);
+    }
+
+    @Override
     protected void applyRotations(FloatmountBroomEntity broom, PoseStack poseStack, float ageInTicks,
                                   float rotationYaw, float partialTick, float nativeScale) {
         // GeoEntityRendererは非LivingEntityのbody yawを0として扱うため、車体自身の補間yawを明示する。

@@ -10,15 +10,19 @@ import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomSurf
 import jp.aquafactory.apprenticecodex.item.FloatmountBroomItem;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.event.entity.EntityMountEvent;
@@ -41,6 +45,34 @@ public final class FloatmountBroomGameTests {
         var broom = EntityRegistry.FLOATMOUNT_BROOM.get().create(helper.getLevel());
         helper.assertTrue(broom instanceof FloatmountBroomEntity,
                 "Floatmount Broom entity type should create its dedicated entity");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void defaultItemPlacementDoesNotCreateAVisibleCustomName(GameTestHelper helper) {
+        var player = player(helper, "floatmount_broom_default_placement");
+        var broom = placeBroomFromItem(helper, player, new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get()));
+        helper.assertFalse(broom.hasCustomName(), "Default item name must not become a custom name");
+        helper.assertFalse(broom.isCustomNameVisible(), "Default broom must not show a nameplate");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void namedItemPlacementCopiesVisibleNameAndEntitySaveRetainsIt(GameTestHelper helper) {
+        var player = player(helper, "floatmount_broom_named_placement");
+        var expectedName = Component.literal("Zephyr").withStyle(ChatFormatting.AQUA);
+        var stack = new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get());
+        stack.set(DataComponents.CUSTOM_NAME, expectedName);
+        var broom = placeBroomFromItem(helper, player, stack);
+        helper.assertTrue(expectedName.equals(broom.getCustomName()), "Placed broom should copy the item name");
+        helper.assertTrue(broom.isCustomNameVisible(), "Named broom should show its nameplate");
+
+        var saved = new CompoundTag();
+        broom.saveWithoutId(saved);
+        var loaded = new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), helper.getLevel());
+        loaded.load(saved);
+        helper.assertTrue(expectedName.equals(loaded.getCustomName()), "Saved broom should retain its name");
+        helper.assertTrue(loaded.isCustomNameVisible(), "Saved broom should retain nameplate visibility");
         helper.succeed();
     }
 
@@ -80,6 +112,57 @@ public final class FloatmountBroomGameTests {
         helper.assertTrue(broom.isRemoved(), "Recovered broom should be removed");
         helper.assertTrue(player.getInventory().contains(new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get())),
                 "Creative recovery should grant a fresh broom item");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void sneakingRecoveryKeepsOnlyNameAndRedeploysWithResetState(GameTestHelper helper) {
+        var config = new FloatmountBroomServerConfig.Values(1000, 50, 100, 50, 1.0D, 1.0D, 1.5D);
+        try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
+            var expectedName = Component.literal("Restored Broom").withStyle(ChatFormatting.GOLD);
+            var broom = spawnBroom(helper, 1.5D);
+            broom.setCustomName(expectedName);
+            broom.setCustomNameVisible(true);
+            broom.hurt(helper.getLevel().damageSources().fellOutOfWorld(), 20.0F);
+            var damagedState = new CompoundTag();
+            broom.saveWithoutId(damagedState);
+            damagedState.putBoolean("EmergencyLanding", true);
+            broom.load(damagedState);
+            helper.assertTrue(broom.isDamaged(), "Recovery setup should use a damaged broom");
+            helper.assertTrue(broom.isManaEmergencyLanding(), "Recovery setup should use an emergency broom");
+
+            var player = player(helper, "floatmount_broom_named_recovery");
+            player.setShiftKeyDown(true);
+            broom.interact(player, InteractionHand.MAIN_HAND);
+            var recovered = findBroomInInventory(helper, player);
+            helper.assertTrue(expectedName.equals(recovered.get(DataComponents.CUSTOM_NAME)),
+                    "Sneaking recovery should copy the entity custom name");
+
+            var redeployStack = recovered.copy();
+            player.getInventory().clearContent();
+            player.setShiftKeyDown(false);
+            var redeployed = placeBroomFromItem(helper, player, redeployStack);
+            helper.assertTrue(expectedName.equals(redeployed.getCustomName()), "Redeployed broom should retain its name");
+            helper.assertTrue(redeployed.getDamage() == 0, "Redeployed broom should reset damage");
+            helper.assertFalse(redeployed.isDamaged(), "Redeployed broom should reset damaged state");
+            helper.assertFalse(redeployed.isManaEmergencyLanding(), "Redeployed broom should reset emergency landing");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void nameTagDoesNotRenameBroom(GameTestHelper helper) {
+        var broom = spawnBroom(helper, 1.5D);
+        var player = player(helper, "floatmount_broom_name_tag");
+        player.getAbilities().instabuild = true;
+        var nameTag = new ItemStack(Items.NAME_TAG);
+        nameTag.set(DataComponents.CUSTOM_NAME, Component.literal("Rejected Name"));
+        player.setItemInHand(InteractionHand.MAIN_HAND, nameTag);
+
+        broom.interact(player, InteractionHand.MAIN_HAND);
+
+        helper.assertFalse(broom.hasCustomName(), "Name tags must not rename Floatmount Broom entities");
+        helper.assertTrue(nameTag.getCount() == 1, "Unsupported name tag use must not consume the item");
         helper.succeed();
     }
 
@@ -147,7 +230,10 @@ public final class FloatmountBroomGameTests {
     public static void damagedBroomItemizesOnlyBelowWorldBottomRegardlessOfDamageSource(GameTestHelper helper) {
         var config = new FloatmountBroomServerConfig.Values(1000, 50, 100, 50, 1.0D, 1.0D, 1.5D);
         try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
+            var expectedName = Component.literal("Void Survivor").withStyle(ChatFormatting.LIGHT_PURPLE);
             var broom = spawnBroom(helper, 1.5D);
+            broom.setCustomName(expectedName);
+            broom.setCustomNameVisible(true);
             broom.hurt(helper.getLevel().damageSources().fellOutOfWorld(), 20.0F);
             helper.assertTrue(broom.isDamaged(), "Void damage may damage the broom like any other source");
             helper.assertFalse(broom.isRemoved(),
@@ -159,6 +245,9 @@ public final class FloatmountBroomGameTests {
             helper.assertTrue(broom.isRemoved(), "Damaged broom below world bottom should itemize");
             helper.assertTrue(countDroppedBrooms(helper, dropPos) == 1,
                     "World-bottom itemization should drop exactly one fresh broom");
+            var dropped = findDroppedBroom(helper, dropPos).getItem();
+            helper.assertTrue(expectedName.equals(dropped.get(DataComponents.CUSTOM_NAME)),
+                    "World-bottom itemization should preserve the broom custom name");
         }
         helper.succeed();
     }
@@ -409,6 +498,33 @@ public final class FloatmountBroomGameTests {
         return broom;
     }
 
+    private static FloatmountBroomEntity placeBroomFromItem(GameTestHelper helper, Player player, ItemStack stack) {
+        var target = helper.absolutePos(TEST_POS);
+        player.setPos(target.getX() + 0.5D, target.getY() + 2.5D, target.getZ() + 0.5D);
+        player.setXRot(90.0F);
+        player.setYRot(0.0F);
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+
+        var brooms = helper.getLevel().getEntitiesOfClass(
+                FloatmountBroomEntity.class,
+                new AABB(target).inflate(2.0D, 4.0D, 2.0D)
+        );
+        helper.assertTrue(brooms.size() == 1, "Broom item use should place exactly one broom entity");
+        return brooms.getFirst();
+    }
+
+    private static ItemStack findBroomInInventory(GameTestHelper helper, Player player) {
+        for (var slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
+            var stack = player.getInventory().getItem(slot);
+            if (stack.is(ItemRegistry.FLOATMOUNT_BROOM.get())) {
+                return stack;
+            }
+        }
+        helper.fail("Recovered broom item was not found in the player inventory");
+        return ItemStack.EMPTY;
+    }
+
     private static Player player(GameTestHelper helper, String name) {
         return helper.makeMockPlayer(GameType.SURVIVAL);
     }
@@ -443,8 +559,19 @@ public final class FloatmountBroomGameTests {
     }
 
     private static int countDroppedBrooms(GameTestHelper helper, net.minecraft.world.phys.Vec3 center) {
-        return helper.getLevel().getEntitiesOfClass(ItemEntity.class, AABB.ofSize(center, 4.0D, 4.0D, 4.0D),
-                        item -> item.getItem().is(ItemRegistry.FLOATMOUNT_BROOM.get()))
+        return droppedBrooms(helper, center)
                 .stream().mapToInt(item -> item.getItem().getCount()).sum();
+    }
+
+    private static ItemEntity findDroppedBroom(GameTestHelper helper, net.minecraft.world.phys.Vec3 center) {
+        var drops = droppedBrooms(helper, center);
+        helper.assertTrue(drops.size() == 1, "Expected exactly one dropped broom item entity");
+        return drops.getFirst();
+    }
+
+    private static java.util.List<ItemEntity> droppedBrooms(GameTestHelper helper,
+                                                             net.minecraft.world.phys.Vec3 center) {
+        return helper.getLevel().getEntitiesOfClass(ItemEntity.class, AABB.ofSize(center, 4.0D, 4.0D, 4.0D),
+                item -> item.getItem().is(ItemRegistry.FLOATMOUNT_BROOM.get()));
     }
 }
