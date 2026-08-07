@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
+import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
@@ -97,6 +98,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
     private boolean serverAscending;
     private long lastServerInputGameTime = Long.MIN_VALUE;
     private long lastRetrieveHelpGameTime = Long.MIN_VALUE;
+    private long lastAcceptedDamageGameTime = Long.MIN_VALUE;
     private boolean lowManaWarningShown;
     private float turnSpeed;
     private boolean breaking;
@@ -166,6 +168,10 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         }
 
         checkInsideBlocks();
+        if (!level().isClientSide && getRemainingFireTicks() > 0) {
+            // 接触中の火炎・溶岩ダメージは受けるが、離れた後まで続く炎上は飛行視界を妨げるため残さない。
+            clearFire();
+        }
     }
 
     private void tickServerDamageState() {
@@ -329,11 +335,20 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         }
 
         maybeShowRetrieveHelp(source);
+        var config = ApprenticeCodexServerConfig.floatmountBroomConfig();
+        var ignoresDamageIFrame = isIgnoredByDamageIFrame(source, config);
+        if (!ignoresDamageIFrame && isDamageIFrameActive(config)) {
+            return false;
+        }
+
         var scaledDamage = Math.max(0.0D, amount) * DAMAGE_SCALE;
         var addedDamage = scaledDamage >= Integer.MAX_VALUE ? Integer.MAX_VALUE : Mth.floor(scaledDamage);
         if (addedDamage > 0 && !isDamaged()) {
             var updatedDamage = Math.min((long)getMaxDamage(), (long)getDamage() + addedDamage);
             setDamage((int)updatedDamage);
+            if (!ignoresDamageIFrame && config.damageIFrameTicks() > 0) {
+                lastAcceptedDamageGameTime = level().getGameTime();
+            }
             if (getDamage() >= getMaxDamage()) {
                 enterDamagedState();
             }
@@ -341,6 +356,26 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         gameEvent(GameEvent.ENTITY_DAMAGE, source.getEntity());
         tryItemizeBelowWorld();
         return true;
+    }
+
+    private boolean isDamageIFrameActive(FloatmountBroomServerConfig.Values config) {
+        if (config.damageIFrameTicks() <= 0 || lastAcceptedDamageGameTime == Long.MIN_VALUE) {
+            return false;
+        }
+        var elapsedTicks = level().getGameTime() - lastAcceptedDamageGameTime;
+        return elapsedTicks >= 0L && elapsedTicks < config.damageIFrameTicks();
+    }
+
+    private static boolean isIgnoredByDamageIFrame(
+            DamageSource source,
+            FloatmountBroomServerConfig.Values config
+    ) {
+        if (source.is(DamageTypeTagGenerator.IGNORES_FLOATMOUNT_BROOM_IFRAME)) {
+            return true;
+        }
+        return source.typeHolder().unwrapKey()
+                .map(key -> config.iframeIgnoredDamageTypes().contains(key.location()))
+                .orElse(false);
     }
 
     private void maybeShowRetrieveHelp(DamageSource source) {

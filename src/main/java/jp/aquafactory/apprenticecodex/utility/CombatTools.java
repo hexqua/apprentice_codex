@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.entity.mobs.IMagicSummon;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
+import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomEntity;
 import jp.aquafactory.apprenticecodex.event.KnockbackControlEvent;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
 import net.minecraft.core.Holder;
@@ -106,6 +107,15 @@ public final class CombatTools {
 
         // 例外的に対象にする特殊エンティティを指定.
         if (resolvedTarget instanceof EndCrystal) return true;
+        if (resolvedTarget instanceof FloatmountBroomEntity broom) {
+            if (!(combatOwner instanceof Player playerOwner)
+                    || !(broom.getControllingPassenger() instanceof Player rider)
+                    || isProtectedCombatTarget(broom, combatOwner, policy)) {
+                return false;
+            }
+            // 箒自体はPlayerではないため、騎乗者へPvP・team friendly fireの可否を問い合わせる。
+            return playerOwner.canHarmPlayer(rider);
+        }
 
         // 基本的にはLivingEntityのみを対象.
         return resolvedTarget instanceof LivingEntity && !isProtectedCombatTarget(resolvedTarget, combatOwner, policy);

@@ -75,6 +75,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
     public static final TagKey<DamageType> MAGIC_DAMAGE = create("magic_damage");
     public static final TagKey<DamageType> FIRE_DAMAGE = create("fire_damage");
     public static final TagKey<DamageType> BYPASSES_IFRAME = create("bypasses_iframe");
+    public static final TagKey<DamageType> IGNORES_FLOATMOUNT_BROOM_IFRAME =
+            create("ignores_floatmount_broom_iframe");
     public static final TagKey<DamageType> RANGED_ATTACK = create("ranged_attack");
     public static final TagKey<DamageType> CODEX_MAGIC = create("codex_magic");
     public static final TagKey<DamageType> EXPLOSIONS = create("explosions");
@@ -99,6 +101,9 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
 
     @Override
     protected void addTags(@NotNull HolderLookup.Provider provider) {
+        // Datapackや他MODが箒固有の疑似i-Frameに関与しないDamageTypeを追加するための拡張口。
+        tag(IGNORES_FLOATMOUNT_BROOM_IFRAME);
+
         // CODEX_MAGIC: このMODの魔法由来ダメージ全体(Malum互換などで使用)
         tag(CODEX_MAGIC).add(
                 ARCANE_BEAM,
