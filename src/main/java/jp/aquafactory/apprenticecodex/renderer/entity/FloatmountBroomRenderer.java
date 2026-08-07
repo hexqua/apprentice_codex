@@ -1,14 +1,12 @@
 package jp.aquafactory.apprenticecodex.renderer.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
 import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomEntity;
 import jp.aquafactory.apprenticecodex.model.FloatmountBroomModel;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.util.Mth;
-import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
+import software.bernie.geckolib.util.Color;
 
 public class FloatmountBroomRenderer extends GeoEntityRenderer<FloatmountBroomEntity> {
     public FloatmountBroomRenderer(EntityRendererProvider.Context context) {
@@ -24,22 +22,21 @@ public class FloatmountBroomRenderer extends GeoEntityRenderer<FloatmountBroomEn
         super.applyRotations(broom, poseStack, ageInTicks, broomYaw, partialTick, nativeScale);
     }
 
-    // todo: internal以外を探す.
     @Override
-    public void render(@NotNull FloatmountBroomEntity broom, float entityYaw, float partialTick,
-                       @NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, int packedLight) {
-        poseStack.pushPose();
-        if (!broom.isVehicle()) {
-            var hurtTime = broom.getHurtTime() - partialTick;
-            var damage = Math.max(0.0F, broom.getDamage() - partialTick);
-            if (hurtTime > 0.0F) {
-                poseStack.mulPose(Axis.XP.rotationDegrees(
-                        Mth.sin(hurtTime) * hurtTime * damage / 10.0F * broom.getHurtDirection()
-                ));
-            }
-        }
-        // todo: internal以外を探す.
-        super.render(broom, entityYaw, partialTick, poseStack, bufferSource, packedLight);
-        poseStack.popPose();
+    public Color getRenderColor(FloatmountBroomEntity broom, float partialTick, int packedLight) {
+        var base = super.getRenderColor(broom, partialTick, packedLight);
+        var multipliers = switch (broom.getDamageStage()) {
+            case 1 -> new float[]{0.90F, 0.78F, 0.78F};
+            case 2 -> new float[]{0.78F, 0.55F, 0.55F};
+            case 3 -> new float[]{0.66F, 0.34F, 0.34F};
+            case 4 -> new float[]{0.52F, 0.18F, 0.18F};
+            default -> new float[]{1.0F, 1.0F, 1.0F};
+        };
+        return Color.ofARGB(
+                base.getAlpha(),
+                Mth.clamp(Math.round(base.getRed() * multipliers[0]), 0, 255),
+                Mth.clamp(Math.round(base.getGreen() * multipliers[1]), 0, 255),
+                Mth.clamp(Math.round(base.getBlue() * multipliers[2]), 0, 255)
+        );
     }
 }

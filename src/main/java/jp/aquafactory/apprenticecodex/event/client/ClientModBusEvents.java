@@ -164,11 +164,13 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
+import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.event.RegisterRenderBuffersEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.fml.ModList;
@@ -192,6 +194,7 @@ public final class ClientModBusEvents {
         modEventBus.addListener(ClientModBusEvents::registerTooltipComponentFactories);
         modEventBus.addListener(ClientModBusEvents::registerItemColors);
         modEventBus.addListener(ClientModBusEvents::registerRenderBuffers);
+        modEventBus.addListener(ClientModBusEvents::registerGuiLayers);
     }
 
     private static void onClientSetup(FMLClientSetupEvent event) {
@@ -708,6 +711,14 @@ public final class ClientModBusEvents {
     private static void registerRenderBuffers(RegisterRenderBuffersEvent event) {
         event.registerRenderBuffer(ApprenticeRenderTypes.boundSpellWeaponGlint());
         event.registerRenderBuffer(ApprenticeRenderTypes.boundSpellWeaponGlintDirect());
+    }
+
+    private static void registerGuiLayers(RegisterGuiLayersEvent event) {
+        event.registerBelow(
+                VanillaGuiLayers.AIR_LEVEL,
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "floatmount_broom_durability"),
+                FloatmountBroomDurabilityHud.INSTANCE
+        );
     }
 
     private static void applyMultipurposeStaffrifleNormalHandTransform(PoseStack poseStack, HumanoidArm arm,
