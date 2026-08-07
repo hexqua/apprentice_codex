@@ -296,9 +296,8 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
                 movement.z * COAST_HORIZONTAL_DAMPING);
         var vertical = movement.y;
 
-        if (isDamaged()) {
-            vertical = -MAX_VERTICAL_SPEED;
-        } else if (isInWaterOrBubble() || isInLava() || !level().noCollision(this, getBoundingBox().deflate(0.01D))) {
+        // 損傷は有人飛行を制限する状態とし、無人時は溶岩などから回収できるよう通常の浮遊を維持する。
+        if (isInWaterOrBubble() || isInLava() || !level().noCollision(this, getBoundingBox().deflate(0.01D))) {
             vertical = Math.min(MAX_UNMOUNTED_RISE_SPEED, vertical + 0.03D);
         } else {
             var surface = FloatmountBroomSurfaceScanner.findSurfaceBelow(level(), getX(), getY(), getZ(), 4, true);
