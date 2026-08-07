@@ -1,10 +1,18 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.ModConfigSpec;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public final class FloatmountBroomServerConfig {
     private final ModConfigSpec.IntValue maxDamage;
     private final ModConfigSpec.IntValue damageRecoveryAmount;
+    private final ModConfigSpec.IntValue damageIFrameTicks;
+    private final ModConfigSpec.ConfigValue<List<? extends String>> iframeIgnoredDamageTypes;
     private final ModConfigSpec.IntValue normalFlightManaThreshold;
     private final ModConfigSpec.IntValue lowManaWarningThreshold;
     private final ModConfigSpec.DoubleValue horizontalManaCostPerTick;
@@ -15,6 +23,8 @@ public final class FloatmountBroomServerConfig {
     private FloatmountBroomServerConfig(
             ModConfigSpec.IntValue maxDamage,
             ModConfigSpec.IntValue damageRecoveryAmount,
+            ModConfigSpec.IntValue damageIFrameTicks,
+            ModConfigSpec.ConfigValue<List<? extends String>> iframeIgnoredDamageTypes,
             ModConfigSpec.IntValue normalFlightManaThreshold,
             ModConfigSpec.IntValue lowManaWarningThreshold,
             ModConfigSpec.DoubleValue horizontalManaCostPerTick,
@@ -23,6 +33,8 @@ public final class FloatmountBroomServerConfig {
     ) {
         this.maxDamage = maxDamage;
         this.damageRecoveryAmount = damageRecoveryAmount;
+        this.damageIFrameTicks = damageIFrameTicks;
+        this.iframeIgnoredDamageTypes = iframeIgnoredDamageTypes;
         this.normalFlightManaThreshold = normalFlightManaThreshold;
         this.lowManaWarningThreshold = lowManaWarningThreshold;
         this.horizontalManaCostPerTick = horizontalManaCostPerTick;
@@ -39,6 +51,13 @@ public final class FloatmountBroomServerConfig {
         var damageRecoveryAmount = builder
                 .comment("Damage recovered every 10 ticks while the broom is not damaged. Set to 0 to disable natural recovery.")
                 .defineInRange("damageRecoveryAmount", 50, 0, 1000000);
+        var damageIFrameTicks = builder
+                .comment("Ticks before the broom can accept another normal damage hit. Set to 0 to disable the broom-specific damage i-frame.")
+                .defineInRange("damageIFrameTicks", 10, 0, 20);
+        var iframeIgnoredDamageTypes = builder
+                .comment("Damage type IDs that do not interact with the broom-specific damage i-frame. These hits pass through an active i-frame without starting, extending, or clearing it.")
+                .defineListAllowEmpty("iframeIgnoredDamageTypes", List.<String>of(),
+                        FloatmountBroomServerConfig::isDamageTypeId);
         var normalFlightManaThreshold = builder
                 .comment("Mana required to mount the broom and to restore normal flight after a warning or emergency landing.")
                 .defineInRange("normalFlightManaThreshold", 100, 1, 10000);
@@ -59,6 +78,8 @@ public final class FloatmountBroomServerConfig {
         return new FloatmountBroomServerConfig(
                 maxDamage,
                 damageRecoveryAmount,
+                damageIFrameTicks,
+                iframeIgnoredDamageTypes,
                 normalFlightManaThreshold,
                 lowManaWarningThreshold,
                 horizontalManaCostPerTick,
@@ -72,6 +93,13 @@ public final class FloatmountBroomServerConfig {
                 ? new Values(
                         maxDamage.get(),
                         damageRecoveryAmount.get(),
+                        damageIFrameTicks.get(),
+                        iframeIgnoredDamageTypes.get().stream()
+                                .map(String::valueOf)
+                                .map(String::trim)
+                                .map(ResourceLocation::tryParse)
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.toUnmodifiableSet()),
                         normalFlightManaThreshold.get(),
                         lowManaWarningThreshold.get(),
                         horizontalManaCostPerTick.get(),
@@ -85,9 +113,17 @@ public final class FloatmountBroomServerConfig {
         override = values;
     }
 
+    private static boolean isDamageTypeId(Object value) {
+        return value instanceof String text
+                && text.contains(":")
+                && ResourceLocation.tryParse(text.trim()) != null;
+    }
+
     public record Values(
             int maxDamage,
             int damageRecoveryAmount,
+            int damageIFrameTicks,
+            Set<ResourceLocation> iframeIgnoredDamageTypes,
             int normalFlightManaThreshold,
             int lowManaWarningThreshold,
             double horizontalManaCostPerTick,

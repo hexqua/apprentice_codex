@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -10,6 +11,7 @@ import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomSurf
 import jp.aquafactory.apprenticecodex.item.FloatmountBroomItem;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -17,7 +19,11 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ClientInformation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
@@ -28,6 +34,9 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.event.entity.EntityMountEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+
+import java.util.Set;
+import java.util.UUID;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -117,7 +126,7 @@ public final class FloatmountBroomGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void sneakingRecoveryKeepsOnlyNameAndRedeploysWithResetState(GameTestHelper helper) {
-        var config = new FloatmountBroomServerConfig.Values(1000, 50, 100, 50, 1.0D, 1.0D, 1.5D);
+        var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 1.0D, 1.5D);
         try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
             var expectedName = Component.literal("Restored Broom").withStyle(ChatFormatting.GOLD);
             var broom = spawnBroom(helper, 1.5D);
@@ -168,7 +177,7 @@ public final class FloatmountBroomGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void damageScalesAndRecoversAtTenTickIntervals(GameTestHelper helper) {
-        var config = new FloatmountBroomServerConfig.Values(1000, 50, 100, 50, 1.0D, 1.0D, 1.5D);
+        var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 1.0D, 1.5D);
         try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
             var broom = spawnBroom(helper, 1.5D);
             var player = player(helper, "floatmount_broom_damage_recovery");
@@ -190,9 +199,163 @@ public final class FloatmountBroomGameTests {
         helper.succeed();
     }
 
+    @GameTest(template = TEMPLATE, timeoutTicks = 40)
+    public static void damageIFrameIncludesAcceptedTickAndReopensAtTickTen(GameTestHelper helper) {
+        var broom = spawnBroom(helper, 1.5D);
+        var source = helper.getLevel().damageSources().generic();
+
+        helper.assertTrue(broom.hurt(source, 1.0F), "The first damage hit should be accepted");
+        helper.assertFalse(broom.hurt(source, 1.0F),
+                "The accepted tick itself should be inside the broom damage i-frame");
+
+        helper.runAfterDelay(9, () -> helper.assertFalse(broom.hurt(source, 1.0F),
+                "A normal hit at T+9 should still be rejected"));
+        helper.runAfterDelay(10, () -> {
+            var damageBeforeHit = broom.getDamage();
+            helper.assertTrue(broom.hurt(source, 1.0F), "A normal hit at T+10 should be accepted");
+            helper.assertTrue(broom.getDamage() == damageBeforeHit + 50,
+                    "The T+10 hit should apply the configured damage conversion");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void damageIFrameZeroSettingDisablesRejection(GameTestHelper helper) {
+        var config = new FloatmountBroomServerConfig.Values(1000, 0, 0, Set.of(), 100, 50,
+                1.0D, 1.0D, 1.5D);
+        try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
+            var broom = spawnBroom(helper, 1.5D);
+            var source = helper.getLevel().damageSources().generic();
+
+            helper.assertTrue(broom.hurt(source, 1.0F), "The first hit should be accepted");
+            helper.assertTrue(broom.hurt(source, 1.0F), "A zero-tick i-frame should accept a same-tick hit");
+            helper.assertTrue(broom.getDamage() == 100,
+                    "Disabling the i-frame should apply both same-tick hits");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void ignoredAndZeroDamageDoNotInteractWithDamageIFrame(GameTestHelper helper) {
+        var config = new FloatmountBroomServerConfig.Values(
+                1000, 0, 10, Set.of(DamageTypes.GENERIC.location()), 100, 50,
+                1.0D, 1.0D, 1.5D
+        );
+        try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
+            var broom = spawnBroom(helper, 1.5D);
+            var player = player(helper, "floatmount_broom_iframe_owner");
+            var ignoredSource = helper.getLevel().damageSources().generic();
+            var normalSource = helper.getLevel().damageSources().playerAttack(player);
+
+            helper.assertTrue(broom.hurt(normalSource, 0.01F),
+                    "A hit converted to zero broom damage should retain the existing hurt result");
+            helper.assertTrue(broom.hurt(ignoredSource, 1.0F),
+                    "A configured ignored damage type should pass without starting an i-frame");
+            helper.assertTrue(broom.hurt(normalSource, 1.0F),
+                    "Normal damage should still be accepted after zero and ignored damage");
+            helper.assertTrue(broom.hurt(ignoredSource, 1.0F),
+                    "Ignored damage should pass through an active i-frame");
+            helper.assertFalse(broom.hurt(normalSource, 1.0F),
+                    "Ignored damage must not clear the active normal-damage i-frame");
+            helper.assertTrue(broom.getDamage() == 150,
+                    "Only the three positive accepted hits should change broom damage");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void damageIFrameIsNotPersisted(GameTestHelper helper) {
+        var config = new FloatmountBroomServerConfig.Values(1000, 0, 10, Set.of(), 100, 50,
+                1.0D, 1.0D, 1.5D);
+        try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
+            var source = helper.getLevel().damageSources().generic();
+            var broom = spawnBroom(helper, 1.5D);
+            broom.hurt(source, 1.0F);
+            var saved = new CompoundTag();
+            broom.saveWithoutId(saved);
+
+            var loaded = new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), helper.getLevel());
+            loaded.load(saved);
+            helper.assertTrue(loaded.hurt(source, 1.0F),
+                    "Loading should not restore the volatile damage i-frame");
+            helper.assertTrue(loaded.getDamage() == 100,
+                    "The loaded broom should retain damage while accepting a new hit immediately");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 40)
+    public static void lavaDamagesBroomWithoutPersistentFire(GameTestHelper helper) {
+        var lava = helper.absolutePos(TEST_POS);
+        helper.getLevel().setBlockAndUpdate(lava, Blocks.LAVA.defaultBlockState());
+        var broom = spawnBroom(helper, 0.2D);
+
+        helper.runAfterDelay(5, () -> {
+            helper.assertTrue(broom.getDamage() > 0, "Lava contact should still damage the broom");
+            helper.assertFalse(broom.isOnFire(), "The broom should clear persistent fire after contact damage");
+            helper.assertTrue(broom.getRemainingFireTicks() <= 0,
+                    "Persistent fire ticks should not remain on the broom");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void combatToolsTargetsOnlyPvpHarmableEnemyPlayerBrooms(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var server = level.getServer();
+        helper.assertTrue(server != null, "Floatmount Broom PvP test requires a server");
+        var attacker = new ServerPlayer(server, level,
+                new GameProfile(UUID.randomUUID(), "broom_pvp_attacker"), ClientInformation.createDefault());
+        // 降車時のteleport処理も通るため、騎乗者には接続を備えたGameTestのmock playerを使う。
+        var rider = helper.makeMockPlayer(GameType.SURVIVAL);
+        var broom = spawnBroom(helper, 1.5D);
+        var scoreboard = level.getScoreboard();
+        var team = scoreboard.addPlayerTeam("broom_pvp_policy");
+        var previousPvp = server.isPvpAllowed();
+
+        try {
+            server.setPvpAllowed(true);
+            helper.assertTrue(rider.startRiding(broom, true), "PvP target rider should mount the broom");
+            helper.assertTrue(CombatTools.isValidCombatTarget(broom, attacker),
+                    "An enemy player broom should be a combat target while PvP is enabled");
+            helper.assertFalse(CombatTools.isValidCombatTarget(broom, rider),
+                    "A rider must not target their own root vehicle");
+
+            scoreboard.addPlayerToTeam(attacker.getScoreboardName(), team);
+            scoreboard.addPlayerToTeam(rider.getScoreboardName(), team);
+            team.setAllowFriendlyFire(false);
+            helper.assertFalse(CombatTools.isValidCombatTarget(broom, attacker),
+                    "Friendly-fire protection should also protect the ridden broom");
+            team.setAllowFriendlyFire(true);
+            helper.assertTrue(CombatTools.isValidCombatTarget(broom, attacker),
+                    "Friendly-fire-enabled teammates should expose the ridden broom");
+
+            scoreboard.removePlayerFromTeam(attacker.getScoreboardName(), team);
+            scoreboard.removePlayerFromTeam(rider.getScoreboardName(), team);
+            server.setPvpAllowed(false);
+            helper.assertFalse(CombatTools.isValidCombatTarget(broom, attacker),
+                    "Server PvP disablement should protect the ridden broom");
+
+            server.setPvpAllowed(true);
+            rider.stopRiding();
+            helper.assertFalse(CombatTools.isValidCombatTarget(broom, attacker),
+                    "An unoccupied broom should not become a general combat target");
+            helper.assertTrue(rider.startRiding(broom, true), "Rider should remount for owner type validation");
+            var zombie = EntityType.ZOMBIE.create(level);
+            helper.assertTrue(zombie != null, "PvP owner type test should create a zombie");
+            helper.assertFalse(CombatTools.isValidCombatTarget(broom, zombie),
+                    "A non-player combat owner should not special-target the broom");
+        } finally {
+            rider.stopRiding();
+            server.setPvpAllowed(previousPvp);
+            scoreboard.removePlayerTeam(team);
+        }
+        helper.succeed();
+    }
+
     @GameTest(template = TEMPLATE)
     public static void maximumDamageIsPersistentAndPreventsMounting(GameTestHelper helper) {
-        var config = new FloatmountBroomServerConfig.Values(1000, 50, 100, 50, 1.0D, 1.0D, 1.5D);
+        var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 1.0D, 1.5D);
         try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
             var broom = spawnBroom(helper, 1.5D);
             var player = player(helper, "floatmount_broom_damaged");
@@ -228,7 +391,7 @@ public final class FloatmountBroomGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void damagedBroomItemizesOnlyBelowWorldBottomRegardlessOfDamageSource(GameTestHelper helper) {
-        var config = new FloatmountBroomServerConfig.Values(1000, 50, 100, 50, 1.0D, 1.0D, 1.5D);
+        var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 1.0D, 1.5D);
         try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
             var expectedName = Component.literal("Void Survivor").withStyle(ChatFormatting.LIGHT_PURPLE);
             var broom = spawnBroom(helper, 1.5D);
@@ -254,7 +417,7 @@ public final class FloatmountBroomGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void mountingRequiresConfiguredManaButCreativeIsExempt(GameTestHelper helper) {
-        var config = new FloatmountBroomServerConfig.Values(1000, 50, 100, 50, 1.0D, 1.0D, 1.5D);
+        var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 1.0D, 1.5D);
         try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
             var broom = spawnBroom(helper, 1.5D);
             var player = player(helper, "floatmount_broom_mount_mana");
@@ -288,7 +451,7 @@ public final class FloatmountBroomGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void movementInputsUseConfiguredManaCosts(GameTestHelper helper) {
-        var config = new FloatmountBroomServerConfig.Values(1000, 50, 100, 50, 1.0D, 2.0D, 3.5D);
+        var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 2.0D, 3.5D);
         try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
             assertMovementManaCost(helper, "floatmount_broom_horizontal_cost", 1.0F,
                     0.0F, 1.0F, false, false);
@@ -306,7 +469,7 @@ public final class FloatmountBroomGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void depletionEmergencyRecoveryAndSavedStateFollowServerRules(GameTestHelper helper) {
-        var config = new FloatmountBroomServerConfig.Values(1000, 50, 100, 50, 1.0D, 1.0D, 1.5D);
+        var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 1.0D, 1.5D);
         try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
             var broom = spawnBroom(helper, 1.5D);
             var player = player(helper, "floatmount_broom_emergency");
@@ -345,7 +508,7 @@ public final class FloatmountBroomGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void externalDepletionWaitsForPaidInputAndEmergencyForcesDismountWarning(GameTestHelper helper) {
-        var config = new FloatmountBroomServerConfig.Values(1000, 50, 100, 50, 1.0D, 1.0D, 1.5D);
+        var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 1.0D, 1.5D);
         try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
             var broom = spawnBroom(helper, 1.5D);
             var player = player(helper, "floatmount_broom_external_depletion");
