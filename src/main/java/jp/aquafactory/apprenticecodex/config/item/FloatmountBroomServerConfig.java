@@ -3,6 +3,8 @@ package jp.aquafactory.apprenticecodex.config.item;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class FloatmountBroomServerConfig {
+    private final ModConfigSpec.IntValue maxDamage;
+    private final ModConfigSpec.IntValue damageRecoveryAmount;
     private final ModConfigSpec.IntValue normalFlightManaThreshold;
     private final ModConfigSpec.IntValue lowManaWarningThreshold;
     private final ModConfigSpec.DoubleValue horizontalManaCostPerTick;
@@ -11,12 +13,16 @@ public final class FloatmountBroomServerConfig {
     private Values override;
 
     private FloatmountBroomServerConfig(
+            ModConfigSpec.IntValue maxDamage,
+            ModConfigSpec.IntValue damageRecoveryAmount,
             ModConfigSpec.IntValue normalFlightManaThreshold,
             ModConfigSpec.IntValue lowManaWarningThreshold,
             ModConfigSpec.DoubleValue horizontalManaCostPerTick,
             ModConfigSpec.DoubleValue ascendingManaCostPerTick,
             ModConfigSpec.DoubleValue horizontalAscendingManaCostPerTick
     ) {
+        this.maxDamage = maxDamage;
+        this.damageRecoveryAmount = damageRecoveryAmount;
         this.normalFlightManaThreshold = normalFlightManaThreshold;
         this.lowManaWarningThreshold = lowManaWarningThreshold;
         this.horizontalManaCostPerTick = horizontalManaCostPerTick;
@@ -27,6 +33,12 @@ public final class FloatmountBroomServerConfig {
     public static FloatmountBroomServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("FloatmountBroom");
 
+        var maxDamage = builder
+                .comment("Maximum accumulated damage before the broom becomes damaged. With the default maximum of 1000, 50 accumulated damage corresponds to one point of incoming damage (half a heart) and half of one durability HUD icon.")
+                .defineInRange("maxDamage", 1000, 1, 1000000);
+        var damageRecoveryAmount = builder
+                .comment("Damage recovered every 10 ticks while the broom is not damaged. Set to 0 to disable natural recovery.")
+                .defineInRange("damageRecoveryAmount", 50, 0, 1000000);
         var normalFlightManaThreshold = builder
                 .comment("Mana required to mount the broom and to restore normal flight after a warning or emergency landing.")
                 .defineInRange("normalFlightManaThreshold", 100, 1, 10000);
@@ -45,6 +57,8 @@ public final class FloatmountBroomServerConfig {
 
         builder.pop();
         return new FloatmountBroomServerConfig(
+                maxDamage,
+                damageRecoveryAmount,
                 normalFlightManaThreshold,
                 lowManaWarningThreshold,
                 horizontalManaCostPerTick,
@@ -56,6 +70,8 @@ public final class FloatmountBroomServerConfig {
     public Values values() {
         return override == null
                 ? new Values(
+                        maxDamage.get(),
+                        damageRecoveryAmount.get(),
                         normalFlightManaThreshold.get(),
                         lowManaWarningThreshold.get(),
                         horizontalManaCostPerTick.get(),
@@ -70,6 +86,8 @@ public final class FloatmountBroomServerConfig {
     }
 
     public record Values(
+            int maxDamage,
+            int damageRecoveryAmount,
             int normalFlightManaThreshold,
             int lowManaWarningThreshold,
             double horizontalManaCostPerTick,

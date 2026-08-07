@@ -1063,8 +1063,9 @@
   "ui.apprenticecodex.floatmount_broom.warning_low_mana": "マナが枯渇してしまうと箒の飛行を維持できない！",
   "ui.apprenticecodex.floatmount_broom.warning_emergency_landing": "マナが枯渇したため落下していく！",
   "ui.apprenticecodex.floatmount_broom.recover_emergency_landing": "箒の飛行維持に必要なマナまで回復した...",
-  "ui.apprenticecodex.floatmount_broom.warning_damage": "箒はダメージを受け続けると飛行を維持できない！",
-  "ui.apprenticecodex.floatmount_broom.warning_lost_floating": "箒の損傷が限界を超えたため墜落する！",
+  "ui.apprenticecodex.floatmount_broom.retrieve_help": "箒はスニークしながら[%s]で回収できる",
+  "ui.apprenticecodex.floatmount_broom.warning_damage": "箒の損傷が限界を超えたため墜落する！",
+  "ui.apprenticecodex.floatmount_broom.cannot_mount_damaged": "一度箒を回収しないと乗る事ができない！",
 
   "ui.apprenticecodex.spell_selector.empty": "選択候補無し",
   "ui.apprenticecodex.luminous_device.clean.desc": "近くの魔術師の光源を掃除",

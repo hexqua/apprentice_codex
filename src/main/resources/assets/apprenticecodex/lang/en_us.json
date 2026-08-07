@@ -1378,5 +1378,8 @@
   "ui.apprenticecodex.floatmount_broom.warning_dismount": "Press %s again to dismount",
   "ui.apprenticecodex.floatmount_broom.warning_low_mana": "The broom cannot maintain flight if your mana is depleted!",
   "ui.apprenticecodex.floatmount_broom.warning_emergency_landing": "Mana depleted! The broom is making an emergency landing!",
-  "ui.apprenticecodex.floatmount_broom.recover_emergency_landing": "Mana restored. Normal flight has resumed."
+  "ui.apprenticecodex.floatmount_broom.recover_emergency_landing": "Mana restored. Normal flight has resumed.",
+  "ui.apprenticecodex.floatmount_broom.warning_damage": "The broom has sustained critical damage and is making an emergency landing!",
+  "ui.apprenticecodex.floatmount_broom.cannot_mount_damaged": "This broom is too damaged to ride. Retrieve and redeploy it first.",
+  "ui.apprenticecodex.floatmount_broom.retrieve_help": "Sneak and press %s to retrieve the broom."
 }
