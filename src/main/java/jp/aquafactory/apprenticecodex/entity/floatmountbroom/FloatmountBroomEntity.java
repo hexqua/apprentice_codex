@@ -32,7 +32,9 @@ import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.vehicle.DismountHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
@@ -50,11 +52,13 @@ import software.bernie.geckolib.animation.AnimationController;
 import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.Optional;
+
 public class FloatmountBroomEntity extends Entity implements GeoEntity {
     public static final float WIDTH = 0.8F;
     public static final float HEIGHT = 0.5F;
     public static final int DISMOUNT_CONFIRM_TICKS = 30;
-    public static final double DANGEROUS_HEIGHT = 3.0D;
+    public static final double DANGEROUS_HEIGHT = 2.0D;
     public static final int DAMAGE_SCALE = 50;
     public static final int DURABILITY_STEPS = 20;
 
@@ -94,7 +98,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
     /**
      * 箒のEntity原点から乗員のvehicle attachmentまでの高さ。モデル調整ではこの値だけを変更する。
      */
-    public static final float RIDER_ATTACHMENT_Y = 0.15F;
+    public static final float RIDER_ATTACHMENT_Y = 0.05F;
     private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation MOUNT = RawAnimation.begin().thenLoop("mount");
 
@@ -633,13 +637,20 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
     }
 
     @Override
-    public @NotNull Vec3 getDismountLocationForPassenger(@NotNull net.minecraft.world.entity.LivingEntity passenger) {
-        var yaw = getYRot() * Mth.DEG_TO_RAD;
-        var left = new Vec3(Mth.cos(yaw), 0.0D, Mth.sin(yaw)).scale(0.5D);
-        var candidate = position().add(left);
+    public @NotNull Vec3 getDismountLocationForPassenger(@NotNull LivingEntity passenger) {
+        if (!isForcedLanding() && !isInLava()) {
+            var safeTarget = findSafeDismountTarget(passenger);
+            if (safeTarget.isPresent()) {
+                var target = safeTarget.get();
+                passenger.setPose(target.pose());
+                return target.position();
+            }
+        }
+
+        var candidate = preferredDismountPosition(passenger);
         for (var pose : passenger.getDismountPoses()) {
             var dismount = new Vec3(candidate.x, getY(), candidate.z);
-            if (net.minecraft.world.entity.vehicle.DismountHelper.canDismountTo(level(), dismount, passenger, pose)) {
+            if (DismountHelper.canDismountTo(level(), dismount, passenger, pose)) {
                 passenger.setPose(pose);
                 return dismount;
             }
@@ -654,8 +665,48 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         if (isForcedLanding() || isInLava()) {
             return true;
         }
-        var surface = FloatmountBroomSurfaceScanner.findSurfaceBelow(level(), getX(), getY(), getZ(), 3, false);
+
+        var passenger = getControllingPassenger();
+        if (passenger != null) {
+            return findSafeDismountTarget(passenger).isEmpty();
+        }
+
+        var surface = FloatmountBroomSurfaceScanner.findSurfaceBelow(
+                level(), getX(), getY(), getZ(), (int) DANGEROUS_HEIGHT, false
+        );
         return surface.isEmpty() || getY() - surface.getAsDouble() >= DANGEROUS_HEIGHT;
+    }
+
+    private Vec3 preferredDismountPosition(LivingEntity passenger) {
+        // 乗り物yawはclient予測由来のため偽装できるが、server側で距離・高度・地表・衝突を再検証する。
+        // 影響は箒の近傍で降りる側を選べる程度に限られ、危険高度から安全地表への移動には使えないため、専用のserver権威yawは持たない。
+        var left = getCollisionHorizontalEscapeVector(
+                getBbWidth() * Mth.SQRT_OF_TWO,
+                passenger.getBbWidth(),
+                getYRot() - 90.0F
+        );
+        return position().add(left);
+    }
+
+    private Optional<DismountTarget> findSafeDismountTarget(LivingEntity passenger) {
+        var candidate = preferredDismountPosition(passenger);
+        var surface = FloatmountBroomSurfaceScanner.findSurfaceBelow(
+                level(), candidate.x, getY(), candidate.z, (int) DANGEROUS_HEIGHT, false
+        );
+        if (surface.isEmpty() || getY() - surface.getAsDouble() >= DANGEROUS_HEIGHT) {
+            return Optional.empty();
+        }
+
+        var position = new Vec3(candidate.x, surface.getAsDouble(), candidate.z);
+        for (var pose : passenger.getDismountPoses()) {
+            if (DismountHelper.canDismountTo(level(), position, passenger, pose)) {
+                return Optional.of(new DismountTarget(position, pose));
+            }
+        }
+        return Optional.empty();
+    }
+
+    private record DismountTarget(Vec3 position, Pose pose) {
     }
 
     public void setLocalInput(float strafe, float forward, boolean ascending, boolean descending) {

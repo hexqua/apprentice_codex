@@ -664,6 +664,102 @@ public final class FloatmountBroomGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void safeDismountUsesBroomLeftSurfaceInsteadOfPassengerView(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var center = helper.absolutePos(new BlockPos(2, 1, 2));
+        var leftGround = center.east();
+        level.setBlockAndUpdate(center, Blocks.AIR.defaultBlockState());
+        level.setBlockAndUpdate(leftGround, Blocks.STONE.defaultBlockState());
+        level.setBlockAndUpdate(leftGround.above(), Blocks.AIR.defaultBlockState());
+        level.setBlockAndUpdate(leftGround.above(2), Blocks.AIR.defaultBlockState());
+        level.setBlockAndUpdate(leftGround.above(3), Blocks.AIR.defaultBlockState());
+
+        var broom = new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), level);
+        broom.setPos(center.getX() + 0.5D, center.getY() + 2.5D, center.getZ() + 0.5D);
+        broom.setYRot(0.0F);
+        level.addFreshEntity(broom);
+        var player = player(helper, "floatmount_broom_safe_dismount");
+        helper.assertTrue(player.startRiding(broom, true), "Safe dismount test player should mount the broom");
+        player.setYRot(180.0F);
+
+        var target = broom.getDismountLocationForPassenger(player);
+        var minimumSeparation = (broom.getBbWidth() + player.getBbWidth()) / 2.0D;
+        helper.assertTrue(target.x - broom.getX() > minimumSeparation,
+                "Dismount target should clear both bounding boxes on the broom's left side");
+        helper.assertTrue(Math.abs(target.z - broom.getZ()) < 1.0E-5D,
+                "Passenger view must not rotate the broom-relative dismount side");
+        helper.assertTrue(Math.abs(target.y - (leftGround.getY() + 1.0D)) < 1.0E-5D,
+                "Safe dismount should resolve directly to the preferred-side surface");
+        helper.assertFalse(broom.isDangerousDismount(),
+                "A valid preferred-side surface below two blocks should be safe");
+
+        player.stopRiding();
+        helper.assertTrue(Math.abs(player.getY() - (leftGround.getY() + 1.0D)) < 1.0E-5D,
+                "Server dismount should place the rider directly on the resolved surface");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void dangerousDismountUsesPreferredSideInsteadOfBroomCenter(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var center = helper.absolutePos(new BlockPos(2, 1, 2));
+        var leftGround = center.east();
+        level.setBlockAndUpdate(center, Blocks.STONE.defaultBlockState());
+        level.setBlockAndUpdate(leftGround, Blocks.AIR.defaultBlockState());
+        level.setBlockAndUpdate(leftGround.above(), Blocks.AIR.defaultBlockState());
+        level.setBlockAndUpdate(leftGround.above(2), Blocks.AIR.defaultBlockState());
+        level.setBlockAndUpdate(leftGround.above(3), Blocks.AIR.defaultBlockState());
+
+        var broom = new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), level);
+        broom.setPos(center.getX() + 0.5D, center.getY() + 2.5D, center.getZ() + 0.5D);
+        broom.setYRot(0.0F);
+        level.addFreshEntity(broom);
+        var player = player(helper, "floatmount_broom_cliff_dismount");
+        helper.assertTrue(player.startRiding(broom, true), "Cliff dismount test player should mount the broom");
+        helper.assertTrue(broom.isDangerousDismount(),
+                "Ground below the broom must not make a preferred-side cliff safe");
+
+        level.setBlockAndUpdate(center, Blocks.AIR.defaultBlockState());
+        level.setBlockAndUpdate(leftGround, Blocks.STONE.defaultBlockState());
+        helper.assertFalse(broom.isDangerousDismount(),
+                "Preferred-side ground should allow a safe dismount even when the broom center is over a cliff");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void safeDismountRequiresSurfaceBelowTwoBlocks(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var center = helper.absolutePos(new BlockPos(2, 1, 2));
+        var leftGround = center.east();
+        level.setBlockAndUpdate(center, Blocks.AIR.defaultBlockState());
+        level.setBlockAndUpdate(leftGround, Blocks.STONE.defaultBlockState());
+        level.setBlockAndUpdate(leftGround.above(), Blocks.AIR.defaultBlockState());
+        level.setBlockAndUpdate(leftGround.above(2), Blocks.AIR.defaultBlockState());
+        level.setBlockAndUpdate(leftGround.above(3), Blocks.AIR.defaultBlockState());
+
+        var broom = new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), level);
+        broom.setPos(center.getX() + 0.5D, leftGround.getY() + 3.0D, center.getZ() + 0.5D);
+        broom.setYRot(0.0F);
+        level.addFreshEntity(broom);
+        var player = player(helper, "floatmount_broom_height_dismount");
+        helper.assertTrue(player.startRiding(broom, true), "Height boundary test player should mount the broom");
+
+        helper.assertTrue(broom.isDangerousDismount(),
+                "A surface exactly two blocks below should require dangerous dismount confirmation");
+        var dangerousTarget = broom.getDismountLocationForPassenger(player);
+        helper.assertTrue(Math.abs(dangerousTarget.y - broom.getY()) < 1.0E-5D,
+                "Dangerous dismount must not warp the rider down to the surface");
+
+        broom.setPos(broom.getX(), leftGround.getY() + 2.99D, broom.getZ());
+        helper.assertFalse(broom.isDangerousDismount(),
+                "A surface just under two blocks below should allow a direct safe dismount");
+        var safeTarget = broom.getDismountLocationForPassenger(player);
+        helper.assertTrue(Math.abs(safeTarget.y - (leftGround.getY() + 1.0D)) < 1.0E-5D,
+                "Safe dismount below the threshold should resolve to the server surface");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void dangerousDismountRequiresReleaseAndSecondPress(GameTestHelper helper) {
         var broom = spawnBroom(helper, 5.0D);
         var player = player(helper, "floatmount_broom_dismount");
