@@ -54,6 +54,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPac
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaShieldCharmConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterActivePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncFloatmountBroomConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMirageAvoidanceStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatStatePacket;
@@ -81,7 +82,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "79";
+    private static final String PROTOCOL_VERSION = "80";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -328,6 +329,14 @@ public final class Networks {
                 SyncManaThrusterConfigPacket::encode,
                 SyncManaThrusterConfigPacket::decode,
                 SyncManaThrusterConfigPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncFloatmountBroomConfigPacket.class,
+                SyncFloatmountBroomConfigPacket::encode,
+                SyncFloatmountBroomConfigPacket::decode,
+                SyncFloatmountBroomConfigPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
         CHANNEL.registerMessage(

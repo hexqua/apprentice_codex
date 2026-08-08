@@ -9,6 +9,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class FloatmountBroomServerConfig {
+    public static final int DEFAULT_NORMAL_FLIGHT_MANA_THRESHOLD = 100;
+
     private final ModConfigSpec.IntValue maxDamage;
     private final ModConfigSpec.IntValue damageRecoveryAmount;
     private final ModConfigSpec.IntValue damageIFrameTicks;
@@ -60,7 +62,7 @@ public final class FloatmountBroomServerConfig {
                         FloatmountBroomServerConfig::isDamageTypeId);
         var normalFlightManaThreshold = builder
                 .comment("Mana required to mount the broom and to restore normal flight after a warning or emergency landing.")
-                .defineInRange("normalFlightManaThreshold", 100, 1, 10000);
+                .defineInRange("normalFlightManaThreshold", DEFAULT_NORMAL_FLIGHT_MANA_THRESHOLD, 1, 10000);
         var lowManaWarningThreshold = builder
                 .comment("Mana at or below which the broom shows its low mana warning. Values at or above the normal flight threshold are treated as below that threshold.")
                 .defineInRange("lowManaWarningThreshold", 50, 0, 10000);

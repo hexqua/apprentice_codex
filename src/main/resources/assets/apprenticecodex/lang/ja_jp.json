@@ -380,6 +380,10 @@
   "item.apprenticecodex.chargecast_catalystbook.spell_power": "%d%%",
   "item.apprenticecodex.chargecast_catalystbook.school_rune": "この本は\"%s\"の系統に調律されている。",
   "item.apprenticecodex.wooden_wand.desc": "[%1$s]で耐久力を消費して注入されている魔法を詠唱する。",
+  "item.apprenticecodex.floatmount_broom.desc_1": "[%1$s]: マナを動力に飛行する箒を設置する。",
+  "item.apprenticecodex.floatmount_broom.desc_2": "[%1$s]+[%2$s]: 設置した箒を回収する。",
+  "item.apprenticecodex.floatmount_broom.desc_3": "騎乗には%s以上のマナが必要（騎乗時には消費しない）",
+  "item.apprenticecodex.floatmount_broom.desc_4": "回収すると魔術構造が再形成され、完全に修復される。",
 
   "jei.apprenticecodex.arcane_cinder.desc_1": "かまど・溶鉱炉・燻製器の燃料として使用することで加工速度が上昇する。",
   "jei.apprenticecodex.arcane_cinder.desc_2": "それ以外の機材では効果を発揮しない。",
@@ -1058,6 +1062,7 @@
   "ui.apprenticecodex.luminous_device.not_found": "近くに魔術師が出した光源が存在しない！",
   "ui.apprenticecodex.inventory_insert.store": "右クリックで収納",
   "ui.apprenticecodex.inventory_insert.refill_mana": "右クリックでマナを補充",
+  "ui.apprenticecodex.floatmount_broom.control_help": "[%1$s] 上昇 / [%2$s] 下降 / [%3$s] 降りる",
   "ui.apprenticecodex.floatmount_broom.insufficient_mana": "箒に乗るには%dマナまで回復している必要がある",
   "ui.apprenticecodex.floatmount_broom.warning_dismount": "もう一度[%s]を押すと飛び降りる",
   "ui.apprenticecodex.floatmount_broom.warning_low_mana": "マナが枯渇してしまうと箒の飛行を維持できない！",

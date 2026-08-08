@@ -2,7 +2,9 @@ package jp.aquafactory.apprenticecodex.item;
 
 import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomEntity;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -10,6 +12,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.Level;
@@ -21,6 +24,8 @@ import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.animation.AnimationController;
 import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
+
+import java.util.List;
 
 public class FloatmountBroomItem extends Item implements GeoItem {
     private static final RawAnimation STATIC = RawAnimation.begin().thenLoop("mount");
@@ -69,6 +74,28 @@ public class FloatmountBroomItem extends Item implements GeoItem {
         }
         player.awardStat(Stats.ITEM_USED.get(this));
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
+    }
+
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context,
+                                @NotNull List<Component> tooltipComponents, @NotNull TooltipFlag tooltipFlag) {
+        tooltipComponents.add(Component.translatable(
+                "item.apprenticecodex.floatmount_broom.desc_1",
+                Component.keybind("key.use")
+        ).withStyle(ChatFormatting.GRAY));
+        tooltipComponents.add(Component.translatable(
+                "item.apprenticecodex.floatmount_broom.desc_2",
+                Component.keybind("key.sneak"),
+                Component.keybind("key.use")
+        ).withStyle(ChatFormatting.GRAY));
+        tooltipComponents.add(Component.translatable(
+                "item.apprenticecodex.floatmount_broom.desc_3",
+                Component.literal(Integer.toString(FloatmountBroomConfigState.normalFlightManaThreshold()))
+                        .withStyle(ChatFormatting.AQUA)
+        ).withStyle(ChatFormatting.GRAY));
+        tooltipComponents.add(Component.translatable(
+                "item.apprenticecodex.floatmount_broom.desc_4"
+        ).withStyle(ChatFormatting.GRAY));
     }
 
     @Override
