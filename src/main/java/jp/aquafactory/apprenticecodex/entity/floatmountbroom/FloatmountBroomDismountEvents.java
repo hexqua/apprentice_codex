@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.entity.floatmountbroom;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -134,6 +135,10 @@ public final class FloatmountBroomDismountEvents {
                 "ui.apprenticecodex.floatmount_broom.warning_dismount",
                 Component.keybind("key.sneak")
         ).withStyle(ChatFormatting.YELLOW), true);
+        FloatmountBroomEntity.playPlayerNotification(
+                player,
+                SoundRegistry.VANILLA_FLOATMOUNT_BROOM_WARNING.get()
+        );
     }
 
     private static void clear(UUID playerId) {

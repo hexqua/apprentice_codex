@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -16,6 +17,8 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -351,6 +354,8 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
             }
             if (getDamage() >= getMaxDamage()) {
                 enterDamagedState();
+            } else {
+                playBroomSound(SoundRegistry.VANILLA_FLOATMOUNT_BROOM_DAMAGE.get());
             }
         }
         gameEvent(GameEvent.ENTITY_DAMAGE, source.getEntity());
@@ -404,6 +409,8 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         setDamage(getMaxDamage());
         setDamaged(true);
         clearServerInput();
+        playBroomSound(SoundRegistry.VANILLA_FLOATMOUNT_BROOM_CRITICAL_DAMAGE.get());
+        playBroomSound(SoundRegistry.VANILLA_FLOATMOUNT_BROOM_EMERGENCY.get());
         if (getControllingPassenger() instanceof Player player) {
             player.displayClientMessage(Component.translatable(
                     "ui.apprenticecodex.floatmount_broom.warning_damage"
@@ -451,6 +458,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
                 player.displayClientMessage(Component.translatable(
                         "ui.apprenticecodex.floatmount_broom.cannot_mount_damaged"
                 ).withStyle(ChatFormatting.RED), true);
+                playPlayerNotification(player, SoundRegistry.VANILLA_FLOATMOUNT_BROOM_MOUNT_REJECT.get());
                 return InteractionResult.CONSUME;
             }
             if (!canMountWithCurrentMana(player)) {
@@ -467,6 +475,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         if (!player.getInventory().add(stack)) {
             player.drop(stack, false);
         }
+        playBroomSound(SoundRegistry.VANILLA_FLOATMOUNT_BROOM_RECONSTRUCT.get());
         discard();
     }
 
@@ -589,6 +598,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
                 "ui.apprenticecodex.floatmount_broom.insufficient_mana",
                 requiredMana
         ).withStyle(ChatFormatting.RED), true);
+        playPlayerNotification(player, SoundRegistry.VANILLA_FLOATMOUNT_BROOM_MOUNT_REJECT.get());
         return false;
     }
 
@@ -617,6 +627,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
                 player.displayClientMessage(Component.translatable(
                         "ui.apprenticecodex.floatmount_broom.recover_emergency_landing"
                 ).withStyle(ChatFormatting.GREEN), true);
+                playBroomSound(SoundRegistry.VANILLA_POWER_ACTIVATE.get());
             }
             return;
         }
@@ -633,6 +644,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
                 player.displayClientMessage(Component.translatable(
                         "ui.apprenticecodex.floatmount_broom.warning_emergency_landing"
                 ).withStyle(ChatFormatting.RED), true);
+                playBroomSound(SoundRegistry.VANILLA_FLOATMOUNT_BROOM_EMERGENCY.get());
                 return;
             }
             mana = updatedMana;
@@ -645,6 +657,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
             player.displayClientMessage(Component.translatable(
                     "ui.apprenticecodex.floatmount_broom.warning_low_mana"
             ).withStyle(ChatFormatting.YELLOW), true);
+            playPlayerNotification(player, SoundRegistry.VANILLA_FLOATMOUNT_BROOM_WARNING.get());
         } else if (lowManaWarningShown && mana >= config.normalFlightManaThreshold()) {
             lowManaWarningShown = false;
         }
@@ -668,6 +681,16 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
     private static void syncMana(Player player, MagicData magicData) {
         if (player instanceof ServerPlayer serverPlayer && !(serverPlayer instanceof FakePlayer)) {
             PacketDistributor.sendToPlayer(serverPlayer, new SyncManaPacket(magicData));
+        }
+    }
+
+    private void playBroomSound(SoundEvent sound) {
+        level().playSound(null, getX(), getY(), getZ(), sound, SoundSource.PLAYERS, 1.0F, 1.0F);
+    }
+
+    static void playPlayerNotification(Player player, SoundEvent sound) {
+        if (player instanceof ServerPlayer serverPlayer && !(serverPlayer instanceof FakePlayer)) {
+            serverPlayer.playNotifySound(sound, SoundSource.PLAYERS, 1.0F, 1.0F);
         }
     }
 
