@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import io.netty.buffer.Unpooled;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -9,6 +10,8 @@ import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomDism
 import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomEntity;
 import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomSurfaceScanner;
 import jp.aquafactory.apprenticecodex.item.FloatmountBroomItem;
+import jp.aquafactory.apprenticecodex.item.FloatmountBroomConfigState;
+import jp.aquafactory.apprenticecodex.network.packet.SyncFloatmountBroomConfigPacket;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
@@ -18,7 +21,10 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.KeybindContents;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -28,13 +34,17 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.event.entity.EntityMountEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -196,6 +206,53 @@ public final class FloatmountBroomGameTests {
             helper.assertTrue(broom.getDamage() == 0,
                     "The configured amount should recover at the ten tick interval");
         }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void tooltipUsesSyncedManaThresholdAndExpectedControls(GameTestHelper helper) {
+        FloatmountBroomConfigState.setNormalFlightManaThreshold(321);
+        try {
+            var stack = new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get());
+            var lines = new ArrayList<Component>();
+            stack.getItem().appendHoverText(
+                    stack, Item.TooltipContext.of(helper.getLevel()), lines, TooltipFlag.Default.NORMAL
+            );
+
+            helper.assertTrue(lines.size() == 4, "Floatmount Broom should have four tooltip lines");
+            assertTooltipLine(helper, lines, 0, "item.apprenticecodex.floatmount_broom.desc_1", 1);
+            assertTooltipLine(helper, lines, 1, "item.apprenticecodex.floatmount_broom.desc_2", 2);
+            assertTooltipLine(helper, lines, 2, "item.apprenticecodex.floatmount_broom.desc_3", 1);
+            assertTooltipLine(helper, lines, 3, "item.apprenticecodex.floatmount_broom.desc_4", 0);
+
+            var firstArgs = ((TranslatableContents) lines.get(0).getContents()).getArgs();
+            var secondArgs = ((TranslatableContents) lines.get(1).getContents()).getArgs();
+            assertComponentKey(helper, firstArgs[0], "key.use", "Placement control should use the use key");
+            assertComponentKey(helper, secondArgs[0], "key.sneak", "Retrieval control should start with sneak");
+            assertComponentKey(helper, secondArgs[1], "key.use", "Retrieval control should end with use");
+
+            var manaArg = ((TranslatableContents) lines.get(2).getContents()).getArgs()[0];
+            helper.assertTrue(manaArg instanceof Component, "Mana threshold should be supplied as a styled component");
+            if (manaArg instanceof Component manaComponent) {
+                helper.assertTrue("321".equals(manaComponent.getString()),
+                        "Tooltip should use the synchronized mana threshold");
+                helper.assertTrue(manaComponent.getStyle().getColor() != null
+                                && manaComponent.getStyle().getColor().getValue() == ChatFormatting.AQUA.getColor(),
+                        "Mana threshold should be aqua");
+            }
+            helper.succeed();
+        } finally {
+            FloatmountBroomConfigState.reset();
+        }
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void configSyncPacketPreservesManaThreshold(GameTestHelper helper) {
+        var buffer = new FriendlyByteBuf(Unpooled.buffer());
+        SyncFloatmountBroomConfigPacket.encode(new SyncFloatmountBroomConfigPacket(4321), buffer);
+        var decoded = SyncFloatmountBroomConfigPacket.decode(buffer);
+        helper.assertTrue(decoded.normalFlightManaThreshold() == 4321,
+                "Floatmount Broom config sync should preserve the mana threshold");
         helper.succeed();
     }
 
@@ -659,6 +716,30 @@ public final class FloatmountBroomGameTests {
         broom.setPos(pos.getX() + 0.5D, pos.getY() + relativeY, pos.getZ() + 0.5D);
         helper.getLevel().addFreshEntity(broom);
         return broom;
+    }
+
+    private static void assertTooltipLine(GameTestHelper helper, List<Component> lines, int index,
+                                          String expectedKey, int expectedArgumentCount) {
+        helper.assertTrue(lines.get(index).getStyle().getColor() != null
+                        && lines.get(index).getStyle().getColor().getValue() == ChatFormatting.GRAY.getColor(),
+                "Tooltip line " + index + " should be gray");
+        helper.assertTrue(lines.get(index).getContents() instanceof TranslatableContents,
+                "Tooltip line " + index + " should be translatable");
+        if (lines.get(index).getContents() instanceof TranslatableContents contents) {
+            helper.assertTrue(expectedKey.equals(contents.getKey()),
+                    "Tooltip line " + index + " has an unexpected translation key");
+            helper.assertTrue(contents.getArgs().length == expectedArgumentCount,
+                    "Tooltip line " + index + " has an unexpected argument count");
+        }
+    }
+
+    private static void assertComponentKey(GameTestHelper helper, Object argument,
+                                           String expectedKey, String message) {
+        helper.assertTrue(argument instanceof Component, message + " (argument is not a component)");
+        if (argument instanceof Component component) {
+            helper.assertTrue(component.getContents() instanceof KeybindContents contents
+                            && expectedKey.equals(contents.getName()), message);
+        }
     }
 
     private static FloatmountBroomEntity placeBroomFromItem(GameTestHelper helper, Player player, ItemStack stack) {

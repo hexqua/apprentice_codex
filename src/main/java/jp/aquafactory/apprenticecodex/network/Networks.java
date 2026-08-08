@@ -45,6 +45,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowConfigPack
 import jp.aquafactory.apprenticecodex.network.packet.SyncChargecastCatalystbookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncFloatmountBroomConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncInstantSearchBrazierConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
@@ -78,7 +79,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "79";
+    private static final String PROTOCOL_VERSION = "80";
 
     private Networks() {
     }
@@ -223,6 +224,11 @@ public final class Networks {
                 SyncManaThrusterConfigPacket.TYPE,
                 SyncManaThrusterConfigPacket.STREAM_CODEC,
                 SyncManaThrusterConfigPacket::handle
+        );
+        registrar.playToClient(
+                SyncFloatmountBroomConfigPacket.TYPE,
+                SyncFloatmountBroomConfigPacket.STREAM_CODEC,
+                SyncFloatmountBroomConfigPacket::handle
         );
         registrar.playToClient(
                 SyncManaThrusterActivePacket.TYPE,
