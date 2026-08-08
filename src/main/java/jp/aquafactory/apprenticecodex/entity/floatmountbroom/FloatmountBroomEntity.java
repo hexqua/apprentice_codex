@@ -5,21 +5,25 @@ import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
+import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -38,6 +42,7 @@ import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
@@ -72,6 +77,16 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
     private static final int RETRIEVE_HELP_COOLDOWN_TICKS = 40;
     private static final double RETRIEVE_HELP_DISTANCE_SQR = 16.0D;
     private static final int DEFAULT_MAX_DAMAGE = 1000;
+    private static final double REAR_PARTICLE_DISTANCE = 1.2D;
+    private static final double REAR_PARTICLE_Y_OFFSET = 0.1D;
+    private static final double FLIGHT_PARTICLE_POSITION_SPREAD = 0.25D;
+    private static final double FLIGHT_PARTICLE_VERTICAL_SPREAD = 0.25D;
+    private static final int NORMAL_SPARK_INTERVAL_TICKS = 2;
+    private static final int NORMAL_RHOMBUS_INTERVAL_TICKS = 5;
+    private static final int FORCED_LANDING_SPARK_INTERVAL_TICKS = 4;
+    private static final int FORCED_LANDING_RHOMBUS_INTERVAL_TICKS = 10;
+    private static final int FORWARD_SPARK_COUNT = 2;
+    private static final int FORWARD_RHOMBUS_INTERVAL_TICKS = 2;
     private static final String EMERGENCY_LANDING_TAG = "EmergencyLanding";
     private static final String LOW_MANA_WARNING_SHOWN_TAG = "LowManaWarningShown";
     private static final String DAMAGE_TAG = "Damage";
@@ -149,6 +164,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         tickLerp();
         if (level().isClientSide) {
             spawnDamageParticles();
+            spawnFlightParticles();
         } else {
             tickServerDamageState();
             if (isRemoved()) {
@@ -227,9 +243,93 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
     }
 
     private Vec3 getRearParticlePosition() {
+        return position().subtract(getForwardDirection().scale(REAR_PARTICLE_DISTANCE))
+                .add(0.0D, REAR_PARTICLE_Y_OFFSET, 0.0D);
+    }
+
+    private void spawnFlightParticles() {
+        var forcedLanding = isForcedLanding();
+        // W増量は見た目だけのため、serverや他clientへ入力状態を同期してまで再現しない。
+        var forwardBoost = !forcedLanding && isControlledByLocalInstance() && localForwardInput > INPUT_EPSILON;
+        if (forwardBoost) {
+            spawnFlightParticles(ParticleRegistry.ADDITIVE_SPARK.get(), FORWARD_SPARK_COUNT);
+            if (tickCount % FORWARD_RHOMBUS_INTERVAL_TICKS == 0) {
+                spawnFlightParticles(ParticleRegistry.ADDITIVE_RHOMBUS.get(), 1);
+            }
+            return;
+        }
+
+        var sparkInterval = forcedLanding ? FORCED_LANDING_SPARK_INTERVAL_TICKS : NORMAL_SPARK_INTERVAL_TICKS;
+        var rhombusInterval = forcedLanding ? FORCED_LANDING_RHOMBUS_INTERVAL_TICKS : NORMAL_RHOMBUS_INTERVAL_TICKS;
+        if (tickCount % sparkInterval == 0) {
+            spawnFlightParticles(ParticleRegistry.ADDITIVE_SPARK.get(), 1);
+        }
+        if (tickCount % rhombusInterval == 0) {
+            spawnFlightParticles(ParticleRegistry.ADDITIVE_RHOMBUS.get(), 1);
+        }
+    }
+
+    private void spawnFlightParticles(ParticleType<AdditiveGlowParticleOptions> particleType, int count) {
+        var base = getRearParticlePosition();
+        var backward = getForwardDirection().scale(-1.0D);
+        for (var i = 0; i < count; ++i) {
+            var color = randomManaJetColor(random);
+            var speed = 0.03D + random.nextDouble() * 0.02D;
+            var velocity = backward.scale(speed).add(
+                    (random.nextDouble() - 0.5D) * 0.012D,
+                    (random.nextDouble() - 0.5D) * 0.008D,
+                    (random.nextDouble() - 0.5D) * 0.012D
+            );
+            level().addParticle(
+                    createFlightParticleOptions(particleType, color, random),
+                    base.x + (random.nextDouble() - 0.5D) * FLIGHT_PARTICLE_POSITION_SPREAD,
+                    base.y + (random.nextDouble() - 0.5D) * FLIGHT_PARTICLE_VERTICAL_SPREAD,
+                    base.z + (random.nextDouble() - 0.5D) * FLIGHT_PARTICLE_POSITION_SPREAD,
+                    velocity.x,
+                    velocity.y,
+                    velocity.z
+            );
+        }
+    }
+
+    private static AdditiveGlowParticleOptions createFlightParticleOptions(
+            ParticleType<AdditiveGlowParticleOptions> particleType,
+            Vector3f color,
+            RandomSource random
+    ) {
+        var spark = particleType == ParticleRegistry.ADDITIVE_SPARK.get();
+        return new AdditiveGlowParticleOptions(
+                particleType,
+                spark ? 0.18F + random.nextFloat() * 0.08F : 0.14F + random.nextFloat() * 0.06F,
+                color.x(),
+                color.y(),
+                color.z(),
+                2,
+                spark ? 8 : 10,
+                3,
+                0.75F,
+                spark ? 1.25F : 1.15F,
+                spark ? 0.7F : 0.55F,
+                spark ? 1.0F : 0.9F,
+                spark ? 0.02F : 0.04F,
+                spark ? 0.58F : 0.62F,
+                spark ? 0.45F : 0.35F,
+                true
+        );
+    }
+
+    private static Vector3f randomManaJetColor(RandomSource random) {
+        var t = random.nextFloat();
+        return new Vector3f(
+                Mth.lerp(t, 0.28F, 0.62F),
+                Mth.lerp(t, 0.78F, 0.36F),
+                Mth.lerp(t, 1.0F, 0.95F)
+        );
+    }
+
+    private Vec3 getForwardDirection() {
         var yaw = getYRot() * Mth.DEG_TO_RAD;
-        var forward = new Vec3(-Mth.sin(yaw), 0.0D, Mth.cos(yaw));
-        return position().subtract(forward.scale(0.55D)).add(0.0D, 0.2D, 0.0D);
+        return new Vec3(-Mth.sin(yaw), 0.0D, Mth.cos(yaw));
     }
 
     private void tickLerp() {
