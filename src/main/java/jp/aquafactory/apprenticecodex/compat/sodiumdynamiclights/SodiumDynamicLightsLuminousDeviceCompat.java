@@ -55,10 +55,10 @@ public final class SodiumDynamicLightsLuminousDeviceCompat {
             registerMethod.invoke(null, lightSource);
             // 初回リソース読込後の登録でも現在の光源テーブルへ反映されるよう、静的登録を含めて再読込する。
             loadMethod.invoke(null, Minecraft.getInstance().getResourceManager());
-            ApprenticeCodex.LOGGER.info("Sodium Dynamic Lights の Luminous Device 動的光源連携を有効化しました");
+            ApprenticeCodex.LOGGER.info("Enabled Luminous Device dynamic lighting integration with Sodium Dynamic Lights");
         } catch (ReflectiveOperationException | LinkageError exception) {
             ApprenticeCodex.LOGGER.warn(
-                    "Sodium Dynamic Lights の Luminous Device 動的光源連携を初期化できなかったため、JSON 定義のみを使用します",
+                    "Failed to initialize Luminous Device dynamic lighting integration with Sodium Dynamic Lights; using only the JSON definition",
                     exception);
         }
     }

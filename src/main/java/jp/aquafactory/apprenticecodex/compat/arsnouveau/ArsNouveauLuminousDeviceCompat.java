@@ -41,10 +41,10 @@ public final class ArsNouveauLuminousDeviceCompat {
 
             registerMethod.invoke(null, EntityType.PLAYER, playerLight);
             registerMethod.invoke(null, EntityType.ITEM, itemLight);
-            ApprenticeCodex.LOGGER.info("Ars Nouveau の Luminous Device 動的光源連携を有効化しました");
+            ApprenticeCodex.LOGGER.info("Enabled Luminous Device dynamic lighting integration with Ars Nouveau");
         } catch (ReflectiveOperationException | LinkageError exception) {
             ApprenticeCodex.LOGGER.warn(
-                    "Ars Nouveau の Luminous Device 動的光源連携を初期化できなかったため、連携を無効化します",
+                    "Failed to initialize Luminous Device dynamic lighting integration with Ars Nouveau; disabling the integration",
                     exception);
         }
     }
