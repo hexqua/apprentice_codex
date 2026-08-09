@@ -697,6 +697,10 @@
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.disabled.hint": "オンに切り替えると素材が揃っていれば自動で調合を開始する",
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.enabled": "自動調合：オン",
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.enabled.hint": "オフに切り替えると素材が揃っていても調合を開始しなくなる",
+  "jei.apprenticecodex.alchemy_brewer.no_additive": "なし",
+  "jei.apprenticecodex.alchemy_brewer.amount": "%1$d mB / %2$d回分",
+  "jei.apprenticecodex.alchemy_brewer.time": "%s秒",
+  "jei.apprenticecodex.alchemy_brewer.tank_output": "錬金醸造台のタンク内に生成されます。",
 
   "chat.apprenticecodex.spell_dispenser.cast_failed.title": "近くのスペルディスペンサーが魔法詠唱に失敗した",
   "chat.apprenticecodex.spell_dispenser.cast_failed.reason.no_scroll": "理由: 魔法のスクロールが設定されていない",

@@ -696,6 +696,10 @@
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.disabled.hint": "Turn on to start brewing automatically when the materials are ready.",
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.enabled": "Auto brewing: On",
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.enabled.hint": "Turn off to prevent new brews from starting.",
+  "jei.apprenticecodex.alchemy_brewer.no_additive": "None",
+  "jei.apprenticecodex.alchemy_brewer.amount": "%1$d mB / %2$d doses",
+  "jei.apprenticecodex.alchemy_brewer.time": "%s s",
+  "jei.apprenticecodex.alchemy_brewer.tank_output": "Produced in the Alchemy Brewer tank.",
 
   "chat.apprenticecodex.spell_dispenser.cast_failed.title": "A nearby Spell Dispenser failed to cast a spell.",
   "chat.apprenticecodex.spell_dispenser.cast_failed.reason.no_scroll": "Reason: No spell scroll is set.",
