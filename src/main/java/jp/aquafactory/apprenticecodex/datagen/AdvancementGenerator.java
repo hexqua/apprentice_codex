@@ -870,5 +870,18 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         false)
                 .addCriterion("crafted_chargecast_catalystbook", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.CHARGECAST_CATALYSTBOOK.getId()))
                 .save(saver, advancementId("craft_chargecast_catalystbook"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.FLOATMOUNT_BROOM.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_floatmount_broom.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_floatmount_broom.description"),
+                        null,
+                        AdvancementType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_floatmount_broom", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.FLOATMOUNT_BROOM.getId()))
+                .save(saver, advancementId("craft_floatmount_broom"), existingFileHelper);
     }
 }
