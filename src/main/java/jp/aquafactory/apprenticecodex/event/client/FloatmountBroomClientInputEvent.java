@@ -64,9 +64,14 @@ public final class FloatmountBroomClientInputEvent {
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         if (player == null || minecraft.level == null
-                || minecraft.screen != null
                 || !(player.getVehicle() instanceof FloatmountBroomEntity broom)
                 || broom.getControllingPassenger() != player) {
+            resetInput();
+            return;
+        }
+        if (minecraft.screen != null) {
+            // serverへの停止通知だけではclient予測に使う直前の入力が箒へ残るため、同じtickで解除する。
+            broom.setLocalInput(0.0F, 0.0F, false, false);
             resetInput();
             return;
         }
