@@ -17,4 +17,6 @@ public final class ApprenticeCodexJeiRecipeTypes {
             new RecipeType<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "essence_smoker"), EssenceSmokerRecipe.class);
     public static final RecipeType<SpellcasterWorkbenchRecipe> SPELLCASTER_WORKBENCH =
             new RecipeType<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcaster_workbench"), SpellcasterWorkbenchRecipe.class);
+    public static final RecipeType<AlchemyBrewerJeiRecipe> ALCHEMY_BREWER =
+            new RecipeType<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "alchemy_brewer"), AlchemyBrewerJeiRecipe.class);
 }

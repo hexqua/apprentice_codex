@@ -391,6 +391,10 @@
   "item.apprenticecodex.chargecast_catalystbook.school_rune": "该书已调律至“%s”学派。",
   "item.apprenticecodex.wooden_wand.desc": "按[%1$s]消耗耐久度施放注入的法术。",
 
+  "jei.apprenticecodex.alchemy_brewer.no_additive": "无",
+  "jei.apprenticecodex.alchemy_brewer.amount": "%1$d mB / %2$d次用量",
+  "jei.apprenticecodex.alchemy_brewer.time": "%s秒",
+  "jei.apprenticecodex.alchemy_brewer.tank_output": "产物会生成在炼金酿造台的储罐中。",
   "jei.apprenticecodex.arcane_cinder.desc_1": "作为熔炉、高炉、烟熏炉燃料时，可提升加工速度。",
   "jei.apprenticecodex.arcane_cinder.desc_2": "在其他机器中无效果。",
   "jei.apprenticecodex.spell_extract_shard.desc_1": "在施法工作台中与注入法术的物品组合，即可将法术提取为卷轴。",
