@@ -4562,7 +4562,7 @@ public class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var recipe = getExplorersCodexGuidebookTransferRecipe(helper);
             var explorersCodexStack = createInitializedPresetStack(ItemRegistry.EXPLORERS_CODEX.get());
-            explorersCodexStack.setHoverName(Component.literal("写本継承確認"));
+            explorersCodexStack.setHoverName(Component.literal("Codex transfer check"));
             explorersCodexStack.setRepairCost(7);
             var expectedUpgradeData = createUpgradeData(
                     helper.getLevel().registryAccess(),
@@ -4581,7 +4581,7 @@ public class ApprenticeCodexGameTestScenarios {
             var result = recipe.assemble(craftingContainer, helper.getLevel().registryAccess());
             helper.assertTrue(result.is(ItemRegistry.EXPLORERS_CODEX.get()),
                     "Transfer recipe should return Explorer's Codex but got " + ForgeRegistries.ITEMS.getKey(result.getItem()));
-            helper.assertTrue("写本継承確認".equals(result.getHoverName().getString()),
+            helper.assertTrue("Codex transfer check".equals(result.getHoverName().getString()),
                     "Explorer's Codex custom name was not preserved: " + result.getHoverName().getString());
             helper.assertTrue(result.getBaseRepairCost() == 7,
                     "Explorer's Codex repair cost was not preserved: " + result.getBaseRepairCost());
