@@ -111,11 +111,30 @@ public final class FloatmountBroomGameTests {
                 "The sole player passenger should control the broom");
         helper.assertFalse(second.startRiding(broom), "Second player should not be able to ride the occupied broom");
 
-        first.setShiftKeyDown(true);
-        broom.interact(first, InteractionHand.MAIN_HAND);
-        helper.assertFalse(broom.isRemoved(), "Occupied broom must not be recovered");
-        helper.assertFalse(first.getInventory().contains(new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get())),
-                "Occupied recovery must not grant an item");
+        second.setShiftKeyDown(true);
+        broom.interact(second, InteractionHand.MAIN_HAND);
+        helper.assertFalse(broom.isRemoved(), "A third party must not recover an occupied broom");
+        helper.assertTrue(first.getVehicle() == broom,
+                "Rejected third-party recovery must leave the rider mounted");
+        helper.assertFalse(second.getInventory().contains(new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get())),
+                "Rejected third-party recovery must not grant a broom item");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void thirdPartyCanRecoverUnoccupiedBroom(GameTestHelper helper) {
+        var placer = player(helper, "floatmount_broom_placer");
+        var broom = placeBroomFromItem(helper, placer, new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get()));
+        var collector = player(helper, "floatmount_broom_third_party_collector");
+        collector.setShiftKeyDown(true);
+
+        broom.interact(collector, InteractionHand.MAIN_HAND);
+
+        helper.assertTrue(broom.isRemoved(), "A third party should be able to recover an unoccupied broom");
+        helper.assertTrue(collector.getInventory().contains(new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get())),
+                "The third party who recovered the broom should receive its item");
+        helper.assertFalse(placer.getInventory().contains(new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get())),
+                "Recovering the broom must not return its item to the original placer");
         helper.succeed();
     }
 

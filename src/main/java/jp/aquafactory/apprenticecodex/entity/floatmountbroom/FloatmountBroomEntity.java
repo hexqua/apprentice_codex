@@ -549,6 +549,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
                 return InteractionResult.PASS;
             }
             if (!level().isClientSide) {
+                // 箒はボート型の共有物として所有者を保存しないため、空席なら設置者以外も回収できる。
                 recoverAsItem(player);
             }
             return InteractionResult.SUCCESS;
