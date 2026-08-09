@@ -1,0 +1,9 @@
+{
+  "type": "apprenticecodex:alchemy_brewer_modifier",
+  "ingredient": {
+    "item": "minecraft:redstone"
+  },
+  "input": "minecraft:swiftness",
+  "priority": 0,
+  "result": "minecraft:long_swiftness"
+}

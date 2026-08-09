@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "apprenticecodex:block/alchemy_brewer" },
+    "facing=east": { "model": "apprenticecodex:block/alchemy_brewer", "y": 90 },
+    "facing=south": { "model": "apprenticecodex:block/alchemy_brewer", "y": 180 },
+    "facing=west": { "model": "apprenticecodex:block/alchemy_brewer", "y": 270 }
+  }
+}
