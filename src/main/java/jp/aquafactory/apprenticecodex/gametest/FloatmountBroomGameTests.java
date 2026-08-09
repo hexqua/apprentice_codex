@@ -28,6 +28,7 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -40,6 +41,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.EntityMountEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -48,6 +51,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -74,6 +78,40 @@ public final class FloatmountBroomGameTests {
         var broom = placeBroomFromItem(helper, player, new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get()));
         helper.assertFalse(broom.hasCustomName(), "Default item name must not become a custom name");
         helper.assertFalse(broom.isCustomNameVisible(), "Default broom must not show a nameplate");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void cancelledEntityJoinDoesNotConsumeItem(GameTestHelper helper) {
+        var player = player(helper, "floatmount_broom_cancelled_placement");
+        var target = helper.absolutePos(TEST_POS);
+        player.setPos(target.getX() + 0.5D, target.getY() + 2.5D, target.getZ() + 0.5D);
+        player.setXRot(90.0F);
+        player.setYRot(0.0F);
+        var stack = new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        Consumer<EntityJoinLevelEvent> cancelBroomJoin = event -> {
+            if (event.getLevel() == helper.getLevel() && event.getEntity() instanceof FloatmountBroomEntity) {
+                event.setCanceled(true);
+            }
+        };
+
+        InteractionResult result;
+        NeoForge.EVENT_BUS.addListener(cancelBroomJoin);
+        try {
+            result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND).getResult();
+        } finally {
+            NeoForge.EVENT_BUS.unregister(cancelBroomJoin);
+        }
+
+        helper.assertTrue(result == InteractionResult.FAIL,
+                "Cancelled broom placement should report failure");
+        helper.assertTrue(stack.getCount() == 1,
+                "Cancelled broom placement must not consume the item");
+        helper.assertTrue(helper.getLevel().getEntitiesOfClass(
+                FloatmountBroomEntity.class,
+                new AABB(target).inflate(2.0D, 4.0D, 2.0D)
+        ).isEmpty(), "Cancelled broom placement must not add an entity");
         helper.succeed();
     }
 
