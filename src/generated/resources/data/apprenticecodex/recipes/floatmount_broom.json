@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "minecraft:amethyst_cluster"
+    },
+    "E": {
+      "item": "irons_spellbooks:evocation_rune"
+    },
+    "H": {
+      "item": "minecraft:hay_block"
+    },
+    "I": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "W": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "pattern": [
+    "  W",
+    "EWA",
+    "HI "
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:floatmount_broom"
+  }
+}
