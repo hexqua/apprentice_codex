@@ -20,6 +20,7 @@
   "block.apprenticecodex.arcanum_in_a_jar" : "瓶詰めの秘術",
   "block.apprenticecodex.essence_smoker" : "エッセンス燻製台",
   "block.apprenticecodex.spellcaster_workbench" : "詠唱者の作業台",
+  "block.apprenticecodex.alchemy_brewer" : "錬金醸造台",
   "block.apprenticecodex.atelier_station" : "アトリエステーション",
   "block.apprenticecodex.comfort_berry_bush" : "安楽の果実の低木",
   "block.apprenticecodex.potted_comfort_berry_bush" : "鉢植えの安楽の果実の低木",
@@ -686,6 +687,8 @@
   "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_single_specific_item": "%s",
   "container.apprenticecodex.spell_calibration_bench.tooltip.unable_scroll_slot.empty": "%sのいずれかをセットしてスロットを増やせる",
   "container.apprenticecodex.spell_calibration_bench.tooltip.unable_scroll_slot.scroll": "このスロットのスクロールは使用できない",
+  "container.apprenticecodex.alchemy_brewer": "錬金醸造台",
+  "container.apprenticecodex.alchemy_brewer.material_label": "素材置場",
 
   "chat.apprenticecodex.spell_dispenser.cast_failed.title": "近くのスペルディスペンサーが魔法詠唱に失敗した",
   "chat.apprenticecodex.spell_dispenser.cast_failed.reason.no_scroll": "理由: 魔法のスクロールが設定されていない",

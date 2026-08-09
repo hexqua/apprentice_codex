@@ -20,6 +20,7 @@
   "block.apprenticecodex.arcanum_in_a_jar": "Arcanum in a Jar",
   "block.apprenticecodex.essence_smoker": "Essence Smoker",
   "block.apprenticecodex.spellcaster_workbench": "Spellcaster Workbench",
+  "block.apprenticecodex.alchemy_brewer" : "Alchemy Brewer",
   "block.apprenticecodex.atelier_station": "Atelier Station",
   "block.apprenticecodex.comfort_berry_bush": "Comfort Berry Bush",
   "block.apprenticecodex.potted_comfort_berry_bush": "Potted Comfort Berry Bush",
@@ -684,6 +685,8 @@
   "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_single_specific_item": "%s",
   "container.apprenticecodex.spell_calibration_bench.tooltip.unable_scroll_slot.empty": "Set one of %s to unlock more slots",
   "container.apprenticecodex.spell_calibration_bench.tooltip.unable_scroll_slot.scroll": "The scroll in this slot is unavailable",
+  "container.apprenticecodex.alchemy_brewer": "Alchemy Brewer",
+  "container.apprenticecodex.alchemy_brewer.material_label": "Material",
 
   "chat.apprenticecodex.spell_dispenser.cast_failed.title": "A nearby Spell Dispenser failed to cast a spell.",
   "chat.apprenticecodex.spell_dispenser.cast_failed.reason.no_scroll": "Reason: No spell scroll is set.",
