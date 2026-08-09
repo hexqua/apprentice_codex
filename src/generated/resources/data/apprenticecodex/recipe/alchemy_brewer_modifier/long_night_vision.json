@@ -1,0 +1,9 @@
+{
+  "type": "apprenticecodex:alchemy_brewer_modifier",
+  "ingredient": {
+    "item": "minecraft:redstone"
+  },
+  "input": "minecraft:night_vision",
+  "priority": 0,
+  "result": "minecraft:long_night_vision"
+}

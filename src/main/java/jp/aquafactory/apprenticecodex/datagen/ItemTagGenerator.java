@@ -97,6 +97,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
 
     @Override
     protected void addTags(@NotNull HolderLookup.Provider provider) {
+        tag(TagRegistry.Items.ALCHEMY_BREWER_HIGH_EFFICIENCY_BASES).add(Items.NETHER_WART);
+        tag(TagRegistry.Items.ALCHEMY_BREWER_FAST_BASES).add(Items.GLOW_LICHEN);
         tag(IRONS_STAFF).add(
                 ItemRegistry.PASTEL_STAFF.get(),
                 ItemRegistry.MULTICAST_ECHO_STAFF.get(),

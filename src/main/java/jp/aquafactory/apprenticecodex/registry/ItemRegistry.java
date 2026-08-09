@@ -324,6 +324,7 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> ATELIER_STATION =
             ITEMS.register("atelier_station",
                     () -> new AtelierStationItem(BlockRegistry.ATELIER_STATION.get(), new Item.Properties()));
+    public static final DeferredHolder<Item, Item> ALCHEMY_BREWER = block("alchemy_brewer", BlockRegistry.ALCHEMY_BREWER);
     public static final DeferredHolder<Item, Item> SCARLET_THIRST =
             ITEMS.register("scarlet_thirst", ScarletThirst::new);
     public static final DeferredHolder<Item, Item> CRAFTSMANS_DELIGHT =

@@ -40,6 +40,7 @@ public final class BlockLootTableGenerator extends BlockLootSubProvider {
         dropSelf(BlockRegistry.SPELL_CALIBRATION_BENCH.get());
         dropSelf(BlockRegistry.ARCANUM_IN_A_JAR.get());
         dropSelf(BlockRegistry.ATELIER_STATION.get());
+        dropSelf(BlockRegistry.ALCHEMY_BREWER.get());
         dropSelf(BlockRegistry.ESSENCE_SMOKER.get());
         add(BlockRegistry.WIZARDLAMP_LANTERN.get(), noDrop());
         add(BlockRegistry.COMFORT_BERRY_BUSH.get(), this::createComfortBerryBushDrops);
@@ -54,6 +55,7 @@ public final class BlockLootTableGenerator extends BlockLootSubProvider {
                 BlockRegistry.SPELL_CALIBRATION_BENCH.get(),
                 BlockRegistry.ARCANUM_IN_A_JAR.get(),
                 BlockRegistry.ATELIER_STATION.get(),
+                BlockRegistry.ALCHEMY_BREWER.get(),
                 BlockRegistry.ESSENCE_SMOKER.get(),
                 BlockRegistry.WIZARDLAMP_LANTERN.get(),
                 BlockRegistry.COMFORT_BERRY_BUSH.get(),

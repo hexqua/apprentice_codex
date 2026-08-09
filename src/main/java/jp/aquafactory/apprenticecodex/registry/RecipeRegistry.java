@@ -2,6 +2,10 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.recipe.essencesmoker.EssenceSmokerRecipe;
+import jp.aquafactory.apprenticecodex.recipe.alchemybrewer.AlchemyBrewerModifierRecipe;
+import jp.aquafactory.apprenticecodex.recipe.alchemybrewer.AlchemyBrewerModifierRecipeSerializer;
+import jp.aquafactory.apprenticecodex.recipe.alchemybrewer.AlchemyBrewerRecipe;
+import jp.aquafactory.apprenticecodex.recipe.alchemybrewer.AlchemyBrewerRecipeSerializer;
 import jp.aquafactory.apprenticecodex.recipe.essencesmoker.EssenceSmokerRecipeSerializer;
 import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCodexGuidebookTransferRecipe;
 import jp.aquafactory.apprenticecodex.recipe.crafting.ExplorersCaneLodestoneBindRecipe;
@@ -39,6 +43,10 @@ public final class RecipeRegistry {
             RECIPE_SERIALIZERS.register("essence_smoker", EssenceSmokerRecipeSerializer::new);
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<SpellcasterWorkbenchRecipe>> SPELLCASTER_WORKBENCH_SERIALIZER =
             RECIPE_SERIALIZERS.register("spellcaster_workbench", SpellcasterWorkbenchRecipeSerializer::new);
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<AlchemyBrewerRecipe>> ALCHEMY_BREWER_SERIALIZER =
+            RECIPE_SERIALIZERS.register("alchemy_brewer", AlchemyBrewerRecipeSerializer::new);
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<AlchemyBrewerModifierRecipe>> ALCHEMY_BREWER_MODIFIER_SERIALIZER =
+            RECIPE_SERIALIZERS.register("alchemy_brewer_modifier", AlchemyBrewerModifierRecipeSerializer::new);
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<SpellbookCarryoverSmithingRecipe>> SPELLBOOK_CARRYOVER_SMITHING_SERIALIZER =
             RECIPE_SERIALIZERS.register("spellbook_carryover_smithing", SpellbookCarryoverSmithingRecipeSerializer::new);
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<AlchemistsFlaskSmithingRecipe>> ALCHEMISTS_FLASK_SMITHING_SERIALIZER =
@@ -89,6 +97,14 @@ public final class RecipeRegistry {
                 public String toString() {
                     return ApprenticeCodex.MODID + ":spellcaster_workbench";
                 }
+            });
+    public static final DeferredHolder<RecipeType<?>, RecipeType<AlchemyBrewerRecipe>> ALCHEMY_BREWER_RECIPE_TYPE =
+            RECIPE_TYPES.register("alchemy_brewer", () -> new RecipeType<>() {
+                @Override public String toString() { return ApprenticeCodex.MODID + ":alchemy_brewer"; }
+            });
+    public static final DeferredHolder<RecipeType<?>, RecipeType<AlchemyBrewerModifierRecipe>> ALCHEMY_BREWER_MODIFIER_RECIPE_TYPE =
+            RECIPE_TYPES.register("alchemy_brewer_modifier", () -> new RecipeType<>() {
+                @Override public String toString() { return ApprenticeCodex.MODID + ":alchemy_brewer_modifier"; }
             });
 
     public static void register(IEventBus bus) {

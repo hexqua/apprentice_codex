@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskScreen;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationScreen;
+import jp.aquafactory.apprenticecodex.block.alchemybrewer.AlchemyBrewerScreen;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticlePaletteCache;
@@ -320,6 +321,7 @@ public final class ClientModBusEvents {
         event.register(MenuRegistry.SPELL_CALIBRATION_BENCH.get(), SpellCalibrationBenchScreen::new);
         event.register(MenuRegistry.SPELL_DISPENSER.get(), SpellDispenserScreen::new);
         event.register(MenuRegistry.ATELIER_STATION.get(), AtelierStationScreen::new);
+        event.register(MenuRegistry.ALCHEMY_BREWER.get(), AlchemyBrewerScreen::new);
         event.register(MenuRegistry.ENDER_GRIMOIRE_INSCRIPTION.get(), EnderGrimoireInscriptionScreen::new);
         event.register(MenuRegistry.ARCHIVISTS_GRIMOIRE.get(), ArchivistsGrimoireScreen::new);
     }

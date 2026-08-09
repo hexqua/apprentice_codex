@@ -1,0 +1,9 @@
+{
+  "type": "apprenticecodex:alchemy_brewer_modifier",
+  "ingredient": {
+    "item": "minecraft:glowstone_dust"
+  },
+  "input": "irons_spellbooks:instant_mana_one",
+  "priority": 0,
+  "result": "irons_spellbooks:instant_mana_two"
+}
