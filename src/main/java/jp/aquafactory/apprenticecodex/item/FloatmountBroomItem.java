@@ -68,7 +68,11 @@ public class FloatmountBroomItem extends Item implements GeoItem {
         }
 
         if (!level.isClientSide) {
-            level.addFreshEntity(broom);
+            // 他MODが生成イベントを拒否した場合などに、生成されていない箒の消費を防ぐ.
+            // 基本はバニラボートと同じよう警告表示は現時点ではいれない.
+            if (!level.addFreshEntity(broom)) {
+                return InteractionResultHolder.fail(stack);
+            }
             level.gameEvent(player, GameEvent.ENTITY_PLACE, hit.getLocation());
             stack.consume(1, player);
         }
