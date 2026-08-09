@@ -12,6 +12,8 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPa
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientFloatmountBroomInputPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientFloatmountBroomDismountInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSpellgunCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
@@ -43,6 +45,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowConfigPack
 import jp.aquafactory.apprenticecodex.network.packet.SyncChargecastCatalystbookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncFloatmountBroomConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncInstantSearchBrazierConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
@@ -76,7 +79,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "76";
+    private static final String PROTOCOL_VERSION = "80";
 
     private Networks() {
     }
@@ -158,6 +161,16 @@ public final class Networks {
                 ClientManaThrusterInputPacket::handle
         );
         registrar.playToServer(
+                ClientFloatmountBroomInputPacket.TYPE,
+                ClientFloatmountBroomInputPacket.STREAM_CODEC,
+                ClientFloatmountBroomInputPacket::handle
+        );
+        registrar.playToServer(
+                ClientFloatmountBroomDismountInputPacket.TYPE,
+                ClientFloatmountBroomDismountInputPacket.STREAM_CODEC,
+                ClientFloatmountBroomDismountInputPacket::handle
+        );
+        registrar.playToServer(
                 ClientJumpcastCharmCastPacket.TYPE,
                 ClientJumpcastCharmCastPacket.STREAM_CODEC,
                 ClientJumpcastCharmCastPacket::handle
@@ -211,6 +224,11 @@ public final class Networks {
                 SyncManaThrusterConfigPacket.TYPE,
                 SyncManaThrusterConfigPacket.STREAM_CODEC,
                 SyncManaThrusterConfigPacket::handle
+        );
+        registrar.playToClient(
+                SyncFloatmountBroomConfigPacket.TYPE,
+                SyncFloatmountBroomConfigPacket.STREAM_CODEC,
+                SyncFloatmountBroomConfigPacket::handle
         );
         registrar.playToClient(
                 SyncManaThrusterActivePacket.TYPE,

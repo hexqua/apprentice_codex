@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.ArcaneCinderItem;
+import jp.aquafactory.apprenticecodex.item.FloatmountBroomItem;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.CrudeInkItem;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkItem;
 import jp.aquafactory.apprenticecodex.item.blockitem.ApprenticeDeskItem;
@@ -469,4 +470,6 @@ public final class ItemRegistry {
             ITEMS.register("parrycast_buckler", ParrycastBuckler::new);
     public static final DeferredHolder<Item, Item> BULWARK_GREATSHIELD =
             ITEMS.register("bulwark_greatshield", BulwarkGreatshield::new);
+    public static final DeferredHolder<Item, Item> FLOATMOUNT_BROOM =
+            ITEMS.register("floatmount_broom", FloatmountBroomItem::new);
 }

@@ -38,16 +38,25 @@ public final class ImbuedSpellCoreClientEffectState {
         float time = resolveTime(partialTick);
         var cooldownRemaining = resolveCooldownRemaining(stack, partialTick);
         if (cooldownRemaining > 0.0f || manaWarningActive) {
-            var pulse = (Mth.sin((float) (time * (Math.PI * 2.0 / COOLDOWN_PULSE_PERIOD_TICKS))) + 1.0f) * 0.5f;
-            var strength = Mth.lerp(pulse, COOLDOWN_MIN_STRENGTH, COOLDOWN_MAX_STRENGTH);
+            var strengthMultiplier = 1.0f;
             if (!manaWarningActive && cooldownRemaining < COOLDOWN_FADE_TICKS) {
-                strength *= Mth.clamp(cooldownRemaining / COOLDOWN_FADE_TICKS, 0.0f, 1.0f);
+                strengthMultiplier = Mth.clamp(cooldownRemaining / COOLDOWN_FADE_TICKS, 0.0f, 1.0f);
             }
-            return new CoreRenderState(strength, 0.12f * strength, 0.12f * strength, 0.95f);
+            return resolveWarning(time, strengthMultiplier);
         }
 
         var brightness = CORE_IDLE_BASE + CORE_IDLE_PULSE * (0.5f + 0.5f * Mth.sin(time * CORE_IDLE_SPEED));
         return new CoreRenderState(brightness, brightness, brightness, 0.95f);
+    }
+
+    public static CoreRenderState resolveWarning(float partialTick) {
+        return resolveWarning(resolveTime(partialTick), 1.0f);
+    }
+
+    private static CoreRenderState resolveWarning(float time, float strengthMultiplier) {
+        var pulse = (Mth.sin((float) (time * (Math.PI * 2.0 / COOLDOWN_PULSE_PERIOD_TICKS))) + 1.0f) * 0.5f;
+        var strength = Mth.lerp(pulse, COOLDOWN_MIN_STRENGTH, COOLDOWN_MAX_STRENGTH) * strengthMultiplier;
+        return new CoreRenderState(strength, 0.12f * strength, 0.12f * strength, 0.95f);
     }
 
     private static boolean isManaRequirementUnmet(

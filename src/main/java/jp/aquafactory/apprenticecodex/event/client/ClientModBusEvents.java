@@ -55,6 +55,8 @@ import jp.aquafactory.apprenticecodex.renderer.item.CopperSpellcasterGunRenderer
 import jp.aquafactory.apprenticecodex.renderer.item.CrystalBladedStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.DiamondSpellcasterGunRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.ElementalBowRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.FloatmountBroomItemRenderer;
+import jp.aquafactory.apprenticecodex.renderer.entity.FloatmountBroomRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.ExplorersCaneRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.FocusStaffbowRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.GoldSpellcasterGunRenderer;
@@ -162,11 +164,13 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
+import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.event.RegisterRenderBuffersEvent;
+import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.fml.ModList;
@@ -190,6 +194,7 @@ public final class ClientModBusEvents {
         modEventBus.addListener(ClientModBusEvents::registerTooltipComponentFactories);
         modEventBus.addListener(ClientModBusEvents::registerItemColors);
         modEventBus.addListener(ClientModBusEvents::registerRenderBuffers);
+        modEventBus.addListener(ClientModBusEvents::registerGuiLayers);
     }
 
     private static void onClientSetup(FMLClientSetupEvent event) {
@@ -348,6 +353,17 @@ public final class ClientModBusEvents {
     }
 
     private static void registerClientExtensions(RegisterClientExtensionsEvent event) {
+        event.registerItem(new IClientItemExtensions() {
+            private FloatmountBroomItemRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new FloatmountBroomItemRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.FLOATMOUNT_BROOM.get());
         event.registerItem(new IClientItemExtensions() {
             private LuminousDeviceRenderer renderer;
 
@@ -697,6 +713,14 @@ public final class ClientModBusEvents {
         event.registerRenderBuffer(ApprenticeRenderTypes.boundSpellWeaponGlintDirect());
     }
 
+    private static void registerGuiLayers(RegisterGuiLayersEvent event) {
+        event.registerBelow(
+                VanillaGuiLayers.AIR_LEVEL,
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "floatmount_broom_durability"),
+                FloatmountBroomDurabilityHud.INSTANCE
+        );
+    }
+
     private static void applyMultipurposeStaffrifleNormalHandTransform(PoseStack poseStack, HumanoidArm arm,
                                                                        float equipProcess, float swingProcess) {
         applyMultipurposeStaffrifleItemArmTransform(poseStack, arm, equipProcess);
@@ -827,6 +851,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.REMOTE_OWNER_CAST_ANCHOR.get(), RemoteOwnerCastAnchorRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FUJIN_KATANA.get(), FujinKatanaRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FUJIN_SLASH_PROJECTILE.get(), FujinSlashProjectileRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.FLOATMOUNT_BROOM.get(), FloatmountBroomRenderer::new);
     }
 }
 

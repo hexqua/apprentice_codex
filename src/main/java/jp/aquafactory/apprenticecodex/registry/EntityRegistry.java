@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity;
+import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomEntity;
 import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.SpellAutonomyCardEntity;
 import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.SpellInvokeCardEntity;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamEntity;
@@ -333,6 +334,11 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<FujinSlashProjectileEntity>> FUJIN_SLASH_PROJECTILE =
             regProjectile("fujin_slash_projectile", FujinSlashProjectileEntity::new, 64, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<FloatmountBroomEntity>> FLOATMOUNT_BROOM =
+            reg("floatmount_broom", FloatmountBroomEntity::new, MobCategory.MISC,
+                    FloatmountBroomEntity.WIDTH, FloatmountBroomEntity.HEIGHT,
+                    64, 1, true, FireBehaviors.VULNERABLE);
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

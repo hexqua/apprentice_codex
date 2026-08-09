@@ -107,7 +107,8 @@ public final class CombatTools {
         // 例外的に対象にする特殊エンティティを指定.
         if (resolvedTarget instanceof EndCrystal) return true;
 
-        // 基本的にはLivingEntityのみを対象.
+        // 箒を含む車両はバニラボート等と同じ非LivingEntityとして対象外にし、
+        // 騎乗者への攻撃可否は騎乗者自身のPvP・team friendly fire判定へ委ねる。
         return resolvedTarget instanceof LivingEntity && !isProtectedCombatTarget(resolvedTarget, combatOwner, policy);
     }
 
