@@ -32,6 +32,7 @@ import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Item;
@@ -376,7 +377,7 @@ public final class FloatmountBroomGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void combatToolsTargetsOnlyPvpHarmableEnemyPlayerBrooms(GameTestHelper helper) {
+    public static void combatToolsIgnoresVehiclesAndTargetsOnlyPvpHarmableRiders(GameTestHelper helper) {
         var level = helper.getLevel();
         var server = level.getServer();
         helper.assertTrue(server != null, "Floatmount Broom PvP test requires a server");
@@ -385,6 +386,8 @@ public final class FloatmountBroomGameTests {
         // 降車時のteleport処理も通るため、騎乗者には接続を備えたGameTestのmock playerを使う。
         var rider = helper.makeMockPlayer(GameType.SURVIVAL);
         var broom = spawnBroom(helper, 1.5D);
+        var boat = new Boat(level, broom.getX() + 2.0D, broom.getY(), broom.getZ());
+        level.addFreshEntity(boat);
         var scoreboard = level.getScoreboard();
         var team = scoreboard.addPlayerTeam("broom_pvp_policy");
         var previousPvp = server.isPvpAllowed();
@@ -392,35 +395,42 @@ public final class FloatmountBroomGameTests {
         try {
             server.setPvpAllowed(true);
             helper.assertTrue(rider.startRiding(broom, true), "PvP target rider should mount the broom");
-            helper.assertTrue(CombatTools.isValidCombatTarget(broom, attacker),
-                    "An enemy player broom should be a combat target while PvP is enabled");
+            helper.assertFalse(CombatTools.isValidCombatTarget(broom, attacker),
+                    "A ridden broom should remain excluded as a non-living vehicle");
+            helper.assertFalse(CombatTools.isValidCombatTarget(boat, attacker),
+                    "A vanilla boat should remain excluded as a non-living vehicle");
+            helper.assertTrue(CombatTools.isValidCombatTarget(rider, attacker),
+                    "An enemy rider should be a combat target while PvP is enabled");
             helper.assertFalse(CombatTools.isValidCombatTarget(broom, rider),
                     "A rider must not target their own root vehicle");
+            helper.assertFalse(CombatTools.isValidCombatTarget(rider, rider),
+                    "A rider must not target themselves");
 
             scoreboard.addPlayerToTeam(attacker.getScoreboardName(), team);
             scoreboard.addPlayerToTeam(rider.getScoreboardName(), team);
             team.setAllowFriendlyFire(false);
+            helper.assertFalse(CombatTools.isValidCombatTarget(rider, attacker),
+                    "Friendly-fire protection should protect the rider");
             helper.assertFalse(CombatTools.isValidCombatTarget(broom, attacker),
-                    "Friendly-fire protection should also protect the ridden broom");
+                    "Friendly-fire settings must not make the non-living broom targetable");
             team.setAllowFriendlyFire(true);
-            helper.assertTrue(CombatTools.isValidCombatTarget(broom, attacker),
-                    "Friendly-fire-enabled teammates should expose the ridden broom");
+            helper.assertTrue(CombatTools.isValidCombatTarget(rider, attacker),
+                    "Friendly-fire-enabled teammates should expose the rider");
+            helper.assertFalse(CombatTools.isValidCombatTarget(broom, attacker),
+                    "A ridden broom should remain excluded when friendly fire is enabled");
 
             scoreboard.removePlayerFromTeam(attacker.getScoreboardName(), team);
             scoreboard.removePlayerFromTeam(rider.getScoreboardName(), team);
             server.setPvpAllowed(false);
+            helper.assertFalse(CombatTools.isValidCombatTarget(rider, attacker),
+                    "Server PvP disablement should protect the rider");
             helper.assertFalse(CombatTools.isValidCombatTarget(broom, attacker),
-                    "Server PvP disablement should protect the ridden broom");
+                    "Server PvP settings must not make the non-living broom targetable");
 
             server.setPvpAllowed(true);
             rider.stopRiding();
             helper.assertFalse(CombatTools.isValidCombatTarget(broom, attacker),
-                    "An unoccupied broom should not become a general combat target");
-            helper.assertTrue(rider.startRiding(broom, true), "Rider should remount for owner type validation");
-            var zombie = EntityType.ZOMBIE.create(level);
-            helper.assertTrue(zombie != null, "PvP owner type test should create a zombie");
-            helper.assertFalse(CombatTools.isValidCombatTarget(broom, zombie),
-                    "A non-player combat owner should not special-target the broom");
+                    "An unoccupied broom should remain excluded as a non-living vehicle");
         } finally {
             rider.stopRiding();
             server.setPvpAllowed(previousPvp);
