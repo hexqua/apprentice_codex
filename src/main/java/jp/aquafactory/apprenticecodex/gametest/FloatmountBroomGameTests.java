@@ -554,6 +554,30 @@ public final class FloatmountBroomGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void inactiveInputStopsMovementManaCost(GameTestHelper helper) {
+        var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 2.0D, 3.5D);
+        try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
+            var broom = spawnBroom(helper, 1.5D);
+            var player = player(helper, "floatmount_broom_inactive_input");
+            var magicData = magicData(helper, player);
+            magicData.setMana(200.0F);
+            helper.assertTrue(player.startRiding(broom, true), "Inactive input test player should mount directly");
+
+            broom.acceptServerInput(player, 0.0F, 1.0F, true, false);
+            broom.tick();
+            helper.assertTrue(Math.abs(magicData.getMana() - 196.5F) < 1.0e-4F,
+                    "Active combined movement should consume configured mana");
+
+            // clientの画面操作はGameTestで再現せず、inactive受理後のserver課金停止だけを固定する。
+            broom.acceptServerInput(player, 0.0F, 0.0F, false, false);
+            broom.tick();
+            helper.assertTrue(Math.abs(magicData.getMana() - 196.5F) < 1.0e-4F,
+                    "Inactive movement input must stop additional mana consumption");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void serverTeleportWithoutReportedPoweredInputRemainsFree(GameTestHelper helper) {
         var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 2.0D, 3.5D);
         try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
