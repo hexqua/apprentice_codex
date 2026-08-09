@@ -525,6 +525,57 @@ public final class FloatmountBroomGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void serverTeleportWithoutReportedPoweredInputRemainsFree(GameTestHelper helper) {
+        var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 2.0D, 3.5D);
+        try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
+            var broom = spawnBroom(helper, 1.5D);
+            var player = player(helper, "floatmount_broom_server_teleport");
+            var magicData = magicData(helper, player);
+            magicData.setMana(0.5F);
+            helper.assertTrue(player.startRiding(broom, true), "Server teleport test player should mount directly");
+            broom.acceptServerInput(player, 0.0F, 0.0F, false, false);
+
+            // client権威のvehicle位置差だけでは、惰性・server再配置・他MODの外力と偽装移動を区別できない。
+            // 正規playerへの誤課金を避けるため、申告された動力入力がない再配置は課金対象にしない。
+            // その結果、改造clientによる入力の過少申告も防げないことを設計上受容する。
+            var beforeTeleport = broom.position();
+            broom.teleportRelative(1.0D, 1.0D, 0.0D);
+            helper.assertTrue(broom.position().distanceToSqr(beforeTeleport) > 1.0D,
+                    "Server teleport should move the mounted broom horizontally and upward");
+
+            broom.tick();
+
+            helper.assertTrue(Math.abs(magicData.getMana() - 0.5F) < 1.0e-4F,
+                    "Server teleport without reported powered input must not consume mana");
+            helper.assertFalse(broom.isManaEmergencyLanding(),
+                    "Server teleport without reported powered input must not trigger emergency landing");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void nonControllingPlayerCannotSubmitPaidMovementInput(GameTestHelper helper) {
+        var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 2.0D, 3.5D);
+        try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
+            var broom = spawnBroom(helper, 1.5D);
+            var rider = player(helper, "floatmount_broom_controller");
+            var nonController = player(helper, "floatmount_broom_non_controller");
+            var riderMagicData = magicData(helper, rider);
+            riderMagicData.setMana(100.0F);
+            helper.assertTrue(rider.startRiding(broom, true), "Controller test rider should mount directly");
+
+            broom.acceptServerInput(nonController, 0.0F, 1.0F, true, false);
+            broom.tick();
+
+            helper.assertTrue(Math.abs(riderMagicData.getMana() - 100.0F) < 1.0e-4F,
+                    "A non-controlling player must not consume the rider's mana");
+            helper.assertFalse(broom.isManaEmergencyLanding(),
+                    "A non-controlling player must not trigger the rider's emergency landing");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void depletionEmergencyRecoveryAndSavedStateFollowServerRules(GameTestHelper helper) {
         var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 1.0D, 1.5D);
         try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {

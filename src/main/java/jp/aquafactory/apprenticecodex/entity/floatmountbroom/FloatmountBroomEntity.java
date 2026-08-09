@@ -727,8 +727,11 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
             return;
         }
 
-        // 箒は操作感を優先してvanillaの乗り物と同様にclient予測を維持する。
-        // serverは所有者を検証した入力でマナと緊急状態を管理するが、移動そのもののserver権威化は意図的に別課題とする。
+        // 箒の有人移動は操作clientが予測し、vanillaのvehicle位置更新をserverが採用する。
+        // serverはsender・操縦者・入力範囲を検証したうえで、申告された動力入力だけを課金根拠にする。
+        // 実座標差では惰性・server再配置・他MODの外力と偽装移動を区別できず、座標差課金は正規playerへの
+        // 誤課金や意図しない緊急着陸を起こすため採用しない。この設計では改造clientによる入力の過少申告を防げず、
+        // マナ消費と緊急着陸は対不正clientの保証境界には含めない。
         localStrafeInput = sanitizeInput(strafe);
         serverForwardInput = sanitizeInput(forward);
         serverAscending = ascending;
