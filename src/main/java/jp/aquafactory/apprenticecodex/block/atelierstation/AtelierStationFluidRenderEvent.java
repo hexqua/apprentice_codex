@@ -41,12 +41,13 @@ public final class AtelierStationFluidRenderEvent {
     private static final float WATER_GREEN = ((WATER_TINT >> 8) & 0xFF) / 255.0f;
     private static final float WATER_BLUE = (WATER_TINT & 0xFF) / 255.0f;
     private static final Vec3 TANK_ANCHOR_LOCAL = new Vec3(12.5d / 16.0d, 16.5d / 16.0d, 12.5d / 16.0d);
+    private static final Vec3 ALCHEMY_BREWER_SOURCE_LOCAL = new Vec3(12.0d / 16.0d, 0.5d, 4.0d / 16.0d);
 
     private static final Vec3 SUPPLY_SOURCE_LOCAL = new Vec3(1.65d / 16.0d, 14.0d / 16.0d, 14.3d / 16.0d);
-    private static final int MAX_ACTIVE_CAULDRON_EFFECTS = 48;
+    private static final int MAX_ACTIVE_COLLECTION_EFFECTS = 48;
     private static final int MAX_ACTIVE_SUPPLY_EFFECTS = 32;
 
-    private static final List<ActiveCauldronEffect> ACTIVE_CAULDRON_EFFECTS = new ArrayList<>();
+    private static final List<ActiveCollectionEffect> ACTIVE_COLLECTION_EFFECTS = new ArrayList<>();
     private static final List<ActiveSupplyEffect> ACTIVE_SUPPLY_EFFECTS = new ArrayList<>();
 
     private AtelierStationFluidRenderEvent() {
@@ -59,14 +60,16 @@ public final class AtelierStationFluidRenderEvent {
         }
 
         switch (packet.kind()) {
-            case CAULDRON_TO_STATION -> {
-                ACTIVE_CAULDRON_EFFECTS.add(new ActiveCauldronEffect(
+            case CAULDRON_TO_STATION, ALCHEMY_BREWER_TO_STATION -> {
+                ACTIVE_COLLECTION_EFFECTS.add(new ActiveCollectionEffect(
+                        packet.kind(),
                         packet.stationPos(),
                         packet.stationFacing(),
                         packet.sourcePos(),
+                        packet.sourceFacing(),
                         packet.startGameTime()
                 ));
-                trimEffects(ACTIVE_CAULDRON_EFFECTS, MAX_ACTIVE_CAULDRON_EFFECTS);
+                trimEffects(ACTIVE_COLLECTION_EFFECTS, MAX_ACTIVE_COLLECTION_EFFECTS);
                 playLocalSound(Vec3.atCenterOf(packet.sourcePos()), SoundEvents.GENERIC_SPLASH, SoundSource.BLOCKS, 1.0f);
             }
             case STATION_TO_PLAYER -> {
@@ -96,7 +99,7 @@ public final class AtelierStationFluidRenderEvent {
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
         if (Minecraft.getInstance().level == null) {
-            ACTIVE_CAULDRON_EFFECTS.clear();
+            ACTIVE_COLLECTION_EFFECTS.clear();
             ACTIVE_SUPPLY_EFFECTS.clear();
         }
     }
@@ -104,21 +107,21 @@ public final class AtelierStationFluidRenderEvent {
     @SubscribeEvent
     public static void onRenderLevelStage(RenderLevelStageEvent event) {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES
-                || (ACTIVE_CAULDRON_EFFECTS.isEmpty() && ACTIVE_SUPPLY_EFFECTS.isEmpty())) {
+                || (ACTIVE_COLLECTION_EFFECTS.isEmpty() && ACTIVE_SUPPLY_EFFECTS.isEmpty())) {
             return;
         }
 
         var minecraft = Minecraft.getInstance();
         var level = minecraft.level;
         if (level == null) {
-            ACTIVE_CAULDRON_EFFECTS.clear();
+            ACTIVE_COLLECTION_EFFECTS.clear();
             ACTIVE_SUPPLY_EFFECTS.clear();
             return;
         }
 
         var sprite = resolveWaterSprite();
         if (sprite == null) {
-            ACTIVE_CAULDRON_EFFECTS.clear();
+            ACTIVE_COLLECTION_EFFECTS.clear();
             ACTIVE_SUPPLY_EFFECTS.clear();
             return;
         }
@@ -133,16 +136,16 @@ public final class AtelierStationFluidRenderEvent {
         poseStack.pushPose();
         poseStack.translate(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);
 
-        var cauldronIterator = ACTIVE_CAULDRON_EFFECTS.iterator();
-        while (cauldronIterator.hasNext()) {
-            var effect = cauldronIterator.next();
+        var collectionIterator = ACTIVE_COLLECTION_EFFECTS.iterator();
+        while (collectionIterator.hasNext()) {
+            var effect = collectionIterator.next();
             var age = (float) (gameTime - effect.startGameTime()) + partialTick;
             if (age >= AtelierStationFluidEffectTuning.CAULDRON_TOTAL_TICKS) {
-                cauldronIterator.remove();
+                collectionIterator.remove();
                 continue;
             }
 
-            renderCauldronEffect(poseStack, buffer, sprite, effect, age);
+            renderCollectionEffect(poseStack, buffer, sprite, effect, age);
         }
 
         ACTIVE_SUPPLY_EFFECTS.removeIf(effect -> !renderSupplyEffect(level, poseStack, buffer, sprite, effect, gameTime, partialTick));
@@ -150,9 +153,12 @@ public final class AtelierStationFluidRenderEvent {
         bufferSource.endBatch(WATER_CUBE_RENDER_TYPE);
     }
 
-    private static void renderCauldronEffect(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite sprite,
-                                             ActiveCauldronEffect effect, float age) {
-        var start = Vec3.atCenterOf(effect.cauldronPos());
+    private static void renderCollectionEffect(PoseStack poseStack, VertexConsumer buffer, TextureAtlasSprite sprite,
+                                               ActiveCollectionEffect effect, float age) {
+        var fromAlchemyBrewer = effect.kind() == AtelierStationFluidEffectPacket.EffectKind.ALCHEMY_BREWER_TO_STATION;
+        var start = fromAlchemyBrewer
+                ? localToWorld(effect.sourcePos(), effect.sourceFacing(), ALCHEMY_BREWER_SOURCE_LOCAL)
+                : Vec3.atCenterOf(effect.sourcePos());
         var hover = start.add(0.0d, 1.0d, 0.0d);
         var tankAnchor = localToWorld(effect.stationPos(), effect.stationFacing(), TANK_ANCHOR_LOCAL);
         var preDashTicks = AtelierStationFluidEffectTuning.CAULDRON_ASCEND_TICKS + AtelierStationFluidEffectTuning.CAULDRON_HOVER_TICKS;
@@ -161,20 +167,26 @@ public final class AtelierStationFluidRenderEvent {
         if (age < AtelierStationFluidEffectTuning.CAULDRON_ASCEND_TICKS) {
             var progress = age / AtelierStationFluidEffectTuning.CAULDRON_ASCEND_TICKS;
             position = start.lerp(hover, cubicEaseOut(progress));
-            diameter = Mth.lerp(age / preDashTicks,
-                    AtelierStationFluidEffectTuning.CAULDRON_START_DIAMETER,
-                    AtelierStationFluidEffectTuning.CAULDRON_PRE_DASH_DIAMETER);
+            diameter = fromAlchemyBrewer
+                    ? AtelierStationFluidEffectTuning.ALCHEMY_BREWER_PRE_DASH_DIAMETER
+                    : Mth.lerp(age / preDashTicks,
+                            AtelierStationFluidEffectTuning.CAULDRON_START_DIAMETER,
+                            AtelierStationFluidEffectTuning.CAULDRON_PRE_DASH_DIAMETER);
         } else if (age < preDashTicks) {
             position = hover;
-            diameter = Mth.lerp(age / preDashTicks,
-                    AtelierStationFluidEffectTuning.CAULDRON_START_DIAMETER,
-                    AtelierStationFluidEffectTuning.CAULDRON_PRE_DASH_DIAMETER);
+            diameter = fromAlchemyBrewer
+                    ? AtelierStationFluidEffectTuning.ALCHEMY_BREWER_PRE_DASH_DIAMETER
+                    : Mth.lerp(age / preDashTicks,
+                            AtelierStationFluidEffectTuning.CAULDRON_START_DIAMETER,
+                            AtelierStationFluidEffectTuning.CAULDRON_PRE_DASH_DIAMETER);
         } else {
             var dashAge = age - preDashTicks;
             var progress = Mth.clamp(dashAge / AtelierStationFluidEffectTuning.CAULDRON_DASH_TICKS, 0.0f, 1.0f);
             position = hover.lerp(tankAnchor, progress);
             diameter = Mth.lerp(progress,
-                    AtelierStationFluidEffectTuning.CAULDRON_PRE_DASH_DIAMETER,
+                    fromAlchemyBrewer
+                            ? AtelierStationFluidEffectTuning.ALCHEMY_BREWER_PRE_DASH_DIAMETER
+                            : AtelierStationFluidEffectTuning.CAULDRON_PRE_DASH_DIAMETER,
                     AtelierStationFluidEffectTuning.CAULDRON_DASH_END_DIAMETER);
         }
 
@@ -363,8 +375,9 @@ public final class AtelierStationFluidRenderEvent {
         effects.subList(0, effects.size() - maxSize).clear();
     }
 
-    private record ActiveCauldronEffect(BlockPos stationPos, Direction stationFacing, BlockPos cauldronPos,
-                                        long startGameTime) {
+    private record ActiveCollectionEffect(AtelierStationFluidEffectPacket.EffectKind kind, BlockPos stationPos,
+                                          Direction stationFacing, BlockPos sourcePos, Direction sourceFacing,
+                                          long startGameTime) {
     }
 
     private record ActiveSupplyEffect(BlockPos stationPos, Direction stationFacing, int targetEntityId,

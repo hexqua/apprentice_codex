@@ -118,6 +118,21 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
     public boolean isProcessing() { return activeJob != null; }
     public int getTankAmountMb() { return tankAmountMb; }
     public @Nullable ResourceLocation getTankPotionId() { return tankPotion; }
+    public int extractTankPotion(ResourceLocation expectedPotionId, int requestedAmountMb) {
+        if (tankPotion == null || !tankPotion.equals(expectedPotionId) || requestedAmountMb < DOSE_AMOUNT_MB) {
+            return 0;
+        }
+
+        var requestedDoseAmount = requestedAmountMb / DOSE_AMOUNT_MB * DOSE_AMOUNT_MB;
+        var extractedAmount = Math.min(tankAmountMb / DOSE_AMOUNT_MB * DOSE_AMOUNT_MB, requestedDoseAmount);
+        if (extractedAmount <= 0) {
+            return 0;
+        }
+
+        consumeTankAmount(extractedAmount);
+        markUpdated();
+        return extractedAmount;
+    }
     public @Nullable ResourceLocation getDisplayPotionId() {
         return tankAmountMb > 0 ? tankPotion : activeJob != null ? activeJob.result : previewPotion;
     }
@@ -321,7 +336,11 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
     }
 
     private void consumeTankDose() {
-        tankAmountMb -= DOSE_AMOUNT_MB;
+        consumeTankAmount(DOSE_AMOUNT_MB);
+    }
+
+    private void consumeTankAmount(int amountMb) {
+        tankAmountMb -= amountMb;
         if (tankAmountMb <= 0) {
             tankAmountMb = 0;
             tankPotion = null;

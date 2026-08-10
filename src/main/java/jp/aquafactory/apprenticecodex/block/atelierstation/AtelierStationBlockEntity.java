@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.block.atelierstation;
 
 import io.redspace.ironsspellbooks.block.alchemist_cauldron.AlchemistCauldronTile;
+import jp.aquafactory.apprenticecodex.block.alchemybrewer.AlchemyBrewer;
+import jp.aquafactory.apprenticecodex.block.alchemybrewer.AlchemyBrewerBlockEntity;
 import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.network.Networks;
@@ -8,9 +10,11 @@ import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPa
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.utility.AlchemistCauldronFluidTools;
 import jp.aquafactory.apprenticecodex.utility.PersistentGameTimeSanitizer;
+import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -26,6 +30,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -219,7 +224,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
         if (blockEntity.shouldRunCollectionTick(serverLevel)
                 && blockEntity.hasAnyFilterConfigured()
                 && blockEntity.storedFluidAmount < MAX_STORED_FLUID_AMOUNT) {
-            changed |= blockEntity.collectFromNearbyCauldrons(serverLevel);
+            changed |= blockEntity.collectFromNearbySources(serverLevel);
         }
         if (blockEntity.shouldRunExportTick(serverLevel)) {
             if (!blockEntity.isFlaskSupplyCoolingDown(serverLevel.getGameTime())) {
@@ -330,7 +335,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
         }
     }
 
-    private boolean collectFromNearbyCauldrons(ServerLevel level) {
+    private boolean collectFromNearbySources(ServerLevel level) {
         var changed = false;
         var minPos = worldPosition.offset(-SCAN_RADIUS, -SCAN_RADIUS, -SCAN_RADIUS);
         var maxPos = worldPosition.offset(SCAN_RADIUS, SCAN_RADIUS, SCAN_RADIUS);
@@ -344,11 +349,11 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
             }
 
             var targetBlockEntity = level.getBlockEntity(pos);
-            if (!(targetBlockEntity instanceof AlchemistCauldronTile cauldronTile) || cauldronTile.fluidInventory == null) {
-                continue;
+            if (targetBlockEntity instanceof AlchemistCauldronTile cauldronTile && cauldronTile.fluidInventory != null) {
+                changed |= collectFromCauldron(level, cauldronTile);
+            } else if (targetBlockEntity instanceof AlchemyBrewerBlockEntity brewer) {
+                changed |= collectFromAlchemyBrewer(level, brewer);
             }
-
-            changed |= collectFromCauldron(level, cauldronTile);
         }
         return changed;
     }
@@ -403,6 +408,35 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
         cauldronTile.setChanged();
         startFlaskSupplyCooldown(level.getGameTime());
         emitCauldronToStationEffect(level, cauldronTile.getBlockPos());
+        return true;
+    }
+
+    private boolean collectFromAlchemyBrewer(ServerLevel level, AlchemyBrewerBlockEntity brewer) {
+        var remainingCapacity = MAX_STORED_FLUID_AMOUNT - storedFluidAmount;
+        var potionId = brewer.getTankPotionId();
+        if (remainingCapacity <= 0 || potionId == null || brewer.getTankAmountMb() < MILLIBUCKETS_PER_USE) {
+            return false;
+        }
+
+        var potion = BuiltInRegistries.POTION.get(potionId);
+        if (potion == null) {
+            return false;
+        }
+
+        var representativeItem = PotionContentsHelper.createPotionStack(Items.POTION, potion);
+        if (representativeItem.isEmpty() || !matchesAnyFilter(representativeItem)) {
+            return false;
+        }
+
+        var requestedAmount = normalizeFluidAmount(Math.min(remainingCapacity, brewer.getTankAmountMb()));
+        var extractedAmount = brewer.extractTankPotion(potionId, requestedAmount);
+        if (extractedAmount <= 0) {
+            return false;
+        }
+
+        insertStoredFluid(representativeItem, extractedAmount);
+        startFlaskSupplyCooldown(level.getGameTime());
+        emitAlchemyBrewerToStationEffect(level, brewer);
         return true;
     }
 
@@ -746,6 +780,27 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
                         worldPosition,
                         state.getValue(AtelierStation.FACING),
                         cauldronPos,
+                        level.getGameTime()
+                )
+        );
+    }
+
+    private void emitAlchemyBrewerToStationEffect(ServerLevel level, AlchemyBrewerBlockEntity brewer) {
+        var stationState = getBlockState();
+        var brewerState = brewer.getBlockState();
+        if (!stationState.hasProperty(AtelierStation.FACING) || !brewerState.hasProperty(AlchemyBrewer.FACING)) {
+            return;
+        }
+
+        Networks.sendToPlayersNear(
+                level,
+                Vec3.atCenterOf(worldPosition),
+                EFFECT_BROADCAST_RANGE,
+                AtelierStationFluidEffectPacket.createAlchemyBrewerToStation(
+                        worldPosition,
+                        stationState.getValue(AtelierStation.FACING),
+                        brewer.getBlockPos(),
+                        brewerState.getValue(AlchemyBrewer.FACING),
                         level.getGameTime()
                 )
         );

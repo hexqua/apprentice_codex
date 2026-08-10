@@ -2,16 +2,22 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.alchemybrewer.AlchemyBrewerBlockEntity;
+import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntity;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -91,5 +97,113 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
             helper.assertValueEqual(brewer.getTankPotionId(), ResourceLocation.parse("minecraft:strong_swiftness"), "brewed potion");
             helper.succeed();
         });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 40)
+    public static void atelierStationCollectsMatchingBrewerTankWithOrFilters(GameTestHelper helper) {
+        var station = placeAtelierStation(helper, new BlockPos(1, 1, 1), 0, Potions.REGENERATION.value());
+        station.setFilter(0, potionStack(Potions.REGENERATION.value()));
+        station.setFilter(1, potionStack(Potions.SWIFTNESS.value()));
+        var brewer = placeAlchemyBrewer(helper, new BlockPos(2, 1, 1), "minecraft:swiftness", 1000);
+
+        helper.succeedWhen(() -> {
+            helper.assertValueEqual(station.getStoredFluidAmount(), 1000, "collected Atelier Station amount");
+            helper.assertValueEqual(brewer.getTankAmountMb(), 0, "drained Alchemy Brewer amount");
+            helper.assertTrue(brewer.getTankPotionId() == null, "Empty Alchemy Brewer must clear its potion id");
+            helper.assertTrue(station.getStoredFluidsForDisplay().stream().anyMatch(entry ->
+                            entry.amountMb() == 1000
+                                    && ItemStack.isSameItemSameComponents(
+                                    entry.representativeItem(), potionStack(Potions.SWIFTNESS.value()))),
+                    "Atelier Station must store the potion matched by either filter");
+        });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 40)
+    public static void atelierStationLeavesMismatchedBrewerTankUntouched(GameTestHelper helper) {
+        var station = placeAtelierStation(helper, new BlockPos(1, 1, 1), 0, Potions.REGENERATION.value());
+        station.setFilter(0, potionStack(Potions.REGENERATION.value()));
+        var brewer = placeAlchemyBrewer(helper, new BlockPos(2, 1, 1), "minecraft:swiftness", 1000);
+
+        helper.runAfterDelay(25, () -> {
+            helper.assertValueEqual(station.getStoredFluidAmount(), 0, "mismatched Atelier Station amount");
+            helper.assertValueEqual(brewer.getTankAmountMb(), 1000, "mismatched Alchemy Brewer amount");
+            helper.assertValueEqual(brewer.getTankPotionId(), ResourceLocation.parse("minecraft:swiftness"),
+                    "mismatched Alchemy Brewer potion id");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 40)
+    public static void atelierStationCollectsOnlyItsRemainingCapacityFromBrewer(GameTestHelper helper) {
+        var station = placeAtelierStation(helper, new BlockPos(1, 1, 1), 15750, Potions.REGENERATION.value());
+        station.setFilter(0, potionStack(Potions.SWIFTNESS.value()));
+        var brewer = placeAlchemyBrewer(helper, new BlockPos(2, 1, 1), "minecraft:swiftness", 1000);
+
+        helper.succeedWhen(() -> {
+            helper.assertValueEqual(station.getStoredFluidAmount(), AtelierStationBlockEntity.MAX_STORED_FLUID_AMOUNT,
+                    "capacity-limited Atelier Station amount");
+            helper.assertValueEqual(brewer.getTankAmountMb(), 750, "capacity-limited Alchemy Brewer amount");
+            helper.assertValueEqual(brewer.getTankPotionId(), ResourceLocation.parse("minecraft:swiftness"),
+                    "remaining Alchemy Brewer potion id");
+        });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 40)
+    public static void fullAtelierStationLeavesBrewerTankUntouched(GameTestHelper helper) {
+        var station = placeAtelierStation(helper, new BlockPos(1, 1, 1),
+                AtelierStationBlockEntity.MAX_STORED_FLUID_AMOUNT, Potions.REGENERATION.value());
+        station.setFilter(0, potionStack(Potions.SWIFTNESS.value()));
+        var brewer = placeAlchemyBrewer(helper, new BlockPos(2, 1, 1), "minecraft:swiftness", 1000);
+
+        helper.runAfterDelay(25, () -> {
+            helper.assertValueEqual(station.getStoredFluidAmount(), AtelierStationBlockEntity.MAX_STORED_FLUID_AMOUNT,
+                    "full Atelier Station amount");
+            helper.assertValueEqual(brewer.getTankAmountMb(), 1000, "full-station Alchemy Brewer amount");
+            helper.assertValueEqual(brewer.getTankPotionId(), ResourceLocation.parse("minecraft:swiftness"),
+                    "full-station Alchemy Brewer potion id");
+            helper.succeed();
+        });
+    }
+
+    private static AtelierStationBlockEntity placeAtelierStation(
+            GameTestHelper helper,
+            BlockPos pos,
+            int storedAmountMb,
+            Potion storedPotion
+    ) {
+        helper.setBlock(pos, BlockRegistry.ATELIER_STATION.get());
+        var station = (AtelierStationBlockEntity) helper.getBlockEntity(pos);
+        if (storedAmountMb <= 0) {
+            return station;
+        }
+
+        var storedFluid = new CompoundTag();
+        storedFluid.put("Item", potionStack(storedPotion).saveOptional(helper.getLevel().registryAccess()));
+        storedFluid.putInt("Amount", storedAmountMb);
+        var storedFluids = new ListTag();
+        storedFluids.add(storedFluid);
+        var tag = new CompoundTag();
+        tag.put("StoredFluids", storedFluids);
+        station.loadWithComponents(tag, helper.getLevel().registryAccess());
+        return station;
+    }
+
+    private static AlchemyBrewerBlockEntity placeAlchemyBrewer(
+            GameTestHelper helper,
+            BlockPos pos,
+            String potionId,
+            int amountMb
+    ) {
+        helper.setBlock(pos, BlockRegistry.ALCHEMY_BREWER.get());
+        var brewer = (AlchemyBrewerBlockEntity) helper.getBlockEntity(pos);
+        var tag = new CompoundTag();
+        tag.putString("TankPotion", potionId);
+        tag.putInt("TankAmountMb", amountMb);
+        brewer.loadWithComponents(tag, helper.getLevel().registryAccess());
+        return brewer;
+    }
+
+    private static ItemStack potionStack(Potion potion) {
+        return PotionContentsHelper.createPotionStack(Items.POTION, potion);
     }
 }
