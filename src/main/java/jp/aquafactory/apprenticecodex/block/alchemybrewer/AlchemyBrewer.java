@@ -1,15 +1,28 @@
 package jp.aquafactory.apprenticecodex.block.alchemybrewer;
 
 import com.mojang.serialization.MapCodec;
+import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.stats.Stats;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemUtils;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
@@ -74,6 +87,66 @@ public final class AlchemyBrewer extends BaseEntityBlock {
     @Override public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(@NotNull Level level, @NotNull BlockState state,
                                                                                        @NotNull BlockEntityType<T> type) {
         return level.isClientSide ? null : createTickerHelper(type, BlockEntityRegistry.ALCHEMY_BREWER.get(), AlchemyBrewerBlockEntity::serverTick);
+    }
+    @Override protected @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack, @NotNull BlockState state,
+                                                                  @NotNull Level level, @NotNull BlockPos pos,
+                                                                  @NotNull Player player, @NotNull InteractionHand hand,
+                                                                  @NotNull BlockHitResult hitResult) {
+        if (hand != InteractionHand.MAIN_HAND
+                || !(level.getBlockEntity(pos) instanceof AlchemyBrewerBlockEntity brewer)
+                || brewer.getTankAmountMb() < AlchemyBrewerBlockEntity.DOSE_AMOUNT_MB) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+
+        var potionId = brewer.getTankPotionId();
+        var potion = potionId == null ? null : BuiltInRegistries.POTION.get(potionId);
+        if (potion == null) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+        var representative = PotionContentsHelper.createPotionStack(Items.POTION, potion);
+        if (representative.isEmpty()) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+
+        if (stack.is(Items.GLASS_BOTTLE)) {
+            if (level.isClientSide) {
+                return ItemInteractionResult.SUCCESS;
+            }
+            if (brewer.extractTankPotion(potionId, AlchemyBrewerBlockEntity.DOSE_AMOUNT_MB)
+                    != AlchemyBrewerBlockEntity.DOSE_AMOUNT_MB) {
+                return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            }
+
+            player.setItemInHand(hand, ItemUtils.createFilledResult(stack, player, representative));
+            player.awardStat(Stats.ITEM_USED.get(Items.GLASS_BOTTLE));
+            level.playSound(null, pos, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 1.0F, 1.0F);
+            level.gameEvent(player, GameEvent.FLUID_PICKUP, pos);
+            return ItemInteractionResult.CONSUME;
+        }
+
+        if (!stack.is(ItemRegistry.SPELLCASTERS_FLASK.get())
+                || !AbstractPotionFlaskItem.canAddDoseFromItem(stack, representative)) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+
+        int transferableDoseCount = Math.min(
+                brewer.getTankAmountMb() / AlchemyBrewerBlockEntity.DOSE_AMOUNT_MB,
+                AbstractPotionFlaskItem.getMaxDoseCapacity(stack) - AbstractPotionFlaskItem.getStoredDoseCount(stack)
+        );
+        var filled = AbstractPotionFlaskItem.copyWithAddedDoses(stack, representative, transferableDoseCount);
+        if (transferableDoseCount <= 0 || filled.isEmpty()) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+        if (level.isClientSide) {
+            return ItemInteractionResult.SUCCESS;
+        }
+
+        int transferredAmountMb = transferableDoseCount * AlchemyBrewerBlockEntity.DOSE_AMOUNT_MB;
+        if (brewer.extractTankPotion(potionId, transferredAmountMb) != transferredAmountMb) {
+            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        }
+        player.setItemInHand(hand, filled);
+        return ItemInteractionResult.CONSUME;
     }
     @Override protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
                                                                    @NotNull Player player, @NotNull BlockHitResult hitResult) {
