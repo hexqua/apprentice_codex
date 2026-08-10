@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.flask;
 
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.network.chat.Component;
@@ -35,6 +36,11 @@ public class SpellcastersFlask extends AbstractPotionFlaskItem {
         var result = super.onItemUseFirst(stack, context);
         if (result.consumesAction()) {
             return result;
+        }
+
+        // 錬金醸造台は飲用より汲み取り優先.
+        if (context.getLevel().getBlockState(context.getClickedPos()).is(BlockRegistry.ALCHEMY_BREWER.get())) {
+            return InteractionResult.PASS;
         }
 
         var player = context.getPlayer();
