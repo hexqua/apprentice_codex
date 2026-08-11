@@ -6,17 +6,17 @@ import jp.aquafactory.apprenticecodex.item.magicitem.client.InstantSearchBrazier
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncInstantSearchBrazierConfigPacket;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.config.ModConfig;
-import net.neoforged.fml.event.config.ModConfigEvent;
-import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class InstantSearchBrazierConfigSyncEvents {
     private InstantSearchBrazierConfigSyncEvents() {
     }
@@ -85,7 +85,7 @@ public final class InstantSearchBrazierConfigSyncEvents {
         syncToAllPlayers();
     }
 
-    @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+    @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
     public static final class ClientEvents {
         private ClientEvents() {
         }

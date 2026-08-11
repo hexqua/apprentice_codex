@@ -768,7 +768,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('C', Items.COMPASS)
                 .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
                 .unlockedBy(getHasName(Items.COMPASS), has(Items.COMPASS))
-                .save(recipeOutput);
+                .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.EXPLORERS_CANE.get())
                 .pattern(" CG")

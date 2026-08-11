@@ -1,19 +1,19 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 public final class InstantSearchBrazierServerConfig {
     public static final int DEFAULT_INITIAL_RANGE = 500;
     public static final int MAX_INITIAL_RANGE = 5000;
 
-    private final ModConfigSpec.IntValue initialRange;
+    private final ForgeConfigSpec.IntValue initialRange;
     private Integer initialRangeOverride;
 
-    private InstantSearchBrazierServerConfig(ModConfigSpec.IntValue initialRange) {
+    private InstantSearchBrazierServerConfig(ForgeConfigSpec.IntValue initialRange) {
         this.initialRange = initialRange;
     }
 
-    public static InstantSearchBrazierServerConfig define(ModConfigSpec.Builder builder) {
+    public static InstantSearchBrazierServerConfig define(ForgeConfigSpec.Builder builder) {
         builder.push("InstantSearchBrazier");
         var initialRange = builder
                 .comment("Initial search range of an Instant Brazier of Search.")

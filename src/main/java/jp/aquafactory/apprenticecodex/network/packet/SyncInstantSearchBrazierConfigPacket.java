@@ -1,43 +1,32 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.magicitem.client.InstantSearchBrazierConfigState;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.network.NetworkEvent;
 
-public record SyncInstantSearchBrazierConfigPacket(int initialRange) implements CustomPacketPayload {
-    public static final Type<SyncInstantSearchBrazierConfigPacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_instant_search_brazier_config")
-    );
-    public static final StreamCodec<RegistryFriendlyByteBuf, SyncInstantSearchBrazierConfigPacket> STREAM_CODEC =
-            StreamCodec.of((buffer, packet) -> encode(packet, buffer), SyncInstantSearchBrazierConfigPacket::decode);
+import java.util.function.Supplier;
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    private static void encode(SyncInstantSearchBrazierConfigPacket packet, FriendlyByteBuf buffer) {
+public record SyncInstantSearchBrazierConfigPacket(int initialRange) {
+    public static void encode(SyncInstantSearchBrazierConfigPacket packet, FriendlyByteBuf buffer) {
         buffer.writeVarInt(packet.initialRange);
     }
 
-    private static SyncInstantSearchBrazierConfigPacket decode(FriendlyByteBuf buffer) {
+    public static SyncInstantSearchBrazierConfigPacket decode(FriendlyByteBuf buffer) {
         return new SyncInstantSearchBrazierConfigPacket(buffer.readVarInt());
     }
 
-    public static void handle(SyncInstantSearchBrazierConfigPacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (FMLEnvironment.dist == Dist.CLIENT) {
-                ClientHandler.handle(packet);
-            }
-        });
+    public static void handle(
+            SyncInstantSearchBrazierConfigPacket packet,
+            Supplier<NetworkEvent.Context> contextSupplier
+    ) {
+        var context = contextSupplier.get();
+        context.enqueueWork(() ->
+                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientHandler.handle(packet))
+        );
+        context.setPacketHandled(true);
     }
 
     @OnlyIn(Dist.CLIENT)

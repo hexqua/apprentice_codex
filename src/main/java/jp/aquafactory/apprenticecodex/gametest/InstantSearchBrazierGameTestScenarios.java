@@ -9,7 +9,6 @@ import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconEntity;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconRefundManager;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSummoning;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -128,7 +127,7 @@ public final class InstantSearchBrazierGameTestScenarios {
         );
         player.setXRot(90.0F);
         var refundStack = new ItemStack(ItemRegistry.INSTANT_SEARCH_BRAZIER.get());
-        refundStack.set(DataComponents.CUSTOM_NAME, Component.literal("Persisted Test Brazier"));
+        refundStack.setHoverName(Component.literal("Persisted Test Brazier"));
         var beacon = SearchBeaconSummoning.summonFromInstantBrazier(
                 helper.getLevel(), player, 500, 0, refundStack);
         helper.assertTrue(beacon != null, "Instant Search Brazier test should summon a Search Beacon");
@@ -230,6 +229,6 @@ public final class InstantSearchBrazierGameTestScenarios {
         var beacons = helper.getLevel().getEntitiesOfClass(SearchBeaconEntity.class, searchBox);
         helper.assertTrue(beacons.size() == 1,
                 "Expected exactly one Search Beacon but found " + beacons.size());
-        return beacons.getFirst();
+        return beacons.get(0);
     }
 }

@@ -18,6 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -75,7 +76,7 @@ public final class InstantSearchBrazier extends Item {
     @Override
     public void appendHoverText(
             @NotNull ItemStack stack,
-            Item.@NotNull TooltipContext context,
+            @Nullable Level level,
             @NotNull List<Component> lines,
             @NotNull TooltipFlag flag
     ) {
@@ -85,6 +86,6 @@ public final class InstantSearchBrazier extends Item {
                 InstantSearchBrazierConfigState.initialRange()
         ).withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable(getDescriptionId() + ".desc_3").withStyle(ChatFormatting.GRAY));
-        super.appendHoverText(stack, context, lines, flag);
+        super.appendHoverText(stack, level, lines, flag);
     }
 }

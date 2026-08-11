@@ -28,9 +28,8 @@ public final class SearchBeaconRefundManager {
             return false;
         }
         var state = data.get(CodexSpellStateTypeRegister.SEARCH_BEACON_STATE);
-        var serializedStack = refundStack.copyWithCount(1).saveOptional(owner.registryAccess());
-        if (!(serializedStack instanceof CompoundTag serializedCompound)
-                || !state.reserveInstantBrazier(beaconUuid, serializedCompound)) {
+        var serializedStack = refundStack.copyWithCount(1).save(new CompoundTag());
+        if (!state.reserveInstantBrazier(beaconUuid, serializedStack)) {
             return false;
         }
         data.markDirty(CodexSpellStateTypeRegister.SEARCH_BEACON_STATE.id());
@@ -49,11 +48,11 @@ public final class SearchBeaconRefundManager {
     }
 
     public static ItemStack refund(ServerPlayer owner, UUID beaconUuid) {
-        return decode(owner, claim(owner, beaconUuid));
+        return decode(claim(owner, beaconUuid));
     }
 
     public static void recoverPending(ServerPlayer owner) {
-        var refundStack = decode(owner, claim(owner, null));
+        var refundStack = decode(claim(owner, null));
         placeBackInInventory(owner, refundStack);
     }
 
@@ -83,9 +82,9 @@ public final class SearchBeaconRefundManager {
         return claimed;
     }
 
-    private static ItemStack decode(ServerPlayer owner, CompoundTag serializedStack) {
+    private static ItemStack decode(CompoundTag serializedStack) {
         return serializedStack.isEmpty()
                 ? ItemStack.EMPTY
-                : ItemStack.parseOptional(owner.registryAccess(), serializedStack);
+                : ItemStack.of(serializedStack);
     }
 }
