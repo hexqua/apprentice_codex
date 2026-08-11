@@ -43,6 +43,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncChargecastCatalystbookC
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncInstantSearchBrazierConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncLuminousDeviceConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMageLightConfigPacket;
@@ -77,7 +78,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "74";
+    private static final String PROTOCOL_VERSION = "75";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -272,6 +273,14 @@ public final class Networks {
                 SyncIsekaiTravelGuidebookConfigPacket::encode,
                 SyncIsekaiTravelGuidebookConfigPacket::decode,
                 SyncIsekaiTravelGuidebookConfigPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncInstantSearchBrazierConfigPacket.class,
+                SyncInstantSearchBrazierConfigPacket::encode,
+                SyncInstantSearchBrazierConfigPacket::decode,
+                SyncInstantSearchBrazierConfigPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

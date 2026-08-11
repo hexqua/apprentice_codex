@@ -93,6 +93,8 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
     private int additionalRangePerItem;
     private int searchRange;
     private ItemStack offeredItem = ItemStack.EMPTY;
+    private boolean reservesInstantBrazier;
+    private boolean resetsSpellCooldownOnCancel;
     private String targetLabel = "";
     private @Nullable net.minecraft.resources.ResourceLocation ignoredOfferItemId;
     private int ignoredOfferUntilTick;
@@ -133,6 +135,22 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
         this.additionalRangePerItem = Math.max(0, additionalRangePerItem);
     }
 
+    public void setReservesInstantBrazier(boolean reservesInstantBrazier) {
+        this.reservesInstantBrazier = reservesInstantBrazier;
+    }
+
+    public void setResetsSpellCooldownOnCancel(boolean resetsSpellCooldownOnCancel) {
+        this.resetsSpellCooldownOnCancel = resetsSpellCooldownOnCancel;
+    }
+
+    public int getInitialRange() {
+        return initialRange;
+    }
+
+    public int getAdditionalRangePerItem() {
+        return additionalRangePerItem;
+    }
+
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
@@ -152,6 +170,11 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
 
         var owner = getOwner();
         if (owner == null || !owner.isAlive()) {
+            discard();
+            return;
+        }
+        if (reservesInstantBrazier && !SearchBeaconRefundManager.matches(owner, getUUID())) {
+            reservesInstantBrazier = false;
             discard();
             return;
         }
@@ -293,6 +316,16 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
             searchSession = null;
             refundIssued = false;
             return;
+        }
+
+        var owner = getOwner();
+        if (reservesInstantBrazier) {
+            if (owner == null || !SearchBeaconRefundManager.consume(owner, getUUID())) {
+                reservesInstantBrazier = false;
+                discard();
+                return;
+            }
+            reservesInstantBrazier = false;
         }
 
         searchSession = SearchBeaconSearchService.createSession(
@@ -581,7 +614,9 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
 
         if (phase == Phase.IDLE) {
             if (player.isShiftKeyDown() && offeredItem.isEmpty()) {
-                resetOwnerCooldown(owner);
+                if (resetsSpellCooldownOnCancel) {
+                    resetOwnerCooldown(owner);
+                }
                 discard();
                 return InteractionResult.CONSUME;
             }
@@ -681,6 +716,23 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
     @Override
     public boolean hurt(@NotNull DamageSource source, float amount) {
         return false;
+    }
+
+    @Override
+    public void remove(@NotNull RemovalReason reason) {
+        if (!level().isClientSide && !isRemoved() && reservesInstantBrazier) {
+            var owner = getOwner();
+            if (reason.shouldDestroy() && owner != null && owner.isAlive()) {
+                var refundStack = SearchBeaconRefundManager.refund(owner, getUUID());
+                if (!refundStack.isEmpty()) {
+                    spawnAtLocation(refundStack);
+                }
+            } else if (owner != null && owner.isAlive()) {
+                SearchBeaconRefundManager.recover(owner, getUUID());
+            }
+            reservesInstantBrazier = false;
+        }
+        super.remove(reason);
     }
 
     @Override

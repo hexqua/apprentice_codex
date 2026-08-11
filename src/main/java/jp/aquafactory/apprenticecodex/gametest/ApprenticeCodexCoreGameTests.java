@@ -70,6 +70,38 @@ public final class ApprenticeCodexCoreGameTests {
         ApprenticeCodexGameTestScenarios.searchBeaconRefundLogicOnlyRefundsWhenUnknownStructuresAreAbsent(helper);
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void instantSearchBrazierUseCreatesConfiguredSingleOfferBeaconAndRefundsBeforeSearch(
+            GameTestHelper helper
+    ) {
+        InstantSearchBrazierGameTestScenarios
+                .useCreatesConfiguredSingleOfferBeaconAndRefundsBeforeSearch(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void instantSearchBrazierSearchStartStopsBrazierRefundAndRejectsAdditionalOffer(
+            GameTestHelper helper
+    ) {
+        InstantSearchBrazierGameTestScenarios
+                .searchStartStopsBrazierRefundAndRejectsAdditionalOffer(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void instantSearchBrazierPendingRefundSurvivesSpellDataRoundTrip(GameTestHelper helper) {
+        InstantSearchBrazierGameTestScenarios
+                .pendingBrazierSurvivesSpellDataRoundTripAndRecoversOnce(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void instantSearchBrazierUnloadReturnsBrazierToOwnerInventory(GameTestHelper helper) {
+        InstantSearchBrazierGameTestScenarios.unloadingBeaconReturnsBrazierToOwnerInventory(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void instantSearchBrazierCancelDoesNotResetSpellCooldown(GameTestHelper helper) {
+        InstantSearchBrazierGameTestScenarios.cancelOnlyResetsCooldownForSpellSummonedBeacon(helper);
+    }
+
     @GameTest(template = TEMPLATE, timeoutTicks = 400)
     public static void villagerCanClaimApprenticeDeskAsErrandMageJobSite(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.villagerCanClaimApprenticeDeskAsErrandMageJobSite(helper);

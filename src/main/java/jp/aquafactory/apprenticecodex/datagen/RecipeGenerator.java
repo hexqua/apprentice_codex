@@ -757,6 +757,19 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()))
                 .save(recipeWriter);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.INSTANT_SEARCH_BRAZIER.get())
+                .pattern("REL")
+                .pattern("GCG")
+                .pattern(" A ")
+                .define('R', Items.REDSTONE_BLOCK)
+                .define('E', Items.EMERALD)
+                .define('L', Items.LAPIS_BLOCK)
+                .define('G', Items.GOLD_INGOT)
+                .define('C', Items.COMPASS)
+                .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                .unlockedBy(getHasName(Items.COMPASS), has(Items.COMPASS))
+                .save(recipeWriter);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.EXPLORERS_CANE.get())
                 .pattern(" CG")
                 .pattern(" IA")

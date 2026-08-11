@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.event.HighTierSwingcastStaffConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.InstantSearchBrazierConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.IronSwingcastStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.SoulstainedSteelSwingcastStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.SpellgunConfigSyncEvents;
@@ -57,6 +58,7 @@ public class ApprenticeCodex
         CodexSpellStateTypeRegister.register();
         IronSwingcastStaffConfigSyncEvents.register(bus);
         HighTierSwingcastStaffConfigSyncEvents.register(bus);
+        InstantSearchBrazierConfigSyncEvents.register(bus);
         SoulstainedSteelSwingcastStaffConfigSyncEvents.register(bus);
         SpellgunConfigSyncEvents.register(bus);
         Networks.register();
