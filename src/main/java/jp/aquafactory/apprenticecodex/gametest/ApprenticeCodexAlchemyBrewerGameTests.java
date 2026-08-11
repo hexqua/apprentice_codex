@@ -1,9 +1,13 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.block.alchemist_cauldron.AlchemistCauldronTile;
+import io.redspace.ironsspellbooks.fluids.PotionFluid;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.alchemybrewer.AlchemyBrewerBlockEntity;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntity;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.block.AlchemyBrewerServerConfig;
 import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -25,6 +29,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -32,6 +38,7 @@ import net.neoforged.neoforge.common.util.FakePlayer;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.OptionalInt;
@@ -42,6 +49,12 @@ import java.util.function.Consumer;
 @PrefixGameTestTemplate(false)
 public final class ApprenticeCodexAlchemyBrewerGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
+    private static final String VANILLA_INCREMENT_CONFIG_BATCH =
+            "apprenticecodex.alchemy_brewer_vanilla_increment_config";
+    private static final String IRON_CAULDRON_CONFIG_BATCH =
+            "apprenticecodex.alchemy_brewer_iron_cauldron_config";
+    private static final String WATER_DISABLED_CONFIG_BATCH =
+            "apprenticecodex.alchemy_brewer_water_disabled_config";
     private ApprenticeCodexAlchemyBrewerGameTests() { }
 
     @GameTest(template = TEMPLATE)
@@ -278,12 +291,137 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
         helper.assertTrue(player.getMainHandItem().is(Items.WATER_BUCKET), "Water bucket must remain unchanged");
         player.resetMenuTracking();
 
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.BUCKET));
+        useBrewer(helper, player, pos);
+        helper.assertTrue(player.wasMenuOpened(), "Empty bucket must open the Alchemy Brewer menu");
+        helper.assertTrue(player.getMainHandItem().is(Items.BUCKET), "Empty bucket must remain unchanged");
+        player.resetMenuTracking();
+
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get()));
         useBrewer(helper, player, pos);
         helper.assertTrue(player.wasMenuOpened(),
                 "Alchemist's Flask must open the Alchemy Brewer menu");
         helper.assertValueEqual(brewer.getTankAmountMb(), 1000, "unchanged potion amount");
         helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 60)
+    public static void waterSupplyUsesDistanceThenYzxAndOnlyChangesOneTarget(GameTestHelper helper) {
+        var brewerPos = new BlockPos(2, 1, 2);
+        var lowerXCauldron = new BlockPos(1, 1, 2);
+        var higherXCauldron = new BlockPos(3, 1, 2);
+        helper.setBlock(brewerPos, BlockRegistry.ALCHEMY_BREWER.get());
+        helper.setBlock(lowerXCauldron, Blocks.CAULDRON);
+        helper.setBlock(higherXCauldron, Blocks.CAULDRON);
+
+        helper.succeedWhen(() -> {
+            var selected = helper.getBlockState(lowerXCauldron);
+            helper.assertTrue(selected.is(Blocks.WATER_CAULDRON),
+                    "The lower X cauldron must win the final tie-breaker");
+            helper.assertValueEqual(selected.getValue(LayeredCauldronBlock.LEVEL), 1,
+                    "selected vanilla cauldron water level");
+            helper.assertTrue(helper.getBlockState(higherXCauldron).is(Blocks.CAULDRON),
+                    "Only one cauldron may change per supply attempt");
+        });
+    }
+
+    @GameTest(template = TEMPLATE, batch = VANILLA_INCREMENT_CONFIG_BATCH, timeoutTicks = 60)
+    public static void vanillaCauldronSupplyUsesConfiguredIncrementAndDiscardsOverflow(GameTestHelper helper) {
+        var override = useWaterConfigUntil(helper, new AlchemyBrewerServerConfig.Values(10, 2, 0), 55);
+        var brewerPos = new BlockPos(2, 1, 2);
+        var cauldronPos = new BlockPos(3, 1, 2);
+        helper.setBlock(brewerPos, BlockRegistry.ALCHEMY_BREWER.get());
+        helper.setBlock(cauldronPos, Blocks.WATER_CAULDRON.defaultBlockState()
+                .setValue(LayeredCauldronBlock.LEVEL, 2));
+
+        helper.succeedWhen(() -> {
+            var state = helper.getBlockState(cauldronPos);
+            helper.assertValueEqual(state.getValue(LayeredCauldronBlock.LEVEL), 3,
+                    "configured vanilla supply must cap at a full cauldron");
+            override.close();
+        });
+    }
+
+    @GameTest(template = TEMPLATE, batch = IRON_CAULDRON_CONFIG_BATCH, timeoutTicks = 60)
+    public static void alchemistCauldronSupplyFillsRemainingCapacityOnly(GameTestHelper helper) {
+        var override = useWaterConfigUntil(helper, new AlchemyBrewerServerConfig.Values(10, 0, 250), 55);
+        var brewerPos = new BlockPos(2, 1, 2);
+        var cauldronPos = new BlockPos(3, 1, 2);
+        helper.setBlock(brewerPos, BlockRegistry.ALCHEMY_BREWER.get());
+        helper.setBlock(cauldronPos, io.redspace.ironsspellbooks.registries.BlockRegistry.ALCHEMIST_CAULDRON.get());
+        var cauldron = (AlchemistCauldronTile) helper.getBlockEntity(cauldronPos);
+        cauldron.fluidInventory.fill(
+                new net.neoforged.neoforge.fluids.FluidStack(net.minecraft.world.level.material.Fluids.WATER, 900),
+                IFluidHandler.FluidAction.EXECUTE
+        );
+
+        helper.succeedWhen(() -> {
+            helper.assertValueEqual(cauldron.getFluidAmount(), 1000,
+                    "Alchemist Cauldron must accept only its remaining capacity");
+            override.close();
+        });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 60)
+    public static void alchemistCauldronContainingPotionIsSkipped(GameTestHelper helper) {
+        var brewerPos = new BlockPos(2, 1, 2);
+        var potionCauldronPos = new BlockPos(1, 1, 2);
+        var vanillaCauldronPos = new BlockPos(3, 1, 2);
+        helper.setBlock(brewerPos, BlockRegistry.ALCHEMY_BREWER.get());
+        helper.setBlock(potionCauldronPos,
+                io.redspace.ironsspellbooks.registries.BlockRegistry.ALCHEMIST_CAULDRON.get());
+        helper.setBlock(vanillaCauldronPos, Blocks.CAULDRON);
+        var potionCauldron = (AlchemistCauldronTile) helper.getBlockEntity(potionCauldronPos);
+        var potionFluid = PotionFluid.from(potionStack(Potions.SWIFTNESS.value()));
+        potionFluid.setAmount(250);
+        potionCauldron.fluidInventory.fill(potionFluid, IFluidHandler.FluidAction.EXECUTE);
+
+        helper.succeedWhen(() -> {
+            helper.assertValueEqual(potionCauldron.getFluidAmount(), 250,
+                    "A potion-containing Alchemist Cauldron must not receive water");
+            helper.assertTrue(helper.getBlockState(vanillaCauldronPos).is(Blocks.WATER_CAULDRON),
+                    "The next eligible cauldron must receive water");
+        });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 80)
+    public static void redstoneSignalStopsWaterSupplyUntilRemoved(GameTestHelper helper) {
+        var brewerPos = new BlockPos(2, 1, 2);
+        var cauldronPos = new BlockPos(3, 1, 2);
+        var powerPos = new BlockPos(2, 1, 1);
+        helper.setBlock(brewerPos, BlockRegistry.ALCHEMY_BREWER.get());
+        helper.setBlock(cauldronPos, Blocks.CAULDRON);
+        helper.setBlock(powerPos, Blocks.REDSTONE_BLOCK);
+
+        helper.runAfterDelay(25, () -> {
+            helper.assertTrue(helper.getBlockState(cauldronPos).is(Blocks.CAULDRON),
+                    "A powered Alchemy Brewer must not supply water");
+            helper.setBlock(powerPos, Blocks.AIR);
+        });
+        helper.succeedWhen(() -> {
+            helper.assertTrue(helper.getTick() > 25, "Water supply must remain blocked before redstone is removed");
+            helper.assertTrue(helper.getBlockState(cauldronPos).is(Blocks.WATER_CAULDRON),
+                    "Water supply must resume after redstone is removed");
+        });
+    }
+
+    @GameTest(template = TEMPLATE, batch = WATER_DISABLED_CONFIG_BATCH, timeoutTicks = 50)
+    public static void zeroSupplyAmountsDisableWaterSupply(GameTestHelper helper) {
+        var override = useWaterConfigUntil(helper, new AlchemyBrewerServerConfig.Values(10, 0, 0), 45);
+        var brewerPos = new BlockPos(2, 1, 2);
+        var cauldronPos = new BlockPos(3, 1, 2);
+        helper.setBlock(brewerPos, BlockRegistry.ALCHEMY_BREWER.get());
+        helper.setBlock(cauldronPos, Blocks.CAULDRON);
+
+        helper.runAfterDelay(25, () -> {
+            try {
+                helper.assertTrue(helper.getBlockState(cauldronPos).is(Blocks.CAULDRON),
+                        "Zero supply amounts must disable water supply");
+                helper.succeed();
+            } finally {
+                override.close();
+            }
+        });
     }
 
     @GameTest(template = TEMPLATE)
@@ -412,6 +550,16 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
         tag.putInt("TankAmountMb", amountMb);
         brewer.loadWithComponents(tag, helper.getLevel().registryAccess());
         return brewer;
+    }
+
+    private static ApprenticeCodexServerConfig.GameTestConfigOverride useWaterConfigUntil(
+            GameTestHelper helper,
+            AlchemyBrewerServerConfig.Values values,
+            int restoreTick
+    ) {
+        var override = ApprenticeCodexServerConfig.useAlchemyBrewerConfigOverrideForGameTest(values);
+        helper.runAtTickTime(restoreTick, override::close);
+        return override;
     }
 
     private static MenuTrackingFakePlayer createPlayer(GameTestHelper helper, String name, BlockPos localPos) {

@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
+import jp.aquafactory.apprenticecodex.network.packet.AlchemyBrewerWaterSupplyEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientAnchorBlinkPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
@@ -79,7 +80,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "81";
+    private static final String PROTOCOL_VERSION = "82";
 
     private Networks() {
     }
@@ -414,6 +415,11 @@ public final class Networks {
                 AtelierStationFluidEffectPacket.TYPE,
                 AtelierStationFluidEffectPacket.STREAM_CODEC,
                 AtelierStationFluidEffectPacket::handle
+        );
+        registrar.playToClient(
+                AlchemyBrewerWaterSupplyEffectPacket.TYPE,
+                AlchemyBrewerWaterSupplyEffectPacket.STREAM_CODEC,
+                AlchemyBrewerWaterSupplyEffectPacket::handle
         );
         registrar.playToClient(
                 SyncReflectcastShieldEffectPacket.TYPE,

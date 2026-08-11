@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.config;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.block.ArcanumInAJarServerConfig;
+import jp.aquafactory.apprenticecodex.config.block.AlchemyBrewerServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
@@ -155,6 +156,18 @@ public final class ApprenticeCodexServerConfig {
 
     public static int arcanumInAJarTicksPerStoredParameter() {
         return BLOCKS_CONFIG.arcanumInAJarTicksPerStoredParameter();
+    }
+
+    public static AlchemyBrewerServerConfig.Values alchemyBrewerConfig() {
+        return BLOCKS_CONFIG.alchemyBrewerConfig();
+    }
+
+    public static GameTestConfigOverride useAlchemyBrewerConfigOverrideForGameTest(
+            AlchemyBrewerServerConfig.Values values
+    ) {
+        var previousValues = BLOCKS_CONFIG.alchemyBrewerConfig();
+        BLOCKS_CONFIG.setAlchemyBrewerConfigForGameTest(values);
+        return () -> BLOCKS_CONFIG.setAlchemyBrewerConfigForGameTest(previousValues);
     }
 
     public static GameTestConfigOverride useArcanumInAJarTicksPerStoredParameterOverrideForGameTest(int value) {

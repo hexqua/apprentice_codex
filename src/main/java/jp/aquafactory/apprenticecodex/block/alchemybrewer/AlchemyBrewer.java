@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,6 +22,7 @@ import net.minecraft.world.item.ItemUtils;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -79,6 +81,27 @@ public final class AlchemyBrewer extends BaseEntityBlock {
     }
     @Override public @NotNull BlockState mirror(@NotNull BlockState state, @NotNull Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+    @Override public void animateTick(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
+                                      @NotNull RandomSource random) {
+        if (level.hasNeighborSignal(pos)) {
+            return;
+        }
+
+        var origin = AlchemyBrewerWaterEffects.localToWorld(
+                pos,
+                state.getValue(FACING),
+                AlchemyBrewerWaterEffects.JAR_MOUTH_LOCAL
+        );
+        // FISHINGは移動する極小の航跡として見せる粒子なので、静止させるとほぼ視認できない。
+        // SPLASHへXZ速度0を渡し、壷口から水滴が上下するだけの見た目にする。
+        for (var index = 0; index < 2; ++index) {
+            var offsetX = (random.nextDouble() - 0.5d) * 0.1d;
+            var offsetZ = (random.nextDouble() - 0.5d) * 0.1d;
+            level.addParticle(ParticleTypes.SPLASH,
+                    origin.x + offsetX, origin.y, origin.z + offsetZ,
+                    0.0d, 0.0d, 0.0d);
+        }
     }
     @Override protected void createBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder) { builder.add(FACING); }
     @Override public @NotNull BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
