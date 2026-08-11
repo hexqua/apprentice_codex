@@ -1,21 +1,25 @@
 package jp.aquafactory.apprenticecodex.config;
 
 import jp.aquafactory.apprenticecodex.config.block.ApprenticeDeskServerConfig;
+import jp.aquafactory.apprenticecodex.config.block.AlchemyBrewerServerConfig;
 import jp.aquafactory.apprenticecodex.config.block.ArcanumInAJarServerConfig;
 import jp.aquafactory.apprenticecodex.config.block.SpellDispenserServerConfig;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 final class BlocksServerConfig {
     private final ApprenticeDeskServerConfig apprenticeDeskConfig;
+    private final AlchemyBrewerServerConfig alchemyBrewerConfig;
     private final ArcanumInAJarServerConfig arcanumInAJarConfig;
     private final SpellDispenserServerConfig spellDispenserConfig;
 
     private BlocksServerConfig(
             ApprenticeDeskServerConfig apprenticeDeskConfig,
+            AlchemyBrewerServerConfig alchemyBrewerConfig,
             ArcanumInAJarServerConfig arcanumInAJarConfig,
             SpellDispenserServerConfig spellDispenserConfig
     ) {
         this.apprenticeDeskConfig = apprenticeDeskConfig;
+        this.alchemyBrewerConfig = alchemyBrewerConfig;
         this.arcanumInAJarConfig = arcanumInAJarConfig;
         this.spellDispenserConfig = spellDispenserConfig;
     }
@@ -23,15 +27,25 @@ final class BlocksServerConfig {
     static BlocksServerConfig define(ForgeConfigSpec.Builder builder) {
         builder.push("Blocks");
         var apprenticeDeskConfig = ApprenticeDeskServerConfig.define(builder);
+        var alchemyBrewerConfig = AlchemyBrewerServerConfig.define(builder);
         var arcanumInAJarConfig = ArcanumInAJarServerConfig.define(builder);
         var spellDispenserConfig = SpellDispenserServerConfig.define(builder);
         builder.pop();
 
         return new BlocksServerConfig(
                 apprenticeDeskConfig,
+                alchemyBrewerConfig,
                 arcanumInAJarConfig,
                 spellDispenserConfig
         );
+    }
+
+    AlchemyBrewerServerConfig.Values alchemyBrewerConfig() {
+        return alchemyBrewerConfig.values();
+    }
+
+    void setAlchemyBrewerConfigForGameTest(AlchemyBrewerServerConfig.Values values) {
+        alchemyBrewerConfig.setForGameTest(values);
     }
 
     boolean apprenticeDeskEnableSpellCraftBlacklist() {

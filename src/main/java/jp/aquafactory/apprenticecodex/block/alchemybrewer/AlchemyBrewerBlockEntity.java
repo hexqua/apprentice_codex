@@ -1,6 +1,9 @@
 package jp.aquafactory.apprenticecodex.block.alchemybrewer;
 
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.AlchemyBrewerWaterSupplyEffectPacket;
 import jp.aquafactory.apprenticecodex.recipe.alchemybrewer.AlchemyBrewerModifierRecipe;
 import jp.aquafactory.apprenticecodex.recipe.alchemybrewer.AlchemyBrewerRecipe;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
@@ -29,6 +32,7 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
@@ -48,6 +52,7 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
     public static final int SLOT_COUNT = 12;
     public static final int START_STABILITY_TICKS = 20;
     private static final int FILL_INTERVAL_TICKS = 10;
+    private static final double WATER_EFFECT_BROADCAST_RANGE = 48.0d;
     static final int MENU_DATA_COUNT = 7;
     static final int MENU_DATA_AUTO_BREWING = 0;
     static final int MENU_DATA_TANK_AMOUNT = 1;
@@ -150,7 +155,9 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, AlchemyBrewerBlockEntity blockEntity) {
-        if (!(level instanceof ServerLevel)) return;
+        if (!(level instanceof ServerLevel serverLevel)) return;
+
+        blockEntity.trySupplyWater(serverLevel, pos, state);
 
         boolean changed = false;
         if (blockEntity.activeJob != null) {
@@ -183,6 +190,37 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
         }
 
         if (changed) blockEntity.markUpdated();
+    }
+
+    private void trySupplyWater(ServerLevel level, BlockPos pos, BlockState state) {
+        var config = ApprenticeCodexServerConfig.alchemyBrewerConfig();
+        if ((config.vanillaCauldronWaterLevelIncrease() <= 0
+                && config.alchemistCauldronWaterAmountMb() <= 0)
+                || level.hasNeighborSignal(pos)) {
+            return;
+        }
+
+        var interval = Math.max(10, config.waterSupplyIntervalTicks());
+        var phase = Math.floorMod(Long.hashCode(pos.asLong()), interval);
+        if (Math.floorMod(level.getGameTime(), interval) != phase) {
+            return;
+        }
+
+        var target = AlchemyBrewerWaterSupply.trySupply(level, pos, config);
+        if (target == null || !state.hasProperty(AlchemyBrewer.FACING)) {
+            return;
+        }
+
+        var facing = state.getValue(AlchemyBrewer.FACING);
+        var source = AlchemyBrewerWaterEffects.localToWorld(pos, facing, AlchemyBrewerWaterEffects.JAR_MOUTH_LOCAL);
+        level.playSound(null, source.x, source.y, source.z,
+                SoundEvents.GENERIC_SPLASH, SoundSource.BLOCKS, 1.0f, 1.0f);
+        Networks.sendToPlayersNear(
+                level,
+                Vec3.atCenterOf(pos),
+                WATER_EFFECT_BROADCAST_RANGE,
+                new AlchemyBrewerWaterSupplyEffectPacket(pos, facing, target, level.getGameTime())
+        );
     }
 
     private void updatePreview(@Nullable Candidate candidate) {
