@@ -1276,7 +1276,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 itemId(ItemRegistry.IRON_SWINGCAST_STAFF.get()),
                 itemId(ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get()),
                 List.of(
-                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "refined_brilliance"), 8),
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "chunk_of_brilliance"), 8),
                         new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "soul_stained_steel_ingot"), 4),
                         new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "hex_ash"), 8)
                 ),
