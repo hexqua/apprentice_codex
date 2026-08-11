@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.embedded.EmbeddedChannel;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -21,16 +22,19 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.KeybindContents;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageTypes;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.Boat;
@@ -46,6 +50,7 @@ import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.EntityMountEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.network.registration.NetworkRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -137,8 +142,8 @@ public final class FloatmountBroomGameTests {
     @GameTest(template = TEMPLATE)
     public static void onlyOnePlayerMayRideAndOccupiedBroomCannotBeRecovered(GameTestHelper helper) {
         var broom = spawnBroom(helper, 1.5D);
-        var first = player(helper, "floatmount_broom_first_rider");
-        var second = player(helper, "floatmount_broom_second_rider");
+        var first = serverRider(helper);
+        var second = serverRider(helper);
 
         helper.assertTrue(first.startRiding(broom, true), "First player should be able to ride the broom");
         broom.positionRider(first);
@@ -421,8 +426,7 @@ public final class FloatmountBroomGameTests {
         helper.assertTrue(server != null, "Floatmount Broom PvP test requires a server");
         var attacker = new ServerPlayer(server, level,
                 new GameProfile(UUID.randomUUID(), "broom_pvp_attacker"), ClientInformation.createDefault());
-        // 降車時のteleport処理も通るため、騎乗者には接続を備えたGameTestのmock playerを使う。
-        var rider = helper.makeMockPlayer(GameType.SURVIVAL);
+        var rider = serverRider(helper);
         var broom = spawnBroom(helper, 1.5D);
         var boat = new Boat(level, broom.getX() + 2.0D, broom.getY(), broom.getZ());
         level.addFreshEntity(boat);
@@ -482,7 +486,7 @@ public final class FloatmountBroomGameTests {
         var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 1.0D, 1.5D);
         try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
             var broom = spawnBroom(helper, 1.5D);
-            var player = player(helper, "floatmount_broom_damaged");
+            var player = serverRider(helper);
             helper.assertTrue(player.startRiding(broom, true), "Damage test player should mount directly");
             broom.hurt(helper.getLevel().damageSources().playerAttack(player), 20.0F);
 
@@ -544,7 +548,7 @@ public final class FloatmountBroomGameTests {
         var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 1.0D, 1.5D);
         try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
             var broom = spawnBroom(helper, 1.5D);
-            var player = player(helper, "floatmount_broom_mount_mana");
+            var player = serverRider(helper);
             var magicData = magicData(helper, player);
             magicData.setMana(99.0F);
 
@@ -596,20 +600,20 @@ public final class FloatmountBroomGameTests {
         var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 2.0D, 3.5D);
         try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
             var broom = spawnBroom(helper, 1.5D);
-            var player = player(helper, "floatmount_broom_inactive_input");
+            var player = serverRider(helper);
             var magicData = magicData(helper, player);
-            magicData.setMana(200.0F);
+            magicData.setMana(100.0F);
             helper.assertTrue(player.startRiding(broom, true), "Inactive input test player should mount directly");
 
             broom.acceptServerInput(player, 0.0F, 1.0F, true, false);
             broom.tick();
-            helper.assertTrue(Math.abs(magicData.getMana() - 196.5F) < 1.0e-4F,
+            helper.assertTrue(Math.abs(magicData.getMana() - 96.5F) < 1.0e-4F,
                     "Active combined movement should consume configured mana");
 
             // clientの画面操作はGameTestで再現せず、inactive受理後のserver課金停止だけを固定する。
             broom.acceptServerInput(player, 0.0F, 0.0F, false, false);
             broom.tick();
-            helper.assertTrue(Math.abs(magicData.getMana() - 196.5F) < 1.0e-4F,
+            helper.assertTrue(Math.abs(magicData.getMana() - 96.5F) < 1.0e-4F,
                     "Inactive movement input must stop additional mana consumption");
         }
         helper.succeed();
@@ -620,7 +624,7 @@ public final class FloatmountBroomGameTests {
         var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 2.0D, 3.5D);
         try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
             var broom = spawnBroom(helper, 1.5D);
-            var player = player(helper, "floatmount_broom_server_teleport");
+            var player = serverRider(helper);
             var magicData = magicData(helper, player);
             magicData.setMana(0.5F);
             helper.assertTrue(player.startRiding(broom, true), "Server teleport test player should mount directly");
@@ -649,7 +653,7 @@ public final class FloatmountBroomGameTests {
         var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 2.0D, 3.5D);
         try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
             var broom = spawnBroom(helper, 1.5D);
-            var rider = player(helper, "floatmount_broom_controller");
+            var rider = serverRider(helper);
             var nonController = player(helper, "floatmount_broom_non_controller");
             var riderMagicData = magicData(helper, rider);
             riderMagicData.setMana(100.0F);
@@ -671,7 +675,7 @@ public final class FloatmountBroomGameTests {
         var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 1.0D, 1.5D);
         try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
             var broom = spawnBroom(helper, 1.5D);
-            var player = player(helper, "floatmount_broom_emergency");
+            var player = serverRider(helper);
             var magicData = magicData(helper, player);
             magicData.setMana(0.5F);
             helper.assertTrue(player.startRiding(broom, true), "Emergency test player should mount directly");
@@ -710,7 +714,7 @@ public final class FloatmountBroomGameTests {
         var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 1.0D, 1.5D);
         try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
             var broom = spawnBroom(helper, 1.5D);
-            var player = player(helper, "floatmount_broom_external_depletion");
+            var player = serverRider(helper);
             var magicData = magicData(helper, player);
             magicData.setMana(0.0F);
             helper.assertTrue(player.startRiding(broom, true), "External depletion test player should mount directly");
@@ -820,7 +824,7 @@ public final class FloatmountBroomGameTests {
         broom.setPos(center.getX() + 0.5D, center.getY() + 2.5D, center.getZ() + 0.5D);
         broom.setYRot(0.0F);
         level.addFreshEntity(broom);
-        var player = player(helper, "floatmount_broom_safe_dismount");
+        var player = serverRider(helper);
         helper.assertTrue(player.startRiding(broom, true), "Safe dismount test player should mount the broom");
         player.setYRot(180.0F);
 
@@ -856,7 +860,7 @@ public final class FloatmountBroomGameTests {
         broom.setPos(center.getX() + 0.5D, center.getY() + 2.5D, center.getZ() + 0.5D);
         broom.setYRot(0.0F);
         level.addFreshEntity(broom);
-        var player = player(helper, "floatmount_broom_cliff_dismount");
+        var player = serverRider(helper);
         helper.assertTrue(player.startRiding(broom, true), "Cliff dismount test player should mount the broom");
         helper.assertTrue(broom.isDangerousDismount(),
                 "Ground below the broom must not make a preferred-side cliff safe");
@@ -883,7 +887,7 @@ public final class FloatmountBroomGameTests {
         broom.setPos(center.getX() + 0.5D, leftGround.getY() + 3.0D, center.getZ() + 0.5D);
         broom.setYRot(0.0F);
         level.addFreshEntity(broom);
-        var player = player(helper, "floatmount_broom_height_dismount");
+        var player = serverRider(helper);
         helper.assertTrue(player.startRiding(broom, true), "Height boundary test player should mount the broom");
 
         helper.assertTrue(broom.isDangerousDismount(),
@@ -904,7 +908,7 @@ public final class FloatmountBroomGameTests {
     @GameTest(template = TEMPLATE)
     public static void dangerousDismountRequiresReleaseAndSecondPress(GameTestHelper helper) {
         var broom = spawnBroom(helper, 5.0D);
-        var player = player(helper, "floatmount_broom_dismount");
+        var player = serverRider(helper);
         helper.assertTrue(player.startRiding(broom, true), "Dismount test player should mount the broom");
         broom.setPos(broom.getX(), broom.getY() + 10.0D, broom.getZ());
         helper.assertTrue(broom.isDangerousDismount(), "High broom should be classified as dangerous");
@@ -929,7 +933,7 @@ public final class FloatmountBroomGameTests {
     @GameTest(template = TEMPLATE, timeoutTicks = 80)
     public static void dangerousDismountNeverTreatsHeldSneakAsSecondPress(GameTestHelper helper) {
         var broom = spawnBroom(helper, 5.0D);
-        var player = player(helper, "floatmount_broom_held_dismount");
+        var player = serverRider(helper);
         helper.assertTrue(player.startRiding(broom, true), "Held dismount test player should mount the broom");
         broom.setPos(broom.getX(), broom.getY() + 10.0D, broom.getZ());
 
@@ -1011,6 +1015,22 @@ public final class FloatmountBroomGameTests {
         return helper.makeMockPlayer(GameType.SURVIVAL);
     }
 
+    private static ServerPlayer serverRider(GameTestHelper helper) {
+        // Epic FightはEntityType.PLAYERをServerPlayerとしてpatchするため、world tickされる騎乗者には
+        // local player扱いの軽量mockではなく、接続を備えたserver側GameTest playerを使う。
+        var level = helper.getLevel();
+        var server = level.getServer();
+        var profile = new GameProfile(UUID.randomUUID(), "broom_test_rider");
+        var cookie = CommonListenerCookie.createInitial(profile, false);
+        var player = new ServerPlayer(server, level, profile, cookie.clientInformation());
+        var connection = new Connection(PacketFlow.SERVERBOUND);
+        new EmbeddedChannel(connection);
+        NetworkRegistry.configureMockConnection(connection);
+        new ServerGamePacketListenerImpl(server, connection, player, cookie);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
+        return player;
+    }
+
     private static MagicData magicData(GameTestHelper helper, Player player) {
         var magicData = MagicData.getPlayerMagicData(player);
         helper.assertTrue(magicData != null, "Floatmount Broom test could not resolve player mana data");
@@ -1027,15 +1047,15 @@ public final class FloatmountBroomGameTests {
             boolean descending
     ) {
         var broom = spawnBroom(helper, 1.5D);
-        var player = player(helper, playerName);
+        var player = serverRider(helper);
         var magicData = magicData(helper, player);
-        magicData.setMana(200.0F);
+        magicData.setMana(100.0F);
         helper.assertTrue(player.startRiding(broom, true), playerName + " should mount directly");
         broom.acceptServerInput(player, strafe, forward, ascending, descending);
 
         broom.tick();
 
-        helper.assertTrue(Math.abs(magicData.getMana() - (200.0F - expectedCost)) < 1.0e-4F,
+        helper.assertTrue(Math.abs(magicData.getMana() - (100.0F - expectedCost)) < 1.0e-4F,
                 playerName + " used an unexpected mana cost: " + magicData.getMana());
         player.stopRiding();
     }
