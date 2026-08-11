@@ -20,12 +20,15 @@ public record AlchemyBrewerRecipe(
         int processingTimeTicks,
         int priority
 ) implements Recipe<AlchemyBrewerRecipeInput> {
+    // ContainerData はクライアントへ符号付き16ビットで同期されるため、この範囲を超えるレシピは受理しない。
+    public static final int MAX_PROCESSING_TIME_TICKS = Short.MAX_VALUE;
+
     public AlchemyBrewerRecipe {
         if (fluidAmountMb < 250 || fluidAmountMb > 1000 || fluidAmountMb % 250 != 0) {
             throw new IllegalArgumentException("AlchemyBrewer fluid amount must be 250..1000 mB in 250 mB units.");
         }
-        if (processingTimeTicks <= 0) {
-            throw new IllegalArgumentException("AlchemyBrewer processing time must be positive.");
+        if (processingTimeTicks <= 0 || processingTimeTicks > MAX_PROCESSING_TIME_TICKS) {
+            throw new IllegalArgumentException("AlchemyBrewer processing time must be 1..32767 ticks.");
         }
     }
 

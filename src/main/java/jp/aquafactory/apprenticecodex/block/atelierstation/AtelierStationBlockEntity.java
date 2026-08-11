@@ -13,7 +13,6 @@ import jp.aquafactory.apprenticecodex.utility.PersistentGameTimeSanitizer;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -417,7 +416,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
             return false;
         }
 
-        var potion = BuiltInRegistries.POTION.get(potionId);
+        var potion = AlchemyBrewerBlockEntity.resolveRegisteredPotion(potionId);
         if (potion == null) {
             return false;
         }
