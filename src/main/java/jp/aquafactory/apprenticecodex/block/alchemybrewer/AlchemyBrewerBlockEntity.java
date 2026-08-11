@@ -162,9 +162,10 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
         boolean changed = false;
         if (blockEntity.activeJob != null) {
             blockEntity.activeJob.elapsedTicks++;
-            changed = true;
+            blockEntity.setChanged();
             if (blockEntity.activeJob.elapsedTicks >= blockEntity.activeJob.totalTicks) {
                 blockEntity.finishJob();
+                changed = true;
             }
         }
 
