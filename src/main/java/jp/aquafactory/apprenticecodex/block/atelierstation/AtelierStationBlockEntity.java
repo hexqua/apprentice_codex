@@ -14,7 +14,6 @@ import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -203,7 +202,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
     }
 
     @Override
-    public @NotNull CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+    public @NotNull CompoundTag getUpdateTag(HolderLookup.@NotNull Provider registries) {
         var tag = new CompoundTag();
         saveAdditional(tag, registries);
         return tag;
@@ -253,7 +252,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
     }
 
     @Override
-    protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.Provider registries) {
+    protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.saveAdditional(tag, registries);
 
         tag.put(FLASKS_TAG, flaskInventory.serializeNBT(registries));
@@ -288,7 +287,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
     }
 
     @Override
-    protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.Provider registries) {
+    protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.loadAdditional(tag, registries);
 
         flaskInventory.deserializeNBT(registries, tag.getCompound(FLASKS_TAG));
@@ -418,7 +417,7 @@ public final class AtelierStationBlockEntity extends BlockEntity implements Menu
             return false;
         }
 
-        var potion = BuiltInRegistries.POTION.get(potionId);
+        var potion = AlchemyBrewerBlockEntity.resolveRegisteredPotion(potionId);
         if (potion == null) {
             return false;
         }

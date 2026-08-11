@@ -17,7 +17,8 @@ public final class AlchemyBrewerRecipeSerializer implements RecipeSerializer<Alc
             Ingredient.CODEC.fieldOf("ingredient").forGetter(AlchemyBrewerRecipe::ingredient),
             ResourceLocation.CODEC.fieldOf("result").forGetter(AlchemyBrewerRecipe::result),
             Codec.INT.fieldOf("fluid_amount_mb").forGetter(AlchemyBrewerRecipe::fluidAmountMb),
-            Codec.INT.fieldOf("processing_time_ticks").forGetter(AlchemyBrewerRecipe::processingTimeTicks),
+            Codec.intRange(1, AlchemyBrewerRecipe.MAX_PROCESSING_TIME_TICKS)
+                    .fieldOf("processing_time_ticks").forGetter(AlchemyBrewerRecipe::processingTimeTicks),
             Codec.INT.optionalFieldOf("priority", 0).forGetter(AlchemyBrewerRecipe::priority)
     ).apply(instance, AlchemyBrewerRecipe::new));
     private static final StreamCodec<RegistryFriendlyByteBuf, AlchemyBrewerRecipe> STREAM_CODEC = StreamCodec.composite(

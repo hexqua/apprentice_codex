@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEn
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.block.AlchemyBrewerServerConfig;
 import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
+import jp.aquafactory.apprenticecodex.recipe.alchemybrewer.AlchemyBrewerRecipe;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
@@ -29,6 +30,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.phys.AABB;
@@ -213,6 +215,37 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void processingTimeRejectsValuesOutsideContainerDataRange(GameTestHelper helper) {
+        var result = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "processing_time_boundary");
+        var maximumRecipe = new AlchemyBrewerRecipe(
+                Ingredient.of(Items.NETHER_WART),
+                Ingredient.of(Items.SUGAR),
+                result,
+                250,
+                AlchemyBrewerRecipe.MAX_PROCESSING_TIME_TICKS,
+                0
+        );
+        helper.assertValueEqual(maximumRecipe.processingTimeTicks(), AlchemyBrewerRecipe.MAX_PROCESSING_TIME_TICKS,
+                "maximum synchronized processing time");
+
+        var rejected = false;
+        try {
+            new AlchemyBrewerRecipe(
+                    Ingredient.of(Items.NETHER_WART),
+                    Ingredient.of(Items.SUGAR),
+                    result,
+                    250,
+                    AlchemyBrewerRecipe.MAX_PROCESSING_TIME_TICKS + 1,
+                    0
+            );
+        } catch (IllegalArgumentException ignored) {
+            rejected = true;
+        }
+        helper.assertTrue(rejected, "Processing times above signed 16-bit ContainerData range must be rejected");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void stackedGlassBottleDropsPotionWhenInventoryIsFull(GameTestHelper helper) {
         var pos = new BlockPos(1, 1, 1);
         var brewer = placeAlchemyBrewer(helper, pos, "minecraft:swiftness", 500);
@@ -270,6 +303,8 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
         }
 
         var brewer = placeAlchemyBrewer(helper, pos, "apprenticecodex:missing_potion", 250);
+        helper.assertTrue(AlchemyBrewerBlockEntity.resolveRegisteredPotion(brewer.getTankPotionId()) == null,
+                "Missing potion ids must not resolve to a default potion");
         useBrewer(helper, player, pos);
 
         helper.assertTrue(player.wasMenuOpened(),

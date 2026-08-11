@@ -27,6 +27,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.level.Level;
@@ -322,7 +323,7 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
             return moveFullInputToOutput();
         }
         if (tankPotion == null || tankAmountMb < DOSE_AMOUNT_MB) return false;
-        var potion = BuiltInRegistries.POTION.get(tankPotion);
+        var potion = resolveRegisteredPotion(tankPotion);
         if (potion == null) return false;
         var representative = PotionContentsHelper.createPotionStack(Items.POTION, potion);
 
@@ -376,6 +377,10 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
 
     private void consumeTankDose() {
         consumeTankAmount(DOSE_AMOUNT_MB);
+    }
+
+    public static @Nullable Potion resolveRegisteredPotion(@Nullable ResourceLocation potionId) {
+        return potionId == null ? null : BuiltInRegistries.POTION.getOptional(potionId).orElse(null);
     }
 
     private void consumeTankAmount(int amountMb) {

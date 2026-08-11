@@ -7,7 +7,6 @@ import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -136,7 +135,7 @@ public final class AlchemyBrewer extends BaseEntityBlock {
         }
 
         var potionId = brewer.getTankPotionId();
-        var potion = potionId == null ? null : BuiltInRegistries.POTION.get(potionId);
+        var potion = AlchemyBrewerBlockEntity.resolveRegisteredPotion(potionId);
         if (potion == null) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
