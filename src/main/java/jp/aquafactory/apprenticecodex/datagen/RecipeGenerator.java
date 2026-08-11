@@ -111,7 +111,20 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()))
                 .save(recipeOutput);
 
-        ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ItemRegistry.ATELIER_STATION.get())
+        ShapedRecipeBuilder.shaped(RecipeCategory.BREWING, ItemRegistry.ALCHEMY_BREWER.get())
+                .pattern("BMA")
+                .pattern("SSS")
+                .pattern("FWF")
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get())
+                .define('B', Items.DECORATED_POT)
+                .define('A', Items.AMETHYST_CLUSTER)
+                .define('S', ItemTags.WOODEN_SLABS)
+                .define('F', ItemTags.WOODEN_FENCES)
+                .define('W', Items.WATER_BUCKET)
+                .unlockedBy(getHasName(Items.DECORATED_POT), has(Items.DECORATED_POT))
+                .save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.BREWING, ItemRegistry.ATELIER_STATION.get())
                 .pattern("BMR")
                 .pattern("SSS")
                 .pattern("F F")

@@ -1,0 +1,29 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_spellcasters_flask",
+  "criteria": {
+    "crafted_alchemy_brewer": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:alchemy_brewer"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_alchemy_brewer.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:alchemy_brewer"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_alchemy_brewer.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_alchemy_brewer"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

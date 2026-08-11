@@ -1,5 +1,5 @@
 {
-  "parent": "apprenticecodex:apprentice_codex/craft_spellcasters_flask",
+  "parent": "apprenticecodex:apprentice_codex/craft_alchemy_brewer",
   "criteria": {
     "crafted_atelier_station": {
       "conditions": {
