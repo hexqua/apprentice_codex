@@ -696,6 +696,7 @@
   "container.apprenticecodex.alchemy_brewer.fluid.process_time": "加工时间：%s秒",
   "container.apprenticecodex.alchemy_brewer.fluid.effects": "效果：",
   "container.apprenticecodex.alchemy_brewer.fluid.current_amount": "%1$d mB（%2$d次用量）",
+  "container.apprenticecodex.alchemy_brewer.fluid.residual_warning": "剩余量不足一次用量，无法取出。请破坏方块以清除余量。",
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.disabled": "自动酿造：关闭",
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.disabled.hint": "开启后，材料齐全时会自动开始酿造。",
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.enabled": "自动酿造：开启",
