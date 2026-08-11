@@ -2,7 +2,6 @@ package jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver;
 
 import jp.aquafactory.apprenticecodex.item.InventoryInsertTarget;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
-import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
@@ -32,6 +31,7 @@ import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
+import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,34 +47,57 @@ public class SpellcasterQuiver extends Item implements ICurioItem, InventoryInse
     private static final String STACK_TAG = "Stack";
     private static final String COUNT_TAG = "Count";
 
-    private final String slotIdentifier;
-
     public SpellcasterQuiver() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
-        slotIdentifier = CuriosSlotConstants.BACK;
     }
 
     @Override
     public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
-        if (slotIdentifier != null) {
-            tooltips.add(Component.empty());
-            tooltips.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
-            tooltips.add(Component.literal(" ")
-                    .append(Component.translatable(getDescriptionId() + ".desc_1"))
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            tooltips.add(Component.literal(" ")
-                    .append(Component.translatable(getDescriptionId() + ".desc_2"))
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            tooltips.add(Component.literal(" ")
-                    .append(Component.translatable(getDescriptionId() + ".desc_3"))
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-        }
+        tooltips.add(Component.empty());
+        // item.modifiers.anyは1.20.1にはないため、オリジナルのキーを定義して使う.
+        tooltips.add(Component.translatable("curios.apprenticecodex.modifier.for_quiver").withStyle(ChatFormatting.GOLD));
+        tooltips.add(Component.literal(" ")
+                .append(Component.translatable(getDescriptionId() + ".desc_1"))
+                .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+        tooltips.add(Component.literal(" ")
+                .append(Component.translatable(getDescriptionId() + ".desc_2"))
+                .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+        tooltips.add(Component.literal(" ")
+                .append(Component.translatable(getDescriptionId() + ".desc_3"))
+                .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
 
         return tooltips;
     }
 
     @Override
+    public boolean canEquip(SlotContext slotContext, ItemStack stack) {
+        if (slotContext.entity() == null) {
+            return true;
+        }
+
+        return CuriosApi.getCuriosInventory(slotContext.entity())
+                .map(inventory -> hasNoOtherEquippedQuiver(inventory, slotContext))
+                .orElse(true);
+    }
+
+    @Override
     public boolean canEquipFromUse(SlotContext slotContext, ItemStack stack) {
+        return true;
+    }
+
+    private static boolean hasNoOtherEquippedQuiver(ICuriosItemHandler inventory, SlotContext targetSlot) {
+        // 枠の種類・数・有効状態に依存せず、Curiosが保持する実装備領域全体で一つだけに制限する.
+        for (var entry : inventory.getCurios().entrySet()) {
+            var stacks = entry.getValue().getStacks();
+            for (var index = 0; index < stacks.getSlots(); index++) {
+                if (entry.getKey().equals(targetSlot.identifier()) && index == targetSlot.index()) {
+                    continue;
+                }
+                if (stacks.getStackInSlot(index).is(ItemRegistry.SPELLCASTER_QUIVER.get())) {
+                    return false;
+                }
+            }
+        }
         return true;
     }
 

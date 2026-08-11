@@ -62,6 +62,10 @@ final class BowGameTestSupport {
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("curios", CuriosSlotConstants.BACK)
     );
+    static final TagKey<Item> CURIOS_BELT = TagKey.create(
+            Registries.ITEM,
+            ResourceLocation.fromNamespaceAndPath("curios", CuriosSlotConstants.BELT)
+    );
     static final TagKey<Item> CURIOS_CHARM = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("curios", CuriosSlotConstants.CHARM)

@@ -3,6 +3,7 @@
 
   "curios.identifier.feet": "足",
   "curios.modifiers.feet": "足に装備した時:",
+  "curios.apprenticecodex.modifier.for_quiver": "背中か腰に装備したとき：",
 
   "attribute.name.apprenticecodex.max_enchantment_table_level": "最大エンチャントテーブルレベル",
 

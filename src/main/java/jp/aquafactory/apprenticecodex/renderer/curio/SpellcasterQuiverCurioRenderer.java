@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.renderer.curio;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -24,6 +25,11 @@ public class SpellcasterQuiverCurioRenderer implements ICurioRenderer {
     private static final float BACK_OFFSET_X = -2.8F * PIXEL;
     private static final float BACK_OFFSET_Y = 2.85F * PIXEL;
     private static final float BACK_OFFSET_Z = -2.9F * PIXEL;
+    private static final float BACK_ROTATE_DEG_Z = 214F;
+    private static final float BELT_OFFSET_X = -10F * PIXEL;
+    private static final float BELT_OFFSET_Y = 5F * PIXEL;
+    private static final float BELT_OFFSET_Z = -2.7F * PIXEL;
+    private static final float BELT_ROTATE_DEG_Z = 260F;
     private static final float ARMORED_OFFSET_Z = -0.45F * PIXEL;
     private static final float QUIVER_SCALE = 1.45F;
 
@@ -47,13 +53,34 @@ public class SpellcasterQuiverCurioRenderer implements ICurioRenderer {
 
         var humanoidModel = (HumanoidModel<LivingEntity>) rawHumanoidModel;
         var armorOffset = entity.getItemBySlot(EquipmentSlot.CHEST).isEmpty() ? 0.0F : ARMORED_OFFSET_Z;
+        float offsetX;
+        float offsetY;
+        float offsetZ;
+        float rotateDegZ;
+        switch (slotContext.identifier()) {
+            case CuriosSlotConstants.BACK -> {
+                offsetX = BACK_OFFSET_X;
+                offsetY = BACK_OFFSET_Y;
+                offsetZ = BACK_OFFSET_Z;
+                rotateDegZ = BACK_ROTATE_DEG_Z;
+            }
+            case CuriosSlotConstants.BELT -> {
+                offsetX = BELT_OFFSET_X;
+                offsetY = BELT_OFFSET_Y;
+                offsetZ = BELT_OFFSET_Z;
+                rotateDegZ = BELT_ROTATE_DEG_Z;
+            }
+            default -> {
+                return;
+            }
+        }
 
         poseStack.pushPose();
         humanoidModel.body.translateAndRotate(poseStack);
         poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(214.0F));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(rotateDegZ));
         poseStack.mulPose(Axis.XP.rotationDegrees(18.0F));
-        poseStack.translate(BACK_OFFSET_X, BACK_OFFSET_Y, BACK_OFFSET_Z + armorOffset);
+        poseStack.translate(offsetX, offsetY, offsetZ + armorOffset);
         poseStack.scale(QUIVER_SCALE, QUIVER_SCALE, QUIVER_SCALE);
         itemRenderer.renderStatic(itemStack, ItemDisplayContext.NONE, light, OverlayTexture.NO_OVERLAY,
                 poseStack, renderTypeBuffer, entity.level(), entity.getId());
