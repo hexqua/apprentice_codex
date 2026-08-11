@@ -22,6 +22,8 @@ import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDe
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightCooldownReductionEvent;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightManaCostDiscountEvent;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightSpellSupport;
+import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjack;
+import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatter;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -538,82 +540,89 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
                     "Touch Dig should destroy the targeted block inside the extended range");
         });
     }
-    static void touchDigMergesRingMiningEnchantments(GameTestHelper helper) {
+    static void touchDigIgnoresCraftsmansDelightRingEnchantments(GameTestHelper helper) {
         helper.runAtTickTime(1, () -> {
             var playerPos = new BlockPos(0, 12, 0);
             prepareMiningSpellIsolationArea(helper, playerPos);
-            var player = createEquipmentTestPlayer(helper, playerPos, "touch_dig_ring_enchant_merge_test");
+            var player = createEquipmentTestPlayer(helper, playerPos, "touch_dig_ignores_ring_enchant_test");
             var heldTool = new ItemStack(Items.DIAMOND_PICKAXE);
-            heldTool.enchant(Enchantments.BLOCK_FORTUNE, 1);
             player.setItemInHand(InteractionHand.MAIN_HAND, heldTool);
 
             var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
-            ringStack.enchant(Enchantments.BLOCK_FORTUNE, 3);
-            equipRingCurio(player, ringStack);
-
-            var mergedFortuneTool = CraftsmansDelight.createTouchDigTool(player);
-            helper.assertTrue(mergedFortuneTool.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE) == 3,
-                    "Touch Dig should prefer the higher Fortune level from the ring");
-
-            ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
             ringStack.enchant(Enchantments.SILK_TOUCH, 1);
             equipRingCurio(player, ringStack);
-
-            var mergedSilkTool = CraftsmansDelight.createTouchDigTool(player);
-            helper.assertTrue(mergedSilkTool.getEnchantmentLevel(Enchantments.SILK_TOUCH) == 1,
-                    "Touch Dig should inherit Silk Touch from the ring");
-            helper.assertTrue(mergedSilkTool.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE) == 0,
-                    "Touch Dig should drop Fortune when Silk Touch is present");
 
             var blockPos = helper.absolutePos(new BlockPos(0, 12, 1));
             helper.getLevel().setBlock(blockPos, Blocks.STONE.defaultBlockState(), 3);
             invokeTouchDigDestroyBlock(new TouchDigSpell(), helper.getLevel(), blockPos, player);
 
             var drops = getFreshItemDrops(helper.getLevel(), blockPos, 1.5D);
-            helper.assertTrue(drops.stream().anyMatch(itemEntity -> itemEntity.getItem().is(Blocks.STONE.asItem())),
-                    "Touch Dig with ring Silk Touch should drop stone");
-            helper.assertTrue(drops.stream().noneMatch(itemEntity -> itemEntity.getItem().is(Blocks.COBBLESTONE.asItem())),
-                    "Touch Dig with ring Silk Touch should not drop cobblestone");
+            helper.assertTrue(drops.stream().anyMatch(itemEntity -> itemEntity.getItem().is(Blocks.COBBLESTONE.asItem())),
+                    "Touch Dig should use the unenchanted main-hand pickaxe and ignore ring Silk Touch");
+            helper.assertTrue(drops.stream().noneMatch(itemEntity -> itemEntity.getItem().is(Blocks.STONE.asItem())),
+                    "Touch Dig should not inherit Silk Touch from CraftsmansDelight");
             helper.succeed();
         });
     }
-    static void touchDigUsesRingMiningEnchantmentsWhenCastBareHanded(GameTestHelper helper) {
+
+    static void craftsmansDelightDummyToolsCopyAllCurrentMainHandEnchantments(GameTestHelper helper) {
         helper.runAtTickTime(1, () -> {
-            var playerPos = new BlockPos(0, 12, 0);
-            prepareMiningSpellIsolationArea(helper, playerPos);
-            var player = createEquipmentTestPlayer(helper, playerPos, "touch_dig_bare_hand_ring_enchant_test");
-            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 12, 0), "craftsmans_main_hand_enchant_copy_test");
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
 
-            var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
-            ringStack.enchant(Enchantments.SILK_TOUCH, 1);
-            equipRingCurio(player, ringStack);
+            var heldSword = new ItemStack(Items.DIAMOND_SWORD);
+            heldSword.enchant(Enchantments.SHARPNESS, 4);
+            heldSword.enchant(Enchantments.UNBREAKING, 3);
+            player.setItemInHand(InteractionHand.MAIN_HAND, heldSword);
 
-            var synthesizedTool = CraftsmansDelight.createTouchDigTool(player);
-            helper.assertFalse(synthesizedTool.isEmpty(),
-                    "Touch Dig should synthesize a mining tool when the caster is bare-handed but the ring has mining enchantments");
-            helper.assertTrue(synthesizedTool.getEnchantmentLevel(Enchantments.SILK_TOUCH) == 1,
-                    "Touch Dig should copy Silk Touch onto the synthesized bare-hand tool");
+            var lumberjackTool = TinyLumberjack.createDummyTool(player);
+            var worldFlatterTool = WorldFlatter.createDummyTool(player);
+            var heavenlyFistTool = CraftsmansDelight.createHeavenlyFistCrystalHarvestTool(player);
+            helper.assertTrue(lumberjackTool.is(Items.IRON_AXE),
+                    "Tiny Lumberjack should keep its iron axe dummy tool");
+            helper.assertTrue(worldFlatterTool.is(Items.NETHERITE_PICKAXE),
+                    "World Flatter should keep its CraftsmansDelight netherite pickaxe dummy tool");
+            helper.assertTrue(heavenlyFistTool.is(Items.DIAMOND_PICKAXE),
+                    "Heavenly Fist should keep its diamond pickaxe dummy tool");
+            for (var dummyTool : List.of(lumberjackTool, worldFlatterTool, heavenlyFistTool)) {
+                helper.assertTrue(dummyTool.getEnchantmentLevel(Enchantments.SHARPNESS) == 4,
+                        "CraftsmansDelight should copy even non-mining main-hand enchantments without filtering");
+                helper.assertTrue(dummyTool.getEnchantmentLevel(Enchantments.UNBREAKING) == 3,
+                        "CraftsmansDelight should copy every main-hand enchantment");
+            }
 
-            var blockPos = helper.absolutePos(new BlockPos(0, 12, 2));
-            helper.getLevel().setBlock(blockPos, Blocks.STONE.defaultBlockState(), 3);
-            invokeTouchDigDestroyBlock(new TouchDigSpell(), helper.getLevel(), blockPos, player);
-
-            var drops = getFreshItemDrops(helper.getLevel(), blockPos, 1.5D);
-            helper.assertTrue(drops.stream().anyMatch(itemEntity -> itemEntity.getItem().is(Blocks.STONE.asItem())),
-                    "Bare-hand Touch Dig with ring Silk Touch should drop stone");
-            helper.assertTrue(drops.stream().noneMatch(itemEntity -> itemEntity.getItem().is(Blocks.COBBLESTONE.asItem())),
-                    "Bare-hand Touch Dig with ring Silk Touch should not drop cobblestone");
+            var heldPickaxe = new ItemStack(Items.DIAMOND_PICKAXE);
+            heldPickaxe.enchant(Enchantments.SILK_TOUCH, 1);
+            player.setItemInHand(InteractionHand.MAIN_HAND, heldPickaxe);
+            var updatedLumberjackTool = TinyLumberjack.createDummyTool(player);
+            helper.assertTrue(updatedLumberjackTool.getEnchantmentLevel(Enchantments.SILK_TOUCH) == 1,
+                    "CraftsmansDelight should follow the current main-hand enchantments at destruction time");
+            helper.assertTrue(updatedLumberjackTool.getEnchantmentLevel(Enchantments.SHARPNESS) == 0,
+                    "CraftsmansDelight should not retain enchantments from the previous main-hand item");
             helper.succeed();
         });
     }
-    static void spectralHammerUsesCraftsmansDelightRingMiningEnchantments(GameTestHelper helper) {
+
+    static void spectralHammerCopiesCurrentMainHandWithCraftsmansDelight(GameTestHelper helper) {
         helper.runAtTickTime(1, () -> {
             var playerPos = new BlockPos(0, 12, 0);
             prepareMiningSpellIsolationArea(helper, playerPos);
-            var player = createEquipmentTestPlayer(helper, playerPos, "spectral_hammer_ring_enchant_test");
-            var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
-            ringStack.enchant(Enchantments.SILK_TOUCH, 1);
-            equipRingCurio(player, ringStack);
+            var player = createEquipmentTestPlayer(helper, playerPos, "spectral_hammer_main_hand_copy_test");
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+
+            var unenchantedTool = new ItemStack(Items.IRON_PICKAXE);
+            unenchantedTool.setDamageValue(7);
+            player.setItemInHand(InteractionHand.MAIN_HAND, unenchantedTool);
+            var copiedTool = CraftsmansDelight.createSpectralHammerTool(player);
+            helper.assertTrue(copiedTool.is(Items.IRON_PICKAXE) && copiedTool.getDamageValue() == 7,
+                    "Spectral Hammer should copy an unenchanted main-hand tool while CraftsmansDelight is equipped");
+            copiedTool.setDamageValue(8);
+            helper.assertTrue(unenchantedTool.getDamageValue() == 7,
+                    "Spectral Hammer should return an independent copy of the main-hand tool");
+
+            var silkTool = new ItemStack(Items.DIAMOND_PICKAXE);
+            silkTool.enchant(Enchantments.SILK_TOUCH, 1);
+            player.setItemInHand(InteractionHand.MAIN_HAND, silkTool);
 
             var targetPos = helper.absolutePos(new BlockPos(0, 12, 2));
             helper.getLevel().setBlock(targetPos, Blocks.STONE.defaultBlockState(), 3);
@@ -635,9 +644,9 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
 
             var drops = getFreshItemDrops(helper.getLevel(), targetPos, 2.0D);
             helper.assertTrue(drops.stream().anyMatch(itemEntity -> itemEntity.getItem().is(Blocks.STONE.asItem())),
-                    "Spectral Hammer with ring Silk Touch should drop stone");
+                    "Spectral Hammer should apply main-hand Silk Touch while CraftsmansDelight is equipped");
             helper.assertTrue(drops.stream().noneMatch(itemEntity -> itemEntity.getItem().is(Blocks.COBBLESTONE.asItem())),
-                    "Spectral Hammer with ring Silk Touch should not drop cobblestone");
+                    "Spectral Hammer with main-hand Silk Touch should not drop cobblestone");
             helper.succeed();
         });
     }
@@ -647,9 +656,10 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             var playerPos = new BlockPos(0, 12, 0);
             prepareMiningSpellIsolationArea(helper, playerPos);
             var player = createEquipmentTestPlayer(helper, playerPos, "heavenly_fist_crystal_harvest_test");
-            var ringStack = new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get());
-            ringStack.enchant(Enchantments.SILK_TOUCH, 1);
-            equipRingCurio(player, ringStack);
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            var heldTool = new ItemStack(Items.DIAMOND_PICKAXE);
+            heldTool.enchant(Enchantments.SILK_TOUCH, 1);
+            player.setItemInHand(InteractionHand.MAIN_HAND, heldTool);
 
             var sourcePos = helper.absolutePos(new BlockPos(1, 12, 1));
             var clusterPos = sourcePos.east();
@@ -663,7 +673,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
                 helper.assertTrue(level.getBlockState(sourcePos).is(Blocks.BUDDING_AMETHYST),
                         "Heavenly Fist with CraftsmansDelight should leave budding amethyst intact");
                 helper.assertTrue(hasItemEntityWithin(level, Blocks.AMETHYST_CLUSTER.asItem(), Vec3.atCenterOf(clusterPos), 1.5D),
-                        "Heavenly Fist with ring Silk Touch should drop the crystal block itself");
+                        "Heavenly Fist with main-hand Silk Touch should drop the crystal block itself");
                 helper.succeed();
             });
         });
