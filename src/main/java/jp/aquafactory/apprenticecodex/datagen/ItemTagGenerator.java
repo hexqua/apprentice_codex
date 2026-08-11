@@ -25,6 +25,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import io.redspace.ironsspellbooks.item.weapons.StaffItem;
 import net.minecraft.world.level.block.Block;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
 
@@ -97,6 +98,21 @@ public final class ItemTagGenerator extends ItemTagsProvider {
 
     @Override
     protected void addTags(@NotNull HolderLookup.Provider provider) {
+        tag(Tags.Items.INGOTS).add(
+                ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get(),
+                ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get()
+        );
+        tag(Tags.Items.GEMS).add(ItemRegistry.SPELLSTAINED_DIAMOND.get());
+        tag(Tags.Items.FOODS).add(ItemRegistry.COMFORT_SANDWICH.get());
+        tag(Tags.Items.FOODS_BERRY).add(ItemRegistry.COMFORT_BERRIES.get());
+        tag(Tags.Items.TOOLS_SHIELD).add(
+                ItemRegistry.REFLECTCAST_SHIELD.get(),
+                ItemRegistry.PARRYCAST_BUCKLER.get(),
+                ItemRegistry.BULWARK_GREATSHIELD.get()
+        );
+        tag(Tags.Items.TOOLS_BOW).add(ItemRegistry.ELEMENTAL_BOW.get());
+        tag(Tags.Items.RANGED_WEAPON_TOOLS).add(ItemRegistry.ELEMENTAL_BOW.get());
+
         tag(TagRegistry.Items.ALCHEMY_BREWER_HIGH_EFFICIENCY_BASES).add(Items.NETHER_WART);
         tag(TagRegistry.Items.ALCHEMY_BREWER_FAST_BASES).add(Items.GLOW_LICHEN);
         tag(IRONS_STAFF).add(
