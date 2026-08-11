@@ -3,7 +3,6 @@ package jp.aquafactory.apprenticecodex.block.alchemybrewer;
 import com.mojang.serialization.MapCodec;
 import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
-import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
@@ -162,7 +161,7 @@ public final class AlchemyBrewer extends BaseEntityBlock {
             return ItemInteractionResult.CONSUME;
         }
 
-        if (!stack.is(ItemRegistry.SPELLCASTERS_FLASK.get())
+        if (!(stack.getItem() instanceof AbstractPotionFlaskItem)
                 || !AbstractPotionFlaskItem.canAddDoseFromItem(stack, representative)) {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }

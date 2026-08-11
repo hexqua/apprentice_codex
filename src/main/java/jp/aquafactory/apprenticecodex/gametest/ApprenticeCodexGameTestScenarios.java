@@ -2509,20 +2509,20 @@ public class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-    static void flaskAutomaticFillTypeGateRejectsMismatchedEmptyVanillaPotion(GameTestHelper helper) {
+    static void flaskAutomaticFillAcceptsSupportedMismatchedVanillaPotion(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var normalPotion = PotionContentsHelper.createPotionStack(Items.POTION, net.minecraft.world.item.alchemy.Potions.REGENERATION.value());
             var splashPotion = PotionContentsHelper.createPotionStack(Items.SPLASH_POTION, net.minecraft.world.item.alchemy.Potions.REGENERATION.value());
             var simpleElixir = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get());
 
-            helper.assertFalse(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
+            helper.assertTrue(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
                             new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get()),
                             splashPotion),
-                    "Atelier Station should not auto-fill an empty Spellcaster's Flask with splash potions");
-            helper.assertFalse(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
+                    "Atelier Station should auto-fill an empty Spellcaster's Flask with supported splash potions");
+            helper.assertTrue(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
                             new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get()),
                             normalPotion),
-                    "Atelier Station should not auto-fill an empty Alchemist's Flask with regular potions");
+                    "Atelier Station should auto-fill an empty Alchemist's Flask with supported regular potions");
             helper.assertTrue(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
                             new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get()),
                             normalPotion),
