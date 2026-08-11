@@ -38,6 +38,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -84,6 +85,20 @@ public final class AlchemyBrewer extends BaseEntityBlock {
     }
     @Override public void animateTick(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
                                       @NotNull RandomSource random) {
+        if (level.getBlockEntity(pos) instanceof AlchemyBrewerBlockEntity brewer && brewer.isAutoBrewing()) {
+            var smokeOrigin = AlchemyBrewerWaterEffects.localToWorld(
+                    pos,
+                    state.getValue(FACING),
+                    new Vec3(
+                            4.5D / 16.0D + (random.nextDouble() - 0.5D) * 0.2D,
+                            1.0D + random.nextDouble() * 0.3D,
+                            11.5D / 16.0D + (random.nextDouble() - 0.5D) * 0.2D
+                    )
+            );
+            level.addParticle(ParticleTypes.SMOKE, smokeOrigin.x, smokeOrigin.y, smokeOrigin.z,
+                    0.0D, 0.0D, 0.0D);
+        }
+
         if (level.hasNeighborSignal(pos)) {
             return;
         }

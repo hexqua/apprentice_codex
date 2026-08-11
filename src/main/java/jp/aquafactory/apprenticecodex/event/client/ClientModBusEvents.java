@@ -2,9 +2,10 @@ package jp.aquafactory.apprenticecodex.event.client;
 
 import io.redspace.ironsspellbooks.render.SpellBookCurioRenderer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.block.alchemybrewer.AlchemyBrewerBlockEntityRenderer;
+import jp.aquafactory.apprenticecodex.block.alchemybrewer.AlchemyBrewerScreen;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationScreen;
-import jp.aquafactory.apprenticecodex.block.alchemybrewer.AlchemyBrewerScreen;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticlePaletteCache;
@@ -326,6 +327,7 @@ public final class ClientModBusEvents {
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(BlockEntityRegistry.ALCHEMY_BREWER.get(), AlchemyBrewerBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.ATELIER_STATION.get(), AtelierStationBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.ARCANUM_IN_A_JAR.get(), ArcanumInAJarBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.ESSENCE_SMOKER.get(), EssenceSmokerBlockEntityRenderer::new);
