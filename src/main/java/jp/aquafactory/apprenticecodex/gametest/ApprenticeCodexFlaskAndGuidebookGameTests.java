@@ -65,8 +65,8 @@ public final class ApprenticeCodexFlaskAndGuidebookGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void flaskAutomaticFillTypeGateRejectsMismatchedEmptyVanillaPotion(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.flaskAutomaticFillTypeGateRejectsMismatchedEmptyVanillaPotion(helper);
+    public static void flaskAutomaticFillAcceptsSupportedMismatchedVanillaPotion(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.flaskAutomaticFillAcceptsSupportedMismatchedVanillaPotion(helper);
     }
 
     @GameTest(template = TEMPLATE)

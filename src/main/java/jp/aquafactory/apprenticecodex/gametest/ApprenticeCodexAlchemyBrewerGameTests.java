@@ -297,11 +297,6 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
         helper.assertTrue(player.getMainHandItem().is(Items.BUCKET), "Empty bucket must remain unchanged");
         player.resetMenuTracking();
 
-        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get()));
-        useBrewer(helper, player, pos);
-        helper.assertTrue(player.wasMenuOpened(),
-                "Alchemist's Flask must open the Alchemy Brewer menu");
-        helper.assertValueEqual(brewer.getTankAmountMb(), 1000, "unchanged potion amount");
         helper.succeed();
     }
 
@@ -442,6 +437,52 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
         helper.assertValueEqual(brewer.getTankAmountMb(), 0, "remaining potion amount");
         helper.assertFalse(player.isUsingItem(), "Alchemy Brewer interaction must not start drinking the flask");
         helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void alchemistsFlaskCollectsRegularPotionWithMismatchPenalty(GameTestHelper helper) {
+        var pos = new BlockPos(1, 1, 1);
+        var brewer = placeAlchemyBrewer(helper, pos, "minecraft:swiftness", AlchemyBrewerBlockEntity.TANK_CAPACITY_MB);
+        var player = createPlayer(helper, "alchemy_brewer_empty_alchemists_flask", pos);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get()));
+
+        useBrewer(helper, player, pos);
+
+        helper.assertValueEqual(AbstractPotionFlaskItem.getStoredDoseCount(player.getMainHandItem()), 4,
+                "stored Alchemist's Flask dose count");
+        helper.assertTrue(ItemStack.isSameItemSameComponents(
+                        AbstractPotionFlaskItem.getStoredItem(player.getMainHandItem()),
+                        potionStack(Potions.SWIFTNESS.value())),
+                "stored Alchemist's Flask potion");
+        helper.assertTrue(AbstractPotionFlaskItem.isStoredVanillaPotionTypeMismatched(player.getMainHandItem()),
+                "Regular potion in an Alchemist's Flask must retain the mismatch penalty");
+        helper.assertValueEqual(AbstractPotionFlaskItem.getStoredDoseConsumptionCount(player.getMainHandItem()), 2,
+                "mismatched Alchemist's Flask dose consumption");
+        helper.assertValueEqual(brewer.getTankAmountMb(), 0, "remaining potion amount");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 30)
+    public static void alchemistsFlaskAutomaticFillMovesFullFlaskToOutput(GameTestHelper helper) {
+        var pos = new BlockPos(1, 1, 1);
+        var brewer = placeAlchemyBrewer(helper, pos, "minecraft:swiftness", AlchemyBrewerBlockEntity.DOSE_AMOUNT_MB);
+        var nearlyFull = AbstractPotionFlaskItem.copyWithAddedDoses(
+                new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get()),
+                potionStack(Potions.SWIFTNESS.value()),
+                AbstractPotionFlaskItem.getMaxDoseCapacity(new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get())) - 1
+        );
+        brewer.getInventory().setStackInSlot(AlchemyBrewerBlockEntity.INPUT_SLOT, nearlyFull);
+
+        helper.succeedWhen(() -> {
+            var output = brewer.getInventory().getStackInSlot(AlchemyBrewerBlockEntity.OUTPUT_SLOT);
+            helper.assertTrue(brewer.getInventory().getStackInSlot(AlchemyBrewerBlockEntity.INPUT_SLOT).isEmpty(),
+                    "Filled Alchemist's Flask must leave the input slot");
+            helper.assertValueEqual(AbstractPotionFlaskItem.getStoredDoseCount(output),
+                    AbstractPotionFlaskItem.getMaxDoseCapacity(output), "automatic Alchemist's Flask dose count");
+            helper.assertTrue(AbstractPotionFlaskItem.isStoredVanillaPotionTypeMismatched(output),
+                    "Automatically filled Alchemist's Flask must retain the mismatch penalty");
+            helper.assertValueEqual(brewer.getTankAmountMb(), 0, "automatic fill remaining potion amount");
+        });
     }
 
     @GameTest(template = TEMPLATE)
