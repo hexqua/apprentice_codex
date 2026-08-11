@@ -2509,20 +2509,20 @@ public class ApprenticeCodexGameTestScenarios {
             );
         });
     }
-    static void flaskAutomaticFillTypeGateRejectsMismatchedEmptyVanillaPotion(GameTestHelper helper) {
+    static void flaskAutomaticFillAcceptsSupportedMismatchedVanillaPotion(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var normalPotion = PotionContentsHelper.createPotionStack(Items.POTION, net.minecraft.world.item.alchemy.Potions.REGENERATION.value());
             var splashPotion = PotionContentsHelper.createPotionStack(Items.SPLASH_POTION, net.minecraft.world.item.alchemy.Potions.REGENERATION.value());
             var simpleElixir = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get());
 
-            helper.assertFalse(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
+            helper.assertTrue(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
                             new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get()),
                             splashPotion),
-                    "Atelier Station should not auto-fill an empty Spellcaster's Flask with splash potions");
-            helper.assertFalse(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
+                    "Atelier Station should auto-fill an empty Spellcaster's Flask with supported splash potions");
+            helper.assertTrue(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
                             new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get()),
                             normalPotion),
-                    "Atelier Station should not auto-fill an empty Alchemist's Flask with regular potions");
+                    "Atelier Station should auto-fill an empty Alchemist's Flask with supported regular potions");
             helper.assertTrue(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
                             new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get()),
                             normalPotion),
@@ -4808,7 +4808,7 @@ public class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var recipe = getExplorersCodexGuidebookTransferRecipe(helper);
             var explorersCodexStack = createInitializedPresetStack(ItemRegistry.EXPLORERS_CODEX.get());
-            explorersCodexStack.set(DataComponents.CUSTOM_NAME, Component.literal("写本継承確認"));
+            explorersCodexStack.set(DataComponents.CUSTOM_NAME, Component.literal("Codex transfer check"));
             explorersCodexStack.set(DataComponents.REPAIR_COST, 7);
             var unbreaking = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
                     .getOrThrow(net.minecraft.world.item.enchantment.Enchantments.UNBREAKING);
@@ -4831,7 +4831,7 @@ public class ApprenticeCodexGameTestScenarios {
             var result = recipe.assemble(craftingInput, helper.getLevel().registryAccess());
             helper.assertTrue(result.is(ItemRegistry.EXPLORERS_CODEX.get()),
                     "Transfer recipe should return Explorer's Codex but got " + BuiltInRegistries.ITEM.getKey(result.getItem()));
-            helper.assertTrue("写本継承確認".equals(result.getHoverName().getString()),
+            helper.assertTrue("Codex transfer check".equals(result.getHoverName().getString()),
                     "Explorer's Codex custom name was not preserved: " + result.getHoverName().getString());
             helper.assertTrue(result.getOrDefault(DataComponents.REPAIR_COST, 0) == 7,
                     "Explorer's Codex repair cost was not preserved: " + result.getOrDefault(DataComponents.REPAIR_COST, 0));

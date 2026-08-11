@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.item.ArcaneCinderItem;
 import jp.aquafactory.apprenticecodex.item.FloatmountBroomItem;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.CrudeInkItem;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkItem;
+import jp.aquafactory.apprenticecodex.item.blockitem.AlchemyBrewerItem;
 import jp.aquafactory.apprenticecodex.item.blockitem.ApprenticeDeskItem;
 import jp.aquafactory.apprenticecodex.item.blockitem.AtelierStationItem;
 import jp.aquafactory.apprenticecodex.item.boundweapon.BoundBowItem;
@@ -324,6 +325,9 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> ATELIER_STATION =
             ITEMS.register("atelier_station",
                     () -> new AtelierStationItem(BlockRegistry.ATELIER_STATION.get(), new Item.Properties()));
+    public static final DeferredHolder<Item, Item> ALCHEMY_BREWER =
+            ITEMS.register("alchemy_brewer",
+                    () -> new AlchemyBrewerItem(BlockRegistry.ALCHEMY_BREWER.get(), new Item.Properties()));
     public static final DeferredHolder<Item, Item> SCARLET_THIRST =
             ITEMS.register("scarlet_thirst", ScarletThirst::new);
     public static final DeferredHolder<Item, Item> CRAFTSMANS_DELIGHT =

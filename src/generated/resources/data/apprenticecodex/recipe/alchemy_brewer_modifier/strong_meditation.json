@@ -1,0 +1,9 @@
+{
+  "type": "apprenticecodex:alchemy_brewer_modifier",
+  "ingredient": {
+    "item": "minecraft:glowstone_dust"
+  },
+  "input": "apprenticecodex:meditation",
+  "priority": 0,
+  "result": "apprenticecodex:strong_meditation"
+}

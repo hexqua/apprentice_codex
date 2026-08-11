@@ -5,6 +5,8 @@ import com.google.gson.JsonParser;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.recipe.alchemybrewer.AlchemyBrewerRecipe;
+import jp.aquafactory.apprenticecodex.recipe.alchemybrewer.AlchemyBrewerModifierRecipe;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
@@ -32,15 +34,18 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,7 +72,8 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         registration.addRecipeCategories(
                 new GrindRunnerRecipeCategory(guiHelper, buildGrindRunnerCatalyst()),
                 new EssenceSmokerRecipeCategory(guiHelper),
-                new SpellcasterWorkbenchRecipeCategory(guiHelper)
+                new SpellcasterWorkbenchRecipeCategory(guiHelper),
+                new AlchemyBrewerRecipeCategory(guiHelper)
         );
     }
 
@@ -148,6 +154,10 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                 new ItemStack(ItemRegistry.SPELLCASTER_WORKBENCH.get()),
                 ApprenticeCodexJeiRecipeTypes.SPELLCASTER_WORKBENCH
         );
+        registration.addRecipeCatalyst(
+                new ItemStack(ItemRegistry.ALCHEMY_BREWER.get()),
+                ApprenticeCodexJeiRecipeTypes.ALCHEMY_BREWER
+        );
     }
 
     @Override
@@ -205,12 +215,78 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                 collectSpellcasterWorkbenchJeiRecipes(recipeManager)
         );
         registration.addRecipes(
+                ApprenticeCodexJeiRecipeTypes.ALCHEMY_BREWER,
+                collectAlchemyBrewerJeiRecipes(recipeManager)
+        );
+        registration.addRecipes(
                 RecipeTypes.SMITHING,
                 recipeManager.getAllRecipesFor(net.minecraft.world.item.crafting.RecipeType.SMITHING).stream()
                         .filter(recipe -> recipe.value() instanceof jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe
                                 || recipe.value() instanceof jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe)
                         .toList()
         );
+    }
+
+    private static List<AlchemyBrewerJeiRecipe> collectAlchemyBrewerJeiRecipes(RecipeManager recipeManager) {
+        var baseRecipes = recipeManager.getAllRecipesFor(RecipeRegistry.ALCHEMY_BREWER_RECIPE_TYPE.get()).stream()
+                .sorted(Comparator.comparing(recipe -> recipe.id().toString()))
+                .toList();
+        var modifierRecipes = recipeManager.getAllRecipesFor(RecipeRegistry.ALCHEMY_BREWER_MODIFIER_RECIPE_TYPE.get()).stream()
+                .sorted(Comparator.comparing(recipe -> recipe.id().toString()))
+                .toList();
+        var recipes = new ArrayList<AlchemyBrewerJeiRecipe>();
+
+        for (var baseHolder : baseRecipes) {
+            var base = baseHolder.value();
+            addAlchemyBrewerJeiRecipe(recipes, baseHolder.id(), base, null);
+            for (var modifierHolder : modifierRecipes) {
+                var modifier = modifierHolder.value();
+                if (modifier.input().equals(base.result())) {
+                    addAlchemyBrewerJeiRecipe(recipes, baseHolder.id(), base, modifierHolder);
+                }
+            }
+        }
+        return recipes;
+    }
+
+    private static void addAlchemyBrewerJeiRecipe(
+            List<AlchemyBrewerJeiRecipe> recipes,
+            ResourceLocation baseRecipeId,
+            AlchemyBrewerRecipe base,
+            @Nullable RecipeHolder<AlchemyBrewerModifierRecipe> modifierHolder
+    ) {
+        var resultId = modifierHolder == null ? base.result() : modifierHolder.value().result();
+        if (!BuiltInRegistries.POTION.containsKey(resultId)) {
+            ApprenticeCodex.LOGGER.warn("Alchemy Brewer JEI recipe skipped: potion {} is not registered.", resultId);
+            return;
+        }
+        var potion = BuiltInRegistries.POTION.get(resultId);
+        if (potion == null) {
+            return;
+        }
+
+        var modifierId = modifierHolder == null ? null : modifierHolder.id();
+        recipes.add(new AlchemyBrewerJeiRecipe(
+                createAlchemyBrewerJeiRecipeId(baseRecipeId, modifierId),
+                base.base(),
+                base.ingredient(),
+                modifierHolder == null ? null : modifierHolder.value().ingredient(),
+                PotionContentsHelper.createPotionStack(Items.POTION, potion),
+                base.fluidAmountMb(),
+                base.processingTimeTicks()
+        ));
+    }
+
+    private static ResourceLocation createAlchemyBrewerJeiRecipeId(
+            ResourceLocation baseRecipeId,
+            @Nullable ResourceLocation modifierRecipeId
+    ) {
+        var path = "jei/alchemy_brewer/"
+                + baseRecipeId.getNamespace() + "/" + baseRecipeId.getPath()
+                + (modifierRecipeId == null
+                ? "/without_additive"
+                : "/with_additive/" + modifierRecipeId.getNamespace() + "/" + modifierRecipeId.getPath());
+        return ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, path);
     }
 
     private static List<SpellcasterWorkbenchRecipe> collectSpellcasterWorkbenchJeiRecipes(RecipeManager recipeManager) {

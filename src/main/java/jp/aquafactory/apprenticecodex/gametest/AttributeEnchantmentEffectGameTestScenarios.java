@@ -135,7 +135,7 @@ final class AttributeEnchantmentEffectGameTestScenarios extends ApprenticeCodexG
             }
 
             helper.assertTrue(coveredTypes.equals(EnumSet.allOf(AttributeEnchantmentType.class)),
-                    "既存Attributeとの合算候補が不足しています: missing="
+                    "Missing candidates for merging with existing attributes: missing="
                             + EnumSet.complementOf(coveredTypes) + ", covered=" + coveredTypes);
         });
     }
@@ -147,7 +147,7 @@ final class AttributeEnchantmentEffectGameTestScenarios extends ApprenticeCodexG
             var targetCases = createCases(helper).stream()
                     .filter(equipmentCase -> equipmentCase.target().kind() == targetKind)
                     .toList();
-            helper.assertFalse(targetCases.isEmpty(), "Attributeエンチャントのテストケースがありません: " + targetKind);
+            helper.assertFalse(targetCases.isEmpty(), "No attribute enchantment test cases found for: " + targetKind);
 
             for (var equipmentCase : targetCases) {
                 for (var type : equipmentCase.enchantments()) {
@@ -219,7 +219,7 @@ final class AttributeEnchantmentEffectGameTestScenarios extends ApprenticeCodexG
         if (type != AttributeEnchantmentType.ATTUNEMENT) {
             var attribute = type.resolveAttribute(stacks.levelZero());
             helper.assertTrue(attribute != null,
-                    describeCase(equipmentCase, type) + " の対象Attributeを解決できませんでした");
+                    describeCase(equipmentCase, type) + " could not resolve the target attribute");
             return attribute;
         }
 
@@ -237,7 +237,7 @@ final class AttributeEnchantmentEffectGameTestScenarios extends ApprenticeCodexG
                 .toList();
         helper.assertTrue(candidates.size() == 1,
                 describeCase(equipmentCase, type)
-                        + " は増加したschool power Attributeを1件に特定できませんでした: candidates="
+                        + " did not resolve exactly one increased school power attribute: candidates="
                         + describeAttributes(candidates)
                         + ", base=" + describeModifiers(baseModifiers)
                         + ", level1=" + describeModifiers(levelOneModifiers));
@@ -258,12 +258,12 @@ final class AttributeEnchantmentEffectGameTestScenarios extends ApprenticeCodexG
         var changedKeys = changedAmountKeys(base, enchanted);
         helper.assertTrue(changedKeys.equals(Set.of(expectedKey)),
                 describeCase(equipmentCase, type) + " level=" + level
-                        + " のAttribute差分が期待と異なります: expected=" + describeKey(expectedKey)
+                        + " changed unexpected attributes: expected=" + describeKey(expectedKey)
                         + ", changed=" + changedKeys.stream().map(AttributeEnchantmentEffectGameTestScenarios::describeKey).toList()
                         + ", base=" + base.describe() + ", enchanted=" + enchanted.describe());
         helper.assertTrue(amountsDifferBy(base, enchanted, expectedKey, expectedDelta),
                 describeCase(equipmentCase, type) + " level=" + level
-                        + " の増加量が不正です: expectedDelta=" + expectedDelta
+                        + " has an incorrect increase: expectedDelta=" + expectedDelta
                         + ", actualDelta=" + (enchanted.amount(expectedKey) - base.amount(expectedKey)));
     }
 
@@ -278,7 +278,7 @@ final class AttributeEnchantmentEffectGameTestScenarios extends ApprenticeCodexG
         var levelOne = ModifierSnapshot.from(modifiersForSlot(stacks.levelOne(), wrongSlot));
         var levelTwo = ModifierSnapshot.from(modifiersForSlot(stacks.levelTwo(), wrongSlot));
         helper.assertTrue(base.sameAs(levelOne) && base.sameAs(levelTwo),
-                describeCase(equipmentCase, type) + " が誤った装備先へ適用されています: wrongSlot=" + wrongSlot
+                describeCase(equipmentCase, type) + " was applied to the wrong equipment slot: wrongSlot=" + wrongSlot
                         + ", base=" + base.describe() + ", level1=" + levelOne.describe()
                         + ", level2=" + levelTwo.describe());
     }
@@ -295,12 +295,12 @@ final class AttributeEnchantmentEffectGameTestScenarios extends ApprenticeCodexG
         var matching = matchingModifiers(modifiers, attribute, type.operation());
         helper.assertTrue(matching.size() == 1,
                 describeCase(equipmentCase, type) + " level=" + level
-                        + " は既存Attributeと1本にマージされていません: attribute="
+                        + " was not merged into one modifier with the existing attribute: attribute="
                         + BuiltInRegistries.ATTRIBUTE.getKey(attribute.value()) + ", matching=" + matching
                         + ", modifiers=" + describeModifiers(modifiers));
         helper.assertTrue(Math.abs(matching.get(0).amount() - expectedAmount) < EPSILON,
                 describeCase(equipmentCase, type) + " level=" + level
-                        + " の合算値が不正です: expected=" + expectedAmount
+                        + " has an incorrect merged amount: expected=" + expectedAmount
                         + ", actual=" + matching.get(0).amount());
     }
 
@@ -401,7 +401,7 @@ final class AttributeEnchantmentEffectGameTestScenarios extends ApprenticeCodexG
                 .map(item -> String.valueOf(BuiltInRegistries.ITEM.getKey(item)))
                 .toList();
         helper.assertTrue(unclassified.isEmpty(),
-                "Attributeエンチャント効果テストへ未分類のアイテムがあります: " + unclassified);
+                "Unclassified items remain in the attribute enchantment effect tests: " + unclassified);
         return cases;
     }
 

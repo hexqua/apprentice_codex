@@ -6,6 +6,8 @@ import io.redspace.ironsspellbooks.render.SpellBookCurioRenderer;
 import io.redspace.ironsspellbooks.render.ClientStaffItemExtensions;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskScreen;
+import jp.aquafactory.apprenticecodex.block.alchemybrewer.AlchemyBrewerBlockEntityRenderer;
+import jp.aquafactory.apprenticecodex.block.alchemybrewer.AlchemyBrewerScreen;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationScreen;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntityRenderer;
@@ -320,6 +322,7 @@ public final class ClientModBusEvents {
         event.register(MenuRegistry.SPELL_CALIBRATION_BENCH.get(), SpellCalibrationBenchScreen::new);
         event.register(MenuRegistry.SPELL_DISPENSER.get(), SpellDispenserScreen::new);
         event.register(MenuRegistry.ATELIER_STATION.get(), AtelierStationScreen::new);
+        event.register(MenuRegistry.ALCHEMY_BREWER.get(), AlchemyBrewerScreen::new);
         event.register(MenuRegistry.ENDER_GRIMOIRE_INSCRIPTION.get(), EnderGrimoireInscriptionScreen::new);
         event.register(MenuRegistry.ARCHIVISTS_GRIMOIRE.get(), ArchivistsGrimoireScreen::new);
     }
@@ -780,6 +783,7 @@ public final class ClientModBusEvents {
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(BlockEntityRegistry.ALCHEMY_BREWER.get(), AlchemyBrewerBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.ATELIER_STATION.get(), AtelierStationBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.ARCANUM_IN_A_JAR.get(), ArcanumInAJarBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.ESSENCE_SMOKER.get(), EssenceSmokerBlockEntityRenderer::new);

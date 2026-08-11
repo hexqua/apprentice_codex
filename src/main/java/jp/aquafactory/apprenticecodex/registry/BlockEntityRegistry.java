@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntity;
+import jp.aquafactory.apprenticecodex.block.alchemybrewer.AlchemyBrewerBlockEntity;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntity;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
@@ -79,6 +80,9 @@ public final class BlockEntityRegistry {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AtelierStationBlockEntity>> ATELIER_STATION = reg(
             "atelier_station", AtelierStationBlockEntity::new, BlockRegistry.ATELIER_STATION
     );
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AlchemyBrewerBlockEntity>> ALCHEMY_BREWER = reg(
+            "alchemy_brewer", AlchemyBrewerBlockEntity::new, BlockRegistry.ALCHEMY_BREWER
+    );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SpellDispenserBlockEntity>> SPELL_DISPENSER = reg(
             "spell_dispenser", SpellDispenserBlockEntity::new, BlockRegistry.SPELL_DISPENSER, BlockRegistry.CREATIVE_SPELL_DISPENSER
@@ -92,6 +96,7 @@ public final class BlockEntityRegistry {
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ESSENCE_SMOKER.get(), EssenceSmokerBlockEntity::getItemHandler);
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, SPELL_DISPENSER.get(), SpellDispenserBlockEntity::getItemHandler);
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ALCHEMY_BREWER.get(), AlchemyBrewerBlockEntity::getItemHandler);
         event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, SPELL_DISPENSER.get(), SpellDispenserBlockEntity::getFluidHandler);
     }
 }

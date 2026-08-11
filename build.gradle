@@ -717,7 +717,7 @@ def validateItemModelLoaders = tasks.register('validateItemModelLoaders') {
 
         if (!invalidModels.isEmpty()) {
             throw new GradleException(
-                    "旧 forge loader が残っている item model があります:\n" +
+                    "Item models still using the old forge loader were found:\n" +
                             invalidModels.collect { "- ${projectDirPath.relativize(it.toPath())}" }.join('\n')
             )
         }

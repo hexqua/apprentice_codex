@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskMenu;
+import jp.aquafactory.apprenticecodex.block.alchemybrewer.AlchemyBrewerMenu;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationMenu;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
@@ -30,6 +31,8 @@ public final class MenuRegistry {
 
     public static final DeferredHolder<MenuType<?>, MenuType<AtelierStationMenu>> ATELIER_STATION =
             MENUS.register("atelier_station", () -> IMenuTypeExtension.create((windowId, inv, data) -> new AtelierStationMenu(windowId, inv, data.readBlockPos())));
+    public static final DeferredHolder<MenuType<?>, MenuType<AlchemyBrewerMenu>> ALCHEMY_BREWER =
+            MENUS.register("alchemy_brewer", () -> IMenuTypeExtension.create((windowId, inv, data) -> new AlchemyBrewerMenu(windowId, inv, data.readBlockPos())));
 
     public static final DeferredHolder<MenuType<?>, MenuType<SpellCalibrationBenchMenu>> SPELL_CALIBRATION_BENCH =
             MENUS.register("spell_calibration_bench", () -> IMenuTypeExtension.create((windowId, inv, data) -> new SpellCalibrationBenchMenu(windowId, inv)));
