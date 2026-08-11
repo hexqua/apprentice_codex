@@ -693,6 +693,7 @@
   "container.apprenticecodex.alchemy_brewer.fluid.process_time": "加工時間: %s秒",
   "container.apprenticecodex.alchemy_brewer.fluid.effects": "効果:",
   "container.apprenticecodex.alchemy_brewer.fluid.current_amount": "%1$d mB(%2$d回分)",
+  "container.apprenticecodex.alchemy_brewer.fluid.residual_warning": "取り出せない分の残量が残っているため、ブロックを撤去して除去する必要がある",
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.disabled": "自動調合：オフ",
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.disabled.hint": "オンに切り替えると素材が揃っていれば自動で調合を開始する",
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.enabled": "自動調合：オン",
