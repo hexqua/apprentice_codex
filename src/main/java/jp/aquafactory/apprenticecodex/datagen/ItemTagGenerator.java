@@ -46,6 +46,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> CURIOS_SPELLBOOK = createTag("curios", "spellbook");
     private static final TagKey<Item> CREATE_CONTRAPTION_CONTROLLED = createTag("create", "contraption_controlled");
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = createTag("malum", "soul_hunter_weapon");
+    private static final TagKey<Item> MALUM_HIDDEN_UNTIL_VOID = createTag("malum", "hidden_items/void");
+    private static final TagKey<Item> MALUM_HIDDEN_UNTIL_BLACK_CRYSTAL =
+            createTag("malum", "hidden_items/black_crystal");
     private static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = createTag("traveloptics", "can_cast_reversal");
     private static final TagKey<Item> HIDDEN_FROM_RECIPE_VIEWERS = createTag("c", "hidden_from_recipe_viewers");
     // ローカル名を 1.21.1 側と揃え、Forge 固有のタグ定義場所だけをこの接着部分へ閉じ込める。
@@ -90,6 +93,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         );
 
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
+        tag(MALUM_HIDDEN_UNTIL_VOID).add(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get());
+        tag(MALUM_HIDDEN_UNTIL_BLACK_CRYSTAL).add(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get());
 
         // 自前の抽象クラスを継承しないアイテムは後の自動収集から漏れるのでここで直接指定する.
         ironsUpgradeWhitelist.add(

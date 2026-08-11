@@ -28,7 +28,9 @@ public class GoldSpellcasterGun extends AbstractSpellGunItem implements GeoItem 
             null,
             ApprenticeCodexServerConfig::goldSpellgunCooldownReductionTicks,
             ApprenticeCodexServerConfig::goldSpellgunReducedCooldownMinimumTicks,
-            false
+            false,
+            ApprenticeCodexServerConfig::goldSpellgunIgnoreMaxMana,
+            SpellgunTier.GOLD
     );
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 

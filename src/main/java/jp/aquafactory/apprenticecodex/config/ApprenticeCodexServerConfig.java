@@ -657,6 +657,10 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.ironSwingcastStaffCrystallineArcaneShardDropChance();
     }
 
+    public static double soulstainedSteelSwingcastStaffManaCostPerBlade() {
+        return ITEMS_CONFIG.soulstainedSteelSwingcastStaffManaCostPerBlade();
+    }
+
     public static int diamondSwingcastStaffCooldownReductionTicks() {
         return ITEMS_CONFIG.diamondSwingcastStaffCooldownReductionTicks();
     }
@@ -699,6 +703,34 @@ public final class ApprenticeCodexServerConfig {
 
     public static int goldSpellgunCooldownReductionTicks() {
         return ITEMS_CONFIG.goldSpellgunCooldownReductionTicks();
+    }
+
+    public static boolean ironSpellgunIgnoreMaxMana() {
+        return ITEMS_CONFIG.ironSpellgunIgnoreMaxMana();
+    }
+
+    public static boolean copperSpellgunIgnoreMaxMana() {
+        return ITEMS_CONFIG.copperSpellgunIgnoreMaxMana();
+    }
+
+    public static boolean goldSpellgunIgnoreMaxMana() {
+        return ITEMS_CONFIG.goldSpellgunIgnoreMaxMana();
+    }
+
+    public static boolean diamondSpellgunIgnoreMaxMana() {
+        return ITEMS_CONFIG.diamondSpellgunIgnoreMaxMana();
+    }
+
+    public static double malignantSpellgunForcedSpellPower() {
+        return ITEMS_CONFIG.malignantSpellgunForcedSpellPower();
+    }
+
+    public static double malignantSpellgunForcedSchoolSpellPower() {
+        return ITEMS_CONFIG.malignantSpellgunForcedSchoolSpellPower();
+    }
+
+    public static double malignantSpellgunForcedSummonDamage() {
+        return ITEMS_CONFIG.malignantSpellgunForcedSummonDamage();
     }
 
     public static boolean isCircuitHeatStaffSpellDenied(ResourceLocation spellId) {
@@ -1203,6 +1235,12 @@ public final class ApprenticeCodexServerConfig {
         var previousValue = ITEMS_CONFIG.ironSwingcastStaffCrystallineArcaneShardDropChance();
         ITEMS_CONFIG.setIronSwingcastStaffConfigForGameTest(value);
         return () -> ITEMS_CONFIG.setIronSwingcastStaffConfigForGameTest(previousValue);
+    }
+
+    public static GameTestConfigOverride useSoulstainedSteelSwingcastStaffConfigOverrideForGameTest(double value) {
+        var previousValue = ITEMS_CONFIG.soulstainedSteelSwingcastStaffManaCostPerBlade();
+        ITEMS_CONFIG.setSoulstainedSteelSwingcastStaffConfigForGameTest(value);
+        return () -> ITEMS_CONFIG.setSoulstainedSteelSwingcastStaffConfigForGameTest(previousValue);
     }
 
     public static GameTestConfigOverride useHighTierSwingcastStaffConfigOverrideForGameTest(

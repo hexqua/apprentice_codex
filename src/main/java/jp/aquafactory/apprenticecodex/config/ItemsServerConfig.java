@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.config.item.FocusStaffbowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.HighTierSwingcastStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.IronSwingcastStaffServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SoulstainedSteelSwingcastStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagicArmorServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagiCompressorGadgetServerConfig;
@@ -56,6 +57,7 @@ final class ItemsServerConfig {
     private final ManaShieldCharmServerConfig manaShieldCharmConfig;
     private final ManaThrusterServerConfig manaThrusterConfig;
     private final IronSwingcastStaffServerConfig ironSwingcastStaffConfig;
+    private final SoulstainedSteelSwingcastStaffServerConfig soulstainedSteelSwingcastStaffConfig;
     private final HighTierSwingcastStaffServerConfig highTierSwingcastStaffConfig;
     private final CircuitHeatStaffServerConfig circuitHeatStaffConfig;
     private final SpellgunServerConfig spellgunConfig;
@@ -91,6 +93,7 @@ final class ItemsServerConfig {
             ManaShieldCharmServerConfig manaShieldCharmConfig,
             ManaThrusterServerConfig manaThrusterConfig,
             IronSwingcastStaffServerConfig ironSwingcastStaffConfig,
+            SoulstainedSteelSwingcastStaffServerConfig soulstainedSteelSwingcastStaffConfig,
             HighTierSwingcastStaffServerConfig highTierSwingcastStaffConfig,
             CircuitHeatStaffServerConfig circuitHeatStaffConfig,
             SpellgunServerConfig spellgunConfig,
@@ -125,6 +128,7 @@ final class ItemsServerConfig {
         this.manaShieldCharmConfig = manaShieldCharmConfig;
         this.manaThrusterConfig = manaThrusterConfig;
         this.ironSwingcastStaffConfig = ironSwingcastStaffConfig;
+        this.soulstainedSteelSwingcastStaffConfig = soulstainedSteelSwingcastStaffConfig;
         this.highTierSwingcastStaffConfig = highTierSwingcastStaffConfig;
         this.circuitHeatStaffConfig = circuitHeatStaffConfig;
         this.spellgunConfig = spellgunConfig;
@@ -162,6 +166,7 @@ final class ItemsServerConfig {
         var manaShieldCharmConfig = ManaShieldCharmServerConfig.define(builder);
         var manaThrusterConfig = ManaThrusterServerConfig.define(builder);
         var ironSwingcastStaffConfig = IronSwingcastStaffServerConfig.define(builder);
+        var soulstainedSteelSwingcastStaffConfig = SoulstainedSteelSwingcastStaffServerConfig.define(builder);
         var highTierSwingcastStaffConfig = HighTierSwingcastStaffServerConfig.define(builder);
         var circuitHeatStaffConfig = CircuitHeatStaffServerConfig.define(builder);
         var spellgunConfig = SpellgunServerConfig.define(builder);
@@ -198,6 +203,7 @@ final class ItemsServerConfig {
                 manaShieldCharmConfig,
                 manaThrusterConfig,
                 ironSwingcastStaffConfig,
+                soulstainedSteelSwingcastStaffConfig,
                 highTierSwingcastStaffConfig,
                 circuitHeatStaffConfig,
                 spellgunConfig,
@@ -474,6 +480,10 @@ final class ItemsServerConfig {
         return ironSwingcastStaffConfig.crystallineArcaneShardDropChance();
     }
 
+    double soulstainedSteelSwingcastStaffManaCostPerBlade() {
+        return soulstainedSteelSwingcastStaffConfig.manaCostPerBlade();
+    }
+
     int diamondSwingcastStaffCooldownReductionTicks() {
         return highTierSwingcastStaffConfig.diamondCooldownReductionTicks();
     }
@@ -516,6 +526,34 @@ final class ItemsServerConfig {
 
     int goldSpellgunCooldownReductionTicks() {
         return spellgunConfig.goldCooldownReductionTicks();
+    }
+
+    boolean ironSpellgunIgnoreMaxMana() {
+        return spellgunConfig.ironIgnoreMaxMana();
+    }
+
+    boolean copperSpellgunIgnoreMaxMana() {
+        return spellgunConfig.copperIgnoreMaxMana();
+    }
+
+    boolean goldSpellgunIgnoreMaxMana() {
+        return spellgunConfig.goldIgnoreMaxMana();
+    }
+
+    boolean diamondSpellgunIgnoreMaxMana() {
+        return spellgunConfig.diamondIgnoreMaxMana();
+    }
+
+    double malignantSpellgunForcedSpellPower() {
+        return spellgunConfig.malignantForcedSpellPower();
+    }
+
+    double malignantSpellgunForcedSchoolSpellPower() {
+        return spellgunConfig.malignantForcedSchoolSpellPower();
+    }
+
+    double malignantSpellgunForcedSummonDamage() {
+        return spellgunConfig.malignantForcedSummonDamage();
     }
 
     boolean isCircuitHeatStaffSpellDenied(ResourceLocation spellId) {
@@ -980,6 +1018,10 @@ final class ItemsServerConfig {
 
     void setIronSwingcastStaffConfigForGameTest(double crystallineArcaneShardDropChance) {
         ironSwingcastStaffConfig.setForGameTest(crystallineArcaneShardDropChance);
+    }
+
+    void setSoulstainedSteelSwingcastStaffConfigForGameTest(double manaCostPerBlade) {
+        soulstainedSteelSwingcastStaffConfig.setForGameTest(manaCostPerBlade);
     }
 
     void setHighTierSwingcastStaffConfigForGameTest(int diamondTicks, int netheriteTicks) {

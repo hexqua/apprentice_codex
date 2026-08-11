@@ -1,0 +1,43 @@
+{
+  "type": "malum:spirit_infusion",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "malum"
+    }
+  ],
+  "extra_items": [
+    {
+      "count": 4,
+      "item": "malum:malignant_pewter_ingot"
+    },
+    {
+      "count": 8,
+      "item": "malum:mnemonic_fragment"
+    },
+    {
+      "count": 8,
+      "item": "malum:void_salts"
+    }
+  ],
+  "input": {
+    "item": "apprenticecodex:diamond_spellcaster_gun"
+  },
+  "output": {
+    "item": "apprenticecodex:malignant_spellcaster_gun"
+  },
+  "spirits": [
+    {
+      "type": "wicked",
+      "count": 32
+    },
+    {
+      "type": "arcane",
+      "count": 64
+    },
+    {
+      "type": "eldritch",
+      "count": 32
+    }
+  ]
+}

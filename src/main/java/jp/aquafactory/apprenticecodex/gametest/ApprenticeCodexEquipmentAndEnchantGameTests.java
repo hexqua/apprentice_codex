@@ -495,6 +495,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         EquipmentSpellGunGameTestScenarios.spellgunCastAttemptPreservesExistingCast(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = SPELLGUN_CONFIG_BATCH)
+    public static void spellgunMaximumManaBypassIsExplicitAndScoped(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellgunMaximumManaBypassIsExplicitAndScoped(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = SPELLGUN_CONFIG_BATCH)
+    public static void malignantSpellgunForcesOnlyActivationPower(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.malignantSpellgunForcesOnlyActivationPower(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void malignantSpellgunSpiritInfusionRecipeFollowsMalumAvailability(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.malignantSpellgunSpiritInfusionRecipeFollowsMalumAvailability(helper);
+    }
+
     @GameTest(template = TEMPLATE)
     public static void copperSwingcastStaffReplacementSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
         SwingcastStaffGameTestScenarios.copperSwingcastStaffReplacementSpellStaysRemovableAfterNormalization(helper);
@@ -949,6 +964,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void diamondAndNetheriteSpellAmplifierExposeNewAttributeBonuses(GameTestHelper helper) {
         OffhandAndBetterCombatGameTestScenarios.diamondAndNetheriteSpellAmplifierExposeNewAttributeBonuses(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void soulstainedSteelSpellAmplifierFollowsMalumAvailability(GameTestHelper helper) {
+        OffhandAndBetterCombatGameTestScenarios.soulstainedSteelSpellAmplifierFollowsMalumAvailability(helper);
     }
 
     @GameTest(template = TEMPLATE)

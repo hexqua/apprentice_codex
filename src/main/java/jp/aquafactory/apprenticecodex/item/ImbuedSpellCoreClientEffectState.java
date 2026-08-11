@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,12 +22,25 @@ public final class ImbuedSpellCoreClientEffectState {
     }
 
     public static CoreRenderState resolve(ItemStack stack, float partialTick) {
+        return resolve(stack, partialTick, false);
+    }
+
+    public static CoreRenderState resolveWithManaRequirement(
+            ItemStack stack,
+            @Nullable LivingEntity renderingEntity,
+            float partialTick,
+            double requiredMana
+    ) {
+        return resolve(stack, partialTick, isManaRequirementUnmet(renderingEntity, requiredMana));
+    }
+
+    private static CoreRenderState resolve(ItemStack stack, float partialTick, boolean manaWarningActive) {
         float time = resolveTime(partialTick);
         var cooldownRemaining = resolveCooldownRemaining(stack, partialTick);
-        if (cooldownRemaining > 0.0f) {
+        if (cooldownRemaining > 0.0f || manaWarningActive) {
             var pulse = (Mth.sin((float) (time * (Math.PI * 2.0 / COOLDOWN_PULSE_PERIOD_TICKS))) + 1.0f) * 0.5f;
             var strength = Mth.lerp(pulse, COOLDOWN_MIN_STRENGTH, COOLDOWN_MAX_STRENGTH);
-            if (cooldownRemaining < COOLDOWN_FADE_TICKS) {
+            if (!manaWarningActive && cooldownRemaining < COOLDOWN_FADE_TICKS) {
                 strength *= Mth.clamp(cooldownRemaining / COOLDOWN_FADE_TICKS, 0.0f, 1.0f);
             }
             return new CoreRenderState(strength, 0.12f * strength, 0.12f * strength, 0.95f);
@@ -34,6 +48,24 @@ public final class ImbuedSpellCoreClientEffectState {
 
         var brightness = CORE_IDLE_BASE + CORE_IDLE_PULSE * (0.5f + 0.5f * Mth.sin(time * CORE_IDLE_SPEED));
         return new CoreRenderState(brightness, brightness, brightness, 0.95f);
+    }
+
+    private static boolean isManaRequirementUnmet(
+            @Nullable LivingEntity renderingEntity,
+            double requiredMana
+    ) {
+        if (!Double.isFinite(requiredMana) || requiredMana <= 0.0D) {
+            return false;
+        }
+
+        var player = Minecraft.getInstance().player;
+        if (player == null || renderingEntity != player || player.getAbilities().instabuild) {
+            return false;
+        }
+
+        // サーバーのMagicDataはマナを保持していないため、クライアントから参照する必要がある.
+        var clientMana = ClientMagicData.getPlayerMana();
+        return clientMana < requiredMana;
     }
 
     public static boolean isCooldownActive(ItemStack stack, float partialTick) {

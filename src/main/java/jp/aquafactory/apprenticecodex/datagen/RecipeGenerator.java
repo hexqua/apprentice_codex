@@ -941,6 +941,9 @@ public final class RecipeGenerator extends RecipeProvider {
         saveChromaticMagiaDressSmithingRecipes(recipeWriter);
         saveElementMaidenRobeSmithingRecipes(recipeWriter);
         saveMagiAgentSuitSmithingRecipes(recipeWriter);
+        recipeWriter.accept(new MalumSpellAmplifierFinishedRecipe(
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "soulstained_steel_spell_amplifier")
+        ));
 
         SmithingTransformRecipeBuilder.smithing(
                         Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),
@@ -1266,6 +1269,40 @@ public final class RecipeGenerator extends RecipeProvider {
                 ),
                 spirits
         );
+        saveMalumSpiritInfusionRecipe(
+                recipeWriter,
+                ResourceLocation.fromNamespaceAndPath(
+                        ApprenticeCodex.MODID, "malum/spirit_infusion/soulstained_steel_swingcast_staff"),
+                itemId(ItemRegistry.IRON_SWINGCAST_STAFF.get()),
+                itemId(ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get()),
+                List.of(
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "chunk_of_brilliance"), 8),
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "soul_stained_steel_ingot"), 4),
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "hex_ash"), 8)
+                ),
+                List.of(
+                        new MalumSpiritCost("wicked", 32),
+                        new MalumSpiritCost("arcane", 16),
+                        new MalumSpiritCost("eldritch", 8)
+                )
+        );
+        saveMalumSpiritInfusionRecipe(
+                recipeWriter,
+                ResourceLocation.fromNamespaceAndPath(
+                        ApprenticeCodex.MODID, "malum/spirit_infusion/malignant_spellcaster_gun"),
+                itemId(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()),
+                itemId(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get()),
+                List.of(
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "malignant_pewter_ingot"), 4),
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "mnemonic_fragment"), 8),
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "void_salts"), 8)
+                ),
+                List.of(
+                        new MalumSpiritCost("wicked", 32),
+                        new MalumSpiritCost("arcane", 64),
+                        new MalumSpiritCost("eldritch", 32)
+                )
+        );
     }
 
     private void saveMalumSpiritInfusionRecipe(
@@ -1493,6 +1530,111 @@ public final class RecipeGenerator extends RecipeProvider {
         @Override
         public @Nullable ResourceLocation getAdvancementId() {
             return null;
+        }
+    }
+
+    private record MalumSpellAmplifierFinishedRecipe(ResourceLocation id) implements FinishedRecipe {
+        @Override
+        public @NotNull ResourceLocation getId() {
+            return id;
+        }
+
+        @Override
+        public void serializeRecipeData(JsonObject json) {
+            var conditions = new com.google.gson.JsonArray();
+            var modLoaded = new JsonObject();
+            modLoaded.addProperty("type", "forge:mod_loaded");
+            modLoaded.addProperty("modid", "malum");
+            conditions.add(modLoaded);
+            json.add("conditions", conditions);
+
+            var pattern = new com.google.gson.JsonArray();
+            pattern.add("HAH");
+            pattern.add(" S ");
+            pattern.add(" S ");
+            json.add("pattern", pattern);
+
+            var key = new JsonObject();
+            key.add("H", itemJson("malum:hex_ash"));
+            key.add("A", itemJson("irons_spellbooks:arcane_ingot"));
+            key.add("S", itemJson("malum:soul_stained_steel_ingot"));
+            json.add("key", key);
+
+            var result = new JsonObject();
+            result.addProperty("item", id.toString());
+            json.add("result", result);
+        }
+
+        private static JsonObject itemJson(String itemId) {
+            var item = new JsonObject();
+            item.addProperty("item", itemId);
+            return item;
+        }
+
+        @Override
+        public @NotNull RecipeSerializer<?> getType() {
+            return RecipeSerializer.SHAPED_RECIPE;
+        }
+
+        @Override
+        public JsonObject serializeAdvancement() {
+            var root = new JsonObject();
+            root.addProperty("parent", "minecraft:recipes/root");
+
+            var criteria = new JsonObject();
+            var hasIngot = new JsonObject();
+            hasIngot.addProperty("trigger", "minecraft:inventory_changed");
+            var hasIngotConditions = new JsonObject();
+            var predicates = new com.google.gson.JsonArray();
+            var predicate = new JsonObject();
+            var items = new com.google.gson.JsonArray();
+            items.add("malum:soul_stained_steel_ingot");
+            predicate.add("items", items);
+            predicates.add(predicate);
+            hasIngotConditions.add("items", predicates);
+            hasIngot.add("conditions", hasIngotConditions);
+            criteria.add("has_soul_stained_steel_ingot", hasIngot);
+
+            var hasRecipe = new JsonObject();
+            hasRecipe.addProperty("trigger", "minecraft:recipe_unlocked");
+            var hasRecipeConditions = new JsonObject();
+            hasRecipeConditions.addProperty("recipe", id.toString());
+            hasRecipe.add("conditions", hasRecipeConditions);
+            criteria.add("has_the_recipe", hasRecipe);
+            root.add("criteria", criteria);
+
+            var requirements = new com.google.gson.JsonArray();
+            var alternatives = new com.google.gson.JsonArray();
+            alternatives.add("has_soul_stained_steel_ingot");
+            alternatives.add("has_the_recipe");
+            requirements.add(alternatives);
+            root.add("requirements", requirements);
+
+            var rewards = new JsonObject();
+            var recipes = new com.google.gson.JsonArray();
+            recipes.add(id.toString());
+            rewards.add("recipes", recipes);
+            root.add("rewards", rewards);
+
+            var condition = new JsonObject();
+            condition.addProperty("type", "forge:mod_loaded");
+            condition.addProperty("modid", "malum");
+            var conditions = new com.google.gson.JsonArray();
+            conditions.add(condition);
+            var entry = new JsonObject();
+            entry.add("conditions", conditions);
+            entry.add("advancement", root);
+            var advancements = new com.google.gson.JsonArray();
+            advancements.add(entry);
+            var conditionalRoot = new JsonObject();
+            conditionalRoot.add("advancements", advancements);
+            return conditionalRoot;
+        }
+
+        @Override
+        public ResourceLocation getAdvancementId() {
+            return ResourceLocation.fromNamespaceAndPath(
+                    id.getNamespace(), "recipes/combat/" + id.getPath());
         }
     }
 

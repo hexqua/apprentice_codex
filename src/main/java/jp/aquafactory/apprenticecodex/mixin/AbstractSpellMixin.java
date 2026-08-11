@@ -10,12 +10,15 @@ import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCata
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowStartSoundContext;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffCastHelper;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunCastContext;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -37,7 +40,65 @@ public abstract class AbstractSpellMixin {
             )
     )
     private double apprentice_codex$useDivinePossessionSchoolPower(SchoolType schoolType, LivingEntity caster) {
-        return MagiAgentSuitEffects.resolveSchoolPower((AbstractSpell) (Object) this, schoolType, caster);
+        var spell = (AbstractSpell) (Object) this;
+        var resolvedPower = MagiAgentSuitEffects.resolveSchoolPower(spell, schoolType, caster);
+        return SpellgunCastContext.resolveSchoolSpellPower(spell, caster, resolvedPower);
+    }
+
+    @Redirect(
+            method = {"getSpellPower", "getEntityPowerMultiplier"},
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/entity/LivingEntity;getAttributeValue(Lnet/minecraft/world/entity/ai/attributes/Attribute;)D"
+            )
+    )
+    private double apprentice_codex$useSpellgunForcedSpellPower(
+            LivingEntity caster,
+            Attribute attribute
+    ) {
+        var originalValue = caster.getAttributeValue(attribute);
+        return SpellgunCastContext.resolveSpellPower((AbstractSpell) (Object) this, caster, originalValue);
+    }
+
+    @Redirect(
+            method = "canBeCastedBy",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lio/redspace/ironsspellbooks/api/magic/MagicData;getMana()F"
+            )
+    )
+    private float apprentice_codex$bypassSpellgunManaCheck(
+            MagicData magicData,
+            int spellLevel,
+            CastSource castSource,
+            MagicData playerMagicData,
+            Player player
+    ) {
+        var mana = magicData.getMana();
+        var spell = (AbstractSpell) (Object) this;
+        return SpellgunCastContext.shouldBypassManaCheck(spell, player)
+                ? Math.max(mana, spell.getManaCost(spellLevel))
+                : mana;
+    }
+
+    @Redirect(
+            method = "castSpell",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lio/redspace/ironsspellbooks/api/spells/AbstractSpell;onCast(Lnet/minecraft/world/level/Level;ILnet/minecraft/world/entity/LivingEntity;Lio/redspace/ironsspellbooks/api/spells/CastSource;Lio/redspace/ironsspellbooks/api/magic/MagicData;)V"
+            )
+    )
+    private void apprentice_codex$wrapSpellgunPowerOverride(
+            AbstractSpell spell,
+            Level level,
+            int spellLevel,
+            LivingEntity caster,
+            CastSource castSource,
+            MagicData magicData
+    ) {
+        try (var ignored = SpellgunCastContext.openActivation(caster, spell, magicData)) {
+            spell.onCast(level, spellLevel, caster, castSource, magicData);
+        }
     }
 
     @Inject(method = "getEffectiveCastTime", at = @At("RETURN"), cancellable = true)
