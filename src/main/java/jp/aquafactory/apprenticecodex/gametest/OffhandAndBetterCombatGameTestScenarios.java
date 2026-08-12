@@ -199,6 +199,19 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                 );
             }
 
+            var soulWardCapacityId = ResourceLocation.fromNamespaceAndPath("malum", "soul_ward_capacity");
+            var soulWardCapacity = BuiltInRegistries.ATTRIBUTE.getOptional(soulWardCapacityId).orElse(null);
+            if (soulWardCapacity != null) {
+                assertModifierAmount(
+                        helper,
+                        item.getDefaultAttributeModifiers(stack),
+                        soulWardCapacity,
+                        SoulstainedSteelSpellAmplifier.SOUL_WARD_CAPACITY_BONUS,
+                        AttributeModifier.Operation.ADD_VALUE,
+                        "Soulstained Steel Spell Amplifier soul ward capacity bonus regression"
+                );
+            }
+
             var recipeId = ResourceLocation.fromNamespaceAndPath(
                     "apprenticecodex", "soulstained_steel_spell_amplifier");
             var recipeHolder = helper.getLevel().getRecipeManager().byKey(recipeId).orElse(null);
