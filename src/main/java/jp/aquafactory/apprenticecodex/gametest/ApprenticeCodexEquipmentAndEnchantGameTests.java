@@ -561,6 +561,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void scrollcasterGauntletTooltipShowsOnlyAdjustmentSlots(GameTestHelper helper) {
+        SpellCalibrationEquipmentGameTestScenarios.scrollcasterGauntletTooltipShowsOnlyAdjustmentSlots(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void legacyCalibrationAdjustmentFormatsMigrateOnFirstMutation(GameTestHelper helper) {
         SpellCalibrationEquipmentGameTestScenarios.legacyCalibrationAdjustmentFormatsMigrateOnFirstMutation(helper);
     }

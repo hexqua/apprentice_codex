@@ -18,6 +18,7 @@ import jp.aquafactory.apprenticecodex.compat.patchouli.PatchouliBuiltinTemplateS
 import jp.aquafactory.apprenticecodex.compat.sodiumdynamiclights.SodiumDynamicLightsLuminousDeviceCompat;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkState;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentTooltip;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
 import jp.aquafactory.apprenticecodex.item.magicitem.client.WoodenWandClientRenderState;
 import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
@@ -45,6 +46,7 @@ import jp.aquafactory.apprenticecodex.renderer.curio.SpellcasterAmmoPouchCurioRe
 import jp.aquafactory.apprenticecodex.renderer.curio.SpellcasterQuiverCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.extrudedsprite.ExtrudedSpriteManager;
 import jp.aquafactory.apprenticecodex.renderer.entity.FloatmountBroomRenderer;
+import jp.aquafactory.apprenticecodex.renderer.tooltip.CalibrationAdjustmentClientTooltipComponent;
 import jp.aquafactory.apprenticecodex.renderer.tooltip.SpellcasterAmmoPouchClientTooltipComponent;
 import jp.aquafactory.apprenticecodex.spell.anchorblink.AnchorBlinkDaggerRenderer;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamRenderer;
@@ -299,6 +301,7 @@ public final class ClientModBusEvents {
     }
 
     private static void registerTooltipComponentFactories(RegisterClientTooltipComponentFactoriesEvent event) {
+        event.register(CalibrationAdjustmentTooltip.class, CalibrationAdjustmentClientTooltipComponent::new);
         event.register(SpellcasterAmmoPouchTooltip.class, SpellcasterAmmoPouchClientTooltipComponent::new);
         event.register(LuminousDeviceTooltip.class, SpellcasterAmmoPouchClientTooltipComponent::new);
     }
