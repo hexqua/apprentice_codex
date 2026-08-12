@@ -488,18 +488,29 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
         };
     }
 
-    static void scrollcasterGauntletTooltipShowsOnlyAdjustmentSlots(GameTestHelper helper) {
+    static void declaredCalibrationAdjustmentTargetsProvideMatchingTooltips(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var targets = createDeclaredCalibrationAdjustmentTargets();
+            for (var index = 0; index < targets.length; ++index) {
+                var stack = targets[index];
+                helper.assertTrue(stack.getItem() instanceof SpellCalibrationAdjustmentTarget,
+                        "Declared calibration tooltip target should implement the common target contract: " + index);
+                var target = (SpellCalibrationAdjustmentTarget) stack.getItem();
+                var payload = stack.getItem().getTooltipImage(stack).orElseThrow();
+                helper.assertTrue(payload instanceof CalibrationAdjustmentTooltip,
+                        "Declared calibration target should provide calibration tooltip data: " + index);
+                var items = ((CalibrationAdjustmentTooltip) payload).items();
+                helper.assertTrue(items.size() == target.getCalibrationAdjustmentSlotCount(stack),
+                        "Calibration tooltip slot count should match the target contract: " + index);
+                helper.assertTrue(items.stream().allMatch(ItemStack::isEmpty),
+                        "New calibration target tooltip slots should all be empty: " + index);
+            }
+        });
+    }
+
+    static void scrollcasterGauntletTooltipExcludesCalibrationScrolls(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
-            var emptyPayload = gauntlet.getItem().getTooltipImage(gauntlet).orElseThrow();
-            helper.assertTrue(emptyPayload instanceof CalibrationAdjustmentTooltip,
-                    "Scrollcaster Gauntlet should provide calibration adjustment tooltip data");
-            var emptyItems = ((CalibrationAdjustmentTooltip) emptyPayload).items();
-            helper.assertTrue(emptyItems.size() == ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT,
-                    "Calibration tooltip should always expose all adjustment slots");
-            helper.assertTrue(emptyItems.stream().allMatch(ItemStack::isEmpty),
-                    "New Scrollcaster Gauntlet calibration tooltip slots should all be empty");
-
             var storedBook = new ItemStack(Items.ENCHANTED_BOOK);
             EnchantedBookItem.addEnchantment(storedBook, new EnchantmentInstance(Enchantments.SHARPNESS, 1));
             storedBook.setHoverName(Component.literal("Tooltip component book"));
@@ -532,10 +543,6 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertTrue(populatedItems.stream()
                             .noneMatch(stack -> stack.getItem() instanceof io.redspace.ironsspellbooks.item.Scroll),
                     "Calibration tooltip should not include Scrollcaster Gauntlet scroll slots");
-
-            var revolvercastStaff = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
-            helper.assertTrue(revolvercastStaff.getItem().getTooltipImage(revolvercastStaff).isEmpty(),
-                    "Other calibration targets should remain outside the initial tooltip rollout");
         });
     }
 

@@ -595,7 +595,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     @Override
     public @NotNull Optional<TooltipComponent> getTooltipImage(@NotNull ItemStack stack) {
-        return Optional.of(CalibrationAdjustmentTooltip.create(stack, this));
+        return createCalibrationAdjustmentTooltip(stack);
     }
 
     @Override

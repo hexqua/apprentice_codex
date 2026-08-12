@@ -1,7 +1,10 @@
 package jp.aquafactory.apprenticecodex.item;
 
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Optional;
 
 /** 術式調整台の調整スロットを持つ Item。 */
 public interface SpellCalibrationAdjustmentTarget {
@@ -41,6 +44,12 @@ public interface SpellCalibrationAdjustmentTarget {
 
     /** 調整内容から派生して保存する属性や選択状態がある Item だけが上書きする。 */
     default void onCalibrationAdjustmentsChanged(@NotNull ItemStack targetStack) {
+    }
+
+    default @NotNull Optional<TooltipComponent> createCalibrationAdjustmentTooltip(
+            @NotNull ItemStack targetStack
+    ) {
+        return Optional.of(CalibrationAdjustmentTooltip.create(targetStack, this));
     }
 
     @NotNull
