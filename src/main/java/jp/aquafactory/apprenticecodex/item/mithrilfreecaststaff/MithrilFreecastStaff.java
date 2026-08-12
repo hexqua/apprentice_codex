@@ -18,7 +18,6 @@ import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
-import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
 import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -26,11 +25,9 @@ import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -48,7 +45,6 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -68,6 +64,7 @@ import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
@@ -95,12 +92,7 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
             );
     private static final String MAIN_CONTROLLER = "main";
     private static final String CALIBRATION_TAG = "SpellCalibration";
-    private static final String ADJUSTMENTS_TAG = "Adjustments";
-    private static final String SLOT_TAG = "Slot";
-    private static final String ITEM_TAG = "Item";
     private static final String SCHOOL_POWER_SCHOOL_TAG = "SchoolPowerSchool";
-    private static final HolderLookup.Provider FALLBACK_SERIALIZATION_LOOKUP =
-            RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final int ENCHANTMENT_VALUE = 15;
     private static final double DISPLAYED_ATTACK_DAMAGE = 8.0D;
@@ -405,12 +397,7 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     private static @NotNull ItemStack readCalibrationAdjustment(@NotNull ItemStack staffStack, int slot) {
-        return getCalibrationItem(staffStack, slot);
-    }
-
-    private static void writeCalibrationAdjustment(@NotNull ItemStack staffStack, int slot, @NotNull ItemStack stack) {
-        setCalibrationItem(staffStack, slot, stack);
-        refreshResolvedCalibrationSchool(staffStack);
+        return CalibrationAdjustmentStorage.get(staffStack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
     }
 
     @Override
@@ -419,21 +406,11 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     @Override
-    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
-        return readCalibrationAdjustment(targetStack, slot);
-    }
-
-    @Override
-    public boolean trySetCalibrationAdjustment(
+    public void onCalibrationAdjustmentsChanged(
             @NotNull ItemStack targetStack,
-            int slot,
-            @NotNull ItemStack adjustment
+            @NotNull HolderLookup.Provider lookupProvider
     ) {
-        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment)) {
-            return false;
-        }
-        writeCalibrationAdjustment(targetStack, slot, adjustment);
-        return true;
+        refreshResolvedCalibrationSchool(targetStack);
     }
 
     @Override
@@ -500,55 +477,6 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
         return MagicTools.resolveSchoolPowerAttribute(getResolvedCalibrationSchool(stack));
     }
 
-    private static @NotNull ItemStack getCalibrationItem(@NotNull ItemStack staffStack, int slot) {
-        if (!isValidCalibrationAccess(staffStack, slot)) {
-            return ItemStack.EMPTY;
-        }
-
-        var calibrationTag = getCalibrationTag(staffStack);
-        if (calibrationTag == null || !calibrationTag.contains(ADJUSTMENTS_TAG, Tag.TAG_LIST)) {
-            return ItemStack.EMPTY;
-        }
-
-        var list = calibrationTag.getList(ADJUSTMENTS_TAG, Tag.TAG_COMPOUND);
-        for (var index = 0; index < list.size(); ++index) {
-            var entry = list.getCompound(index);
-            if (entry.getInt(SLOT_TAG) != slot || !entry.contains(ITEM_TAG, Tag.TAG_COMPOUND)) {
-                continue;
-            }
-            return ItemStack.parseOptional(serializationLookup(), entry.getCompound(ITEM_TAG));
-        }
-        return ItemStack.EMPTY;
-    }
-
-    private static void setCalibrationItem(@NotNull ItemStack staffStack, int slot, @NotNull ItemStack stack) {
-        if (!isValidCalibrationAccess(staffStack, slot)) {
-            return;
-        }
-
-        updateCalibrationTag(staffStack, calibrationTag -> {
-            var list = calibrationTag.contains(ADJUSTMENTS_TAG, Tag.TAG_LIST)
-                    ? calibrationTag.getList(ADJUSTMENTS_TAG, Tag.TAG_COMPOUND)
-                    : new ListTag();
-            removeCalibrationItem(list, slot);
-
-            if (!stack.isEmpty()) {
-                var storedStack = stack.copy();
-                storedStack.setCount(1);
-                var entry = new CompoundTag();
-                entry.putInt(SLOT_TAG, slot);
-                entry.put(ITEM_TAG, storedStack.saveOptional(serializationLookup()));
-                list.add(entry);
-            }
-
-            if (list.isEmpty()) {
-                calibrationTag.remove(ADJUSTMENTS_TAG);
-            } else {
-                calibrationTag.put(ADJUSTMENTS_TAG, list);
-            }
-        });
-    }
-
     private static ResourceLocation getResolvedCalibrationSchoolId(ItemStack stack) {
         if (stack == null || stack.isEmpty()) {
             return null;
@@ -603,19 +531,6 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
                 rootTag.put(CALIBRATION_TAG, calibrationTag);
             }
         });
-    }
-
-    private static HolderLookup.Provider serializationLookup() {
-        var server = ServerLifecycleHooks.getCurrentServer();
-        return server == null ? FALLBACK_SERIALIZATION_LOOKUP : server.registryAccess();
-    }
-
-    private static void removeCalibrationItem(ListTag list, int slot) {
-        for (var index = list.size() - 1; index >= 0; --index) {
-            if (list.getCompound(index).getInt(SLOT_TAG) == slot) {
-                list.remove(index);
-            }
-        }
     }
 
     private static boolean isValidCalibrationAccess(@NotNull ItemStack staffStack, int slot) {

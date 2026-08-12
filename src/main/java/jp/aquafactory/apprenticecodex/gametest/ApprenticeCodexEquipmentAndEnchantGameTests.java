@@ -576,6 +576,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void legacyCalibrationAdjustmentFormatsMigrateOnFirstMutation(GameTestHelper helper) {
+        SpellCalibrationEquipmentGameTestScenarios.legacyCalibrationAdjustmentFormatsMigrateOnFirstMutation(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellCalibrationBenchImbueStatesSeparateInsertionFromCurrentUsability(GameTestHelper helper) {
         SpellCalibrationEquipmentGameTestScenarios
                 .spellCalibrationBenchImbueStatesSeparateInsertionFromCurrentUsability(helper);

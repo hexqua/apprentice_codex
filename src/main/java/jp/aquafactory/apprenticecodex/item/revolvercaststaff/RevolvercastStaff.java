@@ -18,7 +18,6 @@ import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
-import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
@@ -74,6 +73,7 @@ import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
@@ -122,7 +122,6 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     private static final String REVOLVE_ANIMATION = "revolve";
     private static final String REVOLVE_ANIMATION_ALT = "revolve2";
     private static final String CALIBRATION_TAG = "SpellCalibration";
-    private static final String ADJUSTMENTS_TAG = "Adjustments";
     private static final String SCROLLS_TAG = "Scrolls";
     private static final String SLOT_TAG = "Slot";
     private static final String ITEM_TAG = "Item";
@@ -494,13 +493,7 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     private static @NotNull ItemStack readCalibrationAdjustment(@NotNull ItemStack staffStack, int slot) {
-        return getCalibrationItem(staffStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
-    }
-
-    private static void writeCalibrationAdjustment(@NotNull ItemStack staffStack, int slot, @NotNull ItemStack stack) {
-        setCalibrationItem(staffStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, stack);
-        refreshResolvedCalibrationSchool(staffStack);
-        refreshSelectedSpellContainer(staffStack);
+        return CalibrationAdjustmentStorage.get(staffStack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
     }
 
     @Override
@@ -509,21 +502,12 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     @Override
-    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
-        return readCalibrationAdjustment(targetStack, slot);
-    }
-
-    @Override
-    public boolean trySetCalibrationAdjustment(
+    public void onCalibrationAdjustmentsChanged(
             @NotNull ItemStack targetStack,
-            int slot,
-            @NotNull ItemStack adjustment
+            @NotNull HolderLookup.Provider lookupProvider
     ) {
-        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment)) {
-            return false;
-        }
-        writeCalibrationAdjustment(targetStack, slot, adjustment);
-        return true;
+        refreshResolvedCalibrationSchool(targetStack);
+        refreshSelectedSpellContainer(targetStack);
     }
 
     @Override

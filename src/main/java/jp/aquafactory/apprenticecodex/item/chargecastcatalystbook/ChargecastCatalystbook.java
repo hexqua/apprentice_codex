@@ -82,7 +82,6 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     public static final int CALIBRATION_SCROLL_SLOT_COUNT = 4;
     public static final int BASE_CALIBRATION_SCROLL_SLOT_COUNT = 1;
     private static final String CALIBRATION_TAG = "ChargecastCalibration";
-    private static final String ADJUSTMENTS_TAG = "Adjustments";
     private static final String SCROLLS_TAG = "Scrolls";
     private static final String SLOT_TAG = "Slot";
     private static final String ITEM_TAG = "Item";
@@ -153,7 +152,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     }
 
     @Override
-    public int getEnchantmentValue(ItemStack stack) {
+    public int getEnchantmentValue(@NotNull ItemStack stack) {
         return 22;
     }
 
@@ -168,7 +167,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     }
 
     @Override
-    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         return super.supportsEnchantment(stack, enchantment)
                 || AttributeEnchantmentType.from(enchantment)
                 .map(SUPPORTED_ATTRIBUTE_ENCHANTMENTS::contains)
@@ -179,19 +178,19 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     }
 
     @Override
-    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
-    public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+    public boolean isBookEnchantable(@NotNull ItemStack stack, @NotNull ItemStack book) {
         var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
         return !enchantments.isEmpty()
                 && enchantments.keySet().stream().allMatch(enchantment -> supportsEnchantment(stack, enchantment));
     }
 
     @Override
-    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+    public @NotNull ItemAttributeModifiers getDefaultAttributeModifiers(@NotNull ItemStack stack) {
         var offhand = usesOffhandAttributeModifiers(stack);
         var modifierId = offhand ? OFFHAND_SPELL_POWER_ID : MAINHAND_SPELL_POWER_ID;
         var slotGroup = offhand ? EquipmentSlotGroup.OFFHAND : EquipmentSlotGroup.MAINHAND;
@@ -433,34 +432,12 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     }
 
     @Override
-    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
-        return getCalibrationAdjustment(targetStack, slot, serializationLookup());
-    }
-
-    @Override
-    public @NotNull ItemStack getCalibrationAdjustment(
-            @NotNull ItemStack targetStack, int slot, @NotNull HolderLookup.Provider lookupProvider
-    ) {
-        return getCalibrationItem(targetStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, lookupProvider);
-    }
-
-    @Override
-    public boolean trySetCalibrationAdjustment(@NotNull ItemStack targetStack, int slot, @NotNull ItemStack adjustment) {
-        return trySetCalibrationAdjustment(targetStack, slot, adjustment, serializationLookup());
-    }
-
-    @Override
-    public boolean trySetCalibrationAdjustment(
-            @NotNull ItemStack targetStack, int slot, @NotNull ItemStack adjustment,
+    public void onCalibrationAdjustmentsChanged(
+            @NotNull ItemStack targetStack,
             @NotNull HolderLookup.Provider lookupProvider
     ) {
-        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment, lookupProvider)) {
-            return false;
-        }
-        setCalibrationItem(targetStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, adjustment, lookupProvider);
         refreshResolvedCalibrationSchool(targetStack);
         refreshSelectedSpellContainer(targetStack);
-        return true;
     }
 
     @Override
@@ -584,8 +561,8 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
         }
         var upgrades = 0;
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (isSpellSlotUpgrade(getCalibrationItem(
-                    stack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, serializationLookup()
+            if (isSpellSlotUpgrade(CalibrationAdjustmentStorage.get(
+                    stack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, serializationLookup()
             ))) {
                 ++upgrades;
             }
@@ -674,9 +651,8 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     private static void refreshResolvedCalibrationSchool(ItemStack stack) {
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
             var school = ScrollcasterSchoolRuneResolver.resolveSchool(
-                    getCalibrationItem(
-                            stack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, serializationLookup()
-                    )
+                    CalibrationAdjustmentStorage.get(
+                            stack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, serializationLookup())
             );
             if (school.isPresent()) {
                 updateCalibrationTag(stack, calibration ->
@@ -743,8 +719,8 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
 
     private static boolean hasAdjustment(ItemStack stack, java.util.function.Predicate<ItemStack> predicate) {
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (predicate.test(getCalibrationItem(
-                    stack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, serializationLookup()
+            if (predicate.test(CalibrationAdjustmentStorage.get(
+                    stack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, serializationLookup()
             ))) {
                 return true;
             }

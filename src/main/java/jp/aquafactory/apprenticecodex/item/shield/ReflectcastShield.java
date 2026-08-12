@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
@@ -202,23 +203,23 @@ public class ReflectcastShield extends AbstractImbueShieldItem
     }
 
     @Override
-    public int getEnchantmentValue(ItemStack stack) {
+    public int getEnchantmentValue(@NotNull ItemStack stack) {
         return ENCHANTMENT_VALUE;
     }
 
     @Override
-    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         return super.supportsEnchantment(stack, enchantment)
                 || SHIELD_ENCHANTMENT_PROBE.supportsEnchantment(enchantment);
     }
 
     @Override
-    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
-    public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+    public boolean isBookEnchantable(@NotNull ItemStack stack, @NotNull ItemStack book) {
         if (!super.isBookEnchantable(stack, book)) {
             return false;
         }
@@ -233,40 +234,12 @@ public class ReflectcastShield extends AbstractImbueShieldItem
     }
 
     private static @NotNull ItemStack readCalibrationAdjustment(@NotNull ItemStack shieldStack, int slot) {
-        if (!isValidCalibrationAccess(shieldStack, slot)) {
-            return ItemStack.EMPTY;
-        }
-        return ShieldCalibrationData.get(shieldStack, CALIBRATION_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
-    }
-
-    private static void writeCalibrationAdjustment(@NotNull ItemStack shieldStack, int slot, @NotNull ItemStack adjustment) {
-        if (!isValidCalibrationAccess(shieldStack, slot)) {
-            return;
-        }
-        ShieldCalibrationData.set(shieldStack, CALIBRATION_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, adjustment);
+        return CalibrationAdjustmentStorage.get(shieldStack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
     }
 
     @Override
     public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack targetStack) {
         return CALIBRATION_ADJUSTMENT_SLOT_COUNT;
-    }
-
-    @Override
-    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
-        return readCalibrationAdjustment(targetStack, slot);
-    }
-
-    @Override
-    public boolean trySetCalibrationAdjustment(
-            @NotNull ItemStack targetStack,
-            int slot,
-            @NotNull ItemStack adjustment
-    ) {
-        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment)) {
-            return false;
-        }
-        writeCalibrationAdjustment(targetStack, slot, adjustment);
-        return true;
     }
 
     @Override
