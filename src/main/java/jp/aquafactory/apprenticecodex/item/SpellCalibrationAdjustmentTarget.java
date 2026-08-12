@@ -3,6 +3,8 @@ package jp.aquafactory.apprenticecodex.item;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -14,7 +16,9 @@ public interface SpellCalibrationAdjustmentTarget {
     default @NotNull Optional<TooltipComponent> createCalibrationAdjustmentTooltip(
             @NotNull ItemStack targetStack
     ) {
-        return Optional.of(CalibrationAdjustmentTooltip.create(targetStack, this));
+        return Optional.of(FMLEnvironment.dist == Dist.CLIENT
+                ? CalibrationAdjustmentTooltipClientHelper.create(targetStack, this)
+                : CalibrationAdjustmentTooltip.create(targetStack, this));
     }
 
     default @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
