@@ -145,7 +145,10 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
                         surfacingPlayer.getDeltaMovement());
             }
 
-            var expectedSurfaceY = columnBottom.above(2).getY() + 1.02D;
+            var topFluidPos = columnBottom.above(2);
+            var expectedSurfaceY = topFluidPos.getY()
+                    + helper.getLevel().getFluidState(topFluidPos).getHeight(helper.getLevel(), topFluidPos)
+                    + 0.02D;
             helper.assertTrue(surfacingPlayer.onGround()
                             && Math.abs(surfacingPlayer.getY() - expectedSurfaceY) < 1.0E-9D,
                     "LongStride should rise through a deep fluid column and settle on its surface: y="
@@ -165,8 +168,11 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
                     "LongStride should enable vanilla fluid standing on water");
             LongStrideFluidMovement.apply(waterWalker);
 
+            var waterSurfaceY = waterPos.getY()
+                    + helper.getLevel().getFluidState(waterPos).getHeight(helper.getLevel(), waterPos)
+                    + 0.02D;
             helper.assertTrue(waterWalker.onGround()
-                            && Math.abs(waterWalker.getY() - (waterPos.getY() + 1.02D)) < 1.0E-9D
+                            && Math.abs(waterWalker.getY() - waterSurfaceY) < 1.0E-9D
                             && waterWalker.getDeltaMovement().y == 0.0D,
                     "LongStride should settle the player on the water surface: y="
                             + waterWalker.getY() + ", dy=" + waterWalker.getDeltaMovement().y);
@@ -192,21 +198,53 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             flowingWalker.addEffect(new MobEffectInstance(EffectRegistry.LONG_STRIDE_MOBILITY, 200, 0));
             flowingWalker.setDeltaMovement(0.08D, -0.2D, 0.0D);
             LongStrideFluidMovement.apply(flowingWalker);
+            var flowingSurfaceY = flowingPos.getY()
+                    + helper.getLevel().getFluidState(flowingPos).getHeight(helper.getLevel(), flowingPos)
+                    + 0.02D;
             helper.assertTrue(flowingWalker.onGround()
-                            && Math.abs(flowingWalker.getY() - (flowingPos.getY() + 1.02D)) < 1.0E-9D
+                            && Math.abs(flowingWalker.getY() - flowingSurfaceY) < 1.0E-9D
                             && Math.abs(flowingWalker.getDeltaMovement().x - 0.08D) < 1.0E-9D,
                     "LongStride should treat flowing fluid block tops as walkable surfaces");
 
-            var jumpingWalker = createEquipmentTestPlayer(helper, new BlockPos(6, 3, 0),
+            var shallowWalker = createEquipmentTestPlayer(helper, new BlockPos(6, 3, 0),
+                    "long_stride_shallow_flowing_walk_test");
+            var shallowPos = shallowWalker.blockPosition();
+            placeAbsoluteFluidTestBasin(helper.getLevel(), shallowPos,
+                    Blocks.WATER.defaultBlockState().setValue(net.minecraft.world.level.block.LiquidBlock.LEVEL, 7));
+            shallowWalker.addEffect(new MobEffectInstance(EffectRegistry.LONG_STRIDE_MOBILITY, 200, 0));
+            shallowWalker.setOnGround(false);
+            shallowWalker.setDeltaMovement(0.08D, 0.0D, 0.0D);
+
+            for (var tick = 0; tick < 20; ++tick) {
+                LongStrideFluidMovement.apply(shallowWalker);
+                if (shallowWalker.onGround()) {
+                    break;
+                }
+                shallowWalker.move(net.minecraft.world.entity.MoverType.SELF,
+                        shallowWalker.getDeltaMovement());
+            }
+
+            var shallowSurfaceY = shallowPos.getY()
+                    + helper.getLevel().getFluidState(shallowPos).getHeight(helper.getLevel(), shallowPos)
+                    + 0.02D;
+            helper.assertTrue(shallowWalker.onGround()
+                            && Math.abs(shallowWalker.getY() - shallowSurfaceY) < 1.0E-9D,
+                    "LongStride should rise from shallow flowing water and settle on its actual surface: y="
+                            + shallowWalker.getY() + ", expected=" + shallowSurfaceY);
+
+            var jumpingWalker = createEquipmentTestPlayer(helper, new BlockPos(8, 3, 0),
                     "long_stride_fluid_jump_test");
             var jumpSupportPos = jumpingWalker.blockPosition().below();
             placeAbsoluteFluidTestBasin(helper.getLevel(), jumpSupportPos, Blocks.WATER.defaultBlockState());
             jumpingWalker.addEffect(new MobEffectInstance(EffectRegistry.LONG_STRIDE_MOBILITY, 200, 0));
-            jumpingWalker.setPos(jumpingWalker.getX(), jumpSupportPos.getY() + 1.22D, jumpingWalker.getZ());
+            var jumpSurfaceY = jumpSupportPos.getY()
+                    + helper.getLevel().getFluidState(jumpSupportPos).getHeight(helper.getLevel(), jumpSupportPos)
+                    + 0.02D;
+            jumpingWalker.setPos(jumpingWalker.getX(), jumpSurfaceY + 0.2D, jumpingWalker.getZ());
             jumpingWalker.setOnGround(false);
             jumpingWalker.setDeltaMovement(0.04D, 0.42D, 0.0D);
             LongStrideFluidMovement.apply(jumpingWalker);
-            helper.assertTrue(Math.abs(jumpingWalker.getY() - (jumpSupportPos.getY() + 1.22D)) < 1.0E-9D
+            helper.assertTrue(Math.abs(jumpingWalker.getY() - (jumpSurfaceY + 0.2D)) < 1.0E-9D
                             && Math.abs(jumpingWalker.getDeltaMovement().y - 0.42D) < 1.0E-9D,
                     "LongStride fluid standing should not pull back a player jumping away from the surface");
         });

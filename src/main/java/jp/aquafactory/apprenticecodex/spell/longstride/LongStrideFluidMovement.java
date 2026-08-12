@@ -142,7 +142,8 @@ public final class LongStrideFluidMovement {
                         continue;
                     }
 
-                    var surfaceY = y + 1.0D;
+                    // 常に浮上する LongStride は、実液面を接地面にして浅い流水でも確実に遷移させる。
+                    var surfaceY = y + fluidState.getHeight(level, mutablePos);
                     if (best == null || surfaceY > best.surfaceY()) {
                         best = new FluidSupport(surfaceY);
                     }
