@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.mixin;
 
 import jp.aquafactory.apprenticecodex.effect.MistFormEffect;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
+import jp.aquafactory.apprenticecodex.spell.longstride.LongStrideFluidMovement;
 import jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -15,6 +16,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class LivingEntityMistFormMixin {
     @Inject(method = "getJumpBoostPower", at = @At("RETURN"), cancellable = true)
     private void apprenticecodex$addMistFormJumpPower(CallbackInfoReturnable<Float> cir) {
+        // mixinはIDEが型を誤認するケースがある.
+        //noinspection ConstantValue
         if ((Object) this instanceof LivingEntity livingEntity && livingEntity.hasEffect(EffectRegistry.MIST_FORM)) {
             cir.setReturnValue(cir.getReturnValue() + MistFormEffect.JUMP_POWER_ADDITION);
         }
@@ -26,8 +29,11 @@ public abstract class LivingEntityMistFormMixin {
             return;
         }
 
+        // mixinはIDEが型を誤認するケースがある.
+        //noinspection ConstantValue
         if ((Object) this instanceof Player player
-                && MistFormEvents.canStandOnFluid(player)) {
+                && (MistFormEvents.canStandOnFluid(player)
+                || LongStrideFluidMovement.canStandOnFluid(player, fluidState))) {
             cir.setReturnValue(true);
         }
     }
