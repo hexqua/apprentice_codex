@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
@@ -33,6 +34,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -43,6 +45,7 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiInfoItem, ArcaneAnvilImbueBlockItem,
         StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget {
@@ -68,7 +71,6 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
 
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.satellite_followcast_amulet.desc_";
     private static final String CALIBRATION_TAG = "SpellCalibration";
-    private static final String ADJUSTMENTS_TAG = "Adjustments";
     private static final String SCROLLS_TAG = "Scrolls";
     private static final String SLOT_TAG = "Slot";
     private static final String ITEM_TAG = "Item";
@@ -163,34 +165,17 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
     }
 
     private static @NotNull ItemStack readCalibrationAdjustment(@NotNull ItemStack amuletStack, int slot) {
-        return getCalibrationItem(amuletStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
+        return CalibrationAdjustmentStorage.get(amuletStack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
     }
 
-    private static void writeCalibrationAdjustment(@NotNull ItemStack amuletStack, int slot, @NotNull ItemStack stack) {
-        setCalibrationItem(amuletStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, stack);
+    @Override
+    public @NotNull Optional<TooltipComponent> getTooltipImage(@NotNull ItemStack stack) {
+        return createCalibrationAdjustmentTooltip(stack);
     }
 
     @Override
     public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack targetStack) {
         return CALIBRATION_ADJUSTMENT_SLOT_COUNT;
-    }
-
-    @Override
-    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
-        return readCalibrationAdjustment(targetStack, slot);
-    }
-
-    @Override
-    public boolean trySetCalibrationAdjustment(
-            @NotNull ItemStack targetStack,
-            int slot,
-            @NotNull ItemStack adjustment
-    ) {
-        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment)) {
-            return false;
-        }
-        writeCalibrationAdjustment(targetStack, slot, adjustment);
-        return true;
     }
 
     @Override
@@ -375,9 +360,8 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
             if (!readCalibrationAdjustment(amuletStack, slot).isEmpty()) {
                 continue;
             }
-            setCalibrationItem(
+            CalibrationAdjustmentStorage.set(
                     amuletStack,
-                    ADJUSTMENTS_TAG,
                     slot,
                     CALIBRATION_ADJUSTMENT_SLOT_COUNT,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())

@@ -108,23 +108,23 @@ final class ParrycastBucklerGameTestScenarios {
             var fireRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get());
             helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(stack, 0, fireRune),
                     "Parrycast should reject School Runes");
-            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
-                            stack,
-                            0,
-                            new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())),
-                    "Parrycast should still accept Silver Ring");
-            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
-                            stack, 1, new ItemStack(ItemRegistry.WISDOM_SHARD.get())),
-                    "Parrycast should still accept Wisdom Shard");
-            helper.assertTrue(ParrycastBuckler.hasWisdomShard(stack), "Wisdom Shard should be stored");
-
             CustomData.update(DataComponents.CUSTOM_DATA, stack, root -> {
-                var calibration = root.getCompound("ParrycastBucklerCalibration");
-                var legacyAdjustments = calibration.getList("Adjustments", net.minecraft.nbt.Tag.TAG_COMPOUND);
-                var legacyEntry = new CompoundTag();
-                legacyEntry.putInt("Slot", 2);
-                legacyEntry.putString("Item", BuiltInRegistries.ITEM.getKey(fireRune.getItem()).toString());
-                legacyAdjustments.add(legacyEntry);
+                var calibration = new CompoundTag();
+                var legacyAdjustments = new net.minecraft.nbt.ListTag();
+                var legacyItems = new ItemStack[]{
+                        new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()),
+                        new ItemStack(ItemRegistry.WISDOM_SHARD.get()),
+                        fireRune
+                };
+                for (var slot = 0; slot < legacyItems.length; ++slot) {
+                    var legacyEntry = new CompoundTag();
+                    legacyEntry.putInt("Slot", slot);
+                    legacyEntry.putString(
+                            "Item",
+                            BuiltInRegistries.ITEM.getKey(legacyItems[slot].getItem()).toString()
+                    );
+                    legacyAdjustments.add(legacyEntry);
+                }
                 calibration.put("Adjustments", legacyAdjustments);
                 root.put("ParrycastBucklerCalibration", calibration);
             });
@@ -134,6 +134,13 @@ final class ParrycastBucklerGameTestScenarios {
                             .noneMatch(entry -> entry.slot().equals(net.minecraft.world.entity.EquipmentSlotGroup.OFFHAND)
                                     && entry.attribute().equals(AttributeRegistry.FIRE_SPELL_POWER)),
                     "Legacy School Rune should not grant school spell power");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack,
+                            0,
+                            new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())),
+                    "Parrycast should still accept Silver Ring and migrate all legacy slots");
+            helper.assertTrue(ParrycastBuckler.hasWisdomShard(stack),
+                    "Untouched Wisdom Shard should survive the first legacy mutation");
             helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                             stack, 2, ItemStack.EMPTY),
                     "Legacy School Rune should remain removable");

@@ -32,14 +32,7 @@ import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceKey;
@@ -53,17 +46,15 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.level.Level;
 import net.minecraft.tags.TagKey;
 import net.neoforged.fml.ModList;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
@@ -72,6 +63,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.IntSupplier;
 import java.util.function.BooleanSupplier;
@@ -106,12 +98,6 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                             new CalibrationAdjustmentHint.SpecificItem(ItemRegistry.SILVER_SPELL_AMPLIFIER)
                     )
             );
-    private static final String CALIBRATION_TAG = "SpellgunCalibration";
-    private static final String ADJUSTMENT_TAG = "Adjustment";
-    private static final String ID_ONLY_ADJUSTMENT_ITEM_TAG = "AdjustmentItem";
-    private static final String ITEM_ID_TAG = "id";
-    private static final HolderLookup.Provider FALLBACK_SERIALIZATION_LOOKUP =
-            RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     public static final float EMPTY_CASING_RETURN_CHANCE = 0.5F;
     private final SpellGunConfig spellGunConfig;
     private final Supplier<? extends AbstractSpell> configuredSpell;
@@ -270,6 +256,11 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     }
 
     @Override
+    public @NotNull Optional<TooltipComponent> getTooltipImage(@NotNull ItemStack stack) {
+        return createCalibrationAdjustmentTooltip(stack);
+    }
+
+    @Override
     public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
         lines.add(Component.translatable(
@@ -303,105 +294,6 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     }
 
     @Override
-    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
-        return getCalibrationAdjustment(targetStack, slot, serializationLookup());
-    }
-
-    @Override
-    public @NotNull ItemStack getCalibrationAdjustment(
-            @NotNull ItemStack targetStack,
-            int slot,
-            @NotNull HolderLookup.Provider lookupProvider
-    ) {
-        if (!isValidCalibrationAccess(targetStack, slot)) {
-            return ItemStack.EMPTY;
-        }
-
-        var customData = targetStack.get(DataComponents.CUSTOM_DATA);
-        if (customData == null) {
-            return ItemStack.EMPTY;
-        }
-        var rootTag = customData.copyTag();
-        if (!rootTag.contains(CALIBRATION_TAG, Tag.TAG_COMPOUND)) {
-            return ItemStack.EMPTY;
-        }
-        var calibrationTag = rootTag.getCompound(CALIBRATION_TAG);
-        if (calibrationTag.contains(ADJUSTMENT_TAG, Tag.TAG_COMPOUND)) {
-            var adjustmentTag = calibrationTag.getCompound(ADJUSTMENT_TAG);
-            var adjustment = parseAdjustment(lookupProvider, adjustmentTag);
-            if (!adjustment.isEmpty()) {
-                return adjustment;
-            }
-            var fallbackAdjustment = createItemStack(adjustmentTag.getString(ITEM_ID_TAG));
-            if (!fallbackAdjustment.isEmpty()) {
-                return fallbackAdjustment;
-            }
-        }
-
-        return createItemStack(calibrationTag.getString(ID_ONLY_ADJUSTMENT_ITEM_TAG));
-    }
-
-    private static @NotNull ItemStack parseAdjustment(
-            @NotNull HolderLookup.Provider lookupProvider,
-            @NotNull CompoundTag adjustmentTag
-    ) {
-        if (adjustmentTag.isEmpty()) {
-            return ItemStack.EMPTY;
-        }
-        return ItemStack.CODEC
-                .parse(lookupProvider.createSerializationContext(NbtOps.INSTANCE), adjustmentTag)
-                .result()
-                .orElse(ItemStack.EMPTY);
-    }
-
-    private static @NotNull ItemStack createItemStack(@NotNull String itemIdString) {
-        var itemId = ResourceLocation.tryParse(itemIdString);
-        if (itemId == null) {
-            return ItemStack.EMPTY;
-        }
-        var item = BuiltInRegistries.ITEM.get(itemId);
-        return item == Items.AIR ? ItemStack.EMPTY : new ItemStack(item);
-    }
-
-    @Override
-    public boolean trySetCalibrationAdjustment(
-            @NotNull ItemStack targetStack,
-            int slot,
-            @NotNull ItemStack adjustment
-    ) {
-        return trySetCalibrationAdjustment(targetStack, slot, adjustment, serializationLookup());
-    }
-
-    @Override
-    public boolean trySetCalibrationAdjustment(
-            @NotNull ItemStack targetStack,
-            int slot,
-            @NotNull ItemStack adjustment,
-            @NotNull HolderLookup.Provider lookupProvider
-    ) {
-        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment, lookupProvider)) {
-            return false;
-        }
-
-        CustomData.update(DataComponents.CUSTOM_DATA, targetStack, rootTag -> {
-            if (adjustment.isEmpty()) {
-                rootTag.remove(CALIBRATION_TAG);
-                return;
-            }
-
-            var storedAdjustment = adjustment.copy();
-            storedAdjustment.setCount(1);
-            var calibrationTag = rootTag.contains(CALIBRATION_TAG, Tag.TAG_COMPOUND)
-                    ? rootTag.getCompound(CALIBRATION_TAG)
-                    : new CompoundTag();
-            calibrationTag.put(ADJUSTMENT_TAG, storedAdjustment.saveOptional(lookupProvider));
-            calibrationTag.remove(ID_ONLY_ADJUSTMENT_ITEM_TAG);
-            rootTag.put(CALIBRATION_TAG, calibrationTag);
-        });
-        return true;
-    }
-
-    @Override
     public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack targetStack) {
         return CALIBRATION_ADJUSTMENT_PROFILE;
     }
@@ -410,41 +302,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     public boolean usesOffhandAttributeModifiers(@NotNull ItemStack stack) {
         return !stack.isEmpty()
                 && stack.getItem() instanceof AbstractSpellGunItem spellGun
-                && ItemRegistry.SILVER_SPELL_AMPLIFIER.getId().equals(
-                        spellGun.getCalibrationAdjustmentItemId(stack)
-                );
-    }
-
-    private static boolean isValidCalibrationAccess(ItemStack stack, int slot) {
-        return slot == 0 && !stack.isEmpty() && stack.getItem() instanceof AbstractSpellGunItem;
-    }
-
-    private @Nullable ResourceLocation getCalibrationAdjustmentItemId(@NotNull ItemStack targetStack) {
-        var customData = targetStack.get(DataComponents.CUSTOM_DATA);
-        if (customData == null) {
-            return null;
-        }
-
-        var rootTag = customData.copyTag();
-        if (!rootTag.contains(CALIBRATION_TAG, Tag.TAG_COMPOUND)) {
-            return null;
-        }
-
-        var calibrationTag = rootTag.getCompound(CALIBRATION_TAG);
-        if (calibrationTag.contains(ADJUSTMENT_TAG, Tag.TAG_COMPOUND)) {
-            var itemId = ResourceLocation.tryParse(
-                    calibrationTag.getCompound(ADJUSTMENT_TAG).getString(ITEM_ID_TAG)
-            );
-            if (itemId != null) {
-                return itemId;
-            }
-        }
-        return ResourceLocation.tryParse(calibrationTag.getString(ID_ONLY_ADJUSTMENT_ITEM_TAG));
-    }
-
-    private static HolderLookup.Provider serializationLookup() {
-        var server = ServerLifecycleHooks.getCurrentServer();
-        return server == null ? FALLBACK_SERIALIZATION_LOOKUP : server.registryAccess();
+                && spellGun.getCalibrationAdjustment(stack, 0).is(ItemRegistry.SILVER_SPELL_AMPLIFIER.get());
     }
 
     public final boolean canImbueSpell(SpellData spellData) {

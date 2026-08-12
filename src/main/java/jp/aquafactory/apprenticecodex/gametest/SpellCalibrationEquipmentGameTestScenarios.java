@@ -14,6 +14,7 @@ import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHint;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentTooltip;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
@@ -35,9 +36,13 @@ import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import jp.aquafactory.apprenticecodex.utility.SpellSelectionStackResolver;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
@@ -316,22 +321,8 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
 
     static void spellCalibrationAdjustmentProfilesEnforceDeclaredRules(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var targets = new ItemStack[]{
-                    new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get()),
-                    new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get()),
-                    new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()),
-                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_HOOD.get()),
-                    new ItemStack(ItemRegistry.AUTOCAST_AMULET.get()),
-                    new ItemStack(ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get()),
-                    new ItemStack(ItemRegistry.BULWARK_GREATSHIELD.get()),
-                    new ItemStack(ItemRegistry.PARRYCAST_BUCKLER.get()),
-                    new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get()),
-                    new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
-                    new ItemStack(ItemRegistry.COPPER_SPELLCASTER_GUN.get()),
-                    new ItemStack(ItemRegistry.GOLD_SPELLCASTER_GUN.get()),
-                    new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get())
-            };
-            var expectedSlotCounts = new int[]{3, 3, 3, 1, 3, 3, 3, 3, 3, 1, 1, 1, 1};
+            var targets = createDeclaredCalibrationAdjustmentTargets();
+            var expectedSlotCounts = new int[]{3, 3, 3, 1, 3, 3, 3, 3, 3, 1, 1, 1, 1, 3, 1, 1, 1, 1};
             var representativeAdjustments = new ItemStack[]{
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()),
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get()),
@@ -345,6 +336,11 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
                     new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
                     new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
+                    new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get()),
                     new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get())
             };
             for (var index = 0; index < targets.length; ++index) {
@@ -422,11 +418,27 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             var sharpness = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SHARPNESS);
             var unbreaking = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.UNBREAKING);
             var sharpnessBook = createEnchantedBook(sharpness, 1);
+            sharpnessBook.set(DataComponents.CUSTOM_NAME, Component.literal("Stored calibration component"));
+            sharpnessBook.setCount(4);
             var anotherSharpnessBook = sharpnessBook.copy();
             var unbreakingBook = createEnchantedBook(unbreaking, 1);
             helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                             gauntlet, 0, sharpnessBook),
                     "Scrollcaster Gauntlet should accept a supported enchantment book");
+            var expectedStoredBook = sharpnessBook.copyWithCount(1);
+            var storedBook = SpellCalibrationAdjustmentGameTestSupport.getCalibrationAdjustment(gauntlet, 0);
+            helper.assertTrue(storedBook.getCount() == 1
+                            && ItemStack.isSameItemSameComponents(expectedStoredBook, storedBook),
+                    "Common adjustment storage should preserve all components and normalize count to one");
+            var restoredGauntlet = roundTripItemStack(helper, gauntlet);
+            var restoredBook = SpellCalibrationAdjustmentGameTestSupport
+                    .getCalibrationAdjustment(restoredGauntlet, 0);
+            helper.assertTrue(ItemStack.isSameItemSameComponents(expectedStoredBook, restoredBook),
+                    "Common adjustment storage should preserve components through ItemStack serialization");
+            var commonRoot = getCustomDataTag(gauntlet);
+            helper.assertTrue(commonRoot != null
+                            && commonRoot.contains("ApprenticeCodexCalibrationAdjustments", Tag.TAG_COMPOUND),
+                    "New writes should use the common adjustment storage root");
             helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
                             gauntlet, 1, anotherSharpnessBook),
                     "Scrollcaster Gauntlet should reject the same first enchantment twice");
@@ -434,27 +446,407 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                             gauntlet, 1, unbreakingBook),
                     "Scrollcaster Gauntlet should accept a different first enchantment");
 
-            var calibration = getCustomDataTag(autocast);
-            calibration = calibration == null ? null : calibration.getCompound("SpellCalibration");
-            helper.assertTrue(calibration != null, "Legacy duplicate test requires calibration NBT");
-            CustomData.update(DataComponents.CUSTOM_DATA, autocast, rootTag -> {
-                var storedCalibration = rootTag.getCompound("SpellCalibration");
-                var adjustments = storedCalibration.getList("Adjustments", Tag.TAG_COMPOUND);
-                var duplicate = adjustments.getCompound(0).copy();
-                duplicate.putInt("Slot", 1);
-                adjustments.add(duplicate);
+            var legacyAutocast = new ItemStack(ItemRegistry.AUTOCAST_AMULET.get());
+            CustomData.update(DataComponents.CUSTOM_DATA, legacyAutocast, rootTag -> {
+                var storedCalibration = new CompoundTag();
+                var adjustments = new ListTag();
+                var storedItem = new CompoundTag();
+                storedItem.putString("ItemId", BuiltInRegistries.ITEM.getKey(silverRing.getItem()).toString());
+                for (var slot = 0; slot < 2; ++slot) {
+                    var entry = new CompoundTag();
+                    entry.putInt("Slot", slot);
+                    entry.put("Item", storedItem.copy());
+                    adjustments.add(entry);
+                }
                 storedCalibration.put("Adjustments", adjustments);
                 rootTag.put("SpellCalibration", storedCalibration);
             });
+            var legacySnapshot = getCustomDataTag(legacyAutocast);
             helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport
-                            .getCalibrationAdjustment(autocast, 1).isEmpty(),
+                            .getCalibrationAdjustment(legacyAutocast, 1).isEmpty(),
                     "Legacy duplicate adjustment should remain readable");
+            helper.assertTrue(legacySnapshot != null && legacySnapshot.equals(getCustomDataTag(legacyAutocast)),
+                    "Reading legacy adjustments should not mutate their storage");
             helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
-                            autocast, 0, ItemStack.EMPTY),
+                            legacyAutocast, 0, ItemStack.EMPTY),
                     "Legacy duplicate adjustment should be removable from the first slot");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport
+                            .getCalibrationAdjustment(legacyAutocast, 1).is(silverRing.getItem()),
+                    "First legacy mutation should migrate untouched adjustment slots");
             helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
-                            autocast, 1, ItemStack.EMPTY),
+                            legacyAutocast, 1, ItemStack.EMPTY),
                     "Legacy duplicate adjustment should be removable from the second slot");
+            var migratedRoot = getCustomDataTag(legacyAutocast);
+            helper.assertTrue(migratedRoot == null || !migratedRoot.contains("SpellCalibration", Tag.TAG_COMPOUND),
+                    "First legacy mutation should remove the legacy adjustment field");
+        });
+    }
+
+    static void declaredCalibrationAdjustmentTargetsProvideMatchingTooltips(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            for (var stack : createDeclaredCalibrationAdjustmentTargets()) {
+                var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+                helper.assertTrue(stack.getItem() instanceof SpellCalibrationAdjustmentTarget,
+                        "Declared calibration tooltip target should implement the common target contract: " + itemId);
+                var target = (SpellCalibrationAdjustmentTarget) stack.getItem();
+                var optionalPayload = stack.getItem().getTooltipImage(stack);
+                helper.assertTrue(optionalPayload.isPresent(),
+                        "Declared calibration target should provide an image tooltip: " + itemId);
+                var payload = optionalPayload.orElseThrow();
+                helper.assertTrue(payload instanceof CalibrationAdjustmentTooltip,
+                        "Declared calibration target should provide calibration tooltip data: " + itemId);
+                var items = ((CalibrationAdjustmentTooltip) payload).items();
+                helper.assertTrue(items.size() == target.getCalibrationAdjustmentSlotCount(stack),
+                        "Calibration tooltip slot count should match the target contract: " + itemId);
+                helper.assertTrue(items.stream().allMatch(ItemStack::isEmpty),
+                        "New calibration target tooltip slots should all be empty: " + itemId);
+            }
+        });
+    }
+
+    static void scrollcasterGauntletTooltipExcludesCalibrationScrolls(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            var lookupProvider = helper.getLevel().registryAccess();
+            var enchantments = lookupProvider.lookupOrThrow(Registries.ENCHANTMENT);
+            var storedBook = createEnchantedBook(
+                    enchantments.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SHARPNESS),
+                    1
+            );
+            storedBook.set(DataComponents.CUSTOM_NAME, Component.literal("Tooltip component book"));
+            var expectedBook = storedBook.copyWithCount(1);
+            var slotUpgrade = new ItemStack(
+                    io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()
+            );
+            var target = (SpellCalibrationAdjustmentTarget) gauntlet.getItem();
+            helper.assertTrue(target.trySetCalibrationAdjustment(gauntlet, 0, storedBook, lookupProvider),
+                    "Tooltip test should store an enchanted book in the first adjustment slot");
+            helper.assertTrue(target.trySetCalibrationAdjustment(gauntlet, 2, slotUpgrade, lookupProvider),
+                    "Tooltip test should store a slot upgrade without filling the middle adjustment slot");
+
+            ScrollcasterGauntlet.setCalibrationScroll(
+                    gauntlet,
+                    0,
+                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get()),
+                    lookupProvider
+            );
+            var populatedPayload = gauntlet.getItem().getTooltipImage(gauntlet).orElseThrow();
+            helper.assertTrue(populatedPayload instanceof CalibrationAdjustmentTooltip,
+                    "Populated Scrollcaster Gauntlet should keep calibration adjustment tooltip data");
+            var populatedItems = ((CalibrationAdjustmentTooltip) populatedPayload).items();
+            helper.assertTrue(ItemStack.isSameItemSameComponents(populatedItems.get(0), expectedBook),
+                    "Calibration tooltip should retain adjustment item components");
+            helper.assertTrue(populatedItems.get(1).isEmpty(),
+                    "Calibration tooltip should preserve an empty middle adjustment slot");
+            helper.assertTrue(populatedItems.get(2).is(slotUpgrade.getItem()),
+                    "Calibration tooltip should preserve adjustment slot order");
+            helper.assertTrue(populatedItems.stream()
+                            .noneMatch(stack -> stack.getItem() instanceof io.redspace.ironsspellbooks.item.Scroll),
+                    "Calibration tooltip should not include Scrollcaster Gauntlet scroll slots");
+        });
+    }
+
+    private static ItemStack[] createDeclaredCalibrationAdjustmentTargets() {
+        return new ItemStack[]{
+                new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get()),
+                new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get()),
+                new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()),
+                new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_HOOD.get()),
+                new ItemStack(ItemRegistry.AUTOCAST_AMULET.get()),
+                new ItemStack(ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get()),
+                new ItemStack(ItemRegistry.BULWARK_GREATSHIELD.get()),
+                new ItemStack(ItemRegistry.PARRYCAST_BUCKLER.get()),
+                new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get()),
+                new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
+                new ItemStack(ItemRegistry.COPPER_SPELLCASTER_GUN.get()),
+                new ItemStack(ItemRegistry.GOLD_SPELLCASTER_GUN.get()),
+                new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()),
+                new ItemStack(ItemRegistry.CHARGECAST_CATALYSTBOOK.get()),
+                new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_COAT.get()),
+                new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get()),
+                new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()),
+                new ItemStack(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get())
+        };
+    }
+
+    static void legacyCalibrationAdjustmentFormatsMigrateOnFirstMutation(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var lookupProvider = helper.getLevel().registryAccess();
+            var fullStackTargets = new ItemStack[]{
+                    new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get()),
+                    new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get()),
+                    new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get())
+            };
+            var fullStackAdjustments = new ItemStack[]{
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
+            };
+            for (var index = 0; index < fullStackTargets.length; ++index) {
+                putLegacyFullStackList(
+                        fullStackTargets[index],
+                        "SpellCalibration",
+                        fullStackAdjustments[index],
+                        lookupProvider,
+                        index == 0
+                );
+                assertLegacyMigration(
+                        helper,
+                        fullStackTargets[index],
+                        fullStackAdjustments[index],
+                        "SpellCalibration",
+                        "Adjustments",
+                        index == 0,
+                        "full stack list " + index
+                );
+            }
+
+            var chargecast = new ItemStack(ItemRegistry.CHARGECAST_CATALYSTBOOK.get());
+            var chargecastAdjustment = new ItemStack(
+                    io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get());
+            putLegacyFullStackList(
+                    chargecast,
+                    "ChargecastCalibration",
+                    chargecastAdjustment,
+                    lookupProvider,
+                    false
+            );
+            assertLegacyMigration(
+                    helper,
+                    chargecast,
+                    chargecastAdjustment,
+                    "ChargecastCalibration",
+                    "Adjustments",
+                    false,
+                    "chargecast full stack list"
+            );
+
+            var amulets = new ItemStack[]{
+                    new ItemStack(ItemRegistry.AUTOCAST_AMULET.get()),
+                    new ItemStack(ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get())
+            };
+            var amuletAdjustments = new ItemStack[]{
+                    new ItemStack(ItemRegistry.WISDOM_SHARD.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
+            };
+            for (var index = 0; index < amulets.length; ++index) {
+                putLegacyNestedIdList(amulets[index], "SpellCalibration", amuletAdjustments[index]);
+                assertLegacyMigration(
+                        helper,
+                        amulets[index],
+                        amuletAdjustments[index],
+                        "SpellCalibration",
+                        "Adjustments",
+                        false,
+                        "simplified amulet list " + index
+                );
+            }
+
+            var shields = new ItemStack[]{
+                    new ItemStack(ItemRegistry.BULWARK_GREATSHIELD.get()),
+                    new ItemStack(ItemRegistry.PARRYCAST_BUCKLER.get()),
+                    new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get())
+            };
+            var shieldRoots = new String[]{
+                    "BulwarkGreatshieldCalibration",
+                    "ParrycastBucklerCalibration",
+                    "ReflectcastShieldCalibration"
+            };
+            var shieldAdjustments = new ItemStack[]{
+                    new ItemStack(ItemRegistry.WISDOM_SHARD.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
+            };
+            for (var index = 0; index < shields.length; ++index) {
+                putLegacyIdList(shields[index], shieldRoots[index], shieldAdjustments[index]);
+                assertLegacyMigration(
+                        helper,
+                        shields[index],
+                        shieldAdjustments[index],
+                        shieldRoots[index],
+                        "Adjustments",
+                        false,
+                        "shield ID list " + index
+                );
+            }
+
+            var suitItems = new ItemStack[]{
+                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_HOOD.get()),
+                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_COAT.get()),
+                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get()),
+                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get())
+            };
+            var fireRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get());
+            for (var index = 0; index < suitItems.length; ++index) {
+                putLegacySingleId(suitItems[index], "MagiAgentSuitCalibration", "AdjustmentItem", fireRune);
+                assertLegacyMigration(
+                        helper,
+                        suitItems[index],
+                        fireRune,
+                        "MagiAgentSuitCalibration",
+                        "AdjustmentItem",
+                        false,
+                        "Magi Agent Suit single ID " + index
+                );
+            }
+
+            var spellGuns = new ItemStack[]{
+                    new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
+                    new ItemStack(ItemRegistry.COPPER_SPELLCASTER_GUN.get()),
+                    new ItemStack(ItemRegistry.GOLD_SPELLCASTER_GUN.get()),
+                    new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()),
+                    new ItemStack(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get())
+            };
+            var amplifier = new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get());
+            for (var index = 0; index < spellGuns.length; ++index) {
+                putLegacySpellGun(spellGuns[index], amplifier, lookupProvider, false);
+                assertLegacyMigration(
+                        helper,
+                        spellGuns[index],
+                        amplifier,
+                        "SpellgunCalibration",
+                        "Adjustment",
+                        false,
+                        "spellgun full stack " + index
+                );
+            }
+
+            var idOnlySpellGun = new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get());
+            putLegacySpellGun(idOnlySpellGun, amplifier, lookupProvider, true);
+            assertLegacyMigration(
+                    helper,
+                    idOnlySpellGun,
+                    amplifier,
+                    "SpellgunCalibration",
+                    "AdjustmentItem",
+                    false,
+                    "spellgun ID-only fallback"
+            );
+        });
+    }
+
+    private static void assertLegacyMigration(
+            GameTestHelper helper,
+            ItemStack targetStack,
+            ItemStack expectedAdjustment,
+            String legacyRootName,
+            String legacyFieldName,
+            boolean expectPreservedSibling,
+            String context
+    ) {
+        var lookupProvider = helper.getLevel().registryAccess();
+        var target = (SpellCalibrationAdjustmentTarget) targetStack.getItem();
+        var legacySnapshot = getCustomDataTag(targetStack);
+        var legacyRead = target.getCalibrationAdjustment(targetStack, 0, lookupProvider);
+        helper.assertTrue(legacyRead.is(expectedAdjustment.getItem()),
+                "Legacy adjustment should remain readable: " + context);
+        helper.assertTrue(legacySnapshot != null && legacySnapshot.equals(getCustomDataTag(targetStack)),
+                "Legacy reads should be side-effect free: " + context);
+        helper.assertTrue(target.trySetCalibrationAdjustment(
+                        targetStack,
+                        0,
+                        expectedAdjustment,
+                        lookupProvider
+                ),
+                "First legacy mutation should succeed: " + context);
+
+        var migratedRead = target.getCalibrationAdjustment(targetStack, 0, lookupProvider);
+        helper.assertTrue(ItemStack.isSameItemSameComponents(expectedAdjustment.copyWithCount(1), migratedRead),
+                "First legacy mutation should write the common full ItemStack format: " + context);
+        var migratedRoot = getCustomDataTag(targetStack);
+        helper.assertTrue(migratedRoot != null
+                        && migratedRoot.contains("ApprenticeCodexCalibrationAdjustments", Tag.TAG_COMPOUND),
+                "First legacy mutation should create common storage: " + context);
+        if (migratedRoot.contains(legacyRootName, Tag.TAG_COMPOUND)) {
+            helper.assertFalse(migratedRoot.getCompound(legacyRootName).contains(legacyFieldName),
+                    "Migration should remove only the legacy adjustment field: " + context);
+        }
+        if (expectPreservedSibling) {
+            helper.assertTrue(migratedRoot.getCompound(legacyRootName).getInt("PreservedSibling") == 1,
+                    "Migration should preserve unrelated legacy-root data: " + context);
+        }
+    }
+
+    private static void putLegacyFullStackList(
+            ItemStack targetStack,
+            String rootName,
+            ItemStack adjustment,
+            net.minecraft.core.HolderLookup.Provider lookupProvider,
+            boolean addPreservedSibling
+    ) {
+        CustomData.update(DataComponents.CUSTOM_DATA, targetStack, root -> {
+            var legacyRoot = new CompoundTag();
+            if (addPreservedSibling) {
+                legacyRoot.putInt("PreservedSibling", 1);
+            }
+            var entry = new CompoundTag();
+            entry.putInt("Slot", 0);
+            entry.put("Item", adjustment.copyWithCount(1).saveOptional(lookupProvider));
+            var adjustments = new ListTag();
+            adjustments.add(entry);
+            legacyRoot.put("Adjustments", adjustments);
+            root.put(rootName, legacyRoot);
+        });
+    }
+
+    private static void putLegacyNestedIdList(ItemStack targetStack, String rootName, ItemStack adjustment) {
+        CustomData.update(DataComponents.CUSTOM_DATA, targetStack, root -> {
+            var storedItem = new CompoundTag();
+            storedItem.putString("ItemId", BuiltInRegistries.ITEM.getKey(adjustment.getItem()).toString());
+            var entry = new CompoundTag();
+            entry.putInt("Slot", 0);
+            entry.put("Item", storedItem);
+            var adjustments = new ListTag();
+            adjustments.add(entry);
+            var legacyRoot = new CompoundTag();
+            legacyRoot.put("Adjustments", adjustments);
+            root.put(rootName, legacyRoot);
+        });
+    }
+
+    private static void putLegacyIdList(ItemStack targetStack, String rootName, ItemStack adjustment) {
+        CustomData.update(DataComponents.CUSTOM_DATA, targetStack, root -> {
+            var entry = new CompoundTag();
+            entry.putInt("Slot", 0);
+            entry.putString("Item", BuiltInRegistries.ITEM.getKey(adjustment.getItem()).toString());
+            var adjustments = new ListTag();
+            adjustments.add(entry);
+            var legacyRoot = new CompoundTag();
+            legacyRoot.put("Adjustments", adjustments);
+            root.put(rootName, legacyRoot);
+        });
+    }
+
+    private static void putLegacySingleId(
+            ItemStack targetStack,
+            String rootName,
+            String fieldName,
+            ItemStack adjustment
+    ) {
+        CustomData.update(DataComponents.CUSTOM_DATA, targetStack, root -> {
+            var legacyRoot = new CompoundTag();
+            legacyRoot.putString(fieldName, BuiltInRegistries.ITEM.getKey(adjustment.getItem()).toString());
+            root.put(rootName, legacyRoot);
+        });
+    }
+
+    private static void putLegacySpellGun(
+            ItemStack targetStack,
+            ItemStack adjustment,
+            net.minecraft.core.HolderLookup.Provider lookupProvider,
+            boolean idOnly
+    ) {
+        CustomData.update(DataComponents.CUSTOM_DATA, targetStack, root -> {
+            var legacyRoot = new CompoundTag();
+            if (idOnly) {
+                legacyRoot.putString(
+                        "AdjustmentItem",
+                        BuiltInRegistries.ITEM.getKey(adjustment.getItem()).toString()
+                );
+            } else {
+                legacyRoot.put("Adjustment", adjustment.copyWithCount(1).saveOptional(lookupProvider));
+            }
+            root.put("SpellgunCalibration", legacyRoot);
         });
     }
 
