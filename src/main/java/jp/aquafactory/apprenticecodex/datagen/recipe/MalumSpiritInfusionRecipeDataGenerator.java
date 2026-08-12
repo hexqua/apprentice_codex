@@ -34,14 +34,10 @@ public final class MalumSpiritInfusionRecipeDataGenerator implements DataProvide
     public @NotNull CompletableFuture<?> run(@NotNull CachedOutput cachedOutput) {
         var spirits = List.of(malumSpirit("arcane", 16), malumSpirit("wicked", 16));
         var recipes = List.of(
-                soulcollectorRecipe("soulcollector_hat", "soul_hunter_cloak", ItemRegistry.SOULCOLLECTOR_HAT.get(),
-                        ItemRegistry.APPRENTICE_MAGE_SCARF.get(), spirits),
-                soulcollectorRecipe("soulcollector_robe", "soul_hunter_robe", ItemRegistry.SOULCOLLECTOR_ROBE.get(),
-                        ItemRegistry.APPRENTICE_MAGE_TORSO.get(), spirits),
-                soulcollectorRecipe("soulcollector_leggings", "soul_hunter_leggings", ItemRegistry.SOULCOLLECTOR_LEGGINGS.get(),
-                        ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(), spirits),
-                soulcollectorRecipe("soulcollector_boots", "soul_hunter_boots", ItemRegistry.SOULCOLLECTOR_BOOTS.get(),
-                        ItemRegistry.APPRENTICE_MAGE_BOOTS.get(), spirits),
+                soulcollectorRecipe("soulcollector_hat", "soul_hunter_cloak", ItemRegistry.SOULCOLLECTOR_HAT.get(), spirits),
+                soulcollectorRecipe("soulcollector_robe", "soul_hunter_robe", ItemRegistry.SOULCOLLECTOR_ROBE.get(), spirits),
+                soulcollectorRecipe("soulcollector_leggings", "soul_hunter_leggings", ItemRegistry.SOULCOLLECTOR_LEGGINGS.get(), spirits),
+                soulcollectorRecipe("soulcollector_boots", "soul_hunter_boots", ItemRegistry.SOULCOLLECTOR_BOOTS.get(), spirits),
                 spiritInfusionRecipe("soulstained_steel_swingcast_staff",
                         ItemRegistry.IRON_SWINGCAST_STAFF.getId(),
                         ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.getId(),
@@ -96,7 +92,6 @@ public final class MalumSpiritInfusionRecipeDataGenerator implements DataProvide
             String path,
             String malumInput,
             Item output,
-            Item baseArmor,
             List<SpiritCost> spirits
     ) {
         return spiritInfusionRecipe(
@@ -104,7 +99,7 @@ public final class MalumSpiritInfusionRecipeDataGenerator implements DataProvide
                 ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, malumInput),
                 itemId(output),
                 List.of(
-                        recipeItem(baseArmor, 1),
+                        new RecipeItem(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.getId(), 8),
                         new RecipeItem(MAGIC_CLOTH, 2),
                         new RecipeItem(REFINED_SOULSTONE, 4)
                 ),
