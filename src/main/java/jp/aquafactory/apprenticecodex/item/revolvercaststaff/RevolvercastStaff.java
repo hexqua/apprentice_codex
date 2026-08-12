@@ -469,13 +469,7 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     private static @NotNull ItemStack readCalibrationAdjustment(@NotNull ItemStack staffStack, int slot) {
-        return getCalibrationItem(staffStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
-    }
-
-    private static void writeCalibrationAdjustment(@NotNull ItemStack staffStack, int slot, @NotNull ItemStack stack) {
-        setCalibrationItem(staffStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, stack);
-        refreshResolvedCalibrationSchool(staffStack);
-        refreshSelectedSpellContainer(staffStack);
+        return CalibrationAdjustmentStorage.get(staffStack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
     }
 
     @Override
@@ -484,21 +478,9 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     @Override
-    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
-        return readCalibrationAdjustment(targetStack, slot);
-    }
-
-    @Override
-    public boolean trySetCalibrationAdjustment(
-            @NotNull ItemStack targetStack,
-            int slot,
-            @NotNull ItemStack adjustment
-    ) {
-        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment)) {
-            return false;
-        }
-        writeCalibrationAdjustment(targetStack, slot, adjustment);
-        return true;
+    public void onCalibrationAdjustmentsChanged(@NotNull ItemStack targetStack) {
+        refreshResolvedCalibrationSchool(targetStack);
+        refreshSelectedSpellContainer(targetStack);
     }
 
     @Override

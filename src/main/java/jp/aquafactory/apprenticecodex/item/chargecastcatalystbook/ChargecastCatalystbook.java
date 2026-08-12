@@ -416,19 +416,9 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     }
 
     @Override
-    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
-        return getCalibrationItem(targetStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
-    }
-
-    @Override
-    public boolean trySetCalibrationAdjustment(@NotNull ItemStack targetStack, int slot, @NotNull ItemStack adjustment) {
-        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment)) {
-            return false;
-        }
-        setCalibrationItem(targetStack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, adjustment);
+    public void onCalibrationAdjustmentsChanged(@NotNull ItemStack targetStack) {
         refreshResolvedCalibrationSchool(targetStack);
         refreshSelectedSpellContainer(targetStack);
-        return true;
     }
 
     @Override
@@ -571,7 +561,9 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
         }
         var upgrades = 0;
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (isSpellSlotUpgrade(getCalibrationItem(stack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT))) {
+            if (isSpellSlotUpgrade(CalibrationAdjustmentStorage.get(
+                    stack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT
+            ))) {
                 ++upgrades;
             }
         }
@@ -660,7 +652,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
         var calibration = stack.getOrCreateTagElement(CALIBRATION_TAG);
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
             var school = ScrollcasterSchoolRuneResolver.resolveSchool(
-                    getCalibrationItem(stack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT)
+                    CalibrationAdjustmentStorage.get(stack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT)
             );
             if (school.isPresent()) {
                 calibration.putString(SCHOOL_POWER_SCHOOL_TAG, school.get().getId().toString());
@@ -731,7 +723,9 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
 
     private static boolean hasAdjustment(ItemStack stack, java.util.function.Predicate<ItemStack> predicate) {
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            if (predicate.test(getCalibrationItem(stack, ADJUSTMENTS_TAG, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT))) {
+            if (predicate.test(CalibrationAdjustmentStorage.get(
+                    stack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT
+            ))) {
                 return true;
             }
         }

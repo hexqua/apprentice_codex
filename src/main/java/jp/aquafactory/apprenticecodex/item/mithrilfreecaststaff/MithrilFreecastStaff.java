@@ -79,9 +79,6 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
             );
     private static final String MAIN_CONTROLLER = "main";
     private static final String CALIBRATION_TAG = "SpellCalibration";
-    private static final String ADJUSTMENTS_TAG = "Adjustments";
-    private static final String SLOT_TAG = "Slot";
-    private static final String ITEM_TAG = "Item";
     private static final String SCHOOL_POWER_SCHOOL_TAG = "SchoolPowerSchool";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final int ENCHANTMENT_VALUE = 15;
@@ -391,12 +388,7 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     private static @NotNull ItemStack readCalibrationAdjustment(@NotNull ItemStack staffStack, int slot) {
-        return getCalibrationItem(staffStack, slot);
-    }
-
-    private static void writeCalibrationAdjustment(@NotNull ItemStack staffStack, int slot, @NotNull ItemStack stack) {
-        setCalibrationItem(staffStack, slot, stack);
-        refreshResolvedCalibrationSchool(staffStack);
+        return CalibrationAdjustmentStorage.get(staffStack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
     }
 
     @Override
@@ -405,21 +397,8 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     @Override
-    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
-        return readCalibrationAdjustment(targetStack, slot);
-    }
-
-    @Override
-    public boolean trySetCalibrationAdjustment(
-            @NotNull ItemStack targetStack,
-            int slot,
-            @NotNull ItemStack adjustment
-    ) {
-        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment)) {
-            return false;
-        }
-        writeCalibrationAdjustment(targetStack, slot, adjustment);
-        return true;
+    public void onCalibrationAdjustmentsChanged(@NotNull ItemStack targetStack) {
+        refreshResolvedCalibrationSchool(targetStack);
     }
 
     @Override
@@ -486,57 +465,6 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
         return MagicTools.resolveSchoolPowerAttribute(getResolvedCalibrationSchool(stack));
     }
 
-    private static @NotNull ItemStack getCalibrationItem(@NotNull ItemStack staffStack, int slot) {
-        if (!isValidCalibrationAccess(staffStack, slot)) {
-            return ItemStack.EMPTY;
-        }
-
-        var calibrationTag = staffStack.getTagElement(CALIBRATION_TAG);
-        if (calibrationTag == null || !calibrationTag.contains(ADJUSTMENTS_TAG, Tag.TAG_LIST)) {
-            return ItemStack.EMPTY;
-        }
-
-        var list = calibrationTag.getList(ADJUSTMENTS_TAG, Tag.TAG_COMPOUND);
-        for (var index = 0; index < list.size(); ++index) {
-            var entry = list.getCompound(index);
-            if (entry.getInt(SLOT_TAG) != slot || !entry.contains(ITEM_TAG, Tag.TAG_COMPOUND)) {
-                continue;
-            }
-            return ItemStack.of(entry.getCompound(ITEM_TAG));
-        }
-        return ItemStack.EMPTY;
-    }
-
-    private static void setCalibrationItem(@NotNull ItemStack staffStack, int slot, @NotNull ItemStack stack) {
-        if (!isValidCalibrationAccess(staffStack, slot)) {
-            return;
-        }
-
-        var calibrationTag = staffStack.getOrCreateTagElement(CALIBRATION_TAG);
-        var list = calibrationTag.contains(ADJUSTMENTS_TAG, Tag.TAG_LIST)
-                ? calibrationTag.getList(ADJUSTMENTS_TAG, Tag.TAG_COMPOUND)
-                : new ListTag();
-        removeCalibrationItem(list, slot);
-
-        if (!stack.isEmpty()) {
-            var storedStack = stack.copy();
-            storedStack.setCount(1);
-            var entry = new CompoundTag();
-            entry.putInt(SLOT_TAG, slot);
-            entry.put(ITEM_TAG, storedStack.save(new CompoundTag()));
-            list.add(entry);
-        }
-
-        if (list.isEmpty()) {
-            calibrationTag.remove(ADJUSTMENTS_TAG);
-        } else {
-            calibrationTag.put(ADJUSTMENTS_TAG, list);
-        }
-        if (calibrationTag.isEmpty()) {
-            staffStack.removeTagKey(CALIBRATION_TAG);
-        }
-    }
-
     private static ResourceLocation getResolvedCalibrationSchoolId(ItemStack stack) {
         if (stack == null || stack.isEmpty()) {
             return null;
@@ -563,14 +491,6 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
         calibrationTag.remove(SCHOOL_POWER_SCHOOL_TAG);
         if (calibrationTag.isEmpty()) {
             stack.removeTagKey(CALIBRATION_TAG);
-        }
-    }
-
-    private static void removeCalibrationItem(ListTag list, int slot) {
-        for (var index = list.size() - 1; index >= 0; --index) {
-            if (list.getCompound(index).getInt(SLOT_TAG) == slot) {
-                list.remove(index);
-            }
         }
     }
 
