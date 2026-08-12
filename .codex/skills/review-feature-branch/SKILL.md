@@ -27,18 +27,21 @@ description: "機能ブランチ全体をbase branchと比較し、PR作成前�
    - PRが存在し、GitHubへのread-onlyアクセスが利用できる場合は、checks、review、conversation、Codex Cloudの結果を取得する。
    - 取得できない状態は成功と推測せず、未確認として扱う。
    - 対象base branchの`AGENTS.md`、workflow、rulesetで要求されるcheckとレビューを正とする。
+   - 外部レビューの優先度はそのまま引き継がず、具体的な実害とローカルの重大度基準から再評価する。
    - CI失敗の修正は`github:gh-fix-ci`、レビュー指摘の修正は`github:gh-address-comments`へ分離する。
 5. Readinessを判定する。
-   - `Ready`: blockerがなく、必須検証とレビューが確認済み。
+   - `Ready`: P0～P2の実装Findingがなく、必須検証とレビューが確認済み。P3相当の運用・文書Noteだけでは判定を下げない。
    - `Conditional`: コード上のblockerはないが、CIや人間レビューなど外部状態が未完了。
-   - `Not ready`: 修正または仕様テストによる明確化が必要なfinding、未コミット差分、必須検証失敗、根拠なく未解決の指摘がある。
+   - `Not ready`: P0～P2の実装Finding、未コミット差分、必須検証失敗、または実害の根拠がある未解決指摘がある。
 6. 結果だけを返す。
-   - 重大度順のfindings、検証・レビュー状態、readiness、次に必要な作業を示す。
+   - 重大度順の実装Findings、検証・レビュー状態、readiness、次に必要な作業を示す。
+   - 運用・文書上の不足を報告する必要がある場合は独立したNotesへ分離し、実装Findingsの件数や出力枠を消費させない。
    - ユーザーが明示的に依頼するまで、修正、PRコメント、commit、push、mergeを行わない。
 
 ## 出力
 
 1. Readiness判定
-2. Findings
+2. 実装Findings
 3. CI・レビュー・検証状況
-4. 次に必要な作業
+4. 運用・文書Notes（必要な場合のみ）
+5. 次に必要な作業
