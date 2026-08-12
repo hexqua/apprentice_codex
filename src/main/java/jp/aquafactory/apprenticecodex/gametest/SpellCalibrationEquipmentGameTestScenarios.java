@@ -321,26 +321,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
 
     static void spellCalibrationAdjustmentProfilesEnforceDeclaredRules(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var targets = new ItemStack[]{
-                    new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get()),
-                    new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get()),
-                    new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()),
-                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_HOOD.get()),
-                    new ItemStack(ItemRegistry.AUTOCAST_AMULET.get()),
-                    new ItemStack(ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get()),
-                    new ItemStack(ItemRegistry.BULWARK_GREATSHIELD.get()),
-                    new ItemStack(ItemRegistry.PARRYCAST_BUCKLER.get()),
-                    new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get()),
-                    new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
-                    new ItemStack(ItemRegistry.COPPER_SPELLCASTER_GUN.get()),
-                    new ItemStack(ItemRegistry.GOLD_SPELLCASTER_GUN.get()),
-                    new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()),
-                    new ItemStack(ItemRegistry.CHARGECAST_CATALYSTBOOK.get()),
-                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_COAT.get()),
-                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get()),
-                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()),
-                    new ItemStack(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get())
-            };
+            var targets = createDeclaredCalibrationAdjustmentTargets();
             var expectedSlotCounts = new int[]{3, 3, 3, 1, 3, 3, 3, 3, 3, 1, 1, 1, 1, 3, 1, 1, 1, 1};
             var representativeAdjustments = new ItemStack[]{
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()),
@@ -501,18 +482,31 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
         });
     }
 
-    static void scrollcasterGauntletTooltipShowsOnlyAdjustmentSlots(GameTestHelper helper) {
+    static void declaredCalibrationAdjustmentTargetsProvideMatchingTooltips(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            for (var stack : createDeclaredCalibrationAdjustmentTargets()) {
+                var itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+                helper.assertTrue(stack.getItem() instanceof SpellCalibrationAdjustmentTarget,
+                        "Declared calibration tooltip target should implement the common target contract: " + itemId);
+                var target = (SpellCalibrationAdjustmentTarget) stack.getItem();
+                var optionalPayload = stack.getItem().getTooltipImage(stack);
+                helper.assertTrue(optionalPayload.isPresent(),
+                        "Declared calibration target should provide an image tooltip: " + itemId);
+                var payload = optionalPayload.orElseThrow();
+                helper.assertTrue(payload instanceof CalibrationAdjustmentTooltip,
+                        "Declared calibration target should provide calibration tooltip data: " + itemId);
+                var items = ((CalibrationAdjustmentTooltip) payload).items();
+                helper.assertTrue(items.size() == target.getCalibrationAdjustmentSlotCount(stack),
+                        "Calibration tooltip slot count should match the target contract: " + itemId);
+                helper.assertTrue(items.stream().allMatch(ItemStack::isEmpty),
+                        "New calibration target tooltip slots should all be empty: " + itemId);
+            }
+        });
+    }
+
+    static void scrollcasterGauntletTooltipExcludesCalibrationScrolls(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
-            var emptyPayload = gauntlet.getItem().getTooltipImage(gauntlet).orElseThrow();
-            helper.assertTrue(emptyPayload instanceof CalibrationAdjustmentTooltip,
-                    "Scrollcaster Gauntlet should provide calibration adjustment tooltip data");
-            var emptyItems = ((CalibrationAdjustmentTooltip) emptyPayload).items();
-            helper.assertTrue(emptyItems.size() == ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT,
-                    "Calibration tooltip should always expose all adjustment slots");
-            helper.assertTrue(emptyItems.stream().allMatch(ItemStack::isEmpty),
-                    "New Scrollcaster Gauntlet calibration tooltip slots should all be empty");
-
             var lookupProvider = helper.getLevel().registryAccess();
             var enchantments = lookupProvider.lookupOrThrow(Registries.ENCHANTMENT);
             var storedBook = createEnchantedBook(
@@ -549,11 +543,30 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertTrue(populatedItems.stream()
                             .noneMatch(stack -> stack.getItem() instanceof io.redspace.ironsspellbooks.item.Scroll),
                     "Calibration tooltip should not include Scrollcaster Gauntlet scroll slots");
-
-            var revolvercastStaff = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
-            helper.assertTrue(revolvercastStaff.getItem().getTooltipImage(revolvercastStaff).isEmpty(),
-                    "Other calibration targets should remain outside the initial tooltip rollout");
         });
+    }
+
+    private static ItemStack[] createDeclaredCalibrationAdjustmentTargets() {
+        return new ItemStack[]{
+                new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get()),
+                new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get()),
+                new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get()),
+                new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_HOOD.get()),
+                new ItemStack(ItemRegistry.AUTOCAST_AMULET.get()),
+                new ItemStack(ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get()),
+                new ItemStack(ItemRegistry.BULWARK_GREATSHIELD.get()),
+                new ItemStack(ItemRegistry.PARRYCAST_BUCKLER.get()),
+                new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get()),
+                new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()),
+                new ItemStack(ItemRegistry.COPPER_SPELLCASTER_GUN.get()),
+                new ItemStack(ItemRegistry.GOLD_SPELLCASTER_GUN.get()),
+                new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()),
+                new ItemStack(ItemRegistry.CHARGECAST_CATALYSTBOOK.get()),
+                new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_COAT.get()),
+                new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get()),
+                new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()),
+                new ItemStack(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get())
+        };
     }
 
     static void legacyCalibrationAdjustmentFormatsMigrateOnFirstMutation(GameTestHelper helper) {

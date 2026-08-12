@@ -49,6 +49,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.level.Level;
 import net.minecraft.tags.TagKey;
 import net.neoforged.fml.ModList;
@@ -62,6 +63,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.IntSupplier;
 import java.util.function.BooleanSupplier;
@@ -251,6 +253,11 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     @Override
     public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
+    }
+
+    @Override
+    public @NotNull Optional<TooltipComponent> getTooltipImage(@NotNull ItemStack stack) {
+        return createCalibrationAdjustmentTooltip(stack);
     }
 
     @Override

@@ -35,6 +35,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
@@ -51,6 +52,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public class BulwarkGreatshield extends AbstractImbueShieldItem
@@ -241,6 +243,11 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
 
     private static @NotNull ItemStack readCalibrationAdjustment(@NotNull ItemStack shieldStack, int slot) {
         return CalibrationAdjustmentStorage.get(shieldStack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
+    }
+
+    @Override
+    public @NotNull Optional<TooltipComponent> getTooltipImage(@NotNull ItemStack stack) {
+        return createCalibrationAdjustmentTooltip(stack);
     }
 
     @Override

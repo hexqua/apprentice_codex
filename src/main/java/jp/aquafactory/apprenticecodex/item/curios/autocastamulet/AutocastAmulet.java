@@ -33,6 +33,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
@@ -44,6 +45,7 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.ArrayList;
 
 public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, ArcaneAnvilImbueBlockItem,
@@ -288,6 +290,11 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
 
     private static @NotNull ItemStack readCalibrationAdjustment(@NotNull ItemStack amuletStack, int slot) {
         return CalibrationAdjustmentStorage.get(amuletStack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
+    }
+
+    @Override
+    public @NotNull Optional<TooltipComponent> getTooltipImage(@NotNull ItemStack stack) {
+        return createCalibrationAdjustmentTooltip(stack);
     }
 
     @Override

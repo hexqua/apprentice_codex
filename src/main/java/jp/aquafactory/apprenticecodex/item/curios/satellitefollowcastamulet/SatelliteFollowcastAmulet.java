@@ -34,6 +34,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -44,6 +45,7 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiInfoItem, ArcaneAnvilImbueBlockItem,
         StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget {
@@ -164,6 +166,11 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
 
     private static @NotNull ItemStack readCalibrationAdjustment(@NotNull ItemStack amuletStack, int slot) {
         return CalibrationAdjustmentStorage.get(amuletStack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
+    }
+
+    @Override
+    public @NotNull Optional<TooltipComponent> getTooltipImage(@NotNull ItemStack stack) {
+        return createCalibrationAdjustmentTooltip(stack);
     }
 
     @Override

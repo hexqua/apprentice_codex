@@ -92,7 +92,6 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
-import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentTooltip;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.ImmediateSneakSelectionUiItem;
 import jp.aquafactory.apprenticecodex.item.ItemTransformPreservingCastAnimationItem;
@@ -304,7 +303,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     @Override
     public @NotNull Optional<TooltipComponent> getTooltipImage(@NotNull ItemStack stack) {
-        return Optional.of(CalibrationAdjustmentTooltip.create(stack, this));
+        return createCalibrationAdjustmentTooltip(stack);
     }
 
     @Override

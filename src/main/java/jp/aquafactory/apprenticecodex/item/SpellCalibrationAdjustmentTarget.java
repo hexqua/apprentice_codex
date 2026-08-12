@@ -1,12 +1,21 @@
 package jp.aquafactory.apprenticecodex.item;
 
 import net.minecraft.core.HolderLookup;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Optional;
 
 /** 術式調整台の調整スロットを持つ Item。 */
 public interface SpellCalibrationAdjustmentTarget {
     int getCalibrationAdjustmentSlotCount(@NotNull ItemStack targetStack);
+
+    default @NotNull Optional<TooltipComponent> createCalibrationAdjustmentTooltip(
+            @NotNull ItemStack targetStack
+    ) {
+        return Optional.of(CalibrationAdjustmentTooltip.create(targetStack, this));
+    }
 
     default @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
         if (targetStack.isEmpty() || targetStack.getItem() != this) {
