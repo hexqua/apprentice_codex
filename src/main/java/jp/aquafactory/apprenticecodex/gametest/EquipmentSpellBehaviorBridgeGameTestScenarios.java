@@ -76,8 +76,8 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             helper.assertTrue(movementSpeedModifier != null, "LongStride is missing the movement speed attribute modifier");
 
             var actualAmount = effect.getAttributeModifierValue(0, movementSpeedModifier);
-            helper.assertTrue(Math.abs(actualAmount - 0.15D) < 1.0e-9D,
-                    "LongStride movement speed bonus regression: expected 0.15 but got " + actualAmount);
+            helper.assertTrue(Math.abs(actualAmount - 0.10D) < 1.0e-9D,
+                    "LongStride movement speed bonus regression: expected 0.10 but got " + actualAmount);
         });
     }
     static void dynamicCastingMobilityEffectRebalancesAgainstExternalCastingMoveSpeed(GameTestHelper helper) {

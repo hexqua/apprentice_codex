@@ -25,29 +25,35 @@ import java.util.Optional;
 
 public class LongStride extends AbstractSpell {
     private static final int EFFECT_REFRESH_TICKS = 5;
-    private static final int SPELL_POWER_PER_MOVE_SPEED_STAGE = 75;
 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "long_stride");
 
     private final DefaultConfig config = new DefaultConfig()
             .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.ENDER_RESOURCE)
-            .setMaxLevel(3)
+            .setMaxLevel(1)
             .setCooldownSeconds(12)
+            .setAllowCrafting(false)
             .build();
 
     public LongStride() {
-        baseSpellPower = 100;
-        spellPowerPerLevel = 50;
+        baseSpellPower = 0;
+        spellPowerPerLevel = 0;
         baseManaCost = 12;
-        manaCostPerLevel = 2;
+        manaCostPerLevel = -1;
         castTime = 20 * 60;
+    }
+
+    @Override
+    public boolean allowLooting(){
+        // アイテム専用化.
+        return false;
     }
 
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.apprenticecodex.move_speed_bonus", getMoveSpeedBonusPercent(spellLevel, caster))
+                Component.translatable("ui.apprenticecodex.move_speed_bonus", getMoveSpeedBonusPercent(spellLevel))
         );
     }
 
@@ -57,14 +63,13 @@ public class LongStride extends AbstractSpell {
         return getCastTime(spellLevel);
     }
 
-    private int getMobEffectAmplifier(int spellLevel, LivingEntity caster) {
-        var stagedBonus = Math.round((getSpellPower(spellLevel, caster) - 100.0f) / SPELL_POWER_PER_MOVE_SPEED_STAGE);
-        return Math.max(0, Math.min(2, stagedBonus));
+    private int getMobEffectAmplifier(int spellLevel) {
+        return spellLevel - 1;
     }
 
-    private int getMoveSpeedBonusPercent(int spellLevel, LivingEntity caster) {
-        var amplifier = getMobEffectAmplifier(spellLevel, caster);
-        return (int) Math.round(100.0 * 0.15 * (amplifier + 1));
+    private int getMoveSpeedBonusPercent(int spellLevel) {
+        var amplifier = getMobEffectAmplifier(spellLevel);
+        return 10 + (int) Math.round(100.0 * 0.05 * amplifier);
     }
 
     @Override
@@ -108,7 +113,7 @@ public class LongStride extends AbstractSpell {
         entity.addEffect(new MobEffectInstance(
                 EffectRegistry.LONG_STRIDE_MOBILITY.get(),
                 EFFECT_REFRESH_TICKS,
-                getMobEffectAmplifier(spellLevel, entity),
+                getMobEffectAmplifier(spellLevel),
                 false,
                 true,
                 true
