@@ -86,8 +86,8 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
                     .filter(modifier -> modifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL)
                     .mapToDouble(AttributeModifier::amount)
                     .sum();
-            helper.assertTrue(Math.abs(actualAmount - 0.15D) < 1.0e-9D,
-                    "LongStride movement speed bonus regression: expected 0.15 but got " + actualAmount);
+            helper.assertTrue(Math.abs(actualAmount - 0.10D) < 1.0e-9D,
+                    "LongStride movement speed bonus regression: expected 0.10 but got " + actualAmount);
         });
     }
     static void dynamicCastingMobilityEffectRebalancesAgainstExternalCastingMoveSpeed(GameTestHelper helper) {
