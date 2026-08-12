@@ -14,6 +14,7 @@ import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHint;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentTooltip;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
@@ -497,6 +498,61 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             var migratedRoot = getCustomDataTag(legacyAutocast);
             helper.assertTrue(migratedRoot == null || !migratedRoot.contains("SpellCalibration", Tag.TAG_COMPOUND),
                     "First legacy mutation should remove the legacy adjustment field");
+        });
+    }
+
+    static void scrollcasterGauntletTooltipShowsOnlyAdjustmentSlots(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            var emptyPayload = gauntlet.getItem().getTooltipImage(gauntlet).orElseThrow();
+            helper.assertTrue(emptyPayload instanceof CalibrationAdjustmentTooltip,
+                    "Scrollcaster Gauntlet should provide calibration adjustment tooltip data");
+            var emptyItems = ((CalibrationAdjustmentTooltip) emptyPayload).items();
+            helper.assertTrue(emptyItems.size() == ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT,
+                    "Calibration tooltip should always expose all adjustment slots");
+            helper.assertTrue(emptyItems.stream().allMatch(ItemStack::isEmpty),
+                    "New Scrollcaster Gauntlet calibration tooltip slots should all be empty");
+
+            var lookupProvider = helper.getLevel().registryAccess();
+            var enchantments = lookupProvider.lookupOrThrow(Registries.ENCHANTMENT);
+            var storedBook = createEnchantedBook(
+                    enchantments.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SHARPNESS),
+                    1
+            );
+            storedBook.set(DataComponents.CUSTOM_NAME, Component.literal("Tooltip component book"));
+            var expectedBook = storedBook.copyWithCount(1);
+            var slotUpgrade = new ItemStack(
+                    io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()
+            );
+            var target = (SpellCalibrationAdjustmentTarget) gauntlet.getItem();
+            helper.assertTrue(target.trySetCalibrationAdjustment(gauntlet, 0, storedBook, lookupProvider),
+                    "Tooltip test should store an enchanted book in the first adjustment slot");
+            helper.assertTrue(target.trySetCalibrationAdjustment(gauntlet, 2, slotUpgrade, lookupProvider),
+                    "Tooltip test should store a slot upgrade without filling the middle adjustment slot");
+
+            ScrollcasterGauntlet.setCalibrationScroll(
+                    gauntlet,
+                    0,
+                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get()),
+                    lookupProvider
+            );
+            var populatedPayload = gauntlet.getItem().getTooltipImage(gauntlet).orElseThrow();
+            helper.assertTrue(populatedPayload instanceof CalibrationAdjustmentTooltip,
+                    "Populated Scrollcaster Gauntlet should keep calibration adjustment tooltip data");
+            var populatedItems = ((CalibrationAdjustmentTooltip) populatedPayload).items();
+            helper.assertTrue(ItemStack.isSameItemSameComponents(populatedItems.get(0), expectedBook),
+                    "Calibration tooltip should retain adjustment item components");
+            helper.assertTrue(populatedItems.get(1).isEmpty(),
+                    "Calibration tooltip should preserve an empty middle adjustment slot");
+            helper.assertTrue(populatedItems.get(2).is(slotUpgrade.getItem()),
+                    "Calibration tooltip should preserve adjustment slot order");
+            helper.assertTrue(populatedItems.stream()
+                            .noneMatch(stack -> stack.getItem() instanceof io.redspace.ironsspellbooks.item.Scroll),
+                    "Calibration tooltip should not include Scrollcaster Gauntlet scroll slots");
+
+            var revolvercastStaff = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
+            helper.assertTrue(revolvercastStaff.getItem().getTooltipImage(revolvercastStaff).isEmpty(),
+                    "Other calibration targets should remain outside the initial tooltip rollout");
         });
     }
 
