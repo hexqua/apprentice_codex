@@ -51,8 +51,10 @@ public class MagiAgentSuitItem extends ArmorItem
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
                     CalibrationAdjustmentRule.unique(
+                            "school_rune",
                             ScrollcasterSchoolRuneResolver::isSchoolRune,
-                            CalibrationAdjustmentHints.schoolRunes()
+                            CalibrationAdjustmentHints.schoolRunes(),
+                            CalibrationAdjustmentHints.schoolRuneConstraint()
                     )
             );
 

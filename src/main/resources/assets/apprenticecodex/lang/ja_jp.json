@@ -544,6 +544,11 @@
   "jei.apprenticecodex.spell_throwable_cards.craft_hint": "スクロールは消費しない",
   "jei.apprenticecodex.luminous_device.upgrade_hint": "%sがアンロック",
 
+  "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "同じ効果のアイテムは複数挿入できない",
+  "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "系統のルーンはどれか一つのみ挿入できる",
+  "jei.apprenticecodex.spell_calibration_bench.constraint.same_enchantment": "同じエンチャントを持つ本は複数挿入できない",
+
+
   "enchantment.apprenticecodex.reflux": "還流",
   "enchantment.apprenticecodex.reservoir": "貯蔵",
   "enchantment.apprenticecodex.alacrity": "迅速",

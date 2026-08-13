@@ -56,14 +56,17 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
                     CalibrationAdjustmentRule.repeatable(
+                            "slot_upgrade",
                             AutocastAmulet::isCalibrationSlotUpgrade,
                             CalibrationAdjustmentHints.slotUpgrades()
                     ),
                     CalibrationAdjustmentRule.unique(
+                            "silver_ring",
                             AutocastAmulet::isSilverRing,
                             CalibrationAdjustmentHints.silverRing()
                     ),
                     CalibrationAdjustmentRule.unique(
+                            "wisdom_shard",
                             AutocastAmulet::isWisdomShard,
                             CalibrationAdjustmentHints.wisdomShard()
                     )

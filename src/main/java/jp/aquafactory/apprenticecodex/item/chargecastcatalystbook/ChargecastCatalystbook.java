@@ -106,22 +106,28 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
                     CalibrationAdjustmentRule.repeatable(
+                            "slot_upgrade",
                             ChargecastCatalystbook::isSpellSlotUpgrade,
                             CalibrationAdjustmentHints.slotUpgrades()
                     ),
                     CalibrationAdjustmentRule.unique(
+                            "school_rune",
                             ScrollcasterSchoolRuneResolver::isSchoolRune,
-                            CalibrationAdjustmentHints.schoolRunes()
+                            CalibrationAdjustmentHints.schoolRunes(),
+                            CalibrationAdjustmentHints.schoolRuneConstraint()
                     ),
                     CalibrationAdjustmentRule.unique(
+                            "wisdom_shard",
                             stack -> stack.is(ItemRegistry.WISDOM_SHARD.get()),
                             CalibrationAdjustmentHints.wisdomShard()
                     ),
                     CalibrationAdjustmentRule.unique(
+                            "silver_ring",
                             ChargecastCatalystbook::isSilverRing,
                             CalibrationAdjustmentHints.silverRing()
                     ),
                     CalibrationAdjustmentRule.unique(
+                            "silver_spell_amplifier",
                             stack -> stack.is(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
                             CalibrationAdjustmentHint.specificItem(ItemRegistry.SILVER_SPELL_AMPLIFIER)
                     )

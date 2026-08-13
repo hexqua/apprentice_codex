@@ -542,6 +542,10 @@
 
   "jei.apprenticecodex.archivists_grimoire.upgrade_hint": "Adds 9 slots",
   "jei.apprenticecodex.luminous_device.upgrade_hint": "Unlocks %s",
+  
+  "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "Cannot insert multiple items with the same effect.",
+  "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "Only one school rune can be inserted.",
+  "jei.apprenticecodex.spell_calibration_bench.constraint.same_enchantment": "Cannot insert multiple books with the same enchantment.",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",

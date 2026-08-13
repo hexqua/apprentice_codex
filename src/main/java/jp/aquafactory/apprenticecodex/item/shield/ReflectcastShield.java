@@ -55,10 +55,12 @@ public class ReflectcastShield extends AbstractImbueShieldItem
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
                     CalibrationAdjustmentRule.unique(
+                            "silver_ring",
                             MithrilFreecastStaff::isSilverRing,
                             CalibrationAdjustmentHints.silverRing()
                     ),
                     CalibrationAdjustmentRule.unique(
+                            "wisdom_shard",
                             stack -> stack.is(ItemRegistry.WISDOM_SHARD.get()),
                             CalibrationAdjustmentHints.wisdomShard()
                     )
