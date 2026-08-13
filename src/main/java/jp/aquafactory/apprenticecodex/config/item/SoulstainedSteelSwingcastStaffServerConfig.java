@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.config.item;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 public final class SoulstainedSteelSwingcastStaffServerConfig {
-    public static final double DEFAULT_MANA_COST_PER_BLADE = 20.0D;
+    public static final double DEFAULT_MANA_COST_PER_BLADE = 15.0D;
     private static final double MAX_MANA_COST_PER_BLADE = 10000.0D;
 
     private final ModConfigSpec.DoubleValue manaCostPerBlade;
