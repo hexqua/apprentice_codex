@@ -49,10 +49,12 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
                     CalibrationAdjustmentRule.repeatable(
+                            "slot_upgrade",
                             SatelliteFollowcastAmulet::isCalibrationSlotUpgrade,
                             CalibrationAdjustmentHints.slotUpgrades()
                     ),
                     CalibrationAdjustmentRule.unique(
+                            "silver_ring",
                             SatelliteFollowcastAmulet::isSilverRing,
                             CalibrationAdjustmentHints.silverRing()
                     )

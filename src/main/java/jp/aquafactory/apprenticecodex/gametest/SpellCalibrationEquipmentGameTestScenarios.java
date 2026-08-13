@@ -57,6 +57,8 @@ import net.minecraftforge.registries.ForgeRegistries;
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.MALUM_MOD_ID;
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.MALUM_REPLENISHING;
 
+import java.util.HashSet;
+
 final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private SpellCalibrationEquipmentGameTestScenarios() {
     }
@@ -357,6 +359,35 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                         "Calibration target should expose its declared adjustment slot count: " + index);
                 helper.assertFalse(target.getCalibrationAdjustmentProfile(stack).rules().isEmpty(),
                         "Calibration target should expose at least one adjustment rule: " + index);
+                var displayIds = new HashSet<String>();
+                for (var rule : target.getCalibrationAdjustmentProfile(stack).rules()) {
+                    helper.assertTrue(rule.displayId().matches("[a-z0-9_]+"),
+                            "Calibration display ID should use snake_case: " + rule.displayId());
+                    helper.assertTrue(displayIds.add(rule.displayId()),
+                            "Calibration display IDs should be unique within a target: " + rule.displayId());
+                    var displayCandidates = rule.collectDisplayCandidates();
+                    helper.assertFalse(displayCandidates.isEmpty(),
+                            "Calibration display rule should expose at least one candidate: "
+                                    + BuiltInRegistries.ITEM.getKey(stack.getItem()) + "/" + rule.displayId());
+                    for (var candidate : displayCandidates) {
+                        helper.assertTrue(target.canPlaceCalibrationAdjustment(stack, 0, candidate),
+                                "Calibration display candidate should pass the target rule: "
+                                        + BuiltInRegistries.ITEM.getKey(candidate.getItem()));
+                    }
+                    var representative = displayCandidates.getFirst();
+                    helper.assertTrue(
+                            rule.conflicts(representative, representative)
+                                    == (rule.duplicatePolicy()
+                                    != jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule.DuplicatePolicy.REPEATABLE),
+                            "Calibration duplicate policy should match its conflict rule: " + rule.displayId()
+                    );
+                    helper.assertTrue(
+                            rule.constraintDisplay().translationKey().isEmpty()
+                                    == (rule.duplicatePolicy()
+                                    == jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule.DuplicatePolicy.REPEATABLE),
+                            "Only repeatable calibration rules should omit constraint text: " + rule.displayId()
+                    );
+                }
                 helper.assertTrue(target.canPlaceCalibrationAdjustment(stack, 0, representativeAdjustments[index]),
                         "Calibration target should accept its representative adjustment: " + index);
                 helper.assertFalse(target.canPlaceCalibrationAdjustment(stack, 0, new ItemStack(Items.DIRT)),
@@ -372,6 +403,20 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     "Scrollcaster Gauntlet slot upgrades should use a generated tag hint");
             helper.assertTrue(gauntletProfile.rules().get(3).hint() instanceof CalibrationAdjustmentHint.Translatable,
                     "Scrollcaster Gauntlet school runes should use a translated category hint");
+            helper.assertTrue(gauntletProfile.rules().get(0).constraintDisplay().translationKey().isEmpty(),
+                    "Scrollcaster Gauntlet slot upgrades should omit constraint text");
+            helper.assertTrue(gauntletProfile.rules().get(1).constraintDisplay().translationKey()
+                            .filter("jei.apprenticecodex.spell_calibration_bench.constraint.same_enchantment"::equals)
+                            .isPresent(),
+                    "Scrollcaster Gauntlet enchantment books should use the same-enchantment constraint");
+            helper.assertTrue(gauntletProfile.rules().get(2).constraintDisplay().translationKey()
+                            .filter("jei.apprenticecodex.spell_calibration_bench.constraint.same_effect"::equals)
+                            .isPresent(),
+                    "Scrollcaster Gauntlet freecast staffs should use the same-effect constraint");
+            helper.assertTrue(gauntletProfile.rules().get(3).constraintDisplay().translationKey()
+                            .filter("jei.apprenticecodex.spell_calibration_bench.constraint.school_rune"::equals)
+                            .isPresent(),
+                    "Scrollcaster Gauntlet school runes should use the school-rune constraint");
 
             var silverRing = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get());
             var autocast = targets[4];

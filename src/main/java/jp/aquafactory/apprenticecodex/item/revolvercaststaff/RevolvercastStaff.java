@@ -82,18 +82,23 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
                     CalibrationAdjustmentRule.repeatable(
+                            "slot_upgrade",
                             RevolvercastStaff::isCalibrationSlotUpgrade,
                             CalibrationAdjustmentHints.slotUpgrades()
                     ),
                     CalibrationAdjustmentRule.unique(
+                            "school_rune",
                             ScrollcasterSchoolRuneResolver::isSchoolRune,
-                            CalibrationAdjustmentHints.schoolRunes()
+                            CalibrationAdjustmentHints.schoolRunes(),
+                            CalibrationAdjustmentHints.schoolRuneConstraint()
                     ),
                     CalibrationAdjustmentRule.unique(
+                            "recovery_rune",
                             RevolvercastStaff::isRecoveryRune,
                             CalibrationAdjustmentHints.recoveryRune()
                     ),
                     CalibrationAdjustmentRule.unique(
+                            "silver_ring",
                             RevolvercastStaff::isSilverRing,
                             CalibrationAdjustmentHints.silverRing()
                     )

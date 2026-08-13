@@ -100,24 +100,30 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
                     CalibrationAdjustmentRule.repeatable(
+                            "slot_upgrade",
                             ScrollcasterGauntlet::isCalibrationSlotUpgrade,
                             CalibrationAdjustmentHints.slotUpgrades()
                     ),
                     CalibrationAdjustmentRule.uniqueBy(
+                            "enchantment_book",
                             stack -> stack.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_ENCHANTMENT_BOOKS),
                             stack -> {
                                 var candidate = readFirstBookEnchantment(stack);
                                 return candidate == null ? null : candidate.enchantment();
                             },
-                            CalibrationAdjustmentHints.enchantmentBooks()
+                            CalibrationAdjustmentHints.enchantmentBooks(),
+                            CalibrationAdjustmentHints.sameEnchantmentConstraint()
                     ),
                     CalibrationAdjustmentRule.unique(
+                            "mithril_freecast_staff",
                             ScrollcasterGauntlet::isFreecastStaffAdjustment,
                             CalibrationAdjustmentHints.mithrilFreecastStaff()
                     ),
                     CalibrationAdjustmentRule.unique(
+                            "school_rune",
                             ScrollcasterSchoolRuneResolver::isSchoolRune,
-                            CalibrationAdjustmentHints.schoolRunes()
+                            CalibrationAdjustmentHints.schoolRunes(),
+                            CalibrationAdjustmentHints.schoolRuneConstraint()
                     )
             );
 

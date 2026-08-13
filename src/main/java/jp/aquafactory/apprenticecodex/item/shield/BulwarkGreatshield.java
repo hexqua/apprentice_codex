@@ -69,10 +69,12 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
                     CalibrationAdjustmentRule.repeatable(
+                            "school_rune",
                             ScrollcasterSchoolRuneResolver::isSchoolRune,
                             CalibrationAdjustmentHints.schoolRunes()
                     ),
                     CalibrationAdjustmentRule.unique(
+                            "wisdom_shard",
                             BulwarkGreatshield::isWisdomShard,
                             CalibrationAdjustmentHints.wisdomShard()
                     )
