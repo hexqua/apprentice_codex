@@ -16,6 +16,7 @@ import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.Scroll;
 import io.redspace.ironsspellbooks.item.UniqueItem;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -35,6 +36,7 @@ import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -56,11 +58,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
@@ -78,6 +82,7 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -115,7 +120,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                             },
                             CalibrationAdjustmentHints.enchantmentBooks(),
                             CalibrationAdjustmentHints.sameEnchantmentConstraint()
-                    ).withEffectLines(CalibrationAdjustmentEffects.addEnchantment()),
+                    ).withDisplayCandidates(ScrollcasterGauntlet::createEnchantmentBookDisplayCandidates)
+                            .withEffectLines(CalibrationAdjustmentEffects.addEnchantment()),
                     CalibrationAdjustmentRule.unique(
                             "mithril_freecast_staff",
                             ScrollcasterGauntlet::isFreecastStaffAdjustment,
@@ -535,6 +541,37 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                 || AttributeEnchantmentType.from(enchantment).isPresent()
                 || matches(enchantment, EnchantmentRegistry.TRANSCENDENCE)
                 || matches(enchantment, EnchantmentRegistry.WISDOM);
+    }
+
+    private static List<ItemStack> createEnchantmentBookDisplayCandidates(
+            ItemStack gauntletStack,
+            HolderLookup.Provider lookupProvider
+    ) {
+        var fallback = List.of(new ItemStack(Items.ENCHANTED_BOOK));
+        var representative = ForgeRegistries.ENCHANTMENTS.getValues().stream()
+                .filter(enchantment -> isSupportedCalibrationEnchantment(gauntletStack, enchantment))
+                .sorted(Comparator
+                        .comparingInt(ScrollcasterGauntlet::getEnchantmentDisplayPriority)
+                        .thenComparing(enchantment -> Objects.requireNonNull(
+                                ForgeRegistries.ENCHANTMENTS.getKey(enchantment)
+                        ).toString()))
+                .findFirst()
+                .orElse(null);
+        if (representative == null) {
+            return fallback;
+        }
+
+        var book = new ItemStack(Items.ENCHANTED_BOOK);
+        EnchantedBookItem.addEnchantment(book, new EnchantmentInstance(representative, 1));
+        return List.of(book);
+    }
+
+    private static int getEnchantmentDisplayPriority(Enchantment enchantment) {
+        if (matches(enchantment, EnchantmentRegistry.WISDOM)) {
+            return 0;
+        }
+        var id = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+        return id != null && ApprenticeCodex.MODID.equals(id.getNamespace()) ? 1 : 2;
     }
 
     private static boolean isMalumSpiritPlunder(ItemStack gauntletStack, Enchantment enchantment) {
