@@ -749,7 +749,7 @@ final class EnchantmentApplicationGameTestScenarios {
     }
 
     private static Set<ResourceLocation> expectedSmashcastScepterEnchantingTableEnchantments(ItemStack stack) {
-        var expected = new LinkedHashSet<ResourceLocation>();
+        var expected = collectAllowedEnchantments(enchantment -> enchantment.category.canEnchant(stack.getItem()));
         expected.add(ResourceLocation.withDefaultNamespace("smite"));
         expected.add(ResourceLocation.withDefaultNamespace("bane_of_arthropods"));
         expected.add(ResourceLocation.withDefaultNamespace("fire_aspect"));
@@ -820,6 +820,7 @@ final class EnchantmentApplicationGameTestScenarios {
                 (enchantment.canApplyAtEnchantingTable(sword)
                         || enchantment.canApplyAtEnchantingTable(pickaxe))
                         && !enchantment.canApplyAtEnchantingTable(durability));
+        expected.addAll(collectAllowedEnchantments(enchantment -> enchantment.category.canEnchant(stack.getItem())));
         expected.addAll(registryIdSet(
                 EnchantmentRegistry.ALACRITY,
                 EnchantmentRegistry.REFLUX,

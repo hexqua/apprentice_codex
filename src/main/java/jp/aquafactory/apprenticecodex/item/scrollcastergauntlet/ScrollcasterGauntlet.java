@@ -509,7 +509,9 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             return false;
         }
 
-        return isExplicitlySupportedMagicEnchantment(enchantment)
+        // 1.21.1 の supported_items タグに相当する 1.20.1 のカテゴリ判定を合成する。
+        return enchantment.category.canEnchant(gauntletStack.getItem())
+                || isExplicitlySupportedMagicEnchantment(enchantment)
                 || isMalumSpiritPlunder(gauntletStack, enchantment)
                 || ((enchantment.canApplyAtEnchantingTable(SWORD_ENCHANTMENT_PROBE_STACK)
                         || enchantment.canApplyAtEnchantingTable(PICKAXE_ENCHANTMENT_PROBE_STACK))

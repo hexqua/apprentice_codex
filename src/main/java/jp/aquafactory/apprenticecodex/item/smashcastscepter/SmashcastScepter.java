@@ -322,6 +322,11 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
 
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
+        // 1.21.1 の supported_items タグに相当する 1.20.1 のカテゴリ判定を先に尊重する。
+        if (enchantment.category.canEnchant(stack.getItem())) {
+            return true;
+        }
+
         var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
         if (enchantmentId == null || isDurabilityTargetEnchantment(enchantment)) {
             return false;
