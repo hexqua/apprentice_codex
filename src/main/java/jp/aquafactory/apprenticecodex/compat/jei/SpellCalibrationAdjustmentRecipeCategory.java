@@ -50,12 +50,13 @@ public final class SpellCalibrationAdjustmentRecipeCategory
         builder.addInputSlot(TARGET_X, INPUT_Y)
                 .setStandardSlotBackground()
                 .addItemStack(recipe.target().copy());
-        builder.addInputSlot(ADJUSTMENT_X, INPUT_Y)
+        var adjustmentSlot = builder.addInputSlot(ADJUSTMENT_X, INPUT_Y)
                 .setStandardSlotBackground()
                 .addItemStacks(recipe.adjustments());
-        builder.addOutputSlot(OUTPUT_X, OUTPUT_Y)
+        var resultSlot = builder.addOutputSlot(OUTPUT_X, OUTPUT_Y)
                 .setOutputSlotBackground()
-                .addItemStack(recipe.target().copy());
+                .addItemStacks(recipe.results());
+        builder.createFocusLink(adjustmentSlot, resultSlot);
     }
 
     @Override
