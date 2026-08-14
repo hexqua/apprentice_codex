@@ -545,8 +545,6 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.add_long_support": "Supports spells with cast time",
   "jei.apprenticecodex.spell_calibration_bench.effect.add_all_support": "Supports all spell cast types",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_attribute_offhand": "Moves ability bonuses to offhand",
-  "jei.apprenticecodex.spell_calibration_bench.effect.add_enchantment_1": "Applies the book's first enchantment",
-  "jei.apprenticecodex.spell_calibration_bench.effect.add_enchantment_2": "Supported enchantments only",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_imbue_to_select": "Casts the spell wheel selection",
   "jei.apprenticecodex.spell_calibration_bench.effect.adapt_autocast_situation_1": "Autocasts on effect expiry or low health",
   "jei.apprenticecodex.spell_calibration_bench.effect.adapt_autocast_situation_2": "Buff and self-heal spells only",
@@ -556,7 +554,6 @@
 
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "Cannot insert multiple items with the same effect.",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "Only one school rune can be inserted.",
-  "jei.apprenticecodex.spell_calibration_bench.constraint.same_enchantment": "Cannot insert multiple books with the same enchantment.",
 
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",
