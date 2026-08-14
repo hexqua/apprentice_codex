@@ -1445,6 +1445,10 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     ResourceLocation.withDefaultNamespace("smite"),
                     ResourceLocation.withDefaultNamespace("sweeping_edge")
             ));
+            expectedTaggedEnchantments.addAll(collectAllowedEnchantments(
+                    helper.getLevel().registryAccess(),
+                    enchantment -> enchantment.value().isSupportedItem(stack)
+            ));
             addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedTaggedEnchantments);
             addExpectedMalumSpiritPlunderIfPresent(stack, expectedTaggedEnchantments);
             addExpectedMalumReplenishingIfPresent(stack, expectedTaggedEnchantments);

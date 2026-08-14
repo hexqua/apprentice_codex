@@ -233,7 +233,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     @Override
     public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
-        return isSupportedEnchantment(stack, enchantment);
+        return super.supportsEnchantment(stack, enchantment) || isSupportedEnchantment(stack, enchantment);
     }
 
     @Override

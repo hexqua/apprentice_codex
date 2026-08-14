@@ -12555,6 +12555,10 @@ public class ApprenticeCodexGameTestScenarios {
                     enchantment -> enchantment.value().canEnchant(new ItemStack(Items.MACE))
                             && !isDurabilityTargetEnchantment(enchantment)
             );
+            expectedEnchantments.addAll(collectAllowedEnchantments(
+                    registryAccess,
+                    enchantment -> enchantment.value().isSupportedItem(stack)
+            ));
             expectedEnchantments.addAll(registryIdSet(
                     Enchantments.TRANSCENDENCE,
                     Enchantments.WISDOM,

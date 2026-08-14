@@ -313,6 +313,12 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
 
     @Override
     public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+        // 親クラスの剣向け拡張は引き継がず、1.21.1 のデータ駆動な許可だけをメイス向け規則へ合成する。
+        //noinspection deprecation
+        if (enchantment.value().isSupportedItem(stack)) {
+            return true;
+        }
+
         var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
         if (enchantmentId == null || isDurabilityTargetEnchantment(enchantment)) {
             return false;
