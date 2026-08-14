@@ -11,12 +11,17 @@ public record SpellCalibrationAdjustmentJeiRecipe(
         ResourceLocation id,
         ItemStack target,
         List<ItemStack> adjustments,
+        List<ItemStack> results,
         List<Component> effectLines,
         CalibrationConstraintDisplay constraintDisplay
 ) {
     public SpellCalibrationAdjustmentJeiRecipe {
         target = target.copyWithCount(1);
         adjustments = adjustments.stream().map(stack -> stack.copyWithCount(1)).toList();
+        results = results.stream().map(stack -> stack.copyWithCount(1)).toList();
+        if (adjustments.size() != results.size()) {
+            throw new IllegalArgumentException("Calibration adjustment inputs and results must have the same size.");
+        }
         effectLines = List.copyOf(effectLines);
     }
 }

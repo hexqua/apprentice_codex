@@ -281,6 +281,31 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                             continue;
                         }
 
+                        var displayCandidates = new ArrayList<ItemStack>();
+                        var displayResults = new ArrayList<ItemStack>();
+                        for (var candidate : candidates) {
+                            var result = targetStack.copy();
+                            if (!target.trySetCalibrationAdjustment(result, 0, candidate)) {
+                                ApprenticeCodex.LOGGER.warn(
+                                        "Spell Calibration Bench JEI candidate skipped because it could not be applied: {}/{}/{}.",
+                                        targetId,
+                                        rule.displayId(),
+                                        BuiltInRegistries.ITEM.getKey(candidate.getItem())
+                                );
+                                continue;
+                            }
+                            displayCandidates.add(candidate);
+                            displayResults.add(result);
+                        }
+                        if (displayCandidates.isEmpty()) {
+                            ApprenticeCodex.LOGGER.warn(
+                                    "Spell Calibration Bench JEI rule skipped because none of its display candidates could be applied: {}/{}.",
+                                    targetId,
+                                    rule.displayId()
+                            );
+                            continue;
+                        }
+
                         recipes.add(new SpellCalibrationAdjustmentJeiRecipe(
                                 ResourceLocation.fromNamespaceAndPath(
                                         ApprenticeCodex.MODID,
@@ -294,7 +319,8 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                                         )
                                 ),
                                 targetStack,
-                                candidates,
+                                displayCandidates,
+                                displayResults,
                                 rule.effectLines(),
                                 rule.constraintDisplay()
                         ));
