@@ -59,6 +59,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_FIRE_ASPECT = createTag("minecraft", "enchantable/fire_aspect");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_SHARP_WEAPON = createTag("minecraft", "enchantable/sharp_weapon");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_WEAPON = createTag("minecraft", "enchantable/weapon");
+    private static final TagKey<Item> MINECRAFT_ENCHANTABLE_MINING = createTag("minecraft", "enchantable/mining");
+    private static final TagKey<Item> MINECRAFT_ENCHANTABLE_MINING_LOOT = createTag("minecraft", "enchantable/mining_loot");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_TRIDENT = createTag("minecraft", "enchantable/trident");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_DURABILITY = createTag("minecraft", "enchantable/durability");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_EQUIPPABLE = createTag("minecraft", "enchantable/equippable");
@@ -155,12 +157,12 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 AttributeEnchantmentType.ATTUNEMENT, tag(ATTUNEMENT_ENCHANTABLE),
                 AttributeEnchantmentType.TENSE, tag(TENSE_ENCHANTABLE)
         );
-        var surgeEnchantableTag = attributeEnchantableTags.get(AttributeEnchantmentType.SURGE);
-        var attunementEnchantableTag = attributeEnchantableTags.get(AttributeEnchantmentType.ATTUNEMENT);
         var vanillaSwordEnchantableTag = tag(MINECRAFT_ENCHANTABLE_SWORD);
         var vanillaFireAspectEnchantableTag = tag(MINECRAFT_ENCHANTABLE_FIRE_ASPECT);
         var vanillaSharpWeaponEnchantableTag = tag(MINECRAFT_ENCHANTABLE_SHARP_WEAPON);
         var vanillaWeaponEnchantableTag = tag(MINECRAFT_ENCHANTABLE_WEAPON);
+        var vanillaMiningEnchantableTag = tag(MINECRAFT_ENCHANTABLE_MINING);
+        var vanillaMiningLootEnchantableTag = tag(MINECRAFT_ENCHANTABLE_MINING_LOOT);
         var vanillaMaceEnchantableTag = tag(MINECRAFT_ENCHANTABLE_MACE);
         var vanillaTridentEnchantableTag = tag(MINECRAFT_ENCHANTABLE_TRIDENT);
         var vanillaDurabilityEnchantableTag = tag(MINECRAFT_ENCHANTABLE_DURABILITY);
@@ -229,20 +231,16 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         vanillaWeaponEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
 
-        // Scrollcaster Gauntlet は術式調整台でのみ enchant を同期するが、
-        // 互換 MOD と 1.21.1 の enchantment JSON が見る item tag は主手武器相当へ揃える。
+        // Scrollcaster Gauntlet は剣・ツルハシ・魔法詠唱補助具向けの enchant を通常付与できるようにする。
         malumMagicCapableWeaponTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
         tomagicReversalWeaponTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
-        surgeEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
-        attunementEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
-        transcendenceEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
-        wisdomEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
-        plunderEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
         vanillaSwordEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
         vanillaFireAspectEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
         vanillaWeaponEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        vanillaMiningEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        vanillaMiningLootEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
 
         // Multipurpose Staffrifle は main hand で射撃攻撃する武器なので、Malum の主手武器 tag へ明示登録する。
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
@@ -665,9 +663,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         );
         tag(TagRegistry.Items.SCROLLCASTER_GAUNTLET_SLOT_UPGRADES).add(
                 io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()
-        );
-        tag(TagRegistry.Items.SCROLLCASTER_GAUNTLET_ENCHANTMENT_BOOKS).add(
-                net.minecraft.world.item.Items.ENCHANTED_BOOK
         );
         tag(TagRegistry.Items.SCROLLCASTER_GAUNTLET_SCHOOL_RUNE_DENYLIST);
         tag(TagRegistry.Items.ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_CATALYSTS).add(

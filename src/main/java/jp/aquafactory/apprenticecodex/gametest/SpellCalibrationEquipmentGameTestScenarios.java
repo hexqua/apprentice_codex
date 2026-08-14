@@ -13,8 +13,8 @@ import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
-import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHint;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentTooltip;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
@@ -51,7 +51,6 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.neoforged.neoforge.common.NeoForge;
 
 import java.util.HashSet;
@@ -410,23 +409,19 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             var gauntlet = targets[0];
             var gauntletProfile = ((SpellCalibrationAdjustmentTarget) gauntlet.getItem())
                     .getCalibrationAdjustmentProfile(gauntlet);
-            helper.assertTrue(gauntletProfile.rules().size() == 4,
-                    "Scrollcaster Gauntlet should expose all four hint groups from its rules");
+            helper.assertTrue(gauntletProfile.rules().size() == 3,
+                    "Scrollcaster Gauntlet should expose its three supported hint groups");
             helper.assertTrue(gauntletProfile.rules().get(0).hint() instanceof CalibrationAdjustmentHint.TaggedItems,
                     "Scrollcaster Gauntlet slot upgrades should use a generated tag hint");
-            helper.assertTrue(gauntletProfile.rules().get(3).hint() instanceof CalibrationAdjustmentHint.Translatable,
+            helper.assertTrue(gauntletProfile.rules().get(2).hint() instanceof CalibrationAdjustmentHint.Translatable,
                     "Scrollcaster Gauntlet school runes should use a translated category hint");
             helper.assertTrue(gauntletProfile.rules().get(0).constraintDisplay().translationKey().isEmpty(),
                     "Scrollcaster Gauntlet slot upgrades should omit constraint text");
             helper.assertTrue(gauntletProfile.rules().get(1).constraintDisplay().translationKey()
-                            .filter("jei.apprenticecodex.spell_calibration_bench.constraint.same_enchantment"::equals)
-                            .isPresent(),
-                    "Scrollcaster Gauntlet enchantment books should use the same-enchantment constraint");
-            helper.assertTrue(gauntletProfile.rules().get(2).constraintDisplay().translationKey()
                             .filter("jei.apprenticecodex.spell_calibration_bench.constraint.same_effect"::equals)
                             .isPresent(),
                     "Scrollcaster Gauntlet freecast staffs should use the same-effect constraint");
-            helper.assertTrue(gauntletProfile.rules().get(3).constraintDisplay().translationKey()
+            helper.assertTrue(gauntletProfile.rules().get(2).constraintDisplay().translationKey()
                             .filter("jei.apprenticecodex.spell_calibration_bench.constraint.school_rune"::equals)
                             .isPresent(),
                     "Scrollcaster Gauntlet school runes should use the school-rune constraint");
@@ -445,63 +440,10 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             );
             assertCalibrationEffectKeys(
                     helper,
-                    gauntletProfile.rules().get(1),
-                    "add_enchantment_1",
-                    "add_enchantment_2"
-            );
-            assertCalibrationEffectKeys(
-                    helper,
-                    gauntletProfile.rules().get(3),
+                    gauntletProfile.rules().get(2),
                     "change_spell_power_1",
                     "change_spell_power_2"
             );
-
-            var lookupProvider = helper.getLevel().registryAccess();
-            var displayEnchantmentLookup = lookupProvider.lookupOrThrow(Registries.ENCHANTMENT);
-            var wisdom = displayEnchantmentLookup.getOrThrow(
-                    jp.aquafactory.apprenticecodex.enchantment.Enchantments.WISDOM
-            );
-            try (var ignored = ApprenticeCodexServerConfig.useScrollcasterGauntletConfigOverrideForGameTest(
-                    java.util.List.of(),
-                    java.util.List.of()
-            )) {
-                var displayBook = gauntletProfile.rules().get(1)
-                        .collectDisplayCandidates(gauntlet, lookupProvider)
-                        .getFirst();
-                helper.assertTrue(EnchantmentHelper.getEnchantmentsForCrafting(displayBook).getLevel(wisdom) == 1,
-                        "Scrollcaster Gauntlet JEI sample should prefer a level-one Wisdom book");
-                var displayResult = gauntlet.copy();
-                helper.assertTrue(
-                        ((SpellCalibrationAdjustmentTarget) displayResult.getItem())
-                                .trySetCalibrationAdjustment(displayResult, 0, displayBook, lookupProvider),
-                        "Scrollcaster Gauntlet JEI Wisdom sample should be accepted"
-                );
-                helper.assertTrue(EnchantmentHelper.getEnchantmentsForCrafting(displayResult).getLevel(wisdom) == 1,
-                        "Scrollcaster Gauntlet JEI result should apply Wisdom from its sample book");
-            }
-
-            var wisdomId = wisdom.key().location();
-            try (var ignored = ApprenticeCodexServerConfig.useScrollcasterGauntletConfigOverrideForGameTest(
-                    java.util.List.of(wisdomId.toString()),
-                    java.util.List.of()
-            )) {
-                var fallbackBook = gauntletProfile.rules().get(1)
-                        .collectDisplayCandidates(gauntlet, lookupProvider)
-                        .getFirst();
-                var fallbackEnchantments = EnchantmentHelper.getEnchantmentsForCrafting(fallbackBook);
-                helper.assertTrue(fallbackEnchantments.size() == 1,
-                        "Scrollcaster Gauntlet JEI fallback sample should contain one enchantment");
-                var fallbackId = fallbackEnchantments.entrySet().iterator().next().getKey()
-                        .unwrapKey()
-                        .orElseThrow()
-                        .location();
-                helper.assertTrue(
-                        fallbackId.equals(
-                                jp.aquafactory.apprenticecodex.enchantment.Enchantments.ALACRITY.location()
-                        ),
-                        "Scrollcaster Gauntlet JEI fallback should use the first Apprentice's Codex enchantment by ID"
-                );
-            }
 
             var autocastProfile = ((SpellCalibrationAdjustmentTarget) targets[4].getItem())
                     .getCalibrationAdjustmentProfile(targets[4]);
@@ -560,15 +502,17 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
 
             var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             var sharpness = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SHARPNESS);
-            var unbreaking = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.UNBREAKING);
             var sharpnessBook = createEnchantedBook(sharpness, 1);
             sharpnessBook.set(DataComponents.CUSTOM_NAME, Component.literal("Stored calibration component"));
             sharpnessBook.setCount(4);
             var anotherSharpnessBook = sharpnessBook.copy();
-            var unbreakingBook = createEnchantedBook(unbreaking, 1);
-            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
-                            gauntlet, 0, sharpnessBook),
-                    "Scrollcaster Gauntlet should accept a supported enchantment book");
+            CalibrationAdjustmentStorage.set(
+                    gauntlet,
+                    0,
+                    ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT,
+                    sharpnessBook,
+                    helper.getLevel().registryAccess()
+            );
             var expectedStoredBook = sharpnessBook.copyWithCount(1);
             var storedBook = SpellCalibrationAdjustmentGameTestSupport.getCalibrationAdjustment(gauntlet, 0);
             helper.assertTrue(storedBook.getCount() == 1
@@ -585,10 +529,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     "New writes should use the common adjustment storage root");
             helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
                             gauntlet, 1, anotherSharpnessBook),
-                    "Scrollcaster Gauntlet should reject the same first enchantment twice");
-            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
-                            gauntlet, 1, unbreakingBook),
-                    "Scrollcaster Gauntlet should accept a different first enchantment");
+                    "Scrollcaster Gauntlet should reject new enchanted-book adjustments");
 
             var legacyAutocast = new ItemStack(ItemRegistry.AUTOCAST_AMULET.get());
             CustomData.update(DataComponents.CUSTOM_DATA, legacyAutocast, rootTag -> {
@@ -663,8 +604,13 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()
             );
             var target = (SpellCalibrationAdjustmentTarget) gauntlet.getItem();
-            helper.assertTrue(target.trySetCalibrationAdjustment(gauntlet, 0, storedBook, lookupProvider),
-                    "Tooltip test should store an enchanted book in the first adjustment slot");
+            CalibrationAdjustmentStorage.set(
+                    gauntlet,
+                    0,
+                    ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT,
+                    storedBook,
+                    lookupProvider
+            );
             helper.assertTrue(target.trySetCalibrationAdjustment(gauntlet, 2, slotUpgrade, lookupProvider),
                     "Tooltip test should store a slot upgrade without filling the middle adjustment slot");
 

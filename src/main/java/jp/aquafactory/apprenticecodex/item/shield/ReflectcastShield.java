@@ -7,7 +7,6 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
@@ -45,8 +44,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class ReflectcastShield extends AbstractImbueShieldItem
-        implements GeoItem, IJeiInfoItem, SpellCalibrationAdjustmentTarget {
-    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.reflectcast_shield.desc_";
+        implements GeoItem, SpellCalibrationAdjustmentTarget {
 
     public static final int DURABILITY = 1561;
     public static final int DURABILITY_SUPPRESSION_TICKS = 10;
@@ -74,11 +72,6 @@ public class ReflectcastShield extends AbstractImbueShieldItem
     public ReflectcastShield() {
         super(new Item.Properties().stacksTo(1).durability(DURABILITY).rarity(Rarity.UNCOMMON));
         GeoItem.registerSyncedAnimatable(this);
-    }
-
-    @Override
-    public String getJeiInfoTranslationKeyPrefix() {
-        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override

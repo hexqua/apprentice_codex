@@ -1,6 +1,5 @@
 {
   "values": [
-    "apprenticecodex:scrollcaster_gauntlet",
     "apprenticecodex:element_maiden_robe_robe",
     "apprenticecodex:enchanted_circlet",
     "apprenticecodex:iron_spellcaster_gun",
@@ -18,6 +17,7 @@
     "apprenticecodex:photon_siphon",
     "apprenticecodex:explorers_cane",
     "apprenticecodex:multipurpose_staffrifle",
+    "apprenticecodex:scrollcaster_gauntlet",
     "apprenticecodex:mana_force_blade"
   ]
 }

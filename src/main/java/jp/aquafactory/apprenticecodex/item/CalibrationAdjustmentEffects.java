@@ -43,13 +43,6 @@ public final class CalibrationAdjustmentEffects {
         return line("change_attribute_offhand");
     }
 
-    public static List<Component> addEnchantment() {
-        return List.of(
-                Component.translatable(KEY_PREFIX + "add_enchantment_1"),
-                Component.translatable(KEY_PREFIX + "add_enchantment_2")
-        );
-    }
-
     public static List<Component> changeImbueToSelected() {
         return line("change_imbue_to_select");
     }

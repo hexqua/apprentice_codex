@@ -33,6 +33,10 @@ public final class NonDamageableAnvilMergeHelper {
         if (!(leftStack.getItem() instanceof NonDamageableAnvilMergeItem mergeItem)) {
             return null;
         }
+        // 右アイテムはスロット内アイテムを全て失うためガードをかける.
+        if (hasStoredContents(rightStack)) {
+            return null;
+        }
         if (!mergeItem.supportsSameItemAnvilMerge(leftStack, rightStack)) {
             return null;
         }
@@ -120,6 +124,19 @@ public final class NonDamageableAnvilMergeHelper {
         resultStack.set(DataComponents.REPAIR_COST, updatedRepairCost);
         EnchantmentHelper.setEnchantments(resultStack, mergedEnchantments.toImmutable());
         return new MergeResult(resultStack, totalCost, 1);
+    }
+
+    private static boolean hasStoredContents(ItemStack stack) {
+        if (stack.getItem() instanceof SpellCalibrationAdjustmentTarget adjustmentTarget) {
+            for (var slot = 0; slot < adjustmentTarget.getCalibrationAdjustmentSlotCount(stack); ++slot) {
+                if (!adjustmentTarget.getCalibrationAdjustment(stack, slot).isEmpty()) {
+                    return true;
+                }
+            }
+        }
+
+        return stack.getItem() instanceof StoredSpellCalibrationImbueTarget storedTarget
+                && storedTarget.hasAnyStoredCalibrationScroll(stack);
     }
 
     private static int getRarityCost(Holder<Enchantment> enchantment) {
