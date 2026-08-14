@@ -13,6 +13,7 @@ import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHint;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentTooltip;
@@ -50,6 +51,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.neoforged.neoforge.common.NeoForge;
 
 import java.util.HashSet;
@@ -453,6 +455,53 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     "change_spell_power_1",
                     "change_spell_power_2"
             );
+
+            var lookupProvider = helper.getLevel().registryAccess();
+            var displayEnchantmentLookup = lookupProvider.lookupOrThrow(Registries.ENCHANTMENT);
+            var wisdom = displayEnchantmentLookup.getOrThrow(
+                    jp.aquafactory.apprenticecodex.enchantment.Enchantments.WISDOM
+            );
+            try (var ignored = ApprenticeCodexServerConfig.useScrollcasterGauntletConfigOverrideForGameTest(
+                    java.util.List.of(),
+                    java.util.List.of()
+            )) {
+                var displayBook = gauntletProfile.rules().get(1)
+                        .collectDisplayCandidates(gauntlet, lookupProvider)
+                        .getFirst();
+                helper.assertTrue(EnchantmentHelper.getEnchantmentsForCrafting(displayBook).getLevel(wisdom) == 1,
+                        "Scrollcaster Gauntlet JEI sample should prefer a level-one Wisdom book");
+                var displayResult = gauntlet.copy();
+                helper.assertTrue(
+                        ((SpellCalibrationAdjustmentTarget) displayResult.getItem())
+                                .trySetCalibrationAdjustment(displayResult, 0, displayBook, lookupProvider),
+                        "Scrollcaster Gauntlet JEI Wisdom sample should be accepted"
+                );
+                helper.assertTrue(EnchantmentHelper.getEnchantmentsForCrafting(displayResult).getLevel(wisdom) == 1,
+                        "Scrollcaster Gauntlet JEI result should apply Wisdom from its sample book");
+            }
+
+            var wisdomId = wisdom.key().location();
+            try (var ignored = ApprenticeCodexServerConfig.useScrollcasterGauntletConfigOverrideForGameTest(
+                    java.util.List.of(wisdomId.toString()),
+                    java.util.List.of()
+            )) {
+                var fallbackBook = gauntletProfile.rules().get(1)
+                        .collectDisplayCandidates(gauntlet, lookupProvider)
+                        .getFirst();
+                var fallbackEnchantments = EnchantmentHelper.getEnchantmentsForCrafting(fallbackBook);
+                helper.assertTrue(fallbackEnchantments.size() == 1,
+                        "Scrollcaster Gauntlet JEI fallback sample should contain one enchantment");
+                var fallbackId = fallbackEnchantments.entrySet().iterator().next().getKey()
+                        .unwrapKey()
+                        .orElseThrow()
+                        .location();
+                helper.assertTrue(
+                        fallbackId.equals(
+                                jp.aquafactory.apprenticecodex.enchantment.Enchantments.ALACRITY.location()
+                        ),
+                        "Scrollcaster Gauntlet JEI fallback should use the first Apprentice's Codex enchantment by ID"
+                );
+            }
 
             var autocastProfile = ((SpellCalibrationAdjustmentTarget) targets[4].getItem())
                     .getCalibrationAdjustmentProfile(targets[4]);

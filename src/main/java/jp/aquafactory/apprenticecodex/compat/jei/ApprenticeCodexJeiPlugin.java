@@ -269,7 +269,10 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
 
                     var targetStack = item.getDefaultInstance().copyWithCount(1);
                     for (var rule : target.getCalibrationAdjustmentProfile(targetStack).rules()) {
-                        var candidates = rule.collectDisplayCandidates();
+                        var clientLevel = Minecraft.getInstance().level;
+                        var candidates = clientLevel == null
+                                ? rule.collectDisplayCandidates()
+                                : rule.collectDisplayCandidates(targetStack, clientLevel.registryAccess());
                         var targetId = BuiltInRegistries.ITEM.getKey(item);
                         if (candidates.isEmpty()) {
                             ApprenticeCodex.LOGGER.warn(
@@ -284,7 +287,28 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                         var displayResults = new ArrayList<ItemStack>();
                         for (var candidate : candidates) {
                             var result = targetStack.copy();
-                            if (!target.trySetCalibrationAdjustment(result, 0, candidate)) {
+                            boolean applied;
+                            try {
+                                // component 付き候補は生成元と同じ動的レジストリで保存しないと復元不能になる。
+                                applied = clientLevel == null
+                                        ? target.trySetCalibrationAdjustment(result, 0, candidate)
+                                        : target.trySetCalibrationAdjustment(
+                                                result,
+                                                0,
+                                                candidate,
+                                                clientLevel.registryAccess()
+                                        );
+                            } catch (RuntimeException exception) {
+                                ApprenticeCodex.LOGGER.warn(
+                                        "Spell Calibration Bench JEI candidate skipped because its sample failed to build: {}/{}/{}.",
+                                        targetId,
+                                        rule.displayId(),
+                                        BuiltInRegistries.ITEM.getKey(candidate.getItem()),
+                                        exception
+                                );
+                                continue;
+                            }
+                            if (!applied) {
                                 ApprenticeCodex.LOGGER.warn(
                                         "Spell Calibration Bench JEI candidate skipped because it could not be applied: {}/{}/{}.",
                                         targetId,

@@ -16,6 +16,7 @@ import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.Scroll;
 import io.redspace.ironsspellbooks.item.UniqueItem;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
@@ -79,6 +80,7 @@ import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -137,7 +139,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                             },
                             CalibrationAdjustmentHints.enchantmentBooks(),
                             CalibrationAdjustmentHints.sameEnchantmentConstraint()
-                    ).withEffectLines(CalibrationAdjustmentEffects.addEnchantment()),
+                    ).withDisplayCandidates(ScrollcasterGauntlet::createEnchantmentBookDisplayCandidates)
+                            .withEffectLines(CalibrationAdjustmentEffects.addEnchantment()),
                     CalibrationAdjustmentRule.unique(
                             "mithril_freecast_staff",
                             ScrollcasterGauntlet::isFreecastStaffAdjustment,
@@ -590,6 +593,39 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                 || ((SWORD_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment)
                         || PICKAXE_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment))
                 && !DURABILITY_ENCHANTMENT_PROBE_STACK.supportsEnchantment(enchantment));
+    }
+
+    private static List<ItemStack> createEnchantmentBookDisplayCandidates(
+            ItemStack gauntletStack,
+            HolderLookup.Provider lookupProvider
+    ) {
+        var fallback = List.of(new ItemStack(Items.ENCHANTED_BOOK));
+        var enchantmentLookup = lookupProvider.lookup(Registries.ENCHANTMENT).orElse(null);
+        if (enchantmentLookup == null) {
+            return fallback;
+        }
+
+        var representative = enchantmentLookup.listElements()
+                .filter(enchantment -> isSupportedCalibrationEnchantment(gauntletStack, enchantment))
+                .sorted(Comparator
+                        .comparingInt(ScrollcasterGauntlet::getEnchantmentDisplayPriority)
+                        .thenComparing(enchantment -> enchantment.key().location().toString()))
+                .findFirst()
+                .orElse(null);
+        if (representative == null) {
+            return fallback;
+        }
+
+        var book = new ItemStack(Items.ENCHANTED_BOOK);
+        book.enchant(representative, 1);
+        return List.of(book);
+    }
+
+    private static int getEnchantmentDisplayPriority(Holder.Reference<Enchantment> enchantment) {
+        if (enchantment.is(Enchantments.WISDOM)) {
+            return 0;
+        }
+        return ApprenticeCodex.MODID.equals(enchantment.key().location().getNamespace()) ? 1 : 2;
     }
 
     private static boolean isExplicitlySupportedMagicEnchantment(Holder<Enchantment> enchantment) {
