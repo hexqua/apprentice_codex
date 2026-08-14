@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item;
 
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,6 +11,7 @@ import java.util.Objects;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /** 候補の受理条件、重複制約、ヘルプを一か所で宣言するルール。 */
 public final class CalibrationAdjustmentRule {
@@ -25,6 +27,7 @@ public final class CalibrationAdjustmentRule {
     private final CalibrationAdjustmentHint hint;
     private final DuplicatePolicy duplicatePolicy;
     private final CalibrationConstraintDisplay constraintDisplay;
+    private final Supplier<List<Component>> effectLinesSupplier;
 
     private CalibrationAdjustmentRule(
             String displayId,
@@ -32,7 +35,8 @@ public final class CalibrationAdjustmentRule {
             BiPredicate<ItemStack, ItemStack> conflict,
             CalibrationAdjustmentHint hint,
             DuplicatePolicy duplicatePolicy,
-            CalibrationConstraintDisplay constraintDisplay
+            CalibrationConstraintDisplay constraintDisplay,
+            Supplier<List<Component>> effectLinesSupplier
     ) {
         this.displayId = Objects.requireNonNull(displayId);
         if (displayId.isBlank()) {
@@ -43,6 +47,7 @@ public final class CalibrationAdjustmentRule {
         this.hint = Objects.requireNonNull(hint);
         this.duplicatePolicy = Objects.requireNonNull(duplicatePolicy);
         this.constraintDisplay = Objects.requireNonNull(constraintDisplay);
+        this.effectLinesSupplier = Objects.requireNonNull(effectLinesSupplier);
     }
 
     public static CalibrationAdjustmentRule repeatable(
@@ -56,7 +61,8 @@ public final class CalibrationAdjustmentRule {
                 (candidate, existing) -> false,
                 hint,
                 DuplicatePolicy.REPEATABLE,
-                CalibrationConstraintDisplay.none()
+                CalibrationConstraintDisplay.none(),
+                List::of
         );
     }
 
@@ -80,7 +86,8 @@ public final class CalibrationAdjustmentRule {
                 (candidate, existing) -> matcher.test(existing),
                 hint,
                 DuplicatePolicy.UNIQUE_RULE,
-                constraintDisplay
+                constraintDisplay,
+                List::of
         );
     }
 
@@ -114,7 +121,25 @@ public final class CalibrationAdjustmentRule {
                         && Objects.equals(keyResolver.apply(candidate), keyResolver.apply(existing)),
                 hint,
                 DuplicatePolicy.UNIQUE_KEY,
-                constraintDisplay
+                constraintDisplay,
+                List::of
+        );
+    }
+
+    public CalibrationAdjustmentRule withEffectLines(List<Component> effectLines) {
+        var copiedLines = List.copyOf(effectLines);
+        return withEffectLines(() -> copiedLines);
+    }
+
+    public CalibrationAdjustmentRule withEffectLines(Supplier<List<Component>> effectLinesSupplier) {
+        return new CalibrationAdjustmentRule(
+                displayId,
+                matcher,
+                conflict,
+                hint,
+                duplicatePolicy,
+                constraintDisplay,
+                effectLinesSupplier
         );
     }
 
@@ -140,6 +165,14 @@ public final class CalibrationAdjustmentRule {
 
     public CalibrationConstraintDisplay constraintDisplay() {
         return constraintDisplay;
+    }
+
+    public List<Component> effectLines() {
+        var effectLines = List.copyOf(Objects.requireNonNull(effectLinesSupplier.get()));
+        if (effectLines.isEmpty() || effectLines.size() > 3) {
+            throw new IllegalStateException("Calibration adjustment effect must contain one to three lines: " + displayId);
+        }
+        return effectLines;
     }
 
     /**

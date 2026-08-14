@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHint;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
@@ -97,7 +98,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                             "silver_spell_amplifier",
                             stack -> stack.is(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
                             new CalibrationAdjustmentHint.SpecificItem(ItemRegistry.SILVER_SPELL_AMPLIFIER)
-                    )
+                    ).withEffectLines(CalibrationAdjustmentEffects.changeAttributeOffhand())
             );
     public static final float EMPTY_CASING_RETURN_CHANCE = 0.5F;
     private final SpellGunConfig spellGunConfig;

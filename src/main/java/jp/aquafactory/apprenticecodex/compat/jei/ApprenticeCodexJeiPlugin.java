@@ -57,13 +57,6 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
     private static final String EN_US_RESOURCE_PATH = "assets/" + ApprenticeCodex.MODID + "/lang/en_us.json";
     private static final int MAX_INFO_LINES = 32;
     private static final List<Item> BREWING_CONTAINERS = List.of(Items.POTION, Items.SPLASH_POTION, Items.LINGERING_POTION);
-    // todo: この表示を頼りにはみ出ないlangを設定する.
-    private static final List<Component> CALIBRATION_EFFECT_PLACEHOLDER = List.of(
-            Component.literal("Effect placeholder line 1"),
-            Component.literal("Effect placeholder line 2"),
-            Component.literal("Effect placeholder line 3")
-    );
-
     private static final ResourceLocation PLUGIN_UID =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "jei_plugin");
     private static final Set<String> EN_US_TRANSLATION_KEYS = loadEnUsTranslationKeys();
@@ -301,7 +294,7 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                                 ),
                                 targetStack,
                                 candidates,
-                                CALIBRATION_EFFECT_PLACEHOLDER,
+                                rule.effectLines(),
                                 rule.constraintDisplay()
                         ));
                     }

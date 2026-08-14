@@ -63,6 +63,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
@@ -88,12 +89,14 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
                             ScrollcasterSchoolRuneResolver::isSchoolRune,
                             CalibrationAdjustmentHints.schoolRunes(),
                             CalibrationAdjustmentHints.schoolRuneConstraint()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.changeSpellPower(
+                            MithrilFreecastStaff.SCHOOL_SPELL_POWER_BONUS
+                    )),
                     CalibrationAdjustmentRule.unique(
                             "silver_ring",
                             MithrilFreecastStaff::isSilverRing,
                             CalibrationAdjustmentHints.silverRing()
-                    )
+                    ).withEffectLines(CalibrationAdjustmentEffects.addLongSupport())
             );
     private static final String MAIN_CONTROLLER = "main";
     private static final String CALIBRATION_TAG = "SpellCalibration";

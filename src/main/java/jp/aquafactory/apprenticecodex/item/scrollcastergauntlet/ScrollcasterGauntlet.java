@@ -88,6 +88,7 @@ import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilScrollImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.BetterCombatOffhandDualWieldingPolicyItem;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
@@ -124,7 +125,9 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                             "slot_upgrade",
                             ScrollcasterGauntlet::isCalibrationSlotUpgrade,
                             CalibrationAdjustmentHints.slotUpgrades()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(
+                            CALIBRATION_SCROLL_SLOTS_PER_UPGRADE
+                    )),
                     CalibrationAdjustmentRule.uniqueBy(
                             "enchantment_book",
                             stack -> stack.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_ENCHANTMENT_BOOKS),
@@ -134,18 +137,20 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                             },
                             CalibrationAdjustmentHints.enchantmentBooks(),
                             CalibrationAdjustmentHints.sameEnchantmentConstraint()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.addEnchantment()),
                     CalibrationAdjustmentRule.unique(
                             "mithril_freecast_staff",
                             ScrollcasterGauntlet::isFreecastStaffAdjustment,
                             CalibrationAdjustmentHints.mithrilFreecastStaff()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.addSwingcastFunction()),
                     CalibrationAdjustmentRule.unique(
                             "school_rune",
                             ScrollcasterSchoolRuneResolver::isSchoolRune,
                             CalibrationAdjustmentHints.schoolRunes(),
                             CalibrationAdjustmentHints.schoolRuneConstraint()
-                    )
+                    ).withEffectLines(CalibrationAdjustmentEffects.changeSpellPower(
+                            ScrollcasterGauntlet.SCHOOL_SPELL_POWER_BONUS
+                    ))
             );
 
     private static final HolderLookup.Provider FALLBACK_SERIALIZATION_LOOKUP =

@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
@@ -59,17 +60,17 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
                             "slot_upgrade",
                             AutocastAmulet::isCalibrationSlotUpgrade,
                             CalibrationAdjustmentHints.slotUpgrades()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(1)),
                     CalibrationAdjustmentRule.unique(
                             "silver_ring",
                             AutocastAmulet::isSilverRing,
                             CalibrationAdjustmentHints.silverRing()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.addLongSupport()),
                     CalibrationAdjustmentRule.unique(
                             "wisdom_shard",
                             AutocastAmulet::isWisdomShard,
                             CalibrationAdjustmentHints.wisdomShard()
-                    )
+                    ).withEffectLines(CalibrationAdjustmentEffects.adaptAutocastSituation())
             );
 
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.autocast_amulet.desc_";

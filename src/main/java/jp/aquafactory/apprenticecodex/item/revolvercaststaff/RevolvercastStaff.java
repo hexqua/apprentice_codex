@@ -72,6 +72,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
@@ -103,23 +104,27 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
                             "slot_upgrade",
                             RevolvercastStaff::isCalibrationSlotUpgrade,
                             CalibrationAdjustmentHints.slotUpgrades()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(
+                            CALIBRATION_SCROLL_SLOTS_PER_UPGRADE
+                    )),
                     CalibrationAdjustmentRule.unique(
                             "school_rune",
                             ScrollcasterSchoolRuneResolver::isSchoolRune,
                             CalibrationAdjustmentHints.schoolRunes(),
                             CalibrationAdjustmentHints.schoolRuneConstraint()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.changeSpellPower(
+                            RevolvercastStaff.SCHOOL_SPELL_POWER_BONUS
+                    )),
                     CalibrationAdjustmentRule.unique(
                             "recovery_rune",
                             RevolvercastStaff::isRecoveryRune,
                             CalibrationAdjustmentHints.recoveryRune()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.switchSlotOnFailedCast()),
                     CalibrationAdjustmentRule.unique(
                             "silver_ring",
                             RevolvercastStaff::isSilverRing,
                             CalibrationAdjustmentHints.silverRing()
-                    )
+                    ).withEffectLines(CalibrationAdjustmentEffects.addLongSupport())
             );
 
     private static final HolderLookup.Provider FALLBACK_SERIALIZATION_LOOKUP =
