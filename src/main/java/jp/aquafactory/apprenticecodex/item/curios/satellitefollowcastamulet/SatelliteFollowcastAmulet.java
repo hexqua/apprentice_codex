@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
@@ -52,12 +53,12 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
                             "slot_upgrade",
                             SatelliteFollowcastAmulet::isCalibrationSlotUpgrade,
                             CalibrationAdjustmentHints.slotUpgrades()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(1)),
                     CalibrationAdjustmentRule.unique(
                             "silver_ring",
                             SatelliteFollowcastAmulet::isSilverRing,
                             CalibrationAdjustmentHints.silverRing()
-                    )
+                    ).withEffectLines(CalibrationAdjustmentEffects.addAllSupport())
             );
     public static final double CRYSTAL_ORBIT_RADIUS = 1.35D;
     public static final double CRYSTAL_ORBIT_HEIGHT = 1.05D;

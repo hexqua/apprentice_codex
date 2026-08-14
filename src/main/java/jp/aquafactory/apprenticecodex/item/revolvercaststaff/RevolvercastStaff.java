@@ -85,23 +85,27 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
                             "slot_upgrade",
                             RevolvercastStaff::isCalibrationSlotUpgrade,
                             CalibrationAdjustmentHints.slotUpgrades()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(
+                            CALIBRATION_SCROLL_SLOTS_PER_UPGRADE
+                    )),
                     CalibrationAdjustmentRule.unique(
                             "school_rune",
                             ScrollcasterSchoolRuneResolver::isSchoolRune,
                             CalibrationAdjustmentHints.schoolRunes(),
                             CalibrationAdjustmentHints.schoolRuneConstraint()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.changeSpellPower(
+                            RevolvercastStaff.SCHOOL_SPELL_POWER_BONUS
+                    )),
                     CalibrationAdjustmentRule.unique(
                             "recovery_rune",
                             RevolvercastStaff::isRecoveryRune,
                             CalibrationAdjustmentHints.recoveryRune()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.switchSlotOnFailedCast()),
                     CalibrationAdjustmentRule.unique(
                             "silver_ring",
                             RevolvercastStaff::isSilverRing,
                             CalibrationAdjustmentHints.silverRing()
-                    )
+                    ).withEffectLines(CalibrationAdjustmentEffects.addLongSupport())
             );
 
     private static final String ORB_CONTROLLER = "orb";

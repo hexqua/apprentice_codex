@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
@@ -59,7 +60,9 @@ public class MagiAgentSuitItem extends ArmorItem
                             ScrollcasterSchoolRuneResolver::isSchoolRune,
                             CalibrationAdjustmentHints.schoolRunes(),
                             CalibrationAdjustmentHints.schoolRuneConstraint()
-                    )
+                    ).withEffectLines(() -> CalibrationAdjustmentEffects.addSpellPower(
+                            ApprenticeCodexServerConfig.magiAgentSuitSchoolSpellPowerBonus()
+                    ))
             );
 
     private static final ResourceLocation ARMOR_TEXTURE =

@@ -101,28 +101,30 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
                             "slot_upgrade",
                             ChargecastCatalystbook::isSpellSlotUpgrade,
                             CalibrationAdjustmentHints.slotUpgrades()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(1)),
                     CalibrationAdjustmentRule.unique(
                             "school_rune",
                             ScrollcasterSchoolRuneResolver::isSchoolRune,
                             CalibrationAdjustmentHints.schoolRunes(),
                             CalibrationAdjustmentHints.schoolRuneConstraint()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.changeSpellPower(
+                            ChargecastCatalystbook.SCHOOL_SPELL_POWER_BONUS
+                    )),
                     CalibrationAdjustmentRule.unique(
                             "wisdom_shard",
                             stack -> stack.is(ItemRegistry.WISDOM_SHARD.get()),
                             CalibrationAdjustmentHints.wisdomShard()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.changeImbueToSelected()),
                     CalibrationAdjustmentRule.unique(
                             "silver_ring",
                             ChargecastCatalystbook::isSilverRing,
                             CalibrationAdjustmentHints.silverRing()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.convertQuickToPower()),
                     CalibrationAdjustmentRule.unique(
                             "silver_spell_amplifier",
                             stack -> stack.is(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
                             CalibrationAdjustmentHint.specificItem(ItemRegistry.SILVER_SPELL_AMPLIFIER)
-                    )
+                    ).withEffectLines(CalibrationAdjustmentEffects.changeAttributeOffhand())
             );
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);

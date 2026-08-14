@@ -73,12 +73,14 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
                             ScrollcasterSchoolRuneResolver::isSchoolRune,
                             CalibrationAdjustmentHints.schoolRunes(),
                             CalibrationAdjustmentHints.schoolRuneConstraint()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.changeSpellPower(
+                            MithrilFreecastStaff.SCHOOL_SPELL_POWER_BONUS
+                    )),
                     CalibrationAdjustmentRule.unique(
                             "silver_ring",
                             MithrilFreecastStaff::isSilverRing,
                             CalibrationAdjustmentHints.silverRing()
-                    )
+                    ).withEffectLines(CalibrationAdjustmentEffects.addLongSupport())
             );
     private static final String MAIN_CONTROLLER = "main";
     private static final String CALIBRATION_TAG = "SpellCalibration";

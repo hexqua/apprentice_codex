@@ -14,6 +14,7 @@ import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHint;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentTooltip;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
@@ -43,6 +44,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.EnchantedBookItem;
@@ -365,6 +367,20 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                             "Calibration display ID should use snake_case: " + rule.displayId());
                     helper.assertTrue(displayIds.add(rule.displayId()),
                             "Calibration display IDs should be unique within a target: " + rule.displayId());
+                    var effectLines = rule.effectLines();
+                    helper.assertTrue(!effectLines.isEmpty() && effectLines.size() <= 3,
+                            "Calibration display rule should expose one to three effect lines: "
+                                    + BuiltInRegistries.ITEM.getKey(stack.getItem()) + "/" + rule.displayId());
+                    for (var effectLine : effectLines) {
+                        helper.assertTrue(
+                                effectLine.getContents() instanceof TranslatableContents contents
+                                        && contents.getKey().startsWith(
+                                        "jei.apprenticecodex.spell_calibration_bench.effect."
+                                ),
+                                "Calibration effect lines should use the dedicated translation key prefix: "
+                                        + BuiltInRegistries.ITEM.getKey(stack.getItem()) + "/" + rule.displayId()
+                        );
+                    }
                     var displayCandidates = rule.collectDisplayCandidates();
                     helper.assertFalse(displayCandidates.isEmpty(),
                             "Calibration display rule should expose at least one candidate: "
@@ -417,6 +433,40 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                             .filter("jei.apprenticecodex.spell_calibration_bench.constraint.school_rune"::equals)
                             .isPresent(),
                     "Scrollcaster Gauntlet school runes should use the school-rune constraint");
+            assertCalibrationEffectKeys(
+                    helper,
+                    gauntletProfile.rules().get(0),
+                    "add_scroll_slot"
+            );
+            var slotEffect = (TranslatableContents) gauntletProfile.rules().get(0)
+                    .effectLines().getFirst().getContents();
+            helper.assertTrue(
+                    slotEffect.getArgs().length == 1
+                            && slotEffect.getArgs()[0] instanceof Number count
+                            && count.intValue() == ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOTS_PER_UPGRADE,
+                    "Scrollcaster Gauntlet slot upgrade effect should expose its actual added slot count"
+            );
+            assertCalibrationEffectKeys(
+                    helper,
+                    gauntletProfile.rules().get(1),
+                    "add_enchantment_1",
+                    "add_enchantment_2"
+            );
+            assertCalibrationEffectKeys(
+                    helper,
+                    gauntletProfile.rules().get(3),
+                    "change_spell_power_1",
+                    "change_spell_power_2"
+            );
+
+            var autocastProfile = ((SpellCalibrationAdjustmentTarget) targets[4].getItem())
+                    .getCalibrationAdjustmentProfile(targets[4]);
+            assertCalibrationEffectKeys(
+                    helper,
+                    autocastProfile.rules().get(2),
+                    "adapt_autocast_situation_1",
+                    "adapt_autocast_situation_2"
+            );
 
             var silverRing = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get());
             var autocast = targets[4];
@@ -589,6 +639,26 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                             .noneMatch(stack -> stack.getItem() instanceof io.redspace.ironsspellbooks.item.Scroll),
                     "Calibration tooltip should not include Scrollcaster Gauntlet scroll slots");
         });
+    }
+
+    private static void assertCalibrationEffectKeys(
+            GameTestHelper helper,
+            CalibrationAdjustmentRule rule,
+            String... expectedSuffixes
+    ) {
+        var effectLines = rule.effectLines();
+        helper.assertTrue(effectLines.size() == expectedSuffixes.length,
+                "Calibration effect should expose the expected line count: " + rule.displayId());
+        for (var index = 0; index < expectedSuffixes.length; ++index) {
+            helper.assertTrue(
+                    effectLines.get(index).getContents() instanceof TranslatableContents contents
+                            && contents.getKey().equals(
+                            "jei.apprenticecodex.spell_calibration_bench.effect." + expectedSuffixes[index]
+                    ),
+                    "Calibration effect should use the expected translation key: "
+                            + rule.displayId() + "/" + expectedSuffixes[index]
+            );
+        }
     }
 
     static void legacyCalibrationAdjustmentFormatsMigrateOnFirstMutation(GameTestHelper helper) {

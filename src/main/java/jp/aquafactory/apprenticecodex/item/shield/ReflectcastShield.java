@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
@@ -63,12 +64,12 @@ public class ReflectcastShield extends AbstractImbueShieldItem
                             "silver_ring",
                             MithrilFreecastStaff::isSilverRing,
                             CalibrationAdjustmentHints.silverRing()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.addAllSupport()),
                     CalibrationAdjustmentRule.unique(
                             "wisdom_shard",
                             stack -> stack.is(ItemRegistry.WISDOM_SHARD.get()),
                             CalibrationAdjustmentHints.wisdomShard()
-                    )
+                    ).withEffectLines(CalibrationAdjustmentEffects.changeImbueToSelected())
             );
     private static final float MINIMUM_DURABILITY_DAMAGE = 3.0F;
     private static final String CALIBRATION_TAG = "ReflectcastShieldCalibration";
