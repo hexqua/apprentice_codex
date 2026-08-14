@@ -13,7 +13,9 @@ import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHint;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentTooltip;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
@@ -43,12 +45,16 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.neoforged.neoforge.common.NeoForge;
+
+import java.util.HashSet;
 
 final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private SpellCalibrationEquipmentGameTestScenarios() {
@@ -352,6 +358,49 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                         "Calibration target should expose its declared adjustment slot count: " + index);
                 helper.assertFalse(target.getCalibrationAdjustmentProfile(stack).rules().isEmpty(),
                         "Calibration target should expose at least one adjustment rule: " + index);
+                var displayIds = new HashSet<String>();
+                for (var rule : target.getCalibrationAdjustmentProfile(stack).rules()) {
+                    helper.assertTrue(rule.displayId().matches("[a-z0-9_]+"),
+                            "Calibration display ID should use snake_case: " + rule.displayId());
+                    helper.assertTrue(displayIds.add(rule.displayId()),
+                            "Calibration display IDs should be unique within a target: " + rule.displayId());
+                    var effectLines = rule.effectLines();
+                    helper.assertTrue(!effectLines.isEmpty() && effectLines.size() <= 3,
+                            "Calibration display rule should expose one to three effect lines: "
+                                    + BuiltInRegistries.ITEM.getKey(stack.getItem()) + "/" + rule.displayId());
+                    for (var effectLine : effectLines) {
+                        helper.assertTrue(
+                                effectLine.getContents() instanceof TranslatableContents contents
+                                        && contents.getKey().startsWith(
+                                        "jei.apprenticecodex.spell_calibration_bench.effect."
+                                ),
+                                "Calibration effect lines should use the dedicated translation key prefix: "
+                                        + BuiltInRegistries.ITEM.getKey(stack.getItem()) + "/" + rule.displayId()
+                        );
+                    }
+                    var displayCandidates = rule.collectDisplayCandidates();
+                    helper.assertFalse(displayCandidates.isEmpty(),
+                            "Calibration display rule should expose at least one candidate: "
+                                    + BuiltInRegistries.ITEM.getKey(stack.getItem()) + "/" + rule.displayId());
+                    for (var candidate : displayCandidates) {
+                        helper.assertTrue(target.canPlaceCalibrationAdjustment(stack, 0, candidate),
+                                "Calibration display candidate should pass the target rule: "
+                                        + BuiltInRegistries.ITEM.getKey(candidate.getItem()));
+                    }
+                    var representative = displayCandidates.getFirst();
+                    helper.assertTrue(
+                            rule.conflicts(representative, representative)
+                                    == (rule.duplicatePolicy()
+                                    != jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule.DuplicatePolicy.REPEATABLE),
+                            "Calibration duplicate policy should match its conflict rule: " + rule.displayId()
+                    );
+                    helper.assertTrue(
+                            rule.constraintDisplay().translationKey().isEmpty()
+                                    == (rule.duplicatePolicy()
+                                    == jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule.DuplicatePolicy.REPEATABLE),
+                            "Only repeatable calibration rules should omit constraint text: " + rule.displayId()
+                    );
+                }
                 helper.assertTrue(target.canPlaceCalibrationAdjustment(stack, 0, representativeAdjustments[index]),
                         "Calibration target should accept its representative adjustment: " + index);
                 helper.assertFalse(target.canPlaceCalibrationAdjustment(stack, 0, new ItemStack(Items.DIRT)),
@@ -367,6 +416,101 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     "Scrollcaster Gauntlet slot upgrades should use a generated tag hint");
             helper.assertTrue(gauntletProfile.rules().get(3).hint() instanceof CalibrationAdjustmentHint.Translatable,
                     "Scrollcaster Gauntlet school runes should use a translated category hint");
+            helper.assertTrue(gauntletProfile.rules().get(0).constraintDisplay().translationKey().isEmpty(),
+                    "Scrollcaster Gauntlet slot upgrades should omit constraint text");
+            helper.assertTrue(gauntletProfile.rules().get(1).constraintDisplay().translationKey()
+                            .filter("jei.apprenticecodex.spell_calibration_bench.constraint.same_enchantment"::equals)
+                            .isPresent(),
+                    "Scrollcaster Gauntlet enchantment books should use the same-enchantment constraint");
+            helper.assertTrue(gauntletProfile.rules().get(2).constraintDisplay().translationKey()
+                            .filter("jei.apprenticecodex.spell_calibration_bench.constraint.same_effect"::equals)
+                            .isPresent(),
+                    "Scrollcaster Gauntlet freecast staffs should use the same-effect constraint");
+            helper.assertTrue(gauntletProfile.rules().get(3).constraintDisplay().translationKey()
+                            .filter("jei.apprenticecodex.spell_calibration_bench.constraint.school_rune"::equals)
+                            .isPresent(),
+                    "Scrollcaster Gauntlet school runes should use the school-rune constraint");
+            assertCalibrationEffectKeys(
+                    helper,
+                    gauntletProfile.rules().get(0),
+                    "add_scroll_slot"
+            );
+            var slotEffect = (TranslatableContents) gauntletProfile.rules().get(0)
+                    .effectLines().getFirst().getContents();
+            helper.assertTrue(
+                    slotEffect.getArgs().length == 1
+                            && slotEffect.getArgs()[0] instanceof Number count
+                            && count.intValue() == ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOTS_PER_UPGRADE,
+                    "Scrollcaster Gauntlet slot upgrade effect should expose its actual added slot count"
+            );
+            assertCalibrationEffectKeys(
+                    helper,
+                    gauntletProfile.rules().get(1),
+                    "add_enchantment_1",
+                    "add_enchantment_2"
+            );
+            assertCalibrationEffectKeys(
+                    helper,
+                    gauntletProfile.rules().get(3),
+                    "change_spell_power_1",
+                    "change_spell_power_2"
+            );
+
+            var lookupProvider = helper.getLevel().registryAccess();
+            var displayEnchantmentLookup = lookupProvider.lookupOrThrow(Registries.ENCHANTMENT);
+            var wisdom = displayEnchantmentLookup.getOrThrow(
+                    jp.aquafactory.apprenticecodex.enchantment.Enchantments.WISDOM
+            );
+            try (var ignored = ApprenticeCodexServerConfig.useScrollcasterGauntletConfigOverrideForGameTest(
+                    java.util.List.of(),
+                    java.util.List.of()
+            )) {
+                var displayBook = gauntletProfile.rules().get(1)
+                        .collectDisplayCandidates(gauntlet, lookupProvider)
+                        .getFirst();
+                helper.assertTrue(EnchantmentHelper.getEnchantmentsForCrafting(displayBook).getLevel(wisdom) == 1,
+                        "Scrollcaster Gauntlet JEI sample should prefer a level-one Wisdom book");
+                var displayResult = gauntlet.copy();
+                helper.assertTrue(
+                        ((SpellCalibrationAdjustmentTarget) displayResult.getItem())
+                                .trySetCalibrationAdjustment(displayResult, 0, displayBook, lookupProvider),
+                        "Scrollcaster Gauntlet JEI Wisdom sample should be accepted"
+                );
+                helper.assertTrue(EnchantmentHelper.getEnchantmentsForCrafting(displayResult).getLevel(wisdom) == 1,
+                        "Scrollcaster Gauntlet JEI result should apply Wisdom from its sample book");
+            }
+
+            var wisdomId = wisdom.key().location();
+            try (var ignored = ApprenticeCodexServerConfig.useScrollcasterGauntletConfigOverrideForGameTest(
+                    java.util.List.of(wisdomId.toString()),
+                    java.util.List.of()
+            )) {
+                var fallbackBook = gauntletProfile.rules().get(1)
+                        .collectDisplayCandidates(gauntlet, lookupProvider)
+                        .getFirst();
+                var fallbackEnchantments = EnchantmentHelper.getEnchantmentsForCrafting(fallbackBook);
+                helper.assertTrue(fallbackEnchantments.size() == 1,
+                        "Scrollcaster Gauntlet JEI fallback sample should contain one enchantment");
+                var fallbackId = fallbackEnchantments.entrySet().iterator().next().getKey()
+                        .unwrapKey()
+                        .orElseThrow()
+                        .location();
+                helper.assertTrue(
+                        fallbackId.equals(
+                                jp.aquafactory.apprenticecodex.enchantment.Enchantments.ALACRITY.location()
+                        ),
+                        "Scrollcaster Gauntlet JEI fallback should use the first Apprentice's Codex enchantment by ID"
+                );
+            }
+
+            var autocastProfile = ((SpellCalibrationAdjustmentTarget) targets[4].getItem())
+                    .getCalibrationAdjustmentProfile(targets[4]);
+            assertCalibrationEffectKeys(
+                    helper,
+                    autocastProfile.rules().get(2),
+                    "adapt_autocast_situation_1",
+                    "adapt_autocast_situation_2"
+            );
 
             var silverRing = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get());
             var autocast = targets[4];
@@ -567,6 +711,26 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                 new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()),
                 new ItemStack(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get())
         };
+    }
+
+    private static void assertCalibrationEffectKeys(
+            GameTestHelper helper,
+            CalibrationAdjustmentRule rule,
+            String... expectedSuffixes
+    ) {
+        var effectLines = rule.effectLines();
+        helper.assertTrue(effectLines.size() == expectedSuffixes.length,
+                "Calibration effect should expose the expected line count: " + rule.displayId());
+        for (var index = 0; index < expectedSuffixes.length; ++index) {
+            helper.assertTrue(
+                    effectLines.get(index).getContents() instanceof TranslatableContents contents
+                            && contents.getKey().equals(
+                            "jei.apprenticecodex.spell_calibration_bench.effect." + expectedSuffixes[index]
+                    ),
+                    "Calibration effect should use the expected translation key: "
+                            + rule.displayId() + "/" + expectedSuffixes[index]
+            );
+        }
     }
 
     static void legacyCalibrationAdjustmentFormatsMigrateOnFirstMutation(GameTestHelper helper) {

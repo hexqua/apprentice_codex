@@ -8,12 +8,18 @@ import net.minecraft.world.item.Items;
 public final class CalibrationAdjustmentHints {
     private static final String KEY_PREFIX =
             "container.apprenticecodex.spell_calibration_bench.tooltip.";
+    private static final String CONSTRAINT_KEY_PREFIX =
+            "jei.apprenticecodex.spell_calibration_bench.constraint.";
 
     private CalibrationAdjustmentHints() {
     }
 
     public static CalibrationAdjustmentHint schoolRunes() {
         return CalibrationAdjustmentHint.translatable(KEY_PREFIX + "item_hint_runes");
+    }
+
+    public static CalibrationConstraintDisplay schoolRuneConstraint() {
+        return CalibrationConstraintDisplay.translatable(CONSTRAINT_KEY_PREFIX + "school_rune");
     }
 
     public static CalibrationAdjustmentHint slotUpgrades() {
@@ -30,6 +36,10 @@ public final class CalibrationAdjustmentHints {
                 TagRegistry.Items.SCROLLCASTER_GAUNTLET_ENCHANTMENT_BOOKS,
                 () -> Items.ENCHANTED_BOOK
         );
+    }
+
+    public static CalibrationConstraintDisplay sameEnchantmentConstraint() {
+        return CalibrationConstraintDisplay.translatable(CONSTRAINT_KEY_PREFIX + "same_enchantment");
     }
 
     public static CalibrationAdjustmentHint mithrilFreecastStaff() {

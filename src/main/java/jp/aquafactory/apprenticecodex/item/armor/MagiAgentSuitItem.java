@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.enchantment.VanillaEnchantmentCompatibility;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
@@ -51,9 +52,13 @@ public class MagiAgentSuitItem extends ArmorItem
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
                     CalibrationAdjustmentRule.unique(
+                            "school_rune",
                             ScrollcasterSchoolRuneResolver::isSchoolRune,
-                            CalibrationAdjustmentHints.schoolRunes()
-                    )
+                            CalibrationAdjustmentHints.schoolRunes(),
+                            CalibrationAdjustmentHints.schoolRuneConstraint()
+                    ).withEffectLines(() -> CalibrationAdjustmentEffects.addSpellPower(
+                            ApprenticeCodexServerConfig.magiAgentSuitSchoolSpellPowerBonus()
+                    ))
             );
 
     private static final String RUNE_HINT_KEY = "item.apprenticecodex.magi_agent_suit.rune_hint";

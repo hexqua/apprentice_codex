@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
@@ -65,13 +66,17 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
                     CalibrationAdjustmentRule.repeatable(
+                            "school_rune",
                             ScrollcasterSchoolRuneResolver::isSchoolRune,
                             CalibrationAdjustmentHints.schoolRunes()
-                    ),
+                    ).withEffectLines(() -> CalibrationAdjustmentEffects.addSpellResist(
+                            ApprenticeCodexServerConfig.bulwarkGreatshieldSchoolSpellResist()
+                    )),
                     CalibrationAdjustmentRule.unique(
+                            "wisdom_shard",
                             BulwarkGreatshield::isWisdomShard,
                             CalibrationAdjustmentHints.wisdomShard()
-                    )
+                    ).withEffectLines(CalibrationAdjustmentEffects.changeImbueToSelected())
             );
     public static final int DURABILITY_SUPPRESSION_TICKS = 20;
     public static final int CONTINUOUS_CAST_DELAY_TICKS = 20;
