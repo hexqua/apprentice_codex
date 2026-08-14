@@ -293,6 +293,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void nonDamageableAnvilMergeRejectsStoredRightContents(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.nonDamageableAnvilMergeRejectsStoredRightContents(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void scrollcasterGauntletKeepsLegacyEnchantmentsAndAllowsBookExtraction(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.scrollcasterGauntletKeepsLegacyEnchantmentsAndAllowsBookExtraction(helper);
     }
