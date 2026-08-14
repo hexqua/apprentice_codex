@@ -589,6 +589,16 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
         return findFirstValidScrollIndex(stack) >= 0;
     }
 
+    @Override
+    public boolean hasAnyStoredCalibrationScroll(@NotNull ItemStack targetStack) {
+        for (var slot = 0; slot < CALIBRATION_SCROLL_SLOT_COUNT; ++slot) {
+            if (!getCalibrationScroll(targetStack, slot).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static int getSelectedScrollIndex(@NotNull ItemStack stack) {
         var calibration = stack.getTagElement(CALIBRATION_TAG);
         if (calibration == null || !calibration.contains(SELECTED_SCROLL_INDEX_TAG, Tag.TAG_INT)) {

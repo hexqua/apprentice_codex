@@ -517,6 +517,16 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         return findFirstValidScrollIndex(staffStack) >= 0;
     }
 
+    @Override
+    public boolean hasAnyStoredCalibrationScroll(@NotNull ItemStack targetStack) {
+        for (var slot = 0; slot < CALIBRATION_SCROLL_SLOT_COUNT; ++slot) {
+            if (!getCalibrationScroll(targetStack, slot).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static int getEnabledCalibrationScrollSlotCount(@NotNull ItemStack staffStack) {
         if (!isValidCalibrationAccess(staffStack, 0, 1)) {
             return 0;

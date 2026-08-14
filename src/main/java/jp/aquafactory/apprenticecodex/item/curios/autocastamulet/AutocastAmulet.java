@@ -307,6 +307,16 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
         setCalibrationItem(amuletStack, SCROLLS_TAG, slot, getStoredSpellSlotCount(), stack);
     }
 
+    @Override
+    public boolean hasAnyStoredCalibrationScroll(@NotNull ItemStack targetStack) {
+        for (var slot = 0; slot < getStoredSpellSlotCount(); ++slot) {
+            if (!getCalibrationScroll(targetStack, slot).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static int getEnabledSpellSlotCount(@NotNull ItemStack amuletStack) {
         if (!isValidCalibrationAccess(amuletStack, 0)) {
             return 0;

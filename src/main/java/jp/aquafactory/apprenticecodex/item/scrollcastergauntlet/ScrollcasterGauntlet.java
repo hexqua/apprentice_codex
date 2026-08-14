@@ -588,6 +588,16 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         return findFirstValidScrollIndex(gauntletStack) >= 0;
     }
 
+    @Override
+    public boolean hasAnyStoredCalibrationScroll(@NotNull ItemStack targetStack) {
+        for (var slot = 0; slot < CALIBRATION_SCROLL_SLOT_COUNT; ++slot) {
+            if (!getCalibrationScroll(targetStack, slot).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static boolean hasFreecastStaffAdjustment(@NotNull ItemStack gauntletStack) {
         if (!isValidCalibrationAccess(gauntletStack, 0, 1)) {
             return false;
