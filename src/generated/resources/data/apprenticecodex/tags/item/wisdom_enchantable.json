@@ -1,6 +1,5 @@
 {
   "values": [
-    "apprenticecodex:scrollcaster_gauntlet",
     "apprenticecodex:enchantress_hat",
     "apprenticecodex:enchantress_robe",
     "apprenticecodex:enchantress_leggings",
@@ -39,6 +38,7 @@
     "apprenticecodex:focus_staffbow",
     "apprenticecodex:smashcast_scepter",
     "apprenticecodex:multipurpose_staffrifle",
+    "apprenticecodex:scrollcaster_gauntlet",
     "apprenticecodex:chargecast_catalystbook",
     "apprenticecodex:circuit_heat_staff",
     "apprenticecodex:charged_twin_blade_staff",

@@ -989,14 +989,6 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.elementalBowPowerArrowSpellLevelBonusPerLevel();
     }
 
-    public static boolean isScrollcasterGauntletEnchantmentDenied(ResourceLocation enchantmentId) {
-        return ITEMS_CONFIG.isScrollcasterGauntletEnchantmentDenied(enchantmentId);
-    }
-
-    public static boolean isScrollcasterGauntletCompatAdditionalAllowedEnchantment(ResourceLocation enchantmentId) {
-        return ITEMS_CONFIG.isScrollcasterGauntletCompatAdditionalAllowedEnchantment(enchantmentId);
-    }
-
     public static SpellStainedRunicTabletServerConfig.Values spellStainedRunicTabletConfig() {
         return ITEMS_CONFIG.spellStainedRunicTabletConfig();
     }
@@ -1416,23 +1408,6 @@ public final class ApprenticeCodexServerConfig {
         return () -> ITEMS_CONFIG.setMulticastEchoStaffAttackConfigForGameTest(
                 previousAttackProfilesEnabled,
                 previousRepeatDamageMultiplier
-        );
-    }
-
-    public static GameTestConfigOverride useScrollcasterGauntletConfigOverrideForGameTest(
-            List<String> deniedEnchantments,
-            List<String> compatAdditionalAllowedEnchantments
-    ) {
-        var previousDeniedEnchantments = ITEMS_CONFIG.scrollcasterGauntletDeniedEnchantments();
-        var previousCompatAdditionalAllowedEnchantments = ITEMS_CONFIG.scrollcasterGauntletCompatAdditionalAllowedEnchantments();
-
-        ITEMS_CONFIG.setScrollcasterGauntletConfigForGameTest(
-                deniedEnchantments,
-                compatAdditionalAllowedEnchantments
-        );
-        return () -> ITEMS_CONFIG.setScrollcasterGauntletConfigForGameTest(
-                previousDeniedEnchantments,
-                previousCompatAdditionalAllowedEnchantments
         );
     }
 

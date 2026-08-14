@@ -32,14 +32,6 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
             AttributeEnchantmentType.REFLUX,
             AttributeEnchantmentType.RESERVOIR
     );
-    private static final Set<ResourceKey<Enchantment>> SCROLLCASTER_CALIBRATION_ENCHANTMENTS = Set.of(
-            Enchantments.SURGE,
-            Enchantments.ATTUNEMENT,
-            Enchantments.TRANSCENDENCE,
-            Enchantments.WISDOM,
-            Enchantments.PLUNDER
-    );
-
     private EnchantmentApplicationGameTestScenarios() {
     }
 
@@ -170,10 +162,10 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
                     "Stealth Rune non-chest armor should reject Transcendence");
 
             var scrollcaster = ItemRegistry.SCROLLCASTER_GAUNTLET.get();
-            helper.assertFalse(TranscendencePolicy.supportsDirectApplication(scrollcaster),
-                    "Scrollcaster Gauntlet enchantments are synchronized through calibration");
-            helper.assertFalse(WisdomPolicy.supportsDirectApplication(scrollcaster),
-                    "Scrollcaster Gauntlet Wisdom is synchronized through calibration");
+            helper.assertTrue(TranscendencePolicy.supportsDirectApplication(scrollcaster),
+                    "Scrollcaster Gauntlet should accept Transcendence through normal enchanting");
+            helper.assertTrue(WisdomPolicy.supportsDirectApplication(scrollcaster),
+                    "Scrollcaster Gauntlet should accept Wisdom through normal enchanting");
 
             helper.assertTrue(TranscendencePolicy.supportsDirectApplication(ItemRegistry.REVOLVERCAST_STAFF.get()),
                     "Revolvercast Staff should accept Transcendence like the 1.20.1 implementation");
@@ -339,9 +331,7 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
             boolean policyAllowsDirectApplication
     ) {
         var enchantmentKey = enchantment.unwrapKey().orElseThrow();
-        var scrollcasterCalibrationException = stack.is(ItemRegistry.SCROLLCASTER_GAUNTLET.get())
-                && SCROLLCASTER_CALIBRATION_ENCHANTMENTS.contains(enchantmentKey);
-        var expected = policyAllowsDirectApplication || scrollcasterCalibrationException;
+        var expected = policyAllowsDirectApplication;
         var enchantableTag = TagKey.create(
                 Registries.ITEM,
                 ResourceLocation.fromNamespaceAndPath(

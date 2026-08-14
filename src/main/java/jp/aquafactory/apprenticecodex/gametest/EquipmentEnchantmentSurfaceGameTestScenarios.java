@@ -1426,16 +1426,22 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
             var expectedTaggedEnchantments = new LinkedHashSet<>(Set.of(
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "alacrity"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "attunement"),
-                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "plunder"),
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "reflux"),
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "reservoir"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "surge"),
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "tense"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "transcendence"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom"),
                     ResourceLocation.withDefaultNamespace("bane_of_arthropods"),
+                    ResourceLocation.withDefaultNamespace("efficiency"),
                     ResourceLocation.withDefaultNamespace("fire_aspect"),
+                    ResourceLocation.withDefaultNamespace("fortune"),
                     ResourceLocation.withDefaultNamespace("knockback"),
                     ResourceLocation.withDefaultNamespace("looting"),
                     ResourceLocation.withDefaultNamespace("sharpness"),
+                    ResourceLocation.withDefaultNamespace("silk_touch"),
                     ResourceLocation.withDefaultNamespace("smite"),
                     ResourceLocation.withDefaultNamespace("sweeping_edge")
             ));
@@ -1448,8 +1454,8 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     expectedTaggedEnchantments,
                     expectedTaggedEnchantments,
                     expectedTaggedEnchantments,
-                    Set.of(),
-                    Set.of(),
+                    expectedTaggedEnchantments,
+                    expectedTaggedEnchantments,
                     "Scrollcaster Gauntlet"
             );
 
