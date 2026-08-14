@@ -1,15 +1,13 @@
 package jp.aquafactory.apprenticecodex.item;
 
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -30,7 +28,6 @@ public final class CalibrationAdjustmentRule {
     private final DuplicatePolicy duplicatePolicy;
     private final CalibrationConstraintDisplay constraintDisplay;
     private final Supplier<List<Component>> effectLinesSupplier;
-    private final BiFunction<ItemStack, HolderLookup.Provider, List<ItemStack>> displayCandidatesFactory;
 
     private CalibrationAdjustmentRule(
             String displayId,
@@ -39,8 +36,7 @@ public final class CalibrationAdjustmentRule {
             CalibrationAdjustmentHint hint,
             DuplicatePolicy duplicatePolicy,
             CalibrationConstraintDisplay constraintDisplay,
-            Supplier<List<Component>> effectLinesSupplier,
-            BiFunction<ItemStack, HolderLookup.Provider, List<ItemStack>> displayCandidatesFactory
+            Supplier<List<Component>> effectLinesSupplier
     ) {
         this.displayId = Objects.requireNonNull(displayId);
         if (displayId.isBlank()) {
@@ -52,7 +48,6 @@ public final class CalibrationAdjustmentRule {
         this.duplicatePolicy = Objects.requireNonNull(duplicatePolicy);
         this.constraintDisplay = Objects.requireNonNull(constraintDisplay);
         this.effectLinesSupplier = Objects.requireNonNull(effectLinesSupplier);
-        this.displayCandidatesFactory = displayCandidatesFactory;
     }
 
     public static CalibrationAdjustmentRule repeatable(
@@ -67,8 +62,7 @@ public final class CalibrationAdjustmentRule {
                 hint,
                 DuplicatePolicy.REPEATABLE,
                 CalibrationConstraintDisplay.none(),
-                List::of,
-                null
+                List::of
         );
     }
 
@@ -93,8 +87,7 @@ public final class CalibrationAdjustmentRule {
                 hint,
                 DuplicatePolicy.UNIQUE_RULE,
                 constraintDisplay,
-                List::of,
-                null
+                List::of
         );
     }
 
@@ -129,8 +122,7 @@ public final class CalibrationAdjustmentRule {
                 hint,
                 DuplicatePolicy.UNIQUE_KEY,
                 constraintDisplay,
-                List::of,
-                null
+                List::of
         );
     }
 
@@ -147,23 +139,7 @@ public final class CalibrationAdjustmentRule {
                 hint,
                 duplicatePolicy,
                 constraintDisplay,
-                effectLinesSupplier,
-                displayCandidatesFactory
-        );
-    }
-
-    public CalibrationAdjustmentRule withDisplayCandidates(
-            BiFunction<ItemStack, HolderLookup.Provider, List<ItemStack>> displayCandidatesFactory
-    ) {
-        return new CalibrationAdjustmentRule(
-                displayId,
-                matcher,
-                conflict,
-                hint,
-                duplicatePolicy,
-                constraintDisplay,
-                effectLinesSupplier,
-                Objects.requireNonNull(displayCandidatesFactory)
+                effectLinesSupplier
         );
     }
 
@@ -203,24 +179,12 @@ public final class CalibrationAdjustmentRule {
      * JEI などの候補一覧は実際の受理判定から生成し、datapack や追加 MOD の Item も同じ規則で追従させる。
      */
     public @NotNull List<ItemStack> collectDisplayCandidates() {
-        return BuiltInRegistries.ITEM.stream()
+        return ForgeRegistries.ITEMS.getValues().stream()
                 .map(item -> item.getDefaultInstance().copyWithCount(1))
                 .filter(this::accepts)
-                .sorted(Comparator.comparing(stack -> BuiltInRegistries.ITEM.getKey(stack.getItem()).toString()))
-                .toList();
-    }
-
-    /** component を伴う候補は、接続先と同じ動的レジストリから表示用 ItemStack を構築する。 */
-    public @NotNull List<ItemStack> collectDisplayCandidates(
-            @NotNull ItemStack targetStack,
-            @NotNull HolderLookup.Provider lookupProvider
-    ) {
-        if (displayCandidatesFactory == null) {
-            return collectDisplayCandidates();
-        }
-        return Objects.requireNonNull(displayCandidatesFactory.apply(targetStack, lookupProvider)).stream()
-                .filter(this::accepts)
-                .map(stack -> stack.copyWithCount(1))
+                .sorted(Comparator.comparing(stack -> Objects.requireNonNull(
+                        ForgeRegistries.ITEMS.getKey(stack.getItem())
+                ).toString()))
                 .toList();
     }
 }

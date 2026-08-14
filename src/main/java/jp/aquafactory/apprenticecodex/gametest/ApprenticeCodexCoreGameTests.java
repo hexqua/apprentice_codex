@@ -283,13 +283,18 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void spellCalibrationBenchSyncsGauntletEnchantments(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.spellCalibrationBenchSyncsGauntletEnchantments(helper);
+    public static void scrollcasterGauntletUsesNormalEnchantmentSurfaces(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.scrollcasterGauntletUsesNormalEnchantmentSurfaces(helper);
     }
 
     @GameTest(template = TEMPLATE)
-    public static void scrollcasterGauntletGrindstoneDoesNotExposeOutput(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.scrollcasterGauntletGrindstoneDoesNotExposeOutput(helper);
+    public static void scrollcasterGauntletKeepsLegacyEnchantmentsAndAllowsBookExtraction(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.scrollcasterGauntletKeepsLegacyEnchantmentsAndAllowsBookExtraction(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void scrollcasterGauntletGrindstoneRemovesEnchantments(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.scrollcasterGauntletGrindstoneRemovesEnchantments(helper);
     }
 
     @GameTest(template = TEMPLATE)

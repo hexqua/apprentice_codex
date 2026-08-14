@@ -87,8 +87,6 @@ public final class TagRegistry {
                 createItemTag("assist_wings_only_jump_items");
         public static final TagKey<Item> SCROLLCASTER_GAUNTLET_SLOT_UPGRADES =
                 createItemTag("scrollcaster_gauntlet_slot_upgrades");
-        public static final TagKey<Item> SCROLLCASTER_GAUNTLET_ENCHANTMENT_BOOKS =
-                createItemTag("scrollcaster_gauntlet_enchantment_books");
         public static final TagKey<Item> SCROLLCASTER_GAUNTLET_SCHOOL_RUNE_DENYLIST =
                 createItemTag("scrollcaster_gauntlet_school_rune_denylist");
         public static final TagKey<Item> ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_CATALYSTS =

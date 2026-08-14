@@ -261,8 +261,8 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
 
     private static List<SpellCalibrationAdjustmentJeiRecipe> collectSpellCalibrationAdjustmentJeiRecipes() {
         var recipes = new ArrayList<SpellCalibrationAdjustmentJeiRecipe>();
-        BuiltInRegistries.ITEM.stream()
-                .sorted(Comparator.comparing(item -> BuiltInRegistries.ITEM.getKey(item).toString()))
+        ForgeRegistries.ITEMS.getValues().stream()
+                .sorted(Comparator.comparing(item -> ForgeRegistries.ITEMS.getKey(item).toString()))
                 .forEach(item -> {
                     if (!(item instanceof SpellCalibrationAdjustmentTarget target)) {
                         return;
@@ -270,11 +270,8 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
 
                     var targetStack = item.getDefaultInstance().copyWithCount(1);
                     for (var rule : target.getCalibrationAdjustmentProfile(targetStack).rules()) {
-                        var clientLevel = Minecraft.getInstance().level;
-                        var candidates = clientLevel == null
-                                ? rule.collectDisplayCandidates()
-                                : rule.collectDisplayCandidates(targetStack, clientLevel.registryAccess());
-                        var targetId = BuiltInRegistries.ITEM.getKey(item);
+                        var candidates = rule.collectDisplayCandidates();
+                        var targetId = ForgeRegistries.ITEMS.getKey(item);
                         if (candidates.isEmpty()) {
                             ApprenticeCodex.LOGGER.warn(
                                     "Spell Calibration Bench JEI rule skipped because it has no display candidates: {}/{}.",
@@ -290,21 +287,13 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                             var result = targetStack.copy();
                             boolean applied;
                             try {
-                                // component 付き候補は生成元と同じ動的レジストリで保存しないと復元不能になる。
-                                applied = clientLevel == null
-                                        ? target.trySetCalibrationAdjustment(result, 0, candidate)
-                                        : target.trySetCalibrationAdjustment(
-                                                result,
-                                                0,
-                                                candidate,
-                                                clientLevel.registryAccess()
-                                        );
+                                applied = target.trySetCalibrationAdjustment(result, 0, candidate);
                             } catch (RuntimeException exception) {
                                 ApprenticeCodex.LOGGER.warn(
                                         "Spell Calibration Bench JEI candidate skipped because its sample failed to build: {}/{}/{}.",
                                         targetId,
                                         rule.displayId(),
-                                        BuiltInRegistries.ITEM.getKey(candidate.getItem()),
+                                        ForgeRegistries.ITEMS.getKey(candidate.getItem()),
                                         exception
                                 );
                                 continue;
@@ -314,7 +303,7 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                                         "Spell Calibration Bench JEI candidate skipped because it could not be applied: {}/{}/{}.",
                                         targetId,
                                         rule.displayId(),
-                                        BuiltInRegistries.ITEM.getKey(candidate.getItem())
+                                        ForgeRegistries.ITEMS.getKey(candidate.getItem())
                                 );
                                 continue;
                             }

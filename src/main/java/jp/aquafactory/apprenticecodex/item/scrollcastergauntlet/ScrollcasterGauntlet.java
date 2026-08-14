@@ -19,7 +19,6 @@ import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
-import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
@@ -95,7 +94,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         ItemTransformPreservingCastAnimationItem, ArcaneAnvilScrollImbueBlockItem,
         BetterCombatOffhandDualWieldingPolicyItem, SwingTriggeredMagicItem, PriorityOffhandUseDeferringItem, IJeiInfoItem,
         ImmediateSneakSelectionUiItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
-        TranscendencePolicy, AttributeEnchantmentPolicy, WisdomPolicy {
+        NonDamageableAnvilMergeItem, TranscendencePolicy, AttributeEnchantmentPolicy, WisdomPolicy {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.scrollcaster_gauntlet.desc_";
 
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
@@ -111,17 +110,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                     ).withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(
                             CALIBRATION_SCROLL_SLOTS_PER_UPGRADE
                     )),
-                    CalibrationAdjustmentRule.uniqueBy(
-                            "enchantment_book",
-                            stack -> stack.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_ENCHANTMENT_BOOKS),
-                            stack -> {
-                                var candidate = readFirstBookEnchantment(stack);
-                                return candidate == null ? null : candidate.enchantment();
-                            },
-                            CalibrationAdjustmentHints.enchantmentBooks(),
-                            CalibrationAdjustmentHints.sameEnchantmentConstraint()
-                    ).withDisplayCandidates(ScrollcasterGauntlet::createEnchantmentBookDisplayCandidates)
-                            .withEffectLines(CalibrationAdjustmentEffects.addEnchantment()),
                     CalibrationAdjustmentRule.unique(
                             "mithril_freecast_staff",
                             ScrollcasterGauntlet::isFreecastStaffAdjustment,
@@ -187,11 +175,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
-    @Override
-    public boolean supportsDirectTranscendenceApplication() {
-        return false;
-    }
-
     public ScrollcasterGauntlet() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE).fireResistant());
         GeoItem.registerSyncedAnimatable(this);
@@ -215,27 +198,37 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     @Override
     public boolean isEnchantable(@NotNull ItemStack stack) {
-        return false;
+        return true;
     }
 
     @Override
     public int getEnchantmentValue(ItemStack stack) {
-        return 0;
-    }
-
-    @Override
-    public boolean supportsDirectWisdomApplication() {
-        return false;
+        return 22;
     }
 
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return false;
+        return isSupportedEnchantment(stack, enchantment);
     }
 
     @Override
     public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
-        return false;
+        if (!super.isBookEnchantable(stack, book)) {
+            return false;
+        }
+        var enchantments = EnchantmentHelper.getEnchantments(book);
+        return enchantments.isEmpty()
+                || enchantments.keySet().stream().allMatch(enchantment -> isSupportedEnchantment(stack, enchantment));
+    }
+
+    @Override
+    public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Enchantment enchantment) {
+        return isSupportedEnchantment(stack, enchantment);
+    }
+
+    @Override
+    public java.util.Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return AttributeEnchantmentPolicy.ALL_ATTRIBUTE_ENCHANTMENTS;
     }
 
     @Override
@@ -510,27 +503,14 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         return stack != null && !stack.isEmpty() && !hasResolvedCalibrationSchool(stack);
     }
 
-    private static boolean isCompatibleWithResolvedEnchantments(
-            Enchantment enchantment,
-            Map<Enchantment, Integer> resolvedEnchantments
-    ) {
-        for (var resolvedEnchantment : resolvedEnchantments.keySet()) {
-            if (!enchantment.isCompatibleWith(resolvedEnchantment)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static boolean isSupportedCalibrationEnchantment(ItemStack gauntletStack, Enchantment enchantment) {
+    private static boolean isSupportedEnchantment(ItemStack gauntletStack, Enchantment enchantment) {
         var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-        if (enchantmentId == null || ApprenticeCodexServerConfig.isScrollcasterGauntletEnchantmentDenied(enchantmentId)) {
+        if (enchantmentId == null) {
             return false;
         }
 
         return isExplicitlySupportedMagicEnchantment(enchantment)
                 || isMalumSpiritPlunder(gauntletStack, enchantment)
-                || ApprenticeCodexServerConfig.isScrollcasterGauntletCompatAdditionalAllowedEnchantment(enchantmentId)
                 || ((enchantment.canApplyAtEnchantingTable(SWORD_ENCHANTMENT_PROBE_STACK)
                         || enchantment.canApplyAtEnchantingTable(PICKAXE_ENCHANTMENT_PROBE_STACK))
                 && !enchantment.canApplyAtEnchantingTable(DURABILITY_ENCHANTMENT_PROBE_STACK));
@@ -543,37 +523,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                 || matches(enchantment, EnchantmentRegistry.WISDOM);
     }
 
-    private static List<ItemStack> createEnchantmentBookDisplayCandidates(
-            ItemStack gauntletStack,
-            HolderLookup.Provider lookupProvider
-    ) {
-        var fallback = List.of(new ItemStack(Items.ENCHANTED_BOOK));
-        var representative = ForgeRegistries.ENCHANTMENTS.getValues().stream()
-                .filter(enchantment -> isSupportedCalibrationEnchantment(gauntletStack, enchantment))
-                .sorted(Comparator
-                        .comparingInt(ScrollcasterGauntlet::getEnchantmentDisplayPriority)
-                        .thenComparing(enchantment -> Objects.requireNonNull(
-                                ForgeRegistries.ENCHANTMENTS.getKey(enchantment)
-                        ).toString()))
-                .findFirst()
-                .orElse(null);
-        if (representative == null) {
-            return fallback;
-        }
-
-        var book = new ItemStack(Items.ENCHANTED_BOOK);
-        EnchantedBookItem.addEnchantment(book, new EnchantmentInstance(representative, 1));
-        return List.of(book);
-    }
-
-    private static int getEnchantmentDisplayPriority(Enchantment enchantment) {
-        if (matches(enchantment, EnchantmentRegistry.WISDOM)) {
-            return 0;
-        }
-        var id = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-        return id != null && ApprenticeCodex.MODID.equals(id.getNamespace()) ? 1 : 2;
-    }
-
     private static boolean isMalumSpiritPlunder(ItemStack gauntletStack, Enchantment enchantment) {
         var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
         return MALUM_SPIRIT_PLUNDER.equals(enchantmentId) && gauntletStack.is(MALUM_SOUL_HUNTER_WEAPON);
@@ -581,36 +530,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     private static boolean matches(Enchantment enchantment, RegistryObject<Enchantment> registryObject) {
         return registryObject.isPresent() && enchantment == registryObject.get();
-    }
-
-    private static @Nullable CalibrationEnchantmentCandidate readFirstBookEnchantment(ItemStack stack) {
-        if (stack.isEmpty() || !stack.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_ENCHANTMENT_BOOKS)) {
-            return null;
-        }
-
-        var tag = stack.getTag();
-        if (tag == null || !tag.contains(STORED_ENCHANTMENTS_TAG, Tag.TAG_LIST)) {
-            return null;
-        }
-
-        var storedEnchantments = tag.getList(STORED_ENCHANTMENTS_TAG, Tag.TAG_COMPOUND);
-        if (storedEnchantments.isEmpty()) {
-            return null;
-        }
-
-        // tooltipをソートするMODに左右されないよう、エンチャント本の保存順で先頭だけを読む。
-        var firstEnchantmentTag = storedEnchantments.getCompound(0);
-        var enchantmentId = ResourceLocation.tryParse(firstEnchantmentTag.getString(ENCHANTMENT_ID_TAG));
-        if (enchantmentId == null) {
-            return null;
-        }
-
-        var enchantment = ForgeRegistries.ENCHANTMENTS.getValue(enchantmentId);
-        var level = firstEnchantmentTag.getInt(ENCHANTMENT_LEVEL_TAG);
-        if (enchantment == null || level <= 0) {
-            return null;
-        }
-        return new CalibrationEnchantmentCandidate(enchantment, level);
     }
 
     private static Attribute getResolvedSchoolPowerAttribute(ItemStack stack) {
@@ -647,7 +566,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     @Override
     public void onCalibrationAdjustmentsChanged(@NotNull ItemStack targetStack) {
-        refreshCalibrationEnchantments(targetStack);
         refreshResolvedCalibrationSchool(targetStack);
         refreshSelectedSpellContainer(targetStack);
     }
@@ -681,39 +599,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             }
         }
         return false;
-    }
-
-    public static void refreshCalibrationEnchantments(@NotNull ItemStack gauntletStack) {
-        if (!isValidCalibrationAccess(gauntletStack, 0, 1)) {
-            return;
-        }
-
-        var candidatesByEnchantment = new LinkedHashMap<Enchantment, CalibrationEnchantmentCandidate>();
-        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
-            var candidate = readFirstBookEnchantment(readCalibrationAdjustment(gauntletStack, slot));
-            if (candidate == null || !isSupportedCalibrationEnchantment(gauntletStack, candidate.enchantment())) {
-                continue;
-            }
-
-            var existing = candidatesByEnchantment.get(candidate.enchantment());
-            if (existing == null || candidate.level() > existing.level()) {
-                candidatesByEnchantment.put(candidate.enchantment(), candidate);
-            }
-        }
-
-        var resolvedEnchantments = new LinkedHashMap<Enchantment, Integer>();
-        for (var candidate : candidatesByEnchantment.values()) {
-            if (isCompatibleWithResolvedEnchantments(candidate.enchantment(), resolvedEnchantments)) {
-                resolvedEnchantments.put(candidate.enchantment(), candidate.level());
-            }
-        }
-
-        if (resolvedEnchantments.isEmpty()) {
-            gauntletStack.removeTagKey(VANILLA_ENCHANTMENTS_TAG);
-            return;
-        }
-
-        EnchantmentHelper.setEnchantments(resolvedEnchantments, gauntletStack);
     }
 
     public static int getEnabledCalibrationScrollSlotCount(@NotNull ItemStack gauntletStack) {
@@ -1079,9 +964,4 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                 && slot < slotCount;
     }
 
-    private record CalibrationEnchantmentCandidate(
-            Enchantment enchantment,
-            int level
-    ) {
-    }
 }

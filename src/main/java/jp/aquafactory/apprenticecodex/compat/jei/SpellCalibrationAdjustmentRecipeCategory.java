@@ -69,7 +69,7 @@ public final class SpellCalibrationAdjustmentRecipeCategory
     ) {
         drawLabel(guiGraphics, Component.literal("+"), 27, 8);
         recipeArrow.draw(guiGraphics, ARROW_X, ARROW_Y);
-        var description = Component.empty().append(recipe.effectLines().getFirst());
+        var description = Component.empty().append(recipe.effectLines().get(0));
         for (var line = 1; line < recipe.effectLines().size(); ++line) {
             description.append("\n").append(recipe.effectLines().get(line));
         }

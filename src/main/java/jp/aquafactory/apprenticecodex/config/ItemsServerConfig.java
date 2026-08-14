@@ -29,7 +29,6 @@ import jp.aquafactory.apprenticecodex.config.item.ArcaneCinderServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SatelliteFollowcastAmuletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ScarletThirstServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.ScrollcasterGauntletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellCastParryingRingServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
@@ -69,7 +68,6 @@ final class ItemsServerConfig {
     private final FocusStaffbowServerConfig focusStaffbowConfig;
     private final ChargecastCatalystbookServerConfig chargecastCatalystbookConfig;
     private final ElementalBowServerConfig elementalBowConfig;
-    private final ScrollcasterGauntletServerConfig scrollcasterGauntletConfig;
     private final SpellCastParryingRingServerConfig spellCastParryingRingConfig;
     private final SpellchargedGreatswordServerConfig spellchargedGreatswordConfig;
     private final SpellStainedRunicTabletServerConfig spellStainedRunicTabletConfig;
@@ -107,7 +105,6 @@ final class ItemsServerConfig {
             FocusStaffbowServerConfig focusStaffbowConfig,
             ChargecastCatalystbookServerConfig chargecastCatalystbookConfig,
             ElementalBowServerConfig elementalBowConfig,
-            ScrollcasterGauntletServerConfig scrollcasterGauntletConfig,
             SpellCastParryingRingServerConfig spellCastParryingRingConfig,
             SpellchargedGreatswordServerConfig spellchargedGreatswordConfig,
             SpellStainedRunicTabletServerConfig spellStainedRunicTabletConfig,
@@ -144,7 +141,6 @@ final class ItemsServerConfig {
         this.focusStaffbowConfig = focusStaffbowConfig;
         this.chargecastCatalystbookConfig = chargecastCatalystbookConfig;
         this.elementalBowConfig = elementalBowConfig;
-        this.scrollcasterGauntletConfig = scrollcasterGauntletConfig;
         this.spellCastParryingRingConfig = spellCastParryingRingConfig;
         this.spellchargedGreatswordConfig = spellchargedGreatswordConfig;
         this.spellStainedRunicTabletConfig = spellStainedRunicTabletConfig;
@@ -184,7 +180,6 @@ final class ItemsServerConfig {
         var focusStaffbowConfig = FocusStaffbowServerConfig.define(builder);
         var chargecastCatalystbookConfig = ChargecastCatalystbookServerConfig.define(builder);
         var elementalBowConfig = ElementalBowServerConfig.define(builder);
-        var scrollcasterGauntletConfig = ScrollcasterGauntletServerConfig.define(builder);
         var spellCastParryingRingConfig = SpellCastParryingRingServerConfig.define(builder);
         var spellchargedGreatswordConfig = SpellchargedGreatswordServerConfig.define(builder);
         var spellStainedRunicTabletConfig = SpellStainedRunicTabletServerConfig.define(builder);
@@ -223,7 +218,6 @@ final class ItemsServerConfig {
                 focusStaffbowConfig,
                 chargecastCatalystbookConfig,
                 elementalBowConfig,
-                scrollcasterGauntletConfig,
                 spellCastParryingRingConfig,
                 spellchargedGreatswordConfig,
                 spellStainedRunicTabletConfig,
@@ -772,22 +766,6 @@ final class ItemsServerConfig {
         return elementalBowConfig.powerArrowSpellLevelBonusPerLevel();
     }
 
-    boolean isScrollcasterGauntletEnchantmentDenied(ResourceLocation enchantmentId) {
-        return scrollcasterGauntletConfig.isEnchantmentDenied(enchantmentId);
-    }
-
-    boolean isScrollcasterGauntletCompatAdditionalAllowedEnchantment(ResourceLocation enchantmentId) {
-        return scrollcasterGauntletConfig.isCompatAdditionalAllowedEnchantment(enchantmentId);
-    }
-
-    List<String> scrollcasterGauntletDeniedEnchantments() {
-        return scrollcasterGauntletConfig.deniedEnchantments();
-    }
-
-    List<String> scrollcasterGauntletCompatAdditionalAllowedEnchantments() {
-        return scrollcasterGauntletConfig.compatAdditionalAllowedEnchantments();
-    }
-
     SpellStainedRunicTabletServerConfig.Values spellStainedRunicTabletConfig() {
         return spellStainedRunicTabletConfig.values();
     }
@@ -1098,13 +1076,6 @@ final class ItemsServerConfig {
                 attackProfilesEnabled,
                 repeatDamageMultiplier
         );
-    }
-
-    void setScrollcasterGauntletConfigForGameTest(
-            List<String> deniedEnchantments,
-            List<String> compatAdditionalAllowedEnchantments
-    ) {
-        scrollcasterGauntletConfig.setForGameTest(deniedEnchantments, compatAdditionalAllowedEnchantments);
     }
 
     int spellCastParryingRingParryWindowTicks() {
