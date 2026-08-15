@@ -188,7 +188,6 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
             for (var hitPosition : entityHitPositionList) {
                 server.sendParticles(ParticleTypes.ENCHANTED_HIT, hitPosition.x, hitPosition.y, hitPosition.z, 2, .1, .1, .1, .1);
             }
-            
             // 命中に貢献しなかった弾もトレーサーを出す.
             // todo:近隣プレイヤー配信のため、ペレット数分のパケットをまとめる対応を入れるかは実プレイ検証を踏まえて考慮.
             for (var hitPosition : allHitPositionList) {
