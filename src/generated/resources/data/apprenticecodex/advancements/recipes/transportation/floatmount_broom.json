@@ -1,12 +1,12 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_amethyst_cluster": {
+    "has_ender_rune": {
       "conditions": {
         "items": [
           {
             "items": [
-              "minecraft:amethyst_cluster"
+              "irons_spellbooks:ender_rune"
             ]
           }
         ]
@@ -22,7 +22,7 @@
   },
   "requirements": [
     [
-      "has_amethyst_cluster",
+      "has_ender_rune",
       "has_the_recipe"
     ]
   ],
