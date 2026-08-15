@@ -2,11 +2,11 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "A": {
-      "item": "minecraft:amethyst_cluster"
+    "B": {
+      "item": "minecraft:blaze_rod"
     },
     "E": {
-      "item": "irons_spellbooks:evocation_rune"
+      "item": "irons_spellbooks:ender_rune"
     },
     "H": {
       "item": "minecraft:hay_block"
@@ -14,13 +14,16 @@
     "I": {
       "item": "irons_spellbooks:arcane_ingot"
     },
+    "P": {
+      "item": "minecraft:phantom_membrane"
+    },
     "W": {
       "tag": "minecraft:planks"
     }
   },
   "pattern": [
-    "  W",
-    "EWA",
+    " PW",
+    "EWB",
     "HI "
   ],
   "result": {
