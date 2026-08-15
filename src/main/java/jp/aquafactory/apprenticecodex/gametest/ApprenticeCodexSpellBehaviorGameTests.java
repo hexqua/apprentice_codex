@@ -48,6 +48,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String STRAIGHT_PROJECTILE_COLLISION_ISOLATED_BATCH =
             "apprenticecodex.straight_projectile_collision_isolated";
     private static final String DUAL_ACROBAT_ISOLATED_BATCH = "apprenticecodex.dual_acrobat_isolated";
+    private static final String BULLET_STREAM_ISOLATED_BATCH = "apprenticecodex.bullet_stream_isolated";
     private static final String HEAVENLY_FIST_ISOLATED_BATCH = "apprenticecodex.heavenly_fist_isolated";
     private static final String HEAVENLY_FIST_CREATE_PRESSING_DENYLIST_BATCH =
             "apprenticecodex.heavenly_fist_create_pressing_denylist";
@@ -996,29 +997,44 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         MoonLightCounterspellGameTestScenarios.chargeCutAppliesCounterspellEffects(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH)
-    public static void dualAcrobatAmmoStopsAtMaximum(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.dualAcrobatAmmoStopsAtMaximum(helper);
+    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void dualAcrobatStartsFiringAfterStartupAndContinuesWhileCasting(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.dualAcrobatStartsFiringAfterStartupAndContinuesWhileCasting(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 200)
-    public static void dualAcrobatReleaseFiresLoadedAmmoAndExpires(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.dualAcrobatReleaseFiresLoadedAmmoAndExpires(helper);
+    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void dualAcrobatCompletionDiscardsImmediately(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.dualAcrobatCompletionDiscardsImmediately(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 200)
-    public static void dualAcrobatCancelledInterruptionStillFiresLoadedAmmoAndExpires(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.dualAcrobatCancelledInterruptionStillFiresLoadedAmmoAndExpires(helper);
+    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void dualAcrobatCancelledInterruptionDiscardsImmediately(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.dualAcrobatCancelledInterruptionDiscardsImmediately(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 200)
-    public static void dualAcrobatCounterspellInterruptDiscardsWithoutShooting(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.dualAcrobatCounterspellInterruptDiscardsWithoutShooting(helper);
+    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 80)
+    public static void dualAcrobatCounterspellInterruptDiscardsImmediately(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.dualAcrobatCounterspellInterruptDiscardsImmediately(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 40)
     public static void dualAcrobatCounterspellDoesNotInterruptNearbyOtherOwnerWeapon(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.dualAcrobatCounterspellDoesNotInterruptNearbyOtherOwnerWeapon(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = BULLET_STREAM_ISOLATED_BATCH)
+    public static void bulletStreamWaitsForSpinUpThenFiresEveryTick(GameTestHelper helper) {
+        BulletStreamGameTestScenarios.waitsForSpinUpThenFiresEveryTick(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = BULLET_STREAM_ISOLATED_BATCH)
+    public static void bulletStreamReleaseKeepsWeaponAndOnlyFinishesAfterFiring(GameTestHelper helper) {
+        BulletStreamGameTestScenarios.releaseKeepsWeaponForTenTicksAndOnlyFinishesAfterFiring(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = BULLET_STREAM_ISOLATED_BATCH)
+    public static void bulletStreamCastDurationIgnoresCastTimeReduction(GameTestHelper helper) {
+        BulletStreamGameTestScenarios.castDurationIgnoresCastTimeReduction(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = INSCRIBE_ICE_ISOLATED_BATCH)
