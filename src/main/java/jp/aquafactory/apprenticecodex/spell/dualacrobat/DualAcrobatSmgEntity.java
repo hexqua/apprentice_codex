@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.spell.dualacrobat;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -35,6 +37,8 @@ public class DualAcrobatSmgEntity extends SummonWeaponEntity {
     private static final double Y_OFFSET = -0.25;
     private static final int FIRE_INTERVAL_TICKS = 2;
     private static final int RECOIL_DURATION_TICKS = 3;
+    private static final float TRACER_SPEED_BLOCKS_PER_TICK = 24.0F;
+    private static final float TRACER_LENGTH = 8.0F;
 
     private static final EntityDataAccessor<Float> FORMATION_YAW =
             SynchedEntityData.defineId(DualAcrobatSmgEntity.class, EntityDataSerializers.FLOAT);
@@ -210,6 +214,13 @@ public class DualAcrobatSmgEntity extends SummonWeaponEntity {
                     server.sendParticles(ParticleTypes.ENCHANTED_HIT, target.x, target.y, target.z, 6, .15, .15, .15, .1);
                     break;
             }
+
+            Networks.sendToTrackingEntityAndSelf(this, new GunSpellTracerPacket(
+                    muzzlePosition,
+                    target,
+                    TRACER_SPEED_BLOCKS_PER_TICK,
+                    TRACER_LENGTH
+            ));
         }
 
         AudioTools.playSoundFromPosition(level, firePosition, SoundRegistry.SMG.get(), SoundSource.PLAYERS, 1.0f);

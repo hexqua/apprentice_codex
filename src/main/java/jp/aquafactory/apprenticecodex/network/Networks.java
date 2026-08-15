@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifl
 import jp.aquafactory.apprenticecodex.network.packet.ClientSpellgunCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
+import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HeavenlyFistPulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
@@ -78,7 +79,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "75";
+    private static final String PROTOCOL_VERSION = "76";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -562,6 +563,14 @@ public final class Networks {
                 TerraResonanceHighlightsPacket::encode,
                 TerraResonanceHighlightsPacket::decode,
                 TerraResonanceHighlightsPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                GunSpellTracerPacket.class,
+                GunSpellTracerPacket::encode,
+                GunSpellTracerPacket::decode,
+                GunSpellTracerPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
     }

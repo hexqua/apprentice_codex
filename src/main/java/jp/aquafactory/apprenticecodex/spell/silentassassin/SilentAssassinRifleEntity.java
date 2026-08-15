@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.spell.silentassassin;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -32,6 +34,8 @@ public class SilentAssassinRifleEntity extends SummonWeaponEntity {
     }
 
     public static final int MAX_RECOIL_TICK = 10;
+    private static final float TRACER_SPEED_BLOCKS_PER_TICK = 32.0F;
+    private static final float TRACER_LENGTH = 16.0F;
 
     private static final EntityDataAccessor<Integer> CASTING_TICK =
             SynchedEntityData.defineId(SilentAssassinRifleEntity.class, EntityDataSerializers.INT);
@@ -221,6 +225,15 @@ public class SilentAssassinRifleEntity extends SummonWeaponEntity {
             } else if (hasUnawareBonus) {
                 server.sendParticles(ParticleTypes.CRIT, target.x, target.y, target.z, 8, .2, .2, .2, .08);
             }
+
+            // 魔法の性質上、これは相当なバランス変更になる点に注意.
+            // 配信の視認の問題上、あまりにも遠距離だと配信から漏れるのは認識済み、厳密対応が重いので対応しない.
+            Networks.sendToTrackingEntityAndSelf(this, new GunSpellTracerPacket(
+                    firePosition,
+                    target,
+                    TRACER_SPEED_BLOCKS_PER_TICK,
+                    TRACER_LENGTH
+            ));
         }
 
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.SUPPRESS_RIFLE.get(), SoundSource.PLAYERS, 1.0f);
