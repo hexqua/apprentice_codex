@@ -1,0 +1,12 @@
+{
+  "type": "apprenticecodex:essence_smoker",
+  "catalyst": {
+    "item": "irons_spellbooks:cinder_essence"
+  },
+  "material": {
+    "item": "minecraft:netherite_ingot"
+  },
+  "result": {
+    "item": "apprenticecodex:emberstained_netherite_ingot"
+  }
+}

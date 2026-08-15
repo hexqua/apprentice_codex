@@ -102,6 +102,10 @@ public final class ItemRegistry {
         return ITEMS.register(id, () -> new Item(new Item.Properties()));
     }
 
+    private static RegistryObject<Item> simpleFireImmune(String id) {
+        return ITEMS.register(id, () -> new Item(new Item.Properties().fireResistant()));
+    }
+
     private static RegistryObject<Item> block(String id, RegistryObject<Block> block) {
         return ITEMS.register(id, () -> new BlockItem(block.get(), new Item.Properties()));
     }
@@ -172,6 +176,8 @@ public final class ItemRegistry {
                     .build())));
 
     public static final RegistryObject<Item> SPELLSTAINED_ARCANE_INGOT = simple("spellstained_arcane_ingot");
+    public static final RegistryObject<Item> SPELLSTAINED_DIAMOND = simple("spellstained_diamond");
+    public static final RegistryObject<Item> EMBERSTAINED_NETHERITE_INGOT = simpleFireImmune("emberstained_netherite_ingot");
     public static final RegistryObject<Item> ARCANE_PROPELLANT_CHARGE =
             ITEMS.register("arcane_propellant_charge", RoundIncompleteMaterialItem::new);
     public static final RegistryObject<Item> SPELL_BULLET_HEAD =

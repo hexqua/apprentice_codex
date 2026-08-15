@@ -6,7 +6,7 @@
       "item": "irons_spellbooks:arcane_ingot"
     },
     "D": {
-      "item": "minecraft:diamond"
+      "item": "apprenticecodex:spellstained_diamond"
     },
     "L": {
       "item": "irons_spellbooks:magic_cloth"
@@ -15,7 +15,7 @@
       "item": "irons_spellbooks:mithril_ingot"
     },
     "P": {
-      "item": "irons_spellbooks:pyrium_ingot"
+      "item": "apprenticecodex:emberstained_netherite_ingot"
     },
     "W": {
       "tag": "minecraft:planks"

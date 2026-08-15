@@ -11,12 +11,15 @@
     "L": {
       "item": "minecraft:leather"
     },
+    "S": {
+      "item": "apprenticecodex:spellstained_diamond"
+    },
     "W": {
       "tag": "minecraft:planks"
     }
   },
   "pattern": [
-    " AD",
+    " AS",
     "LWD",
     "D  "
   ],
