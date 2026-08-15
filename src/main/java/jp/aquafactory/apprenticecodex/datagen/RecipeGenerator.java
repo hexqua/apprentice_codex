@@ -784,15 +784,16 @@ public final class RecipeGenerator extends RecipeProvider {
                 .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION, ItemRegistry.FLOATMOUNT_BROOM.get())
-                .pattern("  W")
-                .pattern("EWA")
+                .pattern(" PW")
+                .pattern("EWB")
                 .pattern("HI ")
                 .define('W', ItemTags.PLANKS)
-                .define('A', Items.AMETHYST_CLUSTER)
+                .define('B', Items.BLAZE_ROD)
+                .define('P', Items.PHANTOM_MEMBRANE)
                 .define('I', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
-                .define('E', io.redspace.ironsspellbooks.registries.ItemRegistry.EVOCATION_RUNE.get())
+                .define('E', io.redspace.ironsspellbooks.registries.ItemRegistry.ENDER_RUNE.get())
                 .define('H', Items.HAY_BLOCK)
-                .unlockedBy(getHasName(Items.AMETHYST_CLUSTER), has(Items.AMETHYST_CLUSTER))
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.ENDER_RUNE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.ENDER_RUNE.get()))
                 .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.INSTANT_SEARCH_BRAZIER.get())
