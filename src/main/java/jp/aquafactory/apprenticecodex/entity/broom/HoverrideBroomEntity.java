@@ -12,6 +12,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
@@ -38,6 +39,9 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     private static final float TURN_ACCELERATION = 1.0F;
     private static final float MAX_TURN_SPEED = 10.0F;
     private static final float TURN_DAMPING = 0.9F;
+    private static final float PASSENGER_YAW_RESPONSE = 0.4F;
+    // 座り脚から立ち脚へ変わる約10ピクセル分、乗員全体を持ち上げて足元を箒へ合わせる。
+    private static final double STANDING_RIDER_Y_OFFSET = 0.625D;
 
     private static final BroomMessageKeys MESSAGE_KEYS = new BroomMessageKeys(
             "ui.apprenticecodex.hoverride_broom.warning_dismount",
@@ -63,6 +67,9 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     private boolean localReleaseImpulsePending;
     private int localAirborneTicks;
     private float localTurnSpeed;
+    private int followedPassengerId = -1;
+    private float lastFollowedBroomYaw;
+    private float pendingPassengerYaw;
 
     private float serverForwardInput;
     private boolean serverGlideRequested;
@@ -194,6 +201,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
 
     @Override
     protected void applyUnoccupiedMovement() {
+        resetPassengerYawFollow();
         var movement = getDeltaMovement();
         var horizontal = HoverrideBroomMovement.horizontal(movement).scale(UNMOUNTED_HORIZONTAL_DAMPING);
         var surface = BroomSurfaceScanner.findSurfaceBelow(level(), getX(), getY(), getZ(), 4, false);
@@ -207,6 +215,33 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     @Override
     protected double maximumInheritedDismountHorizontalSpeed() {
         return HoverrideBroomMovement.MAX_HORIZONTAL_SPEED;
+    }
+
+    @Override
+    public boolean shouldRiderSit() {
+        return false;
+    }
+
+    @Override
+    protected double passengerAttachmentYOffset() {
+        return STANDING_RIDER_Y_OFFSET;
+    }
+
+    @Override
+    protected void updatePassengerRotation(Entity passenger) {
+        if (followedPassengerId != passenger.getId()) {
+            followedPassengerId = passenger.getId();
+            lastFollowedBroomYaw = getYRot();
+            pendingPassengerYaw = 0.0F;
+        } else {
+            var broomYawChange = Mth.wrapDegrees(getYRot() - lastFollowedBroomYaw);
+            pendingPassengerYaw = Mth.wrapDegrees(pendingPassengerYaw + broomYawChange);
+            var appliedYaw = pendingPassengerYaw * PASSENGER_YAW_RESPONSE;
+            passenger.setYRot(passenger.getYRot() + appliedYaw);
+            pendingPassengerYaw -= appliedYaw;
+            lastFollowedBroomYaw = getYRot();
+        }
+        clampPassengerRotation(passenger);
     }
 
     private double mountedVertical(double currentVertical, double surfaceY) {
@@ -410,6 +445,13 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         clearRidingInput();
         cancelLocalGlide();
         localAirborneTicks = 0;
+        resetPassengerYawFollow();
+    }
+
+    private void resetPassengerYawFollow() {
+        followedPassengerId = -1;
+        lastFollowedBroomYaw = 0.0F;
+        pendingPassengerYaw = 0.0F;
     }
 
     public boolean isManaDepleted() {
