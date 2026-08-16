@@ -3,6 +3,8 @@ package jp.aquafactory.apprenticecodex.config.item;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 public final class HoverrideBroomServerConfig {
+    // 枯渇・警告のepsilon判定で実質0として扱われない、十分に小さい正数を下限にする。
+    private static final double MIN_INERTIA_RELEASE_MANA_COST = 1.0e-3D;
     private final ForgeConfigSpec.DoubleValue forwardManaCostPerTick;
     private final ForgeConfigSpec.DoubleValue inertiaGlideManaCostPerTick;
     private final ForgeConfigSpec.DoubleValue inertiaReleaseManaCost;
@@ -34,8 +36,9 @@ public final class HoverrideBroomServerConfig {
                 .comment("Mana consumed each tick while inertia glide is active.")
                 .defineInRange("inertiaGlideManaCostPerTick", 0.5D, 0.0D, 10000.0D);
         var inertiaReleaseManaCost = builder
-                .comment("Mana consumed when releasing inertia glide. This value is also the mana threshold required to recover from depleted mode. Set to 0 to disable the release cost and recovery threshold.")
-                .defineInRange("inertiaReleaseManaCost", 50.0D, 0.0D, 10000.0D);
+                .comment("Mana consumed when releasing inertia glide. This positive value is also the mana threshold required to recover from depleted mode.")
+                .defineInRange("inertiaReleaseManaCost", 50.0D,
+                        MIN_INERTIA_RELEASE_MANA_COST, 10000.0D);
         var inertiaReleaseMinimumSpeedRatio = builder
                 .comment("Minimum horizontal speed after an accepted inertia glide release, expressed as a ratio of the broom's maximum speed.")
                 .defineInRange("inertiaReleaseMinimumSpeedRatio", 0.5D, 0.0D, 1.0D);
@@ -76,5 +79,11 @@ public final class HoverrideBroomServerConfig {
             double inertiaReleaseMinimumSpeedRatio,
             double lowManaWarningThreshold
     ) {
+        public Values {
+            if (!Double.isFinite(inertiaReleaseManaCost)
+                    || inertiaReleaseManaCost < MIN_INERTIA_RELEASE_MANA_COST) {
+                throw new IllegalArgumentException("Inertia release mana cost must be positive");
+            }
+        }
     }
 }

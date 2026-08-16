@@ -345,6 +345,19 @@ public final class FloatmountBroomGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void hoverrideReleaseManaCostMustBePositive(GameTestHelper helper) {
+        var rejected = false;
+        try {
+            new HoverrideBroomServerConfig.Values(0.0D, 0.0D, 0.0D, 0.5D, 20.0D);
+        } catch (IllegalArgumentException ignored) {
+            rejected = true;
+        }
+        helper.assertTrue(rejected,
+                "Hoverride release mana cost must reject zero even when per-tick costs are disabled");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void hoverrideInputAndReleaseResultPacketsRoundTrip(GameTestHelper helper) {
         var inputBuffer = new FriendlyByteBuf(Unpooled.buffer());
         var input = new ClientBroomInputPacket(

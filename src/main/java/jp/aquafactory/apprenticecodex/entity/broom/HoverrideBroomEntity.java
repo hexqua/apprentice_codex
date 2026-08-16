@@ -545,7 +545,6 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     ) {
         var recoveryThreshold = config.inertiaReleaseManaCost();
         if (!isLowManaWarningShown()
-                && recoveryThreshold > MANA_EPSILON
                 && mana <= config.lowManaWarningThreshold()
                 && mana < recoveryThreshold) {
             setLowManaWarningShown(true);
@@ -638,8 +637,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     }
 
     private void enterManaDepleted(Player player) {
-        if (isManaDepleted()
-                || ApprenticeCodexServerConfig.hoverrideBroomConfig().inertiaReleaseManaCost() <= MANA_EPSILON) {
+        if (isManaDepleted()) {
             return;
         }
         setManaDepleted(true);
