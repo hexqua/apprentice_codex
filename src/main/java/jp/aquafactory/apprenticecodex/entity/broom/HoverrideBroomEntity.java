@@ -33,6 +33,8 @@ import java.util.Optional;
 public final class HoverrideBroomEntity extends AbstractBroomEntity {
     private static final EntityDataAccessor<Boolean> MANA_DEPLETED =
             SynchedEntityData.defineId(HoverrideBroomEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> AIRBORNE_ACCELERATION_LOCKED =
+            SynchedEntityData.defineId(HoverrideBroomEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> PRESENTATION_STATE =
             SynchedEntityData.defineId(HoverrideBroomEntity.class, EntityDataSerializers.INT);
     private static final float INPUT_EPSILON = 1.0e-4F;
@@ -115,6 +117,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(MANA_DEPLETED, false);
+        builder.define(AIRBORNE_ACCELERATION_LOCKED, false);
         builder.define(PRESENTATION_STATE, HoverrideBroomPresentation.NORMAL.ordinal());
     }
 
@@ -574,6 +577,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         }
         if (accepted) {
             serverAirborneTicks = 0;
+            setAirborneAccelerationLocked(false);
             playBroomSound(SoundRegistry.VANILLA_BROOM_IMPULSE.get());
             // 解除音の直後に周期加速音を重ねず、強い一回音を操作フィードバックとして残す。
             lastAccelerationSoundGameTime = level().getGameTime();
@@ -637,6 +641,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         serverAirborneTicks = surface.isPresent()
                 ? 0
                 : Math.min(AIRBORNE_GRACE_TICKS, serverAirborneTicks + 1);
+        setAirborneAccelerationLocked(serverAirborneTicks >= AIRBORNE_GRACE_TICKS);
     }
 
     private void cancelLocalGlide() {
@@ -665,6 +670,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     protected void resetRidingState() {
         super.resetRidingState();
         setManaDepleted(false);
+        setAirborneAccelerationLocked(false);
         lastServerActionSequence = 0L;
         serverAirborneTicks = 0;
         clearRidingInput();
@@ -687,12 +693,26 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     }
 
     @Override
-    public boolean shouldFlashCoreWarning() {
-        return isManaDepleted() || super.shouldFlashCoreWarning();
+    public BroomCoreWarningState getCoreWarningState() {
+        var baseState = super.getCoreWarningState();
+        if (baseState == BroomCoreWarningState.CRITICAL || isManaDepleted()) {
+            return BroomCoreWarningState.CRITICAL;
+        }
+        return isAirborneAccelerationLocked()
+                ? BroomCoreWarningState.CAUTION
+                : BroomCoreWarningState.NONE;
     }
 
     private void setManaDepleted(boolean value) {
         entityData.set(MANA_DEPLETED, value);
+    }
+
+    public boolean isAirborneAccelerationLocked() {
+        return entityData.get(AIRBORNE_ACCELERATION_LOCKED);
+    }
+
+    private void setAirborneAccelerationLocked(boolean value) {
+        entityData.set(AIRBORNE_ACCELERATION_LOCKED, value);
     }
 
     public HoverrideBroomPresentation getPresentationState() {

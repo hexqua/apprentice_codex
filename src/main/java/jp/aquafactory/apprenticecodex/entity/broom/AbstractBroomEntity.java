@@ -1011,8 +1011,8 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         return isManaEmergencyLanding() || isDamaged();
     }
 
-    public boolean shouldFlashCoreWarning() {
-        return isForcedLanding();
+    public BroomCoreWarningState getCoreWarningState() {
+        return isForcedLanding() ? BroomCoreWarningState.CRITICAL : BroomCoreWarningState.NONE;
     }
 
     public final boolean isLowManaWarningShown() {
