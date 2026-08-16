@@ -2,10 +2,16 @@ package jp.aquafactory.apprenticecodex.entity.broom;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.HoverrideBroomServerConfig;
 import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomImpulseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomReleaseResultPacket;
+import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.particles.ParticleType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -20,12 +26,15 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import org.joml.Vector3f;
 
 import java.util.Optional;
 
 public final class HoverrideBroomEntity extends AbstractBroomEntity {
     private static final EntityDataAccessor<Boolean> MANA_DEPLETED =
             SynchedEntityData.defineId(HoverrideBroomEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> PRESENTATION_STATE =
+            SynchedEntityData.defineId(HoverrideBroomEntity.class, EntityDataSerializers.INT);
     private static final float INPUT_EPSILON = 1.0e-4F;
     private static final float MANA_EPSILON = 1.0e-4F;
     private static final int SERVER_INPUT_TIMEOUT_TICKS = 30;
@@ -40,6 +49,11 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     private static final float MAX_TURN_SPEED = 10.0F;
     private static final float TURN_DAMPING = 0.9F;
     private static final float PASSENGER_YAW_RESPONSE = 0.4F;
+    private static final int ACCELERATION_SOUND_INTERVAL_TICKS = 10;
+    private static final double BRAKE_PARTICLE_MINIMUM_SPEED = 0.08D;
+    private static final double EFFECT_AXIS_RANGE = 1.0D;
+    private static final double EFFECT_VERTICAL_SPREAD = 0.1D;
+    private static final double EFFECT_Y_OFFSET = 0.1D;
     // 座り脚から立ち脚へ変わる約10ピクセル分、乗員全体を持ち上げて足元を箒へ合わせる。
     private static final double STANDING_RIDER_Y_OFFSET = 0.625D;
 
@@ -78,6 +92,9 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     private long lastServerInputGameTime = Long.MIN_VALUE;
     private long lastServerActionSequence;
     private int serverAirborneTicks;
+    private long lastAccelerationSoundGameTime = Long.MIN_VALUE;
+
+    private Vec3 lastClientEffectPosition;
 
     @Override
     protected Item getRecoveryItem() {
@@ -98,6 +115,141 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(MANA_DEPLETED, false);
+        builder.define(PRESENTATION_STATE, HoverrideBroomPresentation.NORMAL.ordinal());
+    }
+
+    @Override
+    protected void spawnFlightParticles() {
+        if (!isVehicle() || isDamaged()) {
+            lastClientEffectPosition = position();
+            super.spawnFlightParticles();
+            return;
+        }
+
+        var movement = sampleClientEffectMovement();
+        switch (effectivePresentationState()) {
+            case GLIDING -> spawnGlideParticles();
+            case BRAKING -> {
+                if (movement.length() >= BRAKE_PARTICLE_MINIMUM_SPEED) {
+                    spawnBrakeParticles(movement);
+                } else if (!isManaDepleted()) {
+                    spawnDefaultFlightParticles(false);
+                }
+            }
+            case ACCELERATING -> spawnDefaultFlightParticles(true);
+            case NORMAL -> {
+                if (!isManaDepleted()) {
+                    spawnDefaultFlightParticles(false);
+                }
+            }
+        }
+    }
+
+    private HoverrideBroomPresentation effectivePresentationState() {
+        if (!isControlledByLocalInstance()) {
+            return getPresentationState();
+        }
+        var gliding = localGlideActive || pendingReleaseSequence != Long.MIN_VALUE;
+        var accelerationAllowed = !isManaDepleted()
+                && !isDamaged()
+                && localAirborneTicks < AIRBORNE_GRACE_TICKS;
+        return HoverrideBroomPresentation.resolve(localForwardInput, gliding, accelerationAllowed);
+    }
+
+    private Vec3 sampleClientEffectMovement() {
+        var current = position();
+        var sampled = lastClientEffectPosition == null
+                ? HoverrideBroomMovement.horizontal(getDeltaMovement())
+                : HoverrideBroomMovement.horizontal(current.subtract(lastClientEffectPosition));
+        lastClientEffectPosition = current;
+        return sampled.lengthSqr() > 1.0e-8D
+                ? sampled
+                : HoverrideBroomMovement.horizontal(getDeltaMovement());
+    }
+
+    private void spawnGlideParticles() {
+        spawnBodyParticle(
+                ParticleRegistry.ADDITIVE_RHOMBUS.get(), randomGlideColor(),
+                0.14F + random.nextFloat() * 0.08F, 10, 4, Vec3.ZERO
+        );
+        if (tickCount % 2 == 0) {
+            spawnBodyParticle(
+                    ParticleRegistry.ADDITIVE_SPARK.get(), randomGlideColor(),
+                    0.14F + random.nextFloat() * 0.08F, 10, 4, Vec3.ZERO
+            );
+        }
+    }
+
+    private void spawnBrakeParticles(Vec3 movement) {
+        var direction = movement.normalize();
+        var count = 1 + random.nextInt(2);
+        for (var i = 0; i < count; ++i) {
+            var speed = 0.04D + random.nextDouble() * 0.04D;
+            spawnBodyParticle(
+                    ParticleRegistry.ADDITIVE_SPARK.get(), randomBrakeColor(),
+                    0.14F + random.nextFloat() * 0.08F, 6, 3, direction.scale(speed)
+            );
+        }
+    }
+
+    private void spawnBodyParticle(
+            ParticleType<AdditiveGlowParticleOptions> type,
+            Vector3f color,
+            float size,
+            int lifetime,
+            int lifetimeVariance,
+            Vec3 velocity
+    ) {
+        var axisOffset = (random.nextDouble() * 2.0D - 1.0D) * EFFECT_AXIS_RANGE;
+        var base = position().add(getForwardDirection().scale(axisOffset)).add(
+                0.0D,
+                EFFECT_Y_OFFSET + (random.nextDouble() * 2.0D - 1.0D) * EFFECT_VERTICAL_SPREAD,
+                0.0D
+        );
+        level().addParticle(
+                new AdditiveGlowParticleOptions(
+                        type,
+                        size,
+                        color.x(),
+                        color.y(),
+                        color.z(),
+                        random.nextInt(2),
+                        lifetime,
+                        lifetimeVariance,
+                        0.75F,
+                        1.2F,
+                        0.6F,
+                        0.95F,
+                        0.02F,
+                        0.65F,
+                        0.4F,
+                        true
+                ),
+                base.x,
+                base.y,
+                base.z,
+                velocity.x,
+                velocity.y,
+                velocity.z
+        );
+    }
+
+    private Vector3f randomGlideColor() {
+        var t = random.nextFloat();
+        return new Vector3f(
+                Mth.lerp(t, 0.20F, 0.22F),
+                Mth.lerp(t, 1.0F, 0.82F),
+                Mth.lerp(t, 0.42F, 0.72F)
+        );
+    }
+
+    private Vector3f randomBrakeColor() {
+        var t = random.nextFloat();
+        return new Vector3f(
+                1.0F,
+                Mth.lerp(t, 0.18F, 0.55F),
+                Mth.lerp(t, 0.05F, 0.08F)
+        );
     }
 
     @Override
@@ -302,6 +454,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         updateServerSurfaceState();
         if (isDamaged()) {
             cancelServerGlide();
+            setPresentationState(HoverrideBroomPresentation.NORMAL);
             return;
         }
 
@@ -317,6 +470,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
                 serverGlideActive = true;
                 serverSuccessfulGlideTicks++;
             }
+            updateServerPresentation();
             return;
         }
 
@@ -326,14 +480,18 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         if (isManaDepleted()) {
             if (mana + MANA_EPSILON >= config.inertiaReleaseManaCost()) {
                 setManaDepleted(false);
+                setLowManaWarningShown(false);
                 player.displayClientMessage(Component.translatable(
                         messageKeys().manaRecovered()
                 ).withStyle(ChatFormatting.GREEN), true);
+                playBroomSound(SoundRegistry.VANILLA_BROOM_PROPULSION_RECOVERED.get());
             }
+            updateServerPresentation();
             return;
         }
         if (mana <= MANA_EPSILON) {
             enterManaDepleted(player);
+            updateServerPresentation();
             return;
         }
 
@@ -343,12 +501,64 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
             consumeMana(player, magicData, (float)config.inertiaGlideManaCostPerTick());
             if (isManaDepleted()) {
                 cancelServerGlide();
+            } else {
+                updateLowManaWarning(player, manaAfterConsumption(magicData), config);
             }
+            updateServerPresentation();
             return;
         }
 
         if (serverForwardInput > INPUT_EPSILON && serverAirborneTicks < AIRBORNE_GRACE_TICKS) {
             consumeMana(player, magicData, (float)config.forwardManaCostPerTick());
+        }
+        if (!isManaDepleted()) {
+            updateLowManaWarning(player, manaAfterConsumption(magicData), config);
+        }
+        updateServerPresentation();
+    }
+
+    private float manaAfterConsumption(MagicData magicData) {
+        return magicData == null ? 0.0F : magicData.getMana();
+    }
+
+    private void updateLowManaWarning(
+            Player player,
+            float mana,
+            HoverrideBroomServerConfig.Values config
+    ) {
+        var recoveryThreshold = config.inertiaReleaseManaCost();
+        if (!isLowManaWarningShown()
+                && recoveryThreshold > MANA_EPSILON
+                && mana <= config.lowManaWarningThreshold()
+                && mana < recoveryThreshold) {
+            setLowManaWarningShown(true);
+            player.displayClientMessage(Component.translatable(
+                    messageKeys().warningLowMana()
+            ).withStyle(ChatFormatting.YELLOW), true);
+            playPlayerNotification(player, SoundRegistry.VANILLA_BROOM_WARNING.get());
+        } else if (isLowManaWarningShown() && mana + MANA_EPSILON >= recoveryThreshold) {
+            setLowManaWarningShown(false);
+        }
+    }
+
+    private void updateServerPresentation() {
+        var accelerationAllowed = !isManaDepleted()
+                && !isDamaged()
+                && serverAirborneTicks < AIRBORNE_GRACE_TICKS;
+        var presentation = HoverrideBroomPresentation.resolve(
+                serverForwardInput,
+                serverGlideActive,
+                accelerationAllowed
+        );
+        setPresentationState(presentation);
+        if (presentation == HoverrideBroomPresentation.ACCELERATING) {
+            var now = level().getGameTime();
+            if (lastAccelerationSoundGameTime == Long.MIN_VALUE
+                    || now - lastAccelerationSoundGameTime >= ACCELERATION_SOUND_INTERVAL_TICKS) {
+                level().playSound(null, getX(), getY(), getZ(),
+                        SoundRegistry.BROOM_ACCELERATE.get(), net.minecraft.sounds.SoundSource.PLAYERS, 0.7F, 1.0F);
+                lastAccelerationSoundGameTime = now;
+            }
         }
     }
 
@@ -358,13 +568,27 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         if (accepted && !player.getAbilities().instabuild) {
             var magicData = MagicData.getPlayerMagicData(player);
             consumeMana(player, magicData, (float)config.inertiaReleaseManaCost());
+            if (!isManaDepleted()) {
+                updateLowManaWarning(player, manaAfterConsumption(magicData), config);
+            }
         }
         if (accepted) {
             serverAirborneTicks = 0;
+            playBroomSound(SoundRegistry.VANILLA_BROOM_IMPULSE.get());
+            // 解除音の直後に周期加速音を重ねず、強い一回音を操作フィードバックとして残す。
+            lastAccelerationSoundGameTime = level().getGameTime();
+            sendReleaseEffect();
         }
         cancelServerGlide();
+        updateServerPresentation();
 
         sendReleaseResult(player, actionSequence, accepted);
+    }
+
+    private void sendReleaseEffect() {
+        var forward = getForwardDirection();
+        var center = position().subtract(forward.scale(0.8D)).add(0.0D, EFFECT_Y_OFFSET, 0.0D);
+        Networks.sendToTrackingEntityAndSelf(this, new HoverrideBroomImpulseEffectPacket(center, forward));
     }
 
     private void sendReleaseResult(Player player, long actionSequence, boolean accepted) {
@@ -402,6 +626,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         }
         setManaDepleted(true);
         cancelServerGlide();
+        playBroomSound(SoundRegistry.VANILLA_BROOM_PROPULSION_LOST.get());
         player.displayClientMessage(Component.translatable(
                 messageKeys().manaDepleted()
         ).withStyle(ChatFormatting.RED), true);
@@ -445,6 +670,9 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         clearRidingInput();
         cancelLocalGlide();
         localAirborneTicks = 0;
+        lastClientEffectPosition = null;
+        lastAccelerationSoundGameTime = Long.MIN_VALUE;
+        setPresentationState(HoverrideBroomPresentation.NORMAL);
         resetPassengerYawFollow();
     }
 
@@ -458,8 +686,21 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         return entityData.get(MANA_DEPLETED);
     }
 
+    @Override
+    public boolean shouldFlashCoreWarning() {
+        return isManaDepleted() || super.shouldFlashCoreWarning();
+    }
+
     private void setManaDepleted(boolean value) {
         entityData.set(MANA_DEPLETED, value);
+    }
+
+    public HoverrideBroomPresentation getPresentationState() {
+        return HoverrideBroomPresentation.fromId(entityData.get(PRESENTATION_STATE));
+    }
+
+    private void setPresentationState(HoverrideBroomPresentation state) {
+        entityData.set(PRESENTATION_STATE, state.ordinal());
     }
 
     public boolean isServerInertiaGlideActive() {

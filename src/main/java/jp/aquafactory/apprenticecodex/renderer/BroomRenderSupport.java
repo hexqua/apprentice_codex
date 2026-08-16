@@ -25,7 +25,7 @@ public final class BroomRenderSupport {
     }
 
     public static int resolveEntityCoreColour(AbstractBroomEntity broom, float partialTick) {
-        if (broom.isForcedLanding()) {
+        if (broom.shouldFlashCoreWarning()) {
             var warning = ImbuedSpellCoreClientEffectState.resolveWarning(partialTick);
             return composeColour(warning.red(), warning.green(), warning.blue(), warning.alpha());
         }

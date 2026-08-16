@@ -7,18 +7,21 @@ public final class HoverrideBroomServerConfig {
     private final ModConfigSpec.DoubleValue inertiaGlideManaCostPerTick;
     private final ModConfigSpec.DoubleValue inertiaReleaseManaCost;
     private final ModConfigSpec.DoubleValue inertiaReleaseMinimumSpeedRatio;
+    private final ModConfigSpec.DoubleValue lowManaWarningThreshold;
     private Values override;
 
     private HoverrideBroomServerConfig(
             ModConfigSpec.DoubleValue forwardManaCostPerTick,
             ModConfigSpec.DoubleValue inertiaGlideManaCostPerTick,
             ModConfigSpec.DoubleValue inertiaReleaseManaCost,
-            ModConfigSpec.DoubleValue inertiaReleaseMinimumSpeedRatio
+            ModConfigSpec.DoubleValue inertiaReleaseMinimumSpeedRatio,
+            ModConfigSpec.DoubleValue lowManaWarningThreshold
     ) {
         this.forwardManaCostPerTick = forwardManaCostPerTick;
         this.inertiaGlideManaCostPerTick = inertiaGlideManaCostPerTick;
         this.inertiaReleaseManaCost = inertiaReleaseManaCost;
         this.inertiaReleaseMinimumSpeedRatio = inertiaReleaseMinimumSpeedRatio;
+        this.lowManaWarningThreshold = lowManaWarningThreshold;
     }
 
     public static HoverrideBroomServerConfig define(ModConfigSpec.Builder builder) {
@@ -36,13 +39,17 @@ public final class HoverrideBroomServerConfig {
         var inertiaReleaseMinimumSpeedRatio = builder
                 .comment("Minimum horizontal speed after an accepted inertia glide release, expressed as a ratio of the broom's maximum speed.")
                 .defineInRange("inertiaReleaseMinimumSpeedRatio", 0.5D, 0.0D, 1.0D);
+        var lowManaWarningThreshold = builder
+                .comment("Mana level at or below which the rider receives a low mana warning. The warning is rearmed after mana recovers to the inertia glide release cost.")
+                .defineInRange("lowManaWarningThreshold", 20.0D, 0.0D, 10000.0D);
 
         builder.pop();
         return new HoverrideBroomServerConfig(
                 forwardManaCostPerTick,
                 inertiaGlideManaCostPerTick,
                 inertiaReleaseManaCost,
-                inertiaReleaseMinimumSpeedRatio
+                inertiaReleaseMinimumSpeedRatio,
+                lowManaWarningThreshold
         );
     }
 
@@ -52,7 +59,8 @@ public final class HoverrideBroomServerConfig {
                         forwardManaCostPerTick.get(),
                         inertiaGlideManaCostPerTick.get(),
                         inertiaReleaseManaCost.get(),
-                        inertiaReleaseMinimumSpeedRatio.get()
+                        inertiaReleaseMinimumSpeedRatio.get(),
+                        lowManaWarningThreshold.get()
                 )
                 : override;
     }
@@ -65,7 +73,8 @@ public final class HoverrideBroomServerConfig {
             double forwardManaCostPerTick,
             double inertiaGlideManaCostPerTick,
             double inertiaReleaseManaCost,
-            double inertiaReleaseMinimumSpeedRatio
+            double inertiaReleaseMinimumSpeedRatio,
+            double lowManaWarningThreshold
     ) {
     }
 }
