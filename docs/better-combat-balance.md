@@ -14,6 +14,14 @@ Better Combat の武器属性 JSON は、Minecraft 1.20.1 と 1.21.1 で攻撃�
 
 同じ数値、同じ Better Combat の武器種、または同じ実効距離に揃えること自体を目的とせず、見た目とゲーム内で意図する使用感の整合を優先する。
 
+### バージョン間のプリセット差
+
+Minecraftは1.21.1でメイスが追加され、Better Combatは1.21.1においてのみスマッシュ攻撃が行いやすいプリセットが作成されている。
+
+このプリセットは1.20.1には存在しないため、Minecraftのメイスと似たような性質を持つ`SmashcastScepter`に関しては似たようなアニメーションになるように独自に対応している。
+
+そのため、`SmashcastSecpter`は`main`においてはプリセット継承そのまま、`1.20.1-main`においてはプリセットを使わず独自対応する。
+
 ## ブランチ間の扱い
 
 `src/main/resources/data/apprenticecodex/weapon_attributes` は手置き resource であり、datagen では管理しない。コンボ、アニメーション、攻撃判定、音、およびバージョンごとの攻撃表現を JSON のままレビューできることを優先する。
