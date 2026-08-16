@@ -26,6 +26,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.util.FakePlayer;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.Optional;
@@ -40,7 +41,6 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     private static final float INPUT_EPSILON = 1.0e-4F;
     private static final float MANA_EPSILON = 1.0e-4F;
     private static final int SERVER_INPUT_TIMEOUT_TICKS = 30;
-    private static final int RELEASE_RESPONSE_TIMEOUT_TICKS = 20;
     private static final int AIRBORNE_GRACE_TICKS = 40;
     private static final double HOVER_HEIGHT = 1.2D;
     private static final double VERTICAL_ACCELERATION = 0.03D;
@@ -76,10 +76,9 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
 
     private float localStrafeInput;
     private float localForwardInput;
-    private boolean localGlideActive;
+    private LocalReleaseState localReleaseState = LocalReleaseState.IDLE;
     private Vec3 localInertia = Vec3.ZERO;
     private long pendingReleaseSequence = Long.MIN_VALUE;
-    private int pendingReleaseTicks;
     private boolean localReleaseImpulsePending;
     private int localAirborneTicks;
     private float localTurnSpeed;
@@ -97,6 +96,17 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     private long lastAccelerationSoundGameTime = Long.MIN_VALUE;
 
     private Vec3 lastClientEffectPosition;
+
+    // serverの解除確定と課金は応答送信より先に完了するため、経過tickだけでAWAITING_RESULTを破棄しない。
+    private enum LocalReleaseState {
+        IDLE,
+        GLIDING,
+        AWAITING_RESULT;
+
+        private boolean preservesInertia() {
+            return this != IDLE;
+        }
+    }
 
     @Override
     protected Item getRecoveryItem() {
@@ -152,7 +162,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         if (!isControlledByLocalInstance()) {
             return getPresentationState();
         }
-        var gliding = localGlideActive || pendingReleaseSequence != Long.MIN_VALUE;
+        var gliding = localReleaseState.preservesInertia();
         var accelerationAllowed = !isManaDepleted()
                 && !isDamaged()
                 && localAirborneTicks < AIRBORNE_GRACE_TICKS;
@@ -261,8 +271,8 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         localStrafeInput = sanitizeInput(strafe);
         localForwardInput = sanitizeInput(forward);
         if (ascending && !isManaDepleted() && !isDamaged()
-                && !localGlideActive && pendingReleaseSequence == Long.MIN_VALUE) {
-            localGlideActive = true;
+                && localReleaseState == LocalReleaseState.IDLE) {
+            localReleaseState = LocalReleaseState.GLIDING;
             localInertia = HoverrideBroomMovement.horizontal(getDeltaMovement());
         }
     }
@@ -271,19 +281,20 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     public void handleLocalInputTransition(BroomInputTransition transition, long actionSequence) {
         if (transition == BroomInputTransition.CANCEL) {
             cancelLocalGlide();
-        } else if (transition == BroomInputTransition.RELEASE && localGlideActive) {
-            localGlideActive = false;
+        } else if (transition == BroomInputTransition.RELEASE
+                && localReleaseState == LocalReleaseState.GLIDING) {
+            localReleaseState = LocalReleaseState.AWAITING_RESULT;
             pendingReleaseSequence = actionSequence;
-            pendingReleaseTicks = 0;
         }
     }
 
     public void acceptLocalReleaseResult(long sequence, boolean accepted, double minimumHorizontalSpeed) {
-        if (sequence != pendingReleaseSequence) {
+        if (localReleaseState != LocalReleaseState.AWAITING_RESULT
+                || sequence != pendingReleaseSequence) {
             return;
         }
+        localReleaseState = LocalReleaseState.IDLE;
         pendingReleaseSequence = Long.MIN_VALUE;
-        pendingReleaseTicks = 0;
         if (accepted) {
             var released = HoverrideBroomMovement.releaseHorizontal(
                     localInertia,
@@ -308,14 +319,8 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
 
         if (isDamaged()) {
             cancelLocalGlide();
-        } else if (isManaDepleted() && localGlideActive) {
-            localGlideActive = false;
-            localInertia = Vec3.ZERO;
-        }
-        if (pendingReleaseSequence != Long.MIN_VALUE
-                && ++pendingReleaseTicks > RELEASE_RESPONSE_TIMEOUT_TICKS) {
-            pendingReleaseSequence = Long.MIN_VALUE;
-            pendingReleaseTicks = 0;
+        } else if (isManaDepleted() && localReleaseState == LocalReleaseState.GLIDING) {
+            localReleaseState = LocalReleaseState.IDLE;
             localInertia = Vec3.ZERO;
         }
 
@@ -323,7 +328,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         localAirborneTicks = surface.isPresent() ? 0 : Math.min(AIRBORNE_GRACE_TICKS, localAirborneTicks + 1);
 
         var movement = getDeltaMovement();
-        var gliding = localGlideActive || pendingReleaseSequence != Long.MIN_VALUE;
+        var gliding = localReleaseState.preservesInertia();
         var horizontal = gliding
                 ? localInertia
                 : localReleaseImpulsePending
@@ -370,6 +375,15 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     @Override
     protected double maximumInheritedDismountHorizontalSpeed() {
         return HoverrideBroomMovement.MAX_HORIZONTAL_SPEED;
+    }
+
+    @Override
+    protected void removePassenger(@NotNull Entity passenger) {
+        super.removePassenger(passenger);
+        if (level().isClientSide && !isVehicle()) {
+            // 応答待機中に降車した場合、後から届く解除結果を次の騎乗へ持ち越さない。
+            cancelLocalGlide();
+        }
     }
 
     @Override
@@ -645,10 +659,9 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     }
 
     private void cancelLocalGlide() {
-        localGlideActive = false;
+        localReleaseState = LocalReleaseState.IDLE;
         localInertia = Vec3.ZERO;
         pendingReleaseSequence = Long.MIN_VALUE;
-        pendingReleaseTicks = 0;
         localReleaseImpulsePending = false;
     }
 

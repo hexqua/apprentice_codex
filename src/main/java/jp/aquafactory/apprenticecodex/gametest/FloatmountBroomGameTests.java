@@ -219,6 +219,33 @@ public final class FloatmountBroomGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void hoverrideLocalReleaseWaitsForItsMatchingResult(GameTestHelper helper) {
+        var broom = spawnHoverrideBroom(helper, 1.5D);
+        var player = serverRider(helper);
+        var magicData = magicData(helper, player);
+        magicData.setMana(1000.0F);
+        helper.assertTrue(player.startRiding(broom, true), "Hoverride delayed release test rider should mount");
+
+        broom.setYRot(0.0F);
+        broom.setDeltaMovement(0.1D, 0.0D, 0.0D);
+        broom.setLocalInput(0.0F, 0.0F, true, false);
+        broom.handleLocalInputTransition(BroomInputTransition.RELEASE, 42L);
+
+        // 旧実装の20 client tick相当を超えても、serverで確定した解除結果との相関を維持する。
+        for (var i = 0; i < 25; ++i) {
+            broom.tick();
+        }
+        broom.acceptLocalReleaseResult(41L, true, 0.4D);
+        helper.assertTrue(broom.getDeltaMovement().equals(Vec3.ZERO),
+                "A mismatched Hoverride release result must not apply an impulse");
+
+        broom.acceptLocalReleaseResult(42L, true, 0.4D);
+        helper.assertTrue(Math.abs(broom.getDeltaMovement().horizontalDistance() - 0.4D) < 1.0e-6D,
+                "A delayed matching Hoverride release result should still apply its impulse");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void hoverrideCancelDoesNotTriggerReleaseCost(GameTestHelper helper) {
         var config = new HoverrideBroomServerConfig.Values(1.0D, 0.5D, 50.0D, 0.5D, 20.0D);
         try (var ignored = ApprenticeCodexServerConfig.useHoverrideBroomConfigOverrideForGameTest(config)) {
