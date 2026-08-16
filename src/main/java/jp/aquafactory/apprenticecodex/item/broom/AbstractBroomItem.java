@@ -1,7 +1,6 @@
-package jp.aquafactory.apprenticecodex.item;
+package jp.aquafactory.apprenticecodex.item.broom;
 
-import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomEntity;
-import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.entity.broom.AbstractBroomEntity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
@@ -27,11 +26,11 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
 
-public class FloatmountBroomItem extends Item implements GeoItem {
+public abstract class AbstractBroomItem extends Item implements GeoItem {
     private static final RawAnimation STATIC = RawAnimation.begin().thenLoop("mount");
     private final AnimatableInstanceCache animationCache = GeckoLibUtil.createInstanceCache(this);
 
-    public FloatmountBroomItem() {
+    protected AbstractBroomItem() {
         super(new Properties().stacksTo(1));
         GeoItem.registerSyncedAnimatable(this);
     }
@@ -55,7 +54,7 @@ public class FloatmountBroomItem extends Item implements GeoItem {
             }
         }
 
-        var broom = new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), level);
+        var broom = createBroom(level);
         var customName = stack.get(DataComponents.CUSTOM_NAME);
         broom.setCustomName(customName);
         broom.setCustomNameVisible(customName != null);
@@ -80,25 +79,20 @@ public class FloatmountBroomItem extends Item implements GeoItem {
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
     }
 
-    @Override
-    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context,
-                                @NotNull List<Component> tooltipComponents, @NotNull TooltipFlag tooltipFlag) {
+    protected abstract AbstractBroomEntity createBroom(Level level);
+
+    protected static void appendPlacementAndRecoveryTooltip(
+            @NotNull List<Component> tooltipComponents,
+            String keyPrefix
+    ) {
         tooltipComponents.add(Component.translatable(
-                "item.apprenticecodex.floatmount_broom.desc_1",
+                keyPrefix + ".desc_1",
                 Component.keybind("key.use")
         ).withStyle(ChatFormatting.GRAY));
         tooltipComponents.add(Component.translatable(
-                "item.apprenticecodex.floatmount_broom.desc_2",
+                keyPrefix + ".desc_2",
                 Component.keybind("key.sneak"),
                 Component.keybind("key.use")
-        ).withStyle(ChatFormatting.GRAY));
-        tooltipComponents.add(Component.translatable(
-                "item.apprenticecodex.floatmount_broom.desc_3",
-                Component.literal(Integer.toString(FloatmountBroomConfigState.normalFlightManaThreshold()))
-                        .withStyle(ChatFormatting.AQUA)
-        ).withStyle(ChatFormatting.GRAY));
-        tooltipComponents.add(Component.translatable(
-                "item.apprenticecodex.floatmount_broom.desc_4"
         ).withStyle(ChatFormatting.GRAY));
     }
 

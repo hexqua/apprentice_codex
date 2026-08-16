@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "H": {
+      "item": "minecraft:hay_block"
+    },
+    "I": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "L": {
+      "item": "irons_spellbooks:lightning_rune"
+    },
+    "P": {
+      "item": "minecraft:phantom_membrane"
+    },
+    "W": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "pattern": [
+    " PW",
+    "LWP",
+    "HI "
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:hoverride_broom"
+  }
+}

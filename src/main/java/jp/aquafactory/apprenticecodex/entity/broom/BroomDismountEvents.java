@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.entity.floatmountbroom;
+package jp.aquafactory.apprenticecodex.entity.broom;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -18,19 +18,19 @@ import java.util.Set;
 import java.util.UUID;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
-public final class FloatmountBroomDismountEvents {
+public final class BroomDismountEvents {
     private static final Map<UUID, Confirmation> CONFIRMATIONS = new HashMap<>();
     private static final Map<UUID, SneakInput> SNEAK_INPUTS = new HashMap<>();
     private static final Set<UUID> AUTHORIZED_DISMOUNTS = new HashSet<>();
 
-    private FloatmountBroomDismountEvents() {
+    private BroomDismountEvents() {
     }
 
     @SubscribeEvent
     public static void onDismount(EntityMountEvent event) {
         if (!event.isDismounting() || event.getLevel().isClientSide
                 || !(event.getEntityMounting() instanceof Player player)
-                || !(event.getEntityBeingMounted() instanceof FloatmountBroomEntity broom)
+                || !(event.getEntityBeingMounted() instanceof AbstractBroomEntity broom)
                 || broom.isBreaking() || !player.isAlive()) {
             return;
         }
@@ -59,7 +59,7 @@ public final class FloatmountBroomDismountEvents {
         }
     }
 
-    public static void handleSneakInput(Player player, FloatmountBroomEntity broom, boolean pressed) {
+    public static void handleSneakInput(Player player, AbstractBroomEntity broom, boolean pressed) {
         if (player.level().isClientSide || player.getVehicle() != broom || broom.getControllingPassenger() != player) {
             return;
         }
@@ -109,11 +109,11 @@ public final class FloatmountBroomDismountEvents {
             return;
         }
         var now = player.level().getGameTime();
-        if (!(player.getVehicle() instanceof FloatmountBroomEntity)
+        if (!(player.getVehicle() instanceof AbstractBroomEntity)
                 || !player.isAlive()) {
             clear(playerId);
         } else if (confirmation != null
-                && now - confirmation.warningTick > FloatmountBroomEntity.DISMOUNT_CONFIRM_TICKS) {
+                && now - confirmation.warningTick > AbstractBroomEntity.DISMOUNT_CONFIRM_TICKS) {
             CONFIRMATIONS.remove(playerId);
         }
     }
@@ -123,21 +123,21 @@ public final class FloatmountBroomDismountEvents {
         clear(event.getEntity().getUUID());
     }
 
-    private static boolean isActive(Confirmation confirmation, FloatmountBroomEntity broom, long now) {
+    private static boolean isActive(Confirmation confirmation, AbstractBroomEntity broom, long now) {
         return confirmation != null
                 && confirmation.broomId.equals(broom.getUUID())
-                && now - confirmation.warningTick <= FloatmountBroomEntity.DISMOUNT_CONFIRM_TICKS;
+                && now - confirmation.warningTick <= AbstractBroomEntity.DISMOUNT_CONFIRM_TICKS;
     }
 
-    private static void beginConfirmation(Player player, FloatmountBroomEntity broom, long now) {
+    private static void beginConfirmation(Player player, AbstractBroomEntity broom, long now) {
         CONFIRMATIONS.put(player.getUUID(), new Confirmation(broom.getUUID(), now, false));
         player.displayClientMessage(Component.translatable(
-                "ui.apprenticecodex.floatmount_broom.warning_dismount",
+                broom.messageKeys().warningDismount(),
                 Component.keybind("key.sneak")
         ).withStyle(ChatFormatting.YELLOW), true);
-        FloatmountBroomEntity.playPlayerNotification(
+        AbstractBroomEntity.playPlayerNotification(
                 player,
-                SoundRegistry.VANILLA_FLOATMOUNT_BROOM_WARNING.get()
+                SoundRegistry.VANILLA_BROOM_WARNING.get()
         );
     }
 

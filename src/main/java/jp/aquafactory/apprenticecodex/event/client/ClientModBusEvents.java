@@ -60,6 +60,8 @@ import jp.aquafactory.apprenticecodex.renderer.item.DiamondSpellcasterGunRendere
 import jp.aquafactory.apprenticecodex.renderer.item.ElementalBowRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.FloatmountBroomItemRenderer;
 import jp.aquafactory.apprenticecodex.renderer.entity.FloatmountBroomRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.HoverrideBroomItemRenderer;
+import jp.aquafactory.apprenticecodex.renderer.entity.HoverrideBroomRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.ExplorersCaneRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.FocusStaffbowRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.GoldSpellcasterGunRenderer;
@@ -369,6 +371,17 @@ public final class ClientModBusEvents {
                 return renderer;
             }
         }, ItemRegistry.FLOATMOUNT_BROOM.get());
+        event.registerItem(new IClientItemExtensions() {
+            private HoverrideBroomItemRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new HoverrideBroomItemRenderer();
+                }
+                return renderer;
+            }
+        }, ItemRegistry.HOVERRIDE_BROOM.get());
         event.registerItem(new IClientItemExtensions() {
             private LuminousDeviceRenderer renderer;
 
@@ -722,8 +735,8 @@ public final class ClientModBusEvents {
     private static void registerGuiLayers(RegisterGuiLayersEvent event) {
         event.registerBelow(
                 VanillaGuiLayers.AIR_LEVEL,
-                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "floatmount_broom_durability"),
-                FloatmountBroomDurabilityHud.INSTANCE
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "broom_durability"),
+                BroomDurabilityHud.INSTANCE
         );
     }
 
@@ -859,6 +872,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.FUJIN_KATANA.get(), FujinKatanaRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FUJIN_SLASH_PROJECTILE.get(), FujinSlashProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FLOATMOUNT_BROOM.get(), FloatmountBroomRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.HOVERRIDE_BROOM.get(), HoverrideBroomRenderer::new);
     }
 }
 

@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomEntity;
+import jp.aquafactory.apprenticecodex.entity.broom.AbstractBroomEntity;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -11,8 +11,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
-public final class FloatmountBroomDurabilityHud implements LayeredDraw.Layer {
-    public static final FloatmountBroomDurabilityHud INSTANCE = new FloatmountBroomDurabilityHud();
+public final class BroomDurabilityHud implements LayeredDraw.Layer {
+    public static final BroomDurabilityHud INSTANCE = new BroomDurabilityHud();
 
     private static final ResourceLocation CONTAINER = texture("broom_durability_container.png");
     private static final ResourceLocation FULL = texture("broom_durability_full.png");
@@ -28,7 +28,7 @@ public final class FloatmountBroomDurabilityHud implements LayeredDraw.Layer {
     private int lastBroomId = -1;
     private int lastDurabilitySteps = -1;
 
-    private FloatmountBroomDurabilityHud() {
+    private BroomDurabilityHud() {
     }
 
     @Override
@@ -36,7 +36,7 @@ public final class FloatmountBroomDurabilityHud implements LayeredDraw.Layer {
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         if (minecraft.options.hideGui || player == null || player.isSpectator()
-                || !(player.getVehicle() instanceof FloatmountBroomEntity broom)) {
+                || !(player.getVehicle() instanceof AbstractBroomEntity broom)) {
             resetTracking();
             return;
         }
