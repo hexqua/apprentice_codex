@@ -70,6 +70,7 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> REVOLVE = reg("revolve");
     public static final RegistryObject<SoundEvent> AMETHYST_FIST = reg("amethyst_fist");
     public static final RegistryObject<SoundEvent> MANA_JET = reg("mana_jet");
+    public static final RegistryObject<SoundEvent> BROOM_ACCELERATE = reg("broom_accelerate");
     public static final RegistryObject<SoundEvent> MIRAGE = reg("mirage");
     public static final RegistryObject<SoundEvent> FULLAUTO_RIFLE = reg("fullauto_rifle");
     public static final RegistryObject<SoundEvent> SMG = reg("smg");
@@ -98,6 +99,9 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> VANILLA_BROOM_WARNING = reg("vanilla_broom_warning");
     public static final RegistryObject<SoundEvent> VANILLA_BROOM_EMERGENCY = reg("vanilla_broom_emergency");
     public static final RegistryObject<SoundEvent> VANILLA_BROOM_MOUNT_REJECT = reg("vanilla_broom_mount_reject");
+    public static final RegistryObject<SoundEvent> VANILLA_BROOM_PROPULSION_LOST = reg("vanilla_broom_propulsion_lost");
+    public static final RegistryObject<SoundEvent> VANILLA_BROOM_PROPULSION_RECOVERED = reg("vanilla_broom_propulsion_recovered");
+    public static final RegistryObject<SoundEvent> VANILLA_BROOM_IMPULSE = reg("vanilla_broom_impulse");
     public static final RegistryObject<SoundEvent> VANILLA_POWER_TUNING = reg("vanilla_power_tuning");
     public static final RegistryObject<SoundEvent> VANILLA_INTERFACE_OPEN = reg("vanilla_interface_open");
     public static final RegistryObject<SoundEvent> VANILLA_START_SEARCH = reg("vanilla_start_search");

@@ -57,6 +57,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterActivePacke
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFloatmountBroomConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomReleaseResultPacket;
+import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomImpulseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMirageAvoidanceStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatStatePacket;
@@ -84,7 +85,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "84";
+    private static final String PROTOCOL_VERSION = "85";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -256,6 +257,14 @@ public final class Networks {
                 HoverrideBroomReleaseResultPacket::encode,
                 HoverrideBroomReleaseResultPacket::decode,
                 HoverrideBroomReleaseResultPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                HoverrideBroomImpulseEffectPacket.class,
+                HoverrideBroomImpulseEffectPacket::encode,
+                HoverrideBroomImpulseEffectPacket::decode,
+                HoverrideBroomImpulseEffectPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
         CHANNEL.registerMessage(

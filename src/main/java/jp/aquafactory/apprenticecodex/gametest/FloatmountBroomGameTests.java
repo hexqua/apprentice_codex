@@ -15,12 +15,14 @@ import jp.aquafactory.apprenticecodex.entity.broom.FloatmountBroomEntity;
 import jp.aquafactory.apprenticecodex.entity.broom.BroomSurfaceScanner;
 import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomEntity;
 import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomMovement;
+import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomPresentation;
 import jp.aquafactory.apprenticecodex.item.broom.FloatmountBroomItem;
 import jp.aquafactory.apprenticecodex.item.broom.HoverrideBroomItem;
 import jp.aquafactory.apprenticecodex.item.FloatmountBroomConfigState;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFloatmountBroomConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBroomInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomReleaseResultPacket;
+import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomImpulseEffectPacket;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
@@ -176,7 +178,7 @@ public final class FloatmountBroomGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void hoverrideReleaseRequiresOneSuccessfulServerTick(GameTestHelper helper) {
-        var config = new HoverrideBroomServerConfig.Values(1.0D, 0.5D, 50.0D, 0.5D);
+        var config = new HoverrideBroomServerConfig.Values(1.0D, 0.5D, 50.0D, 0.5D, 20.0D);
         try (var ignored = ApprenticeCodexServerConfig.useHoverrideBroomConfigOverrideForGameTest(config)) {
             var broom = spawnHoverrideBroom(helper, 1.5D);
             var player = serverRider(helper);
@@ -217,7 +219,7 @@ public final class FloatmountBroomGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void hoverrideCancelDoesNotTriggerReleaseCost(GameTestHelper helper) {
-        var config = new HoverrideBroomServerConfig.Values(1.0D, 0.5D, 50.0D, 0.5D);
+        var config = new HoverrideBroomServerConfig.Values(1.0D, 0.5D, 50.0D, 0.5D, 20.0D);
         try (var ignored = ApprenticeCodexServerConfig.useHoverrideBroomConfigOverrideForGameTest(config)) {
             var broom = spawnHoverrideBroom(helper, 1.5D);
             var player = serverRider(helper);
@@ -241,7 +243,7 @@ public final class FloatmountBroomGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void hoverrideActionSequenceResetsForTheNextRider(GameTestHelper helper) {
-        var config = new HoverrideBroomServerConfig.Values(1.0D, 0.0D, 10.0D, 0.5D);
+        var config = new HoverrideBroomServerConfig.Values(1.0D, 0.0D, 10.0D, 0.5D, 20.0D);
         try (var ignored = ApprenticeCodexServerConfig.useHoverrideBroomConfigOverrideForGameTest(config)) {
             var broom = spawnHoverrideBroom(helper, 1.5D);
             var firstRider = serverRider(helper);
@@ -270,7 +272,7 @@ public final class FloatmountBroomGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void hoverrideReleaseDepletionAndRecoveryUseConfiguredCost(GameTestHelper helper) {
-        var config = new HoverrideBroomServerConfig.Values(1.0D, 0.0D, 50.0D, 0.5D);
+        var config = new HoverrideBroomServerConfig.Values(1.0D, 0.0D, 50.0D, 0.5D, 20.0D);
         try (var ignored = ApprenticeCodexServerConfig.useHoverrideBroomConfigOverrideForGameTest(config)) {
             var broom = spawnHoverrideBroom(helper, 1.5D);
             var player = serverRider(helper);
@@ -287,6 +289,8 @@ public final class FloatmountBroomGameTests {
                     "An exact-cost Hoverride release should consume all remaining mana");
             helper.assertTrue(broom.isManaDepleted(),
                     "An exact-cost Hoverride release should enter depleted mode");
+            helper.assertTrue(broom.shouldFlashCoreWarning(),
+                    "Hoverride depleted mode should activate the core warning flash");
 
             magicData.setMana(49.999F);
             broom.tick();
@@ -296,10 +300,16 @@ public final class FloatmountBroomGameTests {
             broom.tick();
             helper.assertFalse(broom.isManaDepleted(),
                     "Hoverride depleted mode should recover at the configured release cost");
+            helper.assertFalse(broom.shouldFlashCoreWarning(),
+                    "Recovering Hoverride propulsion should clear the core warning flash");
 
             magicData.setMana(0.0F);
+            broom.acceptServerInput(player, 0.0F, -1.0F, false, false,
+                    BroomInputTransition.NONE, 0L);
             broom.tick();
             helper.assertTrue(broom.isManaDepleted(), "Zero mana should enter Hoverride depleted mode");
+            helper.assertTrue(broom.getPresentationState() == HoverrideBroomPresentation.BRAKING,
+                    "Hoverride braking feedback should remain active while mana is depleted");
             player.stopRiding();
             helper.assertFalse(broom.isManaDepleted(), "Dismounting should clear Hoverride depleted mode");
         }
@@ -321,6 +331,80 @@ public final class FloatmountBroomGameTests {
         HoverrideBroomReleaseResultPacket.encode(result, resultBuffer);
         helper.assertTrue(result.equals(HoverrideBroomReleaseResultPacket.decode(resultBuffer)),
                 "Hoverride release result packet should round-trip");
+
+        var effectBuffer = new FriendlyByteBuf(Unpooled.buffer());
+        var effect = new HoverrideBroomImpulseEffectPacket(
+                new Vec3(1.25D, 2.5D, -3.75D),
+                new Vec3(4.0D, 0.0D, 3.0D)
+        );
+        HoverrideBroomImpulseEffectPacket.encode(effect, effectBuffer);
+        helper.assertTrue(effect.equals(HoverrideBroomImpulseEffectPacket.decode(effectBuffer)),
+                "Hoverride impulse effect packet should round-trip");
+        var sanitizedEffect = new HoverrideBroomImpulseEffectPacket(
+                new Vec3(Double.NaN, Double.POSITIVE_INFINITY, 2.0D),
+                Vec3.ZERO
+        );
+        helper.assertTrue(sanitizedEffect.center().equals(new Vec3(0.0D, 0.0D, 2.0D))
+                        && sanitizedEffect.direction().equals(new Vec3(0.0D, 0.0D, 1.0D)),
+                "Hoverride impulse effect packet should sanitize invalid presentation data");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void hoverrideLowManaWarningRearmsAtReleaseCost(GameTestHelper helper) {
+        var config = new HoverrideBroomServerConfig.Values(1.0D, 0.0D, 50.0D, 0.5D, 20.0D);
+        try (var ignored = ApprenticeCodexServerConfig.useHoverrideBroomConfigOverrideForGameTest(config)) {
+            var broom = spawnHoverrideBroom(helper, 1.5D);
+            var player = serverRider(helper);
+            var magicData = magicData(helper, player);
+            magicData.setMana(70.0F);
+            helper.assertTrue(player.startRiding(broom, true), "Hoverride low mana warning rider should mount");
+
+            broom.acceptServerInput(player, 0.0F, 0.0F, true, false,
+                    BroomInputTransition.NONE, 0L);
+            broom.tick();
+            broom.acceptServerInput(player, 0.0F, 0.0F, false, false,
+                    BroomInputTransition.RELEASE, 1L);
+            helper.assertTrue(broom.isLowManaWarningShown(),
+                    "Hoverride should warn when release consumption reaches the configured low mana threshold");
+
+            magicData.setMana(49.0F);
+            broom.tick();
+            helper.assertTrue(broom.isLowManaWarningShown(),
+                    "Hoverride low mana warning should remain latched below the recovery threshold");
+            magicData.setMana(50.0F);
+            broom.tick();
+            helper.assertFalse(broom.isLowManaWarningShown(),
+                    "Hoverride low mana warning should rearm at the configured release cost");
+            magicData.setMana(20.0F);
+            broom.tick();
+            helper.assertTrue(broom.isLowManaWarningShown(),
+                    "Hoverride should warn again after the low mana warning has rearmed");
+
+            player.stopRiding();
+            helper.assertFalse(broom.isLowManaWarningShown(),
+                    "Dismounting should rearm the Hoverride low mana warning");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void hoverridePresentationPrioritizesAcceptedControlStates(GameTestHelper helper) {
+        helper.assertTrue(HoverrideBroomPresentation.resolve(1.0F, true, true)
+                        == HoverrideBroomPresentation.GLIDING,
+                "Hoverride glide presentation should suppress acceleration feedback");
+        helper.assertTrue(HoverrideBroomPresentation.resolve(-1.0F, false, false)
+                        == HoverrideBroomPresentation.BRAKING,
+                "Hoverride braking feedback should remain available without acceleration");
+        helper.assertTrue(HoverrideBroomPresentation.resolve(1.0F, false, true)
+                        == HoverrideBroomPresentation.ACCELERATING,
+                "Hoverride valid forward input should show acceleration feedback");
+        helper.assertTrue(HoverrideBroomPresentation.resolve(1.0F, false, false)
+                        == HoverrideBroomPresentation.NORMAL,
+                "Hoverride invalid forward input must not show acceleration feedback");
+        helper.assertTrue(HoverrideBroomPresentation.fromId(Integer.MAX_VALUE)
+                        == HoverrideBroomPresentation.NORMAL,
+                "Unknown Hoverride presentation ids should safely fall back to normal");
         helper.succeed();
     }
 

@@ -291,10 +291,15 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
                 .add(0.0D, REAR_PARTICLE_Y_OFFSET, 0.0D);
     }
 
-    private void spawnFlightParticles() {
+    protected void spawnFlightParticles() {
         var forcedLanding = isForcedLanding();
-        // W増量は見た目だけのため、serverや他clientへ入力状態を同期してまで再現しない。
+        // FloatmountのW増量は見た目だけのため、serverや他clientへ入力状態を同期してまで再現しない。
         var forwardBoost = !forcedLanding && isControlledByLocalInstance() && localForwardInput > INPUT_EPSILON;
+        spawnDefaultFlightParticles(forwardBoost);
+    }
+
+    protected final void spawnDefaultFlightParticles(boolean forwardBoost) {
+        var forcedLanding = isForcedLanding();
         if (forwardBoost) {
             spawnFlightParticles(ParticleRegistry.ADDITIVE_SPARK.get(), FORWARD_SPARK_COUNT);
             if (tickCount % FORWARD_RHOMBUS_INTERVAL_TICKS == 0) {
@@ -947,7 +952,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         }
     }
 
-    private void playBroomSound(SoundEvent sound) {
+    protected final void playBroomSound(SoundEvent sound) {
         level().playSound(null, getX(), getY(), getZ(), sound, SoundSource.PLAYERS, 1.0F, 1.0F);
     }
 
@@ -992,6 +997,18 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
 
     public boolean isForcedLanding() {
         return isManaEmergencyLanding() || isDamaged();
+    }
+
+    public boolean shouldFlashCoreWarning() {
+        return isForcedLanding();
+    }
+
+    public final boolean isLowManaWarningShown() {
+        return lowManaWarningShown;
+    }
+
+    protected final void setLowManaWarningShown(boolean value) {
+        lowManaWarningShown = value;
     }
 
     public boolean isBreaking() {
