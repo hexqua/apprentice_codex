@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.block.ArcanumInAJarServerConfig;
 import jp.aquafactory.apprenticecodex.config.block.AlchemyBrewerServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.HoverrideBroomServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
@@ -713,6 +714,10 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.floatmountBroomConfig();
     }
 
+    public static HoverrideBroomServerConfig.Values hoverrideBroomConfig() {
+        return ITEMS_CONFIG.hoverrideBroomConfig();
+    }
+
     public static int multicastEchoStaffDelayTicks() {
         return ITEMS_CONFIG.multicastEchoStaffDelayTicks();
     }
@@ -1192,6 +1197,14 @@ public final class ApprenticeCodexServerConfig {
         var previous = ITEMS_CONFIG.floatmountBroomConfig();
         ITEMS_CONFIG.setFloatmountBroomConfigForGameTest(values);
         return () -> ITEMS_CONFIG.setFloatmountBroomConfigForGameTest(previous);
+    }
+
+    public static GameTestConfigOverride useHoverrideBroomConfigOverrideForGameTest(
+            HoverrideBroomServerConfig.Values values
+    ) {
+        var previous = ITEMS_CONFIG.hoverrideBroomConfig();
+        ITEMS_CONFIG.setHoverrideBroomConfigForGameTest(values);
+        return () -> ITEMS_CONFIG.setHoverrideBroomConfigForGameTest(previous);
     }
 
     public static GameTestConfigOverride useMagiCompressorGadgetConfigOverrideForGameTest(
