@@ -47,6 +47,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncChargecastCatalystbookC
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFloatmountBroomConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomReleaseResultPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncInstantSearchBrazierConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
@@ -80,7 +81,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "83";
+    private static final String PROTOCOL_VERSION = "84";
 
     private Networks() {
     }
@@ -165,6 +166,11 @@ public final class Networks {
                 ClientBroomInputPacket.TYPE,
                 ClientBroomInputPacket.STREAM_CODEC,
                 ClientBroomInputPacket::handle
+        );
+        registrar.playToClient(
+                HoverrideBroomReleaseResultPacket.TYPE,
+                HoverrideBroomReleaseResultPacket.STREAM_CODEC,
+                HoverrideBroomReleaseResultPacket::handle
         );
         registrar.playToServer(
                 ClientBroomDismountInputPacket.TYPE,

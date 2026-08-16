@@ -213,12 +213,12 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
             if (level().isClientSide && isControlledByLocalInstance()) {
                 applyControlledMovement();
             } else if (!level().isClientSide && getControllingPassenger() instanceof Player player) {
-                tickServerManaState(player);
+                tickControlledServer(player);
                 setDeltaMovement(Vec3.ZERO);
             }
         } else {
             if (!level().isClientSide) {
-                resetManaFlightState();
+                resetRidingState();
             }
             applyUnoccupiedMovement();
         }
@@ -364,7 +364,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         );
     }
 
-    private Vec3 getForwardDirection() {
+    protected final Vec3 getForwardDirection() {
         var yaw = getYRot() * Mth.DEG_TO_RAD;
         return new Vec3(-Mth.sin(yaw), 0.0D, Mth.cos(yaw));
     }
@@ -405,7 +405,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         return lerpSteps > 0 ? lerpZ : getZ();
     }
 
-    private void applyControlledMovement() {
+    protected void applyControlledMovement() {
         turnSpeed = Mth.clamp((turnSpeed + localStrafeInput * TURN_ACCELERATION) * TURN_DAMPING,
                 -MAX_TURN_SPEED, MAX_TURN_SPEED);
         setYRot(getYRot() + turnSpeed);
@@ -437,7 +437,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         move(MoverType.SELF, getDeltaMovement());
     }
 
-    private void applyUnoccupiedMovement() {
+    protected void applyUnoccupiedMovement() {
         var movement = getDeltaMovement();
         var horizontal = new Vec3(movement.x * COAST_HORIZONTAL_DAMPING, 0.0D,
                 movement.z * COAST_HORIZONTAL_DAMPING);
@@ -545,7 +545,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         }
         setDamage(getMaxDamage());
         setDamaged(true);
-        clearServerInput();
+        clearRidingInput();
         playBroomSound(SoundRegistry.VANILLA_BROOM_CRITICAL_DAMAGE.get());
         playBroomSound(SoundRegistry.VANILLA_BROOM_EMERGENCY.get());
         if (getControllingPassenger() instanceof Player player) {
@@ -602,7 +602,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
             if (!canMountWithCurrentMana(player)) {
                 return InteractionResult.CONSUME;
             }
-            resetManaFlightState();
+            resetRidingState();
             player.startRiding(this);
         }
         return InteractionResult.SUCCESS;
@@ -637,7 +637,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     protected void removePassenger(@NotNull Entity passenger) {
         super.removePassenger(passenger);
         if (!level().isClientSide && !isVehicle()) {
-            resetManaFlightState();
+            resetRidingState();
         }
     }
 
@@ -757,6 +757,18 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
             boolean ascending,
             boolean descending
     ) {
+        acceptServerInput(player, strafe, forward, ascending, descending, BroomInputTransition.NONE, 0L);
+    }
+
+    public void acceptServerInput(
+            Player player,
+            float strafe,
+            float forward,
+            boolean ascending,
+            boolean descending,
+            BroomInputTransition transition,
+            long actionSequence
+    ) {
         if (player.getVehicle() != this || getControllingPassenger() != player) {
             return;
         }
@@ -790,16 +802,16 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         return false;
     }
 
-    private void tickServerManaState(Player player) {
+    protected void tickControlledServer(Player player) {
         if (player.getAbilities().instabuild) {
-            resetManaFlightState();
+            resetRidingState();
             return;
         }
 
         var now = level().getGameTime();
         if (lastServerInputGameTime == Long.MIN_VALUE
                 || now - lastServerInputGameTime > SERVER_INPUT_TIMEOUT_TICKS) {
-            clearServerInput();
+            clearRidingInput();
         }
 
         var magicData = MagicData.getPlayerMagicData(player);
@@ -862,11 +874,11 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         return serverAscending ? Math.max(0.0F, (float)config.ascendingManaCostPerTick()) : 0.0F;
     }
 
-    private static float sanitizeInput(float input) {
+    protected static float sanitizeInput(float input) {
         return Float.isFinite(input) ? Mth.clamp(input, -1.0F, 1.0F) : 0.0F;
     }
 
-    private static void syncMana(Player player, MagicData magicData) {
+    protected static void syncMana(Player player, MagicData magicData) {
         if (player instanceof ServerPlayer serverPlayer && !(serverPlayer instanceof FakePlayer)) {
             PacketDistributor.sendToPlayer(serverPlayer, new SyncManaPacket(magicData));
         }
@@ -882,18 +894,21 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         }
     }
 
-    private void resetManaFlightState() {
+    protected void resetRidingState() {
         setManaEmergencyLanding(false);
         lowManaWarningShown = false;
-        clearServerInput();
+        clearRidingInput();
     }
 
-    private void clearServerInput() {
+    protected void clearRidingInput() {
         localStrafeInput = 0.0F;
         serverForwardInput = 0.0F;
         serverAscending = false;
         descendingInput = false;
         lastServerInputGameTime = Long.MIN_VALUE;
+    }
+
+    public void handleLocalInputTransition(BroomInputTransition transition, long actionSequence) {
     }
 
     public boolean isManaEmergencyLanding() {
