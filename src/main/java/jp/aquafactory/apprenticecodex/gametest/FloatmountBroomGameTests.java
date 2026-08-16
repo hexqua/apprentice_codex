@@ -36,6 +36,7 @@ import net.minecraft.network.chat.contents.KeybindContents;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageTypes;
@@ -327,6 +328,38 @@ public final class FloatmountBroomGameTests {
     public static void dismountPreservesServerObservedBroomMovement(GameTestHelper helper) {
         assertDismountPreservesMovement(helper, spawnBroom(helper, 1.5D), "Floatmount");
         assertDismountPreservesMovement(helper, spawnHoverrideBroom(helper, 1.5D), "Hoverride");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void hoverridePassengerStandsAndSmoothlyFollowsBroomYaw(GameTestHelper helper) {
+        var floatmount = spawnBroom(helper, 1.5D);
+        var hoverride = spawnHoverrideBroom(helper, 1.5D);
+        helper.assertTrue(floatmount.shouldRiderSit(), "Floatmount Broom should retain its seated rider pose");
+        helper.assertFalse(hoverride.shouldRiderSit(), "Hoverride Broom should render its rider standing");
+
+        var floatmountPlayer = serverRider(helper);
+        helper.assertTrue(floatmountPlayer.startRiding(floatmount, true), "Floatmount pose reference rider should mount");
+        floatmount.positionRider(floatmountPlayer);
+        var player = serverRider(helper);
+        player.setYRot(0.0F);
+        helper.assertTrue(player.startRiding(hoverride, true), "Hoverride yaw-follow rider should mount");
+        hoverride.setYRot(0.0F);
+        hoverride.positionRider(player);
+        helper.assertTrue(Math.abs(player.getY() - floatmountPlayer.getY() - 0.625D) < 1.0e-6D,
+                "Hoverride standing rider should receive its dedicated vertical position correction");
+
+        hoverride.setYRot(60.0F);
+        hoverride.positionRider(player);
+        helper.assertTrue(player.getYRot() > 20.0F && player.getYRot() < 30.0F,
+                "Hoverride yaw follow should begin smoothly instead of snapping");
+        for (var tick = 1; tick < 6; tick++) {
+            hoverride.positionRider(player);
+        }
+        helper.assertTrue(Math.abs(Mth.wrapDegrees(player.getYRot() - 60.0F)) < 4.0F,
+                "Hoverride rider view should substantially follow a turn within six ticks");
+        helper.assertTrue(Math.abs(Mth.wrapDegrees(player.getYHeadRot() - player.getYRot())) < 1.0e-4F,
+                "Hoverride rider head should follow the adjusted camera yaw");
         helper.succeed();
     }
 

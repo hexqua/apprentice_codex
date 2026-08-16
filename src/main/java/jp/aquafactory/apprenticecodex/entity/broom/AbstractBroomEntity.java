@@ -98,7 +98,8 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     private static final String DAMAGE_TAG = "Damage";
     private static final String DAMAGED_TAG = "Damaged";
     /**
-     * 箒のEntity原点から乗員のvehicle attachmentまでの高さ。モデル調整ではこの値だけを変更する。
+     * 箒のEntity原点から乗員のvehicle attachmentまでの基準高さ。
+     * 箒ごとの姿勢差は{@link #passengerAttachmentYOffset()}で追加補正する。
      */
     public static final float RIDER_ATTACHMENT_Y = 0.05F;
     private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
@@ -706,12 +707,21 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     @Override
     protected void positionRider(@NotNull Entity passenger, @NotNull MoveFunction moveFunction) {
         if (hasPassenger(passenger)) {
-            moveFunction.accept(passenger, getX(), getY() + RIDER_ATTACHMENT_Y, getZ());
-            clampPassengerRotation(passenger);
+            moveFunction.accept(passenger, getX(),
+                    getY() + RIDER_ATTACHMENT_Y + passengerAttachmentYOffset(), getZ());
+            updatePassengerRotation(passenger);
         }
     }
 
-    private void clampPassengerRotation(Entity passenger) {
+    protected double passengerAttachmentYOffset() {
+        return 0.0D;
+    }
+
+    protected void updatePassengerRotation(Entity passenger) {
+        clampPassengerRotation(passenger);
+    }
+
+    protected final void clampPassengerRotation(Entity passenger) {
         var center = getYRot() - 90.0F;
         passenger.setYRot(center + Mth.clamp(Mth.wrapDegrees(passenger.getYRot() - center), -105.0F, 105.0F));
         passenger.setYHeadRot(passenger.getYRot());
