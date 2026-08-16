@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.HoverrideBroomServerConfig;
+import jp.aquafactory.apprenticecodex.entity.broom.AbstractBroomEntity;
 import jp.aquafactory.apprenticecodex.entity.broom.BroomInputTransition;
 import jp.aquafactory.apprenticecodex.entity.broom.BroomDismountEvents;
 import jp.aquafactory.apprenticecodex.entity.broom.FloatmountBroomEntity;
@@ -323,6 +324,13 @@ public final class FloatmountBroomGameTests {
         HoverrideBroomReleaseResultPacket.encode(resultBuffer, result);
         helper.assertTrue(result.equals(HoverrideBroomReleaseResultPacket.decode(resultBuffer)),
                 "Hoverride release result packet should round-trip");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void dismountPreservesServerObservedBroomMovement(GameTestHelper helper) {
+        assertDismountPreservesMovement(helper, spawnBroom(helper, 1.5D), "Floatmount");
+        assertDismountPreservesMovement(helper, spawnHoverrideBroom(helper, 1.5D), "Hoverride");
         helper.succeed();
     }
 
@@ -1215,6 +1223,29 @@ public final class FloatmountBroomGameTests {
         broom.setPos(pos.getX() + 0.5D, pos.getY() + relativeY, pos.getZ() + 0.5D);
         helper.getLevel().addFreshEntity(broom);
         return broom;
+    }
+
+    private static void assertDismountPreservesMovement(
+            GameTestHelper helper,
+            AbstractBroomEntity broom,
+            String broomName
+    ) {
+        var player = serverRider(helper);
+        player.getAbilities().instabuild = true;
+        helper.assertTrue(player.startRiding(broom, true), broomName + " rider should mount");
+
+        broom.tick();
+        broom.setPos(broom.getX() + 0.2D, broom.getY(), broom.getZ());
+        broom.tick();
+        var dismountX = broom.getX();
+        player.stopRiding();
+
+        helper.assertTrue(broom.getDeltaMovement().x > 0.19D,
+                broomName + " should inherit its server-observed movement on dismount");
+        broom.tick();
+        helper.assertTrue(broom.getX() > dismountX + 0.15D,
+                broomName + " should continue coasting after dismount");
+        broom.discard();
     }
 
     private static void assertTooltipLine(GameTestHelper helper, List<Component> lines, int index,
