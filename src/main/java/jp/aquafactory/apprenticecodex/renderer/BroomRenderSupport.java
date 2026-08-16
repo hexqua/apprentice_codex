@@ -1,19 +1,19 @@
 package jp.aquafactory.apprenticecodex.renderer;
 
-import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomEntity;
+import jp.aquafactory.apprenticecodex.entity.broom.AbstractBroomEntity;
 import jp.aquafactory.apprenticecodex.item.ImbuedSpellCoreClientEffectState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import software.bernie.geckolib.cache.object.GeoBone;
 
-public final class FloatmountBroomRenderSupport {
+public final class BroomRenderSupport {
     public static final String STAR_BONE = "star";
     public static final String CORE_BONE = "core";
 
     private static final float IDLE_PULSE_PERIOD_TICKS = 40.0F;
     private static final float IDLE_MIN_BRIGHTNESS = 0.9F;
 
-    private FloatmountBroomRenderSupport() {
+    private BroomRenderSupport() {
     }
 
     public static int resolveStarColour(float partialTick) {
@@ -24,7 +24,7 @@ public final class FloatmountBroomRenderSupport {
         return resolveIdleColour(partialTick);
     }
 
-    public static int resolveEntityCoreColour(FloatmountBroomEntity broom, float partialTick) {
+    public static int resolveEntityCoreColour(AbstractBroomEntity broom, float partialTick) {
         if (broom.isForcedLanding()) {
             var warning = ImbuedSpellCoreClientEffectState.resolveWarning(partialTick);
             return composeColour(warning.red(), warning.green(), warning.blue(), warning.alpha());

@@ -1,41 +1,41 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomEntity;
+import jp.aquafactory.apprenticecodex.entity.broom.AbstractBroomEntity;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
 import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public record ClientFloatmountBroomInputPacket(
+public record ClientBroomInputPacket(
         float strafeInput,
         float forwardInput,
         boolean ascending,
         boolean descending
 ) {
 
-    public ClientFloatmountBroomInputPacket {
+    public ClientBroomInputPacket {
         strafeInput = sanitizeInput(strafeInput);
         forwardInput = sanitizeInput(forwardInput);
     }
 
-    public static ClientFloatmountBroomInputPacket inactive() {
-        return new ClientFloatmountBroomInputPacket(0.0F, 0.0F, false, false);
+    public static ClientBroomInputPacket inactive() {
+        return new ClientBroomInputPacket(0.0F, 0.0F, false, false);
     }
 
     private static float sanitizeInput(float input) {
         return Float.isFinite(input) ? Mth.clamp(input, -1.0F, 1.0F) : 0.0F;
     }
 
-    public static void encode(ClientFloatmountBroomInputPacket packet, FriendlyByteBuf buffer) {
+    public static void encode(ClientBroomInputPacket packet, FriendlyByteBuf buffer) {
         buffer.writeFloat(packet.strafeInput);
         buffer.writeFloat(packet.forwardInput);
         buffer.writeBoolean(packet.ascending);
         buffer.writeBoolean(packet.descending);
     }
 
-    public static ClientFloatmountBroomInputPacket decode(FriendlyByteBuf buffer) {
-        return new ClientFloatmountBroomInputPacket(
+    public static ClientBroomInputPacket decode(FriendlyByteBuf buffer) {
+        return new ClientBroomInputPacket(
                 buffer.readFloat(),
                 buffer.readFloat(),
                 buffer.readBoolean(),
@@ -43,13 +43,13 @@ public record ClientFloatmountBroomInputPacket(
         );
     }
 
-    public static void handle(ClientFloatmountBroomInputPacket packet,
+    public static void handle(ClientBroomInputPacket packet,
                               Supplier<NetworkEvent.Context> contextSupplier) {
         var context = contextSupplier.get();
         context.enqueueWork(() -> {
             var sender = context.getSender();
             if (sender == null
-                    || !(sender.getVehicle() instanceof FloatmountBroomEntity broom)
+                    || !(sender.getVehicle() instanceof AbstractBroomEntity broom)
                     || broom.getControllingPassenger() != sender) {
                 return;
             }

@@ -14,8 +14,8 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPa
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientFloatmountBroomInputPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientFloatmountBroomDismountInputPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientBroomInputPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientBroomDismountInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSpellgunCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
@@ -83,7 +83,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "82";
+    private static final String PROTOCOL_VERSION = "83";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -243,18 +243,18 @@ public final class Networks {
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
-                ClientFloatmountBroomInputPacket.class,
-                ClientFloatmountBroomInputPacket::encode,
-                ClientFloatmountBroomInputPacket::decode,
-                ClientFloatmountBroomInputPacket::handle,
+                ClientBroomInputPacket.class,
+                ClientBroomInputPacket::encode,
+                ClientBroomInputPacket::decode,
+                ClientBroomInputPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER)
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
-                ClientFloatmountBroomDismountInputPacket.class,
-                ClientFloatmountBroomDismountInputPacket::encode,
-                ClientFloatmountBroomDismountInputPacket::decode,
-                ClientFloatmountBroomDismountInputPacket::handle,
+                ClientBroomDismountInputPacket.class,
+                ClientBroomDismountInputPacket::encode,
+                ClientBroomDismountInputPacket::decode,
+                ClientBroomDismountInputPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER)
         );
         CHANNEL.registerMessage(
