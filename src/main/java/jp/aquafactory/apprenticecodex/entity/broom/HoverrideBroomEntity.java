@@ -204,6 +204,11 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         move(MoverType.SELF, getDeltaMovement());
     }
 
+    @Override
+    protected double maximumInheritedDismountHorizontalSpeed() {
+        return HoverrideBroomMovement.MAX_HORIZONTAL_SPEED;
+    }
+
     private double mountedVertical(double currentVertical, double surfaceY) {
         if (!Double.isFinite(surfaceY)) {
             return Math.max(-MAX_MOUNTED_VERTICAL_SPEED, currentVertical - VERTICAL_ACCELERATION);

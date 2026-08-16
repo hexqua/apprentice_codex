@@ -77,6 +77,8 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     private static final float TURN_DAMPING = 0.9F;
     private static final float INPUT_EPSILON = 1.0e-4F;
     private static final int SERVER_INPUT_TIMEOUT_TICKS = 30;
+    private static final int SERVER_RIDING_MOVEMENT_GRACE_TICKS = 2;
+    private static final double MOVEMENT_EPSILON_SQR = 1.0e-8D;
     private static final int DAMAGE_RECOVERY_INTERVAL_TICKS = 10;
     private static final int RETRIEVE_HELP_COOLDOWN_TICKS = 40;
     private static final double RETRIEVE_HELP_DISTANCE_SQR = 16.0D;
@@ -130,6 +132,10 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     private double lerpZ;
     private double lerpYRot;
     private double lerpXRot;
+    private Vec3 lastServerRidingPosition = Vec3.ZERO;
+    private Vec3 lastServerRidingMovement = Vec3.ZERO;
+    private long lastServerRidingPositionGameTime = Long.MIN_VALUE;
+    private long lastServerRidingMovementGameTime = Long.MIN_VALUE;
 
     protected AbstractBroomEntity(EntityType<?> type, Level level) {
         super(type, level);
@@ -212,6 +218,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
             if (level().isClientSide && isControlledByLocalInstance()) {
                 applyControlledMovement();
             } else if (!level().isClientSide && getControllingPassenger() instanceof Player player) {
+                observeServerRidingMovement();
                 tickControlledServer(player);
                 setDeltaMovement(Vec3.ZERO);
             }
@@ -456,6 +463,10 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         turnSpeed = turnSpeed * (float)COAST_HORIZONTAL_DAMPING;
     }
 
+    protected double maximumInheritedDismountHorizontalSpeed() {
+        return MAX_HORIZONTAL_SPEED;
+    }
+
     @Override
     public boolean hurt(@NotNull DamageSource source, float amount) {
         if (level().isClientSide || isRemoved()) {
@@ -628,8 +639,63 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     protected void removePassenger(@NotNull Entity passenger) {
         super.removePassenger(passenger);
         if (!level().isClientSide && !isVehicle()) {
+            var inheritedMovement = takeServerRidingMovement();
             resetRidingState();
+            setDeltaMovement(inheritedMovement);
+            hasImpulse = true;
         }
+    }
+
+    private void observeServerRidingMovement() {
+        var now = level().getGameTime();
+        var currentPosition = position();
+        if (lastServerRidingPositionGameTime == Long.MIN_VALUE) {
+            lastServerRidingPosition = currentPosition;
+            lastServerRidingPositionGameTime = now;
+            return;
+        }
+
+        var displacement = currentPosition.subtract(lastServerRidingPosition);
+        if (displacement.lengthSqr() > MOVEMENT_EPSILON_SQR) {
+            var elapsedTicks = Math.max(1L, now - lastServerRidingPositionGameTime);
+            lastServerRidingMovement = clampInheritedDismountMovement(displacement.scale(1.0D / elapsedTicks));
+            lastServerRidingMovementGameTime = now;
+            lastServerRidingPosition = currentPosition;
+            lastServerRidingPositionGameTime = now;
+        } else if (lastServerRidingMovementGameTime != Long.MIN_VALUE
+                && now - lastServerRidingMovementGameTime > SERVER_RIDING_MOVEMENT_GRACE_TICKS) {
+            lastServerRidingMovement = Vec3.ZERO;
+        }
+    }
+
+    private Vec3 takeServerRidingMovement() {
+        observeServerRidingMovement();
+        var now = level().getGameTime();
+        var movement = lastServerRidingMovementGameTime != Long.MIN_VALUE
+                && now - lastServerRidingMovementGameTime <= SERVER_RIDING_MOVEMENT_GRACE_TICKS
+                ? lastServerRidingMovement
+                : Vec3.ZERO;
+        lastServerRidingPosition = Vec3.ZERO;
+        lastServerRidingMovement = Vec3.ZERO;
+        lastServerRidingPositionGameTime = Long.MIN_VALUE;
+        lastServerRidingMovementGameTime = Long.MIN_VALUE;
+        return movement;
+    }
+
+    private Vec3 clampInheritedDismountMovement(Vec3 movement) {
+        if (!Double.isFinite(movement.x) || !Double.isFinite(movement.y) || !Double.isFinite(movement.z)) {
+            return Vec3.ZERO;
+        }
+        var horizontal = new Vec3(movement.x, 0.0D, movement.z);
+        var maximumHorizontalSpeed = maximumInheritedDismountHorizontalSpeed();
+        if (horizontal.length() > maximumHorizontalSpeed) {
+            horizontal = horizontal.normalize().scale(maximumHorizontalSpeed);
+        }
+        return new Vec3(
+                horizontal.x,
+                Mth.clamp(movement.y, -MAX_VERTICAL_SPEED, MAX_VERTICAL_SPEED),
+                horizontal.z
+        );
     }
 
     @Override
