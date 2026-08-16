@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.entity.floatmountbroom;
+package jp.aquafactory.apprenticecodex.entity.broom;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.FluidTags;
@@ -7,8 +7,8 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 
 import java.util.OptionalDouble;
 
-public final class FloatmountBroomSurfaceScanner {
-    private FloatmountBroomSurfaceScanner() {
+public final class BroomSurfaceScanner {
+    private BroomSurfaceScanner() {
     }
 
     public static OptionalDouble findSurfaceBelow(Level level, double x, double startY, double z,

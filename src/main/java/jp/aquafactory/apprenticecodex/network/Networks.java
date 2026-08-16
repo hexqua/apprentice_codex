@@ -13,8 +13,8 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPa
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientFloatmountBroomInputPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientFloatmountBroomDismountInputPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientBroomInputPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientBroomDismountInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSpellgunCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
@@ -80,7 +80,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "82";
+    private static final String PROTOCOL_VERSION = "83";
 
     private Networks() {
     }
@@ -162,14 +162,14 @@ public final class Networks {
                 ClientManaThrusterInputPacket::handle
         );
         registrar.playToServer(
-                ClientFloatmountBroomInputPacket.TYPE,
-                ClientFloatmountBroomInputPacket.STREAM_CODEC,
-                ClientFloatmountBroomInputPacket::handle
+                ClientBroomInputPacket.TYPE,
+                ClientBroomInputPacket.STREAM_CODEC,
+                ClientBroomInputPacket::handle
         );
         registrar.playToServer(
-                ClientFloatmountBroomDismountInputPacket.TYPE,
-                ClientFloatmountBroomDismountInputPacket.STREAM_CODEC,
-                ClientFloatmountBroomDismountInputPacket::handle
+                ClientBroomDismountInputPacket.TYPE,
+                ClientBroomDismountInputPacket.STREAM_CODEC,
+                ClientBroomDismountInputPacket::handle
         );
         registrar.playToServer(
                 ClientJumpcastCharmCastPacket.TYPE,

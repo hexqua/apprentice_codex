@@ -170,6 +170,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.EXPLORERS_CODEX.get());
         output.accept(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get());
         output.accept(ItemRegistry.FLOATMOUNT_BROOM.get());
+        output.accept(ItemRegistry.HOVERRIDE_BROOM.get());
         output.accept(ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get());
         addMalumRelatedItemsToTab(output);
         addSpellScrollsToTab(output);

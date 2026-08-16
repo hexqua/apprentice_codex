@@ -7,10 +7,12 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
-import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomDismountEvents;
-import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomEntity;
-import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomSurfaceScanner;
-import jp.aquafactory.apprenticecodex.item.FloatmountBroomItem;
+import jp.aquafactory.apprenticecodex.entity.broom.BroomDismountEvents;
+import jp.aquafactory.apprenticecodex.entity.broom.FloatmountBroomEntity;
+import jp.aquafactory.apprenticecodex.entity.broom.BroomSurfaceScanner;
+import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomEntity;
+import jp.aquafactory.apprenticecodex.item.broom.FloatmountBroomItem;
+import jp.aquafactory.apprenticecodex.item.broom.HoverrideBroomItem;
 import jp.aquafactory.apprenticecodex.item.FloatmountBroomConfigState;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFloatmountBroomConfigPacket;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
@@ -74,6 +76,62 @@ public final class FloatmountBroomGameTests {
         var broom = EntityRegistry.FLOATMOUNT_BROOM.get().create(helper.getLevel());
         helper.assertTrue(broom instanceof FloatmountBroomEntity,
                 "Floatmount Broom entity type should create its dedicated entity");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void hoverrideRegistrationsResolveDedicatedTypes(GameTestHelper helper) {
+        helper.assertTrue(ItemRegistry.HOVERRIDE_BROOM.get() instanceof HoverrideBroomItem,
+                "Hoverride Broom item should use its dedicated implementation");
+        var broom = EntityRegistry.HOVERRIDE_BROOM.get().create(helper.getLevel());
+        helper.assertTrue(broom instanceof HoverrideBroomEntity,
+                "Hoverride Broom entity type should create its dedicated entity");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void hoverridePlacementAndRecoveryKeepDedicatedItemAndCustomName(GameTestHelper helper) {
+        var player = player(helper, "hoverride_broom_placement");
+        var expectedName = Component.literal("Sidewinder").withStyle(ChatFormatting.AQUA);
+        var stack = new ItemStack(ItemRegistry.HOVERRIDE_BROOM.get());
+        stack.set(DataComponents.CUSTOM_NAME, expectedName);
+        var broom = placeHoverrideBroomFromItem(helper, player, stack);
+
+        helper.assertTrue(stack.isEmpty(), "Hoverride Broom placement should consume its item");
+        helper.assertTrue(expectedName.equals(broom.getCustomName()),
+                "Placed Hoverride Broom should copy the item name");
+
+        player.setShiftKeyDown(true);
+        broom.interact(player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(broom.isRemoved(), "Hoverride Broom should be recovered while unoccupied");
+        var recovered = findBroomInInventory(helper, player, ItemRegistry.HOVERRIDE_BROOM.get());
+        helper.assertTrue(recovered.is(ItemRegistry.HOVERRIDE_BROOM.get()),
+                "Recovered Hoverride Broom must not turn into a Floatmount Broom");
+        helper.assertTrue(expectedName.equals(recovered.get(DataComponents.CUSTOM_NAME)),
+                "Recovered Hoverride Broom should preserve its custom name");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void hoverrideMountingDoesNotRequireMinimumMana(GameTestHelper helper) {
+        var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50,
+                1.0D, 1.0D, 1.5D);
+        try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
+            var pos = helper.absolutePos(TEST_POS);
+            var broom = new HoverrideBroomEntity(EntityRegistry.HOVERRIDE_BROOM.get(), helper.getLevel());
+            broom.setPos(pos.getX() + 0.5D, pos.getY() + 1.5D, pos.getZ() + 0.5D);
+            helper.getLevel().addFreshEntity(broom);
+            var player = serverRider(helper);
+            var magicData = magicData(helper, player);
+            magicData.setMana(0.0F);
+
+            broom.interact(player, InteractionHand.MAIN_HAND);
+
+            helper.assertTrue(player.getVehicle() == broom,
+                    "Hoverride Broom should allow mounting with zero mana");
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Mounting the Hoverride Broom must not consume mana");
+        }
         helper.succeed();
     }
 
@@ -734,9 +792,9 @@ public final class FloatmountBroomGameTests {
             helper.assertTrue(broom.isDangerousDismount(),
                     "Emergency landing must force dismount confirmation even near the ground");
 
-            FloatmountBroomDismountEvents.handleSneakInput(player, broom, true);
+            BroomDismountEvents.handleSneakInput(player, broom, true);
             var first = new EntityMountEvent(player, broom, helper.getLevel(), false);
-            FloatmountBroomDismountEvents.onDismount(first);
+            BroomDismountEvents.onDismount(first);
             helper.assertTrue(first.isCanceled(), "First emergency dismount should be canceled");
         }
         helper.succeed();
@@ -789,16 +847,16 @@ public final class FloatmountBroomGameTests {
         level.setBlockAndUpdate(lava.below(), Blocks.STONE.defaultBlockState());
         level.setBlockAndUpdate(lava, Blocks.LAVA.defaultBlockState());
 
-        helper.assertTrue(FloatmountBroomSurfaceScanner.findSurfaceBelow(
+        helper.assertTrue(BroomSurfaceScanner.findSurfaceBelow(
                 level, solid.getX() + 0.5D, solid.getY() + 2.0D, solid.getZ() + 0.5D, 3, true).isPresent(),
                 "Solid collision shape should be a hover surface");
-        helper.assertTrue(FloatmountBroomSurfaceScanner.findSurfaceBelow(
+        helper.assertTrue(BroomSurfaceScanner.findSurfaceBelow(
                 level, water.getX() + 0.5D, water.getY() + 2.0D, water.getZ() + 0.5D, 3, true).isPresent(),
                 "Water should be a hover surface");
-        helper.assertTrue(FloatmountBroomSurfaceScanner.findSurfaceBelow(
+        helper.assertTrue(BroomSurfaceScanner.findSurfaceBelow(
                 level, lava.getX() + 0.5D, lava.getY() + 2.0D, lava.getZ() + 0.5D, 3, true).isPresent(),
                 "Lava should be a hover surface");
-        helper.assertTrue(FloatmountBroomSurfaceScanner.findSurfaceBelow(
+        helper.assertTrue(BroomSurfaceScanner.findSurfaceBelow(
                         level, lava.getX() + 0.5D, lava.getY() + 2.0D, lava.getZ() + 0.5D, 3, false).isEmpty(),
                 "Lava must make the safe dismount scan fail even with solid ground beneath it");
 
@@ -913,19 +971,19 @@ public final class FloatmountBroomGameTests {
         broom.setPos(broom.getX(), broom.getY() + 10.0D, broom.getZ());
         helper.assertTrue(broom.isDangerousDismount(), "High broom should be classified as dangerous");
 
-        FloatmountBroomDismountEvents.handleSneakInput(player, broom, true);
+        BroomDismountEvents.handleSneakInput(player, broom, true);
         var first = new EntityMountEvent(player, broom, helper.getLevel(), false);
-        FloatmountBroomDismountEvents.onDismount(first);
+        BroomDismountEvents.onDismount(first);
         helper.assertTrue(first.isCanceled(), "First dangerous dismount should be canceled");
 
-        FloatmountBroomDismountEvents.handleSneakInput(player, broom, true);
+        BroomDismountEvents.handleSneakInput(player, broom, true);
         var held = new EntityMountEvent(player, broom, helper.getLevel(), false);
-        FloatmountBroomDismountEvents.onDismount(held);
+        BroomDismountEvents.onDismount(held);
         helper.assertTrue(held.isCanceled(), "Holding sneak must not confirm dismount");
 
-        FloatmountBroomDismountEvents.handleSneakInput(player, broom, false);
+        BroomDismountEvents.handleSneakInput(player, broom, false);
         helper.assertTrue(player.getVehicle() == broom, "Releasing sneak should not dismount by itself");
-        FloatmountBroomDismountEvents.handleSneakInput(player, broom, true);
+        BroomDismountEvents.handleSneakInput(player, broom, true);
         helper.assertFalse(player.isPassenger(), "Second press within thirty ticks should dismount");
         helper.succeed();
     }
@@ -937,15 +995,15 @@ public final class FloatmountBroomGameTests {
         helper.assertTrue(player.startRiding(broom, true), "Held dismount test player should mount the broom");
         broom.setPos(broom.getX(), broom.getY() + 10.0D, broom.getZ());
 
-        FloatmountBroomDismountEvents.handleSneakInput(player, broom, true);
+        BroomDismountEvents.handleSneakInput(player, broom, true);
         var first = new EntityMountEvent(player, broom, helper.getLevel(), false);
-        FloatmountBroomDismountEvents.onDismount(first);
+        BroomDismountEvents.onDismount(first);
         helper.assertTrue(first.isCanceled(), "First dangerous dismount should be canceled");
 
         helper.runAfterDelay(FloatmountBroomEntity.DISMOUNT_CONFIRM_TICKS + 2, () -> {
-            FloatmountBroomDismountEvents.handleSneakInput(player, broom, true);
+            BroomDismountEvents.handleSneakInput(player, broom, true);
             var held = new EntityMountEvent(player, broom, helper.getLevel(), false);
-            FloatmountBroomDismountEvents.onDismount(held);
+            BroomDismountEvents.onDismount(held);
             helper.assertTrue(held.isCanceled(), "Held sneak must remain canceled after the confirmation window");
             helper.assertTrue(player.getVehicle() == broom, "Held sneak must never dismount the rider");
             helper.succeed();
@@ -1000,10 +1058,35 @@ public final class FloatmountBroomGameTests {
         return brooms.getFirst();
     }
 
+    private static HoverrideBroomEntity placeHoverrideBroomFromItem(
+            GameTestHelper helper,
+            Player player,
+            ItemStack stack
+    ) {
+        var target = helper.absolutePos(TEST_POS);
+        player.setPos(target.getX() + 0.5D, target.getY() + 2.5D, target.getZ() + 0.5D);
+        player.setXRot(90.0F);
+        player.setYRot(0.0F);
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+
+        var brooms = helper.getLevel().getEntitiesOfClass(
+                HoverrideBroomEntity.class,
+                new AABB(target).inflate(2.0D, 4.0D, 2.0D)
+        );
+        helper.assertTrue(brooms.size() == 1,
+                "Hoverride Broom item use should place exactly one dedicated entity");
+        return brooms.getFirst();
+    }
+
     private static ItemStack findBroomInInventory(GameTestHelper helper, Player player) {
+        return findBroomInInventory(helper, player, ItemRegistry.FLOATMOUNT_BROOM.get());
+    }
+
+    private static ItemStack findBroomInInventory(GameTestHelper helper, Player player, Item broomItem) {
         for (var slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
             var stack = player.getInventory().getItem(slot);
-            if (stack.is(ItemRegistry.FLOATMOUNT_BROOM.get())) {
+            if (stack.is(broomItem)) {
                 return stack;
             }
         }
