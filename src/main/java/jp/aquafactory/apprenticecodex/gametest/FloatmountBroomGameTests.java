@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.entity.broom.BroomInputTransition;
 import jp.aquafactory.apprenticecodex.entity.broom.BroomDismountEvents;
 import jp.aquafactory.apprenticecodex.entity.broom.FloatmountBroomEntity;
 import jp.aquafactory.apprenticecodex.entity.broom.BroomSurfaceScanner;
+import jp.aquafactory.apprenticecodex.entity.broom.BroomCoreWarningState;
 import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomEntity;
 import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomMovement;
 import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomPresentation;
@@ -289,7 +290,7 @@ public final class FloatmountBroomGameTests {
                     "An exact-cost Hoverride release should consume all remaining mana");
             helper.assertTrue(broom.isManaDepleted(),
                     "An exact-cost Hoverride release should enter depleted mode");
-            helper.assertTrue(broom.shouldFlashCoreWarning(),
+            helper.assertTrue(broom.getCoreWarningState() == BroomCoreWarningState.CRITICAL,
                     "Hoverride depleted mode should activate the core warning flash");
 
             magicData.setMana(49.999F);
@@ -300,7 +301,7 @@ public final class FloatmountBroomGameTests {
             broom.tick();
             helper.assertFalse(broom.isManaDepleted(),
                     "Hoverride depleted mode should recover at the configured release cost");
-            helper.assertFalse(broom.shouldFlashCoreWarning(),
+            helper.assertTrue(broom.getCoreWarningState() == BroomCoreWarningState.NONE,
                     "Recovering Hoverride propulsion should clear the core warning flash");
 
             magicData.setMana(0.0F);
@@ -405,6 +406,48 @@ public final class FloatmountBroomGameTests {
         helper.assertTrue(HoverrideBroomPresentation.fromId(Integer.MAX_VALUE)
                         == HoverrideBroomPresentation.NORMAL,
                 "Unknown Hoverride presentation ids should safely fall back to normal");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void hoverrideAirborneAccelerationLockUsesSyncedCautionState(GameTestHelper helper) {
+        var config = new HoverrideBroomServerConfig.Values(1.0D, 0.0D, 50.0D, 0.5D, 20.0D);
+        try (var ignored = ApprenticeCodexServerConfig.useHoverrideBroomConfigOverrideForGameTest(config)) {
+            var broom = spawnHoverrideBroom(helper, 20.0D);
+            var player = serverRider(helper);
+            var magicData = magicData(helper, player);
+            magicData.setMana(100.0F);
+            helper.assertTrue(player.startRiding(broom, true), "Hoverride airborne warning rider should mount");
+
+            for (var tick = 0; tick < 39; tick++) {
+                broom.tick();
+            }
+            helper.assertFalse(broom.isAirborneAccelerationLocked(),
+                    "Hoverride airborne grace should remain active before two seconds elapse");
+            helper.assertTrue(broom.getCoreWarningState() == BroomCoreWarningState.NONE,
+                    "Hoverride core should remain normal during the airborne grace period");
+
+            broom.tick();
+            helper.assertTrue(broom.isAirborneAccelerationLocked(),
+                    "Hoverride should synchronize acceleration lock after two airborne seconds");
+            helper.assertTrue(broom.getCoreWarningState() == BroomCoreWarningState.CAUTION,
+                    "Hoverride airborne acceleration lock should use the caution core state");
+
+            broom.acceptServerInput(player, 0.0F, 0.0F, true, false,
+                    BroomInputTransition.NONE, 0L);
+            broom.tick();
+            broom.acceptServerInput(player, 0.0F, 0.0F, false, false,
+                    BroomInputTransition.RELEASE, 1L);
+            helper.assertFalse(broom.isAirborneAccelerationLocked(),
+                    "Accepted Hoverride inertia release should reset the synchronized airborne lock");
+            helper.assertTrue(broom.getCoreWarningState() == BroomCoreWarningState.NONE,
+                    "Accepted Hoverride inertia release should restore the normal core state");
+
+            magicData.setMana(0.0F);
+            broom.tick();
+            helper.assertTrue(broom.getCoreWarningState() == BroomCoreWarningState.CRITICAL,
+                    "Hoverride mana depletion should take priority over airborne caution");
+        }
         helper.succeed();
     }
 
