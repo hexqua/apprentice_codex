@@ -1,5 +1,7 @@
 {
   "values": [
-    "apprenticecodex:spellcaster_quiver"
+    "apprenticecodex:spellcaster_quiver",
+    "apprenticecodex:floatmount_broom",
+    "apprenticecodex:hoverride_broom"
   ]
 }

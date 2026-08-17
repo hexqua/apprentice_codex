@@ -46,6 +46,7 @@ import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import jp.aquafactory.apprenticecodex.renderer.ManaForceBladeSheathLayer;
 import jp.aquafactory.apprenticecodex.renderer.curio.AshenCircletCurioRenderer;
+import jp.aquafactory.apprenticecodex.renderer.curio.BroomCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.CircletCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.MagiCompressorGadgetCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.ManaThrusterCurioRenderer;
@@ -214,6 +215,8 @@ public final class ClientModBusEvents {
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get(), SpellBookCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.SPELLCASTER_AMMO_POUCH.get(), SpellcasterAmmoPouchCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.SPELLCASTER_QUIVER.get(), SpellcasterQuiverCurioRenderer::new));
+        event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.FLOATMOUNT_BROOM.get(), BroomCurioRenderer::new));
+        event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.HOVERRIDE_BROOM.get(), BroomCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.ASHEN_CIRCLET.get(), AshenCircletCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.ENCHANTED_CIRCLET.get(), CircletCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.MANA_THRUSTER.get(), ManaThrusterCurioRenderer::new));
