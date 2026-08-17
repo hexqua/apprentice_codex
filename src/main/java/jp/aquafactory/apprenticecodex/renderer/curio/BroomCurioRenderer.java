@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.renderer.curio;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
+import jp.aquafactory.apprenticecodex.item.broom.BroomDeploymentState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -47,6 +48,7 @@ public final class BroomCurioRenderer implements ICurioRenderer {
             float headPitch
     ) {
         if (!CuriosSlotConstants.BACK.equals(slotContext.identifier())
+                || BroomDeploymentState.isDeployed(itemStack)
                 || !(renderLayerParent.getModel() instanceof HumanoidModel<?> rawHumanoidModel)) {
             return;
         }

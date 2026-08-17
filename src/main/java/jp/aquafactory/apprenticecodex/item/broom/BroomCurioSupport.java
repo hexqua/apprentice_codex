@@ -1,8 +1,10 @@
 package jp.aquafactory.apprenticecodex.item.broom;
 
+import jp.aquafactory.apprenticecodex.entity.broom.AbstractBroomEntity;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.SlotResult;
@@ -49,6 +51,10 @@ public final class BroomCurioSupport {
 
     public static boolean isBroom(ItemStack stack) {
         return !stack.isEmpty() && stack.getItem() instanceof AbstractBroomItem;
+    }
+
+    public static AbstractBroomEntity createBroom(ItemStack stack, Level level) {
+        return stack.getItem() instanceof AbstractBroomItem broomItem ? broomItem.createBroom(level) : null;
     }
 
     private static boolean hasNoOtherEquippedBroom(ICuriosItemHandler inventory, SlotContext targetSlot) {

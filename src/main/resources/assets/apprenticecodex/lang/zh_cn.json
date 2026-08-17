@@ -1043,7 +1043,6 @@
   "ui.apprenticecodex.terra_resonance.not_found": "没有收到魔力的回响……",
   "ui.apprenticecodex.terra_resonance.found": "已确定魔力共鸣的坐标！",
   "ui.apprenticecodex.call_broom.not_found_broom": "没有找到可呼唤的扫帚……",
-  "ui.apprenticecodex.call_broom.insufficient_mana": "魔力不足，无法骑上呼唤出的扫帚！",
   "ui.apprenticecodex.call_broom.cannot_recall_mounting": "骑乘扫帚时无法将其收回！",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "已切换发射模式为 %s",

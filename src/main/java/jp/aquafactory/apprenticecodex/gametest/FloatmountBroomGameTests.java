@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomMovement;
 import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomPresentation;
 import jp.aquafactory.apprenticecodex.item.broom.AbstractBroomItem;
 import jp.aquafactory.apprenticecodex.item.broom.BroomCurioSupport;
+import jp.aquafactory.apprenticecodex.item.broom.BroomDeploymentState;
 import jp.aquafactory.apprenticecodex.item.broom.FloatmountBroomItem;
 import jp.aquafactory.apprenticecodex.item.broom.HoverrideBroomItem;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
@@ -31,6 +32,8 @@ import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomImpulseEffect
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.spell.callbroom.CallBroomDeploymentEvents;
+import jp.aquafactory.apprenticecodex.spell.callbroom.CallBroomDeploymentManager;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -64,6 +67,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.EntityMountEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import top.theillusivec4.curios.api.CuriosApi;
@@ -250,6 +254,112 @@ public final class FloatmountBroomGameTests {
         helper.succeed();
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void callBroomRequiresEquippedBroomAndIgnoresFloatmountMountThreshold(GameTestHelper helper) {
+        var player = BowGameTestSupport.createEquipmentTestPlayer(
+                helper,
+                new BlockPos(0, 2, 0),
+                "call_broom_precondition_test"
+        );
+        var magicData = magicData(helper, player);
+        magicData.setMana(20.0F);
+        helper.assertFalse(SpellRegistry.CALL_BROOM.get().checkPreCastConditions(
+                        helper.getLevel(), 1, player, magicData),
+                "Call Broom obtained directly must fail without an equipped broom");
+
+        var stack = equipBroom(player, ItemRegistry.FLOATMOUNT_BROOM.get());
+        helper.assertTrue(SpellRegistry.CALL_BROOM.get().checkPreCastConditions(
+                        helper.getLevel(), 1, player, magicData),
+                "Call Broom should ignore the higher Floatmount mount threshold");
+        helper.assertFalse(BroomDeploymentState.isDeployed(stack),
+                "Precondition checks must not mutate deployment state");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void callBroomDeploysAndRecallsBothTypesWithoutItemizing(GameTestHelper helper) {
+        assertCallBroomDeployAndRecall(helper, ItemRegistry.FLOATMOUNT_BROOM.get(), 0, "Floatmount");
+        assertCallBroomDeployAndRecall(helper, ItemRegistry.HOVERRIDE_BROOM.get(), 2, "Hoverride");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void calledBroomRejectsThirdPartyAndRecallsBeyondEightBlocks(GameTestHelper helper) {
+        var owner = calledBroomPlayer(helper, new BlockPos(0, 2, 0), "called_broom_owner_test");
+        var thirdParty = calledBroomPlayer(helper, new BlockPos(1, 2, 0), "called_broom_third_party_test");
+        var stack = equipBroom(owner, ItemRegistry.FLOATMOUNT_BROOM.get());
+        helper.assertTrue(CallBroomDeploymentManager.execute(owner), "Call Broom should deploy for its owner");
+        var broom = (AbstractBroomEntity) owner.getVehicle();
+        owner.stopRiding();
+
+        thirdParty.setShiftKeyDown(true);
+        helper.assertTrue(broom.interact(thirdParty, InteractionHand.MAIN_HAND) == InteractionResult.CONSUME,
+                "A third party should not recover a called broom");
+        thirdParty.setShiftKeyDown(false);
+        helper.assertTrue(broom.interact(thirdParty, InteractionHand.MAIN_HAND) == InteractionResult.CONSUME,
+                "A third party should not mount a called broom");
+        helper.assertFalse(thirdParty.isPassenger(), "Rejected third party must remain dismounted");
+        helper.assertFalse(broom.isRemoved(), "Rejected interaction must leave the called broom deployed");
+
+        broom.setPos(owner.getX() + 8.01D, owner.getY(), owner.getZ());
+        broom.tick();
+        helper.assertTrue(broom.isRemoved(), "An unoccupied called broom should recall beyond eight blocks");
+        helper.assertFalse(BroomDeploymentState.isDeployed(stack),
+                "Distance recall should restore the equipped broom rendering state");
+        helper.assertTrue(countBroomItems(thirdParty) == 0,
+                "Distance recall and rejected recovery must not create a broom item");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void calledBroomUnequipAndLogoutPreserveOnlyMountedRootVehicle(GameTestHelper helper) {
+        var player = calledBroomPlayer(helper, new BlockPos(0, 2, 0), "called_broom_logout_test");
+        var stack = equipBroom(player, ItemRegistry.FLOATMOUNT_BROOM.get());
+        helper.assertTrue(CallBroomDeploymentManager.execute(player), "Call Broom should deploy before unequip");
+        var first = (AbstractBroomEntity) player.getVehicle();
+        ((AbstractBroomItem) stack.getItem()).onUnequip(
+                new SlotContext(CuriosSlotConstants.BACK, player, 0, false, true),
+                ItemStack.EMPTY,
+                stack
+        );
+        helper.assertTrue(first.isRemoved(), "Unequipping should recall the called broom even while mounted");
+        helper.assertFalse(BroomDeploymentState.isDeployed(stack), "Unequipping should clear deployment state");
+
+        helper.assertTrue(CallBroomDeploymentManager.execute(player), "Call Broom should redeploy after cleanup");
+        var mounted = (AbstractBroomEntity) player.getVehicle();
+        CallBroomDeploymentEvents.onLogout(new PlayerEvent.PlayerLoggedOutEvent(player));
+        helper.assertFalse(mounted.isRemoved(), "Mounted logout should leave the broom for vanilla RootVehicle saving");
+        helper.assertTrue(BroomDeploymentState.matches(stack, mounted.getUUID()),
+                "Mounted logout should preserve the RootVehicle deployment UUID");
+
+        player.stopRiding();
+        CallBroomDeploymentEvents.onLogout(new PlayerEvent.PlayerLoggedOutEvent(player));
+        helper.assertTrue(mounted.isRemoved(), "Unmounted logout should recall the called broom");
+        helper.assertFalse(BroomDeploymentState.isDeployed(stack),
+                "Unmounted logout should clear deployment state before player saving");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void calledBroomDamageAndExternalNameNeverCreateReplacementItem(GameTestHelper helper) {
+        var player = calledBroomPlayer(helper, new BlockPos(0, 2, 0), "called_broom_damage_test");
+        var originalName = Component.literal("Original Broom");
+        var stack = equipBroom(player, ItemRegistry.FLOATMOUNT_BROOM.get());
+        stack.setHoverName(originalName);
+        helper.assertTrue(CallBroomDeploymentManager.execute(player), "Named called broom should deploy");
+        var broom = (AbstractBroomEntity) player.getVehicle();
+        broom.setCustomName(Component.literal("External Entity Name"));
+        broom.hurt(helper.getLevel().damageSources().generic(), 1000.0F);
+        player.stopRiding();
+
+        helper.assertTrue(broom.isRemoved(), "A damaged called broom should recall after dismount");
+        helper.assertTrue(originalName.equals(stack.getHoverName()),
+                "Entity-side renaming must not overwrite the original equipped item name");
+        helper.assertTrue(countBroomItems(player) == 0,
+                "Damaged called broom recall must not create a replacement item");
+        helper.succeed();
+    }
+
     private static void assertSingleCallBroomSelection(GameTestHelper helper, Player player, String broomName) {
         var selections = new SpellSelectionManager(player)
                 .getSpellsForSlot(BroomCurioSupport.SPELL_SELECTION_SLOT);
@@ -257,6 +367,63 @@ public final class FloatmountBroomGameTests {
                 broomName + " should add exactly one Call Broom selection");
         helper.assertTrue(selections.get(0).spellData.getSpell() == SpellRegistry.CALL_BROOM.get(),
                 broomName + " should add the Call Broom spell");
+    }
+
+    private static ItemStack equipBroom(ServerPlayer player, Item item) {
+        var stack = new ItemStack(item);
+        var curiosInventory = CuriosApi.getCuriosInventory(player)
+                .orElseThrow(() -> new IllegalStateException("Missing curios inventory for called broom test"));
+        curiosInventory.setEquippedCurio(CuriosSlotConstants.BACK, 0, stack);
+        return stack;
+    }
+
+    private static void assertCallBroomDeployAndRecall(
+            GameTestHelper helper,
+            Item item,
+            int xOffset,
+            String broomName
+    ) {
+        var player = calledBroomPlayer(
+                helper,
+                new BlockPos(xOffset, 2, 0),
+                "called_" + broomName.toLowerCase() + "_test"
+        );
+        var originalName = Component.literal(broomName + " Original");
+        var stack = equipBroom(player, item);
+        stack.setHoverName(originalName);
+
+        helper.assertTrue(CallBroomDeploymentManager.execute(player), broomName + " should deploy");
+        helper.assertTrue(player.getVehicle() instanceof AbstractBroomEntity,
+                broomName + " should mount its dedicated broom immediately");
+        var broom = (AbstractBroomEntity) player.getVehicle();
+        helper.assertTrue(broom.isOwnedBy(player), broomName + " should retain its owner UUID");
+        helper.assertTrue(broom.matchesBroomItem(stack), broomName + " should retain its entity type");
+        helper.assertTrue(BroomDeploymentState.matches(stack, broom.getUUID()),
+                broomName + " stack should store the deployed entity UUID");
+        helper.assertTrue(originalName.equals(broom.getCustomName()),
+                broomName + " entity should initially copy the equipped item name");
+
+        player.stopRiding();
+        broom.setCustomName(Component.literal(broomName + " External"));
+        helper.assertTrue(CallBroomDeploymentManager.execute(player), broomName + " should recall while unoccupied");
+        helper.assertTrue(broom.isRemoved(), broomName + " recall should remove its entity");
+        helper.assertFalse(BroomDeploymentState.isDeployed(stack),
+                broomName + " recall should clear deployment state");
+        helper.assertTrue(originalName.equals(stack.getHoverName()),
+                broomName + " recall must preserve the original item name");
+        helper.assertTrue(countBroomItems(player) == 0,
+                broomName + " recall must not grant a replacement item");
+    }
+
+    private static int countBroomItems(Player player) {
+        var count = 0;
+        for (var slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
+            var stack = player.getInventory().getItem(slot);
+            if (BroomCurioSupport.isBroom(stack)) {
+                count += stack.getCount();
+            }
+        }
+        return count;
     }
 
     @GameTest(template = TEMPLATE)
@@ -1699,6 +1866,13 @@ public final class FloatmountBroomGameTests {
         new EmbeddedChannel(connection);
         new ServerGamePacketListenerImpl(level.getServer(), connection, player);
         player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
+        return player;
+    }
+
+    private static ServerPlayer calledBroomPlayer(GameTestHelper helper, BlockPos relativePos, String profileName) {
+        var player = serverRider(helper, profileName);
+        var position = helper.absoluteVec(Vec3.atBottomCenterOf(relativePos));
+        player.setPos(position.x, position.y, position.z);
         return player;
     }
 

@@ -7,10 +7,16 @@ import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.broom.BroomCurioSupport;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -82,7 +88,34 @@ public class CallBroom extends AbstractSpell {
     }
 
     @Override
+    public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        if (!(entity instanceof Player player)) {
+            return false;
+        }
+        if (!(player instanceof ServerPlayer serverPlayer)) {
+            return !player.isPassenger()
+                    && BroomCurioSupport.findUniqueEquippedBroom(player).isPresent()
+                    && super.checkPreCastConditions(level, spellLevel, entity, playerMagicData);
+        }
+
+        var validation = CallBroomDeploymentManager.validate(serverPlayer);
+        if (!validation.canCast()) {
+            var key = validation.failure() == CallBroomDeploymentManager.Failure.NOT_FOUND
+                    ? "ui.apprenticecodex.call_broom.not_found_broom"
+                    : "ui.apprenticecodex.call_broom.cannot_recall_mounting";
+
+            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                    Component.translatable(key).withStyle(ChatFormatting.RED)
+            ));
+            return false;
+        }
+        return super.checkPreCastConditions(level, spellLevel, entity, playerMagicData);
+    }
+
+    @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
-        super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+        if (entity instanceof ServerPlayer player && CallBroomDeploymentManager.execute(player)) {
+            super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+        }
     }
 }

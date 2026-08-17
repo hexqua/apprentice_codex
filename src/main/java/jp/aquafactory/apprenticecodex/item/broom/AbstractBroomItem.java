@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.broom;
 
 import jp.aquafactory.apprenticecodex.entity.broom.AbstractBroomEntity;
+import jp.aquafactory.apprenticecodex.spell.callbroom.CallBroomDeploymentManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.stats.Stats;
@@ -8,6 +9,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -41,6 +43,10 @@ public abstract class AbstractBroomItem extends Item implements GeoItem, ICurioI
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player,
                                                            @NotNull InteractionHand hand) {
         var stack = player.getItemInHand(hand);
+        if (!level.isClientSide) {
+            // Curios外へ強制移動・複製されたstackへ展開状態を持ち込まず、従来の通常設置へ戻す。
+            BroomDeploymentState.clear(stack);
+        }
         var hit = getPlayerPOVHitResult(level, player, ClipContext.Fluid.ANY);
         if (hit.getType() == HitResult.Type.MISS) {
             return InteractionResultHolder.pass(stack);
@@ -94,6 +100,20 @@ public abstract class AbstractBroomItem extends Item implements GeoItem, ICurioI
     public boolean canEquipFromUse(SlotContext slotContext, ItemStack stack) {
         // 従来の設置操作を維持し、装備はCurios画面からの明示操作に限定する.
         return false;
+    }
+
+    @Override
+    public void onUnequip(SlotContext slotContext, ItemStack newStack, ItemStack stack) {
+        if (slotContext.entity() instanceof ServerPlayer player) {
+            CallBroomDeploymentManager.onUnequip(player, stack);
+        }
+    }
+
+    @Override
+    public void curioTick(SlotContext slotContext, ItemStack stack) {
+        if (slotContext.entity() instanceof ServerPlayer player) {
+            CallBroomDeploymentManager.reconcileEquippedStack(player, stack);
+        }
     }
 
     protected static void appendPlacementAndRecoveryTooltip(
