@@ -94,6 +94,7 @@
   "item.apprenticecodex.hoverride_broom.desc_1": "[%1$s]：部署一把以法力驱动浮空行驶的扫帚。",
   "item.apprenticecodex.hoverride_broom.desc_2": "[%1$s]+[%2$s]：回收已部署的扫帚。",
   "item.apprenticecodex.hoverride_broom.desc_3": "回收扫帚会重构其魔法结构，将其完全修复。",
+  "item.apprenticecodex.broom.desc_calibration": "在法术校准台装入的法术仅可在骑乘时选择。",
   "item.apprenticecodex.mithril_freecast_staff": "秘银制自由施法杖",
   "item.apprenticecodex.revolvercast_staff": "术式轮转施法杖",
   "item.apprenticecodex.scarlet_thirst": "猩红渴求",

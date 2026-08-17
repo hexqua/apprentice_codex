@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
+import jp.aquafactory.apprenticecodex.item.broom.AbstractBroomItem;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmulet;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
@@ -232,6 +233,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         if (hasSatelliteFollowcastAmulet()) {
             return SatelliteFollowcastAmulet.getEnabledSpellSlotCount(getGauntletStack());
         }
+        if (hasBroom()) {
+            return AbstractBroomItem.getEnabledCalibrationScrollSlotCount(getGauntletStack());
+        }
         return SpellCalibrationImbueHelper.getSpellSlotCount(getGauntletStack());
     }
 
@@ -365,6 +369,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         if (hasSatelliteFollowcastAmulet()) {
             return SatelliteFollowcastAmulet.getCalibrationScroll(getGauntletStack(), slot);
         }
+        if (hasBroom()) {
+            return AbstractBroomItem.getCalibrationScroll(getGauntletStack(), slot);
+        }
         return hasOperationalImbueTarget()
                 ? SpellCalibrationImbueHelper.createScrollForSlot(getGauntletStack(), slot)
                 : ItemStack.EMPTY;
@@ -447,6 +454,15 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             return;
         }
 
+        if (hasBroom()) {
+            var storedStack = stack.copy();
+            if (!storedStack.isEmpty()) {
+                storedStack.setCount(1);
+            }
+            AbstractBroomItem.setCalibrationScroll(getGauntletStack(), slot, storedStack);
+            return;
+        }
+
         if (!hasOperationalImbueTarget()) {
             return;
         }
@@ -515,6 +531,10 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         return !stack.isEmpty() && stack.getItem() instanceof SatelliteFollowcastAmulet;
     }
 
+    private boolean hasBroom() {
+        return getGauntletStack().getItem() instanceof AbstractBroomItem;
+    }
+
     private boolean hasSpellgun() {
         return getGauntletStack().getItem() instanceof AbstractSpellGunItem;
     }
@@ -530,7 +550,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
     private boolean hasStoredScrollTarget() {
         return hasGauntlet() || hasChargecastCatalystbook() || hasRevolvercastStaff()
-                || hasAutocastAmulet() || hasSatelliteFollowcastAmulet();
+                || hasAutocastAmulet() || hasSatelliteFollowcastAmulet() || hasBroom();
     }
 
     private boolean canPersistScrollChanges() {
