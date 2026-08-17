@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
@@ -17,8 +18,11 @@ import jp.aquafactory.apprenticecodex.entity.broom.BroomCoreWarningState;
 import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomEntity;
 import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomMovement;
 import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomPresentation;
+import jp.aquafactory.apprenticecodex.item.broom.AbstractBroomItem;
+import jp.aquafactory.apprenticecodex.item.broom.BroomCurioSupport;
 import jp.aquafactory.apprenticecodex.item.broom.FloatmountBroomItem;
 import jp.aquafactory.apprenticecodex.item.broom.HoverrideBroomItem;
+import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.FloatmountBroomConfigState;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFloatmountBroomConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBroomInputPacket;
@@ -26,6 +30,7 @@ import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomReleaseResult
 import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomImpulseEffectPacket;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -43,6 +48,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.Boat;
@@ -60,6 +66,8 @@ import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.EntityMountEvent;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import top.theillusivec4.curios.api.CuriosApi;
+import top.theillusivec4.curios.api.SlotContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -94,6 +102,161 @@ public final class FloatmountBroomGameTests {
         helper.assertTrue(broom instanceof HoverrideBroomEntity,
                 "Hoverride Broom entity type should create its dedicated entity");
         helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void broomsUseBackSlotWithoutQuickEquip(GameTestHelper helper) {
+        var player = BowGameTestSupport.createEquipmentTestPlayer(
+                helper,
+                new BlockPos(0, 2, 0),
+                "broom_curio_contract_test"
+        );
+        var backContext = new SlotContext(CuriosSlotConstants.BACK, player, 0, false, true);
+        var beltContext = new SlotContext(CuriosSlotConstants.BELT, player, 0, false, true);
+
+        for (var broom : List.of(
+                (AbstractBroomItem) ItemRegistry.FLOATMOUNT_BROOM.get(),
+                (AbstractBroomItem) ItemRegistry.HOVERRIDE_BROOM.get()
+        )) {
+            var stack = new ItemStack(broom);
+            helper.assertTrue(stack.is(BowGameTestSupport.CURIOS_BACK),
+                    "Broom should be tagged for the Curios back slot");
+            helper.assertTrue(broom.canEquip(backContext, stack),
+                    "Broom should be equippable in the Curios back slot");
+            helper.assertFalse(broom.canEquip(beltContext, stack),
+                    "Broom should reject non-back Curios slots");
+            helper.assertFalse(broom.canEquipFromUse(backContext, stack),
+                    "Broom should preserve its normal right-click placement instead of quick-equipping");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void broomsAllowOnlyOneEquippedAcrossExpandedSlots(GameTestHelper helper) {
+        var player = BowGameTestSupport.createEquipmentTestPlayer(
+                helper,
+                new BlockPos(0, 2, 0),
+                "broom_expanded_back_limit_test"
+        );
+        var curiosInventory = CuriosApi.getCuriosInventory(player)
+                .orElseThrow(() -> new IllegalStateException("Missing curios inventory for broom test"));
+        curiosInventory.addTransientSlotModifier(
+                CuriosSlotConstants.BACK,
+                UUID.fromString("fd917056-c011-432e-a5d7-8f574c08d5cd"),
+                "apprenticecodex:gametest/broom_expanded_back",
+                1.0D,
+                AttributeModifier.Operation.ADDITION
+        );
+
+        var floatmount = (AbstractBroomItem) ItemRegistry.FLOATMOUNT_BROOM.get();
+        var hoverride = (AbstractBroomItem) ItemRegistry.HOVERRIDE_BROOM.get();
+        var equippedStack = new ItemStack(floatmount);
+        curiosInventory.setEquippedCurio(CuriosSlotConstants.BACK, 0, equippedStack);
+        var currentContext = new SlotContext(CuriosSlotConstants.BACK, player, 0, false, true);
+        var secondContext = new SlotContext(CuriosSlotConstants.BACK, player, 1, false, true);
+
+        helper.assertTrue(floatmount.canEquip(currentContext, equippedStack),
+                "Equipped broom should remain valid in its current slot");
+        helper.assertFalse(floatmount.canEquip(secondContext, new ItemStack(floatmount)),
+                "Broom should reject a second copy in an expanded back slot");
+        helper.assertFalse(hoverride.canEquip(secondContext, new ItemStack(hoverride)),
+                "Floatmount and Hoverride Brooms should be mutually exclusive");
+        var quiverPlayer = BowGameTestSupport.createEquipmentTestPlayer(
+                helper,
+                new BlockPos(1, 2, 0),
+                "broom_quiver_coexistence_test"
+        );
+        var quiverInventory = CuriosApi.getCuriosInventory(quiverPlayer)
+                .orElseThrow(() -> new IllegalStateException("Missing curios inventory for quiver test"));
+        quiverInventory.addTransientSlotModifier(
+                CuriosSlotConstants.BACK,
+                UUID.fromString("f3ba4970-b8e9-4ad8-a228-688198f2af19"),
+                "apprenticecodex:gametest/broom_quiver_back",
+                1.0D,
+                AttributeModifier.Operation.ADDITION
+        );
+        quiverInventory.setEquippedCurio(
+                CuriosSlotConstants.BACK,
+                0,
+                new ItemStack(ItemRegistry.SPELLCASTER_QUIVER.get())
+        );
+        helper.assertTrue(floatmount.canEquip(
+                        new SlotContext(CuriosSlotConstants.BACK, quiverPlayer, 1, false, true),
+                        new ItemStack(floatmount)
+                ),
+                "Spellcaster Quiver should not block a broom when another back slot exists");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void equippedBroomAddsCallBroomSpellSelection(GameTestHelper helper) {
+        var player = BowGameTestSupport.createEquipmentTestPlayer(
+                helper,
+                new BlockPos(0, 2, 0),
+                "call_broom_spell_selection_test"
+        );
+        var curiosInventory = CuriosApi.getCuriosInventory(player)
+                .orElseThrow(() -> new IllegalStateException("Missing curios inventory for spell selection test"));
+
+        helper.assertTrue(new SpellSelectionManager(player)
+                        .getSpellsForSlot(BroomCurioSupport.SPELL_SELECTION_SLOT).isEmpty(),
+                "Call Broom should not be selected without an equipped broom");
+        curiosInventory.setEquippedCurio(
+                CuriosSlotConstants.BACK,
+                0,
+                new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get())
+        );
+        assertSingleCallBroomSelection(helper, player, "Floatmount Broom");
+        curiosInventory.setEquippedCurio(
+                CuriosSlotConstants.BACK,
+                0,
+                new ItemStack(ItemRegistry.HOVERRIDE_BROOM.get())
+        );
+        assertSingleCallBroomSelection(helper, player, "Hoverride Broom");
+        curiosInventory.setEquippedCurio(CuriosSlotConstants.BACK, 0, ItemStack.EMPTY);
+        helper.assertTrue(new SpellSelectionManager(player)
+                        .getSpellsForSlot(BroomCurioSupport.SPELL_SELECTION_SLOT).isEmpty(),
+                "Call Broom should be removed after unequipping the broom");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void invalidBroomEquipmentDoesNotAddCallBroomSelection(GameTestHelper helper) {
+        var player = BowGameTestSupport.createEquipmentTestPlayer(
+                helper,
+                new BlockPos(0, 2, 0),
+                "invalid_broom_spell_selection_test"
+        );
+        var curiosInventory = CuriosApi.getCuriosInventory(player)
+                .orElseThrow(() -> new IllegalStateException("Missing curios inventory for invalid broom test"));
+        curiosInventory.addTransientSlotModifier(
+                CuriosSlotConstants.BACK,
+                UUID.fromString("ffb43636-5457-47d2-a94c-194d6216c33a"),
+                "apprenticecodex:gametest/invalid_broom_back",
+                1.0D,
+                AttributeModifier.Operation.ADDITION
+        );
+        var backHandler = curiosInventory.getCurios().get(CuriosSlotConstants.BACK);
+        helper.assertTrue(backHandler != null && backHandler.getStacks().getSlots() >= 2,
+                "Invalid broom test should provide two back slots");
+        backHandler.getStacks().setStackInSlot(0, new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get()));
+        backHandler.getStacks().setStackInSlot(1, new ItemStack(ItemRegistry.HOVERRIDE_BROOM.get()));
+
+        helper.assertTrue(BroomCurioSupport.findUniqueEquippedBroom(player).isEmpty(),
+                "Multiple equipped brooms should not resolve as a valid casting source");
+        helper.assertTrue(new SpellSelectionManager(player)
+                        .getSpellsForSlot(BroomCurioSupport.SPELL_SELECTION_SLOT).isEmpty(),
+                "Invalid duplicate broom equipment should not add Call Broom");
+        helper.succeed();
+    }
+
+    private static void assertSingleCallBroomSelection(GameTestHelper helper, Player player, String broomName) {
+        var selections = new SpellSelectionManager(player)
+                .getSpellsForSlot(BroomCurioSupport.SPELL_SELECTION_SLOT);
+        helper.assertTrue(selections.size() == 1,
+                broomName + " should add exactly one Call Broom selection");
+        helper.assertTrue(selections.get(0).spellData.getSpell() == SpellRegistry.CALL_BROOM.get(),
+                broomName + " should add the Call Broom spell");
     }
 
     @GameTest(template = TEMPLATE)

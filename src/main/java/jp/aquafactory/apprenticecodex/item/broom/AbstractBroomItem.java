@@ -23,10 +23,12 @@ import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
+import top.theillusivec4.curios.api.SlotContext;
+import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
 import java.util.List;
 
-public abstract class AbstractBroomItem extends Item implements GeoItem {
+public abstract class AbstractBroomItem extends Item implements GeoItem, ICurioItem {
     private static final RawAnimation STATIC = RawAnimation.begin().thenLoop("mount");
     private final AnimatableInstanceCache animationCache = GeckoLibUtil.createInstanceCache(this);
 
@@ -82,6 +84,17 @@ public abstract class AbstractBroomItem extends Item implements GeoItem {
     }
 
     protected abstract AbstractBroomEntity createBroom(Level level);
+
+    @Override
+    public boolean canEquip(SlotContext slotContext, ItemStack stack) {
+        return BroomCurioSupport.canEquip(slotContext);
+    }
+
+    @Override
+    public boolean canEquipFromUse(SlotContext slotContext, ItemStack stack) {
+        // 従来の設置操作を維持し、装備はCurios画面からの明示操作に限定する.
+        return false;
+    }
 
     protected static void appendPlacementAndRecoveryTooltip(
             @NotNull List<Component> tooltipComponents,
