@@ -75,6 +75,7 @@ public final class CallBroomDeploymentManager {
         if (broom == null) {
             return false;
         }
+        broom.setBroomItemStack(stack);
         broom.setCalledOwner(player);
         var customName = stack.get(DataComponents.CUSTOM_NAME);
         broom.setCustomName(customName);

@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
+import jp.aquafactory.apprenticecodex.item.broom.BroomDeploymentState;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
@@ -14,6 +15,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -101,6 +103,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     private static final String DAMAGE_TAG = "Damage";
     private static final String DAMAGED_TAG = "Damaged";
     private static final String CALLED_OWNER_TAG = "CallBroomOwner";
+    private static final String BROOM_ITEM_STACK_TAG = "BroomItemStack";
     /**
      * 箒のEntity原点から乗員のvehicle attachmentまでの基準高さ。
      * 箒ごとの姿勢差は{@link #passengerAttachmentYOffset()}で追加補正する。
@@ -117,6 +120,8 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
             SynchedEntityData.defineId(AbstractBroomEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DAMAGED =
             SynchedEntityData.defineId(AbstractBroomEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<ItemStack> BROOM_ITEM_STACK =
+            SynchedEntityData.defineId(AbstractBroomEntity.class, EntityDataSerializers.ITEM_STACK);
 
     private final AnimatableInstanceCache animationCache = GeckoLibUtil.createInstanceCache(this);
     private float localForwardInput;
@@ -187,6 +192,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         builder.define(MAX_DAMAGE, DEFAULT_MAX_DAMAGE);
         builder.define(MANA_EMERGENCY_LANDING, false);
         builder.define(DAMAGED, false);
+        builder.define(BROOM_ITEM_STACK, ItemStack.EMPTY);
     }
 
     @Override
@@ -199,6 +205,9 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         lowManaWarningShown = tag.getBoolean(LOW_MANA_WARNING_SHOWN_TAG);
         calledOwnerUuid = tag.hasUUID(CALLED_OWNER_TAG) ? tag.getUUID(CALLED_OWNER_TAG) : null;
         cachedCalledOwner = null;
+        setBroomItemStack(tag.contains(BROOM_ITEM_STACK_TAG, Tag.TAG_COMPOUND)
+                ? ItemStack.parseOptional(registryAccess(), tag.getCompound(BROOM_ITEM_STACK_TAG))
+                : ItemStack.EMPTY);
     }
 
     @Override
@@ -210,6 +219,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         if (calledOwnerUuid != null) {
             tag.putUUID(CALLED_OWNER_TAG, calledOwnerUuid);
         }
+        tag.put(BROOM_ITEM_STACK_TAG, getBroomItemStack().saveOptional(registryAccess()));
     }
 
     @Override
@@ -664,14 +674,30 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     }
 
     private ItemStack createRecoveredStack() {
-        // 回収は修復を兼ねるため、Entity側の状態は持ち帰らず固有名だけを新品へ引き継ぐ。
-        // 今後調整スロット要素が増えたらそれも引き継ぐ(引き続きEntity時のみに持っている情報は持ち帰らない)
-        var stack = new ItemStack(getRecoveryItem());
+        // 回収はEntity側の損傷だけを修復し、展開前の調整内容とスクロールはItemStackごと引き継ぐ。
+        var stack = getBroomItemStack();
         var customName = getCustomName();
         if (customName != null) {
             stack.set(DataComponents.CUSTOM_NAME, customName);
+        } else {
+            stack.remove(DataComponents.CUSTOM_NAME);
         }
+        BroomDeploymentState.clear(stack);
         return stack;
+    }
+
+    public final void setBroomItemStack(ItemStack stack) {
+        var storedStack = stack.is(getRecoveryItem())
+                ? stack.copyWithCount(1)
+                : new ItemStack(getRecoveryItem());
+        // CallBroomの一時的なEntity UUIDは回収物や同期用copyへ持ち込まない。
+        BroomDeploymentState.clear(storedStack);
+        entityData.set(BROOM_ITEM_STACK, storedStack);
+    }
+
+    public final ItemStack getBroomItemStack() {
+        var stack = entityData.get(BROOM_ITEM_STACK);
+        return stack.is(getRecoveryItem()) ? stack.copyWithCount(1) : new ItemStack(getRecoveryItem());
     }
 
     @Override

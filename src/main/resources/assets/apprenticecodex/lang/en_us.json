@@ -390,6 +390,7 @@
   "item.apprenticecodex.hoverride_broom.desc_1": "[%1$s]: Deploy a mana-powered broom.",
   "item.apprenticecodex.hoverride_broom.desc_2": "[%1$s]+[%2$s]: Retrieve the deployed broom.",
   "item.apprenticecodex.hoverride_broom.desc_3": "Retrieving the broom reconstructs its magical structure, fully repairing it.",
+  "item.apprenticecodex.broom.desc_calibration": "Spells installed at a Spell Calibration Bench can be selected while riding.",
   "item.apprenticecodex.bound_weapon.contain_item.item": "\"%s\" is sealed inside.",
   "item.apprenticecodex.bound_weapon.contain_item.hint": "Let go of the weapon to restore the item inside.",
   "item.apprenticecodex.spell_invoke_card.desc": "Throw it to cast the imbued spell where it lands.",

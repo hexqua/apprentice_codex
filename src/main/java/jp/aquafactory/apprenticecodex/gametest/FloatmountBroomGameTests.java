@@ -5,7 +5,9 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.HoverrideBroomServerConfig;
@@ -15,6 +17,7 @@ import jp.aquafactory.apprenticecodex.entity.broom.BroomDismountEvents;
 import jp.aquafactory.apprenticecodex.entity.broom.FloatmountBroomEntity;
 import jp.aquafactory.apprenticecodex.entity.broom.BroomSurfaceScanner;
 import jp.aquafactory.apprenticecodex.entity.broom.BroomCoreWarningState;
+import jp.aquafactory.apprenticecodex.entity.broom.BroomSpellSelectionEvents;
 import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomEntity;
 import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomMovement;
 import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomPresentation;
@@ -212,22 +215,51 @@ public final class FloatmountBroomGameTests {
         helper.assertTrue(new SpellSelectionManager(player)
                         .getSpellsForSlot(BroomCurioSupport.SPELL_SELECTION_SLOT).isEmpty(),
                 "Call Broom should not be selected without an equipped broom");
+        var floatmount = calibratedBroomStack(ItemRegistry.FLOATMOUNT_BROOM.get(), 1);
         curiosInventory.setEquippedCurio(
                 CuriosSlotConstants.BACK,
                 0,
-                new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get())
+                floatmount
         );
         assertSingleCallBroomSelection(helper, player, "Floatmount Broom");
+        helper.assertTrue(new SpellSelectionManager(player)
+                        .getSpellsForSlot(BroomSpellSelectionEvents.SPELL_SELECTION_SLOT).isEmpty(),
+                "A calibrated Floatmount Broom should not expose scrolls while only equipped as a Curio");
+        var hoverride = calibratedBroomStack(ItemRegistry.HOVERRIDE_BROOM.get(), 1);
         curiosInventory.setEquippedCurio(
                 CuriosSlotConstants.BACK,
                 0,
-                new ItemStack(ItemRegistry.HOVERRIDE_BROOM.get())
+                hoverride
         );
         assertSingleCallBroomSelection(helper, player, "Hoverride Broom");
+        helper.assertTrue(new SpellSelectionManager(player)
+                        .getSpellsForSlot(BroomSpellSelectionEvents.SPELL_SELECTION_SLOT).isEmpty(),
+                "A calibrated Hoverride Broom should not expose scrolls while only equipped as a Curio");
         curiosInventory.setEquippedCurio(CuriosSlotConstants.BACK, 0, ItemStack.EMPTY);
         helper.assertTrue(new SpellSelectionManager(player)
                         .getSpellsForSlot(BroomCurioSupport.SPELL_SELECTION_SLOT).isEmpty(),
                 "Call Broom should be removed after unequipping the broom");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void broomCalibrationSlotsOnlySelectWhileControllingAndDisabledScrollCanBeRemoved(
+            GameTestHelper helper
+    ) {
+        assertBroomCalibrationSelection(
+                helper,
+                ItemRegistry.FLOATMOUNT_BROOM.get(),
+                EntityRegistry.FLOATMOUNT_BROOM.get().create(helper.getLevel()),
+                0,
+                "Floatmount"
+        );
+        assertBroomCalibrationSelection(
+                helper,
+                ItemRegistry.HOVERRIDE_BROOM.get(),
+                EntityRegistry.HOVERRIDE_BROOM.get().create(helper.getLevel()),
+                3,
+                "Hoverride"
+        );
         helper.succeed();
     }
 
@@ -397,6 +429,7 @@ public final class FloatmountBroomGameTests {
         var originalName = Component.literal(broomName + " Original");
         var stack = equipBroom(player, item);
         stack.set(DataComponents.CUSTOM_NAME, originalName);
+        installBroomCalibration(stack, 2);
 
         helper.assertTrue(CallBroomDeploymentManager.execute(player), broomName + " should deploy");
         helper.assertTrue(player.getVehicle() instanceof AbstractBroomEntity,
@@ -408,6 +441,10 @@ public final class FloatmountBroomGameTests {
                 broomName + " stack should store the deployed entity UUID");
         helper.assertTrue(originalName.equals(broom.getCustomName()),
                 broomName + " entity should initially copy the equipped item name");
+        assertCalibrationContents(helper, broom.getBroomItemStack(), 2,
+                broomName + " called broom entity");
+        helper.assertFalse(BroomDeploymentState.isDeployed(broom.getBroomItemStack()),
+                broomName + " entity copy must not retain the Curio deployment UUID");
 
         player.stopRiding();
         broom.setCustomName(Component.literal(broomName + " External"));
@@ -417,6 +454,7 @@ public final class FloatmountBroomGameTests {
                 broomName + " recall should clear deployment state");
         helper.assertTrue(originalName.equals(stack.get(DataComponents.CUSTOM_NAME)),
                 broomName + " recall must preserve the original item name");
+        assertCalibrationContents(helper, stack, 2, broomName + " recalled Curio stack");
         helper.assertTrue(countBroomItems(player) == 0,
                 broomName + " recall must not grant a replacement item");
     }
@@ -438,6 +476,7 @@ public final class FloatmountBroomGameTests {
         var expectedName = Component.literal("Sidewinder").withStyle(ChatFormatting.AQUA);
         var stack = new ItemStack(ItemRegistry.HOVERRIDE_BROOM.get());
         stack.set(DataComponents.CUSTOM_NAME, expectedName);
+        installBroomCalibration(stack, 2);
         var broom = placeHoverrideBroomFromItem(helper, player, stack);
 
         helper.assertTrue(stack.isEmpty(), "Hoverride Broom placement should consume its item");
@@ -452,6 +491,7 @@ public final class FloatmountBroomGameTests {
                 "Recovered Hoverride Broom must not turn into a Floatmount Broom");
         helper.assertTrue(expectedName.equals(recovered.get(DataComponents.CUSTOM_NAME)),
                 "Recovered Hoverride Broom should preserve its custom name");
+        assertCalibrationContents(helper, recovered, 2, "Recovered Hoverride Broom");
         helper.succeed();
     }
 
@@ -987,12 +1027,14 @@ public final class FloatmountBroomGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void sneakingRecoveryKeepsOnlyNameAndRedeploysWithResetState(GameTestHelper helper) {
+    public static void sneakingRecoveryPreservesCalibrationAndRedeploysWithResetState(GameTestHelper helper) {
         var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 1.0D, 1.5D);
         try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
             var expectedName = Component.literal("Restored Broom").withStyle(ChatFormatting.GOLD);
-            var broom = spawnBroom(helper, 1.5D);
-            broom.setCustomName(expectedName);
+            var sourceStack = calibratedBroomStack(ItemRegistry.FLOATMOUNT_BROOM.get(), 2);
+            sourceStack.set(DataComponents.CUSTOM_NAME, expectedName);
+            var placer = player(helper, "floatmount_broom_calibrated_placer");
+            var broom = placeBroomFromItem(helper, placer, sourceStack);
             broom.setCustomNameVisible(true);
             broom.hurt(helper.getLevel().damageSources().fellOutOfWorld(), 20.0F);
             var damagedState = new CompoundTag();
@@ -1008,6 +1050,7 @@ public final class FloatmountBroomGameTests {
             var recovered = findBroomInInventory(helper, player);
             helper.assertTrue(expectedName.equals(recovered.get(DataComponents.CUSTOM_NAME)),
                     "Sneaking recovery should copy the entity custom name");
+            assertCalibrationContents(helper, recovered, 2, "Recovered Floatmount Broom");
 
             var redeployStack = recovered.copy();
             player.getInventory().clearContent();
@@ -1017,6 +1060,7 @@ public final class FloatmountBroomGameTests {
             helper.assertTrue(redeployed.getDamage() == 0, "Redeployed broom should reset damage");
             helper.assertFalse(redeployed.isDamaged(), "Redeployed broom should reset damaged state");
             helper.assertFalse(redeployed.isManaEmergencyLanding(), "Redeployed broom should reset emergency landing");
+            assertCalibrationContents(helper, redeployed.getBroomItemStack(), 2, "Redeployed Floatmount Broom");
         }
         helper.succeed();
     }
@@ -1071,11 +1115,12 @@ public final class FloatmountBroomGameTests {
                     stack, Item.TooltipContext.of(helper.getLevel()), lines, TooltipFlag.Default.NORMAL
             );
 
-            helper.assertTrue(lines.size() == 4, "Floatmount Broom should have four tooltip lines");
+            helper.assertTrue(lines.size() == 5, "Floatmount Broom should have five tooltip lines");
             assertTooltipLine(helper, lines, 0, "item.apprenticecodex.floatmount_broom.desc_1", 1);
             assertTooltipLine(helper, lines, 1, "item.apprenticecodex.floatmount_broom.desc_2", 2);
-            assertTooltipLine(helper, lines, 2, "item.apprenticecodex.floatmount_broom.desc_3", 1);
-            assertTooltipLine(helper, lines, 3, "item.apprenticecodex.floatmount_broom.desc_4", 0);
+            assertTooltipLine(helper, lines, 2, "item.apprenticecodex.broom.desc_calibration", 0);
+            assertTooltipLine(helper, lines, 3, "item.apprenticecodex.floatmount_broom.desc_3", 1);
+            assertTooltipLine(helper, lines, 4, "item.apprenticecodex.floatmount_broom.desc_4", 0);
 
             var firstArgs = ((TranslatableContents) lines.get(0).getContents()).getArgs();
             var secondArgs = ((TranslatableContents) lines.get(1).getContents()).getArgs();
@@ -1083,7 +1128,7 @@ public final class FloatmountBroomGameTests {
             assertComponentKey(helper, secondArgs[0], "key.sneak", "Retrieval control should start with sneak");
             assertComponentKey(helper, secondArgs[1], "key.use", "Retrieval control should end with use");
 
-            var manaArg = ((TranslatableContents) lines.get(2).getContents()).getArgs()[0];
+            var manaArg = ((TranslatableContents) lines.get(3).getContents()).getArgs()[0];
             helper.assertTrue(manaArg instanceof Component, "Mana threshold should be supplied as a styled component");
             if (manaArg instanceof Component manaComponent) {
                 helper.assertTrue("321".equals(manaComponent.getString()),
@@ -1793,6 +1838,138 @@ public final class FloatmountBroomGameTests {
             helper.assertTrue(contents.getArgs().length == expectedArgumentCount,
                     "Tooltip line " + index + " has an unexpected argument count");
         }
+    }
+
+    private static void assertBroomCalibrationSelection(
+            GameTestHelper helper,
+            Item broomItem,
+            AbstractBroomEntity broom,
+            int xOffset,
+            String broomName
+    ) {
+        helper.assertTrue(broom != null, broomName + " Broom entity should be creatable");
+        if (broom == null) {
+            return;
+        }
+        var stack = new ItemStack(broomItem);
+        helper.assertTrue(((AbstractBroomItem) broomItem).getCalibrationAdjustmentSlotCount(stack) == 3,
+                broomName + " Broom should expose three adjustment slots");
+        installBroomScrolls(stack);
+        helper.assertTrue(AbstractBroomItem.getEnabledCalibrationScrollSlotCount(stack) == 0,
+                broomName + " Broom should start with zero enabled scroll slots");
+        helper.assertFalse(AbstractBroomItem.getCalibrationScroll(stack, 2).isEmpty(),
+                broomName + " Broom should retain scrolls stored in disabled slots");
+
+        installBroomUpgrades(stack, 3);
+        helper.assertTrue(AbstractBroomItem.getEnabledCalibrationScrollSlotCount(stack) == 3,
+                broomName + " Broom should enable one scroll slot per upgrade");
+        broom.setBroomItemStack(stack);
+        var pos = helper.absolutePos(TEST_POS.offset(xOffset, 0, 0));
+        broom.setPos(pos.getX() + 0.5D, pos.getY() + 1.5D, pos.getZ() + 0.5D);
+        helper.getLevel().addFreshEntity(broom);
+        var rider = serverRider(helper, broomName.toLowerCase() + "_calibration_rider");
+        helper.assertTrue(rider.startRiding(broom, true), broomName + " rider should mount");
+
+        var selections = new SpellSelectionManager(rider)
+                .getSpellsForSlot(BroomSpellSelectionEvents.SPELL_SELECTION_SLOT);
+        helper.assertTrue(selections.size() == 3,
+                broomName + " rider should receive all three enabled broom spells");
+        for (var index = 0; index < selections.size(); ++index) {
+            helper.assertTrue(selections.get(index).slotIndex == index,
+                    broomName + " broom selections should use compact wheel indices");
+        }
+
+        var entityStack = broom.getBroomItemStack();
+        helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                        entityStack, 2, ItemStack.EMPTY),
+                broomName + " Broom should allow removing its third slot upgrade");
+        broom.setBroomItemStack(entityStack);
+        helper.assertTrue(AbstractBroomItem.getEnabledCalibrationScrollSlotCount(entityStack) == 2,
+                broomName + " Broom should disable the third scroll slot after upgrade removal");
+        helper.assertFalse(AbstractBroomItem.getCalibrationScroll(entityStack, 2).isEmpty(),
+                broomName + " Broom should retain the disabled third scroll");
+        helper.assertTrue(new SpellSelectionManager(rider)
+                        .getSpellsForSlot(BroomSpellSelectionEvents.SPELL_SELECTION_SLOT).size() == 2,
+                broomName + " rider should only receive enabled broom spells");
+
+        rider.stopRiding();
+        helper.assertTrue(new SpellSelectionManager(rider)
+                        .getSpellsForSlot(BroomSpellSelectionEvents.SPELL_SELECTION_SLOT).isEmpty(),
+                broomName + " broom spells should disappear after dismounting");
+
+        var menu = new SpellCalibrationBenchMenu(0, rider.getInventory());
+        menu.getSlot(SpellCalibrationBenchMenu.TARGET_MENU_SLOT).set(entityStack);
+        var disabledSlot = menu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START + 2);
+        helper.assertFalse(menu.isScrollSlotEnabled(2),
+                broomName + " third scroll slot should be disabled in the Calibration Bench");
+        helper.assertTrue(disabledSlot.hasItem() && disabledSlot.mayPickup(rider),
+                broomName + " disabled scroll should remain removable from the Calibration Bench");
+        var extracted = disabledSlot.remove(1);
+        disabledSlot.onTake(rider, extracted);
+        helper.assertFalse(extracted.isEmpty(), broomName + " disabled scroll extraction should return the scroll");
+        helper.assertTrue(AbstractBroomItem.getCalibrationScroll(entityStack, 2).isEmpty(),
+                broomName + " extracted disabled scroll should be removed from broom storage");
+        broom.discard();
+    }
+
+    private static ItemStack calibratedBroomStack(Item broomItem, int enabledSlots) {
+        var stack = new ItemStack(broomItem);
+        installBroomCalibration(stack, enabledSlots);
+        return stack;
+    }
+
+    private static void installBroomCalibration(ItemStack stack, int enabledSlots) {
+        installBroomScrolls(stack);
+        installBroomUpgrades(stack, enabledSlots);
+    }
+
+    private static void installBroomScrolls(ItemStack stack) {
+        var namedScroll = createBroomScroll(SpellRegistry.MANTIS_LEAP.get());
+        namedScroll.set(DataComponents.CUSTOM_NAME, Component.literal("Calibrated Mantis Leap"));
+        AbstractBroomItem.setCalibrationScroll(stack, 0, namedScroll);
+        AbstractBroomItem.setCalibrationScroll(stack, 1, createBroomScroll(SpellRegistry.WIZARDLAMP.get()));
+        AbstractBroomItem.setCalibrationScroll(stack, 2, createBroomScroll(SpellRegistry.MANA_CHARGE.get()));
+    }
+
+    private static void installBroomUpgrades(ItemStack stack, int count) {
+        for (var slot = 0; slot < count; ++slot) {
+            var accepted = SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                    stack,
+                    slot,
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
+            );
+            if (!accepted) {
+                throw new IllegalStateException("Broom slot upgrade was rejected at slot " + slot);
+            }
+        }
+    }
+
+    private static ItemStack createBroomScroll(io.redspace.ironsspellbooks.api.spells.AbstractSpell spell) {
+        var scroll = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+        ISpellContainer.createScrollContainer(spell, 1, scroll);
+        return scroll;
+    }
+
+    private static void assertCalibrationContents(
+            GameTestHelper helper,
+            ItemStack stack,
+            int enabledSlots,
+            String subject
+    ) {
+        helper.assertTrue(AbstractBroomItem.getEnabledCalibrationScrollSlotCount(stack) == enabledSlots,
+                subject + " should preserve enabled scroll slot count");
+        var expectedSpells = List.of(
+                SpellRegistry.MANTIS_LEAP.get(),
+                SpellRegistry.WIZARDLAMP.get(),
+                SpellRegistry.MANA_CHARGE.get()
+        );
+        for (var slot = 0; slot < expectedSpells.size(); ++slot) {
+            helper.assertTrue(AbstractBroomItem.getCalibrationSpellData(stack, slot).getSpell() == expectedSpells.get(slot),
+                    subject + " should preserve calibration scroll " + slot);
+        }
+        helper.assertTrue(Component.literal("Calibrated Mantis Leap").equals(
+                        AbstractBroomItem.getCalibrationScroll(stack, 0).get(DataComponents.CUSTOM_NAME)),
+                subject + " should preserve the full stored scroll ItemStack");
     }
 
     private static void assertComponentKey(GameTestHelper helper, Object argument,
