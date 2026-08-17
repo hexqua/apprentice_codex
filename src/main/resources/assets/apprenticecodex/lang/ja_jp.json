@@ -1033,7 +1033,6 @@
   "ui.apprenticecodex.terra_resonance.not_found": "魔力の反射が返ってこなかった...",
   "ui.apprenticecodex.terra_resonance.found": "共鳴した魔力の座標を特定した！",
   "ui.apprenticecodex.call_broom.not_found_broom": "呼び出す箒が見つからない...",
-  "ui.apprenticecodex.call_broom.insufficient_mana": "呼び出した箒に乗るためのマナが足りない！",
   "ui.apprenticecodex.call_broom.cannot_recall_mounting": "乗っている間は箒を回収できない！",
 
   "ui.apprenticecodex.swingcast.cannot_swing_cast": "%sは打撃詠唱できない！",

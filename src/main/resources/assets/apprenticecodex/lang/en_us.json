@@ -1026,7 +1026,6 @@
   "ui.apprenticecodex.terra_resonance.not_found": "No magical resonance returned...",
   "ui.apprenticecodex.terra_resonance.found": "The resonant coordinates have been located!",
   "ui.apprenticecodex.call_broom.not_found_broom": "No broom to call was found...",
-  "ui.apprenticecodex.call_broom.insufficient_mana": "Not enough mana to mount the called broom!",
   "ui.apprenticecodex.call_broom.cannot_recall_mounting": "The broom cannot be recalled while you are riding it!",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "Switched firing mode to %s",
