@@ -90,6 +90,9 @@
   "item.apprenticecodex.floatmount_broom.desc_2": "[%1$s]+[%2$s]：回收已部署的扫帚。",
   "item.apprenticecodex.floatmount_broom.desc_3": "骑乘需要至少%s点法力（骑乘时不消耗）。",
   "item.apprenticecodex.floatmount_broom.desc_4": "回收扫帚会重构其魔法结构，将其完全修复。",
+  "item.apprenticecodex.brooms.curios.desc_1": "使用“呼唤扫帚”法术可召唤背负的扫帚并立即骑乘。",
+  "item.apprenticecodex.brooms.curios.desc_2": "通过法术骑乘时可无视法力限制。",
+  "item.apprenticecodex.brooms.curios.desc_3": "呼唤出的扫帚在距离过远或受损状态下离开时会自动回收。",
   "item.apprenticecodex.hoverride_broom": "浮空行驶扫帚",
   "item.apprenticecodex.hoverride_broom.desc_1": "[%1$s]：部署一把以法力驱动浮空行驶的扫帚。",
   "item.apprenticecodex.hoverride_broom.desc_2": "[%1$s]+[%2$s]：回收已部署的扫帚。",
@@ -513,6 +516,7 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.adapt_failed_switch_slot": "挥击施法失败时也切换槽位",
   "jei.apprenticecodex.spell_calibration_bench.effect.add_swingcast_function": "攻击时挥击施放所选法术",
   "jei.apprenticecodex.spell_calibration_bench.effect.convert_quick_to_power": "将施法时间缩减转换为法术强度",
+  "jei.apprenticecodex.spell_calibration_bench.effect.adapt_back_curios": "可作为背部饰品装备",
 
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "无法插入多个效果相同的物品。",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "只能插入一个学派符文。",

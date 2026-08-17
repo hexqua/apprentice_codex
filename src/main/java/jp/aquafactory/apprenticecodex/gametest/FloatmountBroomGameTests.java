@@ -112,7 +112,7 @@ public final class FloatmountBroomGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void broomsUseBackSlotWithoutQuickEquip(GameTestHelper helper) {
+    public static void calibratedBroomsUseBackSlotWithoutQuickEquip(GameTestHelper helper) {
         var player = BowGameTestSupport.createEquipmentTestPlayer(
                 helper,
                 new BlockPos(0, 2, 0),
@@ -126,14 +126,33 @@ public final class FloatmountBroomGameTests {
                 (AbstractBroomItem) ItemRegistry.HOVERRIDE_BROOM.get()
         )) {
             var stack = new ItemStack(broom);
-            helper.assertTrue(stack.is(BowGameTestSupport.CURIOS_BACK),
-                    "Broom should be tagged for the Curios back slot");
+            helper.assertFalse(stack.is(BowGameTestSupport.CURIOS_BACK),
+                    "Broom should not use the unconditional Curios back tag");
+            helper.assertFalse(CuriosApi.getItemStackSlots(stack, player).containsKey(CuriosSlotConstants.BACK),
+                    "Uncalibrated broom should not expose the Curios back slot");
+            helper.assertFalse(broom.canEquip(backContext, stack),
+                    "Uncalibrated broom should not be equippable in the Curios back slot");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack, 2, new ItemStack(Items.SADDLE)),
+                    "Broom should accept a saddle as its Curios calibration");
+            helper.assertTrue(AbstractBroomItem.isBackCurioEnabled(stack),
+                    "Saddle-calibrated broom should enable Curios support");
+            helper.assertTrue(CuriosApi.getItemStackSlots(stack, player).containsKey(CuriosSlotConstants.BACK),
+                    "Saddle-calibrated broom should expose the Curios back slot");
             helper.assertTrue(broom.canEquip(backContext, stack),
-                    "Broom should be equippable in the Curios back slot");
+                    "Saddle-calibrated broom should be equippable in the Curios back slot");
             helper.assertFalse(broom.canEquip(beltContext, stack),
                     "Broom should reject non-back Curios slots");
             helper.assertFalse(broom.canEquipFromUse(backContext, stack),
                     "Broom should preserve its normal right-click placement instead of quick-equipping");
+            helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack, 1, new ItemStack(Items.SADDLE)),
+                    "Broom should reject a duplicate Curios calibration");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack, 2, ItemStack.EMPTY),
+                    "Broom should allow removing its Curios calibration");
+            helper.assertFalse(AbstractBroomItem.isBackCurioEnabled(stack),
+                    "Removing the saddle should disable Curios support");
         }
         helper.succeed();
     }
@@ -157,16 +176,16 @@ public final class FloatmountBroomGameTests {
 
         var floatmount = (AbstractBroomItem) ItemRegistry.FLOATMOUNT_BROOM.get();
         var hoverride = (AbstractBroomItem) ItemRegistry.HOVERRIDE_BROOM.get();
-        var equippedStack = new ItemStack(floatmount);
+        var equippedStack = backCurioBroomStack(floatmount);
         curiosInventory.setEquippedCurio(CuriosSlotConstants.BACK, 0, equippedStack);
         var currentContext = new SlotContext(CuriosSlotConstants.BACK, player, 0, false, true);
         var secondContext = new SlotContext(CuriosSlotConstants.BACK, player, 1, false, true);
 
         helper.assertTrue(floatmount.canEquip(currentContext, equippedStack),
                 "Equipped broom should remain valid in its current slot");
-        helper.assertFalse(floatmount.canEquip(secondContext, new ItemStack(floatmount)),
+        helper.assertFalse(floatmount.canEquip(secondContext, backCurioBroomStack(floatmount)),
                 "Broom should reject a second copy in an expanded back slot");
-        helper.assertFalse(hoverride.canEquip(secondContext, new ItemStack(hoverride)),
+        helper.assertFalse(hoverride.canEquip(secondContext, backCurioBroomStack(hoverride)),
                 "Floatmount and Hoverride Brooms should be mutually exclusive");
         var quiverPlayer = BowGameTestSupport.createEquipmentTestPlayer(
                 helper,
@@ -189,7 +208,7 @@ public final class FloatmountBroomGameTests {
         );
         helper.assertTrue(floatmount.canEquip(
                         new SlotContext(CuriosSlotConstants.BACK, quiverPlayer, 1, false, true),
-                        new ItemStack(floatmount)
+                        backCurioBroomStack(floatmount)
                 ),
                 "Spellcaster Quiver should not block a broom when another back slot exists");
         helper.succeed();
@@ -208,7 +227,7 @@ public final class FloatmountBroomGameTests {
         helper.assertTrue(new SpellSelectionManager(player)
                         .getSpellsForSlot(BroomCurioSupport.SPELL_SELECTION_SLOT).isEmpty(),
                 "Call Broom should not be selected without an equipped broom");
-        var floatmount = calibratedBroomStack(ItemRegistry.FLOATMOUNT_BROOM.get(), 1);
+        var floatmount = backCurioCalibratedBroomStack(ItemRegistry.FLOATMOUNT_BROOM.get(), 1);
         curiosInventory.setEquippedCurio(
                 CuriosSlotConstants.BACK,
                 0,
@@ -218,7 +237,19 @@ public final class FloatmountBroomGameTests {
         helper.assertTrue(new SpellSelectionManager(player)
                         .getSpellsForSlot(BroomSpellSelectionEvents.SPELL_SELECTION_SLOT).isEmpty(),
                 "A calibrated Floatmount Broom should not expose scrolls while only equipped as a Curio");
-        var hoverride = calibratedBroomStack(ItemRegistry.HOVERRIDE_BROOM.get(), 1);
+        helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                        floatmount, 2, ItemStack.EMPTY),
+                "Equipped broom should allow removing its Curios calibration");
+        helper.assertTrue(BroomCurioSupport.findUniqueEquippedBroom(player).isEmpty(),
+                "Broom should stop being a valid casting source after Curios calibration is removed");
+        helper.assertTrue(new SpellSelectionManager(player)
+                        .getSpellsForSlot(BroomCurioSupport.SPELL_SELECTION_SLOT).isEmpty(),
+                "Call Broom should disappear on the next spell selection update");
+        helper.assertFalse(SpellRegistry.CALL_BROOM.get().checkPreCastConditions(
+                        helper.getLevel(), 1, player, magicData(helper, player)),
+                "Call Broom should reject an equipped broom whose Curios calibration was removed");
+
+        var hoverride = backCurioCalibratedBroomStack(ItemRegistry.HOVERRIDE_BROOM.get(), 1);
         curiosInventory.setEquippedCurio(
                 CuriosSlotConstants.BACK,
                 0,
@@ -275,8 +306,8 @@ public final class FloatmountBroomGameTests {
         var backHandler = curiosInventory.getCurios().get(CuriosSlotConstants.BACK);
         helper.assertTrue(backHandler != null && backHandler.getStacks().getSlots() >= 2,
                 "Invalid broom test should provide two back slots");
-        backHandler.getStacks().setStackInSlot(0, new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get()));
-        backHandler.getStacks().setStackInSlot(1, new ItemStack(ItemRegistry.HOVERRIDE_BROOM.get()));
+        backHandler.getStacks().setStackInSlot(0, backCurioBroomStack(ItemRegistry.FLOATMOUNT_BROOM.get()));
+        backHandler.getStacks().setStackInSlot(1, backCurioBroomStack(ItemRegistry.HOVERRIDE_BROOM.get()));
 
         helper.assertTrue(BroomCurioSupport.findUniqueEquippedBroom(player).isEmpty(),
                 "Multiple equipped brooms should not resolve as a valid casting source");
@@ -402,7 +433,7 @@ public final class FloatmountBroomGameTests {
     }
 
     private static ItemStack equipBroom(ServerPlayer player, Item item) {
-        var stack = new ItemStack(item);
+        var stack = backCurioBroomStack(item);
         var curiosInventory = CuriosApi.getCuriosInventory(player)
                 .orElseThrow(() -> new IllegalStateException("Missing curios inventory for called broom test"));
         curiosInventory.setEquippedCurio(CuriosSlotConstants.BACK, 0, stack);
@@ -1024,7 +1055,7 @@ public final class FloatmountBroomGameTests {
         var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 1.0D, 1.5D);
         try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
             var expectedName = Component.literal("Restored Broom").withStyle(ChatFormatting.GOLD);
-            var sourceStack = calibratedBroomStack(ItemRegistry.FLOATMOUNT_BROOM.get(), 2);
+            var sourceStack = backCurioCalibratedBroomStack(ItemRegistry.FLOATMOUNT_BROOM.get(), 2);
             sourceStack.setHoverName(expectedName);
             var placer = player(helper, "floatmount_broom_calibrated_placer");
             var broom = placeBroomFromItem(helper, placer, sourceStack);
@@ -1044,6 +1075,8 @@ public final class FloatmountBroomGameTests {
             helper.assertTrue(expectedName.equals(recovered.getHoverName()),
                     "Sneaking recovery should copy the entity custom name");
             assertCalibrationContents(helper, recovered, 2, "Recovered Floatmount Broom");
+            helper.assertTrue(AbstractBroomItem.isBackCurioEnabled(recovered),
+                    "Normal placement and recovery should preserve Curios calibration");
 
             var redeployStack = recovered.copy();
             player.getInventory().clearContent();
@@ -1054,6 +1087,8 @@ public final class FloatmountBroomGameTests {
             helper.assertFalse(redeployed.isDamaged(), "Redeployed broom should reset damaged state");
             helper.assertFalse(redeployed.isManaEmergencyLanding(), "Redeployed broom should reset emergency landing");
             assertCalibrationContents(helper, redeployed.getBroomItemStack(), 2, "Redeployed Floatmount Broom");
+            helper.assertTrue(AbstractBroomItem.isBackCurioEnabled(redeployed.getBroomItemStack()),
+                    "Redeployed broom should preserve Curios calibration");
         }
         helper.succeed();
     }
@@ -1103,6 +1138,7 @@ public final class FloatmountBroomGameTests {
         FloatmountBroomConfigState.setNormalFlightManaThreshold(321);
         try {
             var stack = new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get());
+            var broomItem = (AbstractBroomItem) stack.getItem();
             var lines = new ArrayList<Component>();
             stack.getItem().appendHoverText(stack, helper.getLevel(), lines, TooltipFlag.Default.NORMAL);
 
@@ -1128,6 +1164,44 @@ public final class FloatmountBroomGameTests {
                                 && manaComponent.getStyle().getColor().getValue() == ChatFormatting.AQUA.getColor(),
                         "Mana threshold should be aqua");
             }
+
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack, 2, new ItemStack(Items.SADDLE)),
+                    "Tooltip test broom should accept its Curios calibration");
+            lines.clear();
+            stack.getItem().appendHoverText(
+                    stack, helper.getLevel(), lines, TooltipFlag.Default.NORMAL
+            );
+            helper.assertTrue(lines.size() == 5,
+                    "Curios calibration should not mix slot details into the normal item description");
+
+            var defaultSlotLine = Component.translatable("curios.tooltip.slot");
+            var slotsTooltip = broomItem.getSlotsTooltip(List.of(defaultSlotLine), stack);
+            helper.assertTrue(slotsTooltip.size() == 7,
+                    "Saddle-calibrated broom should add the standard Curios section and separator");
+            helper.assertTrue(slotsTooltip.get(1).getString().isEmpty(),
+                    "Curios section should start after a blank line");
+            helper.assertTrue(slotsTooltip.get(2).getContents() instanceof TranslatableContents contents
+                            && contents.getKey().equals("curios.modifiers.back")
+                            && contents.getArgs().length == 0,
+                    "Curios section should use the back slot modifier heading");
+            helper.assertTrue(slotsTooltip.get(2).getStyle().getColor() != null
+                            && slotsTooltip.get(2).getStyle().getColor().getValue() == ChatFormatting.GOLD.getColor(),
+                    "Curios section header should use the standard gold style");
+            for (var line = 0; line < 3; ++line) {
+                var detail = slotsTooltip.get(line + 3);
+                helper.assertTrue(detail.getSiblings().size() == 1
+                                && detail.getSiblings().get(0).getContents() instanceof TranslatableContents contents
+                                && contents.getKey().equals(
+                                "item.apprenticecodex.brooms.curios.desc_" + (line + 1)
+                        ),
+                        "Curios section should contain its expected detail line");
+                helper.assertTrue(detail.getStyle().getColor() != null
+                                && detail.getStyle().getColor().getValue() == ChatFormatting.YELLOW.getColor(),
+                        "Curios detail lines should use the standard yellow style");
+            }
+            helper.assertTrue(slotsTooltip.get(6).getString().isEmpty(),
+                    "Curios details should be separated from the normal control description by a blank line");
             helper.succeed();
         } finally {
             FloatmountBroomConfigState.reset();
@@ -1907,6 +1981,33 @@ public final class FloatmountBroomGameTests {
     private static ItemStack calibratedBroomStack(Item broomItem, int enabledSlots) {
         var stack = new ItemStack(broomItem);
         installBroomCalibration(stack, enabledSlots);
+        return stack;
+    }
+
+    private static ItemStack backCurioBroomStack(Item broomItem) {
+        var stack = new ItemStack(broomItem);
+        if (!SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                stack,
+                2,
+                new ItemStack(Items.SADDLE)
+        )) {
+            throw new IllegalStateException("Broom Curios calibration was rejected");
+        }
+        return stack;
+    }
+
+    private static ItemStack backCurioCalibratedBroomStack(Item broomItem, int enabledSlots) {
+        if (enabledSlots < 0 || enabledSlots > 2) {
+            throw new IllegalArgumentException("Back Curio broom supports zero to two scroll slot upgrades");
+        }
+        var stack = calibratedBroomStack(broomItem, enabledSlots);
+        if (!SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                stack,
+                2,
+                new ItemStack(Items.SADDLE)
+        )) {
+            throw new IllegalStateException("Broom Curios calibration was rejected");
+        }
         return stack;
     }
 
