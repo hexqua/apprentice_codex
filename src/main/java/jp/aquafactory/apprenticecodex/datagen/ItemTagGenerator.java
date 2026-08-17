@@ -549,9 +549,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SPELLCASTER_QUIVER.get()
         );
         tag(CURIOS_BACK).add(
-                ItemRegistry.SPELLCASTER_QUIVER.get(),
-                ItemRegistry.FLOATMOUNT_BROOM.get(),
-                ItemRegistry.HOVERRIDE_BROOM.get()
+                ItemRegistry.SPELLCASTER_QUIVER.get()
         );
         tag(CURIOS_NECKLACE).add(
                 ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get(),

@@ -22,6 +22,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -30,6 +31,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.level.ClipContext;
@@ -47,6 +49,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,7 +63,12 @@ public abstract class AbstractBroomItem extends Item implements GeoItem, ICurioI
                             "slot_upgrade",
                             AbstractBroomItem::isCalibrationSlotUpgrade,
                             CalibrationAdjustmentHints.slotUpgrades()
-                    ).withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(1))
+                    ).withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(1)),
+                    CalibrationAdjustmentRule.unique(
+                            "adapt_back_curios",
+                            stack -> stack.is(Items.SADDLE),
+                            CalibrationAdjustmentHints.saddle()
+                    ).withEffectLines(CalibrationAdjustmentEffects.adaptBackCurios())
             );
     private static final String CALIBRATION_TAG = "SpellCalibration";
     private static final String SCROLLS_TAG = "Scrolls";
@@ -182,6 +190,19 @@ public abstract class AbstractBroomItem extends Item implements GeoItem, ICurioI
         return Math.min(CALIBRATION_SCROLL_SLOT_COUNT, upgradeCount);
     }
 
+    public static boolean isBackCurioEnabled(@NotNull ItemStack broomStack) {
+        if (!isValidBroomStack(broomStack)) {
+            return false;
+        }
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            if (CalibrationAdjustmentStorage.get(broomStack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT)
+                    .is(Items.SADDLE)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static @NotNull ItemStack getCalibrationScroll(@NotNull ItemStack broomStack, int slot) {
         if (!isValidScrollAccess(broomStack, slot)) {
             return ItemStack.EMPTY;
@@ -290,13 +311,38 @@ public abstract class AbstractBroomItem extends Item implements GeoItem, ICurioI
 
     @Override
     public boolean canEquip(SlotContext slotContext, ItemStack stack) {
-        return BroomCurioSupport.canEquip(slotContext);
+        return BroomCurioSupport.canEquip(slotContext, stack);
     }
 
     @Override
     public boolean canEquipFromUse(SlotContext slotContext, ItemStack stack) {
         // 従来の設置操作を維持し、装備はCurios画面からの明示操作に限定する.
         return false;
+    }
+
+    @Override
+    public List<Component> getSlotsTooltip(
+            List<Component> tooltips,
+            Item.TooltipContext context,
+            ItemStack stack
+    ) {
+        if (!isBackCurioEnabled(stack)) {
+            return tooltips;
+        }
+
+        var result = new ArrayList<>(tooltips);
+        result.add(Component.empty());
+        result.add(Component.translatable(
+                "curios.modifiers." + BroomCurioSupport.CURIO_SLOT
+        ).withStyle(ChatFormatting.GOLD));
+        for (var line = 1; line <= 3; ++line) {
+            result.add(Component.literal(" ")
+                    .append(Component.translatable("item.apprenticecodex.brooms.curios.desc_" + line))
+                    .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+        }
+        // Curios固有説明と通常の設置・操作説明を別段落として表示する。
+        result.add(Component.empty());
+        return result;
     }
 
     @Override

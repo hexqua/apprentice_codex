@@ -66,6 +66,10 @@ public final class CalibrationAdjustmentEffects {
         return line("convert_quick_to_power");
     }
 
+    public static List<Component> adaptBackCurios() {
+        return line("adapt_back_curios");
+    }
+
     private static List<Component> line(String key, Object... args) {
         return List.of(Component.translatable(KEY_PREFIX + key, args));
     }

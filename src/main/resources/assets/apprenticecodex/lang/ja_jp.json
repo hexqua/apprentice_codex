@@ -388,6 +388,9 @@
   "item.apprenticecodex.chargecast_catalystbook.spell_power": "%d%%",
   "item.apprenticecodex.chargecast_catalystbook.school_rune": "この本は\"%s\"の系統に調律されている。",
   "item.apprenticecodex.wooden_wand.desc": "[%1$s]で耐久力を消費して注入されている魔法を詠唱する。",
+  "item.apprenticecodex.brooms.curios.desc_1": "\"箒呼び出し\"の魔法で背負っている箒を呼び出し即座に乗り込む。",
+  "item.apprenticecodex.brooms.curios.desc_2": "魔法で騎乗する場合はマナの制限を無視できる。",
+  "item.apprenticecodex.brooms.curios.desc_3": "呼び出した箒は少し離れたり損傷した状態で降りると自動で回収される。",
   "item.apprenticecodex.floatmount_broom.desc_1": "[%1$s]: マナを動力に飛行する箒を設置する。",
   "item.apprenticecodex.floatmount_broom.desc_2": "[%1$s]+[%2$s]: 設置した箒を回収する。",
   "item.apprenticecodex.floatmount_broom.desc_3": "騎乗には%s以上のマナが必要（騎乗時には消費しない）",
@@ -525,6 +528,7 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.adapt_failed_switch_slot": "打撃詠唱の不発時もスロット切替",
   "jei.apprenticecodex.spell_calibration_bench.effect.add_swingcast_function": "攻撃時に選択中の魔法を打撃詠唱",
   "jei.apprenticecodex.spell_calibration_bench.effect.convert_quick_to_power": "詠唱時間短縮を魔法威力へ変換",
+  "jei.apprenticecodex.spell_calibration_bench.effect.adapt_back_curios": "背中装備として背負いに対応",
 
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "同じ効果のアイテムは複数挿入できない",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "系統のルーンはどれか一つのみ挿入できる",

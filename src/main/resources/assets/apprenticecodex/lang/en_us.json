@@ -383,6 +383,9 @@
   "item.apprenticecodex.chargecast_catalystbook.spell_power": "%d%%",
   "item.apprenticecodex.chargecast_catalystbook.school_rune": "This book is tuned to the \"%s\" school.",
   "item.apprenticecodex.wooden_wand.desc": "Cast the imbued spell with [%1$s] at the cost of durability.",
+  "item.apprenticecodex.brooms.curios.desc_1": "Use \"Call Broom\" to summon the broom equipped on your back and mount it immediately.",
+  "item.apprenticecodex.brooms.curios.desc_2": "Mounting through the spell ignores mana restrictions.",
+  "item.apprenticecodex.brooms.curios.desc_3": "A called broom is automatically retrieved if left behind or dismounted while damaged.",
   "item.apprenticecodex.floatmount_broom.desc_1": "[%1$s]: Deploy a mana-powered broom.",
   "item.apprenticecodex.floatmount_broom.desc_2": "[%1$s]+[%2$s]: Retrieve the deployed broom.",
   "item.apprenticecodex.floatmount_broom.desc_3": "Requires at least %s mana to mount (mounting consumes no mana).",
@@ -524,6 +527,7 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.adapt_failed_switch_slot": "Switches slots when swing cast fails",
   "jei.apprenticecodex.spell_calibration_bench.effect.add_swingcast_function": "Swing-casts selected spell on attack",
   "jei.apprenticecodex.spell_calibration_bench.effect.convert_quick_to_power": "Cast time reduction to Spell Power",
+  "jei.apprenticecodex.spell_calibration_bench.effect.adapt_back_curios": "Enables equipping on the back",
 
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "Cannot insert multiple items with the same effect.",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "Only one school rune can be inserted.",
