@@ -752,7 +752,7 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    static void assistWingsTaggedGroundCastKeepsWingAndBlocksGlide(GameTestHelper helper) {
+    static void assistWingsTaggedGroundCastKeepsWingAndBlocksFallProtection(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createAssistWingsPlayer(helper, new BlockPos(0, 2, 0), "assist_wings_smashcast_ground_test");
             player.setOnGround(true);
@@ -786,17 +786,17 @@ public class ApprenticeCodexGameTestScenarios {
                 return;
             }
             wing.tickOnServer(helper.getLevel());
-            helper.assertTrue(wing.isGlideBlocked(),
-                    "A tagged main-hand item should block Assist Wings gliding");
+            helper.assertTrue(wing.isFallProtectionBlocked(),
+                    "A tagged main-hand item should block Assist Wings fall protection");
             helper.assertFalse(player.hasEffect(MobEffects.SLOW_FALLING),
                     "Assist Wings should not use the vanilla Slow Falling effect");
             assertAssistWingsCastDataRoundTrips(helper, magicData, true);
         });
     }
 
-    static void assistWingsTaggedOffhandBlocksGlideWithoutDiscardingWing(GameTestHelper helper) {
+    static void assistWingsTaggedOffhandBlocksFallProtectionWithoutDiscardingWing(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createAssistWingsPlayer(helper, new BlockPos(0, 4, 0), "assist_wings_offhand_glide_test");
+            var player = createAssistWingsPlayer(helper, new BlockPos(0, 4, 0), "assist_wings_offhand_protection_test");
             player.setOnGround(false);
             player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()));
             player.setDeltaMovement(0.12D, -0.2D, -0.08D);
@@ -814,16 +814,16 @@ public class ApprenticeCodexGameTestScenarios {
                     "A tagged offhand item should leave falling movement unchanged");
             helper.assertTrue(player.fallDistance == 7.0F,
                     "A tagged offhand item should preserve accumulated fall distance");
-            helper.assertTrue(wing.isGlideBlocked(),
-                    "A tagged offhand item should block Assist Wings gliding");
+            helper.assertTrue(wing.isFallProtectionBlocked(),
+                    "A tagged offhand item should block Assist Wings fall protection");
             helper.assertFalse(wing.isRemoved(),
-                    "Blocking gliding from the offhand should not discard the wing");
+                    "Blocking fall protection from the offhand should not discard the wing");
         });
     }
 
-    static void assistWingsRemovingTaggedItemRestoresCustomGlide(GameTestHelper helper) {
+    static void assistWingsRemovingTaggedItemRestoresFallProtectionWithoutSlowingFall(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createAssistWingsPlayer(helper, new BlockPos(0, 4, 0), "assist_wings_restore_glide_test");
+            var player = createAssistWingsPlayer(helper, new BlockPos(0, 4, 0), "assist_wings_restore_protection_test");
             player.setOnGround(false);
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()));
 
@@ -831,25 +831,38 @@ public class ApprenticeCodexGameTestScenarios {
             helper.getLevel().addFreshEntity(wing);
             setAssistWingsState(player, 1, wing.getId());
             wing.tickOnServer(helper.getLevel());
-            helper.assertTrue(wing.isGlideBlocked(),
-                    "The tagged main-hand item should initially block gliding");
+            helper.assertTrue(wing.isFallProtectionBlocked(),
+                    "The tagged main-hand item should initially block fall protection");
 
             player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
             player.setDeltaMovement(0.12D, -0.3D, -0.08D);
             player.fallDistance = 8.0F;
+            player.setShiftKeyDown(true);
             wing.tickOnServer(helper.getLevel());
 
             var movement = player.getDeltaMovement();
             helper.assertTrue(Math.abs(movement.x - 0.12D) < 0.0001D
-                            && Math.abs(movement.y + 0.08D) < 0.0001D
+                            && Math.abs(movement.y + 0.3D) < 0.0001D
                             && Math.abs(movement.z + 0.08D) < 0.0001D,
-                    "Removing the tagged item should restore the custom glide speed cap");
+                    "Assist Wings fall protection should not change movement while sneaking");
             helper.assertTrue(player.fallDistance == 0.0F,
-                    "Restored gliding should reset accumulated fall distance");
-            helper.assertFalse(wing.isGlideBlocked(),
+                    "Restored fall protection should reset accumulated fall distance while sneaking");
+            helper.assertFalse(wing.isFallProtectionBlocked(),
                     "Removing the tagged item should restore the normal wing state");
             helper.assertFalse(player.hasEffect(MobEffects.SLOW_FALLING),
-                    "Custom gliding should not add the vanilla Slow Falling effect");
+                    "Assist Wings fall protection should not add the vanilla Slow Falling effect");
+
+            player.setShiftKeyDown(false);
+            player.setDeltaMovement(-0.07D, -0.45D, 0.09D);
+            player.fallDistance = 12.0F;
+            wing.tickOnServer(helper.getLevel());
+            movement = player.getDeltaMovement();
+            helper.assertTrue(Math.abs(movement.x + 0.07D) < 0.0001D
+                            && Math.abs(movement.y + 0.45D) < 0.0001D
+                            && Math.abs(movement.z - 0.09D) < 0.0001D,
+                    "Assist Wings fall protection should not change regular falling movement");
+            helper.assertTrue(player.fallDistance == 0.0F,
+                    "Assist Wings should reset regular accumulated fall distance");
         });
     }
 
@@ -873,8 +886,14 @@ public class ApprenticeCodexGameTestScenarios {
                 wing.tickOnServer(helper.getLevel());
             }
 
+            helper.assertFalse(wing.isRemoved(),
+                    "The wing should ignore landing during its first 10 ticks");
+            helper.assertTrue(getAssistWingsDoneJump(player) == 2,
+                    "Landing during the removal grace should preserve Assist Wings air jumps");
+
+            wing.tickOnServer(helper.getLevel());
             helper.assertTrue(wing.isRemoved(),
-                    "The wing should remain long enough to detect landing, then be discarded");
+                    "The wing should detect landing after its 10 tick removal grace");
             helper.assertTrue(getAssistWingsDoneJump(player) == 0,
                     "Landing with a tagged item should reset Assist Wings air jumps");
 
@@ -884,6 +903,81 @@ public class ApprenticeCodexGameTestScenarios {
                     "A normal midair Assist Wings cast should be available after the tagged landing reset");
         });
     }
+    static void assistWingsWaterRemovalUsesGraceAndResetsAirJumps(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var waterPos = new BlockPos(0, 2, 0);
+            helper.setBlock(waterPos, Blocks.WATER);
+
+            var submergedPlayer = createAssistWingsPlayer(helper, waterPos, "assist_wings_water_removal_test");
+            submergedPlayer.setOnGround(false);
+            var submergedWing = new AssistWingsWingEntity(
+                    EntityRegistry.ASSIST_WINGS_WING.get(), helper.getLevel(), submergedPlayer);
+            helper.getLevel().addFreshEntity(submergedWing);
+            setAssistWingsState(submergedPlayer, 2, submergedWing.getId());
+
+            for (var i = 0; i < 10; ++i) {
+                submergedWing.tickOnServer(helper.getLevel());
+            }
+
+            helper.assertFalse(submergedWing.isRemoved(),
+                    "Water contact should not remove Assist Wings during its first 10 ticks");
+            helper.assertTrue(getAssistWingsDoneJump(submergedPlayer) == 2,
+                    "Water contact during the removal grace should preserve Assist Wings air jumps");
+
+            submergedWing.tickOnServer(helper.getLevel());
+            helper.assertTrue(submergedWing.isRemoved(),
+                    "Water contact should remove Assist Wings after its 10 tick removal grace");
+            var submergedState = Capabilities.getSpellDataOrNull(submergedPlayer)
+                    .get(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE);
+            helper.assertTrue(submergedState.localEntityId == -1 && submergedState.doneJump == 0,
+                    "Water removal should clear the managed wing and reset Assist Wings air jumps");
+
+            var leavingWaterPos = new BlockPos(3, 2, 0);
+            helper.setBlock(leavingWaterPos, Blocks.WATER);
+            var leavingPlayer = createAssistWingsPlayer(helper, leavingWaterPos, "assist_wings_leave_water_test");
+            leavingPlayer.setOnGround(false);
+            var leavingWing = new AssistWingsWingEntity(
+                    EntityRegistry.ASSIST_WINGS_WING.get(), helper.getLevel(), leavingPlayer);
+            helper.getLevel().addFreshEntity(leavingWing);
+            setAssistWingsState(leavingPlayer, 1, leavingWing.getId());
+
+            for (var i = 0; i < 5; ++i) {
+                leavingWing.tickOnServer(helper.getLevel());
+            }
+            var dryPos = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(6, 4, 0)));
+            leavingPlayer.setPos(dryPos.x, dryPos.y, dryPos.z);
+            for (var i = 0; i < 6; ++i) {
+                leavingWing.tickOnServer(helper.getLevel());
+            }
+
+            helper.assertFalse(leavingWing.isRemoved(),
+                    "Leaving water during the removal grace should keep Assist Wings active");
+            helper.assertTrue(getAssistWingsDoneJump(leavingPlayer) == 1,
+                    "Leaving water during the removal grace should preserve Assist Wings air jumps");
+        });
+    }
+
+    static void assistWingsLavaContactDoesNotRemoveWing(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var lavaPos = new BlockPos(0, 2, 0);
+            helper.setBlock(lavaPos, Blocks.LAVA);
+            var player = createAssistWingsPlayer(helper, lavaPos, "assist_wings_lava_contact_test");
+            player.setOnGround(false);
+            var wing = new AssistWingsWingEntity(EntityRegistry.ASSIST_WINGS_WING.get(), helper.getLevel(), player);
+            helper.getLevel().addFreshEntity(wing);
+            setAssistWingsState(player, 2, wing.getId());
+
+            for (var i = 0; i < 11; ++i) {
+                wing.tickOnServer(helper.getLevel());
+            }
+
+            helper.assertFalse(wing.isRemoved(),
+                    "Lava contact should not remove Assist Wings");
+            helper.assertTrue(getAssistWingsDoneJump(player) == 2,
+                    "Lava contact should not reset Assist Wings air jumps");
+        });
+    }
+
     static void searchBeaconRefundLogicOnlyRefundsWhenUnknownStructuresAreAbsent(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var unknownMarker = new SearchBeaconState.StructureMarker(
