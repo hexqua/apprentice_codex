@@ -1250,6 +1250,23 @@ public final class FloatmountBroomGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void hoverrideTooltipIncludesAssistWingsAndRecoveryDescriptions(GameTestHelper helper) {
+        var stack = new ItemStack(ItemRegistry.HOVERRIDE_BROOM.get());
+        var lines = new ArrayList<Component>();
+        stack.getItem().appendHoverText(
+                stack, helper.getLevel(), lines, TooltipFlag.Default.NORMAL
+        );
+
+        helper.assertTrue(lines.size() == 5, "Hoverride Broom should have five tooltip lines");
+        assertTooltipLine(helper, lines, 0, "item.apprenticecodex.hoverride_broom.desc_1", 1);
+        assertTooltipLine(helper, lines, 1, "item.apprenticecodex.hoverride_broom.desc_2", 2);
+        assertTooltipLine(helper, lines, 2, "item.apprenticecodex.broom.desc_calibration", 0);
+        assertTooltipLine(helper, lines, 3, "item.apprenticecodex.hoverride_broom.desc_3", 0);
+        assertTooltipLine(helper, lines, 4, "item.apprenticecodex.hoverride_broom.desc_4", 0);
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void configSyncPacketPreservesManaThreshold(GameTestHelper helper) {
         var buffer = new FriendlyByteBuf(Unpooled.buffer());
         SyncFloatmountBroomConfigPacket.encode(new SyncFloatmountBroomConfigPacket(4321), buffer);

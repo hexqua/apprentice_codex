@@ -30,6 +30,9 @@ public final class HoverrideBroomItem extends AbstractBroomItem {
         tooltipComponents.add(Component.translatable(
                 "item.apprenticecodex.hoverride_broom.desc_3"
         ).withStyle(ChatFormatting.GRAY));
+        tooltipComponents.add(Component.translatable(
+                "item.apprenticecodex.hoverride_broom.desc_4"
+        ).withStyle(ChatFormatting.GRAY));
     }
 
     @Override
