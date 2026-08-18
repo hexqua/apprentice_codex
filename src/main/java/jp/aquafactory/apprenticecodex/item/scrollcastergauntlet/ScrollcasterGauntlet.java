@@ -88,6 +88,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -172,6 +173,12 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_SWORD);
     private static final ItemStack PICKAXE_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_PICKAXE);
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.ALACRITY,
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR,
+            AttributeEnchantmentType.TENSE
+    );
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
@@ -191,7 +198,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                 ? AttributeEnchantmentResolver.resolveMergedModifiers(
                         buildMainhandModifiers(stack),
                         stack,
-                        "apprenticecodex.scrollcaster_gauntlet"
+                        "apprenticecodex.scrollcaster_gauntlet",
+                        DIRECT_ATTRIBUTE_ENCHANTMENTS
                 )
                 : super.getAttributeModifiers(slot, stack);
     }
@@ -227,8 +235,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     @Override
-    public java.util.Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
-        return AttributeEnchantmentPolicy.ALL_ATTRIBUTE_ENCHANTMENTS;
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
     }
 
     @Override
@@ -517,6 +525,9 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         if (enchantmentId == null) {
             return false;
         }
+        if (enchantment == net.minecraft.world.item.enchantment.Enchantments.SWEEPING_EDGE) {
+            return false;
+        }
 
         // 1.21.1 では Malum 側の supported_items で許可されるため、1.20.1 では個別に合成する。
         if (MalumHauntedCompat.isAnimatedEnchantment(enchantmentId)
@@ -536,7 +547,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     private static boolean isExplicitlySupportedMagicEnchantment(Enchantment enchantment) {
         return MALUM_REPLENISHING.equals(ForgeRegistries.ENCHANTMENTS.getKey(enchantment))
-                || AttributeEnchantmentType.from(enchantment).isPresent()
+                || AttributeEnchantmentType.from(enchantment).map(DIRECT_ATTRIBUTE_ENCHANTMENTS::contains).orElse(false)
                 || matches(enchantment, EnchantmentRegistry.TRANSCENDENCE)
                 || matches(enchantment, EnchantmentRegistry.WISDOM);
     }

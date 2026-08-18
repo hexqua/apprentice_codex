@@ -345,7 +345,9 @@ final class EnchantmentApplicationGameTestScenarios {
                 new AttributePolicyCase(ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get(),
                         Set.of(AttributeEnchantmentType.ALACRITY, AttributeEnchantmentType.REFLUX,
                                 AttributeEnchantmentType.RESERVOIR, AttributeEnchantmentType.TENSE)),
-                new AttributePolicyCase(ItemRegistry.SCROLLCASTER_GAUNTLET.get(), all),
+                new AttributePolicyCase(ItemRegistry.SCROLLCASTER_GAUNTLET.get(),
+                        Set.of(AttributeEnchantmentType.ALACRITY, AttributeEnchantmentType.REFLUX,
+                                AttributeEnchantmentType.RESERVOIR, AttributeEnchantmentType.TENSE)),
                 new AttributePolicyCase(ItemRegistry.MANA_FORCE_BLADE.get(),
                         Set.of(AttributeEnchantmentType.SURGE, AttributeEnchantmentType.ATTUNEMENT)),
                 new AttributePolicyCase(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
@@ -825,12 +827,11 @@ final class EnchantmentApplicationGameTestScenarios {
                 EnchantmentRegistry.ALACRITY,
                 EnchantmentRegistry.REFLUX,
                 EnchantmentRegistry.RESERVOIR,
-                EnchantmentRegistry.SURGE,
-                EnchantmentRegistry.ATTUNEMENT,
                 EnchantmentRegistry.TENSE,
                 EnchantmentRegistry.TRANSCENDENCE,
                 EnchantmentRegistry.WISDOM
         ));
+        expected.remove(ResourceLocation.withDefaultNamespace("sweeping"));
         addExpectedMalumHauntedIfPresent(stack, expected);
         addExpectedMalumSpiritPlunderIfPresent(stack, expected);
         addExpectedMalumReplenishingIfPresent(expected);
