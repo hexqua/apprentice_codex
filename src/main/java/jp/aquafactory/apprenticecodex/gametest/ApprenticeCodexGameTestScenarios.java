@@ -54,10 +54,12 @@ import jp.aquafactory.apprenticecodex.effect.CastingMoveSpeedAdjustment;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
+import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomEntity;
 import jp.aquafactory.apprenticecodex.event.ErrandMageVillagerTradesEvent;
 import jp.aquafactory.apprenticecodex.event.errandmage.ErrandMageTradeManager;
 import jp.aquafactory.apprenticecodex.loot.RandomSpellImbueHelper;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
+import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomAssistWingsJumpPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncAssistWingsJumpPacket;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
@@ -228,6 +230,8 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.contents.TranslatableContents;
@@ -240,6 +244,8 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ClientInformation;
+import net.minecraft.server.network.CommonListenerCookie;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -345,8 +351,10 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.registries.datamaps.builtin.Compostable;
 import net.neoforged.neoforge.registries.datamaps.builtin.NeoForgeDataMaps;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.network.registration.NetworkRegistry;
 import net.neoforged.fml.ModList;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.embedded.EmbeddedChannel;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -1066,6 +1074,141 @@ public class ApprenticeCodexGameTestScenarios {
                     "Lava contact should not remove Assist Wings");
             helper.assertTrue(getAssistWingsDoneJump(player) == 2,
                     "Lava contact should not reset Assist Wings air jumps");
+        });
+    }
+
+    static void assistWingsSuccessfulCastRestartsRemovalGrace(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createAssistWingsPlayer(helper, new BlockPos(0, 2, 0), "assist_wings_grace_restart_test");
+            player.setOnGround(true);
+            var wing = new AssistWingsWingEntity(EntityRegistry.ASSIST_WINGS_WING.get(), helper.getLevel(), player);
+            helper.getLevel().addFreshEntity(wing);
+            setAssistWingsState(player, 1, wing.getId());
+
+            for (var i = 0; i < 8; ++i) {
+                wing.tickOnServer(helper.getLevel());
+            }
+            wing.restartRemovalGrace();
+            for (var i = 0; i < 10; ++i) {
+                wing.tickOnServer(helper.getLevel());
+            }
+
+            helper.assertFalse(wing.isRemoved(),
+                    "A successful Assist Wings recast should restart the full 10 tick removal grace");
+            wing.tickOnServer(helper.getLevel());
+            helper.assertTrue(wing.isRemoved(),
+                    "Landing should remove Assist Wings after the restarted grace expires");
+            helper.assertTrue(getAssistWingsDoneJump(player) == 0,
+                    "Landing after a restarted grace should reset Assist Wings air jumps");
+        });
+    }
+
+    static void assistWingsRejectsOtherBroomsWithoutChangingState(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createAssistWingsRider(helper, new BlockPos(0, 4, 0), "assist_wings_other_mount_test");
+            player.setOnGround(false);
+            setAssistWingsState(player, 1, -1);
+            var broom = EntityRegistry.FLOATMOUNT_BROOM.get().create(helper.getLevel());
+            if (broom == null) {
+                helper.fail("Floatmount broom should be available for the Assist Wings mount rejection test");
+                return;
+            }
+            broom.setPos(player.position());
+            helper.getLevel().addFreshEntity(broom);
+            helper.assertTrue(player.startRiding(broom, true),
+                    "Assist Wings mount rejection test rider should mount the Floatmount broom");
+
+            var spell = SpellRegistry.ASSIST_WINGS.get();
+            helper.assertFalse(spell.checkPreCastConditions(
+                            helper.getLevel(), 1, player, MagicData.getPlayerMagicData(player)),
+                    "Assist Wings should reject vehicles other than Hoverride broom");
+            helper.assertTrue(getAssistWingsDoneJump(player) == 1,
+                    "Rejecting another vehicle should preserve Assist Wings air jumps");
+            helper.assertTrue(countActiveAssistWingsWings(helper, player) == 0,
+                    "Rejecting another vehicle should not summon Assist Wings");
+
+            var wing = new AssistWingsWingEntity(EntityRegistry.ASSIST_WINGS_WING.get(), helper.getLevel(), player);
+            helper.getLevel().addFreshEntity(wing);
+            setAssistWingsState(player, 1, wing.getId());
+            broom.setOnGround(true);
+            for (var i = 0; i < 11; ++i) {
+                wing.tickOnServer(helper.getLevel());
+            }
+            helper.assertTrue(wing.isRemoved() && getAssistWingsDoneJump(player) == 0,
+                    "A grounded vehicle should remove an existing wing and reset its air jumps");
+        });
+    }
+
+    static void assistWingsHoverrideUsesSurfaceAndAirJumpCounts(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            helper.setBlock(new BlockPos(0, 1, 0), Blocks.STONE);
+            var broom = new HoverrideBroomEntity(EntityRegistry.HOVERRIDE_BROOM.get(), helper.getLevel());
+            var surfacePosition = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 3, 0)));
+            broom.setPos(surfacePosition.x, surfacePosition.y, surfacePosition.z);
+            helper.getLevel().addFreshEntity(broom);
+
+            var player = createAssistWingsRider(helper, new BlockPos(0, 3, 0), "assist_wings_hoverride_test");
+            player.setOnGround(false);
+            helper.assertTrue(player.startRiding(broom, true),
+                    "Assist Wings Hoverride test rider should mount");
+            helper.assertTrue(broom.isWithinAssistWingsLandingDistance(),
+                    "Hoverride broom should detect the nearby ride surface for Assist Wings");
+
+            var spell = SpellRegistry.ASSIST_WINGS.get();
+            var magicData = MagicData.getPlayerMagicData(player);
+            magicData.setMana(100.0F);
+            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "A healthy Hoverride broom should accept Assist Wings near the surface");
+            spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+            helper.assertTrue(getAssistWingsDoneJump(player) == 0,
+                    "A Hoverride Assist Wings cast within 1.5 blocks of a surface should be free");
+            helper.assertTrue(player.getDeltaMovement().y == 0.0D,
+                    "Hoverride Assist Wings should not apply the jump directly to the rider");
+
+            var state = Capabilities.getSpellDataOrNull(player)
+                    .get(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE);
+            if (!(helper.getLevel().getEntity(state.localEntityId) instanceof AssistWingsWingEntity wing)) {
+                helper.fail("Hoverride Assist Wings should summon a managed wing entity");
+                return;
+            }
+            for (var i = 0; i < 10; ++i) {
+                wing.tickOnServer(helper.getLevel());
+            }
+            helper.assertFalse(wing.isRemoved(),
+                    "The Hoverride surface should not remove Assist Wings during the cast grace");
+            wing.tickOnServer(helper.getLevel());
+            helper.assertTrue(wing.isRemoved(),
+                    "The Hoverride surface should remove Assist Wings after the cast grace");
+
+            var airbornePosition = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 20, 0)));
+            broom.setPos(airbornePosition.x, airbornePosition.y, airbornePosition.z);
+            player.setOnGround(false);
+            helper.assertFalse(broom.isWithinAssistWingsLandingDistance(),
+                    "Hoverride broom should not treat a distant surface as an Assist Wings landing");
+            for (var i = 0; i < 40; ++i) {
+                broom.tick();
+            }
+            helper.assertTrue(broom.isAirborneAccelerationLocked(),
+                    "Hoverride broom should lock airborne acceleration after losing the ride surface");
+            spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+            helper.assertFalse(broom.isAirborneAccelerationLocked(),
+                    "A successful Hoverride Assist Wings jump should reset the airborne acceleration lock");
+            spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+            helper.assertTrue(getAssistWingsDoneJump(player) == 2,
+                    "Two airborne Hoverride casts should consume both level 1 air jumps");
+            helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "A fourth level 1 Hoverride jump should be rejected after the free jump and two air jumps");
+
+            assertHoverrideAssistWingsJumpPacketRoundTrips(helper, broom);
+
+            magicData.setMana(0.0F);
+            broom.tick();
+            helper.assertTrue(broom.isManaDepleted(),
+                    "Hoverride broom should enter mana-depleted mode before testing Assist Wings rejection");
+            helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Assist Wings should reject a mana-depleted Hoverride broom without changing jump state");
+            helper.assertTrue(getAssistWingsDoneJump(player) == 2,
+                    "Rejecting a mana-depleted Hoverride broom should preserve Assist Wings air jumps");
         });
     }
     static void smashcastScepterWindBurstUsesVanillaPostAttackEffect(GameTestHelper helper) {
@@ -11700,6 +11843,22 @@ public class ApprenticeCodexGameTestScenarios {
         return player;
     }
 
+    static ServerPlayer createAssistWingsRider(GameTestHelper helper, BlockPos pos, String profileName) {
+        var level = helper.getLevel();
+        var server = level.getServer();
+        var profile = new GameProfile(UUID.randomUUID(), profileName);
+        var cookie = CommonListenerCookie.createInitial(profile, false);
+        var player = new ServerPlayer(server, level, profile, cookie.clientInformation());
+        var connection = new Connection(PacketFlow.SERVERBOUND);
+        new EmbeddedChannel(connection);
+        NetworkRegistry.configureMockConnection(connection);
+        new ServerGamePacketListenerImpl(server, connection, player, cookie);
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
+        return player;
+    }
+
     static int getAssistWingsDoneJump(Player player) {
         var spellData = Capabilities.getSpellDataOrNull(player);
         if (spellData == null) {
@@ -11735,6 +11894,32 @@ public class ApprenticeCodexGameTestScenarios {
                 "Assist Wings jump packet should mark the client movement as an impulse");
         helper.assertTrue(player.fallDistance == 0.0F,
                 "Assist Wings jump packet should reset client fall distance");
+    }
+
+    static void assertHoverrideAssistWingsJumpPacketRoundTrips(
+            GameTestHelper helper,
+            HoverrideBroomEntity broom
+    ) {
+        var source = new HoverrideBroomAssistWingsJumpPacket(broom.getId(), 0.75F);
+        var buffer = new FriendlyByteBuf(Unpooled.buffer());
+        HoverrideBroomAssistWingsJumpPacket.encode(buffer, source);
+        var restored = HoverrideBroomAssistWingsJumpPacket.decode(buffer);
+        helper.assertTrue(restored.equals(source),
+                "Hoverride Assist Wings packet should preserve entity id and jump height");
+
+        broom.setDeltaMovement(0.18D, -0.4D, -0.11D);
+        broom.acceptLocalAssistWingsJump(restored.jumpHeight());
+        var movement = broom.getDeltaMovement();
+        helper.assertTrue(broom.isLocalAssistWingsJumpActive(),
+                "Hoverride Assist Wings packet data should activate the local jump");
+        helper.assertTrue(Math.abs(movement.x - 0.18D) < 0.0001D
+                        && Math.abs(movement.y - 0.75D) < 0.0001D
+                        && Math.abs(movement.z + 0.11D) < 0.0001D,
+                "Hoverride Assist Wings should replace only local vertical movement");
+
+        var sanitized = new HoverrideBroomAssistWingsJumpPacket(broom.getId(), Float.NaN);
+        helper.assertTrue(sanitized.jumpHeight() == 0.0F,
+                "Hoverride Assist Wings packet should reject non-finite jump heights");
     }
 
     static int countActiveAssistWingsWings(GameTestHelper helper, Player player) {

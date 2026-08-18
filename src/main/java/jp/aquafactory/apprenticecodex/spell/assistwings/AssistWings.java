@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomEntity;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncAssistWingsJumpPacket;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
@@ -24,6 +25,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
 import java.util.List;
@@ -85,7 +87,19 @@ public class AssistWings extends AbstractSpell {
 
     @Override
     public final boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        if (entity.onGround()){
+        var vehicle = entity.getVehicle();
+        if (vehicle != null) {
+            if (!(vehicle instanceof HoverrideBroomEntity broom)) {
+                sendRejectedMessage(entity, "ui.apprenticecodex.assist_wings.cannot_mounting", vehicle.getDisplayName());
+                return false;
+            }
+            if (!(entity instanceof Player player) || !broom.canUseAssistWings(player)) {
+                sendRejectedMessage(entity, "ui.apprenticecodex.assist_wings.cannot_broom_condition", broom.getDisplayName());
+                return false;
+            }
+        }
+
+        if (isGroundedForAssistWings(entity)) {
             return true;
         }
 
@@ -106,19 +120,54 @@ public class AssistWings extends AbstractSpell {
         return true;
     }
 
+    private static void sendRejectedMessage(LivingEntity entity, String key, Component argument) {
+        if (entity instanceof ServerPlayer serverPlayer) {
+            serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                    Component.translatable(key, argument).withStyle(ChatFormatting.RED)
+            ));
+        }
+    }
+
+    private static boolean isGroundedForAssistWings(LivingEntity entity) {
+        return entity.onGround()
+                || entity.getVehicle() instanceof HoverrideBroomEntity broom
+                && broom.isWithinAssistWingsLandingDistance();
+    }
+
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        var broom = entity.getVehicle() instanceof HoverrideBroomEntity mountedBroom
+                && entity instanceof Player player
+                && mountedBroom.canUseAssistWings(player)
+                ? mountedBroom
+                : null;
+        if (entity.getVehicle() != null && broom == null) {
+            return;
+        }
+
+        var grounded = isGroundedForAssistWings(entity);
+        var jumpHeight = 0.6f + entity.getJumpBoostPower();
+        if (broom != null && !broom.acceptServerAssistWingsJump((Player) entity, jumpHeight)) {
+            return;
+        }
+
         Capabilities.withSpellData(entity, data -> data.edit(CodexSpellStateTypeRegister.ASSIST_WINGS_STATE, spell -> {
             // まずは翼が既にいるかどうかチェック.
             var wing = level.getEntity(spell.localEntityId);
-            if (wing == null || wing.isRemoved() || !(wing instanceof AssistWingsWingEntity)) {
-                var summonWing = new AssistWingsWingEntity(EntityRegistry.ASSIST_WINGS_WING.get(), level, entity);
-                level.addFreshEntity(summonWing);
-                spell.localEntityId = summonWing.getId();
+            AssistWingsWingEntity assistWing;
+            if (wing instanceof AssistWingsWingEntity existingWing
+                    && !existingWing.isRemoved()
+                    && existingWing.getOwner() == entity) {
+                assistWing = existingWing;
+            } else {
+                assistWing = new AssistWingsWingEntity(EntityRegistry.ASSIST_WINGS_WING.get(), level, entity);
+                level.addFreshEntity(assistWing);
+                spell.localEntityId = assistWing.getId();
             }
+            assistWing.restartRemovalGrace();
 
             // 足をつけていればそのジャンプは空中ジャンプとして処理しない.
-            if (entity.onGround()) {
+            if (grounded) {
                 spell.doneJump = 0;
             } else {
                 ++spell.doneJump;
@@ -129,10 +178,11 @@ public class AssistWings extends AbstractSpell {
                 playAirJumpLimitSound(level, entity);
             }
 
-            // ジャンプ高度は気持ち高め.
-            var jumpHeight = 0.6f + entity.getJumpBoostPower();
-            applyJump(entity, jumpHeight);
-            if (entity instanceof ServerPlayer serverPlayer) {
+            // 箒への騎乗中は翼の所有者ではなく、移動を担う箒へジャンプを適用する。
+            if (broom == null) {
+                applyJump(entity, jumpHeight);
+            }
+            if (broom == null && entity instanceof ServerPlayer serverPlayer) {
                 // Iron's Spells の追加詠唱データは送信直後に reset されるため、エンコード時機に左右されない専用パケットを使う。
                 Networks.sendToPlayer(serverPlayer, new SyncAssistWingsJumpPacket(jumpHeight));
             }
