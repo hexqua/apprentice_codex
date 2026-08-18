@@ -47,6 +47,9 @@ GitHub の `Settings` -> `Rules` -> `Rulesets` で `1-20-1-main-pr-ci-protection
 
 - PR 作成後、Codex Cloud のスマートトリガーレビューを走らせる。
 - 指摘が出た場合は、修正するか、見送る理由を PR 上で明示する。
+- Codex Cloud が付けた P0～P3 はそのまま採用せず、具体的な実害、影響範囲、再現性からローカルのレビュー基準で再評価する。
+- PR 説明、リリースノート、移行ガイドなどの運用・文書上の不足だけを実装 Finding または release blocker としない。必要な場合は独立した Note として扱い、P3 相当を上限とする。
+- 意図した破壊的変更が PR 内で明示され、実装もその意図どおりである場合、移行案内の不足だけでは merge を妨げない。破壊的変更自体が明示されていない場合は原則 P2 相当として扱う。
 - スマートトリガーレビューは必須 CI の代替にしない。`build`、任意の `gametest` の結果、人間のレビューを最終判断に使う。
 - CI、Codex Cloud、人間レビューの結果と指摘対応がそろった後に `.codex/skills/review-feature-branch` を再実行し、readiness が `Ready` であることを確認してからマージする。
 - 最終確認後に追加コミットが入った場合は、CI と外部レビューの結果を再確認し、`review-feature-branch` による最終確認をやり直す。
