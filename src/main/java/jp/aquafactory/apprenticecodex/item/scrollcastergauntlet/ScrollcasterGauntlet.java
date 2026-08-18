@@ -122,7 +122,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                             CalibrationAdjustmentHints.schoolRunes(),
                             CalibrationAdjustmentHints.schoolRuneConstraint()
                     ).withEffectLines(CalibrationAdjustmentEffects.changeSpellPower(
-                            ScrollcasterGauntlet.SCHOOL_SPELL_POWER_BONUS
+                            SchoolRuneSpellPowerTuning.TUNED_SCHOOL_SPELL_POWER_BONUS,
+                            SchoolRuneSpellPowerTuning.GENERAL_SPELL_POWER_REDUCTION
                     ))
             );
 
@@ -167,8 +168,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     private static final double ATTACK_SPEED_BONUS = -2.2D;
     private static final double EPIC_FIGHT_ATTACK_DAMAGE_BONUS = 2.0D;
     private static final double EPIC_FIGHT_ATTACK_SPEED_BONUS = 0.0D;
-    private static final double SPELL_POWER_BONUS = 0.05D;
-    private static final double SCHOOL_SPELL_POWER_BONUS = 0.10D;
     private static final UUID SPELL_POWER_MODIFIER_ID = UUID.fromString("be797f84-cdc5-41fd-871f-685cebb23f5c");
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_SWORD);
     private static final ItemStack PICKAXE_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_PICKAXE);
@@ -465,11 +464,20 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         var schoolPowerAttribute = getResolvedSchoolPowerAttribute(stack);
         if (schoolPowerAttribute != null) {
             builder.put(
+                    AttributeRegistry.SPELL_POWER.get(),
+                    new AttributeModifier(
+                            SPELL_POWER_MODIFIER_ID,
+                            "apprenticecodex.scrollcaster_gauntlet.mainhand.spell_power",
+                            SchoolRuneSpellPowerTuning.TUNED_GENERAL_SPELL_POWER_BONUS,
+                            AttributeModifier.Operation.MULTIPLY_BASE
+                    )
+            );
+            builder.put(
                     schoolPowerAttribute,
                     new AttributeModifier(
                             SPELL_POWER_MODIFIER_ID,
                             "apprenticecodex.scrollcaster_gauntlet.mainhand.school_spell_power",
-                            SCHOOL_SPELL_POWER_BONUS,
+                            SchoolRuneSpellPowerTuning.TUNED_SCHOOL_SPELL_POWER_BONUS,
                             AttributeModifier.Operation.MULTIPLY_BASE
                     )
             );
@@ -479,7 +487,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                     new AttributeModifier(
                             SPELL_POWER_MODIFIER_ID,
                             "apprenticecodex.scrollcaster_gauntlet.mainhand.spell_power",
-                            SPELL_POWER_BONUS,
+                            SchoolRuneSpellPowerTuning.BASE_GENERAL_SPELL_POWER_BONUS,
                             AttributeModifier.Operation.MULTIPLY_BASE
                     )
             );

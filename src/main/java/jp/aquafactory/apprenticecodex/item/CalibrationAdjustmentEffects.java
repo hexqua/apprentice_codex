@@ -24,10 +24,10 @@ public final class CalibrationAdjustmentEffects {
         return line("add_spell_resist", percentage(amount));
     }
 
-    public static List<Component> changeSpellPower(double amount) {
+    public static List<Component> changeSpellPower(double schoolAmount, double generalReduction) {
         return List.of(
-                Component.translatable(KEY_PREFIX + "change_spell_power_1", percentage(amount)),
-                Component.translatable(KEY_PREFIX + "change_spell_power_2")
+                Component.translatable(KEY_PREFIX + "change_spell_power_1", percentage(schoolAmount)),
+                Component.translatable(KEY_PREFIX + "change_spell_power_2", percentage(generalReduction))
         );
     }
 

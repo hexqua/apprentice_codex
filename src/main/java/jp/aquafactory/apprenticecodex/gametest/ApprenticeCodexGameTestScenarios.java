@@ -3686,10 +3686,15 @@ public class ApprenticeCodexGameTestScenarios {
                     modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get()),
                     AttributeModifier.Operation.MULTIPLY_BASE,
                     0.15D,
-                    "Fire rune should replace Revolvercast Staff general spell power with a stronger fire spell power bonus"
+                    "Fire rune should add Revolvercast Staff fire spell power"
             );
-            helper.assertTrue(modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()).isEmpty(),
-                    "Fire-tuned Revolvercast Staff should not keep its general spell power modifier");
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.05D,
+                    "Fire-tuned Revolvercast Staff should retain reduced general spell power"
+            );
             helper.assertTrue(
                     jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
                     "Revolvercast Staff should reject Arcane Anvil spell imbuing"
@@ -3815,15 +3820,15 @@ public class ApprenticeCodexGameTestScenarios {
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
             var fireRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get());
 
-            assertScrollcasterGauntletSpellPower(helper, gauntlet, 0.05D, 0.0D, 0.0D,
+            assertScrollcasterGauntletSpellPower(helper, gauntlet, 0.10D, 0.0D, 0.0D,
                     "Uncalibrated Scrollcaster Gauntlet should keep its base spell power");
             helper.assertTrue(ScrollcasterGauntlet.getInventoryOverlayIconStack(gauntlet).isEmpty(),
                     "Uncalibrated Scrollcaster Gauntlet should not expose an inventory rune overlay");
 
             menu.getSlot(0).set(gauntlet);
             menu.getSlot(1).set(fireRune);
-            assertScrollcasterGauntletSpellPower(helper, gauntlet, 0.0D, 0.10D, 0.0D,
-                    "Fire rune should replace base spell power with fire spell power");
+            assertScrollcasterGauntletSpellPower(helper, gauntlet, 0.05D, 0.15D, 0.0D,
+                    "Fire rune should retain reduced base spell power and add fire spell power");
             helper.assertTrue(ScrollcasterGauntlet.getInventoryOverlayIconStack(gauntlet)
                             .is(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get()),
                     "Fire-calibrated Scrollcaster Gauntlet should expose the Fire rune inventory overlay");
@@ -3839,7 +3844,7 @@ public class ApprenticeCodexGameTestScenarios {
             );
 
             menu.getSlot(1).set(ItemStack.EMPTY);
-            assertScrollcasterGauntletSpellPower(helper, gauntlet, 0.05D, 0.0D, 0.0D,
+            assertScrollcasterGauntletSpellPower(helper, gauntlet, 0.10D, 0.0D, 0.0D,
                     "Removing the school rune should restore base spell power");
             helper.assertTrue(ScrollcasterGauntlet.getInventoryOverlayIconStack(gauntlet).isEmpty(),
                     "Removing the school rune should remove the inventory rune overlay");
@@ -3850,12 +3855,12 @@ public class ApprenticeCodexGameTestScenarios {
             SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(staleGauntlet, 0, fireRune);
             staleGauntlet.getOrCreateTagElement("SpellCalibration")
                     .putString("SchoolPowerSchool", SchoolRegistry.ICE_RESOURCE.toString());
-            assertScrollcasterGauntletSpellPower(helper, staleGauntlet, 0.0D, 0.0D, 0.10D,
+            assertScrollcasterGauntletSpellPower(helper, staleGauntlet, 0.05D, 0.0D, 0.15D,
                     "Stale school power should reflect the stored school before bench refresh");
 
             var refreshMenu = createSpellCalibrationBenchMenu(helper, player, new BlockPos(1, 1, 0));
             refreshMenu.getSlot(0).set(staleGauntlet);
-            assertScrollcasterGauntletSpellPower(helper, staleGauntlet, 0.0D, 0.10D, 0.0D,
+            assertScrollcasterGauntletSpellPower(helper, staleGauntlet, 0.05D, 0.15D, 0.0D,
                     "Placing the gauntlet on the bench should refresh the stored rune school");
         });
     }

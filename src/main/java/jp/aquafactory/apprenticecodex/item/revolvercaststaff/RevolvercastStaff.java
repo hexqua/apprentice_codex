@@ -94,7 +94,8 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
                             CalibrationAdjustmentHints.schoolRunes(),
                             CalibrationAdjustmentHints.schoolRuneConstraint()
                     ).withEffectLines(CalibrationAdjustmentEffects.changeSpellPower(
-                            RevolvercastStaff.SCHOOL_SPELL_POWER_BONUS
+                            SchoolRuneSpellPowerTuning.TUNED_SCHOOL_SPELL_POWER_BONUS,
+                            SchoolRuneSpellPowerTuning.GENERAL_SPELL_POWER_REDUCTION
                     )),
                     CalibrationAdjustmentRule.unique(
                             "recovery_rune",
@@ -126,8 +127,6 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     private static final int ENCHANTMENT_VALUE = 15;
     private static final double DISPLAYED_ATTACK_DAMAGE = 8.0D;
     private static final double DISPLAYED_ATTACK_SPEED = 1.8D;
-    private static final double GENERAL_SPELL_POWER_BONUS = 0.10D;
-    private static final double SCHOOL_SPELL_POWER_BONUS = 0.15D;
     private static final UUID SPELL_POWER_MODIFIER_ID = UUID.fromString("c746a21b-7055-4fdf-8d47-c31d41041a46");
 
     private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
@@ -223,21 +222,37 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
                 )
         );
 
-        var spellPowerAmount = SCHOOL_SPELL_POWER_BONUS;
         var spellPowerAttribute = getResolvedSchoolPowerAttribute(stack);
         if (spellPowerAttribute == null) {
-            spellPowerAttribute = AttributeRegistry.SPELL_POWER.get();
-            spellPowerAmount = GENERAL_SPELL_POWER_BONUS;
+            builder.put(
+                    AttributeRegistry.SPELL_POWER.get(),
+                    new AttributeModifier(
+                            SPELL_POWER_MODIFIER_ID,
+                            "apprenticecodex.revolvercast_staff.mainhand.spell_power",
+                            SchoolRuneSpellPowerTuning.BASE_GENERAL_SPELL_POWER_BONUS,
+                            AttributeModifier.Operation.MULTIPLY_BASE
+                    )
+            );
+        } else {
+            builder.put(
+                    AttributeRegistry.SPELL_POWER.get(),
+                    new AttributeModifier(
+                            SPELL_POWER_MODIFIER_ID,
+                            "apprenticecodex.revolvercast_staff.mainhand.spell_power",
+                            SchoolRuneSpellPowerTuning.TUNED_GENERAL_SPELL_POWER_BONUS,
+                            AttributeModifier.Operation.MULTIPLY_BASE
+                    )
+            );
+            builder.put(
+                    spellPowerAttribute,
+                    new AttributeModifier(
+                            SPELL_POWER_MODIFIER_ID,
+                            "apprenticecodex.revolvercast_staff.mainhand.school_spell_power",
+                            SchoolRuneSpellPowerTuning.TUNED_SCHOOL_SPELL_POWER_BONUS,
+                            AttributeModifier.Operation.MULTIPLY_BASE
+                    )
+            );
         }
-        builder.put(
-                spellPowerAttribute,
-                new AttributeModifier(
-                        SPELL_POWER_MODIFIER_ID,
-                        "apprenticecodex.revolvercast_staff.mainhand.spell_power",
-                        spellPowerAmount,
-                        AttributeModifier.Operation.MULTIPLY_BASE
-                )
-        );
         AttributeEnchantmentResolver.addModifiers(
                 builder,
                 stack,

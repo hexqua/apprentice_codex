@@ -1116,6 +1116,13 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     expectedAttackSpeedBonus,
                     "Scrollcaster Gauntlet attack speed modifier should match the loaded combat environment"
             );
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.10D,
+                    "Scrollcaster Gauntlet general spell power modifier changed"
+            );
         });
     }
     static void apprenticeMageRobeKeepsExpectedAttributeBonuses(GameTestHelper helper) {
