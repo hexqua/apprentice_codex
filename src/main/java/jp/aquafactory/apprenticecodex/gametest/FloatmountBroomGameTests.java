@@ -902,6 +902,38 @@ public final class FloatmountBroomGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void hoverrideUnoccupiedBroomHoversOverLava(GameTestHelper helper) {
+        var lava = helper.absolutePos(TEST_POS);
+        helper.getLevel().setBlockAndUpdate(lava, Blocks.LAVA.defaultBlockState());
+        var broom = spawnHoverrideBroom(helper, 1.6D);
+        var startY = broom.getY();
+        for (var tick = 0; tick < 6; ++tick) {
+            broom.tick();
+        }
+        helper.assertTrue(broom.getY() > startY,
+                "An unoccupied Hoverride Broom should rise toward its hover height above lava");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void hoverrideLavaSurfacePreventsAirborneLock(GameTestHelper helper) {
+        var lava = helper.absolutePos(TEST_POS);
+        helper.getLevel().setBlockAndUpdate(lava, Blocks.LAVA.defaultBlockState());
+        var broom = spawnHoverrideBroom(helper, 2.2D);
+        var player = serverRider(helper);
+        magicData(helper, player).setMana(100.0F);
+        helper.assertTrue(player.startRiding(broom, true), "Hoverride lava test rider should mount");
+        for (var tick = 0; tick < 40; ++tick) {
+            broom.tick();
+        }
+        helper.assertFalse(broom.isAirborneAccelerationLocked(),
+                "Lava below an Hoverride Broom should prevent the airborne acceleration lock");
+        helper.assertTrue(broom.getCoreWarningState() == BroomCoreWarningState.NONE,
+                "Lava-supported Hoverride flight should keep the normal core warning state");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void dismountPreservesServerObservedBroomMovement(GameTestHelper helper) {
         assertDismountPreservesMovement(helper, spawnBroom(helper, 1.5D), "Floatmount");
         assertDismountPreservesMovement(helper, spawnHoverrideBroom(helper, 1.5D), "Hoverride");

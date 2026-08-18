@@ -30,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.Optional;
+import java.util.OptionalDouble;
 
 public final class HoverrideBroomEntity extends AbstractBroomEntity {
     private static final EntityDataAccessor<Boolean> MANA_DEPLETED =
@@ -42,6 +43,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     private static final float MANA_EPSILON = 1.0e-4F;
     private static final int SERVER_INPUT_TIMEOUT_TICKS = 30;
     private static final int AIRBORNE_GRACE_TICKS = 40;
+    private static final int RIDE_SURFACE_SCAN_BLOCKS = 4;
     private static final double HOVER_HEIGHT = 1.2D;
     private static final double VERTICAL_ACCELERATION = 0.03D;
     private static final double MAX_MOUNTED_VERTICAL_SPEED = 0.15D;
@@ -324,7 +326,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
             localInertia = Vec3.ZERO;
         }
 
-        var surface = BroomSurfaceScanner.findSurfaceBelow(level(), getX(), getY(), getZ(), 4, false);
+        var surface = findRideSurfaceBelow();
         localAirborneTicks = surface.isPresent() ? 0 : Math.min(AIRBORNE_GRACE_TICKS, localAirborneTicks + 1);
 
         var movement = getDeltaMovement();
@@ -364,7 +366,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         resetPassengerYawFollow();
         var movement = getDeltaMovement();
         var horizontal = HoverrideBroomMovement.horizontal(movement).scale(UNMOUNTED_HORIZONTAL_DAMPING);
-        var surface = BroomSurfaceScanner.findSurfaceBelow(level(), getX(), getY(), getZ(), 4, false);
+        var surface = findRideSurfaceBelow();
         var vertical = surface.isPresent()
                 ? hoverVertical(movement.y, surface.getAsDouble(), MAX_UNMOUNTED_VERTICAL_SPEED)
                 : Math.max(-MAX_UNMOUNTED_VERTICAL_SPEED, movement.y - VERTICAL_ACCELERATION);
@@ -649,11 +651,19 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     }
 
     private void updateServerSurfaceState() {
-        var surface = BroomSurfaceScanner.findSurfaceBelow(level(), getX(), getY(), getZ(), 4, false);
+        var surface = findRideSurfaceBelow();
         serverAirborneTicks = surface.isPresent()
                 ? 0
                 : Math.min(AIRBORNE_GRACE_TICKS, serverAirborneTicks + 1);
         setAirborneAccelerationLocked(serverAirborneTicks >= AIRBORNE_GRACE_TICKS);
+    }
+
+    private OptionalDouble findRideSurfaceBelow() {
+        // Floatmountと同系統の箒として、溶岩面も走行・浮遊を維持できる地表として扱う。
+        // プレイヤーの安全な降車地点はAbstractBroomEntity側で引き続き溶岩を除外する。
+        return BroomSurfaceScanner.findSurfaceBelow(
+                level(), getX(), getY(), getZ(), RIDE_SURFACE_SCAN_BLOCKS, true
+        );
     }
 
     private void cancelLocalGlide() {
