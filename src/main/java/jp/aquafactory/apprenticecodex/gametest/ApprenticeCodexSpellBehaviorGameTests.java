@@ -818,6 +818,21 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
+    public static void assistWingsSuccessfulCastRestartsRemovalGrace(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsSuccessfulCastRestartsRemovalGrace(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
+    public static void assistWingsRejectsOtherBroomsWithoutChangingState(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsRejectsOtherBroomsWithoutChangingState(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
+    public static void assistWingsHoverrideUsesSurfaceAndAirJumpCounts(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsHoverrideUsesSurfaceAndAirJumpCounts(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
     public static void smashcastScepterWindBurstUsesVanillaPostAttackEffect(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.smashcastScepterWindBurstUsesVanillaPostAttackEffect(helper);
     }

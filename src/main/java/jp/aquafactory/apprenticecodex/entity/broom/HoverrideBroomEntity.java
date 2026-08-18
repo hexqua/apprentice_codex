@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.HoverrideBroomServerConfig;
 import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomAssistWingsJumpPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomImpulseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomReleaseResultPacket;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.Optional;
+import java.util.OptionalDouble;
 
 public final class HoverrideBroomEntity extends AbstractBroomEntity {
     private static final EntityDataAccessor<Boolean> MANA_DEPLETED =
@@ -42,6 +44,11 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     private static final float MANA_EPSILON = 1.0e-4F;
     private static final int SERVER_INPUT_TIMEOUT_TICKS = 30;
     private static final int AIRBORNE_GRACE_TICKS = 40;
+    private static final int RIDE_SURFACE_SCAN_BLOCKS = 4;
+    private static final double ASSIST_WINGS_LANDING_DISTANCE = 1.5D;
+    private static final double ASSIST_WINGS_GRAVITY = 0.08D;
+    private static final double ASSIST_WINGS_VERTICAL_DRAG = 0.98D;
+    private static final double ASSIST_WINGS_MAX_JUMP_HEIGHT = 4.0D;
     private static final double HOVER_HEIGHT = 1.2D;
     private static final double VERTICAL_ACCELERATION = 0.03D;
     private static final double MAX_MOUNTED_VERTICAL_SPEED = 0.15D;
@@ -81,6 +88,8 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     private long pendingReleaseSequence = Long.MIN_VALUE;
     private boolean localReleaseImpulsePending;
     private int localAirborneTicks;
+    private boolean localAssistWingsJumpActive;
+    private double localAssistWingsVerticalVelocity;
     private float localTurnSpeed;
     private int followedPassengerId = -1;
     private float lastFollowedBroomYaw;
@@ -319,12 +328,13 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
 
         if (isDamaged()) {
             cancelLocalGlide();
+            cancelLocalAssistWingsJump();
         } else if (isManaDepleted() && localReleaseState == LocalReleaseState.GLIDING) {
             localReleaseState = LocalReleaseState.IDLE;
             localInertia = Vec3.ZERO;
         }
 
-        var surface = BroomSurfaceScanner.findSurfaceBelow(level(), getX(), getY(), getZ(), 4, false);
+        var surface = findRideSurfaceBelow();
         localAirborneTicks = surface.isPresent() ? 0 : Math.min(AIRBORNE_GRACE_TICKS, localAirborneTicks + 1);
 
         var movement = getDeltaMovement();
@@ -344,7 +354,14 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
             // liquid接触は壁衝突と異なりmoveの実変位へ必ずしも減速が反映されないため、慣性値へ直接反映する。
             horizontal = horizontal.scale(isInLava() ? 0.5D : 0.8D);
         }
-        var vertical = mountedVertical(movement.y, surface.orElse(Double.NaN));
+        if (localAssistWingsJumpActive
+                && localAssistWingsVerticalVelocity <= 0.0D
+                && isWithinAssistWingsLandingDistance(surface)) {
+            cancelLocalAssistWingsJump();
+        }
+        var vertical = localAssistWingsJumpActive
+                ? Math.max(-MAX_MOUNTED_VERTICAL_SPEED, localAssistWingsVerticalVelocity)
+                : mountedVertical(movement.y, surface.orElse(Double.NaN));
         if (isDamaged()) {
             vertical = -MAX_MOUNTED_VERTICAL_SPEED;
         }
@@ -352,6 +369,21 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         var beforeMove = position();
         setDeltaMovement(horizontal.x, vertical, horizontal.z);
         move(MoverType.SELF, getDeltaMovement());
+        if (localAssistWingsJumpActive) {
+            var actualVertical = getY() - beforeMove.y;
+            if (vertical > 0.0D && actualVertical + 1.0e-4D < vertical) {
+                cancelLocalAssistWingsJump();
+                var collidedMovement = getDeltaMovement();
+                setDeltaMovement(collidedMovement.x, 0.0D, collidedMovement.z);
+            } else if (vertical <= -MAX_MOUNTED_VERTICAL_SPEED) {
+                cancelLocalAssistWingsJump();
+            } else {
+                localAssistWingsVerticalVelocity = Math.max(
+                        -MAX_MOUNTED_VERTICAL_SPEED,
+                        (vertical - ASSIST_WINGS_GRAVITY) * ASSIST_WINGS_VERTICAL_DRAG
+                );
+            }
+        }
         if (gliding) {
             var actualMovement = position().subtract(beforeMove);
             localInertia = HoverrideBroomMovement.horizontal(actualMovement);
@@ -364,7 +396,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         resetPassengerYawFollow();
         var movement = getDeltaMovement();
         var horizontal = HoverrideBroomMovement.horizontal(movement).scale(UNMOUNTED_HORIZONTAL_DAMPING);
-        var surface = BroomSurfaceScanner.findSurfaceBelow(level(), getX(), getY(), getZ(), 4, false);
+        var surface = findRideSurfaceBelow();
         var vertical = surface.isPresent()
                 ? hoverVertical(movement.y, surface.getAsDouble(), MAX_UNMOUNTED_VERTICAL_SPEED)
                 : Math.max(-MAX_UNMOUNTED_VERTICAL_SPEED, movement.y - VERTICAL_ACCELERATION);
@@ -383,6 +415,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         if (level().isClientSide && !isVehicle()) {
             // 応答待機中に降車した場合、後から届く解除結果を次の騎乗へ持ち越さない。
             cancelLocalGlide();
+            cancelLocalAssistWingsJump();
         }
     }
 
@@ -649,11 +682,68 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     }
 
     private void updateServerSurfaceState() {
-        var surface = BroomSurfaceScanner.findSurfaceBelow(level(), getX(), getY(), getZ(), 4, false);
+        var surface = findRideSurfaceBelow();
         serverAirborneTicks = surface.isPresent()
                 ? 0
                 : Math.min(AIRBORNE_GRACE_TICKS, serverAirborneTicks + 1);
         setAirborneAccelerationLocked(serverAirborneTicks >= AIRBORNE_GRACE_TICKS);
+    }
+
+    private OptionalDouble findRideSurfaceBelow() {
+        // Floatmountと同系統の箒として、溶岩面も走行・浮遊を維持できる地表として扱う。
+        // プレイヤーの安全な降車地点はAbstractBroomEntity側で引き続き溶岩を除外する。
+        return BroomSurfaceScanner.findSurfaceBelow(
+                level(), getX(), getY(), getZ(), RIDE_SURFACE_SCAN_BLOCKS, true
+        );
+    }
+
+    public boolean isWithinAssistWingsLandingDistance() {
+        return isWithinAssistWingsLandingDistance(findRideSurfaceBelow());
+    }
+
+    private boolean isWithinAssistWingsLandingDistance(OptionalDouble surface) {
+        return surface.isPresent() && getY() - surface.getAsDouble() <= ASSIST_WINGS_LANDING_DISTANCE;
+    }
+
+    public boolean canUseAssistWings(Player player) {
+        return player.getVehicle() == this
+                && getControllingPassenger() == player
+                && !isDamaged()
+                && !isManaDepleted();
+    }
+
+    public boolean acceptServerAssistWingsJump(Player player, float jumpHeight) {
+        if (level().isClientSide || !Float.isFinite(jumpHeight) || jumpHeight <= 0.0F
+                || !canUseAssistWings(player)) {
+            return false;
+        }
+
+        serverAirborneTicks = 0;
+        setAirborneAccelerationLocked(false);
+        // 詠唱音の直後に周期加速音を重ねず、Assist Wingsの操作フィードバックを残す。
+        lastAccelerationSoundGameTime = level().getGameTime();
+        updateServerPresentation();
+        if (player instanceof ServerPlayer serverPlayer && !(serverPlayer instanceof FakePlayer)) {
+            Networks.sendToPlayer(serverPlayer, new HoverrideBroomAssistWingsJumpPacket(getId(), jumpHeight));
+        }
+        return true;
+    }
+
+    public void acceptLocalAssistWingsJump(float jumpHeight) {
+        if (!Float.isFinite(jumpHeight) || jumpHeight <= 0.0F || isDamaged()) {
+            return;
+        }
+
+        localAssistWingsJumpActive = true;
+        localAssistWingsVerticalVelocity = Mth.clamp(jumpHeight, 0.0D, ASSIST_WINGS_MAX_JUMP_HEIGHT);
+        localAirborneTicks = 0;
+        var movement = getDeltaMovement();
+        setDeltaMovement(movement.x, localAssistWingsVerticalVelocity, movement.z);
+    }
+
+    private void cancelLocalAssistWingsJump() {
+        localAssistWingsJumpActive = false;
+        localAssistWingsVerticalVelocity = 0.0D;
     }
 
     private void cancelLocalGlide() {
@@ -686,6 +776,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         serverAirborneTicks = 0;
         clearRidingInput();
         cancelLocalGlide();
+        cancelLocalAssistWingsJump();
         localAirborneTicks = 0;
         lastClientEffectPosition = null;
         lastAccelerationSoundGameTime = Long.MIN_VALUE;
@@ -740,6 +831,10 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
 
     public int getServerSuccessfulGlideTicks() {
         return serverSuccessfulGlideTicks;
+    }
+
+    public boolean isLocalAssistWingsJumpActive() {
+        return localAssistWingsJumpActive;
     }
 
     @Override

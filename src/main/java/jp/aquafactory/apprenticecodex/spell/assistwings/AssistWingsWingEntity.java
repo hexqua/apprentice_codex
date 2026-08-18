@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomEntity;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
@@ -92,7 +93,7 @@ public class AssistWingsWingEntity extends SummonWeaponEntity implements AntiMag
         var blockingItem = findFallProtectionBlockingItem(owner);
         updateFallProtectionBlocked(owner, blockingItem);
 
-        if (!removalGraceActive && (owner.onGround() || isTouchingWater(owner))) {
+        if (!removalGraceActive && hasLanded(owner)) {
             finishFlight(owner);
             return;
         }
@@ -102,6 +103,21 @@ public class AssistWingsWingEntity extends SummonWeaponEntity implements AntiMag
         setYRot(owner.getYRot());
         setXRot(0);
         setRot(getYRot(), getXRot());
+    }
+
+    private static boolean hasLanded(Player owner) {
+        if (owner.onGround() || isTouchingWater(owner)) {
+            return true;
+        }
+
+        var vehicle = owner.getVehicle();
+        return vehicle != null && (vehicle.onGround()
+                || vehicle instanceof HoverrideBroomEntity broom
+                && broom.isWithinAssistWingsLandingDistance());
+    }
+
+    public void restartRemovalGrace() {
+        removalGraceTicks = REMOVAL_GRACE_TICKS;
     }
 
     private void updateFallProtectionBlocked(Player owner, ItemStack blockingItem) {

@@ -47,6 +47,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncChargecastCatalystbookC
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFloatmountBroomConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomAssistWingsJumpPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomReleaseResultPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomImpulseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
@@ -82,7 +83,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "85";
+    private static final String PROTOCOL_VERSION = "86";
 
     private Networks() {
     }
@@ -172,6 +173,11 @@ public final class Networks {
                 HoverrideBroomReleaseResultPacket.TYPE,
                 HoverrideBroomReleaseResultPacket.STREAM_CODEC,
                 HoverrideBroomReleaseResultPacket::handle
+        );
+        registrar.playToClient(
+                HoverrideBroomAssistWingsJumpPacket.TYPE,
+                HoverrideBroomAssistWingsJumpPacket.STREAM_CODEC,
+                HoverrideBroomAssistWingsJumpPacket::handle
         );
         registrar.playToClient(
                 HoverrideBroomImpulseEffectPacket.TYPE,
