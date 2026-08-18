@@ -89,8 +89,6 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     private static final String ITEM_TAG = "Item";
     private static final String SELECTED_SCROLL_INDEX_TAG = "SelectedScrollIndex";
     private static final String SCHOOL_POWER_SCHOOL_TAG = "SchoolPowerSchool";
-    private static final double SPELL_POWER_BONUS = 0.10D;
-    private static final double SCHOOL_SPELL_POWER_BONUS = 0.15D;
     private static final ResourceLocation MAINHAND_SPELL_POWER_ID = ResourceLocation.fromNamespaceAndPath(
             "apprenticecodex", "chargecast_catalystbook_mainhand_spell_power"
     );
@@ -116,7 +114,8 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
                             CalibrationAdjustmentHints.schoolRunes(),
                             CalibrationAdjustmentHints.schoolRuneConstraint()
                     ).withEffectLines(CalibrationAdjustmentEffects.changeSpellPower(
-                            ChargecastCatalystbook.SCHOOL_SPELL_POWER_BONUS
+                            SchoolRuneSpellPowerTuning.TUNED_SCHOOL_SPELL_POWER_BONUS,
+                            SchoolRuneSpellPowerTuning.GENERAL_SPELL_POWER_REDUCTION
                     )),
                     CalibrationAdjustmentRule.unique(
                             "wisdom_shard",
@@ -207,15 +206,20 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
         var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
         var schoolAttribute = MagicTools.resolveSchoolPowerAttribute(getResolvedCalibrationSchool(stack));
         if (schoolAttribute != null) {
+            builder.put(AttributeRegistry.SPELL_POWER, new AttributeModifier(
+                    modifierId,
+                    SchoolRuneSpellPowerTuning.TUNED_GENERAL_SPELL_POWER_BONUS,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+            ));
             builder.put(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(schoolAttribute), new AttributeModifier(
                     modifierId,
-                    SCHOOL_SPELL_POWER_BONUS,
+                    SchoolRuneSpellPowerTuning.TUNED_SCHOOL_SPELL_POWER_BONUS,
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             ));
         } else {
             builder.put(AttributeRegistry.SPELL_POWER, new AttributeModifier(
                     modifierId,
-                    SPELL_POWER_BONUS,
+                    SchoolRuneSpellPowerTuning.BASE_GENERAL_SPELL_POWER_BONUS,
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE
             ));
         }

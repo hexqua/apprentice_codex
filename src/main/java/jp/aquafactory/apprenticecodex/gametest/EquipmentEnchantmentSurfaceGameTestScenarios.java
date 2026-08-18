@@ -1521,7 +1521,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     helper,
                     modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                    0.05D + AttributeEnchantmentType.SURGE.amountPerLevel(),
+                    0.10D + AttributeEnchantmentType.SURGE.amountPerLevel(),
                     "Scrollcaster Gauntlet base + Surge spell power modifier changed"
             );
             assertSingleModifierAmount(

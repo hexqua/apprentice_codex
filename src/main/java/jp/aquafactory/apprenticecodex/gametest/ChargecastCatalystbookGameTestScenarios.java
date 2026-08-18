@@ -262,9 +262,11 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
             var firePower = MagicTools.resolveSchoolPowerAttribute(
                     io.redspace.ironsspellbooks.api.registry.SchoolRegistry.FIRE.get()
             );
-            helper.assertTrue(schoolModifiers.modifiers().stream().noneMatch(entry ->
-                            entry.attribute().equals(AttributeRegistry.SPELL_POWER)),
-                    "A school rune should remove generic spell power");
+            helper.assertTrue(schoolModifiers.modifiers().stream().anyMatch(entry ->
+                            entry.attribute().equals(AttributeRegistry.SPELL_POWER)
+                                    && entry.modifier().operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                                    && Math.abs(entry.modifier().amount() - 0.05D) < 0.000001D),
+                    "A school rune should retain +5% generic spell power");
             helper.assertTrue(firePower != null && schoolModifiers.modifiers().stream().anyMatch(entry ->
                             entry.attribute().equals(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(firePower))
                                     && entry.modifier().operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE
