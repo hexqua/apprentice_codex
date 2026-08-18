@@ -99,6 +99,7 @@ import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.OffhandUsePriorityHelper;
 import jp.aquafactory.apprenticecodex.item.PriorityOffhandUseDeferringItem;
 import jp.aquafactory.apprenticecodex.item.RightClickSpellItemHelper;
+import jp.aquafactory.apprenticecodex.item.SchoolRuneSpellPowerTuning;
 import jp.aquafactory.apprenticecodex.item.SneakSelectionView;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
@@ -139,7 +140,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                             CalibrationAdjustmentHints.schoolRunes(),
                             CalibrationAdjustmentHints.schoolRuneConstraint()
                     ).withEffectLines(CalibrationAdjustmentEffects.changeSpellPower(
-                            ScrollcasterGauntlet.SCHOOL_SPELL_POWER_BONUS
+                            SchoolRuneSpellPowerTuning.TUNED_SCHOOL_SPELL_POWER_BONUS,
+                            SchoolRuneSpellPowerTuning.GENERAL_SPELL_POWER_REDUCTION
                     ))
             );
 
@@ -190,13 +192,17 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     private static final double ATTACK_SPEED_BONUS = -2.2D;
     private static final double EPIC_FIGHT_ATTACK_DAMAGE_BONUS = 2.0D;
     private static final double EPIC_FIGHT_ATTACK_SPEED_BONUS = 0.0D;
-    private static final double SPELL_POWER_BONUS = 0.05D;
-    private static final double SCHOOL_SPELL_POWER_BONUS = 0.10D;
     private static final ResourceLocation SPELL_POWER_MODIFIER_ID =
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "scrollcaster_gauntlet.mainhand_spell_power");
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_SWORD);
     private static final ItemStack PICKAXE_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_PICKAXE);
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.ALACRITY,
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR,
+            AttributeEnchantmentType.TENSE
+    );
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
@@ -216,7 +222,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         var modifiers = OffhandMagicModifierHelper.buildEquippedModifiers(
                 buildMainhandModifiers(stack),
                 stack,
-                "scrollcaster_gauntlet"
+                "scrollcaster_gauntlet",
+                DIRECT_ATTRIBUTE_ENCHANTMENTS
         );
         return buildMergedMainhandAttributeModifiers(modifiers);
     }
@@ -233,6 +240,9 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     @Override
     public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+        if (enchantment.is(net.minecraft.world.item.enchantment.Enchantments.SWEEPING_EDGE)) {
+            return false;
+        }
         return super.supportsEnchantment(stack, enchantment) || isSupportedEnchantment(stack, enchantment);
     }
 
@@ -259,7 +269,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     @Override
     public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
-        return AttributeEnchantmentPolicy.ALL_ATTRIBUTE_ENCHANTMENTS;
+        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
     }
 
     @Override
@@ -491,10 +501,18 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         var schoolPowerAttribute = getResolvedSchoolPowerAttribute(stack);
         if (schoolPowerAttribute != null) {
             builder.put(
+                    AttributeRegistry.SPELL_POWER,
+                    new AttributeModifier(
+                            SPELL_POWER_MODIFIER_ID,
+                            SchoolRuneSpellPowerTuning.TUNED_GENERAL_SPELL_POWER_BONUS,
+                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                    )
+            );
+            builder.put(
                     schoolPowerAttribute,
                     new AttributeModifier(
                             SPELL_POWER_MODIFIER_ID,
-                            SCHOOL_SPELL_POWER_BONUS,
+                            SchoolRuneSpellPowerTuning.TUNED_SCHOOL_SPELL_POWER_BONUS,
                             AttributeModifier.Operation.ADD_MULTIPLIED_BASE
                     )
             );
@@ -503,7 +521,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                     AttributeRegistry.SPELL_POWER,
                     new AttributeModifier(
                             SPELL_POWER_MODIFIER_ID,
-                            SPELL_POWER_BONUS,
+                            SchoolRuneSpellPowerTuning.BASE_GENERAL_SPELL_POWER_BONUS,
                             AttributeModifier.Operation.ADD_MULTIPLIED_BASE
                     )
             );
@@ -585,8 +603,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                 || matches(enchantment, Enchantments.REFLUX)
                 || matches(enchantment, Enchantments.RESERVOIR)
                 || matches(enchantment, Enchantments.TENSE)
-                || matches(enchantment, Enchantments.SURGE)
-                || matches(enchantment, Enchantments.ATTUNEMENT)
                 || matches(enchantment, Enchantments.TRANSCENDENCE)
                 || matches(enchantment, Enchantments.WISDOM);
     }

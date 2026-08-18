@@ -1427,10 +1427,8 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             var stack = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
             var expectedTaggedEnchantments = new LinkedHashSet<>(Set.of(
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "alacrity"),
-                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "attunement"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "reflux"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "reservoir"),
-                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "surge"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "tense"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "transcendence"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom"),
@@ -1442,13 +1440,14 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     ResourceLocation.withDefaultNamespace("looting"),
                     ResourceLocation.withDefaultNamespace("sharpness"),
                     ResourceLocation.withDefaultNamespace("silk_touch"),
-                    ResourceLocation.withDefaultNamespace("smite"),
-                    ResourceLocation.withDefaultNamespace("sweeping_edge")
+                    ResourceLocation.withDefaultNamespace("smite")
             ));
-            expectedTaggedEnchantments.addAll(collectAllowedEnchantments(
+            var expectedDefinitionEnchantments = collectAllowedEnchantments(
                     helper.getLevel().registryAccess(),
                     enchantment -> enchantment.value().isSupportedItem(stack)
-            ));
+            );
+            expectedTaggedEnchantments.addAll(expectedDefinitionEnchantments);
+            expectedTaggedEnchantments.remove(ResourceLocation.withDefaultNamespace("sweeping_edge"));
             addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedTaggedEnchantments);
             addExpectedMalumSpiritPlunderIfPresent(stack, expectedTaggedEnchantments);
             addExpectedMalumReplenishingIfPresent(stack, expectedTaggedEnchantments);
@@ -1457,7 +1456,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     stack,
                     expectedTaggedEnchantments,
                     expectedTaggedEnchantments,
-                    expectedTaggedEnchantments,
+                    expectedDefinitionEnchantments,
                     expectedTaggedEnchantments,
                     expectedTaggedEnchantments,
                     "Scrollcaster Gauntlet"
@@ -1521,8 +1520,8 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     helper,
                     modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER),
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                    0.05D + AttributeEnchantmentType.SURGE.amountPerLevel(),
-                    "Scrollcaster Gauntlet base + Surge spell power modifier changed"
+                    0.10D,
+                    "Scrollcaster Gauntlet spell power should ignore Surge"
             );
             assertSingleModifierAmount(
                     helper,
@@ -1539,13 +1538,8 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     .resolveSchoolPowerAttribute(imbuedSchool);
             helper.assertTrue(attunementAttribute != null,
                     "Scrollcaster Gauntlet test could not resolve the Attunement spell power attribute: " + imbuedSchool.getId());
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attunementAttribute)),
-                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                    AttributeEnchantmentType.ATTUNEMENT.amountPerLevel(),
-                    "Scrollcaster Gauntlet Attunement modifier changed"
-            );
+            helper.assertTrue(modifiers.get(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attunementAttribute)).isEmpty(),
+                    "Scrollcaster Gauntlet spell power should ignore Attunement");
         });
     }
 

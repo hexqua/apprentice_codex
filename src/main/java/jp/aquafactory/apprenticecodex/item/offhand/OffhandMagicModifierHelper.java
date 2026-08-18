@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -13,6 +14,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
+
+import java.util.Set;
 
 public final class OffhandMagicModifierHelper {
     private OffhandMagicModifierHelper() {
@@ -31,6 +34,20 @@ public final class OffhandMagicModifierHelper {
             ItemStack stack,
             String itemKey
     ) {
+        return buildEquippedModifiers(
+                baseModifiers,
+                stack,
+                itemKey,
+                AttributeEnchantmentPolicy.ALL_ATTRIBUTE_ENCHANTMENTS
+        );
+    }
+
+    public static Multimap<Holder<Attribute>, AttributeModifier> buildEquippedModifiers(
+            Multimap<Holder<Attribute>, AttributeModifier> baseModifiers,
+            ItemStack stack,
+            String itemKey,
+            Set<AttributeEnchantmentType> effectiveEnchantments
+    ) {
         if (stack == null || stack.isEmpty()) {
             return baseModifiers;
         }
@@ -38,12 +55,12 @@ public final class OffhandMagicModifierHelper {
         var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
         builder.putAll(baseModifiers);
 
-        var alacrityLevel = Enchantments.getLevel(stack, Enchantments.ALACRITY);
-        var refluxLevel = Enchantments.getLevel(stack, Enchantments.REFLUX);
-        var reservoirLevel = Enchantments.getLevel(stack, Enchantments.RESERVOIR);
-        var surgeLevel = Enchantments.getLevel(stack, Enchantments.SURGE);
-        var attunementLevel = Enchantments.getLevel(stack, Enchantments.ATTUNEMENT);
-        var tenseLevel = Enchantments.getLevel(stack, Enchantments.TENSE);
+        var alacrityLevel = getEffectiveLevel(stack, effectiveEnchantments, AttributeEnchantmentType.ALACRITY);
+        var refluxLevel = getEffectiveLevel(stack, effectiveEnchantments, AttributeEnchantmentType.REFLUX);
+        var reservoirLevel = getEffectiveLevel(stack, effectiveEnchantments, AttributeEnchantmentType.RESERVOIR);
+        var surgeLevel = getEffectiveLevel(stack, effectiveEnchantments, AttributeEnchantmentType.SURGE);
+        var attunementLevel = getEffectiveLevel(stack, effectiveEnchantments, AttributeEnchantmentType.ATTUNEMENT);
+        var tenseLevel = getEffectiveLevel(stack, effectiveEnchantments, AttributeEnchantmentType.TENSE);
 
         addEquippedModifier(
                 builder,
@@ -96,6 +113,14 @@ public final class OffhandMagicModifierHelper {
                 createModifierId(itemKey, "tense_cast_time_reduction")
         );
         return builder.build();
+    }
+
+    private static int getEffectiveLevel(
+            ItemStack stack,
+            Set<AttributeEnchantmentType> effectiveEnchantments,
+            AttributeEnchantmentType type
+    ) {
+        return effectiveEnchantments.contains(type) ? Enchantments.getLevel(stack, type.enchantmentKey()) : 0;
     }
 
     public static void addEquippedModifier(

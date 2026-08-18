@@ -79,6 +79,7 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
+import jp.aquafactory.apprenticecodex.item.SchoolRuneSpellPowerTuning;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
@@ -113,7 +114,8 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
                             CalibrationAdjustmentHints.schoolRunes(),
                             CalibrationAdjustmentHints.schoolRuneConstraint()
                     ).withEffectLines(CalibrationAdjustmentEffects.changeSpellPower(
-                            RevolvercastStaff.SCHOOL_SPELL_POWER_BONUS
+                            SchoolRuneSpellPowerTuning.TUNED_SCHOOL_SPELL_POWER_BONUS,
+                            SchoolRuneSpellPowerTuning.GENERAL_SPELL_POWER_REDUCTION
                     )),
                     CalibrationAdjustmentRule.unique(
                             "recovery_rune",
@@ -146,8 +148,6 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     private static final int ENCHANTMENT_VALUE = 15;
     private static final double DISPLAYED_ATTACK_DAMAGE = 8.0D;
     private static final double DISPLAYED_ATTACK_SPEED = 1.8D;
-    private static final double GENERAL_SPELL_POWER_BONUS = 0.10D;
-    private static final double SCHOOL_SPELL_POWER_BONUS = 0.15D;
     private static final ResourceLocation SPELL_POWER_MODIFIER_ID =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "revolvercast_staff.mainhand.spell_power");
 
@@ -234,24 +234,32 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
                 EquipmentSlotGroup.MAINHAND
         );
 
-        var spellPowerAmount = SCHOOL_SPELL_POWER_BONUS;
         var spellPowerAttribute = getResolvedSchoolPowerAttribute(stack);
         if (spellPowerAttribute == null) {
             builder.add(
                     AttributeRegistry.SPELL_POWER,
                     new AttributeModifier(
                             SPELL_POWER_MODIFIER_ID,
-                            GENERAL_SPELL_POWER_BONUS,
+                            SchoolRuneSpellPowerTuning.BASE_GENERAL_SPELL_POWER_BONUS,
                             AttributeModifier.Operation.ADD_MULTIPLIED_BASE
                     ),
                     EquipmentSlotGroup.MAINHAND
             );
         } else {
             builder.add(
+                    AttributeRegistry.SPELL_POWER,
+                    new AttributeModifier(
+                            SPELL_POWER_MODIFIER_ID,
+                            SchoolRuneSpellPowerTuning.TUNED_GENERAL_SPELL_POWER_BONUS,
+                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                    ),
+                    EquipmentSlotGroup.MAINHAND
+            );
+            builder.add(
                     BuiltInRegistries.ATTRIBUTE.wrapAsHolder(spellPowerAttribute),
                     new AttributeModifier(
                             SPELL_POWER_MODIFIER_ID,
-                            spellPowerAmount,
+                            SchoolRuneSpellPowerTuning.TUNED_SCHOOL_SPELL_POWER_BONUS,
                             AttributeModifier.Operation.ADD_MULTIPLIED_BASE
                     ),
                     EquipmentSlotGroup.MAINHAND
