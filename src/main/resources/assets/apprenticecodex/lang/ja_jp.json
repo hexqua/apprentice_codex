@@ -388,6 +388,9 @@
   "item.apprenticecodex.chargecast_catalystbook.spell_power": "%d%%",
   "item.apprenticecodex.chargecast_catalystbook.school_rune": "この本は\"%s\"の系統に調律されている。",
   "item.apprenticecodex.wooden_wand.desc": "[%1$s]で耐久力を消費して注入されている魔法を詠唱する。",
+  "item.apprenticecodex.brooms.curios.desc_1": "\"箒呼び出し\"の魔法で背負っている箒を呼び出し即座に乗り込む。",
+  "item.apprenticecodex.brooms.curios.desc_2": "魔法で騎乗する場合はマナの制限を無視できる。",
+  "item.apprenticecodex.brooms.curios.desc_3": "呼び出した箒は少し離れたり損傷した状態で降りると自動で回収される。",
   "item.apprenticecodex.floatmount_broom.desc_1": "[%1$s]: マナを動力に飛行する箒を設置する。",
   "item.apprenticecodex.floatmount_broom.desc_2": "[%1$s]+[%2$s]: 設置した箒を回収する。",
   "item.apprenticecodex.floatmount_broom.desc_3": "騎乗には%s以上のマナが必要（騎乗時には消費しない）",
@@ -395,6 +398,7 @@
   "item.apprenticecodex.hoverride_broom.desc_1": "[%1$s]: マナを動力に浮遊走行する箒を設置する。",
   "item.apprenticecodex.hoverride_broom.desc_2": "[%1$s]+[%2$s]: 設置した箒を回収する。",
   "item.apprenticecodex.hoverride_broom.desc_3": "回収すると魔術構造が再形成され、完全に修復される。",
+  "item.apprenticecodex.broom.desc_calibration": "術式調整台で装着した魔法は、騎乗中のみ選択できる。",
 
   "jei.apprenticecodex.arcane_cinder.desc_1": "かまど・溶鉱炉・燻製器の燃料として使用することで加工速度が上昇する。",
   "jei.apprenticecodex.arcane_cinder.desc_2": "それ以外の機材では効果を発揮しない。",
@@ -524,6 +528,7 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.adapt_failed_switch_slot": "打撃詠唱の不発時もスロット切替",
   "jei.apprenticecodex.spell_calibration_bench.effect.add_swingcast_function": "攻撃時に選択中の魔法を打撃詠唱",
   "jei.apprenticecodex.spell_calibration_bench.effect.convert_quick_to_power": "詠唱時間短縮を魔法威力へ変換",
+  "jei.apprenticecodex.spell_calibration_bench.effect.adapt_back_curios": "背中装備として背負いに対応",
 
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "同じ効果のアイテムは複数挿入できない",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "系統のルーンはどれか一つのみ挿入できる",
@@ -809,6 +814,7 @@
   "spell.apprenticecodex.terra_resonance": "テラレゾナンス",
   "spell.apprenticecodex.fujin": "風神",
   "spell.apprenticecodex.wizardlamp": "ウィザードランプ",
+  "spell.apprenticecodex.call_broom": "箒呼び出し",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -887,6 +893,7 @@
   "spell.apprenticecodex.terra_resonance.guide": "大地に共鳴する魔力を流し込み、反応する物体の存在を壁越しに探知する。探知できるものはアメジストのような宝石に限られ、ブロック状だったり埋もれているものは魔力が反応しづらく探知にかかりづらい。",
   "spell.apprenticecodex.fujin.guide": "風の魔力を纏った魔法の刀を召喚して乱舞を繰り出す。風の魔力は刃となって敵の集団を切り刻むがノックバックはしない。",
   "spell.apprenticecodex.wizardlamp.guide": "周囲を照らす魔法のランタンを召喚して設置する。手が届く距離にしか出せないが支えが無くても召喚ができ、維持にも支えを必要としない。",
+  "spell.apprenticecodex.call_broom.guide": "背負っている箒を活性化させて呼び出し即座に乗り込む。降りている状態で使用すると箒を安全に回収する。この手順によって呼び出した箒は所有者として紐づき、自分以外が乗り込んだり回収したりできず、ある程度離れたり破損状態で降りると自動で回収される。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -1030,6 +1037,8 @@
   "ui.apprenticecodex.terra_resonance.prepare": "大地からの応答を待っている...",
   "ui.apprenticecodex.terra_resonance.not_found": "魔力の反射が返ってこなかった...",
   "ui.apprenticecodex.terra_resonance.found": "共鳴した魔力の座標を特定した！",
+  "ui.apprenticecodex.call_broom.not_found_broom": "呼び出す箒が見つからない...",
+  "ui.apprenticecodex.call_broom.cannot_recall_mounting": "乗っている間は箒を回収できない！",
 
   "ui.apprenticecodex.swingcast.cannot_swing_cast": "%sは打撃詠唱できない！",
   "ui.apprenticecodex.jumpcast.cannot_long_cast": "%sは跳躍詠唱できない！",

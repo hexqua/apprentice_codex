@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item;
 
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import net.minecraft.world.item.Items;
 
 /** 複数の調整対象で共有する意味的な候補ヘルプ。 */
 public final class CalibrationAdjustmentHints {
@@ -47,5 +48,9 @@ public final class CalibrationAdjustmentHints {
 
     public static CalibrationAdjustmentHint wisdomShard() {
         return CalibrationAdjustmentHint.specificItem(ItemRegistry.WISDOM_SHARD);
+    }
+
+    public static CalibrationAdjustmentHint saddle() {
+        return CalibrationAdjustmentHint.specificItem(() -> Items.SADDLE);
     }
 }

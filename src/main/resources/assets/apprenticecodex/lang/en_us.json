@@ -383,6 +383,9 @@
   "item.apprenticecodex.chargecast_catalystbook.spell_power": "%d%%",
   "item.apprenticecodex.chargecast_catalystbook.school_rune": "This book is tuned to the \"%s\" school.",
   "item.apprenticecodex.wooden_wand.desc": "Cast the imbued spell with [%1$s] at the cost of durability.",
+  "item.apprenticecodex.brooms.curios.desc_1": "Use \"Call Broom\" to summon the broom equipped on your back and mount it immediately.",
+  "item.apprenticecodex.brooms.curios.desc_2": "Mounting through the spell ignores mana restrictions.",
+  "item.apprenticecodex.brooms.curios.desc_3": "A called broom is automatically retrieved if left behind or dismounted while damaged.",
   "item.apprenticecodex.floatmount_broom.desc_1": "[%1$s]: Deploy a mana-powered broom.",
   "item.apprenticecodex.floatmount_broom.desc_2": "[%1$s]+[%2$s]: Retrieve the deployed broom.",
   "item.apprenticecodex.floatmount_broom.desc_3": "Requires at least %s mana to mount (mounting consumes no mana).",
@@ -390,6 +393,7 @@
   "item.apprenticecodex.hoverride_broom.desc_1": "[%1$s]: Deploy a mana-powered broom.",
   "item.apprenticecodex.hoverride_broom.desc_2": "[%1$s]+[%2$s]: Retrieve the deployed broom.",
   "item.apprenticecodex.hoverride_broom.desc_3": "Retrieving the broom reconstructs its magical structure, fully repairing it.",
+  "item.apprenticecodex.broom.desc_calibration": "Spells installed at a Spell Calibration Bench can be selected while riding.",
   "item.apprenticecodex.bound_weapon.contain_item.item": "\"%s\" is sealed inside.",
   "item.apprenticecodex.bound_weapon.contain_item.hint": "Let go of the weapon to restore the item inside.",
   "item.apprenticecodex.spell_invoke_card.desc": "Throw it to cast the imbued spell where it lands.",
@@ -523,6 +527,7 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.adapt_failed_switch_slot": "Switches slots when swing cast fails",
   "jei.apprenticecodex.spell_calibration_bench.effect.add_swingcast_function": "Swing-casts selected spell on attack",
   "jei.apprenticecodex.spell_calibration_bench.effect.convert_quick_to_power": "Cast time reduction to Spell Power",
+  "jei.apprenticecodex.spell_calibration_bench.effect.adapt_back_curios": "Enables equipping on the back",
 
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "Cannot insert multiple items with the same effect.",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "Only one school rune can be inserted.",
@@ -803,6 +808,7 @@
   "spell.apprenticecodex.terra_resonance": "Terra Resonance",
   "spell.apprenticecodex.fujin": "Fujin",
   "spell.apprenticecodex.wizardlamp": "Wizardlamp",
+  "spell.apprenticecodex.call_broom": "Call Broom",
 
   "spell.apprenticecodex.sky_edge.guide": "Summons a weapon that fires toward your line of sight. It has a wind-up and deals no knockback, but it can ignore the target's invulnerability frames.",
   "spell.apprenticecodex.archer_multiple.guide": "Summons a magical bow that follows you and keeps firing until it runs out of shots, prioritizing your chosen target or nearby enemies.",
@@ -881,6 +887,7 @@
   "spell.apprenticecodex.terra_resonance.guide": "Channels resonant magic into the earth to detect responsive objects through walls. Only gemstones such as amethyst can be detected; gems formed into blocks or buried underground respond less readily to magic and are harder to locate.",
   "spell.apprenticecodex.fujin.guide": "Summons a magical katana wreathed in wind magic and unleashes a flurry of slashes. The wind takes the form of blades that cut through groups of enemies without knocking them back.",
   "spell.apprenticecodex.wizardlamp.guide": "Summons and places a magical lantern that lights up the surrounding area. It can only be summoned within reach, but it can be summoned without support and requires no support to remain in place.",
+  "spell.apprenticecodex.call_broom.guide": "Activates the broom carried on your back, summons it, and mounts it immediately. Using it while the summoned broom is unoccupied safely recalls it. The summoned broom is bound to its owner, preventing others from riding or recovering it, and is automatically recalled when left too far away or dismounted while damaged.",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "Headshot Damage Multiplier: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "Sneak Damage Multiplier: %d%%",
@@ -1023,6 +1030,8 @@
   "ui.apprenticecodex.terra_resonance.prepare": "Waiting for the earth to answer...",
   "ui.apprenticecodex.terra_resonance.not_found": "No magical resonance returned...",
   "ui.apprenticecodex.terra_resonance.found": "The resonant coordinates have been located!",
+  "ui.apprenticecodex.call_broom.not_found_broom": "No broom to call was found...",
+  "ui.apprenticecodex.call_broom.cannot_recall_mounting": "The broom cannot be recalled while you are riding it!",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "Switched firing mode to %s",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "Overheating has increased mana cost to %s!",

@@ -26,6 +26,7 @@ import jp.aquafactory.apprenticecodex.event.ModEntityAttributeEvent;
 import jp.aquafactory.apprenticecodex.event.ZenithStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.client.ClientModBusEvents;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeSchoolPowerBonusEvents;
+import jp.aquafactory.apprenticecodex.item.broom.BroomCurioSupport;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookConfigSyncEvents;
@@ -77,6 +78,7 @@ public class ApprenticeCodex
         PoiTypeRegistry.register(modEventBus);
         VillagerProfessionRegistry.register(modEventBus);
         ItemRegistry.ITEMS.register(modEventBus);
+        BroomCurioSupport.register(modEventBus);
         EffectRegistry.register(modEventBus);
         PotionRegistry.register(modEventBus);
         SpellRegistry.register(modEventBus);
