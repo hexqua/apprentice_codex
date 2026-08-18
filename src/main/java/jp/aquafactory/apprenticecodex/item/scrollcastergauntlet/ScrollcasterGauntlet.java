@@ -197,6 +197,12 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_SWORD);
     private static final ItemStack PICKAXE_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_PICKAXE);
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.ALACRITY,
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR,
+            AttributeEnchantmentType.TENSE
+    );
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
@@ -216,7 +222,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         var modifiers = OffhandMagicModifierHelper.buildEquippedModifiers(
                 buildMainhandModifiers(stack),
                 stack,
-                "scrollcaster_gauntlet"
+                "scrollcaster_gauntlet",
+                DIRECT_ATTRIBUTE_ENCHANTMENTS
         );
         return buildMergedMainhandAttributeModifiers(modifiers);
     }
@@ -233,6 +240,9 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     @Override
     public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+        if (enchantment.is(net.minecraft.world.item.enchantment.Enchantments.SWEEPING_EDGE)) {
+            return false;
+        }
         return super.supportsEnchantment(stack, enchantment) || isSupportedEnchantment(stack, enchantment);
     }
 
@@ -259,7 +269,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     @Override
     public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
-        return AttributeEnchantmentPolicy.ALL_ATTRIBUTE_ENCHANTMENTS;
+        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
     }
 
     @Override
@@ -593,8 +603,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                 || matches(enchantment, Enchantments.REFLUX)
                 || matches(enchantment, Enchantments.RESERVOIR)
                 || matches(enchantment, Enchantments.TENSE)
-                || matches(enchantment, Enchantments.SURGE)
-                || matches(enchantment, Enchantments.ATTUNEMENT)
                 || matches(enchantment, Enchantments.TRANSCENDENCE)
                 || matches(enchantment, Enchantments.WISDOM);
     }
