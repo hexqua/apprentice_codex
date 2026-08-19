@@ -74,7 +74,7 @@ public abstract class AbstractBroomItem extends Item implements GeoItem, ICurioI
     private final AnimatableInstanceCache animationCache = GeckoLibUtil.createInstanceCache(this);
 
     protected AbstractBroomItem() {
-        super(new Properties().stacksTo(1));
+        super(new Properties().stacksTo(1).fireResistant());
         GeoItem.registerSyncedAnimatable(this);
     }
 

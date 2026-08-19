@@ -80,7 +80,9 @@ final class EquipmentFireResistanceGameTestScenarios extends ApprenticeCodexGame
                 ItemRegistry.SPELLCHARGED_GREATSWORD,
                 ItemRegistry.BULWARK_GREATSHIELD,
                 ItemRegistry.PARRYCAST_BUCKLER,
-                ItemRegistry.EMBERSTAINED_NETHERITE_INGOT
+                ItemRegistry.EMBERSTAINED_NETHERITE_INGOT,
+                ItemRegistry.FLOATMOUNT_BROOM,
+                ItemRegistry.HOVERRIDE_BROOM
         );
     }
 
