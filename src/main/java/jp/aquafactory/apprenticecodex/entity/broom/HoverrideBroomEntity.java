@@ -381,7 +381,8 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         }
         if (localAssistWingsJumpActive
                 && localAssistWingsVerticalVelocity <= 0.0D
-                && isWithinAssistWingsLandingDistance(surface)) {
+                && surface.isPresent()
+                && isWithinAssistWingsLandingDistance(surface.getAsDouble())) {
             cancelLocalAssistWingsJump();
         }
         var vertical = localAssistWingsJumpActive
@@ -548,7 +549,11 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
                 serverGlideActive = true;
                 serverSuccessfulGlideTicks++;
             }
-            updateRushAttack(player, rushMovement, ApprenticeCodexServerConfig.hoverrideBroomConfig(), true);
+            if (rushMovement.isPresent() && canStartRushAttack()) {
+                activateRushAttack(player, rushMovement.get(), ApprenticeCodexServerConfig.hoverrideBroomConfig());
+            } else {
+                setRushAttackActive(false);
+            }
             updateServerPresentation();
             return;
         }
@@ -585,12 +590,12 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
             movementManaCost = forwardManaCostPerTick(config);
         }
 
-        var rushRequested = canStartRushAttack(rushMovement);
+        var rushRequested = rushMovement.isPresent() && canStartRushAttack();
         var totalManaCost = movementManaCost + (rushRequested ? config.rushManaCostPerTick() : 0.0D);
         var rushPaid = rushRequested && mana + MANA_EPSILON >= totalManaCost;
         consumeMana(player, magicData, (float)totalManaCost);
-        if (rushPaid) {
-            updateRushAttack(player, rushMovement, config, true);
+        if (rushPaid && rushMovement.isPresent()) {
+            activateRushAttack(player, rushMovement.get(), config);
         } else {
             setRushAttackActive(false);
         }
@@ -645,25 +650,17 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         return Optional.of(new RushMovement(movement, horizontal.normalize(), speed));
     }
 
-    private boolean canStartRushAttack(Optional<RushMovement> movement) {
-        return movement.isPresent()
-                && isVehicle()
+    private boolean canStartRushAttack() {
+        return isVehicle()
                 && getControllingPassenger() instanceof Player
                 && HoverrideBroomItem.isRushStyleEnabled(getBroomItemStack());
     }
 
-    private void updateRushAttack(
+    private void activateRushAttack(
             Player player,
-            Optional<RushMovement> movement,
-            HoverrideBroomServerConfig.Values config,
-            boolean costPaid
+            RushMovement rushMovement,
+            HoverrideBroomServerConfig.Values config
     ) {
-        if (!costPaid || !canStartRushAttack(movement)) {
-            setRushAttackActive(false);
-            return;
-        }
-
-        var rushMovement = movement.orElseThrow();
         setRushDirection(rushMovement.direction());
         setRushAttackActive(true);
         applyRushAttack(player, rushMovement, config);
@@ -929,11 +926,12 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     }
 
     public boolean isWithinAssistWingsLandingDistance() {
-        return isWithinAssistWingsLandingDistance(findRideSurfaceBelow());
+        var surface = findRideSurfaceBelow();
+        return surface.isPresent() && isWithinAssistWingsLandingDistance(surface.getAsDouble());
     }
 
-    private boolean isWithinAssistWingsLandingDistance(OptionalDouble surface) {
-        return surface.isPresent() && getY() - surface.getAsDouble() <= ASSIST_WINGS_LANDING_DISTANCE;
+    private boolean isWithinAssistWingsLandingDistance(double surfaceY) {
+        return getY() - surfaceY <= ASSIST_WINGS_LANDING_DISTANCE;
     }
 
     public boolean canUseAssistWings(Player player) {
