@@ -526,6 +526,8 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.adapt_back_curios": "背中装備として背負いに対応",
   "jei.apprenticecodex.spell_calibration_bench.effect.gain_fireward_1": "火炎耐性を与える",
   "jei.apprenticecodex.spell_calibration_bench.effect.gain_fireward_2": "効果は箒のみに限定",
+  "jei.apprenticecodex.spell_calibration_bench.effect.adapt_underwater_mobility_1": "水中でも安定した機動性能を維持",
+  "jei.apprenticecodex.spell_calibration_bench.effect.adapt_underwater_mobility_2": "効果は箒のみに限定",
 
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "同じ効果のアイテムは複数挿入できない",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "系統のルーンはどれか一つのみ挿入できる",

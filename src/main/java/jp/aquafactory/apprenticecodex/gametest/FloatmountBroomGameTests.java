@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.entity.broom.AbstractBroomEntity;
 import jp.aquafactory.apprenticecodex.entity.broom.BroomInputTransition;
 import jp.aquafactory.apprenticecodex.entity.broom.BroomDismountEvents;
 import jp.aquafactory.apprenticecodex.entity.broom.FloatmountBroomEntity;
+import jp.aquafactory.apprenticecodex.entity.broom.FloatmountBroomMovement;
 import jp.aquafactory.apprenticecodex.entity.broom.BroomSurfaceScanner;
 import jp.aquafactory.apprenticecodex.entity.broom.BroomCoreWarningState;
 import jp.aquafactory.apprenticecodex.entity.broom.BroomSpellSelectionEvents;
@@ -26,6 +27,7 @@ import jp.aquafactory.apprenticecodex.item.broom.BroomCurioSupport;
 import jp.aquafactory.apprenticecodex.item.broom.BroomDeploymentState;
 import jp.aquafactory.apprenticecodex.item.broom.FloatmountBroomItem;
 import jp.aquafactory.apprenticecodex.item.broom.HoverrideBroomItem;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.FloatmountBroomConfigState;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFloatmountBroomConfigPacket;
@@ -65,6 +67,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.BubbleColumnBlock;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
@@ -206,6 +209,59 @@ public final class FloatmountBroomGameTests {
             helper.assertFalse(AbstractBroomItem.isFirewardEnabled(stack),
                     "Removing the Fireward Ring should disable fire immunity");
         }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void onlyFloatmountAcceptsOneAquaticCalibration(GameTestHelper helper) {
+        var floatmountItem = (FloatmountBroomItem) ItemRegistry.FLOATMOUNT_BROOM.get();
+        var floatmount = new ItemStack(floatmountItem);
+        var heartOfTheSea = new ItemStack(Items.HEART_OF_THE_SEA);
+        var aquaticRule = floatmountItem.getCalibrationAdjustmentProfile(floatmount).rules().stream()
+                .filter(rule -> rule.displayId().equals("adapt_underwater_mobility"))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Missing Floatmount aquatic calibration rule"));
+
+        helper.assertTrue(aquaticRule.effectLines().size() == 2,
+                "Floatmount aquatic calibration should expose two JEI effect lines");
+        helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                        floatmount, 0, heartOfTheSea),
+                "Floatmount Broom should accept Heart of the Sea as a calibration");
+        helper.assertTrue(FloatmountBroomItem.isAquaticCalibrationEnabled(floatmount),
+                "Heart of the Sea should enable Floatmount aquatic calibration");
+        helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                        floatmount, 1, heartOfTheSea),
+                "Floatmount Broom should reject duplicate aquatic calibrations");
+
+        var hoverride = new ItemStack(ItemRegistry.HOVERRIDE_BROOM.get());
+        helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                        hoverride, 0, heartOfTheSea),
+                "Hoverride Broom should reject Heart of the Sea calibration");
+        CalibrationAdjustmentStorage.set(
+                hoverride, 0, AbstractBroomItem.CALIBRATION_ADJUSTMENT_SLOT_COUNT, heartOfTheSea
+        );
+        helper.assertFalse(FloatmountBroomItem.isAquaticCalibrationEnabled(hoverride),
+                "Stored Heart of the Sea data must not enable aquatic calibration for Hoverride Broom");
+
+        var broom = spawnBroom(helper, 1.5D);
+        broom.setBroomItemStack(floatmount);
+        helper.assertTrue(broom.isAquaticCalibrationEnabled(),
+                "Deployed Floatmount Broom should derive aquatic calibration from its stored stack");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void floatmountWaterMovementLimitsUseSpecifiedFactors(GameTestHelper helper) {
+        helper.assertTrue(Math.abs(FloatmountBroomMovement.horizontalAcceleration(true) - 0.02D) < 1.0e-9D,
+                "Water should halve Floatmount horizontal acceleration");
+        helper.assertTrue(Math.abs(FloatmountBroomMovement.maximumHorizontalSpeed(false, true) - 0.21D) < 1.0e-9D,
+                "Water should reduce Floatmount maximum horizontal speed to sixty percent");
+        helper.assertTrue(Math.abs(FloatmountBroomMovement.maximumHorizontalSpeed(true, true) - 0.06D) < 1.0e-9D,
+                "Water should reduce emergency maximum horizontal speed to sixty percent");
+        helper.assertTrue(Math.abs(FloatmountBroomMovement.maximumVerticalSpeed(true) - 0.09D) < 1.0e-9D,
+                "Water should reduce Floatmount vertical speed to sixty percent");
+        helper.assertTrue(Math.abs(FloatmountBroomMovement.maximumUnoccupiedVerticalSpeed(true) - 0.06D) < 1.0e-9D,
+                "Water should reduce unoccupied Floatmount rise and fall speed to sixty percent");
         helper.succeed();
     }
 
@@ -1803,6 +1859,112 @@ public final class FloatmountBroomGameTests {
         helper.succeed();
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void broomMovementChecksBubbleColumnsOncePerTick(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var bubble = helper.absolutePos(new BlockPos(1, 1, 1));
+        var water = helper.absolutePos(new BlockPos(3, 1, 1));
+        installBubbleColumn(level, bubble, 3);
+        installWaterColumn(level, water, 3);
+
+        var floatmountBubble = spawnBroomAt(helper, bubble);
+        var floatmountWater = spawnBroomAt(helper, water);
+        floatmountBubble.tick();
+        floatmountWater.tick();
+        helper.assertTrue(Math.abs(
+                        floatmountBubble.getDeltaMovement().y - floatmountWater.getDeltaMovement().y - 0.06D
+                ) < 1.0e-6D,
+                "Floatmount Broom should receive one inside-bubble-column impulse per movement tick");
+        floatmountBubble.discard();
+        floatmountWater.discard();
+
+        var hoverrideBubble = spawnHoverrideBroomAt(helper, bubble);
+        var hoverrideWater = spawnHoverrideBroomAt(helper, water);
+        hoverrideBubble.tick();
+        hoverrideWater.tick();
+        helper.assertTrue(Math.abs(
+                        hoverrideBubble.getDeltaMovement().y - hoverrideWater.getDeltaMovement().y - 0.06D
+                ) < 1.0e-6D,
+                "Hoverride Broom should receive one inside-bubble-column impulse per movement tick");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void aquaticCalibrationIgnoresOnlyBroomBubbleMovement(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var bubble = helper.absolutePos(new BlockPos(1, 1, 1));
+        var water = helper.absolutePos(new BlockPos(3, 1, 1));
+        // 高さのある同一条件の列で、気泡callbackの移動成分だけが除外されることを検証する。
+        installBubbleColumn(level, bubble, 8);
+        installWaterColumn(level, water, 8);
+
+        var calibratedStack = new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get());
+        helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                        calibratedStack, 0, new ItemStack(Items.HEART_OF_THE_SEA)),
+                "Aquatic calibration setup should accept Heart of the Sea");
+        var bubbleBroom = spawnBroomAt(helper, bubble);
+        var waterBroom = spawnBroomAt(helper, water);
+        bubbleBroom.setBroomItemStack(calibratedStack);
+        waterBroom.setBroomItemStack(calibratedStack);
+        bubbleBroom.tick();
+        waterBroom.tick();
+        helper.assertTrue(Math.abs(
+                        bubbleBroom.getDeltaMovement().y - waterBroom.getDeltaMovement().y
+                ) < 1.0e-6D,
+                "Aquatic calibration should ignore bubble-column movement on the broom");
+        bubbleBroom.fallDistance = 5.0F;
+        var beforeCallback = bubbleBroom.getDeltaMovement();
+        bubbleBroom.onInsideBubbleColumn(false);
+        helper.assertTrue(bubbleBroom.getDeltaMovement().equals(beforeCallback),
+                "Aquatic calibration should restore only the broom velocity changed by the callback");
+        helper.assertTrue(bubbleBroom.fallDistance == 0.0F,
+                "Aquatic calibration should preserve non-movement effects from the bubble callback");
+        helper.assertTrue(level.getBlockState(bubble).is(Blocks.BUBBLE_COLUMN),
+                "Aquatic calibration must leave the bubble column available to the rider");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void waterPenaltyClampsUnoccupiedAndDismountMovement(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var water = helper.absolutePos(new BlockPos(1, 1, 1));
+        installWaterColumn(level, water, 3);
+
+        var unoccupied = spawnBroomAt(helper, water);
+        unoccupied.setDeltaMovement(0.4D, 0.0D, 0.0D);
+        var unoccupiedStartX = unoccupied.getX();
+        unoccupied.tick();
+        var unoccupiedDisplacement = unoccupied.getX() - unoccupiedStartX;
+        helper.assertTrue(unoccupiedDisplacement > 0.0D && unoccupiedDisplacement <= 0.21D + 1.0e-6D,
+                "Unoccupied Floatmount Broom should move at most 0.21 blocks per water tick, actual: "
+                        + unoccupiedDisplacement);
+        unoccupied.discard();
+
+        var falling = spawnBroomAt(helper, water.above());
+        falling.setDeltaMovement(0.0D, -0.2D, 0.0D);
+        var fallingStartY = falling.getY();
+        falling.tick();
+        var fallingDisplacement = falling.getY() - fallingStartY;
+        helper.assertTrue(Math.abs(fallingDisplacement + 0.06D) < 1.0e-6D,
+                "Unoccupied Floatmount Broom should clamp water fall speed to 0.06, actual: "
+                        + fallingDisplacement);
+        falling.discard();
+
+        var ridden = spawnBroomAt(helper, water);
+        var player = serverRider(helper, "water_dismount_clamp_test");
+        player.getAbilities().instabuild = true;
+        helper.assertTrue(player.startRiding(ridden, true), "Water dismount test rider should mount");
+        ridden.tick();
+        ridden.setPos(ridden.getX() + 0.4D, ridden.getY() + 0.2D, ridden.getZ());
+        ridden.tick();
+        player.stopRiding();
+        helper.assertTrue(Math.abs(ridden.getDeltaMovement().horizontalDistance() - 0.21D) < 1.0e-6D,
+                "Dismounted Floatmount Broom should clamp inherited horizontal water speed to 0.21");
+        helper.assertTrue(Math.abs(ridden.getDeltaMovement().y - 0.09D) < 1.0e-6D,
+                "Dismounted Floatmount Broom should clamp inherited vertical water speed to 0.09");
+        helper.succeed();
+    }
+
     @GameTest(template = TEMPLATE, timeoutTicks = 40)
     public static void damagedUnoccupiedBroomRisesOutOfLava(GameTestHelper helper) {
         var level = helper.getLevel();
@@ -2009,12 +2171,42 @@ public final class FloatmountBroomGameTests {
         return broom;
     }
 
+    private static FloatmountBroomEntity spawnBroomAt(GameTestHelper helper, BlockPos position) {
+        var broom = new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), helper.getLevel());
+        broom.setPos(position.getX() + 0.5D, position.getY() + 0.1D, position.getZ() + 0.5D);
+        helper.getLevel().addFreshEntity(broom);
+        return broom;
+    }
+
     private static HoverrideBroomEntity spawnHoverrideBroom(GameTestHelper helper, double relativeY) {
         var pos = helper.absolutePos(TEST_POS);
         var broom = new HoverrideBroomEntity(EntityRegistry.HOVERRIDE_BROOM.get(), helper.getLevel());
         broom.setPos(pos.getX() + 0.5D, pos.getY() + relativeY, pos.getZ() + 0.5D);
         helper.getLevel().addFreshEntity(broom);
         return broom;
+    }
+
+    private static HoverrideBroomEntity spawnHoverrideBroomAt(GameTestHelper helper, BlockPos position) {
+        var broom = new HoverrideBroomEntity(EntityRegistry.HOVERRIDE_BROOM.get(), helper.getLevel());
+        broom.setPos(position.getX() + 0.5D, position.getY() + 0.1D, position.getZ() + 0.5D);
+        helper.getLevel().addFreshEntity(broom);
+        return broom;
+    }
+
+    private static void installBubbleColumn(net.minecraft.server.level.ServerLevel level, BlockPos bottom, int height) {
+        level.setBlockAndUpdate(bottom.below(), Blocks.SOUL_SAND.defaultBlockState());
+        for (var offset = 0; offset < height; ++offset) {
+            level.setBlockAndUpdate(
+                    bottom.above(offset),
+                    Blocks.BUBBLE_COLUMN.defaultBlockState().setValue(BubbleColumnBlock.DRAG_DOWN, false)
+            );
+        }
+    }
+
+    private static void installWaterColumn(net.minecraft.server.level.ServerLevel level, BlockPos bottom, int height) {
+        for (var offset = 0; offset < height; ++offset) {
+            level.setBlockAndUpdate(bottom.above(offset), Blocks.WATER.defaultBlockState());
+        }
     }
 
     private static void assertDismountPreservesMovement(
