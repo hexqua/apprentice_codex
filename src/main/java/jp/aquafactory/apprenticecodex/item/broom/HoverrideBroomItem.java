@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.ChatFormatting;
@@ -19,11 +20,18 @@ import java.util.List;
 
 public final class HoverrideBroomItem extends AbstractBroomItem {
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
-            createCalibrationAdjustmentProfile(CalibrationAdjustmentRule.unique(
-                    "overdrive_engine_hoverride",
-                    stack -> stack.is(ItemRegistry.OVERDRIVE_BROOM_ENGINE.get()),
-                    CalibrationAdjustmentHints.overdriveBroomEngine()
-            ).withEffectLines(CalibrationAdjustmentEffects.overdriveHoverrideBroom()));
+            createCalibrationAdjustmentProfile(
+                    CalibrationAdjustmentRule.unique(
+                            "overdrive_engine_hoverride",
+                            stack -> stack.is(ItemRegistry.OVERDRIVE_BROOM_ENGINE.get()),
+                            CalibrationAdjustmentHints.overdriveBroomEngine()
+                    ).withEffectLines(CalibrationAdjustmentEffects.overdriveHoverrideBroom()),
+                    CalibrationAdjustmentRule.unique(
+                            "twilight_gale_hoverride",
+                            stack -> stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.TWILIGHT_GALE.get()),
+                            CalibrationAdjustmentHints.twilightGale()
+                    ).withEffectLines(CalibrationAdjustmentEffects.addRushStyle())
+            );
 
     @Override
     protected AbstractBroomEntity createBroom(Level level) {
@@ -33,6 +41,19 @@ public final class HoverrideBroomItem extends AbstractBroomItem {
     @Override
     public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack targetStack) {
         return CALIBRATION_ADJUSTMENT_PROFILE;
+    }
+
+    public static boolean isRushStyleEnabled(@NotNull ItemStack broomStack) {
+        if (!(broomStack.getItem() instanceof HoverrideBroomItem)) {
+            return false;
+        }
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            if (CalibrationAdjustmentStorage.get(broomStack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT)
+                    .is(io.redspace.ironsspellbooks.registries.ItemRegistry.TWILIGHT_GALE.get())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

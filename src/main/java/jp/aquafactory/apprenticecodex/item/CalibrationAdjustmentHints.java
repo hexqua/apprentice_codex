@@ -67,4 +67,10 @@ public final class CalibrationAdjustmentHints {
     public static CalibrationAdjustmentHint overdriveBroomEngine() {
         return CalibrationAdjustmentHint.specificItem(ItemRegistry.OVERDRIVE_BROOM_ENGINE);
     }
+
+    public static CalibrationAdjustmentHint twilightGale() {
+        return CalibrationAdjustmentHint.specificItem(
+                io.redspace.ironsspellbooks.registries.ItemRegistry.TWILIGHT_GALE
+        );
+    }
 }

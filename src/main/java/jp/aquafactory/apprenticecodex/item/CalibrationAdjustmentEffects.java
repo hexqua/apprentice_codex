@@ -98,6 +98,13 @@ public final class CalibrationAdjustmentEffects {
         );
     }
 
+    public static List<Component> addRushStyle() {
+        return List.of(
+                Component.translatable(KEY_PREFIX + "add_rush_style_1"),
+                Component.translatable(KEY_PREFIX + "add_rush_style_2")
+        );
+    }
+
     private static List<Component> line(String key, Object... args) {
         return List.of(Component.translatable(KEY_PREFIX + key, args));
     }
