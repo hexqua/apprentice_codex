@@ -540,6 +540,8 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.float_2": "移動時のマナ消費が増加",
   "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.hover_1": "加速と最高速が上昇",
   "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.hover_2": "加速全般のマナ消費が増加",
+  "jei.apprenticecodex.spell_calibration_bench.effect.add_rush_style_1": "一定速度以上で接触攻撃可能",
+  "jei.apprenticecodex.spell_calibration_bench.effect.add_rush_style_2": "発動中マナを消費",
 
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "同じ効果のアイテムは複数挿入できない",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "系統のルーンはどれか一つのみ挿入できる",
@@ -1223,6 +1225,7 @@
   "death.attack.apprenticecodex.field_overseer": "%1$sは裁かれた",
   "death.attack.apprenticecodex.servant_gaze": "%1$sは勝ち上がれなかった",
   "death.attack.apprenticecodex.fujin": "%1$sは%2$sに千切りにされた",
+  "death.attack.apprenticecodex.hoverride_broom": "%1$sは%2$sの不運と踊ってしまった",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",

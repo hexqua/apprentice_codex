@@ -14,53 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARCANE_BEAM;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARCANE_BLAST;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARCHER_MULTIPLE;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARCHER_MULTIPLE_LAST;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ANCHOR_BLINK;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ARTISAN_SMASH;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.AUTO_TURRET;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.BREACHING_ENEMY;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.BULLET_STREAM;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.COMMENCE_FIRE;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.COMPOUND_PHIAL;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.DUAL_ACROBAT;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FEATHER_RUSH;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FIELD_OVERSEER;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FLY_SWATTER;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FROST_RUNE;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.FUJIN;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.GRACED_RAIN;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.GRIND_RUNNER;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HAUNTED_BONUS;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HEALING_BLOOM;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HEAVENLY_FIST;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.HIGANBANA;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.ILLUMINATE_STELLAR;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.INSCRIBE_ICE;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.INSCRIBE_ICE_BURST;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.LETHAL_ASSAULT;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MAGIC_SPEAR;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANTIS_LEAP;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANA_FORCE_BLADE;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MANA_SLASH;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MOON_LIGHT;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.MYSTIC_SHIELD;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.PHALANX_CHARGE;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.PRECISION_JACK;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.QUICK_ARMS;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.SHOCK;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.SILENT_ASSASSIN;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.SERVANT_GAZE;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.SKY_EDGE;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.SLASH_BLADE;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.THERMAL_PROCESS;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.TIRO_VOLLEY;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.TINY_LUMBERJACK;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.TOTEM_OF_PERMAFROST;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.UNITE_LUNA;
-import static jp.aquafactory.apprenticecodex.damage.DamageTypes.WORLD_FLATTER;
+import static jp.aquafactory.apprenticecodex.damage.DamageTypes.*;
 
 public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
     public DamageTypeTagGenerator(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider, ExistingFileHelper existingFileHelper) {
@@ -269,13 +223,15 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 UNITE_LUNA,
                 HAUNTED_BONUS,
                 MYSTIC_SHIELD,
-                ANCHOR_BLINK
+                ANCHOR_BLINK,
+                HOVERRIDE_BROOM
         );
 
         // Malum連携: 魔法ダメージ全体をSoul Shatter判定対象にする.
         tag(MALUM_CAN_SOUL_SHATTER).addTag(CODEX_MAGIC).add(
                 HAUNTED_BONUS,
-                MANA_FORCE_BLADE
+                MANA_FORCE_BLADE,
+                HOVERRIDE_BROOM
         );
 
         // Lodestone連携: magic_proficiency / magic_resistance が参照する c:is_magic へ接続する.
