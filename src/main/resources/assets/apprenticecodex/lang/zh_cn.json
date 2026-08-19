@@ -528,6 +528,8 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.float_2": "提高移动时的法力消耗",
   "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.hover_1": "提高加速度与最高速度",
   "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.hover_2": "提高各类加速的法力消耗",
+  "jei.apprenticecodex.spell_calibration_bench.effect.add_rush_style_1": "高速移动时可造成接触伤害",
+  "jei.apprenticecodex.spell_calibration_bench.effect.add_rush_style_2": "生效期间持续消耗法力",
 
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "无法插入多个效果相同的物品。",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "只能插入一个学派符文。",
@@ -1217,6 +1219,7 @@
   "death.attack.apprenticecodex.field_overseer": "%1$s 接受了审判。",
   "death.attack.apprenticecodex.servant_gaze": "%1$s 未能脱颖而出。",
   "death.attack.apprenticecodex.fujin": "%1$s 被 %2$s 切成了细丝。",
+  "death.attack.apprenticecodex.hoverride_broom": "%1$s与%2$s的不幸共舞",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "学徒法典",
   "advancements.apprenticecodex.apprentice_codex.root.description": "踏上学徒法师的修行之路。",
