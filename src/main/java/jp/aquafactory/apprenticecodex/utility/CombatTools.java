@@ -140,23 +140,31 @@ public final class CombatTools {
                 }
             }
 
-            if (type == KnockbackTypes.NO_KNOCKBACK) {
+            var suppressKnockback = type == KnockbackTypes.NO_KNOCKBACK;
+            if (suppressKnockback) {
                 KnockbackControlEvent.markIgnoreNextKnockback(livingTarget);
             }
 
             var amount = baseAmount * getResistAttribute(livingTarget, magicSchool);
 
-            // Epicfight関連は例外握りつぶしを行う.
             boolean applied;
-            if (isEpicFightLikeEnvironment()) {
-                try {
+            try {
+                // Epicfight関連は例外握りつぶしを行う.
+                if (isEpicFightLikeEnvironment()) {
+                    try {
+                        applied = livingTarget.hurt(source, amount);
+                    } catch (Throwable t) {
+                        logEpicFightCompatOncePerInterval("LivingEntity#hurt", livingTarget, source, amount, t);
+                        return false;
+                    }
+                } else {
                     applied = livingTarget.hurt(source, amount);
-                } catch (Throwable t) {
-                    logEpicFightCompatOncePerInterval("LivingEntity#hurt", livingTarget, source, amount, t);
-                    return false;
                 }
-            } else {
-                applied = livingTarget.hurt(source, amount);
+            } finally {
+                if (suppressKnockback) {
+                    // hurtが早期終了してイベントを発火しない場合も、後続の無関係なノックバックを抑止しない.
+                    KnockbackControlEvent.clearIgnoreNextKnockback(livingTarget);
+                }
             }
 
             if (applied && multicastAdjustment.ignoreIframe()) {
