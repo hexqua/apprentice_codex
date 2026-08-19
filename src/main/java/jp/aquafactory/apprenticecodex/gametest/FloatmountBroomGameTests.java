@@ -167,6 +167,49 @@ public final class FloatmountBroomGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void broomsAcceptOneFirewardRingCalibration(GameTestHelper helper) {
+        for (var broomItem : List.of(
+                (AbstractBroomItem) ItemRegistry.FLOATMOUNT_BROOM.get(),
+                (AbstractBroomItem) ItemRegistry.HOVERRIDE_BROOM.get()
+        )) {
+            var stack = new ItemStack(broomItem);
+            var firewardRing = new ItemStack(
+                    io.redspace.ironsspellbooks.registries.ItemRegistry.FIREWARD_RING.get()
+            );
+            var firewardRule = broomItem.getCalibrationAdjustmentProfile(stack).rules().stream()
+                    .filter(rule -> rule.displayId().equals("gain_fireward"))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException("Missing broom Fireward calibration rule"));
+            var effectLines = firewardRule.effectLines();
+
+            helper.assertTrue(effectLines.size() == 2,
+                    "Broom Fireward calibration should expose two JEI effect lines");
+            helper.assertTrue(effectLines.get(0).getContents() instanceof TranslatableContents firstLine
+                            && firstLine.getKey().equals(
+                            "jei.apprenticecodex.spell_calibration_bench.effect.gain_fireward_1"),
+                    "Broom Fireward calibration should use its first dedicated JEI effect key");
+            helper.assertTrue(effectLines.get(1).getContents() instanceof TranslatableContents secondLine
+                            && secondLine.getKey().equals(
+                            "jei.apprenticecodex.spell_calibration_bench.effect.gain_fireward_2"),
+                    "Broom Fireward calibration should use its broom-only JEI effect key");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack, 0, firewardRing),
+                    "Broom should accept a Fireward Ring calibration");
+            helper.assertTrue(AbstractBroomItem.isFirewardEnabled(stack),
+                    "Fireward-calibrated broom stack should enable fire immunity");
+            helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack, 1, firewardRing),
+                    "Broom should reject a duplicate Fireward Ring calibration");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack, 0, ItemStack.EMPTY),
+                    "Broom should allow removing its Fireward Ring calibration");
+            helper.assertFalse(AbstractBroomItem.isFirewardEnabled(stack),
+                    "Removing the Fireward Ring should disable fire immunity");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void broomsAllowOnlyOneEquippedAcrossExpandedSlots(GameTestHelper helper) {
         var player = BowGameTestSupport.createEquipmentTestPlayer(
                 helper,
@@ -1372,6 +1415,54 @@ public final class FloatmountBroomGameTests {
             helper.assertFalse(broom.isOnFire(), "The broom should clear persistent fire after contact damage");
             helper.assertTrue(broom.getRemainingFireTicks() <= 0,
                     "Persistent fire ticks should not remain on the broom");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 40)
+    public static void firewardCalibratedBroomsIgnoreFireDamageAndLavaContact(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var firstLava = helper.absolutePos(TEST_POS);
+        var secondLava = helper.absolutePos(TEST_POS.offset(2, 0, 0));
+        var floatmount = new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), level);
+        var hoverride = new HoverrideBroomEntity(EntityRegistry.HOVERRIDE_BROOM.get(), level);
+        var brooms = List.of((AbstractBroomEntity) floatmount, hoverride);
+        var broomItems = List.of(ItemRegistry.FLOATMOUNT_BROOM.get(), ItemRegistry.HOVERRIDE_BROOM.get());
+        var lavaPositions = List.of(firstLava, secondLava);
+
+        for (var index = 0; index < brooms.size(); ++index) {
+            var broom = brooms.get(index);
+            var broomStack = new ItemStack(broomItems.get(index));
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            broomStack,
+                            0,
+                            new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIREWARD_RING.get())
+                    ),
+                    "Broom fire immunity test should accept its Fireward Ring calibration");
+            broom.setBroomItemStack(broomStack);
+
+            var lava = lavaPositions.get(index);
+            level.setBlockAndUpdate(lava, Blocks.LAVA.defaultBlockState());
+            broom.setPos(lava.getX() + 0.5D, lava.getY() + 0.2D, lava.getZ() + 0.5D);
+            level.addFreshEntity(broom);
+            broom.setRemainingFireTicks(100);
+            helper.assertFalse(broom.hurt(level.damageSources().lava(), 1.0F),
+                    "Fireward-calibrated broom should reject direct lava damage");
+            helper.assertTrue(broom.getRemainingFireTicks() <= 0,
+                    "Rejecting fire damage should extinguish a Fireward-calibrated broom immediately");
+        }
+
+        helper.runAfterDelay(5, () -> {
+            for (var broom : brooms) {
+                helper.assertTrue(broom.getDamage() == 0,
+                        "Fireward-calibrated broom should take no damage from lava contact");
+                helper.assertFalse(broom.isOnFire(),
+                        "Fireward-calibrated broom should not remain on fire in lava");
+                helper.assertTrue(broom.hurt(level.damageSources().generic(), 1.0F),
+                        "Fireward calibration should not reject non-fire damage");
+                helper.assertTrue(broom.getDamage() > 0,
+                        "Non-fire damage should still damage a Fireward-calibrated broom");
+            }
             helper.succeed();
         });
     }

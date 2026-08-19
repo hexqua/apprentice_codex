@@ -518,6 +518,8 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.add_swingcast_function": "攻击时挥击施放所选法术",
   "jei.apprenticecodex.spell_calibration_bench.effect.convert_quick_to_power": "将施法时间缩减转换为法术强度",
   "jei.apprenticecodex.spell_calibration_bench.effect.adapt_back_curios": "可作为背部饰品装备",
+  "jei.apprenticecodex.spell_calibration_bench.effect.gain_fireward_1": "获得火焰免疫",
+  "jei.apprenticecodex.spell_calibration_bench.effect.gain_fireward_2": "效果仅限扫帚本身",
 
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "无法插入多个效果相同的物品。",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "只能插入一个学派符文。",

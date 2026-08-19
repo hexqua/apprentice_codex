@@ -70,6 +70,13 @@ public final class CalibrationAdjustmentEffects {
         return line("adapt_back_curios");
     }
 
+    public static List<Component> gainFireward() {
+        return List.of(
+                Component.translatable(KEY_PREFIX + "gain_fireward_1"),
+                Component.translatable(KEY_PREFIX + "gain_fireward_2")
+        );
+    }
+
     private static List<Component> line(String key, Object... args) {
         return List.of(Component.translatable(KEY_PREFIX + key, args));
     }
