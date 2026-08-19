@@ -10,6 +10,9 @@ import java.util.stream.Collectors;
 
 public final class FloatmountBroomServerConfig {
     public static final int DEFAULT_NORMAL_FLIGHT_MANA_THRESHOLD = 100;
+    public static final double DEFAULT_OVERDRIVE_HORIZONTAL_MANA_COST_PER_TICK = 1.75D;
+    public static final double DEFAULT_OVERDRIVE_ASCENDING_MANA_COST_PER_TICK = 1.0D;
+    public static final double DEFAULT_OVERDRIVE_HORIZONTAL_ASCENDING_MANA_COST_PER_TICK = 2.5D;
 
     private final ForgeConfigSpec.IntValue maxDamage;
     private final ForgeConfigSpec.IntValue damageRecoveryAmount;
@@ -20,6 +23,9 @@ public final class FloatmountBroomServerConfig {
     private final ForgeConfigSpec.DoubleValue horizontalManaCostPerTick;
     private final ForgeConfigSpec.DoubleValue ascendingManaCostPerTick;
     private final ForgeConfigSpec.DoubleValue horizontalAscendingManaCostPerTick;
+    private final ForgeConfigSpec.DoubleValue overdriveHorizontalManaCostPerTick;
+    private final ForgeConfigSpec.DoubleValue overdriveAscendingManaCostPerTick;
+    private final ForgeConfigSpec.DoubleValue overdriveHorizontalAscendingManaCostPerTick;
     private Values override;
 
     private FloatmountBroomServerConfig(
@@ -31,7 +37,10 @@ public final class FloatmountBroomServerConfig {
             ForgeConfigSpec.IntValue lowManaWarningThreshold,
             ForgeConfigSpec.DoubleValue horizontalManaCostPerTick,
             ForgeConfigSpec.DoubleValue ascendingManaCostPerTick,
-            ForgeConfigSpec.DoubleValue horizontalAscendingManaCostPerTick
+            ForgeConfigSpec.DoubleValue horizontalAscendingManaCostPerTick,
+            ForgeConfigSpec.DoubleValue overdriveHorizontalManaCostPerTick,
+            ForgeConfigSpec.DoubleValue overdriveAscendingManaCostPerTick,
+            ForgeConfigSpec.DoubleValue overdriveHorizontalAscendingManaCostPerTick
     ) {
         this.maxDamage = maxDamage;
         this.damageRecoveryAmount = damageRecoveryAmount;
@@ -42,6 +51,9 @@ public final class FloatmountBroomServerConfig {
         this.horizontalManaCostPerTick = horizontalManaCostPerTick;
         this.ascendingManaCostPerTick = ascendingManaCostPerTick;
         this.horizontalAscendingManaCostPerTick = horizontalAscendingManaCostPerTick;
+        this.overdriveHorizontalManaCostPerTick = overdriveHorizontalManaCostPerTick;
+        this.overdriveAscendingManaCostPerTick = overdriveAscendingManaCostPerTick;
+        this.overdriveHorizontalAscendingManaCostPerTick = overdriveHorizontalAscendingManaCostPerTick;
     }
 
     public static FloatmountBroomServerConfig define(ForgeConfigSpec.Builder builder) {
@@ -75,6 +87,18 @@ public final class FloatmountBroomServerConfig {
         var horizontalAscendingManaCostPerTick = builder
                 .comment("Mana consumed each tick while moving forward or backward and ascending at the same time.")
                 .defineInRange("horizontalAscendingManaCostPerTick", 1.5D, 0.0D, 10000.0D);
+        var overdriveHorizontalManaCostPerTick = builder
+                .comment("Mana consumed each tick while moving forward or backward with an Overdrive Broom Engine installed.")
+                .defineInRange("overdriveHorizontalManaCostPerTick",
+                        DEFAULT_OVERDRIVE_HORIZONTAL_MANA_COST_PER_TICK, 0.0D, 10000.0D);
+        var overdriveAscendingManaCostPerTick = builder
+                .comment("Mana consumed each tick while ascending with an Overdrive Broom Engine installed.")
+                .defineInRange("overdriveAscendingManaCostPerTick",
+                        DEFAULT_OVERDRIVE_ASCENDING_MANA_COST_PER_TICK, 0.0D, 10000.0D);
+        var overdriveHorizontalAscendingManaCostPerTick = builder
+                .comment("Mana consumed each tick while moving horizontally and ascending with an Overdrive Broom Engine installed.")
+                .defineInRange("overdriveHorizontalAscendingManaCostPerTick",
+                        DEFAULT_OVERDRIVE_HORIZONTAL_ASCENDING_MANA_COST_PER_TICK, 0.0D, 10000.0D);
 
         builder.pop();
         return new FloatmountBroomServerConfig(
@@ -86,7 +110,10 @@ public final class FloatmountBroomServerConfig {
                 lowManaWarningThreshold,
                 horizontalManaCostPerTick,
                 ascendingManaCostPerTick,
-                horizontalAscendingManaCostPerTick
+                horizontalAscendingManaCostPerTick,
+                overdriveHorizontalManaCostPerTick,
+                overdriveAscendingManaCostPerTick,
+                overdriveHorizontalAscendingManaCostPerTick
         );
     }
 
@@ -106,7 +133,10 @@ public final class FloatmountBroomServerConfig {
                         lowManaWarningThreshold.get(),
                         horizontalManaCostPerTick.get(),
                         ascendingManaCostPerTick.get(),
-                        horizontalAscendingManaCostPerTick.get()
+                        horizontalAscendingManaCostPerTick.get(),
+                        overdriveHorizontalManaCostPerTick.get(),
+                        overdriveAscendingManaCostPerTick.get(),
+                        overdriveHorizontalAscendingManaCostPerTick.get()
                 )
                 : override;
     }
@@ -130,7 +160,24 @@ public final class FloatmountBroomServerConfig {
             int lowManaWarningThreshold,
             double horizontalManaCostPerTick,
             double ascendingManaCostPerTick,
-            double horizontalAscendingManaCostPerTick
+            double horizontalAscendingManaCostPerTick,
+            double overdriveHorizontalManaCostPerTick,
+            double overdriveAscendingManaCostPerTick,
+            double overdriveHorizontalAscendingManaCostPerTick
     ) {
+        public Values(
+                int maxDamage, int damageRecoveryAmount, int damageIFrameTicks,
+                Set<ResourceLocation> iframeIgnoredDamageTypes,
+                int normalFlightManaThreshold, int lowManaWarningThreshold,
+                double horizontalManaCostPerTick, double ascendingManaCostPerTick,
+                double horizontalAscendingManaCostPerTick
+        ) {
+            this(maxDamage, damageRecoveryAmount, damageIFrameTicks, iframeIgnoredDamageTypes,
+                    normalFlightManaThreshold, lowManaWarningThreshold,
+                    horizontalManaCostPerTick, ascendingManaCostPerTick, horizontalAscendingManaCostPerTick,
+                    DEFAULT_OVERDRIVE_HORIZONTAL_MANA_COST_PER_TICK,
+                    DEFAULT_OVERDRIVE_ASCENDING_MANA_COST_PER_TICK,
+                    DEFAULT_OVERDRIVE_HORIZONTAL_ASCENDING_MANA_COST_PER_TICK);
+        }
     }
 }

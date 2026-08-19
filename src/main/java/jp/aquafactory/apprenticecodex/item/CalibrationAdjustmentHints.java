@@ -63,4 +63,8 @@ public final class CalibrationAdjustmentHints {
     public static CalibrationAdjustmentHint heartOfTheSea() {
         return CalibrationAdjustmentHint.specificItem(() -> Items.HEART_OF_THE_SEA);
     }
+
+    public static CalibrationAdjustmentHint overdriveBroomEngine() {
+        return CalibrationAdjustmentHint.specificItem(ItemRegistry.OVERDRIVE_BROOM_ENGINE);
+    }
 }

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "apprenticecodex:arcane_cinder"
+    },
+    "C": {
+      "item": "irons_spellbooks:energized_core"
+    },
+    "R": {
+      "item": "minecraft:redstone_block"
+    }
+  },
+  "pattern": [
+    "ARA",
+    "RCR",
+    "ARA"
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:overdrive_broom_engine"
+  }
+}

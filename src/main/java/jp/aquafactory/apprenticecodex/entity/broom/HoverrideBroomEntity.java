@@ -308,7 +308,8 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
             var released = HoverrideBroomMovement.releaseHorizontal(
                     localInertia,
                     getForwardDirection(),
-                    minimumHorizontalSpeed
+                    minimumHorizontalSpeed,
+                    HoverrideBroomMovement.maximumHorizontalSpeed(isOverdriveEnabled())
             );
             setDeltaMovement(released.x, getDeltaMovement().y, released.z);
             localReleaseImpulsePending = true;
@@ -347,7 +348,8 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
                         movement,
                         getForwardDirection(),
                         localForwardInput,
-                        !isManaDepleted() && !isDamaged() && localAirborneTicks < AIRBORNE_GRACE_TICKS
+                        !isManaDepleted() && !isDamaged() && localAirborneTicks < AIRBORNE_GRACE_TICKS,
+                        isOverdriveEnabled()
                 );
         localReleaseImpulsePending = false;
         if (gliding && (isInWaterOrBubble() || isInLava())) {
@@ -406,7 +408,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
 
     @Override
     protected double maximumInheritedDismountHorizontalSpeed() {
-        return HoverrideBroomMovement.MAX_HORIZONTAL_SPEED;
+        return HoverrideBroomMovement.maximumHorizontalSpeed(isOverdriveEnabled());
     }
 
     @Override
@@ -528,7 +530,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         var mana = magicData == null ? 0.0F : magicData.getMana();
         var config = ApprenticeCodexServerConfig.hoverrideBroomConfig();
         if (isManaDepleted()) {
-            if (mana + MANA_EPSILON >= config.inertiaReleaseManaCost()) {
+            if (mana + MANA_EPSILON >= inertiaReleaseManaCost(config)) {
                 setManaDepleted(false);
                 setLowManaWarningShown(false);
                 player.displayClientMessage(Component.translatable(
@@ -548,7 +550,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         if (serverGlideRequested) {
             serverGlideActive = true;
             serverSuccessfulGlideTicks++;
-            consumeMana(player, magicData, (float)config.inertiaGlideManaCostPerTick());
+            consumeMana(player, magicData, (float)inertiaGlideManaCostPerTick(config));
             if (isManaDepleted()) {
                 cancelServerGlide();
             } else {
@@ -559,7 +561,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         }
 
         if (serverForwardInput > INPUT_EPSILON && serverAirborneTicks < AIRBORNE_GRACE_TICKS) {
-            consumeMana(player, magicData, (float)config.forwardManaCostPerTick());
+            consumeMana(player, magicData, (float)forwardManaCostPerTick(config));
         }
         if (!isManaDepleted()) {
             updateLowManaWarning(player, manaAfterConsumption(magicData), config);
@@ -571,12 +573,30 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         return magicData == null ? 0.0F : magicData.getMana();
     }
 
+    private double forwardManaCostPerTick(HoverrideBroomServerConfig.Values config) {
+        return isOverdriveEnabled()
+                ? config.overdriveForwardManaCostPerTick()
+                : config.forwardManaCostPerTick();
+    }
+
+    private double inertiaGlideManaCostPerTick(HoverrideBroomServerConfig.Values config) {
+        return isOverdriveEnabled()
+                ? config.overdriveInertiaGlideManaCostPerTick()
+                : config.inertiaGlideManaCostPerTick();
+    }
+
+    private double inertiaReleaseManaCost(HoverrideBroomServerConfig.Values config) {
+        return isOverdriveEnabled()
+                ? config.overdriveInertiaReleaseManaCost()
+                : config.inertiaReleaseManaCost();
+    }
+
     private void updateLowManaWarning(
             Player player,
             float mana,
             HoverrideBroomServerConfig.Values config
     ) {
-        var recoveryThreshold = config.inertiaReleaseManaCost();
+        var recoveryThreshold = inertiaReleaseManaCost(config);
         if (!isLowManaWarningShown()
                 && mana <= config.lowManaWarningThreshold()
                 && mana < recoveryThreshold) {
@@ -616,7 +636,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         var config = ApprenticeCodexServerConfig.hoverrideBroomConfig();
         if (accepted && !player.getAbilities().instabuild) {
             var magicData = MagicData.getPlayerMagicData(player);
-            consumeMana(player, magicData, (float)config.inertiaReleaseManaCost());
+            consumeMana(player, magicData, (float)inertiaReleaseManaCost(config));
             if (!isManaDepleted()) {
                 updateLowManaWarning(player, manaAfterConsumption(magicData), config);
             }
@@ -646,11 +666,19 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
             return;
         }
         var config = ApprenticeCodexServerConfig.hoverrideBroomConfig();
+        var overdriveEnabled = isOverdriveEnabled();
+        var maximumSpeed = HoverrideBroomMovement.maximumHorizontalSpeed(overdriveEnabled);
+        var minimumSpeedRatio = overdriveEnabled
+                ? Math.max(
+                        config.inertiaReleaseMinimumSpeedRatio(),
+                        HoverrideBroomMovement.OVERDRIVE_INERTIA_RELEASE_MINIMUM_SPEED_RATIO
+                )
+                : config.inertiaReleaseMinimumSpeedRatio();
         Networks.sendToPlayer(serverPlayer, new HoverrideBroomReleaseResultPacket(
                 getId(),
                 actionSequence,
                 accepted,
-                HoverrideBroomMovement.MAX_HORIZONTAL_SPEED * config.inertiaReleaseMinimumSpeedRatio()
+                maximumSpeed * minimumSpeedRatio
         ));
     }
 

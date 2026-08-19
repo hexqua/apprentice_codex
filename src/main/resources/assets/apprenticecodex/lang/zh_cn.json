@@ -37,6 +37,7 @@
 
   "item.apprenticecodex.arcane_cinder": "奥术余烬",
   "item.apprenticecodex.wisdom_shard": "智慧碎片",
+  "item.apprenticecodex.overdrive_broom_engine": "超驱动扫帚引擎",
   "item.apprenticecodex.spell_extract_shard": "法术提取碎片",
   "item.apprenticecodex.crystalline_arcane_shard": "结晶奥术碎片",
   "item.apprenticecodex.comfort_berries": "舒心浆果",
@@ -242,6 +243,7 @@
   "item.apprenticecodex.common.spellgun.desc_2": "副手持有时，按[%1$s]施放法术。",
   "item.apprenticecodex.common.spellgun.epicfight.offhand_warning": "持于副手期间，无法使用格挡技能。",
   "item.apprenticecodex.wisdom_shard.desc": "可作为部分装备的调整用物品安装。",
+  "item.apprenticecodex.overdrive_broom_engine.desc": "可作为扫帚的校准物品安装。",
   "item.apprenticecodex.spell_extract_shard.desc_1": "用于提取物品中注入的法术。",
   "item.apprenticecodex.spell_extract_shard.desc_2": "提取时会破坏注入法术的物品。",
   "item.apprenticecodex.instant_search_brazier.desc_1": "使用后会生成一个能够搜寻与魔法密切相关建筑的火盆。",
@@ -522,6 +524,10 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.gain_fireward_2": "效果仅限扫帚本身",
   "jei.apprenticecodex.spell_calibration_bench.effect.adapt_underwater_mobility_1": "在水下保持稳定机动性能",
   "jei.apprenticecodex.spell_calibration_bench.effect.adapt_underwater_mobility_2": "效果仅限扫帚本身",
+  "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.float_1": "提高移动速度",
+  "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.float_2": "提高移动时的法力消耗",
+  "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.hover_1": "提高加速度与最高速度",
+  "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.hover_2": "提高各类加速的法力消耗",
 
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "无法插入多个效果相同的物品。",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "只能插入一个学派符文。",

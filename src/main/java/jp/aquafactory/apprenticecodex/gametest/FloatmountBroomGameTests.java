@@ -213,6 +213,49 @@ public final class FloatmountBroomGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void broomsAcceptOneOverdriveEngineCalibration(GameTestHelper helper) {
+        for (var broomItem : List.of(
+                (AbstractBroomItem) ItemRegistry.FLOATMOUNT_BROOM.get(),
+                (AbstractBroomItem) ItemRegistry.HOVERRIDE_BROOM.get()
+        )) {
+            var stack = new ItemStack(broomItem);
+            var engine = new ItemStack(ItemRegistry.OVERDRIVE_BROOM_ENGINE.get());
+            var displayId = broomItem instanceof FloatmountBroomItem
+                    ? "overdrive_engine_floatmount"
+                    : "overdrive_engine_hoverride";
+            var keyVariant = broomItem instanceof FloatmountBroomItem ? "float" : "hover";
+            var rule = broomItem.getCalibrationAdjustmentProfile(stack).rules().stream()
+                    .filter(candidate -> candidate.displayId().equals(displayId))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException("Missing broom Overdrive calibration rule"));
+
+            helper.assertTrue(rule.effectLines().size() == 2,
+                    "Broom Overdrive calibration should expose two JEI effect lines");
+            for (var line = 0; line < 2; ++line) {
+                var expectedKey = "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine."
+                        + keyVariant + "_" + (line + 1);
+                helper.assertTrue(rule.effectLines().get(line).getContents() instanceof TranslatableContents contents
+                                && contents.getKey().equals(expectedKey),
+                        "Broom Overdrive calibration should use its broom-specific JEI effect key");
+            }
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack, 0, engine),
+                    "Broom should accept an Overdrive Broom Engine calibration");
+            helper.assertTrue(AbstractBroomItem.isOverdriveEnabled(stack),
+                    "Engine-calibrated broom stack should enable Overdrive");
+            helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack, 1, engine),
+                    "Broom should reject a duplicate Overdrive Broom Engine calibration");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack, 0, ItemStack.EMPTY),
+                    "Broom should allow removing its Overdrive Broom Engine calibration");
+            helper.assertFalse(AbstractBroomItem.isOverdriveEnabled(stack),
+                    "Removing the Overdrive Broom Engine should disable Overdrive");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void onlyFloatmountAcceptsOneAquaticCalibration(GameTestHelper helper) {
         var floatmountItem = (FloatmountBroomItem) ItemRegistry.FLOATMOUNT_BROOM.get();
         var floatmount = new ItemStack(floatmountItem);
@@ -262,6 +305,22 @@ public final class FloatmountBroomGameTests {
                 "Water should reduce Floatmount vertical speed to sixty percent");
         helper.assertTrue(Math.abs(FloatmountBroomMovement.maximumUnoccupiedVerticalSpeed(true) - 0.06D) < 1.0e-9D,
                 "Water should reduce unoccupied Floatmount rise and fall speed to sixty percent");
+        helper.assertTrue(Math.abs(
+                        FloatmountBroomMovement.horizontalAcceleration(false, true) - 0.056D
+                ) < 1.0e-9D,
+                "Overdrive should increase Floatmount horizontal acceleration by forty percent");
+        helper.assertTrue(Math.abs(
+                        FloatmountBroomMovement.maximumHorizontalSpeed(false, false, true) - 0.49D
+                ) < 1.0e-9D,
+                "Overdrive should increase Floatmount maximum horizontal speed by forty percent");
+        helper.assertTrue(Math.abs(
+                        FloatmountBroomMovement.maximumHorizontalSpeed(false, true, true) - 0.294D
+                ) < 1.0e-9D,
+                "Water penalty should apply after the Floatmount Overdrive speed increase");
+        helper.assertTrue(Math.abs(
+                        FloatmountBroomMovement.maximumHorizontalSpeed(true, false, true) - 0.1D
+                ) < 1.0e-9D,
+                "Overdrive must not increase Floatmount emergency landing speed");
         helper.succeed();
     }
 
@@ -683,6 +742,25 @@ public final class FloatmountBroomGameTests {
         );
         helper.assertTrue(Math.abs(released.length() - 0.275D) < 1.0e-6D,
                 "Hoverride Broom release should restore the configured minimum speed");
+
+        var overdriveMaximumSpeed = HoverrideBroomMovement.maximumHorizontalSpeed(true);
+        helper.assertTrue(Math.abs(overdriveMaximumSpeed - 0.825D) < 1.0e-9D,
+                "Overdrive should increase Hoverride maximum horizontal speed by fifty percent");
+        var overdriveAcceleration = HoverrideBroomMovement.normalHorizontal(
+                Vec3.ZERO, target, 1.0F, true, true
+        );
+        helper.assertTrue(Math.abs(overdriveAcceleration.length() - 0.06D) < 1.0e-9D,
+                "Overdrive should increase Hoverride horizontal acceleration by fifty percent");
+        var overdriveBraking = HoverrideBroomMovement.normalHorizontal(
+                new Vec3(overdriveMaximumSpeed, 0.0D, 0.0D), Vec3.ZERO, -1.0F, true, true
+        );
+        helper.assertTrue(Math.abs(overdriveBraking.length() - 0.7425D) < 1.0e-9D,
+                "Overdrive should increase Hoverride braking by fifty percent");
+        var overdriveReleased = HoverrideBroomMovement.releaseHorizontal(
+                Vec3.ZERO, target, overdriveMaximumSpeed * 0.8D, overdriveMaximumSpeed
+        );
+        helper.assertTrue(Math.abs(overdriveReleased.length() - 0.66D) < 1.0e-9D,
+                "Overdrive release should restore eighty percent of its maximum speed");
         helper.succeed();
     }
 
@@ -1860,6 +1938,75 @@ public final class FloatmountBroomGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void floatmountOverdriveUsesConfiguredManaCosts(GameTestHelper helper) {
+        var config = new FloatmountBroomServerConfig.Values(
+                1000, 50, 10, Set.of(), 100, 50,
+                1.0D, 2.0D, 3.5D,
+                1.75D, 1.0D, 2.5D
+        );
+        try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
+            assertMovementManaCost(helper, "floatmount_overdrive_horizontal_cost", 1.75F,
+                    0.0F, 1.0F, false, false, true);
+            assertMovementManaCost(helper, "floatmount_overdrive_ascending_cost", 1.0F,
+                    0.0F, 0.0F, true, false, true);
+            assertMovementManaCost(helper, "floatmount_overdrive_combined_cost", 2.5F,
+                    0.0F, -1.0F, true, false, true);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void hoverrideOverdriveUsesConfiguredManaCostsAndRecoveryThreshold(GameTestHelper helper) {
+        var config = new HoverrideBroomServerConfig.Values(
+                1.0D, 0.5D, 50.0D,
+                2.25D, 1.25D, 77.0D,
+                0.5D, 20.0D
+        );
+        try (var ignored = ApprenticeCodexServerConfig.useHoverrideBroomConfigOverrideForGameTest(config)) {
+            var broom = spawnHoverrideBroom(helper, 1.5D);
+            var stack = new ItemStack(ItemRegistry.HOVERRIDE_BROOM.get());
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack, 0, new ItemStack(ItemRegistry.OVERDRIVE_BROOM_ENGINE.get())),
+                    "Hoverride Overdrive mana test should accept its engine");
+            broom.setBroomItemStack(stack);
+            var player = serverRider(helper, "hoverride_overdrive_mana_rider");
+            var magicData = magicData(helper, player);
+            magicData.setMana(78.25F);
+            helper.assertTrue(player.startRiding(broom, true),
+                    "Hoverride Overdrive mana test rider should mount");
+
+            broom.acceptServerInput(player, 0.0F, 0.0F, true, false,
+                    BroomInputTransition.NONE, 0L);
+            broom.tick();
+            helper.assertTrue(Math.abs(magicData.getMana() - 77.0F) < 1.0e-4F,
+                    "Overdrive inertia glide should use its configured mana cost");
+
+            broom.acceptServerInput(player, 0.0F, 0.0F, false, false,
+                    BroomInputTransition.RELEASE, 1L);
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Overdrive inertia release should use its configured mana cost");
+            helper.assertTrue(broom.isManaDepleted(),
+                    "Exact Overdrive release cost should enter depleted mode");
+
+            magicData.setMana(76.0F);
+            broom.tick();
+            helper.assertTrue(broom.isManaDepleted(),
+                    "Overdrive depleted mode should remain below its configured release cost");
+            magicData.setMana(77.0F);
+            broom.tick();
+            helper.assertFalse(broom.isManaDepleted(),
+                    "Overdrive depleted mode should recover at its configured release cost");
+
+            broom.acceptServerInput(player, 0.0F, 1.0F, false, false,
+                    BroomInputTransition.NONE, 0L);
+            broom.tick();
+            helper.assertTrue(Math.abs(magicData.getMana() - 74.75F) < 1.0e-4F,
+                    "Overdrive forward acceleration should use its configured mana cost");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void broomMovementChecksBubbleColumnsOncePerTick(GameTestHelper helper) {
         var level = helper.getLevel();
         var bubble = helper.absolutePos(new BlockPos(1, 1, 1));
@@ -2510,7 +2657,31 @@ public final class FloatmountBroomGameTests {
             boolean ascending,
             boolean descending
     ) {
+        assertMovementManaCost(
+                helper, playerName, expectedCost, strafe, forward, ascending, descending, false
+        );
+    }
+
+    private static void assertMovementManaCost(
+            GameTestHelper helper,
+            String playerName,
+            float expectedCost,
+            float strafe,
+            float forward,
+            boolean ascending,
+            boolean descending,
+            boolean overdriveEnabled
+    ) {
         var broom = spawnBroom(helper, 1.5D);
+        if (overdriveEnabled) {
+            var stack = new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get());
+            if (!SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                    stack, 0, new ItemStack(ItemRegistry.OVERDRIVE_BROOM_ENGINE.get())
+            )) {
+                throw new IllegalStateException("Floatmount Overdrive mana test could not install its engine");
+            }
+            broom.setBroomItemStack(stack);
+        }
         var player = serverRider(helper);
         var magicData = magicData(helper, player);
         magicData.setMana(100.0F);

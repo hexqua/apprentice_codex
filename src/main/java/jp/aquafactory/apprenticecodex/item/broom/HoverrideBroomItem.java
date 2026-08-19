@@ -2,7 +2,12 @@ package jp.aquafactory.apprenticecodex.item.broom;
 
 import jp.aquafactory.apprenticecodex.entity.broom.AbstractBroomEntity;
 import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomEntity;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.HoverrideBroomItemRenderer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -18,9 +23,21 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public final class HoverrideBroomItem extends AbstractBroomItem {
+    private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
+            createCalibrationAdjustmentProfile(CalibrationAdjustmentRule.unique(
+                    "overdrive_engine_hoverride",
+                    stack -> stack.is(ItemRegistry.OVERDRIVE_BROOM_ENGINE.get()),
+                    CalibrationAdjustmentHints.overdriveBroomEngine()
+            ).withEffectLines(CalibrationAdjustmentEffects.overdriveHoverrideBroom()));
+
     @Override
     protected AbstractBroomEntity createBroom(Level level) {
         return new HoverrideBroomEntity(EntityRegistry.HOVERRIDE_BROOM.get(), level);
+    }
+
+    @Override
+    public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_PROFILE;
     }
 
     @Override

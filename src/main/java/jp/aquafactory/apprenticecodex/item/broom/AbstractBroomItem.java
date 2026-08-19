@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.spell.callbroom.CallBroomDeploymentManager;
 import net.minecraft.ChatFormatting;
@@ -218,6 +219,19 @@ public abstract class AbstractBroomItem extends Item implements GeoItem, ICurioI
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
             if (CalibrationAdjustmentStorage.get(broomStack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT)
                     .is(io.redspace.ironsspellbooks.registries.ItemRegistry.FIREWARD_RING.get())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isOverdriveEnabled(@NotNull ItemStack broomStack) {
+        if (!isValidBroomStack(broomStack)) {
+            return false;
+        }
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            if (CalibrationAdjustmentStorage.get(broomStack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT)
+                    .is(ItemRegistry.OVERDRIVE_BROOM_ENGINE.get())) {
                 return true;
             }
         }
