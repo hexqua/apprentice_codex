@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
+import jp.aquafactory.apprenticecodex.item.broom.AbstractBroomItem;
 import jp.aquafactory.apprenticecodex.item.broom.BroomDeploymentState;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
@@ -28,6 +29,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
@@ -513,6 +515,11 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     public boolean hurt(@NotNull DamageSource source, float amount) {
         if (level().isClientSide || isRemoved()) {
             return true;
+        }
+        if (AbstractBroomItem.isFirewardEnabled(getBroomItemStack()) && source.is(DamageTypeTags.IS_FIRE)) {
+            // Fireward Ring本来の耐性に合わせ、溶岩を含む火炎ダメージと付随する炎上を箒だけに無効化する。
+            clearFire();
+            return false;
         }
         if (isInvulnerableTo(source)) {
             return false;

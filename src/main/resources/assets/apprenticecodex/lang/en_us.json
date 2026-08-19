@@ -529,6 +529,8 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.add_swingcast_function": "Swing-casts selected spell on attack",
   "jei.apprenticecodex.spell_calibration_bench.effect.convert_quick_to_power": "Cast time reduction to Spell Power",
   "jei.apprenticecodex.spell_calibration_bench.effect.adapt_back_curios": "Enables equipping on the back",
+  "jei.apprenticecodex.spell_calibration_bench.effect.gain_fireward_1": "Grants fire immunity",
+  "jei.apprenticecodex.spell_calibration_bench.effect.gain_fireward_2": "Effect is limited to the broom",
 
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "Cannot insert multiple items with the same effect.",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "Only one school rune can be inserted.",

@@ -46,6 +46,12 @@ public final class CalibrationAdjustmentHints {
         );
     }
 
+    public static CalibrationAdjustmentHint firewardRing() {
+        return CalibrationAdjustmentHint.specificItem(
+                io.redspace.ironsspellbooks.registries.ItemRegistry.FIREWARD_RING
+        );
+    }
+
     public static CalibrationAdjustmentHint wisdomShard() {
         return CalibrationAdjustmentHint.specificItem(ItemRegistry.WISDOM_SHARD);
     }

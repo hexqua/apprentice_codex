@@ -68,7 +68,12 @@ public abstract class AbstractBroomItem extends Item implements GeoItem, ICurioI
                             "adapt_back_curios",
                             stack -> stack.is(Items.SADDLE),
                             CalibrationAdjustmentHints.saddle()
-                    ).withEffectLines(CalibrationAdjustmentEffects.adaptBackCurios())
+                    ).withEffectLines(CalibrationAdjustmentEffects.adaptBackCurios()),
+                    CalibrationAdjustmentRule.unique(
+                            "gain_fireward",
+                            stack -> stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.FIREWARD_RING.get()),
+                            CalibrationAdjustmentHints.firewardRing()
+                    ).withEffectLines(CalibrationAdjustmentEffects.gainFireward())
             );
     private static final String CALIBRATION_TAG = "SpellCalibration";
     private static final String SCROLLS_TAG = "Scrolls";
@@ -197,6 +202,19 @@ public abstract class AbstractBroomItem extends Item implements GeoItem, ICurioI
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
             if (CalibrationAdjustmentStorage.get(broomStack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT)
                     .is(Items.SADDLE)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isFirewardEnabled(@NotNull ItemStack broomStack) {
+        if (!isValidBroomStack(broomStack)) {
+            return false;
+        }
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            if (CalibrationAdjustmentStorage.get(broomStack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT)
+                    .is(io.redspace.ironsspellbooks.registries.ItemRegistry.FIREWARD_RING.get())) {
                 return true;
             }
         }
