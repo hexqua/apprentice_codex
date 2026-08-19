@@ -870,7 +870,6 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         return Component.translatable(
                 "ui.apprenticecodex.hoverride_broom.control_help",
                 Component.keybind("key.jump"),
-                Component.keybind("key.jump"),
                 Component.keybind("key.sneak")
         );
     }
