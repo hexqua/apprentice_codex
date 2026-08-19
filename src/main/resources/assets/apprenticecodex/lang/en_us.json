@@ -43,6 +43,7 @@
 
   "item.apprenticecodex.arcane_cinder": "Arcane Cinder",
   "item.apprenticecodex.wisdom_shard": "Shard of Wisdom",
+  "item.apprenticecodex.overdrive_broom_engine": "Overdrive Broom Engine",
   "item.apprenticecodex.spell_extract_shard": "Shard of Spell Extraction",
   "item.apprenticecodex.crystalline_arcane_shard": "Crystalline Arcane Shard",
   "item.apprenticecodex.comfort_berries": "Comfort Berries",
@@ -235,6 +236,7 @@
   "item.apprenticecodex.common.spellgun.desc_2": "When held in the offhand, cast a spell with [%1$s].",
   "item.apprenticecodex.common.spellgun.epicfight.offhand_warning": "While held in the offhand, Guard skills cannot be used.",
   "item.apprenticecodex.wisdom_shard.desc": "Can be installed as an adjustment item for some equipment.",
+  "item.apprenticecodex.overdrive_broom_engine.desc": "Can be installed as a calibration item for brooms.",
   "item.apprenticecodex.spell_extract_shard.desc_1": "Used to extract a spell imbued in an item.",
   "item.apprenticecodex.spell_extract_shard.desc_2": "The imbued item is destroyed during extraction.",
   "item.apprenticecodex.instant_search_brazier.desc_1": "Creates a brazier that can search for structures closely tied to magic when used.",
@@ -533,6 +535,10 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.gain_fireward_2": "Effect is limited to the broom",
   "jei.apprenticecodex.spell_calibration_bench.effect.adapt_underwater_mobility_1": "Maintains stable mobility underwater",
   "jei.apprenticecodex.spell_calibration_bench.effect.adapt_underwater_mobility_2": "Effect is limited to the broom",
+  "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.float_1": "Increases movement speed",
+  "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.float_2": "Increases mana cost while moving",
+  "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.hover_1": "Increases acceleration and top speed",
+  "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.hover_2": "Increases mana costs for acceleration",
 
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "Cannot insert multiple items with the same effect.",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "Only one school rune can be inserted.",

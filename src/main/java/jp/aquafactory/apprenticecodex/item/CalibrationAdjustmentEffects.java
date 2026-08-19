@@ -84,6 +84,20 @@ public final class CalibrationAdjustmentEffects {
         );
     }
 
+    public static List<Component> overdriveFloatmountBroom() {
+        return List.of(
+                Component.translatable(KEY_PREFIX + "overdrive_engine.float_1"),
+                Component.translatable(KEY_PREFIX + "overdrive_engine.float_2")
+        );
+    }
+
+    public static List<Component> overdriveHoverrideBroom() {
+        return List.of(
+                Component.translatable(KEY_PREFIX + "overdrive_engine.hover_1"),
+                Component.translatable(KEY_PREFIX + "overdrive_engine.hover_2")
+        );
+    }
+
     private static List<Component> line(String key, Object... args) {
         return List.of(Component.translatable(KEY_PREFIX + key, args));
     }

@@ -43,6 +43,7 @@
 
   "item.apprenticecodex.arcane_cinder": "神秘の燃え殻",
   "item.apprenticecodex.wisdom_shard": "叡智の破片",
+  "item.apprenticecodex.overdrive_broom_engine": "オーバードライブ箒駆動コア",
   "item.apprenticecodex.spell_extract_shard": "術式抽出の破片",
   "item.apprenticecodex.crystalline_arcane_shard": "結晶化した秘術の破片",
   "item.apprenticecodex.comfort_berries": "安楽の果実",
@@ -226,6 +227,7 @@
   "item.apprenticecodex.common.spellgun.desc_2": "オフハンドに持っている時、[%1$s]で魔法を詠唱する。",
   "item.apprenticecodex.common.spellgun.epicfight.offhand_warning": "オフハンドに持っている間、ガードスキルが使用できなくなる。",
   "item.apprenticecodex.wisdom_shard.desc": "一部アイテムの調整用アイテムとして装着できる。",
+  "item.apprenticecodex.overdrive_broom_engine.desc": "箒関連の調整用アイテムとして装着できる。",
   "item.apprenticecodex.spell_extract_shard.desc_1": "注入されている魔法を取り出すのに使用する。",
   "item.apprenticecodex.spell_extract_shard.desc_2": "取り出す際に注入元のアイテムを破壊する。",
   "item.apprenticecodex.instant_search_brazier.desc_1": "使用すると魔術に関係の深い建築物を探索できる火鉢を生成する。",
@@ -534,6 +536,10 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.gain_fireward_2": "効果は箒のみに限定",
   "jei.apprenticecodex.spell_calibration_bench.effect.adapt_underwater_mobility_1": "水中でも安定した機動性能を維持",
   "jei.apprenticecodex.spell_calibration_bench.effect.adapt_underwater_mobility_2": "効果は箒のみに限定",
+  "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.float_1": "移動速度が上昇",
+  "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.float_2": "移動時のマナ消費が増加",
+  "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.hover_1": "加速と最高速が上昇",
+  "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.hover_2": "加速全般のマナ消費が増加",
 
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "同じ効果のアイテムは複数挿入できない",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "系統のルーンはどれか一つのみ挿入できる",

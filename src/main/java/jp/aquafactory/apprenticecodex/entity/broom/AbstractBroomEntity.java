@@ -474,6 +474,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         var bubbleInfluence = currentBubbleColumnVerticalInfluence();
         var controlledVerticalMovement = movement.y - bubbleInfluence;
         var waterPenaltyActive = isWaterMovementPenaltyActive();
+        var overdriveEnabled = isOverdriveEnabled();
         var yaw = getYRot() * Mth.DEG_TO_RAD;
         var forward = new Vec3(-Mth.sin(yaw), 0.0D, Mth.cos(yaw));
         // 高所作業で停止しやすくしつつ、入力中はボート相当の滑らかな加速を維持する。
@@ -483,9 +484,9 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         var horizontal = new Vec3(movement.x, 0.0D, movement.z)
                 .scale(horizontalDamping)
                 .add(forward.scale(localForwardInput
-                        * FloatmountBroomMovement.horizontalAcceleration(waterPenaltyActive)));
+                        * FloatmountBroomMovement.horizontalAcceleration(waterPenaltyActive, overdriveEnabled)));
         var maxHorizontalSpeed = FloatmountBroomMovement.maximumHorizontalSpeed(
-                isForcedLanding(), waterPenaltyActive
+                isForcedLanding(), waterPenaltyActive, overdriveEnabled
         );
         if (horizontal.length() > maxHorizontalSpeed) {
             horizontal = horizontal.normalize().scale(maxHorizontalSpeed);
@@ -508,10 +509,13 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         var bubbleInfluence = currentBubbleColumnVerticalInfluence();
         var controlledVerticalMovement = movement.y - bubbleInfluence;
         var waterPenaltyActive = isWaterMovementPenaltyActive();
+        var overdriveEnabled = isOverdriveEnabled();
         var horizontal = new Vec3(movement.x * COAST_HORIZONTAL_DAMPING, 0.0D,
                 movement.z * COAST_HORIZONTAL_DAMPING);
         if (waterPenaltyActive) {
-            var maxHorizontalSpeed = FloatmountBroomMovement.maximumHorizontalSpeed(false, true);
+            var maxHorizontalSpeed = FloatmountBroomMovement.maximumHorizontalSpeed(
+                    false, true, overdriveEnabled
+            );
             if (horizontal.length() > maxHorizontalSpeed) {
                 horizontal = horizontal.normalize().scale(maxHorizontalSpeed);
             }
@@ -546,7 +550,9 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     }
 
     protected double maximumInheritedDismountHorizontalSpeed() {
-        return FloatmountBroomMovement.maximumHorizontalSpeed(false, isWaterMovementPenaltyActive());
+        return FloatmountBroomMovement.maximumHorizontalSpeed(
+                false, isWaterMovementPenaltyActive(), isOverdriveEnabled()
+        );
     }
 
     @Override
@@ -1156,13 +1162,26 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
 
     private float movementManaCost(FloatmountBroomServerConfig.Values config) {
         var horizontal = Math.abs(serverForwardInput) > INPUT_EPSILON;
+        var overdriveEnabled = isOverdriveEnabled();
         if (horizontal && serverAscending) {
-            return Math.max(0.0F, (float)config.horizontalAscendingManaCostPerTick());
+            return Math.max(0.0F, (float)(overdriveEnabled
+                    ? config.overdriveHorizontalAscendingManaCostPerTick()
+                    : config.horizontalAscendingManaCostPerTick()));
         }
         if (horizontal) {
-            return Math.max(0.0F, (float)config.horizontalManaCostPerTick());
+            return Math.max(0.0F, (float)(overdriveEnabled
+                    ? config.overdriveHorizontalManaCostPerTick()
+                    : config.horizontalManaCostPerTick()));
         }
-        return serverAscending ? Math.max(0.0F, (float)config.ascendingManaCostPerTick()) : 0.0F;
+        return serverAscending
+                ? Math.max(0.0F, (float)(overdriveEnabled
+                        ? config.overdriveAscendingManaCostPerTick()
+                        : config.ascendingManaCostPerTick()))
+                : 0.0F;
+    }
+
+    protected final boolean isOverdriveEnabled() {
+        return AbstractBroomItem.isOverdriveEnabled(getBroomItemStack());
     }
 
     protected static float sanitizeInput(float input) {

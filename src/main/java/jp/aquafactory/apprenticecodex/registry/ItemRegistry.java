@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.ArcaneCinderItem;
+import jp.aquafactory.apprenticecodex.item.*;
 import jp.aquafactory.apprenticecodex.item.broom.FloatmountBroomItem;
 import jp.aquafactory.apprenticecodex.item.broom.HoverrideBroomItem;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.CrudeInkItem;
@@ -14,19 +14,13 @@ import jp.aquafactory.apprenticecodex.item.boundweapon.BoundSwordItem;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
-import jp.aquafactory.apprenticecodex.item.IlluminateStellarStaff;
 import jp.aquafactory.apprenticecodex.item.pastelstaff.PastelStaff;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
-import jp.aquafactory.apprenticecodex.item.RoundIncompleteMaterialItem;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.blockitem.SpellCalibrationBenchItem;
 import jp.aquafactory.apprenticecodex.item.blockitem.SpellDispenserItem;
-import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
-import jp.aquafactory.apprenticecodex.item.SpellExtractShard;
 import jp.aquafactory.apprenticecodex.item.blockitem.SpellcasterWorkbenchItem;
-import jp.aquafactory.apprenticecodex.item.UniteLunaStaff;
-import jp.aquafactory.apprenticecodex.item.WisdomShardItem;
 import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaff;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
@@ -173,6 +167,7 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> ARTISAN_SMASH_LAUNCHER = simple("artisan_smash_launcher");
     public static final DeferredHolder<Item, Item> ARCANE_CINDER = ITEMS.register("arcane_cinder", ArcaneCinderItem::new);
     public static final DeferredHolder<Item, Item> WISDOM_SHARD = ITEMS.register("wisdom_shard", WisdomShardItem::new);
+    public static final DeferredHolder<Item, Item> OVERDRIVE_BROOM_ENGINE = ITEMS.register("overdrive_broom_engine", OverdriveBroomEngine::new);
     public static final DeferredHolder<Item, Item> SPELL_EXTRACT_SHARD = ITEMS.register("spell_extract_shard", SpellExtractShard::new);
     public static final DeferredHolder<Item, Item> CRYSTALLINE_ARCANE_SHARD = simple("crystalline_arcane_shard");
     public static final DeferredHolder<Item, Item> COMFORT_BERRIES =

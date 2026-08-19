@@ -185,6 +185,16 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.DIVINE_SOULSHARD.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.DIVINE_SOULSHARD.get()))
                 .save(recipeOutput);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.OVERDRIVE_BROOM_ENGINE.get())
+                .pattern("ARA")
+                .pattern("RCR")
+                .pattern("ARA")
+                .define('C', io.redspace.ironsspellbooks.registries.ItemRegistry.ENERGIZED_CORE.get())
+                .define('A', ItemRegistry.ARCANE_CINDER.get())
+                .define('R', Items.REDSTONE_BLOCK)
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.ENERGIZED_CORE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.ENERGIZED_CORE.get()))
+                .save(recipeOutput);
+
         ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, ItemRegistry.SPELL_EXTRACT_SHARD.get())
                 .requires(Items.FLINT)
                 .requires(io.redspace.ironsspellbooks.registries.ItemRegistry.SHRIVING_STONE.get())

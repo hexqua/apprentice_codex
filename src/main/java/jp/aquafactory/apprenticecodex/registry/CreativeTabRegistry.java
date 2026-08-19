@@ -59,11 +59,14 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get());
         output.accept(ItemRegistry.ARCANE_CINDER.get());
         output.accept(ItemRegistry.WISDOM_SHARD.get());
+        output.accept(ItemRegistry.OVERDRIVE_BROOM_ENGINE.get());
         output.accept(ItemRegistry.SPELL_EXTRACT_SHARD.get());
         output.accept(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get());
         output.accept(ItemRegistry.SPELLSTAINED_DIAMOND.get());
         output.accept(ItemRegistry.COMFORT_BERRIES.get());
         output.accept(ItemRegistry.COMFORT_SANDWICH.get());
+        output.accept(ItemRegistry.FLOATMOUNT_BROOM.get());
+        output.accept(ItemRegistry.HOVERRIDE_BROOM.get());
         output.accept(ItemRegistry.RAPID_SPELLCASTER_ROUND.get());
         output.accept(ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get());
         output.accept(ItemRegistry.BASIC_SPELLCASTER_ROUND.get());
@@ -169,8 +172,6 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
         output.accept(ItemRegistry.EXPLORERS_CODEX.get());
         output.accept(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get());
-        output.accept(ItemRegistry.FLOATMOUNT_BROOM.get());
-        output.accept(ItemRegistry.HOVERRIDE_BROOM.get());
         output.accept(ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get());
         addMalumRelatedItemsToTab(output);
         addSpellScrollsToTab(output);

@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.FloatmountBroomConfigState;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -21,11 +22,18 @@ import java.util.List;
 
 public final class FloatmountBroomItem extends AbstractBroomItem {
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
-            createCalibrationAdjustmentProfile(CalibrationAdjustmentRule.unique(
-                    "adapt_underwater_mobility",
-                    stack -> stack.is(Items.HEART_OF_THE_SEA),
-                    CalibrationAdjustmentHints.heartOfTheSea()
-            ).withEffectLines(CalibrationAdjustmentEffects.adaptUnderwaterMobility()));
+            createCalibrationAdjustmentProfile(
+                    CalibrationAdjustmentRule.unique(
+                            "adapt_underwater_mobility",
+                            stack -> stack.is(Items.HEART_OF_THE_SEA),
+                            CalibrationAdjustmentHints.heartOfTheSea()
+                    ).withEffectLines(CalibrationAdjustmentEffects.adaptUnderwaterMobility()),
+                    CalibrationAdjustmentRule.unique(
+                            "overdrive_engine_floatmount",
+                            stack -> stack.is(ItemRegistry.OVERDRIVE_BROOM_ENGINE.get()),
+                            CalibrationAdjustmentHints.overdriveBroomEngine()
+                    ).withEffectLines(CalibrationAdjustmentEffects.overdriveFloatmountBroom())
+            );
 
     @Override
     protected AbstractBroomEntity createBroom(Level level) {
