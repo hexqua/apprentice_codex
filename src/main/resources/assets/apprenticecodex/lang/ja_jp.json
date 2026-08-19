@@ -1102,7 +1102,7 @@
   "ui.apprenticecodex.floatmount_broom.retrieve_help": "箒はスニークしながら[%s]で回収できる",
   "ui.apprenticecodex.floatmount_broom.warning_damage": "箒の損傷が限界を超えたため墜落する！",
   "ui.apprenticecodex.floatmount_broom.cannot_mount_damaged": "一度箒を回収しないと乗る事ができない！",
-  "ui.apprenticecodex.hoverride_broom.control_help": "[%1$s長押し] 慣性滑走 / [%2$sを離す] マナを消費して加速 / [%3$s] 降りる",
+  "ui.apprenticecodex.hoverride_broom.control_help": "[%1$s] 長押しで滑走 / 離して加速（マナ消費） / [%2$s] 降りる",
   "ui.apprenticecodex.hoverride_broom.warning_dismount": "もう一度[%s]を押すと飛び降りる",
   "ui.apprenticecodex.hoverride_broom.warning_low_mana": "マナが枯渇してしまうと加速を維持できない！",
   "ui.apprenticecodex.hoverride_broom.warning_depleted_mana": "マナが枯渇したため加速ができない！",

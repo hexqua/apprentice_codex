@@ -931,7 +931,7 @@
   "ui.apprenticecodex.floatmount_broom.retrieve_help": "潜行时按[%s]可回收扫帚",
   "ui.apprenticecodex.floatmount_broom.warning_damage": "扫帚损坏超过极限，正在坠落！",
   "ui.apprenticecodex.floatmount_broom.cannot_mount_damaged": "必须先回收扫帚才能再次骑乘！",
-  "ui.apprenticecodex.hoverride_broom.control_help": "[长按%1$s] 惯性滑行 / [松开%2$s] 消耗法力加速 / [%3$s] 离开",
+  "ui.apprenticecodex.hoverride_broom.control_help": "[%1$s] 长按滑行 / 松开加速（消耗法力） / [%2$s] 离开",
   "ui.apprenticecodex.hoverride_broom.warning_dismount": "再次按[%s]会直接跳下扫帚",
   "ui.apprenticecodex.hoverride_broom.warning_low_mana": "法力耗尽后将无法维持加速！",
   "ui.apprenticecodex.hoverride_broom.warning_depleted_mana": "法力已耗尽，无法加速！",
