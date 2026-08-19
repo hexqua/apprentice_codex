@@ -531,6 +531,8 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.adapt_back_curios": "Enables equipping on the back",
   "jei.apprenticecodex.spell_calibration_bench.effect.gain_fireward_1": "Grants fire immunity",
   "jei.apprenticecodex.spell_calibration_bench.effect.gain_fireward_2": "Effect is limited to the broom",
+  "jei.apprenticecodex.spell_calibration_bench.effect.adapt_underwater_mobility_1": "Maintains stable mobility underwater",
+  "jei.apprenticecodex.spell_calibration_bench.effect.adapt_underwater_mobility_2": "Effect is limited to the broom",
 
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "Cannot insert multiple items with the same effect.",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "Only one school rune can be inserted.",

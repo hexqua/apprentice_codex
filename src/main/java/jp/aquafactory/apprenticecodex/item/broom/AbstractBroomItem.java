@@ -58,23 +58,7 @@ public abstract class AbstractBroomItem extends Item implements GeoItem, ICurioI
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     public static final int CALIBRATION_SCROLL_SLOT_COUNT = 3;
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
-            CalibrationAdjustmentProfile.of(
-                    CalibrationAdjustmentRule.repeatable(
-                            "slot_upgrade",
-                            AbstractBroomItem::isCalibrationSlotUpgrade,
-                            CalibrationAdjustmentHints.slotUpgrades()
-                    ).withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(1)),
-                    CalibrationAdjustmentRule.unique(
-                            "adapt_back_curios",
-                            stack -> stack.is(Items.SADDLE),
-                            CalibrationAdjustmentHints.saddle()
-                    ).withEffectLines(CalibrationAdjustmentEffects.adaptBackCurios()),
-                    CalibrationAdjustmentRule.unique(
-                            "gain_fireward",
-                            stack -> stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.FIREWARD_RING.get()),
-                            CalibrationAdjustmentHints.firewardRing()
-                    ).withEffectLines(CalibrationAdjustmentEffects.gainFireward())
-            );
+            createCalibrationAdjustmentProfile();
     private static final String CALIBRATION_TAG = "SpellCalibration";
     private static final String SCROLLS_TAG = "Scrolls";
     private static final String SLOT_TAG = "Slot";
@@ -139,6 +123,29 @@ public abstract class AbstractBroomItem extends Item implements GeoItem, ICurioI
     }
 
     protected abstract AbstractBroomEntity createBroom(Level level);
+
+    protected static CalibrationAdjustmentProfile createCalibrationAdjustmentProfile(
+            CalibrationAdjustmentRule... additionalRules
+    ) {
+        var rules = new ArrayList<CalibrationAdjustmentRule>();
+        rules.add(CalibrationAdjustmentRule.repeatable(
+                "slot_upgrade",
+                AbstractBroomItem::isCalibrationSlotUpgrade,
+                CalibrationAdjustmentHints.slotUpgrades()
+        ).withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(1)));
+        rules.add(CalibrationAdjustmentRule.unique(
+                "adapt_back_curios",
+                stack -> stack.is(Items.SADDLE),
+                CalibrationAdjustmentHints.saddle()
+        ).withEffectLines(CalibrationAdjustmentEffects.adaptBackCurios()));
+        rules.add(CalibrationAdjustmentRule.unique(
+                "gain_fireward",
+                stack -> stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.FIREWARD_RING.get()),
+                CalibrationAdjustmentHints.firewardRing()
+        ).withEffectLines(CalibrationAdjustmentEffects.gainFireward()));
+        rules.addAll(List.of(additionalRules));
+        return CalibrationAdjustmentProfile.of(rules.toArray(CalibrationAdjustmentRule[]::new));
+    }
 
     @Override
     public @NotNull Optional<TooltipComponent> getTooltipImage(@NotNull ItemStack stack) {

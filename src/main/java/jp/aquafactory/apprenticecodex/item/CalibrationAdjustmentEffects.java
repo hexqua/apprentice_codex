@@ -77,6 +77,13 @@ public final class CalibrationAdjustmentEffects {
         );
     }
 
+    public static List<Component> adaptUnderwaterMobility() {
+        return List.of(
+                Component.translatable(KEY_PREFIX + "adapt_underwater_mobility_1"),
+                Component.translatable(KEY_PREFIX + "adapt_underwater_mobility_2")
+        );
+    }
+
     private static List<Component> line(String key, Object... args) {
         return List.of(Component.translatable(KEY_PREFIX + key, args));
     }
