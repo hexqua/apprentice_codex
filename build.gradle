@@ -380,6 +380,11 @@ dependencies {
     add(optionalRuntimeModuleConfigurations.yacl, fg.deobf("maven.modrinth:yacl:${yacl_version}"))
     add(optionalRuntimeModuleConfigurations.controlify, fg.deobf("maven.modrinth:${controlify_modrinth_project_id}:${controlify_modrinth_version_id}"))
 
+    // EMF のアニメーション変数公開 API のみを参照し、開発用ランタイムには追加しない。
+    // API の EMFEntity が ETFEntity を継承するため、ETF も型解決専用で参照する。
+    compileOnly fg.deobf("maven.modrinth:entitytexturefeatures:${etf_modrinth_version_id}")
+    compileOnly fg.deobf("maven.modrinth:entity-model-features:${emf_modrinth_version_id}")
+
     // Lootr.
     // TreasureDivination が Lootr の個人開封済み判定へ接続するためのコンパイル用.
     compileOnly fg.deobf("noobanidus.mods.lootr:lootr-${minecraft_version}:${lootr_version}")
@@ -419,7 +424,7 @@ tasks.named('processResources', ProcessResources).configure {
             irons_spells_version: irons_spells_version, irons_lib_version: irons_lib_version,
             botania_version: botania_version, jade_version: jade_version,
             lodestone_version: lodestone_version, malum_version: malum_version,
-            epicfight_version: epicfight_version,
+            epicfight_version: epicfight_version, emf_version: emf_version,
             mod_id: mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
             mod_authors: mod_authors, mod_description: mod_description,
             mod_display_url: mod_display_url, mod_issue_tracker_url: mod_issue_tracker_url, mod_logo_file: mod_logo_file,

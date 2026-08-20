@@ -5,6 +5,8 @@
   "curios.modifiers.feet": "足に装備した時:",
   "curios.apprenticecodex.modifier.for_quiver": "背中か腰に装備したとき：",
 
+  "emf.variable.apprenticecodex.is_hoverride_broom_rider": "描画中のプレイヤーが浮遊走行の箒に騎乗しているか",
+
   "attribute.name.apprenticecodex.max_enchantment_table_level": "最大エンチャントテーブルレベル",
 
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",
