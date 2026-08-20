@@ -431,6 +431,18 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         clearOvercharge(stack, 0L, false);
     }
 
+    public static boolean matchesIgnoringChargeRuntimeState(ItemStack first, ItemStack second) {
+        if (!isSpellchargedGreatsword(first) || !isSpellchargedGreatsword(second)) {
+            return false;
+        }
+
+        var normalizedFirst = first.copy();
+        var normalizedSecond = second.copy();
+        normalizeChargeRuntimeStateForComparison(normalizedFirst);
+        normalizeChargeRuntimeStateForComparison(normalizedSecond);
+        return ItemStack.matches(normalizedFirst, normalizedSecond);
+    }
+
     public static boolean sanitizePersistentGameTimes(ItemStack stack, long gameTime) {
         if (!isSpellchargedGreatsword(stack) || !stack.hasTag()) {
             return false;
@@ -636,6 +648,22 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         }
     }
 
+    private static void normalizeChargeRuntimeStateForComparison(ItemStack stack) {
+        if (!stack.hasTag()) {
+            return;
+        }
+
+        var tag = stack.getOrCreateTag();
+        tag.remove(TAG_CHARGE_TICKS);
+        tag.remove(TAG_LAST_CHARGE_GAME_TIME);
+        tag.remove(TAG_CHARGE_LEVEL);
+        tag.remove(TAG_OVERCHARGE_REMAINING_TICKS);
+        tag.remove(TAG_OVERCHARGE_MAX_TICKS);
+        tag.remove(TAG_OVERCHARGE_ACTIVATED_GAME_TIME);
+        tag.remove(TAG_OVERCHARGE_END_GAME_TIME);
+        tag.remove(TAG_OVERCHARGE_FADE_START_GAME_TIME);
+        cleanupEmptyTag(stack);
+    }
     @Override
     public boolean isEnchantable(@NotNull ItemStack stack) {
         return true;

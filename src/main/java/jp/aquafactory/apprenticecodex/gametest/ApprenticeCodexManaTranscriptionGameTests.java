@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.spellchargedgreatsword.SpellchargedGreatsword;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.manatranscription.ManaTranscription;
@@ -14,6 +15,7 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.network.Filterable;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.WritableBookContent;
@@ -22,6 +24,7 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.GameType;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.fml.ModList;
 
 import java.util.List;
 
@@ -62,6 +65,48 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
                     "Mana Transcription should replace the writable book with the selected enchanted book");
             helper.assertTrue(player.totalExperience == experienceBefore - 16,
                     "Unbreaking I should cost the cumulative XP required for level 2");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void betterCombatTwoHandedWeaponUsesPhysicalOffhandBook(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded("bettercombat")) {
+                return;
+            }
+
+            var player = createPlayer(helper, "mana_transcription_better_combat");
+            var enchantments = player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var unbreaking = enchantments.getOrThrow(Enchantments.UNBREAKING);
+            var target = new ItemStack(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
+            target.enchant(unbreaking, 1);
+            player.setItemInHand(InteractionHand.MAIN_HAND, target);
+            player.getInventory().offhand.set(0, new ItemStack(Items.WRITABLE_BOOK));
+            player.giveExperiencePoints(1_000);
+
+            helper.assertTrue(player.getOffhandItem().isEmpty(),
+                    "Better Combat should hide the physical offhand book from logical hand access");
+
+            var spell = spell();
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Mana Transcription should accept a Better Combat-hidden physical offhand book");
+
+            // SpellOnCastEvent は呪文本体の完了処理より先に剣を充填し、同期用の copy をメインハンドへ再設定する。
+            SpellchargedGreatsword.addCharge(
+                    target,
+                    helper.getLevel().getGameTime(),
+                    SpellchargedGreatsword.computeChargeGainTicks(spell, 1)
+            );
+            player.setItemSlot(EquipmentSlot.MAINHAND, target.copy());
+            spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+
+            var physicalOffhand = player.getInventory().offhand.get(0);
+            helper.assertTrue(physicalOffhand.is(Items.ENCHANTED_BOOK)
+                            && EnchantmentHelper.getEnchantmentsForCrafting(physicalOffhand).getLevel(unbreaking) == 1,
+                    "Mana Transcription should replace the physical offhand book with the enchanted result");
+            helper.assertTrue(EnchantmentHelper.getEnchantmentsForCrafting(player.getMainHandItem()).isEmpty(),
+                    "Mana Transcription should remove the enchantment from the two-handed target");
         });
     }
 
