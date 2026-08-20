@@ -134,3 +134,10 @@ config="mixins.apprenticecodex.json"
     versionRange="[${epicfight_mod_version},)"
     ordering="AFTER"
     side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="entity_model_features"
+    type="optional"
+    versionRange="[${emf_version},)"
+    ordering="AFTER"
+    side="CLIENT"
