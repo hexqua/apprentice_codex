@@ -15,7 +15,6 @@ import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -35,6 +34,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
@@ -298,17 +298,11 @@ public class ManaMending extends AbstractSpell implements ICraftsmansDelightAffe
     }
 
     private void finishMending(LivingEntity entity, ItemStack targetStack, ManaMendingCastData castData) {
-        var hasCraftsmansDelight = CraftsmansDelight.isEquippedBy(entity);
-        if (hasCraftsmansDelight) {
-            targetStack.set(DataComponents.REPAIR_COST, 0);
-        }
         castData.reset();
         sendActionBar(
                 entity,
                 Component.translatable(
-                        hasCraftsmansDelight
-                                ? "ui.apprenticecodex.mana_mending.repair_finished_bonus"
-                                : "ui.apprenticecodex.mana_mending.repair_finished",
+                        "ui.apprenticecodex.mana_mending.repair_finished",
                         targetStack.getHoverName()
                 ).withStyle(ChatFormatting.GREEN)
         );
@@ -473,7 +467,7 @@ public class ManaMending extends AbstractSpell implements ICraftsmansDelightAffe
         }
 
         @Override
-        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+        public CompoundTag serializeNBT(HolderLookup.@NotNull Provider provider) {
             var tag = new CompoundTag();
             tag.putBoolean("HasTarget", hasTarget);
             tag.putString("TargetHand", targetHand.name());
@@ -483,7 +477,7 @@ public class ManaMending extends AbstractSpell implements ICraftsmansDelightAffe
         }
 
         @Override
-        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+        public void deserializeNBT(HolderLookup.@NotNull Provider provider, CompoundTag nbt) {
             hasTarget = nbt.getBoolean("HasTarget");
             targetHand = nbt.contains("TargetHand")
                     ? InteractionHand.valueOf(nbt.getString("TargetHand"))

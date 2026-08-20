@@ -788,7 +788,7 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    static void manaMendingCraftsmansDelightBoostsRepairAndClearsRepairCost(GameTestHelper helper) {
+    static void manaMendingCraftsmansDelightBoostsRepairAndPreservesRepairCost(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spell = SpellRegistry.MANA_MENDING.get();
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_mending_craftsmans_test");
@@ -813,8 +813,8 @@ public class ApprenticeCodexGameTestScenarios {
 
             helper.assertTrue(pickaxe.getDamageValue() == 0,
                     "Second CraftsmansDelight-boosted repair tick should spend the carried fraction and finish repair");
-            helper.assertTrue(pickaxe.getOrDefault(DataComponents.REPAIR_COST, 0) == 0,
-                    "CraftsmansDelight Mana Mending completion should reset repair cost");
+            helper.assertTrue(pickaxe.getOrDefault(DataComponents.REPAIR_COST, 0) == 7,
+                    "CraftsmansDelight Mana Mending completion should preserve repair cost");
         });
     }
     static void assistWingsRegularAirCastPreservesHorizontalMovementWithoutSelfMotionSync(GameTestHelper helper) {
