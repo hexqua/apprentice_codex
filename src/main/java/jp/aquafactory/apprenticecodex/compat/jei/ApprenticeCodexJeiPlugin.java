@@ -32,8 +32,11 @@ import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IVanillaCategoryExtensionRegistration;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.AnvilMenu;
+import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -42,6 +45,9 @@ import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.SmithingRecipe;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.EnchantmentInstance;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -80,7 +86,8 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                 new EssenceSmokerRecipeCategory(guiHelper),
                 new SpellcasterWorkbenchRecipeCategory(guiHelper),
                 new AlchemyBrewerRecipeCategory(guiHelper),
-                new SpellCalibrationAdjustmentRecipeCategory(guiHelper)
+                new SpellCalibrationAdjustmentRecipeCategory(guiHelper),
+                new ManaTranscriptionRecipeCategory(guiHelper, buildManaTranscriptionCatalyst())
         );
     }
 
@@ -103,6 +110,10 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         registration.addRecipes(
                 ApprenticeCodexJeiRecipeTypes.SPELL_CALIBRATION_ADJUSTMENT,
                 collectSpellCalibrationAdjustmentJeiRecipes()
+        );
+        registration.addRecipes(
+                ApprenticeCodexJeiRecipeTypes.MANA_TRANSCRIPTION,
+                collectManaTranscriptionJeiRecipes()
         );
         Map<String, GroupedJeiInfo> groupedInfos = new LinkedHashMap<>();
 
@@ -172,6 +183,10 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(
                 new ItemStack(ItemRegistry.SPELL_CALIBRATION_BENCH.get()),
                 ApprenticeCodexJeiRecipeTypes.SPELL_CALIBRATION_ADJUSTMENT
+        );
+        registration.addRecipeCatalyst(
+                buildManaTranscriptionCatalyst(),
+                ApprenticeCodexJeiRecipeTypes.MANA_TRANSCRIPTION
         );
     }
 
@@ -340,6 +355,60 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                     }
                 });
         return recipes;
+    }
+
+    private static List<ManaTranscriptionJeiRecipe> collectManaTranscriptionJeiRecipes() {
+        var clientLevel = Minecraft.getInstance().level;
+        if (clientLevel == null) {
+            ApprenticeCodex.LOGGER.warn("Mana Transcription JEI recipes skipped: client level is not available.");
+            return List.of();
+        }
+
+        var enchantments = clientLevel.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+        var unbreaking = enchantments.getOrThrow(Enchantments.UNBREAKING);
+        var enchantedTarget = new ItemStack(Items.DIAMOND_SWORD);
+        enchantedTarget.enchant(unbreaking, 3);
+        var extractedTarget = enchantedTarget.copy();
+        EnchantmentHelper.updateEnchantments(extractedTarget, mutable -> mutable.set(unbreaking, 0));
+        extractedTarget.set(
+                DataComponents.REPAIR_COST,
+                AnvilMenu.calculateIncreasedRepairCost(extractedTarget.getOrDefault(DataComponents.REPAIR_COST, 0))
+        );
+        var enchantedBook = EnchantedBookItem.createForEnchantment(new EnchantmentInstance(unbreaking, 3));
+
+        var recipes = new ArrayList<ManaTranscriptionJeiRecipe>();
+        recipes.add(new ManaTranscriptionJeiRecipe(
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "jei/mana_transcription/extraction"),
+                ManaTranscriptionJeiRecipe.Mode.EXTRACTION,
+                enchantedTarget,
+                List.of(new ItemStack(Items.WRITABLE_BOOK)),
+                extractedTarget,
+                enchantedBook
+        ));
+
+        var resetItems = Ingredient.of(TagRegistry.Items.MANA_TRANSCRIPTION_REPAIR_COST_RESET_ITEMS).getItems();
+        var effectiveResetItems = new ArrayList<ItemStack>(resetItems.length);
+        for (var resetItem : resetItems) {
+            // 本と羽根ペンはタグに含まれても抽出モードになるため、媒体候補として案内しない。
+            if (!resetItem.is(Items.WRITABLE_BOOK)) {
+                effectiveResetItems.add(resetItem.copyWithCount(1));
+            }
+        }
+        if (!effectiveResetItems.isEmpty()) {
+            var workedTarget = new ItemStack(Items.DIAMOND_SWORD);
+            workedTarget.set(DataComponents.REPAIR_COST, 7);
+            var resetTarget = workedTarget.copy();
+            resetTarget.set(DataComponents.REPAIR_COST, 0);
+            recipes.add(new ManaTranscriptionJeiRecipe(
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "jei/mana_transcription/repair_cost_reset"),
+                    ManaTranscriptionJeiRecipe.Mode.REPAIR_COST_RESET,
+                    workedTarget,
+                    effectiveResetItems,
+                    resetTarget,
+                    ItemStack.EMPTY
+            ));
+        }
+        return List.copyOf(recipes);
     }
 
     private static void addAlchemyBrewerJeiRecipe(
@@ -711,6 +780,16 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
     private static ItemStack buildGrindRunnerCatalyst() {
         var scrollStack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
         ISpellContainer.createScrollContainer(SpellRegistry.GRIND_RUNNER.get(), SpellRegistry.GRIND_RUNNER.get().getMinLevel(), scrollStack);
+        return scrollStack;
+    }
+
+    private static ItemStack buildManaTranscriptionCatalyst() {
+        var scrollStack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+        ISpellContainer.createScrollContainer(
+                SpellRegistry.MANA_TRANSCRIPTION.get(),
+                SpellRegistry.MANA_TRANSCRIPTION.get().getMinLevel(),
+                scrollStack
+        );
         return scrollStack;
     }
 

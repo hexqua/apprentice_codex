@@ -542,6 +542,16 @@
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "同じ効果のアイテムは複数挿入できない",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "系統のルーンはどれか一つのみ挿入できる",
 
+  "jei.apprenticecodex.mana_transcription.extraction": "優先度が最も高いエンチャント1つを本へ転写する。",
+  "jei.apprenticecodex.mana_transcription.repair_cost_reset": "金床での使い込みを専用媒体で取り除く。",
+  "jei.apprenticecodex.mana_transcription.example_note": "表示は一例。対象と消費経験値は実際の手持ちで変化する。",
+  "jei.apprenticecodex.mana_transcription.enchanted_target": "エンチャントを転写する対象",
+  "jei.apprenticecodex.mana_transcription.worked_target": "金床で使い込まれた対象",
+  "jei.apprenticecodex.mana_transcription.unwritten_book": "未記入の本と羽根ペン",
+  "jei.apprenticecodex.mana_transcription.reset_medium": "使用可能な専用媒体",
+  "jei.apprenticecodex.mana_transcription.extracted_target": "転写後（次回の金床作業コストに更新）",
+  "jei.apprenticecodex.mana_transcription.reset_target": "金床での使い込み除去後",
+  "jei.apprenticecodex.mana_transcription.extracted_enchantment": "転写されたエンチャント",
 
   "enchantment.apprenticecodex.reflux": "還流",
   "enchantment.apprenticecodex.reservoir": "貯蔵",
