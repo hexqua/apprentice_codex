@@ -1,14 +1,21 @@
 package jp.aquafactory.apprenticecodex.entity.broom;
 
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.item.broom.FloatmountBroomItem;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 import java.util.Optional;
 
 public final class FloatmountBroomEntity extends AbstractBroomEntity {
+    private static final EntityDataAccessor<Boolean> AQUATIC_CALIBRATION =
+            SynchedEntityData.defineId(FloatmountBroomEntity.class, EntityDataSerializers.BOOLEAN);
     private static final BroomMessageKeys MESSAGE_KEYS = new BroomMessageKeys(
             "ui.apprenticecodex.floatmount_broom.warning_dismount",
             "ui.apprenticecodex.floatmount_broom.retrieve_help",
@@ -22,6 +29,36 @@ public final class FloatmountBroomEntity extends AbstractBroomEntity {
 
     public FloatmountBroomEntity(EntityType<?> type, Level level) {
         super(type, level);
+    }
+
+    @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(AQUATIC_CALIBRATION, false);
+    }
+
+    @Override
+    protected boolean isWaterMovementPenaltyActive() {
+        return isInWaterOrBubble() && !isAquaticCalibrationEnabled();
+    }
+
+    @Override
+    protected boolean managesBubbleColumnMovement() {
+        return true;
+    }
+
+    @Override
+    protected boolean ignoresBubbleColumnMovement() {
+        return isAquaticCalibrationEnabled();
+    }
+
+    @Override
+    protected void onBroomItemStackChanged(ItemStack stack) {
+        entityData.set(AQUATIC_CALIBRATION, FloatmountBroomItem.isAquaticCalibrationEnabled(stack));
+    }
+
+    public boolean isAquaticCalibrationEnabled() {
+        return entityData.get(AQUATIC_CALIBRATION);
     }
 
     @Override

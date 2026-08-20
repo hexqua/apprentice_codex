@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexClientConfig;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
+import jp.aquafactory.apprenticecodex.compat.emf.EmfCompat;
 import jp.aquafactory.apprenticecodex.compat.sable.SableCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -120,6 +121,7 @@ public class ApprenticeCodex
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             ClientModBusEvents.register(modEventBus);
+            EmfCompat.register();
         }
     }
 }

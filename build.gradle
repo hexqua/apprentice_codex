@@ -407,6 +407,11 @@ dependencies {
     add(optionalRuntimeModuleConfigurations.controlify,
             "maven.modrinth:${controlify_modrinth_project_id}:${controlify_modrinth_version_id}")
 
+    // EMF のアニメーション変数公開 API のみを参照し、開発用ランタイムには追加しない。
+    // API の EMFEntity が ETFEntity を継承するため、ETF も型解決専用で参照する。
+    compileOnly "maven.modrinth:entitytexturefeatures:${etf_modrinth_version_id}"
+    compileOnly "maven.modrinth:entity-model-features:${emf_modrinth_version_id}"
+
     // Lootr.
     // TreasureDivination が Lootr の個人開封済み判定へ接続するためのコンパイル用.
     compileOnly "noobanidus.mods.lootr:lootr-neoforge:${lootr_version}"
@@ -487,6 +492,7 @@ tasks.named('processResources', ProcessResources).configure {
             malum_version          : malum_version,
             epicfight_version      : epicfight_version,
             epicfight_mod_version  : epicfight_mod_version,
+            emf_version            : emf_version,
             mod_id                 : mod_id,
             mod_name               : mod_name,
             mod_license            : mod_license,

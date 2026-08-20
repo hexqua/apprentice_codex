@@ -18,9 +18,14 @@ public final class KnockbackControlEvent {
 
     public static void markIgnoreNextKnockback(LivingEntity target) {
         if (target == null) return;
-        //noinspection resource
         if (target.level().isClientSide) return;
         IMMUNE.put(target, target.tickCount);
+    }
+
+    public static void clearIgnoreNextKnockback(LivingEntity target) {
+        if (target != null) {
+            IMMUNE.remove(target);
+        }
     }
 
     public static void markIgnoreKnockbackThisTick(LivingEntity target) {

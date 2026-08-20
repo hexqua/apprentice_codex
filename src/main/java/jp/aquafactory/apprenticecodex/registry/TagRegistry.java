@@ -52,6 +52,10 @@ public final class TagRegistry {
                 createBlockTag("mist_form_ignores_movement_restriction");
         public static final TagKey<Block> LINEAR_BUILD_DENYLIST =
                 createBlockTag("linear_build_denylist");
+        public static final TagKey<Block> BROOM_FORCED_HOVER_SURFACES =
+                createBlockTag("broom_forced_hover_surfaces");
+        public static final TagKey<Block> BROOM_DANGEROUS_DISMOUNT_SURFACES =
+                createBlockTag("broom_dangerous_dismount_surfaces");
     }
 
     public static final class Items {

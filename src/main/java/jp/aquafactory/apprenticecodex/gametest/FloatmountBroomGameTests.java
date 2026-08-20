@@ -15,17 +15,20 @@ import jp.aquafactory.apprenticecodex.entity.broom.AbstractBroomEntity;
 import jp.aquafactory.apprenticecodex.entity.broom.BroomInputTransition;
 import jp.aquafactory.apprenticecodex.entity.broom.BroomDismountEvents;
 import jp.aquafactory.apprenticecodex.entity.broom.FloatmountBroomEntity;
+import jp.aquafactory.apprenticecodex.entity.broom.FloatmountBroomMovement;
 import jp.aquafactory.apprenticecodex.entity.broom.BroomSurfaceScanner;
 import jp.aquafactory.apprenticecodex.entity.broom.BroomCoreWarningState;
 import jp.aquafactory.apprenticecodex.entity.broom.BroomSpellSelectionEvents;
 import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomEntity;
 import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomMovement;
 import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomPresentation;
+import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomRushAttack;
 import jp.aquafactory.apprenticecodex.item.broom.AbstractBroomItem;
 import jp.aquafactory.apprenticecodex.item.broom.BroomCurioSupport;
 import jp.aquafactory.apprenticecodex.item.broom.BroomDeploymentState;
 import jp.aquafactory.apprenticecodex.item.broom.FloatmountBroomItem;
 import jp.aquafactory.apprenticecodex.item.broom.HoverrideBroomItem;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.FloatmountBroomConfigState;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFloatmountBroomConfigPacket;
@@ -60,7 +63,10 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.level.GameType;
@@ -69,6 +75,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.BubbleColumnBlock;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
@@ -159,6 +166,161 @@ public final class FloatmountBroomGameTests {
             helper.assertFalse(AbstractBroomItem.isBackCurioEnabled(stack),
                     "Removing the saddle should disable Curios support");
         }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void broomsAcceptOneFirewardRingCalibration(GameTestHelper helper) {
+        for (var broomItem : List.of(
+                (AbstractBroomItem) ItemRegistry.FLOATMOUNT_BROOM.get(),
+                (AbstractBroomItem) ItemRegistry.HOVERRIDE_BROOM.get()
+        )) {
+            var stack = new ItemStack(broomItem);
+            var firewardRing = new ItemStack(
+                    io.redspace.ironsspellbooks.registries.ItemRegistry.FIREWARD_RING.get()
+            );
+            var firewardRule = broomItem.getCalibrationAdjustmentProfile(stack).rules().stream()
+                    .filter(rule -> rule.displayId().equals("gain_fireward"))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException("Missing broom Fireward calibration rule"));
+            var effectLines = firewardRule.effectLines();
+
+            helper.assertTrue(effectLines.size() == 2,
+                    "Broom Fireward calibration should expose two JEI effect lines");
+            helper.assertTrue(effectLines.get(0).getContents() instanceof TranslatableContents firstLine
+                            && firstLine.getKey().equals(
+                            "jei.apprenticecodex.spell_calibration_bench.effect.gain_fireward_1"),
+                    "Broom Fireward calibration should use its first dedicated JEI effect key");
+            helper.assertTrue(effectLines.get(1).getContents() instanceof TranslatableContents secondLine
+                            && secondLine.getKey().equals(
+                            "jei.apprenticecodex.spell_calibration_bench.effect.gain_fireward_2"),
+                    "Broom Fireward calibration should use its broom-only JEI effect key");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack, 0, firewardRing),
+                    "Broom should accept a Fireward Ring calibration");
+            helper.assertTrue(AbstractBroomItem.isFirewardEnabled(stack),
+                    "Fireward-calibrated broom stack should enable fire immunity");
+            helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack, 1, firewardRing),
+                    "Broom should reject a duplicate Fireward Ring calibration");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack, 0, ItemStack.EMPTY),
+                    "Broom should allow removing its Fireward Ring calibration");
+            helper.assertFalse(AbstractBroomItem.isFirewardEnabled(stack),
+                    "Removing the Fireward Ring should disable fire immunity");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void broomsAcceptOneOverdriveEngineCalibration(GameTestHelper helper) {
+        for (var broomItem : List.of(
+                (AbstractBroomItem) ItemRegistry.FLOATMOUNT_BROOM.get(),
+                (AbstractBroomItem) ItemRegistry.HOVERRIDE_BROOM.get()
+        )) {
+            var stack = new ItemStack(broomItem);
+            var engine = new ItemStack(ItemRegistry.OVERDRIVE_BROOM_ENGINE.get());
+            var displayId = broomItem instanceof FloatmountBroomItem
+                    ? "overdrive_engine_floatmount"
+                    : "overdrive_engine_hoverride";
+            var keyVariant = broomItem instanceof FloatmountBroomItem ? "float" : "hover";
+            var rule = broomItem.getCalibrationAdjustmentProfile(stack).rules().stream()
+                    .filter(candidate -> candidate.displayId().equals(displayId))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException("Missing broom Overdrive calibration rule"));
+
+            helper.assertTrue(rule.effectLines().size() == 2,
+                    "Broom Overdrive calibration should expose two JEI effect lines");
+            for (var line = 0; line < 2; ++line) {
+                var expectedKey = "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine."
+                        + keyVariant + "_" + (line + 1);
+                helper.assertTrue(rule.effectLines().get(line).getContents() instanceof TranslatableContents contents
+                                && contents.getKey().equals(expectedKey),
+                        "Broom Overdrive calibration should use its broom-specific JEI effect key");
+            }
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack, 0, engine),
+                    "Broom should accept an Overdrive Broom Engine calibration");
+            helper.assertTrue(AbstractBroomItem.isOverdriveEnabled(stack),
+                    "Engine-calibrated broom stack should enable Overdrive");
+            helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack, 1, engine),
+                    "Broom should reject a duplicate Overdrive Broom Engine calibration");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack, 0, ItemStack.EMPTY),
+                    "Broom should allow removing its Overdrive Broom Engine calibration");
+            helper.assertFalse(AbstractBroomItem.isOverdriveEnabled(stack),
+                    "Removing the Overdrive Broom Engine should disable Overdrive");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void onlyFloatmountAcceptsOneAquaticCalibration(GameTestHelper helper) {
+        var floatmountItem = (FloatmountBroomItem) ItemRegistry.FLOATMOUNT_BROOM.get();
+        var floatmount = new ItemStack(floatmountItem);
+        var heartOfTheSea = new ItemStack(Items.HEART_OF_THE_SEA);
+        var aquaticRule = floatmountItem.getCalibrationAdjustmentProfile(floatmount).rules().stream()
+                .filter(rule -> rule.displayId().equals("adapt_underwater_mobility"))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Missing Floatmount aquatic calibration rule"));
+
+        helper.assertTrue(aquaticRule.effectLines().size() == 2,
+                "Floatmount aquatic calibration should expose two JEI effect lines");
+        helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                        floatmount, 0, heartOfTheSea),
+                "Floatmount Broom should accept Heart of the Sea as a calibration");
+        helper.assertTrue(FloatmountBroomItem.isAquaticCalibrationEnabled(floatmount),
+                "Heart of the Sea should enable Floatmount aquatic calibration");
+        helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                        floatmount, 1, heartOfTheSea),
+                "Floatmount Broom should reject duplicate aquatic calibrations");
+
+        var hoverride = new ItemStack(ItemRegistry.HOVERRIDE_BROOM.get());
+        helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                        hoverride, 0, heartOfTheSea),
+                "Hoverride Broom should reject Heart of the Sea calibration");
+        CalibrationAdjustmentStorage.set(
+                hoverride, 0, AbstractBroomItem.CALIBRATION_ADJUSTMENT_SLOT_COUNT, heartOfTheSea
+        );
+        helper.assertFalse(FloatmountBroomItem.isAquaticCalibrationEnabled(hoverride),
+                "Stored Heart of the Sea data must not enable aquatic calibration for Hoverride Broom");
+
+        var broom = spawnBroom(helper, 1.5D);
+        broom.setBroomItemStack(floatmount);
+        helper.assertTrue(broom.isAquaticCalibrationEnabled(),
+                "Deployed Floatmount Broom should derive aquatic calibration from its stored stack");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void floatmountWaterMovementLimitsUseSpecifiedFactors(GameTestHelper helper) {
+        helper.assertTrue(Math.abs(FloatmountBroomMovement.horizontalAcceleration(true) - 0.02D) < 1.0e-9D,
+                "Water should halve Floatmount horizontal acceleration");
+        helper.assertTrue(Math.abs(FloatmountBroomMovement.maximumHorizontalSpeed(false, true) - 0.21D) < 1.0e-9D,
+                "Water should reduce Floatmount maximum horizontal speed to sixty percent");
+        helper.assertTrue(Math.abs(FloatmountBroomMovement.maximumHorizontalSpeed(true, true) - 0.06D) < 1.0e-9D,
+                "Water should reduce emergency maximum horizontal speed to sixty percent");
+        helper.assertTrue(Math.abs(FloatmountBroomMovement.maximumVerticalSpeed(true) - 0.09D) < 1.0e-9D,
+                "Water should reduce Floatmount vertical speed to sixty percent");
+        helper.assertTrue(Math.abs(FloatmountBroomMovement.maximumUnoccupiedVerticalSpeed(true) - 0.06D) < 1.0e-9D,
+                "Water should reduce unoccupied Floatmount rise and fall speed to sixty percent");
+        helper.assertTrue(Math.abs(
+                        FloatmountBroomMovement.horizontalAcceleration(false, true) - 0.056D
+                ) < 1.0e-9D,
+                "Overdrive should increase Floatmount horizontal acceleration by forty percent");
+        helper.assertTrue(Math.abs(
+                        FloatmountBroomMovement.maximumHorizontalSpeed(false, false, true) - 0.49D
+                ) < 1.0e-9D,
+                "Overdrive should increase Floatmount maximum horizontal speed by forty percent");
+        helper.assertTrue(Math.abs(
+                        FloatmountBroomMovement.maximumHorizontalSpeed(false, true, true) - 0.294D
+                ) < 1.0e-9D,
+                "Water penalty should apply after the Floatmount Overdrive speed increase");
+        helper.assertTrue(Math.abs(
+                        FloatmountBroomMovement.maximumHorizontalSpeed(true, false, true) - 0.1D
+                ) < 1.0e-9D,
+                "Overdrive must not increase Floatmount emergency landing speed");
         helper.succeed();
     }
 
@@ -581,6 +743,175 @@ public final class FloatmountBroomGameTests {
         );
         helper.assertTrue(Math.abs(released.length() - 0.275D) < 1.0e-6D,
                 "Hoverride Broom release should restore the configured minimum speed");
+
+        var overdriveMaximumSpeed = HoverrideBroomMovement.maximumHorizontalSpeed(true);
+        helper.assertTrue(Math.abs(overdriveMaximumSpeed - 0.825D) < 1.0e-9D,
+                "Overdrive should increase Hoverride maximum horizontal speed by fifty percent");
+        var overdriveAcceleration = HoverrideBroomMovement.normalHorizontal(
+                Vec3.ZERO, target, 1.0F, true, true
+        );
+        helper.assertTrue(Math.abs(overdriveAcceleration.length() - 0.06D) < 1.0e-9D,
+                "Overdrive should increase Hoverride horizontal acceleration by fifty percent");
+        var overdriveBraking = HoverrideBroomMovement.normalHorizontal(
+                new Vec3(overdriveMaximumSpeed, 0.0D, 0.0D), Vec3.ZERO, -1.0F, true, true
+        );
+        helper.assertTrue(Math.abs(overdriveBraking.length() - 0.7425D) < 1.0e-9D,
+                "Overdrive should increase Hoverride braking by fifty percent");
+        var overdriveReleased = HoverrideBroomMovement.releaseHorizontal(
+                Vec3.ZERO, target, overdriveMaximumSpeed * 0.8D, overdriveMaximumSpeed
+        );
+        helper.assertTrue(Math.abs(overdriveReleased.length() - 0.66D) < 1.0e-9D,
+                "Overdrive release should restore eighty percent of its maximum speed");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void hoverrideTwilightGaleCalibrationAndRushMathMatchContract(GameTestHelper helper) {
+        var stack = new ItemStack(ItemRegistry.HOVERRIDE_BROOM.get());
+        var twilightGale = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.TWILIGHT_GALE.get());
+        helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                        stack, 0, twilightGale),
+                "Hoverride Broom should accept Twilight Gale calibration");
+        helper.assertTrue(HoverrideBroomItem.isRushStyleEnabled(stack),
+                "Twilight Gale calibration should enable the rush style");
+        helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                        stack, 1, twilightGale),
+                "Hoverride Broom should reject duplicate Twilight Gale calibration");
+        helper.assertTrue(Math.abs(HoverrideBroomRushAttack.baseDamage(0.5D, 4.0D, 8.0D) - 4.0F) < 1.0e-6F,
+                "Rush minimum speed should use minimum damage");
+        helper.assertTrue(Math.abs(HoverrideBroomRushAttack.baseDamage(0.7D, 4.0D, 8.0D) - 8.0F) < 1.0e-6F,
+                "Rush damage should cap at maximum speed");
+        helper.assertTrue(Math.abs(HoverrideBroomRushAttack.knockbackStrength(0.5D) - 0.5D) < 1.0e-9D
+                        && Math.abs(HoverrideBroomRushAttack.knockbackStrength(0.7D) - 1.0D) < 1.0e-9D,
+                "Rush knockback should scale from 0.5 to 1.0");
+
+        var broomBox = new AABB(0.1D, 0.0D, -0.4D, 0.9D, 0.5D, 0.4D);
+        var movement = new Vec3(0.5D, 0.0D, 0.0D);
+        var grazingTarget = new AABB(0.0D, 0.0D, 0.8D, 0.6D, 1.8D, 1.4D);
+        var outsideTarget = new AABB(0.0D, 0.0D, 1.0D, 0.6D, 1.8D, 1.6D);
+        helper.assertTrue(HoverrideBroomRushAttack.intersectsPath(broomBox, movement, grazingTarget),
+                "Rush contact padding should accept a target 1.1 blocks from the travel centerline");
+        helper.assertFalse(HoverrideBroomRushAttack.intersectsPath(broomBox, movement, outsideTarget),
+                "Rush contact padding should reject a target 1.3 blocks from the travel centerline");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void hoverrideRushDamageRespectsIframeAndUsesExplicitKnockback(GameTestHelper helper) {
+        var config = rushTestConfig(0.0D);
+        try (var ignored = ApprenticeCodexServerConfig.useHoverrideBroomConfigOverrideForGameTest(config)) {
+            var broom = spawnHoverrideBroom(helper, 1.5D);
+            installRushStyle(broom);
+            var player = serverRider(helper, "hoverride_rush_iframe");
+            var magicData = magicData(helper, player);
+            magicData.setMana(10.0F);
+            helper.assertTrue(player.startRiding(broom, true), "Rush test rider should mount");
+            broom.tick();
+
+            var target = spawnRushTarget(helper, broom.position().add(0.4D, 0.0D, 0.0D));
+            var initialHealth = target.getHealth();
+            broom.setPos(broom.getX() + 0.5D, broom.getY(), broom.getZ());
+            broom.tick();
+
+            helper.assertTrue(target.getHealth() < initialHealth,
+                    "A validated 0.5 block rush should damage a contact target");
+            helper.assertTrue(target.getDeltaMovement().x > 0.0D,
+                    "Successful rush damage should knock the target along travel direction");
+            helper.assertTrue(broom.isRushAttackActive() && !broom.isPushable(),
+                    "An active rush should disable ordinary entity pushing");
+            helper.assertTrue(Math.abs(magicData.getMana() - 9.5F) < 1.0e-4F,
+                    "An active rush should consume its configured mana cost");
+
+            var healthAfterFirstHit = target.getHealth();
+            target.setDeltaMovement(Vec3.ZERO);
+            broom.setPos(broom.getX() + 0.5D, broom.getY(), broom.getZ());
+            broom.tick();
+            helper.assertTrue(Math.abs(target.getHealth() - healthAfterFirstHit) < 1.0e-4F,
+                    "Rush damage should respect the target's normal invulnerability frames");
+            helper.assertTrue(target.getDeltaMovement().lengthSqr() < 1.0e-8D,
+                    "A rejected iframe hit must not apply explicit rush knockback");
+
+            var blocker = spawnRushTarget(helper, broom.position().add(0.8D, 0.0D, 0.0D));
+            helper.assertFalse(broom.canCollideWith(blocker),
+                    "An active rush should ignore entity collision shapes");
+            var beforeCollisionMove = broom.getX();
+            broom.move(MoverType.SELF, new Vec3(0.3D, 0.0D, 0.0D));
+            helper.assertTrue(broom.getX() - beforeCollisionMove > 0.299D,
+                    "An active rush should not lose travel distance when crossing a mob");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void hoverrideRushRequiresFullCombinedManaAndRejectsAnomalousTravel(GameTestHelper helper) {
+        var config = rushTestConfig(1.0D);
+        try (var ignored = ApprenticeCodexServerConfig.useHoverrideBroomConfigOverrideForGameTest(config)) {
+            var broom = spawnHoverrideBroom(helper, 1.5D);
+            installRushStyle(broom);
+            var player = serverRider(helper, "hoverride_rush_mana");
+            var magicData = magicData(helper, player);
+            magicData.setMana(10.0F);
+            helper.assertTrue(player.startRiding(broom, true), "Rush mana test rider should mount");
+            broom.tick();
+
+            var target = spawnRushTarget(helper, broom.position().add(0.4D, 0.0D, 0.0D));
+            var initialHealth = target.getHealth();
+            magicData.setMana(1.4F);
+            broom.acceptServerInput(player, 0.0F, 1.0F, false, false,
+                    BroomInputTransition.NONE, 0L);
+            broom.setPos(broom.getX() + 0.5D, broom.getY(), broom.getZ());
+            broom.tick();
+            helper.assertTrue(Math.abs(target.getHealth() - initialHealth) < 1.0e-4F,
+                    "Rush attack should require the full movement and rush mana cost");
+            helper.assertTrue(broom.isManaDepleted() && !broom.isRushAttackActive(),
+                    "Insufficient combined mana should deplete propulsion without activating rush");
+
+            magicData.setMana(50.0F);
+            broom.tick();
+            // 回復確認の静止tickを含む2tick観測なので、平均0.5 block/tickとなる距離を使う。
+            var exactCostTarget = spawnRushTarget(helper, broom.position().add(0.8D, 0.0D, 0.0D));
+            magicData.setMana(1.5F);
+            broom.setPos(broom.getX() + 1.0D, broom.getY(), broom.getZ());
+            broom.tick();
+            helper.assertTrue(exactCostTarget.getHealth() < exactCostTarget.getMaxHealth(),
+                    "An exact combined mana payment should still apply rush damage");
+            helper.assertTrue(broom.isManaDepleted() && broom.isRushAttackActive(),
+                    "An exact combined mana payment should attack before entering depleted mode");
+
+            magicData.setMana(50.0F);
+            broom.tick();
+            var manaBeforeAnomaly = magicData.getMana();
+            broom.setPos(broom.getX() + 5.0D, broom.getY(), broom.getZ());
+            broom.tick();
+            helper.assertFalse(broom.isRushAttackActive(),
+                    "An anomalously long server-observed displacement must not activate rush");
+            helper.assertTrue(Math.abs(magicData.getMana() - (manaBeforeAnomaly - 1.0F)) < 1.0e-4F,
+                    "Rejected rush travel should only retain the ordinary movement cost");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void hoverrideRushCapsTargetsPerTick(GameTestHelper helper) {
+        var config = rushTestConfig(0.0D);
+        try (var ignored = ApprenticeCodexServerConfig.useHoverrideBroomConfigOverrideForGameTest(config)) {
+            var broom = spawnHoverrideBroom(helper, 1.5D);
+            installRushStyle(broom);
+            var player = serverRider(helper, "hoverride_rush_target_cap");
+            magicData(helper, player).setMana(10.0F);
+            helper.assertTrue(player.startRiding(broom, true), "Rush target cap rider should mount");
+            broom.tick();
+
+            var targets = new ArrayList<Zombie>();
+            for (var index = 0; index < 5; ++index) {
+                targets.add(spawnRushTarget(helper, broom.position().add(0.4D, 0.0D, index * 0.05D)));
+            }
+            broom.setPos(broom.getX() + 0.5D, broom.getY(), broom.getZ());
+            broom.tick();
+            var damagedTargets = targets.stream().filter(target -> target.getHealth() < target.getMaxHealth()).count();
+            helper.assertTrue(damagedTargets == HoverrideBroomRushAttack.MAX_TARGETS_PER_TICK,
+                    "Rush should damage at most four targets per tick");
+        }
         helper.succeed();
     }
 
@@ -1377,6 +1708,54 @@ public final class FloatmountBroomGameTests {
         });
     }
 
+    @GameTest(template = TEMPLATE, timeoutTicks = 40)
+    public static void firewardCalibratedBroomsIgnoreFireDamageAndLavaContact(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var firstLava = helper.absolutePos(TEST_POS);
+        var secondLava = helper.absolutePos(TEST_POS.offset(2, 0, 0));
+        var floatmount = new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), level);
+        var hoverride = new HoverrideBroomEntity(EntityRegistry.HOVERRIDE_BROOM.get(), level);
+        var brooms = List.of((AbstractBroomEntity) floatmount, hoverride);
+        var broomItems = List.of(ItemRegistry.FLOATMOUNT_BROOM.get(), ItemRegistry.HOVERRIDE_BROOM.get());
+        var lavaPositions = List.of(firstLava, secondLava);
+
+        for (var index = 0; index < brooms.size(); ++index) {
+            var broom = brooms.get(index);
+            var broomStack = new ItemStack(broomItems.get(index));
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            broomStack,
+                            0,
+                            new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIREWARD_RING.get())
+                    ),
+                    "Broom fire immunity test should accept its Fireward Ring calibration");
+            broom.setBroomItemStack(broomStack);
+
+            var lava = lavaPositions.get(index);
+            level.setBlockAndUpdate(lava, Blocks.LAVA.defaultBlockState());
+            broom.setPos(lava.getX() + 0.5D, lava.getY() + 0.2D, lava.getZ() + 0.5D);
+            level.addFreshEntity(broom);
+            broom.setRemainingFireTicks(100);
+            helper.assertFalse(broom.hurt(level.damageSources().lava(), 1.0F),
+                    "Fireward-calibrated broom should reject direct lava damage");
+            helper.assertTrue(broom.getRemainingFireTicks() <= 0,
+                    "Rejecting fire damage should extinguish a Fireward-calibrated broom immediately");
+        }
+
+        helper.runAfterDelay(5, () -> {
+            for (var broom : brooms) {
+                helper.assertTrue(broom.getDamage() == 0,
+                        "Fireward-calibrated broom should take no damage from lava contact");
+                helper.assertFalse(broom.isOnFire(),
+                        "Fireward-calibrated broom should not remain on fire in lava");
+                helper.assertTrue(broom.hurt(level.damageSources().generic(), 1.0F),
+                        "Fireward calibration should not reject non-fire damage");
+                helper.assertTrue(broom.getDamage() > 0,
+                        "Non-fire damage should still damage a Fireward-calibrated broom");
+            }
+            helper.succeed();
+        });
+    }
+
     @GameTest(template = TEMPLATE)
     public static void combatToolsIgnoresVehiclesAndTargetsOnlyPvpHarmableRiders(GameTestHelper helper) {
         var level = helper.getLevel();
@@ -1712,6 +2091,181 @@ public final class FloatmountBroomGameTests {
         helper.succeed();
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void floatmountOverdriveUsesConfiguredManaCosts(GameTestHelper helper) {
+        var config = new FloatmountBroomServerConfig.Values(
+                1000, 50, 10, Set.of(), 100, 50,
+                1.0D, 2.0D, 3.5D,
+                1.75D, 1.0D, 2.5D
+        );
+        try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
+            assertMovementManaCost(helper, "floatmount_overdrive_horizontal_cost", 1.75F,
+                    0.0F, 1.0F, false, false, true);
+            assertMovementManaCost(helper, "floatmount_overdrive_ascending_cost", 1.0F,
+                    0.0F, 0.0F, true, false, true);
+            assertMovementManaCost(helper, "floatmount_overdrive_combined_cost", 2.5F,
+                    0.0F, -1.0F, true, false, true);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void hoverrideOverdriveUsesConfiguredManaCostsAndRecoveryThreshold(GameTestHelper helper) {
+        var config = new HoverrideBroomServerConfig.Values(
+                1.0D, 0.5D, 50.0D,
+                2.25D, 1.25D, 77.0D,
+                0.5D, 20.0D
+        );
+        try (var ignored = ApprenticeCodexServerConfig.useHoverrideBroomConfigOverrideForGameTest(config)) {
+            var broom = spawnHoverrideBroom(helper, 1.5D);
+            var stack = new ItemStack(ItemRegistry.HOVERRIDE_BROOM.get());
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            stack, 0, new ItemStack(ItemRegistry.OVERDRIVE_BROOM_ENGINE.get())),
+                    "Hoverride Overdrive mana test should accept its engine");
+            broom.setBroomItemStack(stack);
+            var player = serverRider(helper, "hoverride_overdrive_mana_rider");
+            var magicData = magicData(helper, player);
+            magicData.setMana(78.25F);
+            helper.assertTrue(player.startRiding(broom, true),
+                    "Hoverride Overdrive mana test rider should mount");
+
+            broom.acceptServerInput(player, 0.0F, 0.0F, true, false,
+                    BroomInputTransition.NONE, 0L);
+            broom.tick();
+            helper.assertTrue(Math.abs(magicData.getMana() - 77.0F) < 1.0e-4F,
+                    "Overdrive inertia glide should use its configured mana cost");
+
+            broom.acceptServerInput(player, 0.0F, 0.0F, false, false,
+                    BroomInputTransition.RELEASE, 1L);
+            helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                    "Overdrive inertia release should use its configured mana cost");
+            helper.assertTrue(broom.isManaDepleted(),
+                    "Exact Overdrive release cost should enter depleted mode");
+
+            magicData.setMana(76.0F);
+            broom.tick();
+            helper.assertTrue(broom.isManaDepleted(),
+                    "Overdrive depleted mode should remain below its configured release cost");
+            magicData.setMana(77.0F);
+            broom.tick();
+            helper.assertFalse(broom.isManaDepleted(),
+                    "Overdrive depleted mode should recover at its configured release cost");
+
+            broom.acceptServerInput(player, 0.0F, 1.0F, false, false,
+                    BroomInputTransition.NONE, 0L);
+            broom.tick();
+            helper.assertTrue(Math.abs(magicData.getMana() - 74.75F) < 1.0e-4F,
+                    "Overdrive forward acceleration should use its configured mana cost");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void broomMovementChecksBubbleColumnsOncePerTick(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var bubble = helper.absolutePos(new BlockPos(1, 1, 1));
+        var water = helper.absolutePos(new BlockPos(3, 1, 1));
+        installBubbleColumn(level, bubble, 3);
+        installWaterColumn(level, water, 3);
+
+        var floatmountBubble = spawnBroomAt(helper, bubble);
+        var floatmountWater = spawnBroomAt(helper, water);
+        floatmountBubble.tick();
+        floatmountWater.tick();
+        helper.assertTrue(Math.abs(
+                        floatmountBubble.getDeltaMovement().y - floatmountWater.getDeltaMovement().y - 0.06D
+                ) < 1.0e-6D,
+                "Floatmount Broom should receive one inside-bubble-column impulse per movement tick");
+        floatmountBubble.discard();
+        floatmountWater.discard();
+
+        var hoverrideBubble = spawnHoverrideBroomAt(helper, bubble);
+        var hoverrideWater = spawnHoverrideBroomAt(helper, water);
+        hoverrideBubble.tick();
+        hoverrideWater.tick();
+        helper.assertTrue(Math.abs(
+                        hoverrideBubble.getDeltaMovement().y - hoverrideWater.getDeltaMovement().y - 0.06D
+                ) < 1.0e-6D,
+                "Hoverride Broom should receive one inside-bubble-column impulse per movement tick");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void aquaticCalibrationIgnoresOnlyBroomBubbleMovement(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var bubble = helper.absolutePos(new BlockPos(1, 1, 1));
+        var water = helper.absolutePos(new BlockPos(3, 1, 1));
+        // 高さのある同一条件の列で、気泡callbackの移動成分だけが除外されることを検証する。
+        installBubbleColumn(level, bubble, 8);
+        installWaterColumn(level, water, 8);
+
+        var calibratedStack = new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get());
+        helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                        calibratedStack, 0, new ItemStack(Items.HEART_OF_THE_SEA)),
+                "Aquatic calibration setup should accept Heart of the Sea");
+        var bubbleBroom = spawnBroomAt(helper, bubble);
+        var waterBroom = spawnBroomAt(helper, water);
+        bubbleBroom.setBroomItemStack(calibratedStack);
+        waterBroom.setBroomItemStack(calibratedStack);
+        bubbleBroom.tick();
+        waterBroom.tick();
+        helper.assertTrue(Math.abs(
+                        bubbleBroom.getDeltaMovement().y - waterBroom.getDeltaMovement().y
+                ) < 1.0e-6D,
+                "Aquatic calibration should ignore bubble-column movement on the broom");
+        bubbleBroom.fallDistance = 5.0F;
+        var beforeCallback = bubbleBroom.getDeltaMovement();
+        bubbleBroom.onInsideBubbleColumn(false);
+        helper.assertTrue(bubbleBroom.getDeltaMovement().equals(beforeCallback),
+                "Aquatic calibration should restore only the broom velocity changed by the callback");
+        helper.assertTrue(bubbleBroom.fallDistance == 0.0F,
+                "Aquatic calibration should preserve non-movement effects from the bubble callback");
+        helper.assertTrue(level.getBlockState(bubble).is(Blocks.BUBBLE_COLUMN),
+                "Aquatic calibration must leave the bubble column available to the rider");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void waterPenaltyClampsUnoccupiedAndDismountMovement(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var water = helper.absolutePos(new BlockPos(1, 1, 1));
+        installWaterColumn(level, water, 3);
+
+        var unoccupied = spawnBroomAt(helper, water);
+        unoccupied.setDeltaMovement(0.4D, 0.0D, 0.0D);
+        var unoccupiedStartX = unoccupied.getX();
+        unoccupied.tick();
+        var unoccupiedDisplacement = unoccupied.getX() - unoccupiedStartX;
+        helper.assertTrue(unoccupiedDisplacement > 0.0D && unoccupiedDisplacement <= 0.21D + 1.0e-6D,
+                "Unoccupied Floatmount Broom should move at most 0.21 blocks per water tick, actual: "
+                        + unoccupiedDisplacement);
+        unoccupied.discard();
+
+        var falling = spawnBroomAt(helper, water.above());
+        falling.setDeltaMovement(0.0D, -0.2D, 0.0D);
+        var fallingStartY = falling.getY();
+        falling.tick();
+        var fallingDisplacement = falling.getY() - fallingStartY;
+        helper.assertTrue(Math.abs(fallingDisplacement + 0.06D) < 1.0e-6D,
+                "Unoccupied Floatmount Broom should clamp water fall speed to 0.06, actual: "
+                        + fallingDisplacement);
+        falling.discard();
+
+        var ridden = spawnBroomAt(helper, water);
+        var player = serverRider(helper, "water_dismount_clamp_test");
+        player.getAbilities().instabuild = true;
+        helper.assertTrue(player.startRiding(ridden, true), "Water dismount test rider should mount");
+        ridden.tick();
+        ridden.setPos(ridden.getX() + 0.4D, ridden.getY() + 0.2D, ridden.getZ());
+        ridden.tick();
+        player.stopRiding();
+        helper.assertTrue(Math.abs(ridden.getDeltaMovement().horizontalDistance() - 0.21D) < 1.0e-6D,
+                "Dismounted Floatmount Broom should clamp inherited horizontal water speed to 0.21");
+        helper.assertTrue(Math.abs(ridden.getDeltaMovement().y - 0.09D) < 1.0e-6D,
+                "Dismounted Floatmount Broom should clamp inherited vertical water speed to 0.09");
+        helper.succeed();
+    }
+
     @GameTest(template = TEMPLATE, timeoutTicks = 40)
     public static void damagedUnoccupiedBroomRisesOutOfLava(GameTestHelper helper) {
         var level = helper.getLevel();
@@ -1737,13 +2291,16 @@ public final class FloatmountBroomGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void surfaceScannerTreatsSolidWaterAndLavaAsHoverSurfaces(GameTestHelper helper) {
+    public static void surfaceScannerTreatsSolidWaterLavaAndForcedBlocksAsHoverSurfaces(GameTestHelper helper) {
         var level = helper.getLevel();
         var solid = helper.absolutePos(new BlockPos(1, 1, 1));
         var water = helper.absolutePos(new BlockPos(2, 1, 1));
+        var powderSnow = helper.absolutePos(new BlockPos(3, 1, 1));
         var lava = helper.absolutePos(new BlockPos(4, 1, 1));
         level.setBlockAndUpdate(solid, Blocks.STONE.defaultBlockState());
         level.setBlockAndUpdate(water, Blocks.WATER.defaultBlockState());
+        level.setBlockAndUpdate(powderSnow.below(), Blocks.STONE.defaultBlockState());
+        level.setBlockAndUpdate(powderSnow, Blocks.POWDER_SNOW.defaultBlockState());
         level.setBlockAndUpdate(lava.below(), Blocks.STONE.defaultBlockState());
         level.setBlockAndUpdate(lava, Blocks.LAVA.defaultBlockState());
 
@@ -1753,6 +2310,18 @@ public final class FloatmountBroomGameTests {
         helper.assertTrue(BroomSurfaceScanner.findSurfaceBelow(
                 level, water.getX() + 0.5D, water.getY() + 2.0D, water.getZ() + 0.5D, 3, true).isPresent(),
                 "Water should be a hover surface");
+        var powderSnowSurface = BroomSurfaceScanner.findSurfaceBelow(
+                level,
+                powderSnow.getX() + 0.5D,
+                powderSnow.getY() + 2.0D,
+                powderSnow.getZ() + 0.5D,
+                3,
+                true
+        ).orElseThrow();
+        helper.assertTrue(powderSnowSurface.blockPos().equals(powderSnow),
+                "Forced hover surface should preserve the tagged block position");
+        helper.assertTrue(Math.abs(powderSnowSurface.y() - (powderSnow.getY() + 1.0D)) < 1.0E-5D,
+                "Powder snow should use its own upper face instead of the solid block below");
         helper.assertTrue(BroomSurfaceScanner.findSurfaceBelow(
                 level, lava.getX() + 0.5D, lava.getY() + 2.0D, lava.getZ() + 0.5D, 3, true).isPresent(),
                 "Lava should be a hover surface");
@@ -1764,6 +2333,75 @@ public final class FloatmountBroomGameTests {
         broom.setPos(lava.getX() + 0.5D, lava.getY() + 1.5D, lava.getZ() + 0.5D);
         helper.assertTrue(broom.isDangerousDismount(),
                 "Lava below the broom must always be classified as a dangerous dismount surface");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void hoverridePowderSnowSurfacePreventsAirborneLock(GameTestHelper helper) {
+        var powderSnowBase = helper.absolutePos(TEST_POS);
+        for (var height = 0; height < 5; ++height) {
+            helper.getLevel().setBlockAndUpdate(
+                    powderSnowBase.above(height),
+                    Blocks.POWDER_SNOW.defaultBlockState()
+            );
+        }
+        var powderSnowTop = powderSnowBase.above(4);
+        var broom = new HoverrideBroomEntity(EntityRegistry.HOVERRIDE_BROOM.get(), helper.getLevel());
+        broom.setPos(
+                powderSnowTop.getX() + 0.5D,
+                powderSnowTop.getY() + 2.2D,
+                powderSnowTop.getZ() + 0.5D
+        );
+        helper.getLevel().addFreshEntity(broom);
+        var player = serverRider(helper, "hoverride_powder_snow_surface");
+        magicData(helper, player).setMana(100.0F);
+        helper.assertTrue(player.startRiding(broom, true), "Hoverride powder snow test rider should mount");
+
+        for (var tick = 0; tick < 40; ++tick) {
+            broom.tick();
+        }
+
+        helper.assertFalse(broom.isAirborneAccelerationLocked(),
+                "Tagged powder snow below an Hoverride Broom should prevent the airborne acceleration lock");
+        helper.assertTrue(broom.getCoreWarningState() == BroomCoreWarningState.NONE,
+                "Powder snow-supported Hoverride flight should keep the normal core warning state");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void unoccupiedBroomsRiseTowardPowderSnowSurface(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var floatmountSurface = helper.absolutePos(new BlockPos(1, 1, 2));
+        var hoverrideSurface = helper.absolutePos(new BlockPos(3, 1, 2));
+        level.setBlockAndUpdate(floatmountSurface, Blocks.POWDER_SNOW.defaultBlockState());
+        level.setBlockAndUpdate(hoverrideSurface, Blocks.POWDER_SNOW.defaultBlockState());
+
+        var floatmount = new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), level);
+        floatmount.setPos(
+                floatmountSurface.getX() + 0.5D,
+                floatmountSurface.getY() + 1.2D,
+                floatmountSurface.getZ() + 0.5D
+        );
+        level.addFreshEntity(floatmount);
+        var hoverride = new HoverrideBroomEntity(EntityRegistry.HOVERRIDE_BROOM.get(), level);
+        hoverride.setPos(
+                hoverrideSurface.getX() + 0.5D,
+                hoverrideSurface.getY() + 1.2D,
+                hoverrideSurface.getZ() + 0.5D
+        );
+        level.addFreshEntity(hoverride);
+        var floatmountStartY = floatmount.getY();
+        var hoverrideStartY = hoverride.getY();
+
+        for (var tick = 0; tick < 6; ++tick) {
+            floatmount.tick();
+            hoverride.tick();
+        }
+
+        helper.assertTrue(floatmount.getY() > floatmountStartY,
+                "Unoccupied Floatmount Broom should rise toward the powder snow hover height");
+        helper.assertTrue(hoverride.getY() > hoverrideStartY,
+                "Unoccupied Hoverride Broom should rise toward the powder snow hover height");
         helper.succeed();
     }
 
@@ -1800,6 +2438,31 @@ public final class FloatmountBroomGameTests {
         player.stopRiding();
         helper.assertTrue(Math.abs(player.getY() - (leftGround.getY() + 1.0D)) < 1.0E-5D,
                 "Server dismount should place the rider directly on the resolved surface");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void powderSnowRequiresDangerousDismountConfirmation(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var center = helper.absolutePos(new BlockPos(2, 1, 2));
+        var leftSurface = center.east();
+        level.setBlockAndUpdate(center, Blocks.AIR.defaultBlockState());
+        level.setBlockAndUpdate(leftSurface, Blocks.POWDER_SNOW.defaultBlockState());
+        level.setBlockAndUpdate(leftSurface.above(), Blocks.AIR.defaultBlockState());
+        level.setBlockAndUpdate(leftSurface.above(2), Blocks.AIR.defaultBlockState());
+
+        var broom = new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), level);
+        broom.setPos(center.getX() + 0.5D, leftSurface.getY() + 2.5D, center.getZ() + 0.5D);
+        broom.setYRot(0.0F);
+        level.addFreshEntity(broom);
+        var player = serverRider(helper, "powder_snow_dismount_test");
+        helper.assertTrue(player.startRiding(broom, true), "Powder snow dismount test player should mount");
+
+        helper.assertTrue(broom.isDangerousDismount(),
+                "Powder snow should require dangerous dismount confirmation");
+        var target = broom.getDismountLocationForPassenger(player);
+        helper.assertTrue(Math.abs(target.y - (leftSurface.getY() + 1.0D)) > 1.0E-5D,
+                "Dangerous powder snow must not become an automatic surface dismount target");
         helper.succeed();
     }
 
@@ -1918,12 +2581,81 @@ public final class FloatmountBroomGameTests {
         return broom;
     }
 
+    private static FloatmountBroomEntity spawnBroomAt(GameTestHelper helper, BlockPos position) {
+        var broom = new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), helper.getLevel());
+        broom.setPos(position.getX() + 0.5D, position.getY() + 0.1D, position.getZ() + 0.5D);
+        helper.getLevel().addFreshEntity(broom);
+        return broom;
+    }
+
     private static HoverrideBroomEntity spawnHoverrideBroom(GameTestHelper helper, double relativeY) {
         var pos = helper.absolutePos(TEST_POS);
         var broom = new HoverrideBroomEntity(EntityRegistry.HOVERRIDE_BROOM.get(), helper.getLevel());
         broom.setPos(pos.getX() + 0.5D, pos.getY() + relativeY, pos.getZ() + 0.5D);
         helper.getLevel().addFreshEntity(broom);
         return broom;
+    }
+
+    private static HoverrideBroomEntity spawnHoverrideBroomAt(GameTestHelper helper, BlockPos position) {
+        var broom = new HoverrideBroomEntity(EntityRegistry.HOVERRIDE_BROOM.get(), helper.getLevel());
+        broom.setPos(position.getX() + 0.5D, position.getY() + 0.1D, position.getZ() + 0.5D);
+        helper.getLevel().addFreshEntity(broom);
+        return broom;
+    }
+
+    private static HoverrideBroomServerConfig.Values rushTestConfig(double forwardManaCost) {
+        return new HoverrideBroomServerConfig.Values(
+                forwardManaCost,
+                0.0D,
+                50.0D,
+                forwardManaCost,
+                0.0D,
+                100.0D,
+                0.5D,
+                20.0D,
+                4.0D,
+                8.0D,
+                0.5D
+        );
+    }
+
+    private static void installRushStyle(HoverrideBroomEntity broom) {
+        var stack = new ItemStack(ItemRegistry.HOVERRIDE_BROOM.get());
+        if (!SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                stack,
+                0,
+                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.TWILIGHT_GALE.get())
+        )) {
+            throw new IllegalStateException("Hoverride rush test could not install Twilight Gale");
+        }
+        broom.setBroomItemStack(stack);
+    }
+
+    private static Zombie spawnRushTarget(GameTestHelper helper, Vec3 position) {
+        var target = EntityType.ZOMBIE.create(helper.getLevel());
+        if (target == null) {
+            throw new IllegalStateException("Hoverride rush test could not create a zombie target");
+        }
+        target.setNoAi(true);
+        target.setPos(position);
+        helper.getLevel().addFreshEntity(target);
+        return target;
+    }
+
+    private static void installBubbleColumn(net.minecraft.server.level.ServerLevel level, BlockPos bottom, int height) {
+        level.setBlockAndUpdate(bottom.below(), Blocks.SOUL_SAND.defaultBlockState());
+        for (var offset = 0; offset < height; ++offset) {
+            level.setBlockAndUpdate(
+                    bottom.above(offset),
+                    Blocks.BUBBLE_COLUMN.defaultBlockState().setValue(BubbleColumnBlock.DRAG_DOWN, false)
+            );
+        }
+    }
+
+    private static void installWaterColumn(net.minecraft.server.level.ServerLevel level, BlockPos bottom, int height) {
+        for (var offset = 0; offset < height; ++offset) {
+            level.setBlockAndUpdate(bottom.above(offset), Blocks.WATER.defaultBlockState());
+        }
     }
 
     private static void assertDismountPreservesMovement(
@@ -2230,7 +2962,31 @@ public final class FloatmountBroomGameTests {
             boolean ascending,
             boolean descending
     ) {
+        assertMovementManaCost(
+                helper, playerName, expectedCost, strafe, forward, ascending, descending, false
+        );
+    }
+
+    private static void assertMovementManaCost(
+            GameTestHelper helper,
+            String playerName,
+            float expectedCost,
+            float strafe,
+            float forward,
+            boolean ascending,
+            boolean descending,
+            boolean overdriveEnabled
+    ) {
         var broom = spawnBroom(helper, 1.5D);
+        if (overdriveEnabled) {
+            var stack = new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get());
+            if (!SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                    stack, 0, new ItemStack(ItemRegistry.OVERDRIVE_BROOM_ENGINE.get())
+            )) {
+                throw new IllegalStateException("Floatmount Overdrive mana test could not install its engine");
+            }
+            broom.setBroomItemStack(stack);
+        }
         var player = serverRider(helper);
         var magicData = magicData(helper, player);
         magicData.setMana(100.0F);

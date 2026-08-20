@@ -2,11 +2,18 @@ package jp.aquafactory.apprenticecodex.item.broom;
 
 import jp.aquafactory.apprenticecodex.entity.broom.AbstractBroomEntity;
 import jp.aquafactory.apprenticecodex.entity.broom.FloatmountBroomEntity;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.FloatmountBroomConfigState;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -14,9 +21,41 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public final class FloatmountBroomItem extends AbstractBroomItem {
+    private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
+            createCalibrationAdjustmentProfile(
+                    CalibrationAdjustmentRule.unique(
+                            "adapt_underwater_mobility",
+                            stack -> stack.is(Items.HEART_OF_THE_SEA),
+                            CalibrationAdjustmentHints.heartOfTheSea()
+                    ).withEffectLines(CalibrationAdjustmentEffects.adaptUnderwaterMobility()),
+                    CalibrationAdjustmentRule.unique(
+                            "overdrive_engine_floatmount",
+                            stack -> stack.is(ItemRegistry.OVERDRIVE_BROOM_ENGINE.get()),
+                            CalibrationAdjustmentHints.overdriveBroomEngine()
+                    ).withEffectLines(CalibrationAdjustmentEffects.overdriveFloatmountBroom())
+            );
+
     @Override
     protected AbstractBroomEntity createBroom(Level level) {
         return new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), level);
+    }
+
+    @Override
+    public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack targetStack) {
+        return CALIBRATION_ADJUSTMENT_PROFILE;
+    }
+
+    public static boolean isAquaticCalibrationEnabled(@NotNull ItemStack broomStack) {
+        if (!(broomStack.getItem() instanceof FloatmountBroomItem)) {
+            return false;
+        }
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
+            if (CalibrationAdjustmentStorage.get(broomStack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT)
+                    .is(Items.HEART_OF_THE_SEA)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

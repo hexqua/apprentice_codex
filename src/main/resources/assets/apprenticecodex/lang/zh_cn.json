@@ -5,6 +5,8 @@
   "curios.modifiers.feet": "佩戴脚饰时：",
   "curios.apprenticecodex.modifier.for_quiver": "装备在背部或腰部时：",
 
+  "emf.variable.apprenticecodex.is_hoverride_broom_rider": "当前渲染的玩家是否正骑乘浮空行驶扫帚",
+
   "material.apprenticecodex.spellstained_arcane": "染法奥术",
   "material.apprenticecodex.emberstained_netherite": "残烬染色下界合金",
   "material.apprenticecodex.crystalline_arcane": "结晶奥术",
@@ -43,6 +45,7 @@
 
   "item.apprenticecodex.arcane_cinder": "奥术余烬",
   "item.apprenticecodex.wisdom_shard": "智慧碎片",
+  "item.apprenticecodex.overdrive_broom_engine": "超驱动扫帚引擎",
   "item.apprenticecodex.spell_extract_shard": "法术提取碎片",
   "item.apprenticecodex.crystalline_arcane_shard": "结晶奥术碎片",
   "item.apprenticecodex.comfort_berries": "舒心浆果",
@@ -248,6 +251,7 @@
   "item.apprenticecodex.common.spellgun.desc_2": "副手持有时，按[%1$s]施放法术。",
   "item.apprenticecodex.common.spellgun.epicfight.offhand_warning": "持于副手期间，无法使用格挡技能。",
   "item.apprenticecodex.wisdom_shard.desc": "可作为部分装备的调整用物品安装。",
+  "item.apprenticecodex.overdrive_broom_engine.desc": "可作为扫帚的校准物品安装。",
   "item.apprenticecodex.spell_extract_shard.desc_1": "用于提取物品中注入的法术。",
   "item.apprenticecodex.spell_extract_shard.desc_2": "提取时会破坏注入法术的物品。",
   "item.apprenticecodex.instant_search_brazier.desc_1": "使用后会生成一个能够搜寻与魔法密切相关建筑的火盆。",
@@ -524,6 +528,16 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.add_swingcast_function": "攻击时挥击施放所选法术",
   "jei.apprenticecodex.spell_calibration_bench.effect.convert_quick_to_power": "将施法时间缩减转换为法术强度",
   "jei.apprenticecodex.spell_calibration_bench.effect.adapt_back_curios": "可作为背部饰品装备",
+  "jei.apprenticecodex.spell_calibration_bench.effect.gain_fireward_1": "获得火焰免疫",
+  "jei.apprenticecodex.spell_calibration_bench.effect.gain_fireward_2": "效果仅限扫帚本身",
+  "jei.apprenticecodex.spell_calibration_bench.effect.adapt_underwater_mobility_1": "在水下保持稳定机动性能",
+  "jei.apprenticecodex.spell_calibration_bench.effect.adapt_underwater_mobility_2": "效果仅限扫帚本身",
+  "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.float_1": "提高移动速度",
+  "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.float_2": "提高移动时的法力消耗",
+  "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.hover_1": "提高加速度与最高速度",
+  "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.hover_2": "提高各类加速的法力消耗",
+  "jei.apprenticecodex.spell_calibration_bench.effect.add_rush_style_1": "高速移动时可造成接触伤害",
+  "jei.apprenticecodex.spell_calibration_bench.effect.add_rush_style_2": "生效期间持续消耗法力",
 
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "无法插入多个效果相同的物品。",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "只能插入一个学派符文。",
@@ -921,7 +935,7 @@
   "ui.apprenticecodex.floatmount_broom.retrieve_help": "潜行时按[%s]可回收扫帚",
   "ui.apprenticecodex.floatmount_broom.warning_damage": "扫帚损坏超过极限，正在坠落！",
   "ui.apprenticecodex.floatmount_broom.cannot_mount_damaged": "必须先回收扫帚才能再次骑乘！",
-  "ui.apprenticecodex.hoverride_broom.control_help": "[长按%1$s] 惯性滑行 / [松开%2$s] 消耗法力加速 / [%3$s] 离开",
+  "ui.apprenticecodex.hoverride_broom.control_help": "[%1$s] 长按滑行 / 松开加速（消耗法力） / [%2$s] 离开",
   "ui.apprenticecodex.hoverride_broom.warning_dismount": "再次按[%s]会直接跳下扫帚",
   "ui.apprenticecodex.hoverride_broom.warning_low_mana": "法力耗尽后将无法维持加速！",
   "ui.apprenticecodex.hoverride_broom.warning_depleted_mana": "法力已耗尽，无法加速！",
@@ -1201,6 +1215,7 @@
   "death.attack.apprenticecodex.field_overseer": "%1$s 接受了审判。",
   "death.attack.apprenticecodex.servant_gaze": "%1$s 未能脱颖而出。",
   "death.attack.apprenticecodex.fujin": "%1$s 被 %2$s 切成了细丝。",
+  "death.attack.apprenticecodex.hoverride_broom": "%1$s与%2$s的不幸共舞",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "学徒法典",
   "advancements.apprenticecodex.apprentice_codex.root.description": "踏上学徒法师的修行之路。",

@@ -46,11 +46,31 @@ public final class CalibrationAdjustmentHints {
         );
     }
 
+    public static CalibrationAdjustmentHint firewardRing() {
+        return CalibrationAdjustmentHint.specificItem(
+                io.redspace.ironsspellbooks.registries.ItemRegistry.FIREWARD_RING
+        );
+    }
+
     public static CalibrationAdjustmentHint wisdomShard() {
         return CalibrationAdjustmentHint.specificItem(ItemRegistry.WISDOM_SHARD);
     }
 
     public static CalibrationAdjustmentHint saddle() {
         return CalibrationAdjustmentHint.specificItem(() -> Items.SADDLE);
+    }
+
+    public static CalibrationAdjustmentHint heartOfTheSea() {
+        return CalibrationAdjustmentHint.specificItem(() -> Items.HEART_OF_THE_SEA);
+    }
+
+    public static CalibrationAdjustmentHint overdriveBroomEngine() {
+        return CalibrationAdjustmentHint.specificItem(ItemRegistry.OVERDRIVE_BROOM_ENGINE);
+    }
+
+    public static CalibrationAdjustmentHint twilightGale() {
+        return CalibrationAdjustmentHint.specificItem(
+                io.redspace.ironsspellbooks.registries.ItemRegistry.TWILIGHT_GALE
+        );
     }
 }
