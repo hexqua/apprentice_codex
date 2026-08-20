@@ -322,6 +322,7 @@ import net.minecraft.world.level.block.state.properties.Half;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.level.block.state.properties.StairsShape;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
@@ -9109,6 +9110,8 @@ public class ApprenticeCodexGameTestScenarios {
                     level.getBlockState(expectedPos).is(BlockRegistry.WIZARDLAMP_LANTERN.get()),
                     "Wizardlamp should place its lantern at the maximum-range cell along the client vector"
             );
+            helper.assertFalse(level.getBlockState(expectedPos).getValue(WizardlampLanternBlock.WATERLOGGED),
+                    "Wizardlamp lantern placed in air should remain dry");
             helper.assertTrue(
                     level.getBlockState(expectedPos.below()).isAir(),
                     "Wizardlamp lantern should remain placed without a supporting block"
@@ -9135,6 +9138,7 @@ public class ApprenticeCodexGameTestScenarios {
             var wizardlampEvents = new AtomicInteger();
             var mageLightEvents = new AtomicInteger();
             var linearBuildEvents = new AtomicInteger();
+            helper.setBlock(new BlockPos(2, 3, 1), Blocks.WATER);
 
             java.util.function.Consumer<BlockEvent.EntityPlaceEvent> cancelListener = event -> {
                 if (event.getEntity() == wizardlampPlayer
@@ -9201,7 +9205,7 @@ public class ApprenticeCodexGameTestScenarios {
                     "Mage Light should fire one Forge EntityPlaceEvent");
             helper.assertTrue(linearBuildEvents.get() == 1,
                     "Linear Build should keep using the Forge block placement event path");
-            helper.assertBlockNotPresent(BlockRegistry.WIZARDLAMP_LANTERN.get(), new BlockPos(2, 3, 1));
+            helper.assertBlockPresent(Blocks.WATER, new BlockPos(2, 3, 1));
             helper.assertBlockNotPresent(BlockRegistry.MAGE_LIGHT_TORCH.get(), new BlockPos(2, 3, 3));
             helper.assertBlockNotPresent(Blocks.OAK_PLANKS, linearBuildPos);
             helper.assertTrue(linearBuildPlayer.getMainHandItem().getCount() == 2,
@@ -9251,6 +9255,97 @@ public class ApprenticeCodexGameTestScenarios {
                     player.getMainHandItem()
             );
             helper.assertTrue(drops.isEmpty(), "Wizardlamp lantern should not drop items");
+        });
+    }
+
+    static void wizardlampSupportsWaterloggingWhileMageLightRemainsDry(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var wizardlampPlayer = createEquipmentTestPlayer(
+                    helper, new BlockPos(1, 2, 1), "wizardlamp_waterlog_test");
+            var mageLightPlayer = createEquipmentTestPlayer(
+                    helper, new BlockPos(1, 2, 3), "mage_light_waterlog_test");
+            var wizardlampPos = helper.absolutePos(new BlockPos(2, 3, 1));
+            var mageLightPos = helper.absolutePos(new BlockPos(2, 3, 3));
+            helper.setBlock(new BlockPos(2, 3, 1), Blocks.WATER);
+            helper.setBlock(new BlockPos(2, 3, 3), Blocks.WATER);
+
+            var wizardlamp = (Wizardlamp) SpellRegistry.WIZARDLAMP.get();
+            var wizardlampTarget = new BlockTargetData();
+            wizardlampTarget.setTarget(
+                    wizardlampPos,
+                    Direction.UP,
+                    Vec3.atCenterOf(wizardlampPos),
+                    wizardlampPos,
+                    Direction.DOWN
+            );
+            BlockTargetingHelper.setPendingServerTarget(
+                    wizardlampPlayer, wizardlamp.getSpellResource(), wizardlampTarget);
+            var wizardlampMagicData = MagicData.getPlayerMagicData(wizardlampPlayer);
+            helper.assertTrue(wizardlamp.checkPreCastConditions(
+                            level, 1, wizardlampPlayer, wizardlampMagicData),
+                    "Wizardlamp pre-cast check should accept a water source target");
+            wizardlamp.onCast(level, 1, wizardlampPlayer, CastSource.SPELLBOOK, wizardlampMagicData);
+
+            var wizardlampState = level.getBlockState(wizardlampPos);
+            helper.assertTrue(wizardlampState.is(BlockRegistry.WIZARDLAMP_LANTERN.get()),
+                    "Wizardlamp should place its lantern in a water source");
+            helper.assertTrue(wizardlampState.getValue(WizardlampLanternBlock.WATERLOGGED),
+                    "Wizardlamp lantern placed in a water source should be waterlogged");
+            helper.assertTrue(wizardlampState.getFluidState().isSource(),
+                    "Waterlogged Wizardlamp lantern should retain source water");
+
+            var mageLight = (MageLight) SpellRegistry.MAGE_LIGHT.get();
+            var mageLightTarget = new BlockTargetData();
+            mageLightTarget.setTarget(
+                    mageLightPos,
+                    Direction.UP,
+                    Vec3.atCenterOf(mageLightPos),
+                    mageLightPos,
+                    Direction.DOWN
+            );
+            BlockTargetingHelper.setPendingServerTarget(
+                    mageLightPlayer, mageLight.getSpellResource(), mageLightTarget);
+            var mageLightMagicData = MagicData.getPlayerMagicData(mageLightPlayer);
+            helper.assertTrue(mageLight.checkPreCastConditions(
+                            level, 1, mageLightPlayer, mageLightMagicData),
+                    "Mage Light pre-cast check should accept a water source target");
+            mageLight.onCast(level, 1, mageLightPlayer, CastSource.SPELLBOOK, mageLightMagicData);
+
+            var mageLightState = level.getBlockState(mageLightPos);
+            helper.assertTrue(mageLightState.is(BlockRegistry.MAGE_LIGHT_TORCH.get()),
+                    "Mage Light should still replace a water source with its torch");
+            helper.assertTrue(mageLightState.getFluidState().isEmpty(),
+                    "Mage Light torch should remain non-waterlogged");
+
+            var bucketTestPos = helper.absolutePos(new BlockPos(4, 3, 2));
+            var lanternBlock = (WizardlampLanternBlock) BlockRegistry.WIZARDLAMP_LANTERN.get();
+            level.setBlockAndUpdate(bucketTestPos, lanternBlock.defaultBlockState());
+            var blockEntity = level.getBlockEntity(bucketTestPos);
+            helper.assertTrue(lanternBlock.placeLiquid(
+                            level,
+                            bucketTestPos,
+                            level.getBlockState(bucketTestPos),
+                            Fluids.WATER.getSource(false)
+                    ),
+                    "Wizardlamp lantern should accept water from a bucket");
+            helper.assertTrue(level.getBlockState(bucketTestPos).getValue(WizardlampLanternBlock.WATERLOGGED),
+                    "Wizardlamp lantern should become waterlogged after accepting water");
+            helper.assertTrue(level.getBlockEntity(bucketTestPos) == blockEntity,
+                    "Waterlogging a Wizardlamp lantern should preserve its block entity");
+
+            var pickedUp = lanternBlock.pickupBlock(
+                    wizardlampPlayer,
+                    level,
+                    bucketTestPos,
+                    level.getBlockState(bucketTestPos)
+            );
+            helper.assertTrue(pickedUp.is(Items.WATER_BUCKET),
+                    "Wizardlamp lantern should return a water bucket when drained");
+            helper.assertFalse(level.getBlockState(bucketTestPos).getValue(WizardlampLanternBlock.WATERLOGGED),
+                    "Drained Wizardlamp lantern should no longer be waterlogged");
+            helper.assertTrue(level.getBlockEntity(bucketTestPos) == blockEntity,
+                    "Draining a Wizardlamp lantern should preserve its block entity");
         });
     }
 
