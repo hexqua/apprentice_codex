@@ -24,4 +24,9 @@ public final class ApprenticeCodexJeiRecipeTypes {
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_calibration_adjustment"),
                     SpellCalibrationAdjustmentJeiRecipe.class
             );
+    static final RecipeType<ManaTranscriptionJeiRecipe> MANA_TRANSCRIPTION =
+            new RecipeType<>(
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "mana_transcription"),
+                    ManaTranscriptionJeiRecipe.class
+            );
 }

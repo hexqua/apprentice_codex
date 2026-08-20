@@ -686,6 +686,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         );
         tag(TagRegistry.Items.WAND_BASE).add(net.minecraft.world.item.Items.STICK);
         tag(TagRegistry.Items.MANA_MENDING_DENYLIST);
+        tag(TagRegistry.Items.MANA_TRANSCRIPTION_REPAIR_COST_RESET_ITEMS).add(
+                ItemRegistry.SPELLSTAINED_DIAMOND.get()
+        );
 
         // 魔法召喚武器はダミー用途のため、JEIなどのレシピビューアから除外する.
         tag(HIDDEN_FROM_RECIPE_VIEWERS).add(
