@@ -547,6 +547,17 @@
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "Cannot insert multiple items with the same effect.",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "Only one school rune can be inserted.",
 
+  "jei.apprenticecodex.mana_transcription.extraction": "Transcribes one highest-priority enchantment into a book.",
+  "jei.apprenticecodex.mana_transcription.repair_cost_reset": "Removes prior anvil work with a dedicated medium.",
+  "jei.apprenticecodex.mana_transcription.example_note": "Example only; the target and XP cost depend on the held items.",
+  "jei.apprenticecodex.mana_transcription.enchanted_target": "Target enchantment source",
+  "jei.apprenticecodex.mana_transcription.worked_target": "Target with prior anvil work",
+  "jei.apprenticecodex.mana_transcription.unwritten_book": "Unwritten Book and Quill",
+  "jei.apprenticecodex.mana_transcription.reset_medium": "Accepted dedicated medium",
+  "jei.apprenticecodex.mana_transcription.extracted_target": "After transcription (next anvil cost applied)",
+  "jei.apprenticecodex.mana_transcription.reset_target": "After removing prior anvil work",
+  "jei.apprenticecodex.mana_transcription.extracted_enchantment": "Transcribed enchantment",
+
   "enchantment.apprenticecodex.reflux": "Reflux",
   "enchantment.apprenticecodex.reservoir": "Reservoir",
   "enchantment.apprenticecodex.alacrity": "Alacrity",
