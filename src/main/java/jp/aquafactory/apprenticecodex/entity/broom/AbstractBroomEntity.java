@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.spell.callbroom.CallBroomDeploymentManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
@@ -531,7 +532,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         } else {
             var surface = BroomSurfaceScanner.findSurfaceBelow(level(), getX(), getY(), getZ(), 4, true);
             if (surface.isPresent()) {
-                var error = surface.getAsDouble() + HOVER_HEIGHT - getY();
+                var error = surface.get().y() + HOVER_HEIGHT - getY();
                 vertical = Mth.clamp(error * 0.2D + vertical * 0.6D,
                         -FloatmountBroomMovement.MAX_UNMOUNTED_FALL_SPEED,
                         FloatmountBroomMovement.MAX_UNMOUNTED_RISE_SPEED);
@@ -1005,7 +1006,9 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         var surface = BroomSurfaceScanner.findSurfaceBelow(
                 level(), getX(), getY(), getZ(), (int) DANGEROUS_HEIGHT, false
         );
-        return surface.isEmpty() || getY() - surface.getAsDouble() >= DANGEROUS_HEIGHT;
+        return surface.isEmpty()
+                || isDangerousDismountSurface(surface.get())
+                || getY() - surface.get().y() >= DANGEROUS_HEIGHT;
     }
 
     private Vec3 preferredDismountPosition(LivingEntity passenger) {
@@ -1024,17 +1027,24 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         var surface = BroomSurfaceScanner.findSurfaceBelow(
                 level(), candidate.x, getY(), candidate.z, (int) DANGEROUS_HEIGHT, false
         );
-        if (surface.isEmpty() || getY() - surface.getAsDouble() >= DANGEROUS_HEIGHT) {
+        if (surface.isEmpty()
+                || isDangerousDismountSurface(surface.get())
+                || getY() - surface.get().y() >= DANGEROUS_HEIGHT) {
             return Optional.empty();
         }
 
-        var position = new Vec3(candidate.x, surface.getAsDouble(), candidate.z);
+        var position = new Vec3(candidate.x, surface.get().y(), candidate.z);
         for (var pose : passenger.getDismountPoses()) {
             if (DismountHelper.canDismountTo(level(), position, passenger, pose)) {
                 return Optional.of(new DismountTarget(position, pose));
             }
         }
         return Optional.empty();
+    }
+
+    private boolean isDangerousDismountSurface(BroomSurfaceScanner.Surface surface) {
+        return level().getBlockState(surface.blockPos())
+                .is(TagRegistry.Blocks.BROOM_DANGEROUS_DISMOUNT_SURFACES);
     }
 
     private record DismountTarget(Vec3 position, Pose pose) {

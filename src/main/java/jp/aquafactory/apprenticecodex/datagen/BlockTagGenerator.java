@@ -134,5 +134,11 @@ public final class BlockTagGenerator extends BlockTagsProvider {
 
         tag(TagRegistry.Blocks.LINEAR_BUILD_DENYLIST)
                 .addOptional(ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "inscription_table"));
+
+        // collision shapeがEntity条件で空になるブロックも、箒用の地表としてデータパックから指定できるようにする.
+        tag(TagRegistry.Blocks.BROOM_FORCED_HOVER_SURFACES).add(Blocks.POWDER_SNOW);
+
+        // 装備による安全性の差は判定せず、降車確認が必要な地表をデータパック側の一律指定に任せる.
+        tag(TagRegistry.Blocks.BROOM_DANGEROUS_DISMOUNT_SURFACES).add(Blocks.POWDER_SNOW);
     }
 }
