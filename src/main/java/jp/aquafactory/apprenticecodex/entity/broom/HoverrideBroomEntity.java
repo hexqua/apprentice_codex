@@ -41,7 +41,6 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.Optional;
-import java.util.OptionalDouble;
 import java.util.Comparator;
 
 public final class HoverrideBroomEntity extends AbstractBroomEntity {
@@ -382,12 +381,12 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         if (localAssistWingsJumpActive
                 && localAssistWingsVerticalVelocity <= 0.0D
                 && surface.isPresent()
-                && isWithinAssistWingsLandingDistance(surface.getAsDouble())) {
+                && isWithinAssistWingsLandingDistance(surface.get().y())) {
             cancelLocalAssistWingsJump();
         }
         var vertical = localAssistWingsJumpActive
                 ? Math.max(-MAX_MOUNTED_VERTICAL_SPEED, localAssistWingsVerticalVelocity)
-                : mountedVertical(movement.y, surface.orElse(Double.NaN));
+                : mountedVertical(movement.y, surface.map(BroomSurfaceScanner.Surface::y).orElse(Double.NaN));
         if (isDamaged()) {
             vertical = -MAX_MOUNTED_VERTICAL_SPEED;
         }
@@ -424,7 +423,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         var horizontal = HoverrideBroomMovement.horizontal(movement).scale(UNMOUNTED_HORIZONTAL_DAMPING);
         var surface = findRideSurfaceBelow();
         var vertical = surface.isPresent()
-                ? hoverVertical(movement.y, surface.getAsDouble(), MAX_UNMOUNTED_VERTICAL_SPEED)
+                ? hoverVertical(movement.y, surface.get().y(), MAX_UNMOUNTED_VERTICAL_SPEED)
                 : Math.max(-MAX_UNMOUNTED_VERTICAL_SPEED, movement.y - VERTICAL_ACCELERATION);
         setDeltaMovement(horizontal.x, vertical, horizontal.z);
         move(MoverType.SELF, getDeltaMovement());
@@ -917,7 +916,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         setAirborneAccelerationLocked(serverAirborneTicks >= AIRBORNE_GRACE_TICKS);
     }
 
-    private OptionalDouble findRideSurfaceBelow() {
+    private Optional<BroomSurfaceScanner.Surface> findRideSurfaceBelow() {
         // Floatmountと同系統の箒として、溶岩面も走行・浮遊を維持できる地表として扱う。
         // プレイヤーの安全な降車地点はAbstractBroomEntity側で引き続き溶岩を除外する。
         return BroomSurfaceScanner.findSurfaceBelow(
@@ -927,7 +926,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
 
     public boolean isWithinAssistWingsLandingDistance() {
         var surface = findRideSurfaceBelow();
-        return surface.isPresent() && isWithinAssistWingsLandingDistance(surface.getAsDouble());
+        return surface.isPresent() && isWithinAssistWingsLandingDistance(surface.get().y());
     }
 
     private boolean isWithinAssistWingsLandingDistance(double surfaceY) {

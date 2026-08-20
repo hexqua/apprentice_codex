@@ -2291,13 +2291,16 @@ public final class FloatmountBroomGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void surfaceScannerTreatsSolidWaterAndLavaAsHoverSurfaces(GameTestHelper helper) {
+    public static void surfaceScannerTreatsSolidWaterLavaAndForcedBlocksAsHoverSurfaces(GameTestHelper helper) {
         var level = helper.getLevel();
         var solid = helper.absolutePos(new BlockPos(1, 1, 1));
         var water = helper.absolutePos(new BlockPos(2, 1, 1));
+        var powderSnow = helper.absolutePos(new BlockPos(3, 1, 1));
         var lava = helper.absolutePos(new BlockPos(4, 1, 1));
         level.setBlockAndUpdate(solid, Blocks.STONE.defaultBlockState());
         level.setBlockAndUpdate(water, Blocks.WATER.defaultBlockState());
+        level.setBlockAndUpdate(powderSnow.below(), Blocks.STONE.defaultBlockState());
+        level.setBlockAndUpdate(powderSnow, Blocks.POWDER_SNOW.defaultBlockState());
         level.setBlockAndUpdate(lava.below(), Blocks.STONE.defaultBlockState());
         level.setBlockAndUpdate(lava, Blocks.LAVA.defaultBlockState());
 
@@ -2307,6 +2310,18 @@ public final class FloatmountBroomGameTests {
         helper.assertTrue(BroomSurfaceScanner.findSurfaceBelow(
                 level, water.getX() + 0.5D, water.getY() + 2.0D, water.getZ() + 0.5D, 3, true).isPresent(),
                 "Water should be a hover surface");
+        var powderSnowSurface = BroomSurfaceScanner.findSurfaceBelow(
+                level,
+                powderSnow.getX() + 0.5D,
+                powderSnow.getY() + 2.0D,
+                powderSnow.getZ() + 0.5D,
+                3,
+                true
+        ).orElseThrow();
+        helper.assertTrue(powderSnowSurface.blockPos().equals(powderSnow),
+                "Forced hover surface should preserve the tagged block position");
+        helper.assertTrue(Math.abs(powderSnowSurface.y() - (powderSnow.getY() + 1.0D)) < 1.0E-5D,
+                "Powder snow should use its own upper face instead of the solid block below");
         helper.assertTrue(BroomSurfaceScanner.findSurfaceBelow(
                 level, lava.getX() + 0.5D, lava.getY() + 2.0D, lava.getZ() + 0.5D, 3, true).isPresent(),
                 "Lava should be a hover surface");
@@ -2318,6 +2333,75 @@ public final class FloatmountBroomGameTests {
         broom.setPos(lava.getX() + 0.5D, lava.getY() + 1.5D, lava.getZ() + 0.5D);
         helper.assertTrue(broom.isDangerousDismount(),
                 "Lava below the broom must always be classified as a dangerous dismount surface");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void hoverridePowderSnowSurfacePreventsAirborneLock(GameTestHelper helper) {
+        var powderSnowBase = helper.absolutePos(TEST_POS);
+        for (var height = 0; height < 5; ++height) {
+            helper.getLevel().setBlockAndUpdate(
+                    powderSnowBase.above(height),
+                    Blocks.POWDER_SNOW.defaultBlockState()
+            );
+        }
+        var powderSnowTop = powderSnowBase.above(4);
+        var broom = new HoverrideBroomEntity(EntityRegistry.HOVERRIDE_BROOM.get(), helper.getLevel());
+        broom.setPos(
+                powderSnowTop.getX() + 0.5D,
+                powderSnowTop.getY() + 2.2D,
+                powderSnowTop.getZ() + 0.5D
+        );
+        helper.getLevel().addFreshEntity(broom);
+        var player = serverRider(helper, "hoverride_powder_snow_surface");
+        magicData(helper, player).setMana(100.0F);
+        helper.assertTrue(player.startRiding(broom, true), "Hoverride powder snow test rider should mount");
+
+        for (var tick = 0; tick < 40; ++tick) {
+            broom.tick();
+        }
+
+        helper.assertFalse(broom.isAirborneAccelerationLocked(),
+                "Tagged powder snow below an Hoverride Broom should prevent the airborne acceleration lock");
+        helper.assertTrue(broom.getCoreWarningState() == BroomCoreWarningState.NONE,
+                "Powder snow-supported Hoverride flight should keep the normal core warning state");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void unoccupiedBroomsRiseTowardPowderSnowSurface(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var floatmountSurface = helper.absolutePos(new BlockPos(1, 1, 2));
+        var hoverrideSurface = helper.absolutePos(new BlockPos(3, 1, 2));
+        level.setBlockAndUpdate(floatmountSurface, Blocks.POWDER_SNOW.defaultBlockState());
+        level.setBlockAndUpdate(hoverrideSurface, Blocks.POWDER_SNOW.defaultBlockState());
+
+        var floatmount = new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), level);
+        floatmount.setPos(
+                floatmountSurface.getX() + 0.5D,
+                floatmountSurface.getY() + 1.2D,
+                floatmountSurface.getZ() + 0.5D
+        );
+        level.addFreshEntity(floatmount);
+        var hoverride = new HoverrideBroomEntity(EntityRegistry.HOVERRIDE_BROOM.get(), level);
+        hoverride.setPos(
+                hoverrideSurface.getX() + 0.5D,
+                hoverrideSurface.getY() + 1.2D,
+                hoverrideSurface.getZ() + 0.5D
+        );
+        level.addFreshEntity(hoverride);
+        var floatmountStartY = floatmount.getY();
+        var hoverrideStartY = hoverride.getY();
+
+        for (var tick = 0; tick < 6; ++tick) {
+            floatmount.tick();
+            hoverride.tick();
+        }
+
+        helper.assertTrue(floatmount.getY() > floatmountStartY,
+                "Unoccupied Floatmount Broom should rise toward the powder snow hover height");
+        helper.assertTrue(hoverride.getY() > hoverrideStartY,
+                "Unoccupied Hoverride Broom should rise toward the powder snow hover height");
         helper.succeed();
     }
 
@@ -2354,6 +2438,31 @@ public final class FloatmountBroomGameTests {
         player.stopRiding();
         helper.assertTrue(Math.abs(player.getY() - (leftGround.getY() + 1.0D)) < 1.0E-5D,
                 "Server dismount should place the rider directly on the resolved surface");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void powderSnowRequiresDangerousDismountConfirmation(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var center = helper.absolutePos(new BlockPos(2, 1, 2));
+        var leftSurface = center.east();
+        level.setBlockAndUpdate(center, Blocks.AIR.defaultBlockState());
+        level.setBlockAndUpdate(leftSurface, Blocks.POWDER_SNOW.defaultBlockState());
+        level.setBlockAndUpdate(leftSurface.above(), Blocks.AIR.defaultBlockState());
+        level.setBlockAndUpdate(leftSurface.above(2), Blocks.AIR.defaultBlockState());
+
+        var broom = new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), level);
+        broom.setPos(center.getX() + 0.5D, leftSurface.getY() + 2.5D, center.getZ() + 0.5D);
+        broom.setYRot(0.0F);
+        level.addFreshEntity(broom);
+        var player = serverRider(helper, "powder_snow_dismount_test");
+        helper.assertTrue(player.startRiding(broom, true), "Powder snow dismount test player should mount");
+
+        helper.assertTrue(broom.isDangerousDismount(),
+                "Powder snow should require dangerous dismount confirmation");
+        var target = broom.getDismountLocationForPassenger(player);
+        helper.assertTrue(Math.abs(target.y - (leftSurface.getY() + 1.0D)) > 1.0E-5D,
+                "Dangerous powder snow must not become an automatic surface dismount target");
         helper.succeed();
     }
 
