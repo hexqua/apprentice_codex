@@ -66,8 +66,8 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void manaMendingCraftsmansDelightBoostsRepairAndClearsRepairCost(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.manaMendingCraftsmansDelightBoostsRepairAndClearsRepairCost(helper);
+    public static void manaMendingCraftsmansDelightBoostsRepairAndPreservesRepairCost(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.manaMendingCraftsmansDelightBoostsRepairAndPreservesRepairCost(helper);
     }
 
     @GameTest(template = TEMPLATE)

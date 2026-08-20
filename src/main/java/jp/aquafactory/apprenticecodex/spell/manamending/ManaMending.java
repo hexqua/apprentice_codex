@@ -32,6 +32,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
@@ -292,17 +293,11 @@ public class ManaMending extends AbstractSpell implements ICraftsmansDelightAffe
     }
 
     private void finishMending(LivingEntity entity, ItemStack targetStack, ManaMendingCastData castData) {
-        var hasCraftsmansDelight = CraftsmansDelight.isEquippedBy(entity);
-        if (hasCraftsmansDelight) {
-            targetStack.setRepairCost(0);
-        }
         castData.reset();
         sendActionBar(
                 entity,
                 Component.translatable(
-                        hasCraftsmansDelight
-                                ? "ui.apprenticecodex.mana_mending.repair_finished_bonus"
-                                : "ui.apprenticecodex.mana_mending.repair_finished",
+                        "ui.apprenticecodex.mana_mending.repair_finished",
                         targetStack.getHoverName()
                 ).withStyle(ChatFormatting.GREEN)
         );
