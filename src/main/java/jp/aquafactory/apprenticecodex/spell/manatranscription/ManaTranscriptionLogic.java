@@ -1,11 +1,13 @@
 package jp.aquafactory.apprenticecodex.spell.manatranscription;
 
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import jp.aquafactory.apprenticecodex.utility.HandStackResolver;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -22,7 +24,7 @@ final class ManaTranscriptionLogic {
 
     static Resolution resolve(Player player) {
         var target = player.getMainHandItem();
-        var operationItem = player.getOffhandItem();
+        var operationItem = physicalOffhandItem(player);
         var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(target);
         int repairCost = target.getOrDefault(DataComponents.REPAIR_COST, 0);
         var hasEnchantment = enchantments.entrySet().stream().anyMatch(entry -> entry.getIntValue() > 0);
@@ -97,6 +99,15 @@ final class ManaTranscriptionLogic {
     static boolean isBlankWritableBook(ItemStack stack) {
         var content = stack.get(DataComponents.WRITABLE_BOOK_CONTENT);
         return content == null || content.pages().stream().allMatch(page -> page.raw().isEmpty());
+    }
+
+    static ItemStack physicalOffhandItem(Player player) {
+        // Better Combat は Two-Handed 武器の使用中に論理オフハンドを空へ差し替えるため、媒体は実スロットから取得する。
+        return HandStackResolver.resolve(
+                player,
+                InteractionHand.OFF_HAND,
+                HandStackResolver.OffhandResolution.PHYSICAL
+        );
     }
 
     static int currentExperience(Player player) {

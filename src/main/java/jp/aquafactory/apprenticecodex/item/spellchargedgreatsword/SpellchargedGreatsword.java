@@ -457,6 +457,18 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
         clearOvercharge(stack, 0L, false);
     }
 
+    public static boolean matchesIgnoringChargeRuntimeState(ItemStack first, ItemStack second) {
+        if (!isSpellchargedGreatsword(first) || !isSpellchargedGreatsword(second)) {
+            return false;
+        }
+
+        var normalizedFirst = first.copy();
+        var normalizedSecond = second.copy();
+        normalizeChargeRuntimeStateForComparison(normalizedFirst);
+        normalizeChargeRuntimeStateForComparison(normalizedSecond);
+        return ItemStack.matches(normalizedFirst, normalizedSecond);
+    }
+
     public static boolean sanitizePersistentGameTimes(ItemStack stack, long gameTime) {
         var tag = getCustomDataTag(stack);
         if (!isSpellchargedGreatsword(stack) || tag == null) {
@@ -665,6 +677,28 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     private static CompoundTag getCustomDataTag(ItemStack stack) {
         var customData = stack.get(DataComponents.CUSTOM_DATA);
         return customData == null ? null : customData.copyTag();
+    }
+
+    private static void normalizeChargeRuntimeStateForComparison(ItemStack stack) {
+        var tag = getCustomDataTag(stack);
+        if (tag != null) {
+            tag.remove(TAG_CHARGE_TICKS);
+            tag.remove(TAG_LAST_CHARGE_GAME_TIME);
+            tag.remove(TAG_CHARGE_LEVEL);
+            tag.remove(TAG_OVERCHARGE_REMAINING_TICKS);
+            tag.remove(TAG_OVERCHARGE_MAX_TICKS);
+            tag.remove(TAG_OVERCHARGE_ACTIVATED_GAME_TIME);
+            tag.remove(TAG_OVERCHARGE_END_GAME_TIME);
+            tag.remove(TAG_OVERCHARGE_FADE_START_GAME_TIME);
+            if (tag.isEmpty()) {
+                stack.remove(DataComponents.CUSTOM_DATA);
+            } else {
+                stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+            }
+        }
+
+        // チャージ状態から再生成される能力補正も比較時だけ共通の基準値へ戻す。
+        stack.set(DataComponents.ATTRIBUTE_MODIFIERS, buildBaseMainhandModifiers());
     }
 
     private static void refreshAttributeModifiers(ItemStack stack) {

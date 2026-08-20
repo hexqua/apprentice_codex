@@ -11,6 +11,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.spellchargedgreatsword.SpellchargedGreatsword;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
@@ -28,7 +29,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AnvilMenu;
@@ -246,7 +246,7 @@ public class ManaTranscription extends AbstractSpell {
 
     private static void finishExtraction(ServerPlayer player, ManaTranscriptionCastData castData) {
         var target = player.getMainHandItem();
-        var operationItem = player.getOffhandItem();
+        var operationItem = ManaTranscriptionLogic.physicalOffhandItem(player);
         var selected = castData.selectedEnchantment;
         if (selected == null) {
             sendCastError(player);
@@ -258,8 +258,8 @@ public class ManaTranscription extends AbstractSpell {
         target.set(DataComponents.REPAIR_COST, AnvilMenu.calculateIncreasedRepairCost(oldRepairCost));
 
         var result = EnchantedBookItem.createForEnchantment(new EnchantmentInstance(selected, castData.selectedLevel));
-        player.setItemInHand(
-                InteractionHand.OFF_HAND,
+        player.getInventory().offhand.set(
+                0,
                 ItemUtils.createFilledResult(operationItem, player, result)
         );
         sendActionBar(player, Component.translatable(
@@ -270,7 +270,7 @@ public class ManaTranscription extends AbstractSpell {
 
     private static void finishRepairCostReset(Level level, ServerPlayer player) {
         var target = player.getMainHandItem();
-        var operationItem = player.getOffhandItem();
+        var operationItem = ManaTranscriptionLogic.physicalOffhandItem(player);
         var consumedItemName = operationItem.getHoverName();
         target.set(DataComponents.REPAIR_COST, 0);
 
@@ -314,7 +314,7 @@ public class ManaTranscription extends AbstractSpell {
             );
             case REQUIRED_EMPTY_BOOK -> Component.translatable(
                     "ui.apprenticecodex.mana_transcription.required_empty_book",
-                    player.getOffhandItem().getHoverName()
+                    ManaTranscriptionLogic.physicalOffhandItem(player).getHoverName()
             );
             case NO_WORK_COUNT -> Component.translatable(
                     "ui.apprenticecodex.mana_transcription.no_work_count"
@@ -367,7 +367,7 @@ public class ManaTranscription extends AbstractSpell {
             mode = resolution.mode();
             requiredExperience = resolution.requiredExperience();
             targetReference = player.getMainHandItem();
-            operationItemReference = player.getOffhandItem();
+            operationItemReference = ManaTranscriptionLogic.physicalOffhandItem(player);
             targetSnapshot = targetReference.copy();
             operationItemSnapshot = operationItemReference.copy();
             if (selected != null) {
@@ -380,11 +380,17 @@ public class ManaTranscription extends AbstractSpell {
         }
 
         private boolean matchesHands(Player player) {
+            var target = player.getMainHandItem();
+            var operationItem = ManaTranscriptionLogic.physicalOffhandItem(player);
+            var targetMatches = targetReference == target && ItemStack.matches(targetSnapshot, target);
+            if (!targetMatches) {
+                // SpellOnCastEvent が転写完了前に剣のチャージ状態を更新して copy を再装備するため、その内部更新だけを許容する。
+                targetMatches = SpellchargedGreatsword.matchesIgnoringChargeRuntimeState(targetSnapshot, target);
+            }
             return locked
-                    && targetReference == player.getMainHandItem()
-                    && operationItemReference == player.getOffhandItem()
-                    && ItemStack.matches(targetSnapshot, player.getMainHandItem())
-                    && ItemStack.matches(operationItemSnapshot, player.getOffhandItem());
+                    && targetMatches
+                    && operationItemReference == operationItem
+                    && ItemStack.matches(operationItemSnapshot, operationItem);
         }
 
         private boolean matchesResolution(ManaTranscriptionLogic.Resolution resolution) {
