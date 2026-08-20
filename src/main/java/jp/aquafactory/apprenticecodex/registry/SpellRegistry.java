@@ -47,6 +47,7 @@ import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpear;
 import jp.aquafactory.apprenticecodex.spell.manacharge.ManaCharge;
 import jp.aquafactory.apprenticecodex.spell.manamending.ManaMending;
+import jp.aquafactory.apprenticecodex.spell.manatranscription.ManaTranscription;
 import jp.aquafactory.apprenticecodex.spell.manifestationgrimoire.ManifestationGrimoire;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeap;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlash;
@@ -195,4 +196,5 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> SPECTRAL_WING = reg("spectral_wing", SpectralWing::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ECHO_CAST = reg("echo_cast", EchoCast::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> OTHERWORLD_LENS = reg("otherworld_lens", OtherworldLens::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> MANA_TRANSCRIPTION = reg("mana_transcription", ManaTranscription::new);
 }
