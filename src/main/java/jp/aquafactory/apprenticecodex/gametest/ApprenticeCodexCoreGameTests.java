@@ -203,6 +203,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void wizardlampSupportsWaterloggingWhileMageLightRemainsDry(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.wizardlampSupportsWaterloggingWhileMageLightRemainsDry(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellCalibrationBenchStoresScrollsOnGauntlet(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.spellCalibrationBenchStoresScrollsOnGauntlet(helper);
     }

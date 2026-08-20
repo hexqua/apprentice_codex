@@ -36,7 +36,9 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
@@ -140,11 +142,18 @@ public class Wizardlamp extends AbstractSpell implements IClientBlockTargetingSp
             placePos = findPlacePos(level, spellLevel, entity).orElse(null);
         }
 
+        var lanternBlock = BlockRegistry.WIZARDLAMP_LANTERN.get();
+        var lanternState = placePos == null
+                ? lanternBlock.defaultBlockState()
+                : lanternBlock.defaultBlockState().setValue(
+                        WizardlampLanternBlock.WATERLOGGED,
+                        level.getFluidState(placePos).getType() == Fluids.WATER
+                );
         if (placePos != null && BlockTools.tryPlaceBlockByEntity(
                 level,
                 entity,
                 placePos,
-                BlockRegistry.WIZARDLAMP_LANTERN.get().defaultBlockState(),
+                lanternState,
                 Direction.UP
         )) {
             AudioTools.playSoundFromPosition(level, placePos.getCenter(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS);
@@ -228,7 +237,7 @@ public class Wizardlamp extends AbstractSpell implements IClientBlockTargetingSp
         }
 
         @Override
-        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+        public CompoundTag serializeNBT(HolderLookup.@NotNull Provider provider) {
             var tag = new CompoundTag();
             if (position != null) {
                 tag.putLong("Position", position.asLong());
@@ -237,7 +246,7 @@ public class Wizardlamp extends AbstractSpell implements IClientBlockTargetingSp
         }
 
         @Override
-        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+        public void deserializeNBT(HolderLookup.@NotNull Provider provider, CompoundTag nbt) {
             position = nbt.contains("Position") ? BlockPos.of(nbt.getLong("Position")) : null;
         }
     }
