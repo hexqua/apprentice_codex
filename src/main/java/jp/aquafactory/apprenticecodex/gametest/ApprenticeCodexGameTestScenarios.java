@@ -9158,6 +9158,28 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void linearBuildScrollCastDoesNotConsumeAdditionalMana(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useLinearBuildConfigOverrideForGameTest(
+                    new LinearBuildServerConfig.Values(5, false, true, true)
+            )) {
+                var targetPos = new BlockPos(5, 3, 2);
+                var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_scroll_mana_test");
+                player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS, 2));
+                helper.setBlock(targetPos, Blocks.STONE);
+                var magicData = MagicData.getPlayerMagicData(player);
+                magicData.setMana(0.0F);
+
+                castLinearBuildWithCurrentMana(helper, player, targetPos, Direction.WEST, CastSource.SCROLL);
+
+                helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(4, 3, 2));
+                helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(3, 3, 2));
+                helper.assertTrue(magicData.getMana() == 0.0F,
+                        "Scroll-cast Linear Build should not consume additional mana per placed block");
+            }
+        });
+    }
+
     static void linearBuildTriesOneBlockWhenFirstPlacementTouchesPlayerAxis(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var targetPos = new BlockPos(4, 2, 2);
@@ -12361,6 +12383,16 @@ public class ApprenticeCodexGameTestScenarios {
             BlockPos targetPos,
             Direction hitFace
     ) {
+        castLinearBuildWithCurrentMana(helper, player, targetPos, hitFace, CastSource.SPELLBOOK);
+    }
+
+    static void castLinearBuildWithCurrentMana(
+            GameTestHelper helper,
+            FakePlayer player,
+            BlockPos targetPos,
+            Direction hitFace,
+            CastSource castSource
+    ) {
         var spell = (LinearBuild) SpellRegistry.LINEAR_BUILD.get();
         var absoluteTargetPos = helper.absolutePos(targetPos);
         var targetData = new BlockTargetData();
@@ -12377,7 +12409,7 @@ public class ApprenticeCodexGameTestScenarios {
         helper.assertTrue(magicData != null, "Linear Build test could not resolve player magic data");
         helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
                 "Linear Build pre-cast check should accept the prepared block target");
-        spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+        spell.onCast(helper.getLevel(), 1, player, castSource, magicData);
         spell.onServerCastComplete(helper.getLevel(), 1, player, magicData, false);
     }
 
