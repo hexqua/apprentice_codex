@@ -28,37 +28,31 @@ public class DeepSensor extends AbstractSpell {
             .setMinRarity(SpellRarity.LEGENDARY)
             .setSchoolResource(SchoolRegistry.ELDRITCH_RESOURCE)
             .setMaxLevel(3)
-            .setCooldownSeconds(30)
+            .setCooldownSeconds(100)
             .build();
 
     public DeepSensor() {
         baseSpellPower = 100;
-        spellPowerPerLevel = 100;
-        baseManaCost = 100;
-        manaCostPerLevel = 50;
+        spellPowerPerLevel = 50;
+        baseManaCost = 60;
+        manaCostPerLevel = 20;
         castTime = 0;
     }
 
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(spellLevel, caster), 1)),
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 1)),
                 Component.translatable("ui.irons_spellbooks.effect_length", Utils.timeFromTicks(getDuration(spellLevel, caster), 1))
         );
     }
 
-    private int getRange(int spellLevel, LivingEntity caster) {
-        // MobEffectのレベルで制御しているため.
-        return 8 * (1 + getAmplify(spellLevel, caster));
-    }
-
-    private int getAmplify(int spellLevel, LivingEntity caster) {
-        // 初期状態でAmp=0になるように調整.
-        return Math.round(getSpellPower(spellLevel, caster) / 100.0f) - 1;
+    private int getRange() {
+        return 24;
     }
 
     private int getDuration(int spellLevel, LivingEntity caster) {
-        return 20 * 20 + Math.round(5 * 20 * getSpellPower(spellLevel, caster) / 100.0f);
+        return Math.round(getSpellPower(spellLevel, caster) * 6.0F);
     }
 
     @Override
@@ -92,7 +86,7 @@ public class DeepSensor extends AbstractSpell {
         entity.addEffect(new MobEffectInstance(
                 senseSensor,
                 getDuration(spellLevel, entity),
-                getAmplify(spellLevel, entity),
+                0,
                 false,
                 false,
                 true
