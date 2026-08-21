@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
+import static jp.aquafactory.apprenticecodex.damage.ApprenticeDamageTypeTags.TRIGGERS_IRONS_JEWELRY_PROJECTILE_HIT;
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.*;
 
 public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
@@ -57,6 +58,20 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
     protected void addTags(@NotNull HolderLookup.Provider provider) {
         // Datapackや他MODが箒固有の疑似i-Frameに関与しないDamageTypeを追加するための拡張口。
         tag(IGNORES_FLOATMOUNT_BROOM_IFRAME);
+
+        // Iron's Jewelryはdirect entityのProjectile継承だけを見るため、実体弾を持たない銃撃を明示する。
+        tag(TRIGGERS_IRONS_JEWELRY_PROJECTILE_HIT).add(
+                BREACHING_ENEMY,
+                BULLET_STREAM,
+                QUICK_ARMS,
+                SILENT_ASSASSIN,
+                TIRO_VOLLEY,
+                LETHAL_ASSAULT,
+                DUAL_ACROBAT,
+                COMMENCE_FIRE,
+                SHOCK,
+                ARCANE_BLAST
+        );
 
         // CODEX_MAGIC: このMODの魔法由来ダメージ全体(Malum互換などで使用)
         tag(CODEX_MAGIC).add(

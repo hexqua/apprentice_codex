@@ -424,7 +424,9 @@ dependencies {
     add(optionalRuntimeModuleConfigurations.malum, "maven.modrinth:malum:BIbVs1fo")
 
     // Iron's Gems 'n Jewelry / Atlas API.
-    // 1.21.1用のIron's系として遊びを増やすためにoptionalで確認できるようにする.
+    // projectile判定を拡張するoptional互換Mixinのコンパイル用。ランタイムはcompat profileから読み込む。
+    compileOnly "io.redspace:atlas_api:${atlas_api_version}"
+    compileOnly "io.redspace:irons_jewelry:${irons_jewelry_version}"
     add(optionalRuntimeModuleConfigurations.atlas_api, "io.redspace:atlas_api:${atlas_api_version}")
     add(optionalRuntimeModuleConfigurations.irons_jewelry, "io.redspace:irons_jewelry:${irons_jewelry_version}")
 
@@ -490,6 +492,8 @@ tasks.named('processResources', ProcessResources).configure {
             jade_version           : jade_version,
             lodestone_version      : lodestone_version,
             malum_version          : malum_version,
+            atlas_api_version      : atlas_api_version,
+            irons_jewelry_version  : irons_jewelry_version,
             epicfight_version      : epicfight_version,
             epicfight_mod_version  : epicfight_mod_version,
             emf_version            : emf_version,
