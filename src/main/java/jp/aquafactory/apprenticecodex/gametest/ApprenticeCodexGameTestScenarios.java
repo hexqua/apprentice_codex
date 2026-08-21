@@ -71,6 +71,7 @@ import jp.aquafactory.apprenticecodex.event.errandmage.ErrandMageTradeManager;
 import jp.aquafactory.apprenticecodex.event.ErrandMageVillagerTradesEvent;
 import jp.aquafactory.apprenticecodex.loot.RandomSpellImbueHelper;
 import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomAssistWingsJumpPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncLinearBuildConfigPacket;
 import jp.aquafactory.apprenticecodex.item.shield.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
@@ -179,6 +180,7 @@ import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceBurst;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerEntity;
 import jp.aquafactory.apprenticecodex.spell.linearbuild.LinearBuild;
+import jp.aquafactory.apprenticecodex.spell.linearbuild.LinearBuildConfigState;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileEntity;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
@@ -8499,6 +8501,143 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void linearBuildUsesBaseAndCraftsmansDelightRanges(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var spell = (LinearBuild) SpellRegistry.LINEAR_BUILD.get();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_range_test");
+
+            var configBuffer = new FriendlyByteBuf(Unpooled.buffer());
+            SyncLinearBuildConfigPacket.encode(new SyncLinearBuildConfigPacket(17), configBuffer);
+            var decodedConfig = SyncLinearBuildConfigPacket.decode(configBuffer);
+            helper.assertTrue(decodedConfig.manaCostPerBlock() == 17,
+                    "Linear Build config sync should preserve the per-block mana cost");
+
+            try {
+                LinearBuildConfigState.set(decodedConfig.manaCostPerBlock());
+                var uniqueInfo = spell.getUniqueInfo(1, null);
+                helper.assertTrue(uniqueInfo.size() == 2,
+                        "Linear Build unique info should accept a null caster and include the additional placement cost");
+                helper.assertTrue(
+                        uniqueInfo.get(1).getContents() instanceof TranslatableContents contents
+                                && "ui.apprenticecodex.linear_build.additional_place_cost".equals(contents.getKey())
+                                && contents.getArgs().length == 1
+                                && contents.getArgs()[0] instanceof Number cost
+                                && cost.intValue() == 17,
+                        "Linear Build unique info should use the synchronized per-block mana cost"
+                );
+            } finally {
+                LinearBuildConfigState.reset();
+            }
+            helper.assertTrue(spell.getClientBlockTargetingRange(1, player) == 24.0D,
+                    "Linear Build should use a 24-block base range");
+            helper.assertTrue(CraftsmansDelightSpellSupport.isManaCostDiscountTarget(spell.getSpellId()),
+                    "Linear Build should be a Craftsman's Delight mana discount target");
+
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            helper.assertTrue(spell.getClientBlockTargetingRange(1, player) == 32.0D,
+                    "Linear Build should use a 32-block range with Craftsman's Delight");
+            var equippedInfo = spell.getUniqueInfo(1, player);
+            helper.assertTrue(
+                    equippedInfo.get(1).getContents() instanceof TranslatableContents contents
+                            && contents.getArgs()[0] instanceof Number cost
+                            && cost.intValue() == 3,
+                    "Linear Build unique info should show the Craftsman's Delight per-block mana discount"
+            );
+        });
+    }
+
+    static void linearBuildConsumesConfiguredManaPerPlacedBlock(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useLinearBuildConfigOverrideForGameTest(
+                    new LinearBuildServerConfig.Values(5, false, true, true)
+            )) {
+                var targetPos = new BlockPos(5, 3, 2);
+                var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_mana_cost_test");
+                player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS, 2));
+                helper.setBlock(targetPos, Blocks.STONE);
+                var magicData = MagicData.getPlayerMagicData(player);
+                magicData.setMana(20.0F);
+
+                castLinearBuildWithCurrentMana(helper, player, targetPos, Direction.WEST);
+
+                helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(4, 3, 2));
+                helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(3, 3, 2));
+                helper.assertTrue(Math.abs(magicData.getMana() - 10.0F) < 1e-4F,
+                        "Linear Build should consume configured mana for each successfully placed block");
+            }
+        });
+    }
+
+    static void linearBuildCraftsmansDelightDiscountsManaPerBlock(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useLinearBuildConfigOverrideForGameTest(
+                    new LinearBuildServerConfig.Values(5, false, true, true)
+            )) {
+                var targetPos = new BlockPos(5, 3, 2);
+                var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_discount_test");
+                player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS, 2));
+                equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+                helper.setBlock(targetPos, Blocks.STONE);
+                var magicData = MagicData.getPlayerMagicData(player);
+                magicData.setMana(20.0F);
+
+                castLinearBuildWithCurrentMana(helper, player, targetPos, Direction.WEST);
+
+                helper.assertTrue(Math.abs(magicData.getMana() - 14.0F) < 1e-4F,
+                        "Craftsman's Delight should reduce Linear Build's per-block mana cost from 5 to 3");
+            }
+        });
+    }
+
+    static void linearBuildStopsPartwayWhenManaIsDepleted(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useLinearBuildConfigOverrideForGameTest(
+                    new LinearBuildServerConfig.Values(5, false, true, true)
+            )) {
+                var targetPos = new BlockPos(6, 3, 2);
+                var player = createEquipmentTestPlayer(helper, new BlockPos(1, 3, 2), "linear_build_deplete_test");
+                player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS, 4));
+                helper.setBlock(targetPos, Blocks.STONE);
+                helper.setBlock(new BlockPos(5, 3, 2), Blocks.AIR);
+                helper.setBlock(new BlockPos(4, 3, 2), Blocks.AIR);
+                helper.setBlock(new BlockPos(3, 3, 2), Blocks.AIR);
+                var magicData = MagicData.getPlayerMagicData(player);
+                magicData.setMana(11.0F);
+
+                castLinearBuildWithCurrentMana(helper, player, targetPos, Direction.WEST);
+
+                helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(5, 3, 2));
+                helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(4, 3, 2));
+                helper.assertBlockNotPresent(Blocks.OAK_PLANKS, new BlockPos(3, 3, 2));
+                helper.assertTrue(player.getMainHandItem().getCount() == 2,
+                        "Linear Build should retain blocks that could not be placed after mana depletion");
+                helper.assertTrue(Math.abs(magicData.getMana() - 1.0F) < 1e-4F,
+                        "Linear Build should retain mana that is insufficient for the next placement");
+            }
+        });
+    }
+
+    static void linearBuildZeroManaCostConfigAllowsPlacement(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useLinearBuildConfigOverrideForGameTest(
+                    new LinearBuildServerConfig.Values(0, false, true, true)
+            )) {
+                var targetPos = new BlockPos(4, 3, 2);
+                var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_zero_mana_test");
+                player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS));
+                helper.setBlock(targetPos, Blocks.STONE);
+                var magicData = MagicData.getPlayerMagicData(player);
+                magicData.setMana(0.0F);
+
+                castLinearBuildWithCurrentMana(helper, player, targetPos, Direction.WEST);
+
+                helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(3, 3, 2));
+                helper.assertTrue(magicData.getMana() == 0.0F,
+                        "Linear Build should not consume mana when its per-block cost is configured to zero");
+            }
+        });
+    }
+
     static void linearBuildTriesOneBlockWhenFirstPlacementTouchesPlayerAxis(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var targetPos = new BlockPos(4, 2, 2);
@@ -8673,7 +8812,9 @@ public class ApprenticeCodexGameTestScenarios {
 
                 linearBuildPlayer.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS, 2));
                 helper.setBlock(new BlockPos(4, 3, 2), Blocks.STONE);
-                castLinearBuild(helper, linearBuildPlayer, new BlockPos(4, 3, 2), Direction.WEST);
+                MagicData.getPlayerMagicData(linearBuildPlayer).setMana(20.0F);
+                castLinearBuildWithCurrentMana(
+                        helper, linearBuildPlayer, new BlockPos(4, 3, 2), Direction.WEST);
             } finally {
                 MinecraftForge.EVENT_BUS.unregister(cancelListener);
             }
@@ -8689,6 +8830,8 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertBlockNotPresent(Blocks.OAK_PLANKS, linearBuildPos);
             helper.assertTrue(linearBuildPlayer.getMainHandItem().getCount() == 2,
                     "Canceled Linear Build placement should not consume its source block");
+            helper.assertTrue(Math.abs(MagicData.getPlayerMagicData(linearBuildPlayer).getMana() - 20.0F) < 1e-4F,
+                    "Canceled Linear Build placement should not consume additional mana");
         });
     }
 
@@ -8986,7 +9129,7 @@ public class ApprenticeCodexGameTestScenarios {
     static void linearBuildAbortOnFailedPlacementConfigStopsAtBlockedPosition(GameTestHelper helper) {
         helper.succeedIf(() -> {
             try (var ignored = ApprenticeCodexServerConfig.useLinearBuildConfigOverrideForGameTest(
-                    new LinearBuildServerConfig.Values(true, true, true)
+                    new LinearBuildServerConfig.Values(5, true, true, true)
             )) {
                 var targetPos = new BlockPos(6, 3, 2);
                 var blockedPos = new BlockPos(4, 3, 2);
@@ -9166,8 +9309,10 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(trunkInventory != null, "Linear Build test could not resolve Companion Trunk inventory");
             trunkInventory.getHandler().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 2));
             helper.setBlock(targetPos, Blocks.STONE);
+            var magicData = MagicData.getPlayerMagicData(player);
+            magicData.setMana(0.0F);
 
-            castLinearBuild(helper, player, targetPos, Direction.WEST);
+            castLinearBuildWithCurrentMana(helper, player, targetPos, Direction.WEST);
 
             helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(4, 3, 2));
             helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(3, 3, 2));
@@ -9176,6 +9321,8 @@ public class ApprenticeCodexGameTestScenarios {
             var trunkStack = trunkInventory.getHandler().getStackInSlot(0);
             helper.assertTrue(trunkStack.is(Items.OAK_PLANKS) && trunkStack.getCount() == 2,
                     "Linear Build should not retrieve blocks from storage in creative mode");
+            helper.assertTrue(magicData.getMana() == 0.0F,
+                    "Linear Build should not consume additional mana in creative mode");
         });
     }
 
@@ -9340,7 +9487,7 @@ public class ApprenticeCodexGameTestScenarios {
     static void linearBuildShulkerSourceFollowsServerConfig(GameTestHelper helper) {
         helper.succeedIf(() -> {
             try (var ignored = ApprenticeCodexServerConfig.useLinearBuildConfigOverrideForGameTest(
-                    new LinearBuildServerConfig.Values(false, false, true)
+                    new LinearBuildServerConfig.Values(5, false, false, true)
             )) {
                 var targetPos = new BlockPos(5, 3, 2);
                 var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_shulker_config_test");
@@ -9358,7 +9505,7 @@ public class ApprenticeCodexGameTestScenarios {
             }
 
             try (var ignored = ApprenticeCodexServerConfig.useLinearBuildConfigOverrideForGameTest(
-                    new LinearBuildServerConfig.Values(false, true, true)
+                    new LinearBuildServerConfig.Values(5, false, true, true)
             )) {
                 var targetPos = new BlockPos(5, 3, 4);
                 var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 4), "linear_build_shulker_enabled_test");
@@ -9379,7 +9526,7 @@ public class ApprenticeCodexGameTestScenarios {
     static void linearBuildShulkerSourceKeepsSlotAfterPartialConsume(GameTestHelper helper) {
         helper.succeedIf(() -> {
             try (var ignored = ApprenticeCodexServerConfig.useLinearBuildConfigOverrideForGameTest(
-                    new LinearBuildServerConfig.Values(false, true, true)
+                    new LinearBuildServerConfig.Values(5, false, true, true)
             )) {
                 var targetPos = new BlockPos(5, 3, 2);
                 var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_shulker_slot_test");
@@ -9405,7 +9552,7 @@ public class ApprenticeCodexGameTestScenarios {
     static void linearBuildBundleSourceFollowsServerConfig(GameTestHelper helper) {
         helper.succeedIf(() -> {
             try (var ignored = ApprenticeCodexServerConfig.useLinearBuildConfigOverrideForGameTest(
-                    new LinearBuildServerConfig.Values(false, true, false)
+                    new LinearBuildServerConfig.Values(5, false, true, false)
             )) {
                 var targetPos = new BlockPos(5, 3, 2);
                 var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_bundle_config_test");
@@ -9423,7 +9570,7 @@ public class ApprenticeCodexGameTestScenarios {
             }
 
             try (var ignored = ApprenticeCodexServerConfig.useLinearBuildConfigOverrideForGameTest(
-                    new LinearBuildServerConfig.Values(false, true, true)
+                    new LinearBuildServerConfig.Values(5, false, true, true)
             )) {
                 var targetPos = new BlockPos(5, 3, 4);
                 var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 4), "linear_build_bundle_enabled_test");
@@ -11522,6 +11669,16 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static void castLinearBuild(GameTestHelper helper, FakePlayer player, BlockPos targetPos, Direction hitFace) {
+        MagicData.getPlayerMagicData(player).setMana(100000.0F);
+        castLinearBuildWithCurrentMana(helper, player, targetPos, hitFace);
+    }
+
+    static void castLinearBuildWithCurrentMana(
+            GameTestHelper helper,
+            FakePlayer player,
+            BlockPos targetPos,
+            Direction hitFace
+    ) {
         var spell = (LinearBuild) SpellRegistry.LINEAR_BUILD.get();
         var absoluteTargetPos = helper.absolutePos(targetPos);
         var targetData = new BlockTargetData();
