@@ -112,6 +112,7 @@ import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDe
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightCooldownReductionEvent;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightManaCostDiscountEvent;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightSpellSupport;
+import jp.aquafactory.apprenticecodex.gametest.malum.MalumPouchGameTestHelper;
 import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
@@ -9517,6 +9518,123 @@ public class ApprenticeCodexGameTestScenarios {
                     "Linear Build should leave lower-priority Shulker contents untouched");
             helper.assertTrue(player.getMainHandItem().is(Items.DIRT) && player.getMainHandItem().getCount() == 4,
                     "An offhand Luminous Device selection should take priority over the main-hand block");
+        });
+    }
+
+    static void linearBuildConsumesSoulwovenPouchContents(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
+                return;
+            }
+
+            var targetPos = new BlockPos(5, 3, 2);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2),
+                    "linear_build_soulwoven_pouch_source_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS));
+            var pouchStack = MalumPouchGameTestHelper.createPouch("soulwoven_pouch", List.of(
+                    new ItemStack(Items.OAK_PLANKS, 2),
+                    new ItemStack(Items.DIRT, 3)
+            ));
+            player.getInventory().setItem(10, pouchStack);
+            helper.setBlock(targetPos, Blocks.STONE);
+
+            castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+            helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(4, 3, 2));
+            helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(3, 3, 2));
+            helper.assertTrue(MalumPouchGameTestHelper.getStoredCount(
+                            pouchStack, new ItemStack(Items.OAK_PLANKS)) == 0,
+                    "Linear Build should consume all matching Soulwoven Pouch contents");
+            helper.assertTrue(MalumPouchGameTestHelper.getStoredCount(
+                            pouchStack, new ItemStack(Items.DIRT)) == 3,
+                    "Linear Build should preserve non-matching Soulwoven Pouch contents");
+            helper.assertTrue(MalumPouchGameTestHelper.getWeight(pouchStack) > 0.0D,
+                    "Soulwoven Pouch weight should be recalculated from remaining contents");
+            helper.assertTrue(player.getMainHandItem().is(Items.OAK_PLANKS)
+                            && player.getMainHandItem().getCount() == 1,
+                    "Linear Build should use Soulwoven Pouch contents before the held stack");
+        });
+    }
+
+    static void linearBuildConsumesLastRavenousPouchItem(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
+                return;
+            }
+
+            var targetPos = new BlockPos(4, 3, 2);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2),
+                    "linear_build_ravenous_pouch_source_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS));
+            var pouchStack = MalumPouchGameTestHelper.createPouch(
+                    "ravenous_pouch",
+                    List.of(new ItemStack(Items.OAK_PLANKS))
+            );
+            player.getInventory().setItem(10, pouchStack);
+            helper.setBlock(targetPos, Blocks.STONE);
+
+            castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+            helper.assertBlockPresent(Blocks.OAK_PLANKS, new BlockPos(3, 3, 2));
+            helper.assertTrue(MalumPouchGameTestHelper.getItemsCopy(pouchStack).isEmpty(),
+                    "Linear Build should consume the final Ravenous Pouch item");
+        });
+    }
+
+    static void linearBuildUsesMalumPouchBeforeLuminousDevice(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
+                return;
+            }
+
+            var targetPos = new BlockPos(5, 3, 2);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2),
+                    "linear_build_malum_pouch_priority_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIRT, 4));
+            var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+            LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.GLOWSTONE, 2));
+            player.setItemInHand(InteractionHand.OFF_HAND, deviceStack);
+            var pouchStack = MalumPouchGameTestHelper.createPouch(
+                    "soulwoven_pouch",
+                    List.of(new ItemStack(Items.GLOWSTONE))
+            );
+            player.getInventory().setItem(10, pouchStack);
+            helper.setBlock(targetPos, Blocks.STONE);
+
+            castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+            helper.assertTrue(MalumPouchGameTestHelper.getItemsCopy(pouchStack).isEmpty(),
+                    "Linear Build should consume matching Malum Pouch contents before Luminous Device contents");
+            helper.assertTrue(LuminousDevice.getStoredCount(deviceStack, new ItemStack(Items.GLOWSTONE)) == 1,
+                    "Linear Build should use Luminous Device only after the Malum Pouch is exhausted");
+        });
+    }
+
+    static void linearBuildMalumPouchRequiresMatchingComponents(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            if (!ModList.get().isLoaded(MALUM_MOD_ID)) {
+                return;
+            }
+
+            var targetPos = new BlockPos(4, 3, 2);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2),
+                    "linear_build_malum_pouch_components_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIRT, 4));
+            var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
+            LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.GLOWSTONE));
+            player.setItemInHand(InteractionHand.OFF_HAND, deviceStack);
+            var namedGlowstone = new ItemStack(Items.GLOWSTONE);
+            namedGlowstone.set(DataComponents.CUSTOM_NAME, Component.literal("Distinct Glowstone"));
+            var pouchStack = MalumPouchGameTestHelper.createPouch("ravenous_pouch", List.of(namedGlowstone));
+            player.getInventory().setItem(10, pouchStack);
+            helper.setBlock(targetPos, Blocks.STONE);
+
+            castLinearBuild(helper, player, targetPos, Direction.WEST);
+
+            helper.assertTrue(MalumPouchGameTestHelper.getStoredCount(pouchStack, namedGlowstone) == 1,
+                    "Linear Build should preserve Malum Pouch contents with different components");
+            helper.assertTrue(LuminousDevice.getStoredCount(deviceStack, new ItemStack(Items.GLOWSTONE)) == 0,
+                    "Linear Build should fall through to an exactly matching lower-priority source");
         });
     }
 

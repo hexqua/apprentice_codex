@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.compat.create.CreateToolboxLinearBuildBridge;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumPouchLinearBuildBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
@@ -514,6 +515,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         addOwnedChestedHorseSources(player, sources);
         addCuriosItemHandlerSources(player, sources);
         addInventoryItemHandlerSources(player, sources);
+        addMalumPouchSources(player, sources);
         addLuminousDeviceSources(player, sources);
         addShulkerSources(player, sources);
         addBundleSources(player, sources);
@@ -603,6 +605,10 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
 
     private static IItemHandler getItemHandler(ItemStack stack) {
         return stack.getCapability(net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.ITEM);
+    }
+
+    private void addMalumPouchSources(ServerPlayer player, List<LinearBuildItemSource> sources) {
+        sources.addAll(MalumPouchLinearBuildBridge.collectSources(player));
     }
 
     private boolean isDedicatedNestedContainerStack(ItemStack stack) {

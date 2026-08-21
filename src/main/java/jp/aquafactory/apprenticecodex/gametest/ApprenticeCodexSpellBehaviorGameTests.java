@@ -688,6 +688,26 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildConsumesSoulwovenPouchContents(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildConsumesSoulwovenPouchContents(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildConsumesLastRavenousPouchItem(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildConsumesLastRavenousPouchItem(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildUsesMalumPouchBeforeLuminousDevice(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildUsesMalumPouchBeforeLuminousDevice(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildMalumPouchRequiresMatchingComponents(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildMalumPouchRequiresMatchingComponents(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
     public static void linearBuildResolvesZeroCountLuminousDeviceSelectionAndEmptyFallback(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.linearBuildResolvesZeroCountLuminousDeviceSelectionAndEmptyFallback(helper);
     }
