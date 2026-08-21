@@ -68,7 +68,9 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 TIRO_VOLLEY,
                 LETHAL_ASSAULT,
                 DUAL_ACROBAT,
-                COMMENCE_FIRE
+                COMMENCE_FIRE,
+                SHOCK,
+                ARCANE_BLAST
         );
 
         // CODEX_MAGIC: このMODの魔法由来ダメージ全体(Malum互換などで使用)
