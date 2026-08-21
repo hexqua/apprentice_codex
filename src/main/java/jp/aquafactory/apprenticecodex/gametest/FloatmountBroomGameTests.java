@@ -1184,6 +1184,10 @@ public final class FloatmountBroomGameTests {
         helper.assertTrue(HoverrideBroomPresentation.fromId(Integer.MAX_VALUE)
                         == HoverrideBroomPresentation.NORMAL,
                 "Unknown Hoverride presentation ids should safely fall back to normal");
+        helper.assertTrue(HoverrideBroomPresentation.speedEffectIntensity(0.15D) == 0.0F,
+                "Low Hoverride travel speed should not add camera or lean effects");
+        helper.assertTrue(HoverrideBroomPresentation.speedEffectIntensity(1.0D) == 1.0F,
+                "Maximum Hoverride travel speed should apply full camera and lean effects");
         helper.succeed();
     }
 
