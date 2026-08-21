@@ -668,6 +668,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildScrollCastDoesNotConsumeAdditionalMana(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildScrollCastDoesNotConsumeAdditionalMana(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
     public static void linearBuildPlacesUntilPlayerAxis(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.linearBuildPlacesUntilPlayerAxis(helper);
     }

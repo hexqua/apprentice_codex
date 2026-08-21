@@ -185,7 +185,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
                 if (target.isEmpty()) {
                     sendError(player, TOO_FAR_MESSAGE);
                 } else {
-                    placeLine(level, player, blockTemplate.stack(), target.get(), playerMagicData);
+                    placeLine(level, player, blockTemplate.stack(), target.get(), castSource, playerMagicData);
                 }
             }
         }
@@ -300,7 +300,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
     }
 
     private void placeLine(Level level, ServerPlayer player, ItemStack blockTemplate, PlacementTarget target,
-                           MagicData playerMagicData) {
+                           CastSource castSource, MagicData playerMagicData) {
         if (!(blockTemplate.getItem() instanceof BlockItem blockItem)) {
             sendError(player, NOT_BLOCK_MESSAGE);
             return;
@@ -316,6 +316,8 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
                 ApprenticeCodexServerConfig.linearBuildConfig().manaCostPerBlock(),
                 player
         );
+        // スクロールなどIron's Spellsが無償と定義する発動元では、追加の設置コストも請求しない。
+        var consumesAdditionalMana = castSource.consumesMana() && !player.getAbilities().instabuild;
         var placed = false;
         var manaDepleted = false;
         var manaConsumed = false;
@@ -333,7 +335,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
                 break;
             }
 
-            if (!player.getAbilities().instabuild && playerMagicData.getMana() + 1e-4F < manaCostPerBlock) {
+            if (consumesAdditionalMana && playerMagicData.getMana() + 1e-4F < manaCostPerBlock) {
                 manaDepleted = true;
                 break;
             }
@@ -347,7 +349,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
             }
 
             placed = true;
-            if (!player.getAbilities().instabuild && manaCostPerBlock > 0) {
+            if (consumesAdditionalMana && manaCostPerBlock > 0) {
                 playerMagicData.setMana(Math.max(0.0F, playerMagicData.getMana() - manaCostPerBlock));
                 manaConsumed = true;
             }
