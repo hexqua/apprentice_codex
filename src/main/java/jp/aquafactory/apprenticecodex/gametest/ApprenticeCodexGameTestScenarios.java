@@ -5472,9 +5472,11 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(player.hasEffect(EffectRegistry.ECHO_SPELL.get()),
                     "Long cast test should remove EchoSpell before the normal cast completes");
             target.discard();
+            // 同じ batch の高所テストにいる entity を遅延再詠唱が拾わないよう、空だけを見る.
             player.setYRot(90.0F);
             player.setYHeadRot(90.0F);
             player.setYBodyRot(90.0F);
+            player.setXRot(-90.0F);
 
             finishStartedSpellCast(helper.getLevel(), player, spell, spellLevel);
 
