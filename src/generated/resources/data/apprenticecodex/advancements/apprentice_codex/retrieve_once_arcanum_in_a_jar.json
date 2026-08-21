@@ -13,7 +13,7 @@
     "frame": "goal",
     "hidden": false,
     "icon": {
-      "item": "irons_spellbooks:arcane_essence"
+      "item": "apprenticecodex:crystalline_arcane_shard"
     },
     "show_toast": true,
     "title": {

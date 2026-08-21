@@ -10,17 +10,20 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public class ArcanumInAJarBlockEntityRenderer implements BlockEntityRenderer<ArcanumInAJarBlockEntity> {
-    private static final ResourceLocation DUST_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/block/arcanum_in_a_jar_dust.png");
+    private static final ResourceLocation DUST_SPRITE_ID =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "block/arcanum_in_a_jar_dust");
     private static final float ATLAS_TILE_SIZE = 0.5f;
     private static final float TOP_MIN_U = 0.0f;
     private static final float TOP_MIN_V = 0.0f;
@@ -44,6 +47,7 @@ public class ArcanumInAJarBlockEntityRenderer implements BlockEntityRenderer<Arc
     private static final double MAX_RENDER_DISTANCE_SQR = MAX_RENDER_DISTANCE * MAX_RENDER_DISTANCE;
     private static final RenderType SOLID_RENDER_TYPE =
             ApprenticeRenderTypes.color("arcanum_in_a_jar_cube_solid");
+    private static final RenderType DUST_RENDER_TYPE = RenderType.entityCutoutNoCull(InventoryMenu.BLOCK_ATLAS);
 
     public ArcanumInAJarBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         // do nothing.
@@ -64,12 +68,12 @@ public class ArcanumInAJarBlockEntityRenderer implements BlockEntityRenderer<Arc
             return;
         }
 
-        // 既存のキューブ演出の上に粉の充填を重ねる.
+        // キューブを完成品、粉を変換待ち素材として別々に可視化する.
         var time = level.getGameTime() + partialTick + (blockEntity.getBlockPos().asLong() & 31L);
         var fade = 0.5f + 0.5f * Mth.sin((float)(time * 0.045f));
-        var operationRatio = blockEntity.getRemainingOperationRatio();
+        var productRatio = blockEntity.getStoredProductRatio();
 
-        if (operationRatio > 0.0f) {
+        if (productRatio > 0.0f) {
             poseStack.pushPose();
             poseStack.translate(CENTER_XZ, CENTER_Y, CENTER_XZ);
             poseStack.mulPose(Axis.XP.rotationDegrees((float)(time * 0.55f)));
@@ -79,7 +83,7 @@ public class ArcanumInAJarBlockEntityRenderer implements BlockEntityRenderer<Arc
             drawCube(
                     poseStack,
                     buffer.getBuffer(SOLID_RENDER_TYPE),
-                    INNER_CUBE_SIZE * operationRatio,
+                    INNER_CUBE_SIZE * productRatio,
                     255, 255, 255, 255,
                     false
             );
@@ -88,7 +92,7 @@ public class ArcanumInAJarBlockEntityRenderer implements BlockEntityRenderer<Arc
                 drawCube(
                         poseStack,
                         buffer.getBuffer(SOLID_RENDER_TYPE),
-                        OUTER_CUBE_SIZE * operationRatio,
+                        OUTER_CUBE_SIZE * productRatio,
                         toChannel(Mth.lerp(fade, 0.45f, 0.78f)),
                         toChannel(Mth.lerp(fade, 0.88f, 0.44f)),
                         255,
@@ -100,13 +104,19 @@ public class ArcanumInAJarBlockEntityRenderer implements BlockEntityRenderer<Arc
             poseStack.popPose();
         }
 
-        var fillRatio = blockEntity.getFillRatio();
-        if (fillRatio <= 0.0f) {
+        var materialRatio = blockEntity.getRemainingMaterialRatio();
+        if (materialRatio <= 0.0f) {
             return;
         }
 
-        var fillTopY = INNER_MIN_Y + (INNER_MAX_Y - INNER_MIN_Y) * fillRatio;
-        var dustConsumer = buffer.getBuffer(RenderType.entityCutoutNoCull(DUST_TEXTURE));
+        var fillTopY = INNER_MIN_Y + (INNER_MAX_Y - INNER_MIN_Y) * materialRatio;
+        var dustSprite = resolveDustSprite();
+        if (dustSprite == null) {
+            return;
+        }
+
+        // SpriteCoordinateExpanderを通すことで、既存の0～1 UVをアトラス内の現在フレームへ変換する.
+        var dustConsumer = dustSprite.wrap(buffer.getBuffer(DUST_RENDER_TYPE));
         drawFillVolume(
                 poseStack,
                 dustConsumer,
@@ -128,6 +138,11 @@ public class ArcanumInAJarBlockEntityRenderer implements BlockEntityRenderer<Arc
 
     private static Vec3 getRenderCenter(ArcanumInAJarBlockEntity blockEntity) {
         return Vec3.atCenterOf(blockEntity.getBlockPos()).add(0.0, CENTER_Y - 0.5, 0.0);
+    }
+
+    private static TextureAtlasSprite resolveDustSprite() {
+        var sprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(DUST_SPRITE_ID);
+        return sprite.contents().name().equals(MissingTextureAtlasSprite.getLocation()) ? null : sprite;
     }
 
     private static void drawFillVolume(PoseStack poseStack, VertexConsumer dustConsumer, int packedLight, int packedOverlay,

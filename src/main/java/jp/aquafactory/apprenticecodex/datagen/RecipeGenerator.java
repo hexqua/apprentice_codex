@@ -84,12 +84,12 @@ public final class RecipeGenerator extends RecipeProvider {
                 .pattern("A A")
                 .pattern("FEF")
                 .pattern("DCD")
-                .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                .define('A', Items.AMETHYST_SHARD)
                 .define('E', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get())
                 .define('F', ItemTags.WOODEN_FENCES)
                 .define('D', Items.POLISHED_DEEPSLATE)
                 .define('C', Items.CAMPFIRE)
-                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.BLOOD_VIAL.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.BLOOD_VIAL.get()))
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get()))
                 .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ItemRegistry.SPELLCASTER_WORKBENCH.get())

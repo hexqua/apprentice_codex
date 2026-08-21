@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.compat.jade;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJar;
+import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntity;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntity;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStation;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmoker;
@@ -36,6 +37,7 @@ public final class ApprenticeCodexJadePlugin implements IWailaPlugin {
 
     @Override
     public void register(IWailaCommonRegistration registration) {
+        registration.registerBlockDataProvider(ArcanumInAJarJadeProvider.INSTANCE, ArcanumInAJarBlockEntity.class);
         registration.registerFluidStorage(AtelierStationJadeFluidStorageProvider.INSTANCE, AtelierStationBlockEntity.class);
         registration.registerEntityDataProvider(HealingBloomJadeProvider.INSTANCE, HealingBloomEntity.class);
         registration.registerEntityDataProvider(ArcherMultipleJadeProvider.INSTANCE, ArcherMultipleBowEntity.class);
