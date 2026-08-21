@@ -115,6 +115,20 @@ config="mixins.apprenticecodex.json"
     side="BOTH"
 
 [[dependencies.${mod_id}]]
+    modId="atlas_api"
+    type="optional"
+    versionRange="[${atlas_api_version},)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="irons_jewelry"
+    type="optional"
+    versionRange="[${irons_jewelry_version},)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
     modId="jei"
     type="optional"
     versionRange="[0,)"

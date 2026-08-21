@@ -16,6 +16,7 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
     private static final String BETTER_COMBAT_MOD_ID = "bettercombat";
     private static final String EFIS_COMPAT_MOD_ID = "efiscompat";
     private static final String MALUM_MOD_ID = "malum";
+    private static final String IRONS_JEWELRY_MOD_ID = "irons_jewelry";
     private static final String EASY_MAGIC_MIXIN = "jp.aquafactory.apprenticecodex.mixin.EasyMagicModEnchantmentMenuMixin";
     private static final String ARCANE_ANVIL_JEI_RECIPE_MIXIN =
             "jp.aquafactory.apprenticecodex.mixin.ArcaneAnvilJeiRecipeMixin";
@@ -24,6 +25,8 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
     private static final String EFIS_COMPAT_MIXIN_PREFIX = "jp.aquafactory.apprenticecodex.mixin.EfisCompat";
     private static final String MALUM_REPLENISHING_OFFHAND_MIXIN =
             "jp.aquafactory.apprenticecodex.mixin.MalumReplenishingOffhandMixin";
+    private static final String IRONS_JEWELRY_PROJECTILE_HIT_MIXIN =
+            "jp.aquafactory.apprenticecodex.mixin.IronsJewelryProjectileHitMixin";
 
     @Override
     public void onLoad(String mixinPackage) {
@@ -65,6 +68,10 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
         if (MALUM_REPLENISHING_OFFHAND_MIXIN.equals(mixinClassName)) {
             var loadingModList = FMLLoader.getLoadingModList();
             return loadingModList != null && loadingModList.getModFileById(MALUM_MOD_ID) != null;
+        }
+        if (IRONS_JEWELRY_PROJECTILE_HIT_MIXIN.equals(mixinClassName)) {
+            var loadingModList = FMLLoader.getLoadingModList();
+            return loadingModList != null && loadingModList.getModFileById(IRONS_JEWELRY_MOD_ID) != null;
         }
         return true;
     }
