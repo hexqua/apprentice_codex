@@ -1055,6 +1055,13 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         return HoverrideBroomPresentation.fromId(entityData.get(PRESENTATION_STATE));
     }
 
+    public float getSpeedEffectIntensity() {
+        var horizontalSpeed = HoverrideBroomMovement.horizontal(getDeltaMovement()).length();
+        return HoverrideBroomPresentation.speedEffectIntensity(
+                horizontalSpeed / HoverrideBroomMovement.maximumHorizontalSpeed(isOverdriveEnabled())
+        );
+    }
+
     private void setPresentationState(HoverrideBroomPresentation state) {
         entityData.set(PRESENTATION_STATE, state.ordinal());
     }
