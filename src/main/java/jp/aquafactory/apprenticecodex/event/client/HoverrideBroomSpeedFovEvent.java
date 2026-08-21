@@ -23,9 +23,10 @@ public final class HoverrideBroomSpeedFovEvent {
         }
 
         var speedMultiplier = Mth.lerp(broom.getSpeedEffectIntensity(), 1.0F, MAXIMUM_FOV_MULTIPLIER);
-        var adjusted = event.getFovModifier() * speedMultiplier;
+        var currentFovModifier = event.getNewFovModifier();
+        var adjusted = currentFovModifier * speedMultiplier;
         var fovEffectScale = Minecraft.getInstance().options.fovEffectScale().get().floatValue();
-        // バニラの「FOV の変化」設定を尊重し、無効時はカメラ演出を追加しない。
-        event.setNewFovModifier(Mth.lerp(fovEffectScale, event.getFovModifier(), adjusted));
+        // 設定補間と先行イベントの結果を維持し、その値へ箒の速度演出だけを合成する。
+        event.setNewFovModifier(Mth.lerp(fovEffectScale, currentFovModifier, adjusted));
     }
 }
