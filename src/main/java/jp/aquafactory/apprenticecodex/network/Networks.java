@@ -55,6 +55,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookCo
 import jp.aquafactory.apprenticecodex.network.packet.SyncInstantSearchBrazierConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncLuminousDeviceConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncLinearBuildConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMageLightConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaShieldCharmConfigPacket;
@@ -84,7 +85,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "87";
+    private static final String PROTOCOL_VERSION = "88";
 
     private Networks() {
     }
@@ -274,6 +275,11 @@ public final class Networks {
                 SyncMageLightConfigPacket.TYPE,
                 SyncMageLightConfigPacket.STREAM_CODEC,
                 SyncMageLightConfigPacket::handle
+        );
+        registrar.playToClient(
+                SyncLinearBuildConfigPacket.TYPE,
+                SyncLinearBuildConfigPacket.STREAM_CODEC,
+                SyncLinearBuildConfigPacket::handle
         );
         registrar.playToClient(
                 SyncScarletThirstHealthPacket.TYPE,
