@@ -28,6 +28,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String AUTO_TURRET_ISOLATED_BATCH = "apprenticecodex.auto_turret_isolated";
     private static final String FIELD_OVERSEER_ISOLATED_BATCH = "apprenticecodex.field_overseer_isolated";
     private static final String FIELD_OVERSEER_LIFECYCLE_BATCH = "apprenticecodex.field_overseer_lifecycle";
+    private static final String FIELD_OVERSEER_ATTACK_BATCH = "apprenticecodex.field_overseer_attack";
     private static final String TOTEM_OF_PERMAFROST_ISOLATED_BATCH = "apprenticecodex.totem_of_permafrost_isolated";
     private static final String TOTEM_OF_PERMAFROST_PULSE_BATCH = "apprenticecodex.totem_of_permafrost_pulse";
     private static final String AUTO_MAGNET_ISOLATED_BATCH = "apprenticecodex.auto_magnet_isolated";
@@ -47,7 +48,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String INSCRIBE_ICE_ISOLATED_BATCH = "apprenticecodex.inscribe_ice_isolated";
     private static final String STRAIGHT_PROJECTILE_COLLISION_ISOLATED_BATCH =
             "apprenticecodex.straight_projectile_collision_isolated";
-    private static final String DUAL_ACROBAT_ISOLATED_BATCH = "apprenticecodex.dual_acrobat_isolated";
+    private static final String DUAL_ACROBAT_STARTUP_BATCH = "apprenticecodex.dual_acrobat_startup";
+    private static final String DUAL_ACROBAT_COMPLETION_BATCH = "apprenticecodex.dual_acrobat_completion";
+    private static final String DUAL_ACROBAT_CANCELLED_BATCH = "apprenticecodex.dual_acrobat_cancelled";
+    private static final String DUAL_ACROBAT_COUNTERSPELL_BATCH = "apprenticecodex.dual_acrobat_counterspell";
+    private static final String DUAL_ACROBAT_OWNERSHIP_BATCH = "apprenticecodex.dual_acrobat_ownership";
     private static final String BULLET_STREAM_ISOLATED_BATCH = "apprenticecodex.bullet_stream_isolated";
     private static final String HEAVENLY_FIST_ISOLATED_BATCH = "apprenticecodex.heavenly_fist_isolated";
     private static final String HEAVENLY_FIST_CREATE_PRESSING_DENYLIST_BATCH =
@@ -517,7 +522,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.fieldOverseerDestructionEndsMatchingRecast(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = FIELD_OVERSEER_ISOLATED_BATCH, timeoutTicks = 100)
+    @GameTest(template = TEMPLATE, batch = FIELD_OVERSEER_ATTACK_BATCH, timeoutTicks = 100)
     public static void fieldOverseerPrioritizesHealthAndTransfersMana(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.fieldOverseerPrioritizesHealthAndTransfersMana(helper);
     }
@@ -1007,27 +1012,27 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         MoonLightCounterspellGameTestScenarios.chargeCutAppliesCounterspellEffects(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 80)
+    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_STARTUP_BATCH, timeoutTicks = 80)
     public static void dualAcrobatStartsFiringAfterStartupAndContinuesWhileCasting(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.dualAcrobatStartsFiringAfterStartupAndContinuesWhileCasting(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 80)
+    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_COMPLETION_BATCH, timeoutTicks = 80)
     public static void dualAcrobatCompletionDiscardsImmediately(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.dualAcrobatCompletionDiscardsImmediately(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 40)
+    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_CANCELLED_BATCH, timeoutTicks = 40)
     public static void dualAcrobatCancelledInterruptionDiscardsImmediately(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.dualAcrobatCancelledInterruptionDiscardsImmediately(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 80)
+    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_COUNTERSPELL_BATCH, timeoutTicks = 80)
     public static void dualAcrobatCounterspellInterruptDiscardsImmediately(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.dualAcrobatCounterspellInterruptDiscardsImmediately(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_ISOLATED_BATCH, timeoutTicks = 40)
+    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_OWNERSHIP_BATCH, timeoutTicks = 40)
     public static void dualAcrobatCounterspellDoesNotInterruptNearbyOtherOwnerWeapon(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.dualAcrobatCounterspellDoesNotInterruptNearbyOtherOwnerWeapon(helper);
     }
