@@ -6,18 +6,28 @@ import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.spell.deepsensor.DeepSensorObservationBuffer;
 import jp.aquafactory.apprenticecodex.spell.deepsensor.SenseSensorVibrationEvent;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SculkSensorBlock;
+import net.minecraft.world.level.block.state.properties.SculkSensorPhase;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.common.util.FakePlayerFactory;
+import net.neoforged.neoforge.event.VanillaGameEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.UUID;
 
 @GameTestHolder(ApprenticeCodex.MODID)
@@ -25,6 +35,30 @@ import java.util.UUID;
 public final class DeepSensorGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final ResourceLocation STEP_EVENT = ResourceLocation.withDefaultNamespace("step");
+    private static final BlockPos SENSOR_POS = new BlockPos(1, 2, 1);
+    private static final BlockPos VIBRATION_POS = new BlockPos(3, 2, 1);
+    private static final List<Holder<GameEvent>> SILENCED_GAME_EVENTS = List.of(
+            GameEvent.STEP,
+            GameEvent.SWIM,
+            GameEvent.HIT_GROUND,
+            GameEvent.SPLASH,
+            GameEvent.ELYTRA_GLIDE,
+            GameEvent.UNEQUIP,
+            GameEvent.ENTITY_DISMOUNT,
+            GameEvent.EQUIP,
+            GameEvent.ENTITY_MOUNT,
+            GameEvent.ENTITY_DAMAGE
+    );
+    private static final List<Holder<GameEvent>> EXPLICITLY_AUDIBLE_GAME_EVENTS = List.of(
+            GameEvent.PROJECTILE_SHOOT,
+            GameEvent.INSTRUMENT_PLAY,
+            GameEvent.DRINK,
+            GameEvent.EAT,
+            GameEvent.CONTAINER_CLOSE,
+            GameEvent.CONTAINER_OPEN,
+            GameEvent.BLOCK_DESTROY,
+            GameEvent.BLOCK_PLACE
+    );
 
     private DeepSensorGameTests() {
     }
@@ -110,5 +144,141 @@ public final class DeepSensorGameTests {
             SenseSensorVibrationEvent.onPlayerTick(new PlayerTickEvent.Post(player));
         }
         helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void activeEffectCancelsConfiguredMovementGameEvents(GameTestHelper helper) {
+        var player = createTestPlayer(helper, "deep_sensor_silenced_events");
+        addSenseSensorEffect(player);
+
+        for (var gameEvent : SILENCED_GAME_EVENTS) {
+            assertCancellation(helper, gameEvent, player, true);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void activeEffectKeepsExplicitNonMovementGameEvents(GameTestHelper helper) {
+        var player = createTestPlayer(helper, "deep_sensor_audible_events");
+        addSenseSensorEffect(player);
+
+        for (var gameEvent : EXPLICITLY_AUDIBLE_GAME_EVENTS) {
+            assertCancellation(helper, gameEvent, player, false);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void silencingRequiresActiveEffectAndLivingSource(GameTestHelper helper) {
+        var player = createTestPlayer(helper, "deep_sensor_inactive_effect");
+        assertCancellation(helper, GameEvent.STEP, player, false);
+        assertCancellation(helper, GameEvent.STEP, null, false);
+
+        var zombie = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 1));
+        addSenseSensorEffect(zombie);
+        assertCancellation(helper, GameEvent.STEP, zombie, true);
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 20)
+    public static void activeEffectKeepsSculkSensorInactiveForStep(GameTestHelper helper) {
+        var player = createTestPlayer(helper, "deep_sensor_sculk_step");
+        addSenseSensorEffect(player);
+        assertSculkSensorResponse(helper, GameEvent.STEP, GameEvent.Context.of(player), false);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 20)
+    public static void activeEffectLetsSculkSensorReceiveProjectileShoot(GameTestHelper helper) {
+        var player = createTestPlayer(helper, "deep_sensor_sculk_projectile");
+        addSenseSensorEffect(player);
+        assertSculkSensorResponse(helper, GameEvent.PROJECTILE_SHOOT, GameEvent.Context.of(player), true);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 20)
+    public static void sneakingStillSuppressesAudibleGameEvent(GameTestHelper helper) {
+        var player = createTestPlayer(helper, "deep_sensor_sculk_sneaking");
+        player.setShiftKeyDown(true);
+        assertSculkSensorResponse(helper, GameEvent.PROJECTILE_SHOOT, GameEvent.Context.of(player), false);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 20)
+    public static void woolStillSuppressesStepWithoutEffect(GameTestHelper helper) {
+        var player = createTestPlayer(helper, "deep_sensor_sculk_wool");
+        assertSculkSensorResponse(
+                helper,
+                GameEvent.STEP,
+                GameEvent.Context.of(player, Blocks.WHITE_WOOL.defaultBlockState()),
+                false
+        );
+    }
+
+    private static net.neoforged.neoforge.common.util.FakePlayer createTestPlayer(
+            GameTestHelper helper,
+            String profileName
+    ) {
+        var profile = new GameProfile(
+                UUID.nameUUIDFromBytes(profileName.getBytes(StandardCharsets.UTF_8)),
+                profileName
+        );
+        var player = FakePlayerFactory.get(helper.getLevel(), profile);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
+        var position = helper.absoluteVec(Vec3.atBottomCenterOf(VIBRATION_POS));
+        player.setPos(position.x, position.y, position.z);
+        return player;
+    }
+
+    private static void addSenseSensorEffect(net.minecraft.world.entity.LivingEntity entity) {
+        var senseSensor = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.SENSE_SENSOR.get());
+        entity.addEffect(new MobEffectInstance(senseSensor, 40, 0));
+    }
+
+    private static void assertCancellation(
+            GameTestHelper helper,
+            Holder<GameEvent> gameEvent,
+            Entity source,
+            boolean expectedCanceled
+    ) {
+        var event = new VanillaGameEvent(
+                helper.getLevel(),
+                gameEvent,
+                helper.absoluteVec(Vec3.atCenterOf(VIBRATION_POS)),
+                GameEvent.Context.of(source)
+        );
+        SenseSensorVibrationEvent.onVanillaGameEvent(event);
+        var eventId = gameEvent.unwrapKey()
+                .map(net.minecraft.resources.ResourceKey::location)
+                .orElseGet(() -> BuiltInRegistries.GAME_EVENT.getKey(gameEvent.value()));
+        helper.assertTrue(
+                event.isCanceled() == expectedCanceled,
+                "Deep Sensor cancellation mismatch for " + eventId + ": expected " + expectedCanceled
+        );
+    }
+
+    private static void assertSculkSensorResponse(
+            GameTestHelper helper,
+            Holder<GameEvent> gameEvent,
+            GameEvent.Context context,
+            boolean expectedActive
+    ) {
+        helper.setBlock(SENSOR_POS, Blocks.SCULK_SENSOR);
+        var eventPosition = helper.absoluteVec(Vec3.atCenterOf(VIBRATION_POS));
+
+        // 動的listenerの登録と振動の伝播を、固定tickで分けて実環境と同じ経路を通す。
+        helper.runAfterDelay(2, () -> {
+            helper.getLevel().gameEvent(gameEvent, eventPosition, context);
+            helper.runAfterDelay(5, () -> {
+                var state = helper.getBlockState(SENSOR_POS);
+                var isActive = state.getValue(SculkSensorBlock.PHASE) == SculkSensorPhase.ACTIVE
+                        && state.getValue(SculkSensorBlock.POWER) > 0;
+                helper.assertTrue(
+                        isActive == expectedActive,
+                        "Sculk Sensor response mismatch for " + gameEvent.unwrapKey()
+                                .map(net.minecraft.resources.ResourceKey::location)
+                                .orElseGet(() -> BuiltInRegistries.GAME_EVENT.getKey(gameEvent.value()))
+                                + ": expected active=" + expectedActive
+                );
+                helper.succeed();
+            });
+        });
     }
 }

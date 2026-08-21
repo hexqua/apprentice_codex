@@ -12,6 +12,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.gameevent.DynamicGameEventListener;
@@ -19,6 +20,7 @@ import net.minecraft.world.level.gameevent.EntityPositionSource;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.gameevent.PositionSource;
 import net.minecraft.world.level.gameevent.vibrations.VibrationSystem;
+import net.minecraftforge.event.VanillaGameEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -29,15 +31,41 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class SenseSensorVibrationEvent {
     public static final int LISTENER_RADIUS = 24;
     private static final int HEARTBEAT_INTERVAL_TICKS = 100;
+    private static final Set<GameEvent> SILENCED_GAME_EVENTS = Set.of(
+            GameEvent.STEP,
+            GameEvent.SWIM,
+            GameEvent.HIT_GROUND,
+            GameEvent.SPLASH,
+            GameEvent.ELYTRA_GLIDE,
+            GameEvent.UNEQUIP,
+            GameEvent.ENTITY_DISMOUNT,
+            GameEvent.EQUIP,
+            GameEvent.ENTITY_MOUNT,
+            GameEvent.ENTITY_DAMAGE
+    );
     private static final Map<UUID, SensorState> SENSOR_STATES = new HashMap<>();
 
     private SenseSensorVibrationEvent() {
+    }
+
+    @SubscribeEvent
+    public static void onVanillaGameEvent(VanillaGameEvent event) {
+        if (!(event.getCause() instanceof LivingEntity source)) {
+            return;
+        }
+
+        if (source.hasEffect(EffectRegistry.SENSE_SENSOR.get())
+                && SILENCED_GAME_EVENTS.contains(event.getVanillaEvent())) {
+            // dispatch前に止めることで、スカルクセンサーとWardenを含む全振動リスナーで同じ無音化契約にする。
+            event.setCanceled(true);
+        }
     }
 
     public static int calculateTravelTimeInTicks(float distance) {
