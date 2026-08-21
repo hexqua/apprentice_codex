@@ -573,7 +573,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
     }
     static void circuitHeatStaffDropCoolingConsumesWaterSource(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var waterPos = new BlockPos(0, 2, 0);
+            var waterPos = new BlockPos(2, 2, 2);
             placeWaterTestBasin(helper, waterPos);
             helper.setBlock(waterPos, Blocks.WATER);
 
@@ -612,7 +612,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
     }
     static void circuitHeatStaffDropCoolingDisabledByServerConfig(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var waterPos = new BlockPos(0, 2, 0);
+            var waterPos = new BlockPos(2, 2, 2);
             placeWaterTestBasin(helper, waterPos);
             helper.setBlock(waterPos, Blocks.WATER);
 
@@ -645,7 +645,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
         });
     }
     static void circuitHeatStaffDropCoolingIgnoresFlowingWater(GameTestHelper helper) {
-        var waterPos = new BlockPos(0, 2, 0);
+        var waterPos = new BlockPos(2, 2, 2);
         placeWaterTestBasin(helper, waterPos);
         helper.setBlock(waterPos, Blocks.WATER.defaultBlockState().setValue(LiquidBlock.LEVEL, 1));
 
@@ -662,7 +662,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
     }
     static void circuitHeatStaffDropCoolingKeepsWaterSourceWhenConsumptionDisabled(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var waterPos = new BlockPos(0, 2, 0);
+            var waterPos = new BlockPos(2, 2, 2);
             placeWaterTestBasin(helper, waterPos);
             helper.setBlock(waterPos, Blocks.WATER);
 
@@ -696,7 +696,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
         });
     }
     static void circuitHeatStaffDropCoolingConsumesCauldronLevel(GameTestHelper helper) {
-        var cauldronPos = new BlockPos(0, 2, 0);
+        var cauldronPos = new BlockPos(2, 2, 2);
         helper.setBlock(
                 cauldronPos,
                 Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3)
@@ -719,7 +719,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
     }
     static void circuitHeatStaffDropCoolingKeepsWaterCauldronWhenConsumptionDisabled(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var cauldronPos = new BlockPos(0, 2, 0);
+            var cauldronPos = new BlockPos(2, 2, 2);
             helper.setBlock(
                     cauldronPos,
                     Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3)
@@ -757,7 +757,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
         });
     }
     static void circuitHeatStaffDropCoolingKeepsPowderSnowBlock(GameTestHelper helper) {
-        var powderSnowPos = new BlockPos(0, 2, 0);
+        var powderSnowPos = new BlockPos(2, 2, 2);
         helper.setBlock(powderSnowPos, Blocks.POWDER_SNOW);
 
         var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
@@ -775,7 +775,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
         });
     }
     static void circuitHeatStaffDropCoolingKeepsPowderSnowCauldronLevel(GameTestHelper helper) {
-        var cauldronPos = new BlockPos(0, 2, 0);
+        var cauldronPos = new BlockPos(2, 2, 2);
         helper.setBlock(
                 cauldronPos,
                 Blocks.POWDER_SNOW_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3)
@@ -797,7 +797,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
         });
     }
     static void circuitHeatStaffDropCoolingIgnoresNonOverheatedStaff(GameTestHelper helper) {
-        var waterPos = new BlockPos(0, 2, 0);
+        var waterPos = new BlockPos(2, 2, 2);
         placeWaterTestBasin(helper, waterPos);
         helper.setBlock(waterPos, Blocks.WATER);
 
@@ -813,7 +813,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
         });
     }
     static void circuitHeatStaffDropCoolingIgnoresNonOverheatedStaffInPowderSnow(GameTestHelper helper) {
-        var powderSnowPos = new BlockPos(0, 2, 0);
+        var powderSnowPos = new BlockPos(2, 2, 2);
         helper.setBlock(powderSnowPos, Blocks.POWDER_SNOW);
 
         var itemEntity = spawnNoGravityItem(helper, powderSnowPos, new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get()));
