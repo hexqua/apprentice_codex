@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.event.ApprenticeDeskConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.LuminousDeviceConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.LinearBuildConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.CircuitHeatStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.EquipmentSpellTimingConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.FloatmountBroomConfigSyncEvents;
@@ -99,6 +100,7 @@ public class ApprenticeCodex
         ModEntityAttributeEvent.register(modEventBus);
         ApprenticeDeskConfigSyncEvents.register(modEventBus);
         LuminousDeviceConfigSyncEvents.register(modEventBus);
+        LinearBuildConfigSyncEvents.register(modEventBus);
         CircuitHeatStaffConfigSyncEvents.register(modEventBus);
         IronSwingcastStaffConfigSyncEvents.register(modEventBus);
         HighTierSwingcastStaffConfigSyncEvents.register(modEventBus);
@@ -125,4 +127,3 @@ public class ApprenticeCodex
         }
     }
 }
-

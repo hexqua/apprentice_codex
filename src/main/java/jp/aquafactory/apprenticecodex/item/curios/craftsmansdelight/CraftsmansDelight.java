@@ -51,7 +51,8 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
             SpellRegistry.HARVEST_MOON,
             SpellRegistry.EARTH_FORGE,
             SpellRegistry.HEAVENLY_FIST,
-            SpellRegistry.MANA_MENDING
+            SpellRegistry.MANA_MENDING,
+            SpellRegistry.LINEAR_BUILD
     );
     private final String slotIdentifier;
 

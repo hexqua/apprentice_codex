@@ -5,17 +5,21 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.compat.create.CreateToolboxLinearBuildBridge;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumPouchLinearBuildBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
 import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell;
+import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.ChatFormatting;
@@ -57,6 +61,9 @@ import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.network.PacketDistributor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.ArrayList;
@@ -64,14 +71,18 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 
-public class LinearBuild extends AbstractSpell implements IClientBlockTargetingSpell, IChargecastStaffbowIncompatibleSpell {
+public class LinearBuild extends AbstractSpell implements IClientBlockTargetingSpell,
+        IChargecastStaffbowIncompatibleSpell, ICraftsmansDelightAffectedSpell {
     private static final String NOT_BLOCK_MESSAGE = "ui.apprenticecodex.linear_build.not_block";
     private static final String TOO_FAR_MESSAGE = "ui.apprenticecodex.too_far";
     private static final String RETRIEVED_MESSAGE = "ui.apprenticecodex.linear_build.retrieved_from_container";
+    private static final String DEPLETE_MANA_MESSAGE = "ui.apprenticecodex.linear_build.deplete_mana";
     private static final String INVALID_LARGE_SIZE_MESSAGE = "ui.apprenticecodex.linear_build.invalid_large_size";
     private static final String INVALID_BY_DENY_LIST_MESSAGE = "ui.apprenticecodex.linear_build.invalid_by_deny_list";
     private static final int PLAYER_INVENTORY_ITEM_SLOTS = 36;
     private static final int SHULKER_SLOT_COUNT = 27;
+    private static final int BASE_RANGE = 24;
+    private static final int CRAFTSMANS_DELIGHT_RANGE = 32;
 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "linear_build");
 
@@ -91,19 +102,30 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
     }
 
     @Override
-    public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
+    public List<MutableComponent> getUniqueInfo(int spellLevel, @Nullable LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 0))
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(caster), 0)),
+                Component.translatable(
+                        "ui.apprenticecodex.linear_build.additional_place_cost",
+                        getAdditionalPlaceManaCost(caster)
+                )
         );
     }
 
-    private int getRange(){
-        return 32;
+    private int getAdditionalPlaceManaCost(@Nullable LivingEntity caster) {
+        var configuredManaCost = caster == null || caster.level().isClientSide
+                ? LinearBuildConfigState.manaCostPerBlock()
+                : ApprenticeCodexServerConfig.linearBuildConfig().manaCostPerBlock();
+        return CraftsmansDelight.applyManaCostDiscount(configuredManaCost, caster);
+    }
+
+    private int getRange(@Nullable LivingEntity caster) {
+        return CraftsmansDelight.isEquippedBy(caster) ? CRAFTSMANS_DELIGHT_RANGE : BASE_RANGE;
     }
 
     @Override
     public double getClientBlockTargetingRange(int spellLevel, LivingEntity entity) {
-        return getRange();
+        return getRange(entity);
     }
 
     @Override
@@ -168,7 +190,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
                 if (target.isEmpty()) {
                     sendError(player, TOO_FAR_MESSAGE);
                 } else {
-                    placeLine(level, player, blockTemplate.stack(), target.get());
+                    placeLine(level, player, blockTemplate.stack(), target.get(), castSource, playerMagicData);
                 }
             }
         }
@@ -236,20 +258,20 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         if (clientTarget.isPresent()) {
             var data = clientTarget.get();
             if (data.getHitBlockPos() != null && data.getHitFace() != null
-                    && isWithinAxisRange(entity.blockPosition(), data.getHitBlockPos())) {
+                    && isWithinAxisRange(entity, data.getHitBlockPos())) {
                 return Optional.of(new PlacementTarget(data.getHitBlockPos(), data.getHitFace()));
             }
             return Optional.empty();
         }
 
         return raycastTargetBlock(level, entity)
-                .filter(hit -> isWithinAxisRange(entity.blockPosition(), hit.getBlockPos()))
+                .filter(hit -> isWithinAxisRange(entity, hit.getBlockPos()))
                 .map(hit -> new PlacementTarget(hit.getBlockPos(), hit.getDirection()));
     }
 
     private Optional<BlockHitResult> raycastTargetBlock(Level level, LivingEntity entity) {
         var start = entity.getEyePosition(1.0F);
-        var end = start.add(entity.getViewVector(1.0F).scale(getRange()));
+        var end = start.add(entity.getViewVector(1.0F).scale(getRange(entity)));
         var hit = level.clip(new ClipContext(
                 start,
                 end,
@@ -264,8 +286,9 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         return Optional.of(hit);
     }
 
-    private boolean isWithinAxisRange(BlockPos origin, BlockPos target) {
-        var range = getRange();
+    private boolean isWithinAxisRange(LivingEntity entity, BlockPos target) {
+        var origin = entity.blockPosition();
+        var range = getRange(entity);
         return Math.abs(origin.getX() - target.getX()) <= range
                 && Math.abs(origin.getY() - target.getY()) <= range
                 && Math.abs(origin.getZ() - target.getZ()) <= range;
@@ -281,7 +304,8 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         return Optional.of(new PlacementTarget(castData.hitBlockPos, castData.hitFace));
     }
 
-    private void placeLine(Level level, ServerPlayer player, ItemStack blockTemplate, PlacementTarget target) {
+    private void placeLine(Level level, ServerPlayer player, ItemStack blockTemplate, PlacementTarget target,
+                           CastSource castSource, MagicData playerMagicData) {
         if (!(blockTemplate.getItem() instanceof BlockItem blockItem)) {
             sendError(player, NOT_BLOCK_MESSAGE);
             return;
@@ -293,9 +317,17 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         var retrievedLabels = new LinkedHashSet<Component>();
         var copySourceState = resolveCopySourceState(level, blockItem, target);
         var abortOnFailedPlacement = ApprenticeCodexServerConfig.linearBuildConfig().abortOnFailedPlacement();
+        var manaCostPerBlock = CraftsmansDelight.applyManaCostDiscount(
+                ApprenticeCodexServerConfig.linearBuildConfig().manaCostPerBlock(),
+                player
+        );
+        // スクロールなどIron's Spellsが無償と定義する発動元では、追加の設置コストも請求しない。
+        var consumesAdditionalMana = castSource.consumesMana() && !player.getAbilities().instabuild;
         var placed = false;
+        var manaDepleted = false;
+        var manaConsumed = false;
 
-        for (var pos : collectLinePositions(player.blockPosition(), target)) {
+        for (var pos : collectLinePositions(player, target)) {
             if (!level.getBlockState(pos).canBeReplaced()) {
                 if (abortOnFailedPlacement) {
                     break;
@@ -308,6 +340,11 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
                 break;
             }
 
+            if (consumesAdditionalMana && playerMagicData.getMana() + 1e-4F < manaCostPerBlock) {
+                manaDepleted = true;
+                break;
+            }
+
             var placedAtPosition = tryPlaceAt(level, player, blockTemplate, source, pos, target.hitFace(), copySourceState);
             if (!placedAtPosition) {
                 if (abortOnFailedPlacement) {
@@ -317,17 +354,26 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
             }
 
             placed = true;
+            if (consumesAdditionalMana && manaCostPerBlock > 0) {
+                playerMagicData.setMana(Math.max(0.0F, playerMagicData.getMana() - manaCostPerBlock));
+                manaConsumed = true;
+            }
             if (source.shouldNotifyRetrieved()) {
                 retrievedLabels.add(source.label());
             }
         }
 
-        if (!placed) {
+        if (manaDepleted) {
+            sendError(player, DEPLETE_MANA_MESSAGE);
+        } else if (!placed) {
             sendError(player, "ui.apprenticecodex.cant_place");
             return;
         }
 
-        if (!retrievedLabels.isEmpty()) {
+        if (manaConsumed) {
+            PacketDistributor.sendToPlayer(player, new SyncManaPacket(playerMagicData));
+        }
+        if (!manaDepleted && !retrievedLabels.isEmpty()) {
             sendRetrievedMessage(player, retrievedLabels);
         }
         if (!player.getAbilities().instabuild) {
@@ -344,13 +390,14 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         return Optional.of(hitState);
     }
 
-    private List<BlockPos> collectLinePositions(BlockPos playerPos, PlacementTarget target) {
+    private List<BlockPos> collectLinePositions(ServerPlayer player, PlacementTarget target) {
         var positions = new ArrayList<BlockPos>();
+        var playerPos = player.blockPosition();
         var axis = target.hitFace().getAxis();
         var playerAxisCoordinate = axisCoordinate(playerPos, axis);
         var targetIsAlreadyOnPlayerAxis = axisCoordinate(target.hitPos(), axis) == playerAxisCoordinate;
         var cursor = target.hitPos().relative(target.hitFace());
-        for (var step = 0; step <= getRange(); ++step) {
+        for (var step = 0; step <= getRange(player); ++step) {
             var cursorAxisCoordinate = axisCoordinate(cursor, axis);
             if (step > 0 && cursorAxisCoordinate == playerAxisCoordinate) {
                 break;
@@ -470,6 +517,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         addOwnedChestedHorseSources(player, sources);
         addCuriosItemHandlerSources(player, sources);
         addInventoryItemHandlerSources(player, sources);
+        addMalumPouchSources(player, sources);
         addLuminousDeviceSources(player, sources);
         addShulkerSources(player, sources);
         addBundleSources(player, sources);
@@ -513,7 +561,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
     }
 
     private void addOwnedChestedHorseSources(ServerPlayer player, List<LinearBuildItemSource> sources) {
-        var box = player.getBoundingBox().inflate(getRange());
+        var box = player.getBoundingBox().inflate(getRange(player));
         for (var horse : player.level().getEntitiesOfClass(AbstractChestedHorse.class, box, horse ->
                 horse.isAlive()
                         && horse.hasChest()
@@ -559,6 +607,10 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
 
     private static IItemHandler getItemHandler(ItemStack stack) {
         return stack.getCapability(net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.ITEM);
+    }
+
+    private void addMalumPouchSources(ServerPlayer player, List<LinearBuildItemSource> sources) {
+        sources.addAll(MalumPouchLinearBuildBridge.collectSources(player));
     }
 
     private boolean isDedicatedNestedContainerStack(ItemStack stack) {
@@ -1109,7 +1161,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         }
 
         @Override
-        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+        public CompoundTag serializeNBT(HolderLookup.@NotNull Provider provider) {
             var tag = new CompoundTag();
             if (hitBlockPos == null || hitFace == null) {
                 return tag;
@@ -1122,7 +1174,7 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         }
 
         @Override
-        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+        public void deserializeNBT(HolderLookup.@NotNull Provider provider, CompoundTag nbt) {
             if (!nbt.contains("HitX")) {
                 reset();
                 return;

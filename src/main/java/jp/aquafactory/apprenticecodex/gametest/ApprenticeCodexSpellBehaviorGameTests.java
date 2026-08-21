@@ -638,6 +638,36 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildUsesBaseAndCraftsmansDelightRanges(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildUsesBaseAndCraftsmansDelightRanges(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildConsumesConfiguredManaPerPlacedBlock(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildConsumesConfiguredManaPerPlacedBlock(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildCraftsmansDelightDiscountsManaPerBlock(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildCraftsmansDelightDiscountsManaPerBlock(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildStopsPartwayWhenManaIsDepleted(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildStopsPartwayWhenManaIsDepleted(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildZeroManaCostConfigAllowsPlacement(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildZeroManaCostConfigAllowsPlacement(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildScrollCastDoesNotConsumeAdditionalMana(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildScrollCastDoesNotConsumeAdditionalMana(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
     public static void linearBuildPlacesUntilPlayerAxis(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.linearBuildPlacesUntilPlayerAxis(helper);
     }
@@ -660,6 +690,26 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
     public static void linearBuildUsesOffhandLuminousDeviceBeforeShulkerSource(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.linearBuildUsesOffhandLuminousDeviceBeforeShulkerSource(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildConsumesSoulwovenPouchContents(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildConsumesSoulwovenPouchContents(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildConsumesLastRavenousPouchItem(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildConsumesLastRavenousPouchItem(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildUsesMalumPouchBeforeLuminousDevice(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildUsesMalumPouchBeforeLuminousDevice(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildMalumPouchRequiresMatchingComponents(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildMalumPouchRequiresMatchingComponents(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
