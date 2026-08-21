@@ -9227,12 +9227,12 @@ public class ApprenticeCodexGameTestScenarios {
         helper.runAtTickTime(1, () -> {
             var level = helper.getLevel();
             prepareDualAcrobatShootingLane(helper);
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "dual_acrobat_startup_test");
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(2, 2, 1), "dual_acrobat_startup_test");
             player.setYRot(0.0f);
             player.setYBodyRot(0.0f);
             player.setYHeadRot(0.0f);
             player.setXRot(0.0f);
-            var target = helper.spawn(EntityType.HUSK, new BlockPos(0, 2, 8));
+            var target = helper.spawn(EntityType.HUSK, new BlockPos(2, 2, 4));
             target.setNoAi(true);
             target.getAttribute(Attributes.MAX_HEALTH).setBaseValue(200.0D);
             target.setHealth(200.0F);
@@ -9286,12 +9286,12 @@ public class ApprenticeCodexGameTestScenarios {
         helper.runAtTickTime(1, () -> {
             var level = helper.getLevel();
             prepareDualAcrobatShootingLane(helper);
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "dual_acrobat_completion_test");
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(2, 2, 1), "dual_acrobat_completion_test");
             player.setYRot(0.0f);
             player.setYBodyRot(0.0f);
             player.setYHeadRot(0.0f);
             player.setXRot(0.0f);
-            var target = helper.spawn(EntityType.HUSK, new BlockPos(0, 2, 8));
+            var target = helper.spawn(EntityType.HUSK, new BlockPos(2, 2, 4));
             target.setNoAi(true);
             var initialHealth = target.getHealth();
 
@@ -9321,12 +9321,12 @@ public class ApprenticeCodexGameTestScenarios {
         helper.runAtTickTime(1, () -> {
             var level = helper.getLevel();
             prepareDualAcrobatShootingLane(helper);
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "dual_acrobat_cancelled_test");
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(2, 2, 1), "dual_acrobat_cancelled_test");
             player.setYRot(0.0f);
             player.setYBodyRot(0.0f);
             player.setYHeadRot(0.0f);
             player.setXRot(0.0f);
-            var target = helper.spawn(EntityType.HUSK, new BlockPos(0, 2, 8));
+            var target = helper.spawn(EntityType.HUSK, new BlockPos(2, 2, 4));
             target.setNoAi(true);
             var initialHealth = target.getHealth();
 
@@ -9352,8 +9352,9 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static void prepareDualAcrobatShootingLane(GameTestHelper helper) {
-        for (var x = -1; x <= 1; ++x) {
-            for (var z = 0; z <= 8; ++z) {
+        // basic_floor の 5x3x5 内に収め、並行 test の射線や地形を変更しない。
+        for (var x = 1; x <= 3; ++x) {
+            for (var z = 0; z <= 4; ++z) {
                 helper.setBlock(new BlockPos(x, 1, z), Blocks.STONE);
                 helper.setBlock(new BlockPos(x, 2, z), Blocks.AIR);
                 helper.setBlock(new BlockPos(x, 3, z), Blocks.AIR);
@@ -9365,12 +9366,12 @@ public class ApprenticeCodexGameTestScenarios {
     static void dualAcrobatCounterspellInterruptDiscardsImmediately(GameTestHelper helper) {
         helper.runAtTickTime(1, () -> {
             var level = helper.getLevel();
-            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "dual_acrobat_counter_target_test");
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(2, 2, 2), "dual_acrobat_counter_target_test");
             player.setYRot(0.0f);
             player.setYBodyRot(0.0f);
             player.setYHeadRot(0.0f);
             player.setXRot(0.0f);
-            var counterCaster = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 4), "dual_acrobat_counter_caster_test");
+            var counterCaster = createTrackedEquipmentTestPlayer(helper, new BlockPos(2, 2, 4), "dual_acrobat_counter_caster_test");
             var spell = beginDualAcrobatCast(level, player, 1);
             var magicData = MagicData.getPlayerMagicData(player);
             var weapon = findDualAcrobatSmg(level, player);
@@ -9392,9 +9393,9 @@ public class ApprenticeCodexGameTestScenarios {
     static void dualAcrobatCounterspellDoesNotInterruptNearbyOtherOwnerWeapon(GameTestHelper helper) {
         helper.runAtTickTime(1, () -> {
             var level = helper.getLevel();
-            var weaponOwner = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "dual_acrobat_other_owner_test");
-            var counterTarget = createTrackedEquipmentTestPlayer(helper, new BlockPos(1, 2, 0), "dual_acrobat_unrelated_target_test");
-            var counterCaster = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 4), "dual_acrobat_unrelated_counter_caster_test");
+            var weaponOwner = createTrackedEquipmentTestPlayer(helper, new BlockPos(2, 2, 2), "dual_acrobat_other_owner_test");
+            var counterTarget = createTrackedEquipmentTestPlayer(helper, new BlockPos(3, 2, 2), "dual_acrobat_unrelated_target_test");
+            var counterCaster = createTrackedEquipmentTestPlayer(helper, new BlockPos(2, 2, 4), "dual_acrobat_unrelated_counter_caster_test");
             var spell = beginDualAcrobatCast(level, weaponOwner, 1);
             var magicData = MagicData.getPlayerMagicData(weaponOwner);
             var weapon = findDualAcrobatSmg(level, weaponOwner);
@@ -10504,7 +10505,9 @@ public class ApprenticeCodexGameTestScenarios {
 
     static void mistFormStandsOnLiquidAndSneakSinks(GameTestHelper helper) {
         helper.runAfterDelay(1, () -> {
-            var waterWalker = createEquipmentTestPlayer(helper, new BlockPos(0, 3, 0), "mist_form_water_walk_test");
+            // 各検査は同期的に完了するため、隣接 test の領域へ出ず中央の basin を再利用する.
+            var basinPlayerPos = new BlockPos(2, 3, 2);
+            var waterWalker = createEquipmentTestPlayer(helper, basinPlayerPos, "mist_form_water_walk_test");
             var waterSupportPos = waterWalker.blockPosition().below();
             placeAbsoluteFluidTestBasin(helper.getLevel(), waterSupportPos, Blocks.WATER.defaultBlockState());
             waterWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
@@ -10520,7 +10523,7 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(Math.abs(waterWalker.getDeltaMovement().x - 0.1D) < 1.0E-9D,
                     "Mist Form liquid standing should preserve horizontal movement on water");
 
-            var sneakingWalker = createEquipmentTestPlayer(helper, new BlockPos(0, 3, 0), "mist_form_sneak_sink_test");
+            var sneakingWalker = createEquipmentTestPlayer(helper, basinPlayerPos, "mist_form_sneak_sink_test");
             sneakingWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
             sneakingWalker.setShiftKeyDown(true);
             sneakingWalker.setOnGround(false);
@@ -10531,7 +10534,7 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertFalse(sneakingWalker.onGround(),
                     "Mist Form should not hold the player on liquid while sneaking");
 
-            var lavaWalker = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 0), "mist_form_lava_walk_test");
+            var lavaWalker = createEquipmentTestPlayer(helper, basinPlayerPos, "mist_form_lava_walk_test");
             placeAbsoluteFluidTestBasin(helper.getLevel(), lavaWalker.blockPosition().below(), Blocks.LAVA.defaultBlockState());
             lavaWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
             lavaWalker.setDeltaMovement(0.0D, -0.2D, 0.0D);
@@ -10541,7 +10544,7 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(lavaWalker.onGround() && !lavaWalker.isInLava(),
                     "Mist Form should stand on lava by avoiding liquid contact, not by granting fire resistance");
 
-            var flowingWaterWalker = createEquipmentTestPlayer(helper, new BlockPos(4, 3, 0), "mist_form_flowing_water_walk_test");
+            var flowingWaterWalker = createEquipmentTestPlayer(helper, basinPlayerPos, "mist_form_flowing_water_walk_test");
             placeAbsoluteFluidTestBasin(helper.getLevel(), flowingWaterWalker.blockPosition().below(),
                     Blocks.WATER.defaultBlockState().setValue(LiquidBlock.LEVEL, 1));
             flowingWaterWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
@@ -10555,7 +10558,7 @@ public class ApprenticeCodexGameTestScenarios {
                     "Mist Form should stand on flowing liquid without crushing horizontal movement: "
                             + flowingWaterWalker.getDeltaMovement());
 
-            var swimmer = createEquipmentTestPlayer(helper, new BlockPos(6, 3, 0), "mist_form_swimming_test");
+            var swimmer = createEquipmentTestPlayer(helper, basinPlayerPos, "mist_form_swimming_test");
             placeAbsoluteFluidTestBasin(helper.getLevel(), swimmer.blockPosition(), Blocks.WATER.defaultBlockState());
             swimmer.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
             swimmer.setDeltaMovement(0.0D, 0.2D, 0.0D);
@@ -10568,7 +10571,7 @@ public class ApprenticeCodexGameTestScenarios {
                     "Mist Form should preserve upward swimming movement while touching liquid: "
                             + swimmer.getDeltaMovement());
 
-            var cooldownWalker = createEquipmentTestPlayer(helper, new BlockPos(8, 3, 0), "mist_form_fluid_cooldown_test");
+            var cooldownWalker = createEquipmentTestPlayer(helper, basinPlayerPos, "mist_form_fluid_cooldown_test");
             placeAbsoluteFluidTestBasin(helper.getLevel(), cooldownWalker.blockPosition(), Blocks.WATER.defaultBlockState());
             cooldownWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
             cooldownWalker.tickCount = 100;
