@@ -27,11 +27,11 @@ final class BulletStreamGameTestScenarios {
         helper.succeedIf(() -> {
             var level = helper.getLevel();
             var player = ApprenticeCodexGameTestScenarios.createTrackedEquipmentTestPlayer(
-                    helper, new BlockPos(0, 2, 0), "bullet_stream_spin_up_test"
+                    helper, new BlockPos(2, 2, 0), "bullet_stream_spin_up_test"
             );
             prepareShootingLane(helper);
             faceForward(player);
-            var target = helper.spawn(EntityType.HUSK, new BlockPos(0, 2, 8));
+            var target = helper.spawn(EntityType.HUSK, new BlockPos(2, 2, 4));
             target.setNoAi(true);
             target.getAttribute(Attributes.MAX_HEALTH).setBaseValue(200.0D);
             target.setHealth(200.0F);
@@ -148,8 +148,9 @@ final class BulletStreamGameTestScenarios {
     }
 
     private static void prepareShootingLane(GameTestHelper helper) {
-        for (var x = -1; x <= 1; x++) {
-            for (var z = 0; z <= 8; z++) {
+        // tick が必要な標的と射線を 5x3x5 template の管理範囲内に収める.
+        for (var x = 1; x <= 3; x++) {
+            for (var z = 0; z <= 4; z++) {
                 helper.setBlock(new BlockPos(x, 1, z), Blocks.STONE);
                 helper.setBlock(new BlockPos(x, 2, z), Blocks.AIR);
                 helper.setBlock(new BlockPos(x, 3, z), Blocks.AIR);
