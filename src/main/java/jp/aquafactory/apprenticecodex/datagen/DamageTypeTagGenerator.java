@@ -67,7 +67,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 SILENT_ASSASSIN,
                 TIRO_VOLLEY,
                 LETHAL_ASSAULT,
-                DUAL_ACROBAT
+                DUAL_ACROBAT,
+                COMMENCE_FIRE
         );
 
         // CODEX_MAGIC: このMODの魔法由来ダメージ全体(Malum互換などで使用)
