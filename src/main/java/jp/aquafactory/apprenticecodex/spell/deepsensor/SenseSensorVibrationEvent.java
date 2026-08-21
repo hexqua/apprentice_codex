@@ -1,20 +1,20 @@
 package jp.aquafactory.apprenticecodex.spell.deepsensor;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.DeepSensorObservationsPacket;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
-import net.minecraft.core.particles.DustColorTransitionOptions;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.gameevent.DynamicGameEventListener;
 import net.minecraft.world.level.gameevent.EntityPositionSource;
@@ -23,24 +23,55 @@ import net.minecraft.world.level.gameevent.PositionSource;
 import net.minecraft.world.level.gameevent.vibrations.VibrationSystem;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
+import net.neoforged.neoforge.event.VanillaGameEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class SenseSensorVibrationEvent {
-    private static final int BASE_RANGE = 8;
-    private static final int MAX_RANGE = 64;
-    private static final int ACTIVE_TICKS = 30;
-    private static final int COOLDOWN_TICKS = 10;
-    private static final int PARTICLE_INTERVAL_TICKS = 2;
-    private static final Map<UUID, ActiveSenseSensor> ACTIVE_SENSORS = new HashMap<>();
+    public static final int LISTENER_RADIUS = 24;
+    private static final int HEARTBEAT_INTERVAL_TICKS = 100;
+    private static final Set<Holder<GameEvent>> SILENCED_GAME_EVENTS = Set.of(
+            GameEvent.STEP,
+            GameEvent.SWIM,
+            GameEvent.HIT_GROUND,
+            GameEvent.SPLASH,
+            GameEvent.ELYTRA_GLIDE,
+            GameEvent.UNEQUIP,
+            GameEvent.ENTITY_DISMOUNT,
+            GameEvent.EQUIP,
+            GameEvent.ENTITY_MOUNT,
+            GameEvent.ENTITY_DAMAGE
+    );
+    private static final Map<UUID, SensorState> SENSOR_STATES = new HashMap<>();
 
     private SenseSensorVibrationEvent() {
+    }
+
+    @SubscribeEvent
+    public static void onVanillaGameEvent(VanillaGameEvent event) {
+        if (!(event.getCause() instanceof LivingEntity source)) {
+            return;
+        }
+
+        var senseSensor = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.SENSE_SENSOR.get());
+        if (source.hasEffect(senseSensor) && SILENCED_GAME_EVENTS.contains(event.getVanillaEvent())) {
+            // dispatch前に止めることで、スカルクセンサーとWardenを含む全振動リスナーで同じ無音化契約にする。
+            event.setCanceled(true);
+        }
+    }
+
+    public static int calculateTravelTimeInTicks(float distance) {
+        return Mth.clamp(Mth.floor(distance), 1, 3);
     }
 
     @SubscribeEvent
@@ -49,178 +80,237 @@ public final class SenseSensorVibrationEvent {
             return;
         }
 
-        var senseSensor = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.SENSE_SENSOR.get());
-        var effect = player.getEffect(senseSensor);
-        if (effect == null || !player.isAlive()) {
-            deactivate(player);
+        if (!player.isAlive()) {
+            deactivate(player, true);
             return;
         }
 
-        ACTIVE_SENSORS.compute(player.getUUID(), (uuid, activeSensor) -> {
-            if (activeSensor == null) {
-                activeSensor = new ActiveSenseSensor(player);
-            } else if (activeSensor.level != player.serverLevel()) {
-                activeSensor.remove();
-                activeSensor = new ActiveSenseSensor(player);
-            }
+        var senseSensor = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.SENSE_SENSOR.get());
+        var effectActive = player.hasEffect(senseSensor);
+        var state = SENSOR_STATES.get(player.getUUID());
+        if (state != null && state.level != player.serverLevel()) {
+            state.clear(player, true);
+            SENSOR_STATES.remove(player.getUUID());
+            state = null;
+        }
 
-            activeSensor.tick(effect);
-            return activeSensor;
-        });
+        if (effectActive && state == null) {
+            state = new SensorState(player);
+            SENSOR_STATES.put(player.getUUID(), state);
+        }
+        if (state == null) {
+            return;
+        }
+
+        state.tick(player, effectActive);
+        if (!state.listenerActive() && state.observations.isEmpty()) {
+            SENSOR_STATES.remove(player.getUUID());
+        }
     }
 
     @SubscribeEvent
-    public static void onEntityLeaveLevel(EntityLeaveLevelEvent event) {
+    public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            deactivate(player);
+            deactivate(player, true);
         }
     }
 
-    private static void deactivate(ServerPlayer player) {
-        var activeSensor = ACTIVE_SENSORS.remove(player.getUUID());
-        if (activeSensor != null) {
-            activeSensor.remove();
+    @SubscribeEvent
+    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            deactivate(player, false);
         }
     }
 
-    private static int getListenerRadius(int amplifier) {
-        // Amp=0 をスカルクセンサー基準にしつつ、増幅段階ごとに線形に倍率を上げる。
-        return Math.min(BASE_RANGE * (amplifier + 1), MAX_RANGE);
+    @SubscribeEvent
+    public static void onLivingDeath(LivingDeathEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            deactivate(player, true);
+        }
+    }
+
+    private static void deactivate(ServerPlayer player, boolean notifyPlayer) {
+        var state = SENSOR_STATES.remove(player.getUUID());
+        if (state != null) {
+            state.clear(player, notifyPlayer);
+        }
     }
 
     private static boolean isOwnVibration(@Nullable Entity sourceEntity, ServerPlayer owner) {
         if (sourceEntity == null) {
             return false;
         }
-
         if (sourceEntity == owner || sourceEntity.getControllingPassenger() == owner) {
             return true;
         }
-
         if (sourceEntity.getRootVehicle() == owner) {
             return true;
         }
-
         if (sourceEntity instanceof Projectile projectile && projectile.getOwner() == owner) {
             return true;
         }
-
         return sourceEntity instanceof ItemEntity itemEntity && itemEntity.getOwner() == owner;
     }
 
-    private static void spawnActiveParticle(ServerLevel level, Player player) {
-        var center = player.position();
-        var y = center.y + player.getBbHeight() * 0.35d;
-        var offset = 0.45d;
-        Direction direction = switch (level.random.nextInt(4)) {
-            case 0 -> Direction.NORTH;
-            case 1 -> Direction.SOUTH;
-            case 2 -> Direction.WEST;
-            default -> Direction.EAST;
-        };
-        var x = center.x + (direction.getStepX() == 0 ? 0.5d - level.random.nextDouble() : direction.getStepX() * offset);
-        var z = center.z + (direction.getStepZ() == 0 ? 0.5d - level.random.nextDouble() : direction.getStepZ() * offset);
-        var velocityY = level.random.nextFloat() * 0.04d;
-        level.sendParticles(DustColorTransitionOptions.SCULK_TO_REDSTONE, x, y, z, 1, 0.0d, velocityY, 0.0d, 0.0d);
-    }
-
-    private static final class ActiveSenseSensor implements VibrationSystem {
-        private final ServerPlayer owner;
+    private static final class SensorState {
         private final ServerLevel level;
-        private final VibrationSystem.Data vibrationData = new VibrationSystem.Data();
-        private final VibrationUser vibrationUser;
-        private final DynamicGameEventListener<VibrationSystem.Listener> dynamicListener;
-        private int currentAmplifier;
-        private int activeTicks;
-        private int cooldownTicks;
+        private final DeepSensorObservationBuffer observations = new DeepSensorObservationBuffer();
+        private ActiveListener listener;
+        private List<DeepSensorObservationBuffer.DisplayObservation> displayed = List.of();
+        private long nextHeartbeatGameTime;
 
-        private ActiveSenseSensor(ServerPlayer owner) {
-            this.owner = owner;
-            this.level = owner.serverLevel();
-            this.vibrationUser = new VibrationUser();
-            this.dynamicListener = new DynamicGameEventListener<>(new VibrationSystem.Listener(this));
-            this.dynamicListener.add(this.level);
+        private SensorState(ServerPlayer owner) {
+            level = owner.serverLevel();
+            listener = new ActiveListener(owner, this);
         }
 
-        private void tick(MobEffectInstance effect) {
-            currentAmplifier = effect.getAmplifier();
-            dynamicListener.move(level);
-            VibrationSystem.Ticker.tick(level, vibrationData, vibrationUser);
-
-            if (activeTicks > 0) {
-                if ((activeTicks % PARTICLE_INTERVAL_TICKS) == 0) {
-                    spawnActiveParticle(level, owner);
+        private void tick(ServerPlayer owner, boolean effectActive) {
+            if (effectActive) {
+                if (listener == null) {
+                    listener = new ActiveListener(owner, this);
                 }
+                listener.tick();
+            } else if (listener != null) {
+                listener.remove();
+                listener = null;
+            }
 
-                activeTicks--;
-                if (activeTicks == 0) {
-                    cooldownTicks = COOLDOWN_TICKS;
-                    playStopSound();
-                }
-            } else if (cooldownTicks > 0) {
-                cooldownTicks--;
+            var gameTime = level.getGameTime();
+            var nextDisplayed = observations.selectForDisplay(
+                    owner.position().add(0.0D, owner.getBbHeight() * 0.5D, 0.0D),
+                    gameTime
+            );
+            var wasVisible = !displayed.isEmpty();
+            var isVisible = !nextDisplayed.isEmpty();
+
+            // 同tickで周期音と消失が重なる場合は、周期音を省略せず停止音を続けて鳴らす。
+            if (wasVisible && gameTime >= nextHeartbeatGameTime) {
+                playClickSound(owner);
+                nextHeartbeatGameTime = gameTime + HEARTBEAT_INTERVAL_TICKS;
+            }
+            if (!wasVisible && isVisible) {
+                playClickSound(owner);
+                nextHeartbeatGameTime = gameTime + HEARTBEAT_INTERVAL_TICKS;
+            }
+            if (wasVisible && !isVisible) {
+                playStopSound(owner);
+            }
+
+            if (!displayed.equals(nextDisplayed)) {
+                displayed = nextDisplayed;
+                sync(owner);
             }
         }
 
+        private boolean listenerActive() {
+            return listener != null;
+        }
+
+        private void record(BlockPos position, float distance, Holder<GameEvent> gameEvent,
+                            @Nullable Entity sourceEntity, @Nullable Entity projectileOwner) {
+            var eventId = gameEvent.unwrapKey()
+                    .map(net.minecraft.resources.ResourceKey::location)
+                    .orElseGet(() -> BuiltInRegistries.GAME_EVENT.getKey(gameEvent.value()));
+            observations.record(
+                    position,
+                    distance,
+                    level.getGameTime(),
+                    sourceEntity == null ? null : sourceEntity.getUUID(),
+                    projectileOwner == null ? null : projectileOwner.getUUID(),
+                    eventId
+            );
+        }
+
+        private void clear(ServerPlayer owner, boolean notifyPlayer) {
+            if (listener != null) {
+                listener.remove();
+                listener = null;
+            }
+            observations.clear();
+            if (notifyPlayer && !displayed.isEmpty()) {
+                playStopSound(owner);
+                displayed = List.of();
+                sync(owner);
+            }
+        }
+
+        private void sync(ServerPlayer owner) {
+            Networks.sendToPlayer(owner, new DeepSensorObservationsPacket(level.dimension(), displayed));
+        }
+
+        private static void playClickSound(ServerPlayer owner) {
+            owner.playNotifySound(SoundEvents.SCULK_CLICKING, SoundSource.BLOCKS, 1.0F,
+                    owner.getRandom().nextFloat() * 0.2F + 0.8F);
+        }
+
+        private static void playStopSound(ServerPlayer owner) {
+            owner.playNotifySound(SoundEvents.SCULK_CLICKING_STOP, SoundSource.BLOCKS, 1.0F,
+                    owner.getRandom().nextFloat() * 0.2F + 0.8F);
+        }
+    }
+
+    private static final class ActiveListener implements VibrationSystem {
+        private final ServerPlayer owner;
+        private final SensorState state;
+        private final VibrationSystem.Data vibrationData = new VibrationSystem.Data();
+        private final VibrationUser vibrationUser;
+        private final DynamicGameEventListener<VibrationSystem.Listener> dynamicListener;
+
+        private ActiveListener(ServerPlayer owner, SensorState state) {
+            this.owner = owner;
+            this.state = state;
+            this.vibrationUser = new VibrationUser();
+            this.dynamicListener = new DynamicGameEventListener<>(new VibrationSystem.Listener(this));
+            dynamicListener.add(state.level);
+        }
+
+        private void tick() {
+            dynamicListener.move(state.level);
+            VibrationSystem.Ticker.tick(state.level, vibrationData, vibrationUser);
+        }
+
         private void remove() {
-            dynamicListener.remove(level);
-        }
-
-        private void onReceiveVibration() {
-            activeTicks = ACTIVE_TICKS;
-            cooldownTicks = 0;
-            playClickSound();
-            spawnActiveParticle(level, owner);
-        }
-
-        private void playClickSound() {
-            var position = owner.position();
-            level.playSound(null, position.x, position.y + owner.getBbHeight() * 0.5d, position.z,
-                    SoundEvents.SCULK_CLICKING, SoundSource.BLOCKS, 1.0f, level.random.nextFloat() * 0.2f + 0.8f);
-        }
-
-        private void playStopSound() {
-            var position = owner.position();
-            level.playSound(null, position.x, position.y + owner.getBbHeight() * 0.5d, position.z,
-                    SoundEvents.SCULK_CLICKING_STOP, SoundSource.BLOCKS, 1.0f, level.random.nextFloat() * 0.2f + 0.8f);
+            dynamicListener.remove(state.level);
         }
 
         @Override
-        public VibrationSystem.Data getVibrationData() {
+        public VibrationSystem.@NotNull Data getVibrationData() {
             return vibrationData;
         }
 
         @Override
-        public VibrationSystem.User getVibrationUser() {
+        public VibrationSystem.@NotNull User getVibrationUser() {
             return vibrationUser;
         }
 
         private final class VibrationUser implements VibrationSystem.User {
-            private final PositionSource positionSource = new EntityPositionSource(owner, owner.getBbHeight() * 0.5f);
+            private final PositionSource positionSource = new EntityPositionSource(owner, owner.getBbHeight() * 0.5F);
 
             @Override
             public int getListenerRadius() {
-                return SenseSensorVibrationEvent.getListenerRadius(currentAmplifier);
+                return LISTENER_RADIUS;
             }
 
             @Override
-            public PositionSource getPositionSource() {
+            public @NotNull PositionSource getPositionSource() {
                 return positionSource;
             }
 
             @Override
-            public boolean canReceiveVibration(ServerLevel level, BlockPos pos, Holder<GameEvent> gameEvent, GameEvent.Context context) {
-                if (activeTicks > 0 || cooldownTicks > 0) {
-                    return false;
-                }
-
+            public boolean canReceiveVibration(@NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull Holder<GameEvent> gameEvent,
+                                               GameEvent.Context context) {
                 return !isOwnVibration(context.sourceEntity(), owner);
             }
 
             @Override
-            public void onReceiveVibration(ServerLevel level, BlockPos pos, Holder<GameEvent> gameEvent, @Nullable Entity entity,
-                                           @Nullable Entity projectileOwner, float distance) {
-                ActiveSenseSensor.this.onReceiveVibration();
+            public void onReceiveVibration(@NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull Holder<GameEvent> gameEvent,
+                                           @Nullable Entity entity, @Nullable Entity projectileOwner, float distance) {
+                state.record(pos, distance, gameEvent, entity, projectileOwner);
+            }
+
+            @Override
+            public int calculateTravelTimeInTicks(float distance) {
+                return SenseSensorVibrationEvent.calculateTravelTimeInTicks(distance);
             }
 
             @Override

@@ -18,6 +18,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientBroomDismountInputPac
 import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSpellgunCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
+import jp.aquafactory.apprenticecodex.network.packet.DeepSensorObservationsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HeavenlyFistPulsePacket;
@@ -83,7 +84,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "86";
+    private static final String PROTOCOL_VERSION = "87";
 
     private Networks() {
     }
@@ -453,6 +454,11 @@ public final class Networks {
                 TerraResonanceHighlightsPacket.TYPE,
                 TerraResonanceHighlightsPacket.STREAM_CODEC,
                 TerraResonanceHighlightsPacket::handle
+        );
+        registrar.playToClient(
+                DeepSensorObservationsPacket.TYPE,
+                DeepSensorObservationsPacket.STREAM_CODEC,
+                DeepSensorObservationsPacket::handle
         );
         registrar.playToClient(
                 GunSpellTracerPacket.TYPE,
