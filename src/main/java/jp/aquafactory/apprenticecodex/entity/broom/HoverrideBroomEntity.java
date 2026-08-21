@@ -124,6 +124,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     private int lastRushObservationTick = Integer.MIN_VALUE;
 
     private Vec3 lastClientEffectPosition;
+    private Vec3 lastClientEffectMovement = Vec3.ZERO;
 
     // serverの解除確定と課金は応答送信より先に完了するため、経過tickだけでAWAITING_RESULTを破棄しない。
     private enum LocalReleaseState {
@@ -166,6 +167,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     protected void spawnFlightParticles() {
         if (!isVehicle() || isDamaged()) {
             lastClientEffectPosition = position();
+            lastClientEffectMovement = Vec3.ZERO;
             super.spawnFlightParticles();
             return;
         }
@@ -206,9 +208,10 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
                 ? HoverrideBroomMovement.horizontal(getDeltaMovement())
                 : HoverrideBroomMovement.horizontal(current.subtract(lastClientEffectPosition));
         lastClientEffectPosition = current;
-        return sampled.lengthSqr() > 1.0e-8D
+        lastClientEffectMovement = sampled.lengthSqr() > 1.0e-8D
                 ? sampled
                 : HoverrideBroomMovement.horizontal(getDeltaMovement());
+        return lastClientEffectMovement;
     }
 
     private void spawnGlideParticles() {
@@ -1056,7 +1059,11 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     }
 
     public float getSpeedEffectIntensity() {
-        var horizontalSpeed = HoverrideBroomMovement.horizontal(getDeltaMovement()).length();
+        // 追跡clientの座標補間はdeltaMovementを更新しないため、client tickで測った実変位を使う。
+        var movement = level().isClientSide && !isControlledByLocalInstance()
+                ? lastClientEffectMovement
+                : getDeltaMovement();
+        var horizontalSpeed = HoverrideBroomMovement.horizontal(movement).length();
         return HoverrideBroomPresentation.speedEffectIntensity(
                 horizontalSpeed / HoverrideBroomMovement.maximumHorizontalSpeed(isOverdriveEnabled())
         );
