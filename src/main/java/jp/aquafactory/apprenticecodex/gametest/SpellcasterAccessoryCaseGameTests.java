@@ -33,6 +33,10 @@ public final class SpellcasterAccessoryCaseGameTests {
             ApprenticeCodex.MODID,
             "gametest/accessory_case_expanded_back"
     );
+    private static final ResourceLocation OVERSIZED_BACK_SLOT_ID = ResourceLocation.fromNamespaceAndPath(
+            ApprenticeCodex.MODID,
+            "gametest/accessory_case_oversized_back"
+    );
 
     private SpellcasterAccessoryCaseGameTests() {
     }
@@ -139,6 +143,165 @@ public final class SpellcasterAccessoryCaseGameTests {
         menu.clicked(0, 0, ClickType.QUICK_MOVE, player);
         helper.assertTrue(menu.getSlot(0).getItem().is(ItemRegistry.ATTACKCAST_RING.get()),
                 "A stored ring should stay in the accessory case when every compatible Curios slot is full");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void accessoryCaseHidesOversizedCuriosPanelAndAllowsUnlimitedOverride(GameTestHelper helper) {
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                helper,
+                new BlockPos(0, 2, 0),
+                "accessory_case_oversized_layout_test"
+        );
+        player.getInventory().setItem(0, new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get()));
+        expandCuriosBeyondDefaultColumnLimit(player);
+        var menu = new SpellcasterAccessoryCaseMenu(1, player.getInventory(), 0);
+
+        helper.assertTrue(
+                menu.getVisibleCuriosColumnCount()
+                        > SpellcasterAccessoryCaseMenu.DEFAULT_MAX_VISIBLE_CURIOS_COLUMNS,
+                "Oversized Curios test should require more columns than the default client limit"
+        );
+        helper.assertFalse(menu.isCuriosPanelVisible(),
+                "Curios panel should be hidden when its columns exceed the configured limit");
+        helper.assertTrue(menu.getCuriosPanelWidth() == 0,
+                "Hidden Curios panel should not extend the standard menu width");
+
+        menu.configureMaxVisibleCuriosColumns(0);
+        helper.assertTrue(menu.isCuriosPanelVisible(),
+                "Zero Curios column limit should always show every slot");
+        helper.assertTrue(menu.getCuriosPanelWidth() > 0,
+                "Unlimited Curios panel should expose its layout width");
+
+        menu.configureMaxVisibleCuriosColumns(SpellcasterAccessoryCaseMenu.DEFAULT_MAX_VISIBLE_CURIOS_COLUMNS);
+        helper.assertFalse(menu.isCuriosPanelVisible(),
+                "Restoring the default limit should hide the oversized Curios panel again");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void accessoryCaseHiddenPanelQuickMoveOnlyTransfersStorageAndPlayerInventory(GameTestHelper helper) {
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                helper,
+                new BlockPos(0, 2, 0),
+                "accessory_case_hidden_quick_move_test"
+        );
+        var caseStack = new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get());
+        var caseInventory = new SpellcasterAccessoryCase.CaseInventory(caseStack, player);
+        helper.assertTrue(caseInventory.insertItem(
+                0,
+                new ItemStack(ItemRegistry.ATTACKCAST_RING.get()),
+                false
+        ).isEmpty(), "Accessory case should accept the hidden-panel quick-move test ring");
+        player.getInventory().setItem(0, caseStack);
+        expandCuriosBeyondDefaultColumnLimit(player);
+        var menu = new SpellcasterAccessoryCaseMenu(1, player.getInventory(), 0);
+
+        helper.assertFalse(menu.isCuriosPanelVisible(),
+                "Hidden-panel quick-move test requires the Curios panel to be hidden");
+        menu.clicked(0, 0, ClickType.QUICK_MOVE, player);
+        helper.assertTrue(menu.getSlot(0).getItem().isEmpty(),
+                "Shift-clicking hidden-panel storage should remove the stored ring");
+        helper.assertTrue(player.getInventory().getItem(9).is(ItemRegistry.ATTACKCAST_RING.get()),
+                "Shift-clicking hidden-panel storage should move the ring into player inventory");
+        helper.assertTrue(menu.slots.stream()
+                        .filter(CurioSlot.class::isInstance)
+                        .noneMatch(slot -> slot.getItem().is(ItemRegistry.ATTACKCAST_RING.get())),
+                "Hidden-panel shift-clicking must not equip the ring into an invisible Curios slot");
+
+        menu.clicked(SpellcasterAccessoryCase.SLOT_COUNT, 0, ClickType.QUICK_MOVE, player);
+        helper.assertTrue(menu.getSlot(0).getItem().is(ItemRegistry.ATTACKCAST_RING.get()),
+                "Shift-clicking player inventory should return the ring to accessory case storage");
+        helper.assertTrue(player.getInventory().getItem(9).isEmpty(),
+                "Returning the ring to storage should clear its player inventory slot");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void accessoryCaseHiddenPanelRejectsCurioOriginQuickMove(GameTestHelper helper) {
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                helper,
+                new BlockPos(0, 2, 0),
+                "accessory_case_hidden_curio_quick_move_test"
+        );
+        player.getInventory().setItem(0, new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get()));
+        var curios = CuriosApi.getCuriosInventory(player)
+                .orElseThrow(() -> new IllegalStateException("Missing Curios inventory for hidden-panel test"));
+        curios.setEquippedCurio(RING_SLOT, 0, new ItemStack(ItemRegistry.ATTACKCAST_RING.get()));
+        expandCuriosBeyondDefaultColumnLimit(player);
+        var menu = new SpellcasterAccessoryCaseMenu(1, player.getInventory(), 0);
+        var curioMenuSlot = findCurioMenuSlot(menu, RING_SLOT);
+
+        helper.assertFalse(menu.isCuriosPanelVisible(),
+                "Curio-origin quick-move rejection requires the panel to be hidden");
+        helper.assertTrue(curioMenuSlot >= 0,
+                "Hidden Curios slots must remain in the menu to preserve slot indices");
+        menu.clicked(curioMenuSlot, 0, ClickType.QUICK_MOVE, player);
+        helper.assertTrue(menu.getSlot(curioMenuSlot).getItem().is(ItemRegistry.ATTACKCAST_RING.get()),
+                "Quick-moving from a hidden Curios slot should leave the equipped ring untouched");
+        helper.assertTrue(menu.getSlot(0).getItem().isEmpty(),
+                "Rejected hidden Curios quick-move must not place the ring into storage");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void accessoryCaseHiddenPanelKeepsStorageWhenPlayerInventoryIsFull(GameTestHelper helper) {
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                helper,
+                new BlockPos(0, 2, 0),
+                "accessory_case_hidden_full_inventory_test"
+        );
+        var caseStack = new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get());
+        var caseInventory = new SpellcasterAccessoryCase.CaseInventory(caseStack, player);
+        helper.assertTrue(caseInventory.insertItem(
+                0,
+                new ItemStack(ItemRegistry.ATTACKCAST_RING.get()),
+                false
+        ).isEmpty(), "Accessory case should accept the full-inventory test ring");
+        player.getInventory().setItem(0, caseStack);
+        for (var slot = 1; slot < Inventory.INVENTORY_SIZE; ++slot) {
+            player.getInventory().setItem(slot, new ItemStack(Items.STONE, Items.STONE.getDefaultMaxStackSize()));
+        }
+        expandCuriosBeyondDefaultColumnLimit(player);
+        var menu = new SpellcasterAccessoryCaseMenu(1, player.getInventory(), 0);
+
+        helper.assertFalse(menu.isCuriosPanelVisible(),
+                "Full-inventory test requires the Curios panel to be hidden");
+        menu.clicked(0, 0, ClickType.QUICK_MOVE, player);
+        helper.assertTrue(menu.getSlot(0).getItem().is(ItemRegistry.ATTACKCAST_RING.get()),
+                "Hidden-panel shift-click should keep the item in storage when player inventory is full");
+        helper.assertTrue(menu.slots.stream()
+                        .filter(CurioSlot.class::isInstance)
+                        .noneMatch(slot -> slot.getItem().is(ItemRegistry.ATTACKCAST_RING.get())),
+                "A full player inventory must not make hidden-panel shift-click fall back to Curios");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void accessoryCaseUnlimitedPanelKeepsCuriosQuickMove(GameTestHelper helper) {
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                helper,
+                new BlockPos(0, 2, 0),
+                "accessory_case_unlimited_quick_move_test"
+        );
+        var caseStack = new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get());
+        var caseInventory = new SpellcasterAccessoryCase.CaseInventory(caseStack, player);
+        var ring = new ItemStack(ItemRegistry.ATTACKCAST_RING.get());
+        helper.assertTrue(caseInventory.insertItem(0, ring.copy(), false).isEmpty(),
+                "Accessory case should accept the unlimited-panel quick-move test ring");
+        player.getInventory().setItem(0, caseStack);
+        expandCuriosBeyondDefaultColumnLimit(player);
+        var menu = new SpellcasterAccessoryCaseMenu(1, player.getInventory(), 0);
+        menu.configureMaxVisibleCuriosColumns(0);
+        var curioMenuSlot = findFirstAvailableCurioMenuSlot(menu, ring);
+
+        helper.assertTrue(menu.isCuriosPanelVisible(),
+                "Zero column limit should show the oversized Curios panel");
+        helper.assertTrue(curioMenuSlot >= 0,
+                "Unlimited oversized panel should expose a compatible Curios slot");
+        menu.clicked(0, 0, ClickType.QUICK_MOVE, player);
+        helper.assertTrue(menu.getSlot(curioMenuSlot).getItem().is(ItemRegistry.ATTACKCAST_RING.get()),
+                "Visible unlimited panel should keep storage-to-Curios quick move behavior");
         helper.succeed();
     }
 
@@ -326,6 +489,26 @@ public final class SpellcasterAccessoryCaseGameTests {
                 slot.set(stack.copy());
             }
         }
+    }
+
+    private static void expandCuriosBeyondDefaultColumnLimit(
+            net.minecraft.world.entity.LivingEntity wearer
+    ) {
+        var curios = CuriosApi.getCuriosInventory(wearer)
+                .orElseThrow(() -> new IllegalStateException("Missing Curios inventory for oversized-panel test"));
+        var currentVisibleSlots = curios.getCurios().values().stream()
+                .filter(top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler::isVisible)
+                .mapToInt(handler -> handler.getStacks().getSlots())
+                .sum();
+        var firstUnsupportedSlotCount =
+                SpellcasterAccessoryCaseMenu.DEFAULT_MAX_VISIBLE_CURIOS_COLUMNS * 8 + 1;
+        var addedSlots = Math.max(1, firstUnsupportedSlotCount - currentVisibleSlots);
+        curios.addTransientSlotModifier(
+                CuriosSlotConstants.BACK,
+                OVERSIZED_BACK_SLOT_ID,
+                addedSlots,
+                AttributeModifier.Operation.ADD_VALUE
+        );
     }
 
     private static void fillAccessoryCase(ItemStack caseStack, net.minecraft.world.entity.LivingEntity wearer) {

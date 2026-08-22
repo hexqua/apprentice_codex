@@ -1,6 +1,10 @@
 package jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase;
 
 import com.mojang.datafixers.util.Pair;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexClientConfig;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.ClientConfigureSpellcasterAccessoryCaseMenuPacket;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -18,10 +22,14 @@ import top.theillusivec4.curios.common.inventory.CurioSlot;
 import java.util.ArrayList;
 
 public final class SpellcasterAccessoryCaseScreen extends AbstractContainerScreen<SpellcasterAccessoryCaseMenu> {
+    private static final int BASE_IMAGE_WIDTH = 176;
     private static final ResourceLocation CONTAINER_TEXTURE =
             ResourceLocation.withDefaultNamespace("textures/gui/container/generic_54.png");
     private static final ResourceLocation CURIOS_TEXTURE =
             ResourceLocation.fromNamespaceAndPath("curios", "textures/gui/curios/inventory.png");
+    private static final ResourceLocation CURIOS_PANEL_SPRITE =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcaster_accessory_case_panel");
+    private int appliedCuriosPanelWidth = -1;
 
     public SpellcasterAccessoryCaseScreen(
             SpellcasterAccessoryCaseMenu menu,
@@ -34,7 +42,23 @@ public final class SpellcasterAccessoryCaseScreen extends AbstractContainerScree
     }
 
     @Override
+    protected void init() {
+        var maxVisibleCuriosColumns =
+                ApprenticeCodexClientConfig.spellcasterAccessoryCaseMaxVisibleCuriosColumns();
+        menu.configureMaxVisibleCuriosColumns(maxVisibleCuriosColumns);
+        imageWidth = BASE_IMAGE_WIDTH + menu.getCuriosPanelWidth();
+        super.init();
+        appliedCuriosPanelWidth = -1;
+        syncLayoutGeometry();
+        Networks.sendToServer(new ClientConfigureSpellcasterAccessoryCaseMenuPacket(
+                menu.containerId,
+                maxVisibleCuriosColumns
+        ));
+    }
+
+    @Override
     public void render(@NotNull GuiGraphics gui, int mouseX, int mouseY, float partialTick) {
+        syncLayoutGeometry();
         renderBackground(gui, mouseX, mouseY, partialTick);
         super.render(gui, mouseX, mouseY, partialTick);
         renderTooltip(gui, mouseX, mouseY);
@@ -42,8 +66,10 @@ public final class SpellcasterAccessoryCaseScreen extends AbstractContainerScree
 
     @Override
     protected void renderBg(@NotNull GuiGraphics gui, float partialTick, int mouseX, int mouseY) {
-        gui.blit(CONTAINER_TEXTURE, leftPos, topPos, 0, 0, imageWidth, 71);
-        gui.blit(CONTAINER_TEXTURE, leftPos, topPos + 71, 0, 126, imageWidth, 96);
+        var mainLeft = leftPos + menu.getCuriosPanelWidth();
+        gui.blit(CONTAINER_TEXTURE, mainLeft, topPos, 0, 0, BASE_IMAGE_WIDTH, 71);
+        gui.blit(CONTAINER_TEXTURE, mainLeft, topPos + 71, 0, 126, BASE_IMAGE_WIDTH, 96);
+        renderCuriosPanel(gui);
         renderCuriosSlots(gui);
     }
 
@@ -81,6 +107,9 @@ public final class SpellcasterAccessoryCaseScreen extends AbstractContainerScree
     protected void renderSlot(@NotNull GuiGraphics gui, @NotNull Slot slot) {
         if (!(slot instanceof CurioSlot curioSlot)) {
             super.renderSlot(gui, slot);
+            return;
+        }
+        if (!menu.isCuriosPanelVisible()) {
             return;
         }
 
@@ -147,14 +176,39 @@ public final class SpellcasterAccessoryCaseScreen extends AbstractContainerScree
             int guiTop,
             int mouseButton
     ) {
-        var panelLeft = guiLeft - menu.getCuriosPanelWidth();
-        return mouseX < panelLeft
+        return mouseX < guiLeft
                 || mouseY < guiTop
                 || mouseX >= guiLeft + imageWidth
                 || mouseY >= guiTop + imageHeight;
     }
 
+    private void syncLayoutGeometry() {
+        var panelWidth = menu.getCuriosPanelWidth();
+        if (appliedCuriosPanelWidth == panelWidth) {
+            return;
+        }
+
+        appliedCuriosPanelWidth = panelWidth;
+        imageWidth = BASE_IMAGE_WIDTH + panelWidth;
+        leftPos = (width - BASE_IMAGE_WIDTH) / 2 - panelWidth;
+        titleLabelX = panelWidth + 8;
+        inventoryLabelX = panelWidth + 8;
+    }
+
+    private void renderCuriosPanel(GuiGraphics gui) {
+        if (!menu.isCuriosPanelVisible()) {
+            return;
+        }
+
+        var panelWidth = 10 + menu.getVisibleCuriosColumnCount() * 18;
+        var panelHeight = 10 + menu.getVisibleCuriosRowCount() * 18;
+        gui.blitSprite(CURIOS_PANEL_SPRITE, leftPos + 1, topPos + 2, panelWidth, panelHeight);
+    }
+
     private void renderCuriosSlots(GuiGraphics gui) {
+        if (!menu.isCuriosPanelVisible()) {
+            return;
+        }
         for (var slot : menu.slots) {
             if (slot instanceof CurioSlot) {
                 gui.blit(CURIOS_TEXTURE, leftPos + slot.x - 1, topPos + slot.y - 1, 7, 7, 18, 18);

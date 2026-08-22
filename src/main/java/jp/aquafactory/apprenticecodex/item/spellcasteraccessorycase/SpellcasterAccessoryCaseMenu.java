@@ -21,6 +21,8 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
     private static final int PLAYER_INVENTORY_Y = 85;
     private static final int HOTBAR_Y = 143;
     private static final int CURIOS_ROWS_PER_COLUMN = 8;
+    private static final int HIDDEN_SLOT_POSITION = -10000;
+    public static final int DEFAULT_MAX_VISIBLE_CURIOS_COLUMNS = 5;
 
     private static final int CASE_SLOT_START = 0;
     private static final int CASE_SLOT_END = CASE_SLOT_START + SpellcasterAccessoryCase.SLOT_COUNT;
@@ -33,6 +35,10 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
     private final int sourceSlot;
     private final SpellcasterAccessoryCase.CaseInventory caseInventory;
     private final ICuriosItemHandler curiosHandler;
+    private int maxVisibleCuriosColumns = DEFAULT_MAX_VISIBLE_CURIOS_COLUMNS;
+    private int visibleCuriosColumnCount;
+    private int visibleCuriosRowCount;
+    private boolean curiosPanelVisible;
     private int curiosPanelWidth;
 
     public SpellcasterAccessoryCaseMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf data) {
@@ -54,12 +60,47 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
         slots.clear();
         lastSlots.clear();
         remoteSlots.clear();
-        curiosPanelWidth = 0;
+        updateCuriosLayout();
 
         addCaseSlots();
         addPlayerInventory();
         addPlayerHotbar();
         addCuriosSlots();
+    }
+
+    public void configureMaxVisibleCuriosColumns(int maxVisibleCuriosColumns) {
+        if (maxVisibleCuriosColumns < 0 || this.maxVisibleCuriosColumns == maxVisibleCuriosColumns) {
+            return;
+        }
+        this.maxVisibleCuriosColumns = maxVisibleCuriosColumns;
+        resetSlots();
+    }
+
+    private void updateCuriosLayout() {
+        curiosPanelWidth = 0;
+        visibleCuriosColumnCount = 0;
+        visibleCuriosRowCount = 0;
+        curiosPanelVisible = false;
+
+        if (curiosHandler == null) {
+            return;
+        }
+
+        var visibleSlotCount = curiosHandler.getCurios().values().stream()
+                .filter(top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler::isVisible)
+                .mapToInt(handler -> handler.getStacks().getSlots())
+                .sum();
+        if (visibleSlotCount == 0) {
+            return;
+        }
+
+        visibleCuriosColumnCount = (visibleSlotCount + CURIOS_ROWS_PER_COLUMN - 1) / CURIOS_ROWS_PER_COLUMN;
+        visibleCuriosRowCount = Math.min(visibleSlotCount, CURIOS_ROWS_PER_COLUMN);
+        curiosPanelVisible = maxVisibleCuriosColumns == 0
+                || visibleCuriosColumnCount <= maxVisibleCuriosColumns;
+        if (curiosPanelVisible) {
+            curiosPanelWidth = 14 + visibleCuriosColumnCount * 18;
+        }
     }
 
     @Override
@@ -103,7 +144,10 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
         var stack = slot.getItem();
         var copy = stack.copy();
         if (slotIndex < CASE_SLOT_END) {
-            if (!moveItemStackTo(stack, CURIOS_START, slots.size(), false)) {
+            var moved = curiosPanelVisible
+                    ? moveItemStackTo(stack, CURIOS_START, slots.size(), false)
+                    : moveItemStackTo(stack, PLAYER_INVENTORY_START, HOTBAR_END, false);
+            if (!moved) {
                 return ItemStack.EMPTY;
             }
         } else if (slotIndex < HOTBAR_END) {
@@ -111,11 +155,13 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
                     || !moveItemStackTo(stack, CASE_SLOT_START, CASE_SLOT_END, false)) {
                 return ItemStack.EMPTY;
             }
-        } else {
+        } else if (curiosPanelVisible) {
             if (!moveItemStackTo(stack, CASE_SLOT_START, CASE_SLOT_END, false)
                     && !moveItemStackTo(stack, PLAYER_INVENTORY_START, HOTBAR_END, true)) {
                 return ItemStack.EMPTY;
             }
+        } else {
+            return ItemStack.EMPTY;
         }
 
         if (stack.isEmpty()) {
@@ -131,11 +177,28 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
         return curiosPanelWidth;
     }
 
+    public int getVisibleCuriosColumnCount() {
+        return visibleCuriosColumnCount;
+    }
+
+    public int getVisibleCuriosRowCount() {
+        return visibleCuriosRowCount;
+    }
+
+    public boolean isCuriosPanelVisible() {
+        return curiosPanelVisible;
+    }
+
     private void addCaseSlots() {
         for (var row = 0; row < SpellcasterAccessoryCase.ROW_COUNT; ++row) {
             for (var col = 0; col < SpellcasterAccessoryCase.COLUMN_COUNT; ++col) {
                 var slot = col + row * SpellcasterAccessoryCase.COLUMN_COUNT;
-                addSlot(new SlotItemHandler(caseInventory, slot, CASE_X + col * 18, CASE_Y + row * 18));
+                addSlot(new SlotItemHandler(
+                        caseInventory,
+                        slot,
+                        curiosPanelWidth + CASE_X + col * 18,
+                        CASE_Y + row * 18
+                ));
             }
         }
     }
@@ -144,14 +207,18 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
         for (var row = 0; row < 3; ++row) {
             for (var col = 0; col < 9; ++col) {
                 var inventorySlot = col + row * 9 + 9;
-                addPlayerSlot(inventorySlot, PLAYER_INVENTORY_X + col * 18, PLAYER_INVENTORY_Y + row * 18);
+                addPlayerSlot(
+                        inventorySlot,
+                        curiosPanelWidth + PLAYER_INVENTORY_X + col * 18,
+                        PLAYER_INVENTORY_Y + row * 18
+                );
             }
         }
     }
 
     private void addPlayerHotbar() {
         for (var col = 0; col < 9; ++col) {
-            addPlayerSlot(col, PLAYER_INVENTORY_X + col * 18, HOTBAR_Y);
+            addPlayerSlot(col, curiosPanelWidth + PLAYER_INVENTORY_X + col * 18, HOTBAR_Y);
         }
     }
 
@@ -178,16 +245,6 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
             return;
         }
 
-        var visibleSlotCount = curiosHandler.getCurios().values().stream()
-                .filter(top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler::isVisible)
-                .mapToInt(handler -> handler.getStacks().getSlots())
-                .sum();
-        if (visibleSlotCount == 0) {
-            return;
-        }
-
-        var columnCount = (visibleSlotCount + CURIOS_ROWS_PER_COLUMN - 1) / CURIOS_ROWS_PER_COLUMN;
-        curiosPanelWidth = 14 + columnCount * 18;
         var visibleIndex = 0;
         for (var entry : curiosHandler.getCurios().entrySet()) {
             var stacksHandler = entry.getValue();
@@ -199,8 +256,8 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
             for (var slot = 0; slot < stackHandler.getSlots(); ++slot) {
                 var column = visibleIndex / CURIOS_ROWS_PER_COLUMN;
                 var row = visibleIndex % CURIOS_ROWS_PER_COLUMN;
-                var x = 7 - curiosPanelWidth + column * 18;
-                var y = 8 + row * 18;
+                var x = curiosPanelVisible ? 7 + column * 18 : HIDDEN_SLOT_POSITION;
+                var y = curiosPanelVisible ? 8 + row * 18 : HIDDEN_SLOT_POSITION;
                 addSlot(new CurioSlot(
                         playerInventory.player,
                         stackHandler,
