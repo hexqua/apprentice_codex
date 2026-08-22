@@ -3990,7 +3990,8 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(menu.getSlot(1).mayPickup(player),
                     "Legacy enchanted books should remain extractable from disabled adjustment rules");
             var extractedBook = menu.getSlot(1).remove(1);
-            helper.assertTrue(extractedBook.getEnchantmentLevel(Enchantments.SHARPNESS) == 2,
+            helper.assertTrue(EnchantmentHelper.getEnchantments(extractedBook)
+                            .getOrDefault(Enchantments.SHARPNESS, 0) == 2,
                     "Extracted legacy books should preserve their enchantment");
             helper.assertFalse(menu.getSlot(1).mayPlace(extractedBook),
                     "Extracted enchanted books should not be insertable again");

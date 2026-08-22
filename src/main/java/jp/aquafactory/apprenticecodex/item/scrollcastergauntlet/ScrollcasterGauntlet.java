@@ -19,6 +19,7 @@ import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
@@ -507,6 +508,13 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
         if (enchantmentId == null) {
             return false;
+        }
+
+        // 1.21.1 では Malum 側の supported_items で許可されるため、1.20.1 では個別に合成する。
+        if (MalumHauntedCompat.isAnimatedEnchantment(enchantmentId)
+                || (MalumHauntedCompat.isHauntedEnchantment(enchantmentId)
+                && MalumHauntedCompat.isSupportedHauntedMainhandItem(gauntletStack))) {
+            return true;
         }
 
         // 1.21.1 の supported_items タグに相当する 1.20.1 のカテゴリ判定を合成する。
