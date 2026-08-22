@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.network.packet.AlchemyBrewerWaterSupplyEff
 import jp.aquafactory.apprenticecodex.network.packet.ClientAnchorBlinkPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientConfigureSpellcasterAccessoryCaseMenuPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmLuminousDeviceSelectionPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmSneakSelectionPacket;
@@ -86,7 +87,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "89";
+    private static final String PROTOCOL_VERSION = "90";
 
     private Networks() {
     }
@@ -146,6 +147,11 @@ public final class Networks {
                 ClientOpenSpellcasterAccessoryCasePacket.TYPE,
                 ClientOpenSpellcasterAccessoryCasePacket.STREAM_CODEC,
                 ClientOpenSpellcasterAccessoryCasePacket::handle
+        );
+        registrar.playToServer(
+                ClientConfigureSpellcasterAccessoryCaseMenuPacket.TYPE,
+                ClientConfigureSpellcasterAccessoryCaseMenuPacket.STREAM_CODEC,
+                ClientConfigureSpellcasterAccessoryCaseMenuPacket::handle
         );
         registrar.playToServer(
                 ClientSwingMagicAttackPacket.TYPE,
