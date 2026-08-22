@@ -344,6 +344,64 @@ public final class SpellcasterAccessoryCaseGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void accessoryCaseMenuRejectsSourceHotbarSwapAndDetectsReplacement(GameTestHelper helper) {
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                helper,
+                new BlockPos(0, 2, 0),
+                "accessory_case_source_swap_test"
+        );
+        var sourceCase = new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get());
+        var otherCase = new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get());
+        player.getInventory().setItem(0, sourceCase);
+        player.getInventory().setItem(9, otherCase);
+        var menu = new SpellcasterAccessoryCaseMenu(1, player.getInventory(), 0);
+
+        menu.clicked(SpellcasterAccessoryCase.SLOT_COUNT, 0, ClickType.SWAP, player);
+        helper.assertTrue(player.getInventory().getItem(0) == sourceCase,
+                "Number-key swapping must not move the accessory case that opened the menu");
+        helper.assertTrue(player.getInventory().getItem(9) == otherCase,
+                "Rejected source-case swapping must leave the target inventory slot unchanged");
+        helper.assertTrue(menu.stillValid(player),
+                "Rejecting a source-case swap should keep the menu valid");
+
+        player.getInventory().setItem(1, new ItemStack(Items.STONE));
+        player.getInventory().setItem(10, new ItemStack(Items.DIRT));
+        menu.clicked(SpellcasterAccessoryCase.SLOT_COUNT + 1, 1, ClickType.SWAP, player);
+        helper.assertTrue(player.getInventory().getItem(1).is(Items.DIRT),
+                "Unrelated number-key swaps should remain available");
+        helper.assertTrue(player.getInventory().getItem(10).is(Items.STONE),
+                "Unrelated number-key swaps should update the hovered inventory slot");
+
+        player.getInventory().setItem(0, new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get()));
+        helper.assertFalse(menu.stillValid(player),
+                "The server menu must become invalid when its source case instance is replaced");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void accessoryCaseMenuRejectsSourceOffhandSwap(GameTestHelper helper) {
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                helper,
+                new BlockPos(0, 2, 0),
+                "accessory_case_offhand_swap_test"
+        );
+        var sourceCase = new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get());
+        var otherCase = new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get());
+        player.getInventory().setItem(Inventory.SLOT_OFFHAND, sourceCase);
+        player.getInventory().setItem(9, otherCase);
+        var menu = new SpellcasterAccessoryCaseMenu(1, player.getInventory(), Inventory.SLOT_OFFHAND);
+
+        menu.clicked(SpellcasterAccessoryCase.SLOT_COUNT, Inventory.SLOT_OFFHAND, ClickType.SWAP, player);
+        helper.assertTrue(player.getInventory().getItem(Inventory.SLOT_OFFHAND) == sourceCase,
+                "Offhand swapping must not move the accessory case that opened the menu");
+        helper.assertTrue(player.getInventory().getItem(9) == otherCase,
+                "Rejected offhand source-case swapping must leave the target inventory slot unchanged");
+        helper.assertTrue(menu.stillValid(player),
+                "Rejecting an offhand source-case swap should keep the menu valid");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void accessoryCaseQuickMoveTransfersBetweenStorageAndCurios(GameTestHelper helper) {
         var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
                 helper,
@@ -470,6 +528,9 @@ public final class SpellcasterAccessoryCaseGameTests {
                 "Curio-origin quick-move rejection requires the panel to be hidden");
         helper.assertTrue(curioMenuSlot >= 0,
                 "Hidden Curios slots must remain in the menu to preserve slot indices");
+        var hiddenCurioSlot = menu.getSlot(curioMenuSlot);
+        helper.assertFalse(menu.canTakeItemForPickAll(hiddenCurioSlot.getItem(), hiddenCurioSlot),
+                "Pick-all must not unequip items from hidden Curios slots");
         menu.clicked(curioMenuSlot, 0, ClickType.QUICK_MOVE, player);
         helper.assertTrue(menu.getSlot(curioMenuSlot).getItem().is(ItemRegistry.ATTACKCAST_RING.get()),
                 "Quick-moving from a hidden Curios slot should leave the equipped ring untouched");
@@ -533,6 +594,9 @@ public final class SpellcasterAccessoryCaseGameTests {
                 "Zero column limit should show the oversized Curios panel");
         helper.assertTrue(curioMenuSlot >= 0,
                 "Unlimited oversized panel should expose a compatible Curios slot");
+        var visibleCurioSlot = menu.getSlot(curioMenuSlot);
+        helper.assertTrue(menu.canTakeItemForPickAll(ring, visibleCurioSlot),
+                "Pick-all should keep including visible Curios slots");
         menu.clicked(0, 0, ClickType.QUICK_MOVE, player);
         helper.assertTrue(menu.getSlot(curioMenuSlot).getItem().is(ItemRegistry.ATTACKCAST_RING.get()),
                 "Visible unlimited panel should keep storage-to-Curios quick move behavior");
