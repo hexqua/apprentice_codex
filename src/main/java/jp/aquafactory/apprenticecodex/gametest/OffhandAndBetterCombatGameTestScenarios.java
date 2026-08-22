@@ -192,6 +192,20 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                         "Soulstained Steel Spell Amplifier magic proficiency bonus regression");
             }
 
+            var soulWardCapacityId = ResourceLocation.fromNamespaceAndPath("malum", "soul_ward_capacity");
+            var soulWardCapacity = ForgeRegistries.ATTRIBUTES.getValue(soulWardCapacityId);
+            if (soulWardCapacity != null) {
+                assertModifierAmount(
+                        helper,
+                        item,
+                        stack,
+                        soulWardCapacity,
+                        SoulstainedSteelSpellAmplifier.SOUL_WARD_CAPACITY_BONUS,
+                        AttributeModifier.Operation.ADDITION,
+                        "Soulstained Steel Spell Amplifier soul ward capacity bonus regression"
+                );
+            }
+
             var recipeId = ResourceLocation.fromNamespaceAndPath(
                     "apprenticecodex", "soulstained_steel_spell_amplifier");
             var recipe = helper.getLevel().getRecipeManager().byKey(recipeId).orElse(null);
