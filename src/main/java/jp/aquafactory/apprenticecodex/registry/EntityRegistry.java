@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretEntity;
 import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemyShotgunEntity;
 import jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity;
+import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomEntity;
 import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.SpellAutonomyCardEntity;
 import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.SpellInvokeCardEntity;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunEntity;
@@ -335,8 +336,12 @@ public final class EntityRegistry {
     public static final RegistryObject<EntityType<FujinSlashProjectileEntity>> FUJIN_SLASH_PROJECTILE =
             regProjectile("fujin_slash_projectile", FujinSlashProjectileEntity::new, 64, 1);
 
+    public static final RegistryObject<EntityType<FloatmountBroomEntity>> FLOATMOUNT_BROOM =
+            reg("floatmount_broom", FloatmountBroomEntity::new, MobCategory.MISC,
+                    FloatmountBroomEntity.WIDTH, FloatmountBroomEntity.HEIGHT,
+                    64, 1, true, FireBehaviors.VULNERABLE);
+
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);
     }
 }
-

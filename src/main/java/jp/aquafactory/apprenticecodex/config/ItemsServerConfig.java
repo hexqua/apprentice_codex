@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerCo
 import jp.aquafactory.apprenticecodex.config.item.BulwarkGreatshieldServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ElementalBowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FocusStaffbowServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.HighTierSwingcastStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.IronSwingcastStaffServerConfig;
@@ -57,6 +58,7 @@ final class ItemsServerConfig {
     private final MagiCompressorGadgetServerConfig magiCompressorGadgetConfig;
     private final ManaShieldCharmServerConfig manaShieldCharmConfig;
     private final ManaThrusterServerConfig manaThrusterConfig;
+    private final FloatmountBroomServerConfig floatmountBroomConfig;
     private final IronSwingcastStaffServerConfig ironSwingcastStaffConfig;
     private final SoulstainedSteelSwingcastStaffServerConfig soulstainedSteelSwingcastStaffConfig;
     private final HighTierSwingcastStaffServerConfig highTierSwingcastStaffConfig;
@@ -94,6 +96,7 @@ final class ItemsServerConfig {
             MagiCompressorGadgetServerConfig magiCompressorGadgetConfig,
             ManaShieldCharmServerConfig manaShieldCharmConfig,
             ManaThrusterServerConfig manaThrusterConfig,
+            FloatmountBroomServerConfig floatmountBroomConfig,
             IronSwingcastStaffServerConfig ironSwingcastStaffConfig,
             SoulstainedSteelSwingcastStaffServerConfig soulstainedSteelSwingcastStaffConfig,
             HighTierSwingcastStaffServerConfig highTierSwingcastStaffConfig,
@@ -130,6 +133,7 @@ final class ItemsServerConfig {
         this.magiCompressorGadgetConfig = magiCompressorGadgetConfig;
         this.manaShieldCharmConfig = manaShieldCharmConfig;
         this.manaThrusterConfig = manaThrusterConfig;
+        this.floatmountBroomConfig = floatmountBroomConfig;
         this.ironSwingcastStaffConfig = ironSwingcastStaffConfig;
         this.soulstainedSteelSwingcastStaffConfig = soulstainedSteelSwingcastStaffConfig;
         this.highTierSwingcastStaffConfig = highTierSwingcastStaffConfig;
@@ -169,6 +173,7 @@ final class ItemsServerConfig {
         var magiCompressorGadgetConfig = MagiCompressorGadgetServerConfig.define(builder);
         var manaShieldCharmConfig = ManaShieldCharmServerConfig.define(builder);
         var manaThrusterConfig = ManaThrusterServerConfig.define(builder);
+        var floatmountBroomConfig = FloatmountBroomServerConfig.define(builder);
         var ironSwingcastStaffConfig = IronSwingcastStaffServerConfig.define(builder);
         var soulstainedSteelSwingcastStaffConfig = SoulstainedSteelSwingcastStaffServerConfig.define(builder);
         var highTierSwingcastStaffConfig = HighTierSwingcastStaffServerConfig.define(builder);
@@ -207,6 +212,7 @@ final class ItemsServerConfig {
                 magiCompressorGadgetConfig,
                 manaShieldCharmConfig,
                 manaThrusterConfig,
+                floatmountBroomConfig,
                 ironSwingcastStaffConfig,
                 soulstainedSteelSwingcastStaffConfig,
                 highTierSwingcastStaffConfig,
@@ -460,6 +466,10 @@ final class ItemsServerConfig {
 
     float manaThrusterManaCostPerTick() {
         return manaThrusterConfig.manaCostPerTick();
+    }
+
+    FloatmountBroomServerConfig.Values floatmountBroomConfig() {
+        return floatmountBroomConfig.values();
     }
 
     int multipurposeStaffrifleCooldownBypassThresholdTicks() {
@@ -910,6 +920,10 @@ final class ItemsServerConfig {
 
     void setManaThrusterConfigForGameTest(double manaCostPerTick) {
         manaThrusterConfig.setForGameTest(manaCostPerTick);
+    }
+
+    void setFloatmountBroomConfigForGameTest(FloatmountBroomServerConfig.Values values) {
+        floatmountBroomConfig.setForGameTest(values);
     }
 
     void setMagiCompressorGadgetConfigForGameTest(

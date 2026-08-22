@@ -13,6 +13,8 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPa
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientFloatmountBroomInputPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientFloatmountBroomDismountInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSpellgunCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
@@ -52,6 +54,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPac
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaShieldCharmConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterActivePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncFloatmountBroomConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMirageAvoidanceStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatStatePacket;
@@ -79,7 +82,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "76";
+    private static final String PROTOCOL_VERSION = "80";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -239,6 +242,22 @@ public final class Networks {
         );
         CHANNEL.registerMessage(
                 nextPacketId++,
+                ClientFloatmountBroomInputPacket.class,
+                ClientFloatmountBroomInputPacket::encode,
+                ClientFloatmountBroomInputPacket::decode,
+                ClientFloatmountBroomInputPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER)
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                ClientFloatmountBroomDismountInputPacket.class,
+                ClientFloatmountBroomDismountInputPacket::encode,
+                ClientFloatmountBroomDismountInputPacket::decode,
+                ClientFloatmountBroomDismountInputPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER)
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
                 ClientJumpcastCharmCastPacket.class,
                 ClientJumpcastCharmCastPacket::encode,
                 ClientJumpcastCharmCastPacket::decode,
@@ -310,6 +329,14 @@ public final class Networks {
                 SyncManaThrusterConfigPacket::encode,
                 SyncManaThrusterConfigPacket::decode,
                 SyncManaThrusterConfigPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncFloatmountBroomConfigPacket.class,
+                SyncFloatmountBroomConfigPacket::encode,
+                SyncFloatmountBroomConfigPacket::decode,
+                SyncFloatmountBroomConfigPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
         CHANNEL.registerMessage(

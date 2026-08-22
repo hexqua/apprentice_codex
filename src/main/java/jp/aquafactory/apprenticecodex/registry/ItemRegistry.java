@@ -451,4 +451,6 @@ public final class ItemRegistry {
             ITEMS.register("parrycast_buckler", ParrycastBuckler::new);
     public static final RegistryObject<Item> BULWARK_GREATSHIELD =
             ITEMS.register("bulwark_greatshield", BulwarkGreatshield::new);
+    public static final RegistryObject<Item> FLOATMOUNT_BROOM =
+            ITEMS.register("floatmount_broom", FloatmountBroomItem::new);
 }
