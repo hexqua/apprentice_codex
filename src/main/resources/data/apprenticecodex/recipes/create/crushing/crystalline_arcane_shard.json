@@ -1,0 +1,23 @@
+{
+  "type": "create:crushing",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "create"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "apprenticecodex:crystalline_arcane_shard"
+    }
+  ],
+  "results": [
+    {
+      "item": "irons_spellbooks:arcane_essence"
+    },
+    {
+      "chance": 0.1,
+      "item": "irons_spellbooks:arcane_essence"
+    }
+  ]
+}

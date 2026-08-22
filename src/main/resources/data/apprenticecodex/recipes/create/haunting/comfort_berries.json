@@ -1,0 +1,19 @@
+{
+  "type": "create:haunting",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "create"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "apprenticecodex:comfort_berries"
+    }
+  ],
+  "results": [
+    {
+      "item": "minecraft:glow_berries"
+    }
+  ]
+}
