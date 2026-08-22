@@ -1,21 +1,33 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.block.spellcasteraccessorycase.SpellcasterAccessoryCaseBlock;
+import jp.aquafactory.apprenticecodex.block.spellcasteraccessorycase.SpellcasterAccessoryCaseBlockEntity;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCase;
 import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCaseMenu;
+import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -39,6 +51,228 @@ public final class SpellcasterAccessoryCaseGameTests {
     );
 
     private SpellcasterAccessoryCaseGameTests() {
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void accessoryCaseSneakUsePlacesWithoutOpeningMenu(GameTestHelper helper) {
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                helper, new BlockPos(0, 2, 0), "accessory_case_place_test"
+        );
+        var caseStack = new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get());
+        caseStack.set(DataComponents.CUSTOM_NAME, Component.literal("Placed Accessory Case"));
+        var itemInventory = new SpellcasterAccessoryCase.CaseInventory(caseStack, player);
+        helper.assertTrue(itemInventory.insertItem(
+                0, new ItemStack(ItemRegistry.ATTACKCAST_RING.get()), false
+        ).isEmpty(), "Accessory case placement test should store its ring");
+        player.setItemInHand(InteractionHand.MAIN_HAND, caseStack);
+        player.setShiftKeyDown(true);
+
+        var clickedFloor = helper.absolutePos(new BlockPos(1, 1, 1));
+        var placedPos = clickedFloor.above();
+        var hit = new BlockHitResult(
+                Vec3.atCenterOf(clickedFloor), net.minecraft.core.Direction.UP, clickedFloor, false
+        );
+        var result = ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get().useOn(
+                new UseOnContext(player, InteractionHand.MAIN_HAND, hit)
+        );
+
+        helper.assertTrue(result.consumesAction(), "Sneaking accessory case use should place the block");
+        helper.assertTrue(helper.getLevel().getBlockState(placedPos).is(BlockRegistry.SPELLCASTER_ACCESSORY_CASE.get()),
+                "Sneaking accessory case use should place an accessory case block");
+        helper.assertTrue(!(player.containerMenu instanceof SpellcasterAccessoryCaseMenu),
+                "Successful sneak placement must not open the accessory case menu");
+        helper.assertTrue(helper.getLevel().getBlockState(placedPos).getValue(SpellcasterAccessoryCaseBlock.FACING)
+                        == player.getDirection().getOpposite(),
+                "Placed accessory case should face its placer");
+
+        var placedBlockEntity = (SpellcasterAccessoryCaseBlockEntity) helper.getLevel().getBlockEntity(placedPos);
+        helper.assertTrue(placedBlockEntity != null, "Placed accessory case should create its block entity");
+        helper.assertTrue(placedBlockEntity.getInventory().getStackInSlot(0).is(ItemRegistry.ATTACKCAST_RING.get()),
+                "Placement should transfer stored Curios items to the block entity");
+        helper.assertTrue(placedBlockEntity.getCaseStack().getHoverName().getString().equals("Placed Accessory Case"),
+                "Placement should preserve the accessory case custom name");
+
+        var saved = placedBlockEntity.saveWithFullMetadata(helper.getLevel().registryAccess());
+        var reloaded = BlockEntity.loadStatic(
+                placedPos,
+                helper.getLevel().getBlockState(placedPos),
+                saved,
+                helper.getLevel().registryAccess()
+        );
+        helper.assertTrue(reloaded instanceof SpellcasterAccessoryCaseBlockEntity,
+                "Saved accessory case should reload as the registered block entity type");
+        helper.assertTrue(((SpellcasterAccessoryCaseBlockEntity) reloaded)
+                        .getInventory().getStackInSlot(0).is(ItemRegistry.ATTACKCAST_RING.get()),
+                "Accessory case block entity should persist stored Curios items");
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get()));
+        var blockedTarget = helper.absolutePos(new BlockPos(2, 2, 1));
+        helper.getLevel().setBlockAndUpdate(blockedTarget, net.minecraft.world.level.block.Blocks.STONE.defaultBlockState());
+        var blockedFloor = blockedTarget.below();
+        var failed = ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get().useOn(new UseOnContext(
+                player,
+                InteractionHand.MAIN_HAND,
+                new BlockHitResult(
+                        Vec3.atCenterOf(blockedFloor), net.minecraft.core.Direction.UP, blockedFloor, false
+                )
+        ));
+        helper.assertFalse(failed.consumesAction(), "Blocked sneak placement should fail");
+        helper.assertTrue(!(player.containerMenu instanceof SpellcasterAccessoryCaseMenu),
+                "Failed sneak placement must not open the accessory case menu");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void accessoryCaseBlockMenuSharesItsInventory(GameTestHelper helper) {
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                helper, new BlockPos(0, 2, 0), "accessory_case_block_menu_test"
+        );
+        var pos = helper.absolutePos(new BlockPos(1, 2, 1));
+        var blockEntity = placeAccessoryCaseBlock(
+                helper, pos, new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get())
+        );
+        var firstMenu = new SpellcasterAccessoryCaseMenu(1, player.getInventory(), pos);
+        var secondMenu = new SpellcasterAccessoryCaseMenu(2, player.getInventory(), pos);
+        var ring = new ItemStack(ItemRegistry.ATTACKCAST_RING.get());
+
+        helper.assertTrue(firstMenu.getSlot(0).mayPlace(ring),
+                "Placed accessory case should keep Curios validation in its storage slots");
+        firstMenu.getSlot(0).set(ring.copy());
+        helper.assertTrue(secondMenu.getSlot(0).getItem().is(ItemRegistry.ATTACKCAST_RING.get()),
+                "Two block menus should share one block entity inventory");
+        helper.assertTrue(blockEntity.getInventory().getStackInSlot(0).is(ItemRegistry.ATTACKCAST_RING.get()),
+                "Block menu changes should update the block entity inventory");
+        helper.assertTrue(firstMenu.stillValid(player),
+                "Placed accessory case menu should remain valid within container range");
+
+        var hit = new BlockHitResult(Vec3.atCenterOf(pos), net.minecraft.core.Direction.UP, pos, false);
+        var interactionResult = helper.getLevel().getBlockState(pos)
+                .useWithoutItem(helper.getLevel(), player, hit);
+        helper.assertTrue(interactionResult.consumesAction(),
+                "Right-clicking a placed accessory case should consume the interaction");
+        // NeoForge FakePlayer は openMenu を意図的に無視するため、provider が block source menu を作ることを別に確認する。
+        helper.assertTrue(blockEntity.createMenu(3, player.getInventory(), player)
+                        instanceof SpellcasterAccessoryCaseMenu,
+                "Placed accessory case should provide its shared block menu");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void accessoryCaseDefersInventoryLoadUntilLevelIsAvailable(GameTestHelper helper) {
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                helper, new BlockPos(0, 2, 0), "accessory_case_detached_block_entity_test"
+        );
+        var caseStack = new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get());
+        new SpellcasterAccessoryCase.CaseInventory(caseStack, player)
+                .insertItem(0, new ItemStack(ItemRegistry.ATTACKCAST_RING.get()), false);
+        var blockEntity = new SpellcasterAccessoryCaseBlockEntity(
+                helper.absolutePos(new BlockPos(1, 2, 1)),
+                BlockRegistry.SPELLCASTER_ACCESSORY_CASE.get().defaultBlockState()
+        );
+
+        blockEntity.setCaseStack(caseStack);
+        helper.assertTrue(blockEntity.getInventory().getStackInSlot(0).isEmpty(),
+                "Detached accessory case should defer registry-dependent inventory loading");
+        var detachedSaved = blockEntity.saveWithFullMetadata(helper.getLevel().registryAccess());
+        var detachedReloaded = BlockEntity.loadStatic(
+                blockEntity.getBlockPos(),
+                blockEntity.getBlockState(),
+                detachedSaved,
+                helper.getLevel().registryAccess()
+        );
+        helper.assertTrue(detachedReloaded instanceof SpellcasterAccessoryCaseBlockEntity reloaded
+                        && reloaded.getInventory().getStackInSlot(0).is(ItemRegistry.ATTACKCAST_RING.get()),
+                "Saving a detached accessory case should preserve its deferred inventory data");
+        blockEntity.setLevel(helper.getLevel());
+        helper.assertTrue(blockEntity.getInventory().getStackInSlot(0).is(ItemRegistry.ATTACKCAST_RING.get()),
+                "Accessory case should load deferred inventory after receiving its level");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void accessoryCasePlayerBreakReturnsOnePreservedCase(GameTestHelper helper) {
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                helper, new BlockPos(0, 2, 0), "accessory_case_pickup_test"
+        );
+        var pos = helper.absolutePos(new BlockPos(1, 2, 1));
+        var caseStack = new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get());
+        caseStack.set(DataComponents.CUSTOM_NAME, Component.literal("Recovered Accessory Case"));
+        new SpellcasterAccessoryCase.CaseInventory(caseStack, player)
+                .insertItem(0, new ItemStack(ItemRegistry.ATTACKCAST_RING.get()), false);
+        placeAccessoryCaseBlock(helper, pos, caseStack);
+
+        helper.assertTrue(helper.getLevel().getBlockState(pos)
+                        .getDestroyProgress(player, helper.getLevel(), pos) >= 1.0F,
+                "Accessory case should break instantly regardless of the held item");
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        helper.assertTrue(player.gameMode.destroyBlock(pos), "Player should be able to remove the accessory case");
+        var recovered = player.getMainHandItem();
+        helper.assertTrue(recovered.is(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get()),
+                "An empty main hand should receive the removed accessory case directly");
+        helper.assertTrue(recovered.getHoverName().getString().equals("Recovered Accessory Case"),
+                "Direct recovery should preserve the custom name");
+        helper.assertTrue(new SpellcasterAccessoryCase.CaseInventory(recovered, player)
+                        .getStackInSlot(0).is(ItemRegistry.ATTACKCAST_RING.get()),
+                "Direct recovery should preserve stored Curios items");
+        helper.assertTrue(helper.getLevel().getEntitiesOfClass(
+                ItemEntity.class, new AABB(pos).inflate(2.0D)
+        ).isEmpty(), "Direct player recovery should not create a duplicate item drop");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void accessoryCaseBreakFallsBackToInventoryThenDrop(GameTestHelper helper) {
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                helper, new BlockPos(0, 2, 0), "accessory_case_pickup_fallback_test"
+        );
+        var inventoryPos = helper.absolutePos(new BlockPos(1, 2, 1));
+        placeAccessoryCaseBlock(
+                helper, inventoryPos, new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get())
+        );
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STONE));
+        helper.assertTrue(player.gameMode.destroyBlock(inventoryPos),
+                "Held-item removal should break the accessory case");
+        helper.assertTrue(playerInventoryContains(player.getInventory(), ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get()),
+                "Held-item removal should insert the accessory case into player inventory");
+
+        for (var slot = 0; slot < Inventory.INVENTORY_SIZE; ++slot) {
+            player.getInventory().setItem(slot, new ItemStack(Items.STONE, Items.STONE.getDefaultMaxStackSize()));
+        }
+        var dropPos = helper.absolutePos(new BlockPos(2, 2, 1));
+        placeAccessoryCaseBlock(helper, dropPos, new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get()));
+        helper.assertTrue(player.gameMode.destroyBlock(dropPos),
+                "Full-inventory removal should still break the accessory case");
+        helper.assertTrue(helper.getLevel().getEntitiesOfClass(
+                        ItemEntity.class, AABB.ofSize(player.position(), 4.0D, 4.0D, 4.0D)
+                ).stream().anyMatch(entity -> entity.getItem().is(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get())),
+                "Full-inventory removal should drop the accessory case from the player");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void accessoryCaseEnvironmentalBreakPreservesContents(GameTestHelper helper) {
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                helper, new BlockPos(0, 2, 0), "accessory_case_environment_drop_test"
+        );
+        var pos = helper.absolutePos(new BlockPos(1, 2, 1));
+        var caseStack = new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get());
+        new SpellcasterAccessoryCase.CaseInventory(caseStack, player)
+                .insertItem(0, new ItemStack(ItemRegistry.ATTACKCAST_RING.get()), false);
+        placeAccessoryCaseBlock(helper, pos, caseStack);
+
+        helper.assertTrue(helper.getLevel().destroyBlock(pos, true),
+                "Environmental block removal should remove the accessory case");
+        var droppedCase = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(2.0D)).stream()
+                .map(ItemEntity::getItem)
+                .filter(stack -> stack.is(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get()))
+                .findFirst()
+                .orElse(ItemStack.EMPTY);
+        helper.assertFalse(droppedCase.isEmpty(),
+                "Environmental block removal should drop the accessory case");
+        helper.assertTrue(new SpellcasterAccessoryCase.CaseInventory(droppedCase, player)
+                        .getStackInSlot(0).is(ItemRegistry.ATTACKCAST_RING.get()),
+                "Environmental block removal should preserve stored Curios items");
+        helper.succeed();
     }
 
     @GameTest(template = TEMPLATE)
@@ -460,6 +694,20 @@ public final class SpellcasterAccessoryCaseGameTests {
                 helper.succeed();
             });
         });
+    }
+
+    private static SpellcasterAccessoryCaseBlockEntity placeAccessoryCaseBlock(
+            GameTestHelper helper,
+            BlockPos pos,
+            ItemStack caseStack
+    ) {
+        helper.getLevel().setBlockAndUpdate(pos, BlockRegistry.SPELLCASTER_ACCESSORY_CASE.get().defaultBlockState());
+        var blockEntity = helper.getLevel().getBlockEntity(pos);
+        if (!(blockEntity instanceof SpellcasterAccessoryCaseBlockEntity accessoryCase)) {
+            throw new IllegalStateException("Placed accessory case test block is missing its block entity");
+        }
+        accessoryCase.setCaseStack(caseStack);
+        return accessoryCase;
     }
 
     private static int findFirstAvailableCurioMenuSlot(SpellcasterAccessoryCaseMenu menu, ItemStack stack) {

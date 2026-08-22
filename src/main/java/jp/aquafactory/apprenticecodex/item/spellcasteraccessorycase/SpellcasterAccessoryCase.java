@@ -1,8 +1,10 @@
 package jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -16,15 +18,17 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.Item;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.CuriosApi;
 
-public final class SpellcasterAccessoryCase extends Item {
+public final class SpellcasterAccessoryCase extends BlockItem {
     public static final int ROW_COUNT = 3;
     public static final int COLUMN_COUNT = 9;
     public static final int SLOT_COUNT = ROW_COUNT * COLUMN_COUNT;
@@ -33,7 +37,7 @@ public final class SpellcasterAccessoryCase extends Item {
     private static final String CONTAINER_KEY = "container.apprenticecodex.spellcaster_accessory_case";
 
     public SpellcasterAccessoryCase() {
-        super(new Item.Properties().stacksTo(1));
+        super(BlockRegistry.SPELLCASTER_ACCESSORY_CASE.get(), new Properties().stacksTo(1));
     }
 
     @Override
@@ -42,10 +46,28 @@ public final class SpellcasterAccessoryCase extends Item {
             @NotNull Player player,
             @NotNull InteractionHand usedHand
     ) {
-        var sourceSlot = usedHand == InteractionHand.MAIN_HAND ? player.getInventory().selected : Inventory.SLOT_OFFHAND;
         var stack = player.getItemInHand(usedHand);
+        if (player.isSecondaryUseActive()) {
+            return InteractionResultHolder.fail(stack);
+        }
+
+        var sourceSlot = usedHand == InteractionHand.MAIN_HAND ? player.getInventory().selected : Inventory.SLOT_OFFHAND;
         openMenu(player, sourceSlot, stack);
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
+    }
+
+    @Override
+    public @NotNull net.minecraft.world.InteractionResult useOn(@NotNull UseOnContext context) {
+        var player = context.getPlayer();
+        if (player == null || player.isSecondaryUseActive()) {
+            return super.useOn(context);
+        }
+
+        var sourceSlot = context.getHand() == InteractionHand.MAIN_HAND
+                ? player.getInventory().selected
+                : Inventory.SLOT_OFFHAND;
+        openMenu(player, sourceSlot, context.getItemInHand());
+        return net.minecraft.world.InteractionResult.sidedSuccess(context.getLevel().isClientSide);
     }
 
     @Override
@@ -100,7 +122,7 @@ public final class SpellcasterAccessoryCase extends Item {
             ) {
                 return new SpellcasterAccessoryCaseMenu(containerId, inventory, sourceSlot);
             }
-        }, buffer -> buffer.writeVarInt(sourceSlot));
+        }, buffer -> SpellcasterAccessoryCaseMenu.writeInventorySource(buffer, sourceSlot));
     }
 
     public static boolean accepts(ItemStack stack, LivingEntity wearer) {
@@ -114,6 +136,47 @@ public final class SpellcasterAccessoryCase extends Item {
 
     private static boolean isPlayerInventorySlot(int slot) {
         return slot >= 0 && slot < Inventory.INVENTORY_SIZE || slot == Inventory.SLOT_OFFHAND;
+    }
+
+    public static void loadInventory(
+            ItemStack caseStack,
+            ItemStackHandler inventory,
+            HolderLookup.Provider registries
+    ) {
+        var customData = caseStack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) {
+            return;
+        }
+
+        var root = customData.copyTag();
+        if (!root.contains(INVENTORY_TAG, Tag.TAG_COMPOUND)) {
+            return;
+        }
+
+        var inventoryTag = root.getCompound(INVENTORY_TAG).copy();
+        inventoryTag.putInt("Size", SLOT_COUNT);
+        inventory.deserializeNBT(registries, inventoryTag);
+    }
+
+    public static void saveInventory(
+            ItemStack caseStack,
+            IItemHandler inventory,
+            HolderLookup.Provider registries
+    ) {
+        var inventoryTag = new CompoundTag();
+        inventoryTag.putInt("Size", SLOT_COUNT);
+        var items = new net.minecraft.nbt.ListTag();
+        for (var slot = 0; slot < inventory.getSlots(); ++slot) {
+            var stack = inventory.getStackInSlot(slot);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            var itemTag = (CompoundTag) stack.saveOptional(registries);
+            itemTag.putInt("Slot", slot);
+            items.add(itemTag);
+        }
+        inventoryTag.put("Items", items);
+        CustomData.update(DataComponents.CUSTOM_DATA, caseStack, root -> root.put(INVENTORY_TAG, inventoryTag));
     }
 
     public static final class CaseInventory extends ItemStackHandler {
@@ -143,29 +206,16 @@ public final class SpellcasterAccessoryCase extends Item {
         }
 
         private void load() {
-            var customData = caseStack.get(DataComponents.CUSTOM_DATA);
-            if (customData == null) {
-                return;
-            }
-
-            var root = customData.copyTag();
-            if (!root.contains(INVENTORY_TAG, Tag.TAG_COMPOUND)) {
-                return;
-            }
-
             loading = true;
             try {
-                var inventoryTag = root.getCompound(INVENTORY_TAG).copy();
-                inventoryTag.putInt("Size", SLOT_COUNT);
-                deserializeNBT(registries, inventoryTag);
+                loadInventory(caseStack, this, registries);
             } finally {
                 loading = false;
             }
         }
 
         private void save() {
-            var inventoryTag = serializeNBT(registries);
-            CustomData.update(DataComponents.CUSTOM_DATA, caseStack, root -> root.put(INVENTORY_TAG, inventoryTag));
+            saveInventory(caseStack, this, registries);
         }
     }
 }
