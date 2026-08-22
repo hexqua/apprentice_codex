@@ -1,12 +1,17 @@
 package jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase;
 
+import jp.aquafactory.apprenticecodex.block.spellcasteraccessorycase.SpellcasterAccessoryCaseBlockEntity;
+import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.CuriosApi;
@@ -33,7 +38,9 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
     private static final int CURIOS_START = HOTBAR_END;
     private final Inventory playerInventory;
     private final int sourceSlot;
-    private final SpellcasterAccessoryCase.CaseInventory caseInventory;
+    private final BlockPos sourcePos;
+    private final SpellcasterAccessoryCaseBlockEntity sourceBlockEntity;
+    private final IItemHandler caseInventory;
     private final ICuriosItemHandler curiosHandler;
     private int maxVisibleCuriosColumns = DEFAULT_MAX_VISIBLE_CURIOS_COLUMNS;
     private int visibleCuriosColumnCount;
@@ -42,17 +49,36 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
     private int curiosPanelWidth;
 
     public SpellcasterAccessoryCaseMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf data) {
-        this(containerId, playerInventory, data.readVarInt());
+        this(containerId, playerInventory, readSource(data));
     }
 
     public SpellcasterAccessoryCaseMenu(int containerId, Inventory playerInventory, int sourceSlot) {
+        this(containerId, playerInventory, Source.inventory(sourceSlot));
+    }
+
+    public SpellcasterAccessoryCaseMenu(int containerId, Inventory playerInventory, BlockPos sourcePos) {
+        this(containerId, playerInventory, Source.block(sourcePos));
+    }
+
+    private SpellcasterAccessoryCaseMenu(int containerId, Inventory playerInventory, Source source) {
         super(MenuRegistry.SPELLCASTER_ACCESSORY_CASE.get(), containerId);
         this.playerInventory = playerInventory;
-        this.sourceSlot = sourceSlot;
-        var caseStack = isPlayerInventorySlot(sourceSlot) ? playerInventory.getItem(sourceSlot) : ItemStack.EMPTY;
-        this.caseInventory = new SpellcasterAccessoryCase.CaseInventory(caseStack, playerInventory.player);
+        this.sourceSlot = source.sourceSlot();
+        this.sourcePos = source.sourcePos();
+        this.sourceBlockEntity = resolveBlockEntity(playerInventory, sourcePos);
+        this.caseInventory = resolveCaseInventory(playerInventory, sourceSlot, sourceBlockEntity);
         this.curiosHandler = CuriosApi.getCuriosInventory(playerInventory.player).orElse(null);
         resetSlots();
+    }
+
+    public static void writeInventorySource(RegistryFriendlyByteBuf buffer, int sourceSlot) {
+        buffer.writeBoolean(false);
+        buffer.writeVarInt(sourceSlot);
+    }
+
+    public static void writeBlockSource(RegistryFriendlyByteBuf buffer, BlockPos sourcePos) {
+        buffer.writeBoolean(true);
+        buffer.writeBlockPos(sourcePos);
     }
 
     @Override
@@ -105,9 +131,22 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
 
     @Override
     public boolean stillValid(@NotNull Player player) {
-        return player.isAlive()
-                && isPlayerInventorySlot(sourceSlot)
-                && playerInventory.getItem(sourceSlot).getItem() instanceof SpellcasterAccessoryCase;
+        if (!player.isAlive()) {
+            return false;
+        }
+        if (sourcePos == null) {
+            return isPlayerInventorySlot(sourceSlot)
+                    && playerInventory.getItem(sourceSlot).getItem() instanceof SpellcasterAccessoryCase;
+        }
+
+        return sourceBlockEntity != null
+                && player.level().getBlockEntity(sourcePos) == sourceBlockEntity
+                && player.level().getBlockState(sourcePos).is(BlockRegistry.SPELLCASTER_ACCESSORY_CASE.get())
+                && player.distanceToSqr(
+                        sourcePos.getX() + 0.5D,
+                        sourcePos.getY() + 0.5D,
+                        sourcePos.getZ() + 0.5D
+                ) <= 64.0D;
     }
 
     @Override
@@ -198,7 +237,13 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
                         slot,
                         curiosPanelWidth + CASE_X + col * 18,
                         CASE_Y + row * 18
-                ));
+                ) {
+                    @Override
+                    public boolean mayPlace(@NotNull ItemStack stack) {
+                        return SpellcasterAccessoryCase.accepts(stack, playerInventory.player)
+                                && super.mayPlace(stack);
+                    }
+                });
             }
         }
     }
@@ -223,7 +268,7 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
     }
 
     private void addPlayerSlot(int inventorySlot, int x, int y) {
-        if (inventorySlot == sourceSlot) {
+        if (sourcePos == null && inventorySlot == sourceSlot) {
             addSlot(new Slot(playerInventory, inventorySlot, x, y) {
                 @Override
                 public boolean mayPickup(@NotNull Player player) {
@@ -278,5 +323,41 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
 
     private static boolean isPlayerInventorySlot(int slot) {
         return slot >= 0 && slot < Inventory.INVENTORY_SIZE || slot == Inventory.SLOT_OFFHAND;
+    }
+
+    private static Source readSource(RegistryFriendlyByteBuf data) {
+        return data.readBoolean() ? Source.block(data.readBlockPos()) : Source.inventory(data.readVarInt());
+    }
+
+    private static SpellcasterAccessoryCaseBlockEntity resolveBlockEntity(Inventory inventory, BlockPos pos) {
+        if (pos != null && inventory.player.level().getBlockEntity(pos)
+                instanceof SpellcasterAccessoryCaseBlockEntity blockEntity) {
+            return blockEntity;
+        }
+        return null;
+    }
+
+    private static IItemHandler resolveCaseInventory(
+            Inventory inventory,
+            int sourceSlot,
+            SpellcasterAccessoryCaseBlockEntity blockEntity
+    ) {
+        if (blockEntity != null) {
+            return blockEntity.getInventory();
+        }
+        if (isPlayerInventorySlot(sourceSlot)) {
+            return new SpellcasterAccessoryCase.CaseInventory(inventory.getItem(sourceSlot), inventory.player);
+        }
+        return new ItemStackHandler(SpellcasterAccessoryCase.SLOT_COUNT);
+    }
+
+    private record Source(int sourceSlot, BlockPos sourcePos) {
+        private static Source inventory(int sourceSlot) {
+            return new Source(sourceSlot, null);
+        }
+
+        private static Source block(BlockPos sourcePos) {
+            return new Source(-1, sourcePos.immutable());
+        }
     }
 }
