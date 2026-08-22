@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
@@ -239,71 +240,19 @@ public class ReflectcastShield extends AbstractImbueShieldItem
     }
 
     private static @NotNull ItemStack readCalibrationAdjustment(@NotNull ItemStack shieldStack, int slot) {
-        if (!isValidCalibrationAccess(shieldStack, slot)) {
-            return ItemStack.EMPTY;
-        }
-        var calibration = shieldStack.getTagElement(CALIBRATION_TAG);
-        if (calibration == null) {
-            return ItemStack.EMPTY;
-        }
-        var adjustments = calibration.getList(ADJUSTMENTS_TAG, Tag.TAG_COMPOUND);
-        for (var value : adjustments) {
-            var entry = (CompoundTag) value;
-            if (entry.getInt(SLOT_TAG) == slot) {
-                return ItemStack.of(entry.getCompound(ITEM_TAG));
-            }
-        }
-        return ItemStack.EMPTY;
+        return CalibrationAdjustmentStorage.get(shieldStack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
     }
 
-    private static void writeCalibrationAdjustment(@NotNull ItemStack shieldStack, int slot, @NotNull ItemStack adjustment) {
-        if (!isValidCalibrationAccess(shieldStack, slot)) {
-            return;
-        }
-        var calibration = shieldStack.getOrCreateTagElement(CALIBRATION_TAG);
-        var current = calibration.getList(ADJUSTMENTS_TAG, Tag.TAG_COMPOUND);
-        var replacement = new ListTag();
-        for (var value : current) {
-            if (((CompoundTag) value).getInt(SLOT_TAG) != slot) {
-                replacement.add(value.copy());
-            }
-        }
-        if (!adjustment.isEmpty()) {
-            var entry = new CompoundTag();
-            entry.putInt(SLOT_TAG, slot);
-            var stored = adjustment.copy();
-            stored.setCount(1);
-            entry.put(ITEM_TAG, stored.save(new CompoundTag()));
-            replacement.add(entry);
-        }
-        if (replacement.isEmpty()) {
-            shieldStack.removeTagKey(CALIBRATION_TAG);
-        } else {
-            calibration.put(ADJUSTMENTS_TAG, replacement);
-        }
+    @Override
+    public @NotNull java.util.Optional<net.minecraft.world.inventory.tooltip.TooltipComponent> getTooltipImage(
+            @NotNull ItemStack stack
+    ) {
+        return createCalibrationAdjustmentTooltip(stack);
     }
 
     @Override
     public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack targetStack) {
         return CALIBRATION_ADJUSTMENT_SLOT_COUNT;
-    }
-
-    @Override
-    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
-        return readCalibrationAdjustment(targetStack, slot);
-    }
-
-    @Override
-    public boolean trySetCalibrationAdjustment(
-            @NotNull ItemStack targetStack,
-            int slot,
-            @NotNull ItemStack adjustment
-    ) {
-        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment)) {
-            return false;
-        }
-        writeCalibrationAdjustment(targetStack, slot, adjustment);
-        return true;
     }
 
     @Override

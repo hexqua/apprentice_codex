@@ -320,43 +320,15 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     }
 
     @Override
+    public @NotNull java.util.Optional<net.minecraft.world.inventory.tooltip.TooltipComponent> getTooltipImage(
+            @NotNull ItemStack stack
+    ) {
+        return createCalibrationAdjustmentTooltip(stack);
+    }
+
+    @Override
     public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack targetStack) {
         return CALIBRATION_ADJUSTMENT_SLOT_COUNT;
-    }
-
-    @Override
-    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
-        if (!isValidCalibrationAccess(targetStack, slot)) {
-            return ItemStack.EMPTY;
-        }
-
-        var calibrationTag = targetStack.getTagElement(CALIBRATION_TAG);
-        if (calibrationTag == null || !calibrationTag.contains(ADJUSTMENT_TAG, Tag.TAG_COMPOUND)) {
-            return ItemStack.EMPTY;
-        }
-        return ItemStack.of(calibrationTag.getCompound(ADJUSTMENT_TAG));
-    }
-
-    @Override
-    public boolean trySetCalibrationAdjustment(
-            @NotNull ItemStack targetStack,
-            int slot,
-            @NotNull ItemStack adjustment
-    ) {
-        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment)) {
-            return false;
-        }
-
-        if (adjustment.isEmpty()) {
-            targetStack.removeTagKey(CALIBRATION_TAG);
-            return true;
-        }
-
-        var storedAdjustment = adjustment.copy();
-        storedAdjustment.setCount(1);
-        targetStack.getOrCreateTagElement(CALIBRATION_TAG)
-                .put(ADJUSTMENT_TAG, storedAdjustment.save(new CompoundTag()));
-        return true;
     }
 
     @Override

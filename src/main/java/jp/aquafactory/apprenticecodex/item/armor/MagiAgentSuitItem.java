@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
@@ -202,53 +203,19 @@ public class MagiAgentSuitItem extends ArmorItem
     }
 
     private static @NotNull ItemStack readCalibrationAdjustment(@NotNull ItemStack suitStack, int slot) {
-        if (!isValidCalibrationAccess(suitStack, slot)) {
-            return ItemStack.EMPTY;
-        }
-
-        var calibrationTag = suitStack.getTagElement(CALIBRATION_TAG);
-        if (calibrationTag == null || !calibrationTag.contains(ADJUSTMENT_TAG, Tag.TAG_COMPOUND)) {
-            return ItemStack.EMPTY;
-        }
-        return ItemStack.of(calibrationTag.getCompound(ADJUSTMENT_TAG));
+        return CalibrationAdjustmentStorage.get(suitStack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT);
     }
 
-    private static void writeCalibrationAdjustment(@NotNull ItemStack suitStack, int slot, @NotNull ItemStack stack) {
-        if (!isValidCalibrationAccess(suitStack, slot)) {
-            return;
-        }
-
-        if (stack.isEmpty()) {
-            clearCalibrationAdjustment(suitStack);
-            return;
-        }
-
-        var storedStack = stack.copy();
-        storedStack.setCount(1);
-        suitStack.getOrCreateTagElement(CALIBRATION_TAG).put(ADJUSTMENT_TAG, storedStack.save(new CompoundTag()));
+    @Override
+    public @NotNull java.util.Optional<net.minecraft.world.inventory.tooltip.TooltipComponent> getTooltipImage(
+            @NotNull ItemStack stack
+    ) {
+        return createCalibrationAdjustmentTooltip(stack);
     }
 
     @Override
     public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack targetStack) {
         return CALIBRATION_ADJUSTMENT_SLOT_COUNT;
-    }
-
-    @Override
-    public @NotNull ItemStack getCalibrationAdjustment(@NotNull ItemStack targetStack, int slot) {
-        return readCalibrationAdjustment(targetStack, slot);
-    }
-
-    @Override
-    public boolean trySetCalibrationAdjustment(
-            @NotNull ItemStack targetStack,
-            int slot,
-            @NotNull ItemStack adjustment
-    ) {
-        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment)) {
-            return false;
-        }
-        writeCalibrationAdjustment(targetStack, slot, adjustment);
-        return true;
     }
 
     @Override
