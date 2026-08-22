@@ -285,6 +285,7 @@ import net.minecraft.world.level.block.AttachedStemBlock;
 import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ComposterBlock;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
@@ -626,6 +627,15 @@ public class ApprenticeCodexGameTestScenarios {
                     "Potted Comfort Berries should consume one berry item outside creative mode");
         });
     }
+
+    static void comfortBerriesHaveAppleTierCompostChance(GameTestHelper helper) {
+        helper.succeedIf(() -> helper.assertTrue(Float.compare(
+                        ComposterBlock.COMPOSTABLES.getFloat(ItemRegistry.COMFORT_BERRIES.get()),
+                        0.65F
+                ) == 0,
+                "Comfort Berries should have the apple-tier compost chance of 0.65"));
+    }
+
     static void assistWingsOnlyJumpItemsTagIncludesSmashcastScepter(GameTestHelper helper) {
         helper.succeedIf(() -> helper.assertTrue(
                 new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()).is(TagRegistry.Items.ASSIST_WINGS_ONLY_JUMP_ITEMS),
