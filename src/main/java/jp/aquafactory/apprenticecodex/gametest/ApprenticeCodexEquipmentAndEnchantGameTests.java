@@ -2049,6 +2049,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void commonItemTagsExposeIntendedCompatibilitySurface(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios.commonItemTagsExposeIntendedCompatibilitySurface(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellchargedGreatswordKeepsExpectedStatsAndTags(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.spellchargedGreatswordKeepsExpectedStatsAndTags(helper);
     }
