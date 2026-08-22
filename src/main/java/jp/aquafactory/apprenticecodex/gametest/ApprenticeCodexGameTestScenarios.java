@@ -285,6 +285,7 @@ import net.minecraft.world.level.block.AttachedStemBlock;
 import net.minecraft.world.level.block.AbstractFurnaceBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ComposterBlock;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.DirectionalBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
@@ -604,6 +605,8 @@ public class ApprenticeCodexGameTestScenarios {
             var pottedComfortBerryBush = (FlowerPotBlock) BlockRegistry.POTTED_COMFORT_BERRY_BUSH.get();
             helper.assertTrue(pottedComfortBerryBush.getContent() == BlockRegistry.COMFORT_BERRY_BUSH.get(),
                     "Potted Comfort Berry Bush should contain the Comfort Berry Bush block");
+            helper.assertTrue(pottedComfortBerryBush.defaultBlockState().getLightEmission(helper.getLevel(), helper.absolutePos(new BlockPos(1, 1, 1))) == 10,
+                    "Potted Comfort Berry Bush should emit light level 10");
 
             var potPos = new BlockPos(1, 1, 1);
             var absolutePotPos = helper.absolutePos(potPos);
@@ -624,6 +627,15 @@ public class ApprenticeCodexGameTestScenarios {
                     "Potted Comfort Berries should consume one berry item outside creative mode");
         });
     }
+
+    static void comfortBerriesHaveAppleTierCompostChance(GameTestHelper helper) {
+        helper.succeedIf(() -> helper.assertTrue(Float.compare(
+                        ComposterBlock.COMPOSTABLES.getFloat(ItemRegistry.COMFORT_BERRIES.get()),
+                        0.65F
+                ) == 0,
+                "Comfort Berries should have the apple-tier compost chance of 0.65"));
+    }
+
     static void assistWingsOnlyJumpItemsTagIncludesSmashcastScepter(GameTestHelper helper) {
         helper.succeedIf(() -> helper.assertTrue(
                 new ItemStack(ItemRegistry.SMASHCAST_SCEPTER.get()).is(TagRegistry.Items.ASSIST_WINGS_ONLY_JUMP_ITEMS),
@@ -1406,6 +1418,12 @@ public class ApprenticeCodexGameTestScenarios {
                 assertRecipeLoadedWithSerializerId(helper, recipeManager,
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/mixing/arcane_propellant_charge"),
                         ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "mixing"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/crushing/crystalline_arcane_shard"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "crushing"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/haunting/comfort_berries"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "haunting"));
                 assertRecipeLoadedWithSerializerId(helper, recipeManager,
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/deploying/spell_bullet_head"),
                         ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "deploying"));

@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.spell.wizardlamp.WizardlampLanternBlock;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.ComposterBlock;
 import net.minecraft.world.level.block.FlowerPotBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -84,11 +85,13 @@ public final class BlockRegistry {
                     () -> (FlowerPotBlock) Blocks.FLOWER_POT,
                     COMFORT_BERRY_BUSH,
                     BlockBehaviour.Properties.copy(Blocks.POTTED_BLUE_ORCHID)
+                            .lightLevel(state -> 10)
             ));
 
     public static void register(IEventBus eventBus) {
         BLOCKS.register(eventBus);
         eventBus.addListener(BlockRegistry::registerFlowerPotPlants);
+        eventBus.addListener(BlockRegistry::registerCompostables);
     }
 
     private static void registerFlowerPotPlants(FMLCommonSetupEvent event) {
@@ -96,5 +99,9 @@ public final class BlockRegistry {
                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "comfort_berry_bush"),
                 POTTED_COMFORT_BERRY_BUSH
         ));
+    }
+
+    private static void registerCompostables(FMLCommonSetupEvent event) {
+        event.enqueueWork(() -> ComposterBlock.COMPOSTABLES.put(ItemRegistry.COMFORT_BERRIES.get(), 0.65F));
     }
 }
