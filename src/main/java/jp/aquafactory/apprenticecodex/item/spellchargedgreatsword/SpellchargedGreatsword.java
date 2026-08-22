@@ -565,7 +565,13 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
             return OptionalLong.empty();
         }
 
-        return OptionalLong.of(server.overworld().getGameTime());
+        // ServerAboutToStartEvent 中は server が公開済みでも、まだ level が生成されていない場合がある。
+        var overworld = server.getLevel(Level.OVERWORLD);
+        if (overworld == null) {
+            return OptionalLong.empty();
+        }
+
+        return OptionalLong.of(overworld.getGameTime());
     }
 
     private static void startOvercharge(ItemStack stack, long gameTime, int chargeLevel) {
