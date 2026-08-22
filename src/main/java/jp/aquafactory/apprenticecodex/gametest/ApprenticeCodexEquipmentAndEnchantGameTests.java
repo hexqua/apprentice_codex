@@ -1083,6 +1083,23 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void longStrideBuoyancyRisesWhileSneakingAndPreservesHorizontalMovement(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios
+                .longStrideBuoyancyRisesWhileSneakingAndPreservesHorizontalMovement(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void longStrideStandsOnWaterLavaAndFlowingFluid(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.longStrideStandsOnWaterLavaAndFlowingFluid(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void longStrideFluidMovementRespectsExcludedStatesAndLavaDamage(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios
+                .longStrideFluidMovementRespectsExcludedStatesAndLavaDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void dynamicCastingMobilityEffectRebalancesAgainstExternalCastingMoveSpeed(GameTestHelper helper) {
         EquipmentSpellBehaviorBridgeGameTestScenarios.dynamicCastingMobilityEffectRebalancesAgainstExternalCastingMoveSpeed(helper);
     }
