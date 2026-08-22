@@ -41,6 +41,7 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
                 recipe(Items.STONE, result(Items.COBBLESTONE, 1)),
                 recipe(Items.COBBLESTONE, result(Items.GRAVEL, 1)),
                 recipe(Items.GRAVEL, result(Items.SAND, 1)),
+                recipe(jp.aquafactory.apprenticecodex.registry.ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get(), result(ItemRegistry.ARCANE_ESSENCE.get(), 1)),
 
                 recipe(ItemRegistry.AFFINITY_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),
                 recipe(ItemRegistry.CAST_TIME_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1)),

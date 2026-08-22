@@ -1,0 +1,12 @@
+{
+  "type": "apprenticecodex:grind_runner",
+  "ingredient": {
+    "item": "apprenticecodex:crystalline_arcane_shard"
+  },
+  "results": [
+    {
+      "count": 1,
+      "item": "irons_spellbooks:arcane_essence"
+    }
+  ]
+}
