@@ -11,7 +11,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
@@ -46,7 +46,7 @@ public final class AlchemyBrewerBlockEntityRenderer implements BlockEntityRender
             return;
         }
 
-        var potion = BuiltInRegistries.POTION.get(potionId);
+        var potion = ForgeRegistries.POTIONS.getValue(potionId);
         if (potion == null) {
             return;
         }

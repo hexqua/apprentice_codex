@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex.block.alchemybrewer;
 
-import com.mojang.serialization.MapCodec;
 import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
@@ -13,9 +12,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUtils;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -40,12 +37,12 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("deprecation")
 public final class AlchemyBrewer extends BaseEntityBlock {
-    public static final MapCodec<AlchemyBrewer> CODEC = simpleCodec(AlchemyBrewer::new);
     public static final net.minecraft.world.level.block.state.properties.DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     private static final VoxelShape COLLISION_SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 10.0D, 16.0D);
     private static final java.util.Map<Direction, VoxelShape> OUTLINE_SHAPES = java.util.Map.of(
@@ -61,7 +58,7 @@ public final class AlchemyBrewer extends BaseEntityBlock {
     }
 
     public AlchemyBrewer() { this(Properties.of()); }
-    @Override protected @NotNull MapCodec<? extends BaseEntityBlock> codec() { return CODEC; }
+
     @Override public @NotNull RenderShape getRenderShape(@NotNull BlockState state) { return RenderShape.MODEL; }
     @Override public @NotNull VoxelShape getShape(@NotNull BlockState state, @NotNull BlockGetter level,
                                                   @NotNull BlockPos pos, @NotNull CollisionContext context) {
@@ -124,45 +121,45 @@ public final class AlchemyBrewer extends BaseEntityBlock {
                                                                                        @NotNull BlockEntityType<T> type) {
         return level.isClientSide ? null : createTickerHelper(type, BlockEntityRegistry.ALCHEMY_BREWER.get(), AlchemyBrewerBlockEntity::serverTick);
     }
-    @Override protected @NotNull ItemInteractionResult useItemOn(@NotNull ItemStack stack, @NotNull BlockState state,
-                                                                  @NotNull Level level, @NotNull BlockPos pos,
-                                                                  @NotNull Player player, @NotNull InteractionHand hand,
-                                                                  @NotNull BlockHitResult hitResult) {
+    @Override public @NotNull InteractionResult use(@NotNull BlockState state, @NotNull Level level,
+                                                     @NotNull BlockPos pos, @NotNull Player player,
+                                                     @NotNull InteractionHand hand, @NotNull BlockHitResult hitResult) {
+        var stack = player.getItemInHand(hand);
         if (hand != InteractionHand.MAIN_HAND
                 || !(level.getBlockEntity(pos) instanceof AlchemyBrewerBlockEntity brewer)
                 || brewer.getTankAmountMb() < AlchemyBrewerBlockEntity.DOSE_AMOUNT_MB) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return openMenu(level, pos, player);
         }
 
         var potionId = brewer.getTankPotionId();
         var potion = AlchemyBrewerBlockEntity.resolveRegisteredPotion(potionId);
         if (potion == null) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return openMenu(level, pos, player);
         }
         var representative = PotionContentsHelper.createPotionStack(Items.POTION, potion);
         if (representative.isEmpty()) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return openMenu(level, pos, player);
         }
 
         if (stack.is(Items.GLASS_BOTTLE)) {
             if (level.isClientSide) {
-                return ItemInteractionResult.SUCCESS;
+                return InteractionResult.SUCCESS;
             }
             if (brewer.extractTankPotion(potionId, AlchemyBrewerBlockEntity.DOSE_AMOUNT_MB)
                     != AlchemyBrewerBlockEntity.DOSE_AMOUNT_MB) {
-                return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+                return InteractionResult.PASS;
             }
 
             player.setItemInHand(hand, ItemUtils.createFilledResult(stack, player, representative));
             player.awardStat(Stats.ITEM_USED.get(Items.GLASS_BOTTLE));
             level.playSound(null, pos, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, 1.0F, 1.0F);
             level.gameEvent(player, GameEvent.FLUID_PICKUP, pos);
-            return ItemInteractionResult.CONSUME;
+            return InteractionResult.CONSUME;
         }
 
         if (!(stack.getItem() instanceof AbstractPotionFlaskItem)
                 || !AbstractPotionFlaskItem.canAddDoseFromItem(stack, representative)) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return openMenu(level, pos, player);
         }
 
         int transferableDoseCount = Math.min(
@@ -171,24 +168,24 @@ public final class AlchemyBrewer extends BaseEntityBlock {
         );
         var filled = AbstractPotionFlaskItem.copyWithAddedDoses(stack, representative, transferableDoseCount);
         if (transferableDoseCount <= 0 || filled.isEmpty()) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         }
         if (level.isClientSide) {
-            return ItemInteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
         int transferredAmountMb = transferableDoseCount * AlchemyBrewerBlockEntity.DOSE_AMOUNT_MB;
         if (brewer.extractTankPotion(potionId, transferredAmountMb) != transferredAmountMb) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         }
         player.setItemInHand(hand, filled);
-        return ItemInteractionResult.CONSUME;
+        return InteractionResult.CONSUME;
     }
-    @Override protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
-                                                                   @NotNull Player player, @NotNull BlockHitResult hitResult) {
+
+    private static InteractionResult openMenu(Level level, BlockPos pos, Player player) {
         if (level.isClientSide) return InteractionResult.SUCCESS;
         if (level.getBlockEntity(pos) instanceof AlchemyBrewerBlockEntity brewer && player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(new net.minecraft.world.MenuProvider() {
+            NetworkHooks.openScreen(serverPlayer, new net.minecraft.world.MenuProvider() {
                 @Override public @NotNull net.minecraft.network.chat.Component getDisplayName() {
                     return net.minecraft.network.chat.Component.translatable("container.apprenticecodex.alchemy_brewer");
                 }

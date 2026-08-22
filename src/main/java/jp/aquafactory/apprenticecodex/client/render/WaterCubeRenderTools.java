@@ -123,11 +123,12 @@ public final class WaterCubeRenderTools {
         var transformedNormal = new org.joml.Vector3f((float) normal.x, (float) normal.y, (float) normal.z)
                 .mul(normalMatrix)
                 .normalize();
-        buffer.addVertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
-                .setColor(WATER_RED, WATER_GREEN, WATER_BLUE, alpha)
-                .setUv(u, v)
-                .setOverlay(OverlayTexture.NO_OVERLAY)
-                .setLight(LightTexture.FULL_BRIGHT)
-                .setNormal(transformedNormal.x(), transformedNormal.y(), transformedNormal.z());
+        buffer.vertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
+                .color(WATER_RED, WATER_GREEN, WATER_BLUE, alpha)
+                .uv(u, v)
+                .overlayCoords(OverlayTexture.NO_OVERLAY)
+                .uv2(LightTexture.FULL_BRIGHT)
+                .normal(transformedNormal.x(), transformedNormal.y(), transformedNormal.z())
+                .endVertex();
     }
 }

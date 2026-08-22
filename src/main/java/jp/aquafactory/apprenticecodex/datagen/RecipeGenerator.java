@@ -114,7 +114,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('F', ItemTags.WOODEN_FENCES)
                 .define('W', Items.WATER_BUCKET)
                 .unlockedBy(getHasName(Items.DECORATED_POT), has(Items.DECORATED_POT))
-                .save(recipeOutput);
+                .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.BREWING, ItemRegistry.ATELIER_STATION.get())
                 .pattern("BMR")

@@ -7,7 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ final class AlchemyBrewerWaterSupply {
         if (candidates.isEmpty()) {
             return null;
         }
-        var target = candidates.getFirst();
+        var target = candidates.get(0);
         return supply(level, target, config) ? target : null;
     }
 

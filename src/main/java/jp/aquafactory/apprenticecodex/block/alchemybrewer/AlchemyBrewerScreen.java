@@ -3,7 +3,6 @@ package jp.aquafactory.apprenticecodex.block.alchemybrewer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
-import jp.aquafactory.apprenticecodex.utility.SchoolAffinityTooltipHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -17,8 +16,8 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -35,7 +34,7 @@ public final class AlchemyBrewerScreen extends AbstractContainerScreen<AlchemyBr
     }
 
     @Override public void render(@NotNull GuiGraphics gui, int mouseX, int mouseY, float partialTicks) {
-        renderBackground(gui, mouseX, mouseY, partialTicks);
+        renderBackground(gui);
         super.render(gui, mouseX, mouseY, partialTicks);
         renderTooltip(gui, mouseX, mouseY);
     }
@@ -62,14 +61,14 @@ public final class AlchemyBrewerScreen extends AbstractContainerScreen<AlchemyBr
 
     private void renderGauge(GuiGraphics gui, AlchemyBrewerMenu brewer) {
         if (!brewer.isProcessing() || brewer.getTotalTicks() <= 0) return;
-        int height = Math.clamp((int) ((long) brewer.getElapsedTicks() * GAUGE_HEIGHT / brewer.getTotalTicks()), 0, GAUGE_HEIGHT);
+        int height = net.minecraft.util.Mth.clamp((int) ((long) brewer.getElapsedTicks() * GAUGE_HEIGHT / brewer.getTotalTicks()), 0, GAUGE_HEIGHT);
         if (height > 0) gui.blit(TEXTURE, leftPos + GAUGE_X, topPos + GAUGE_Y + GAUGE_HEIGHT - height,
                 0, 166 + GAUGE_HEIGHT - height, GAUGE_WIDTH, height);
     }
 
     private void renderTank(GuiGraphics gui, AlchemyBrewerMenu brewer) {
         if (brewer.getDisplayPotionId() == null || brewer.getDisplayAmountMb() <= 0) return;
-        var potion = BuiltInRegistries.POTION.get(brewer.getDisplayPotionId());
+        var potion = ForgeRegistries.POTIONS.getValue(brewer.getDisplayPotionId());
         if (potion == null) return;
         var representative = PotionContentsHelper.createPotionStack(Items.POTION, potion);
         var fluid = Minecraft.getInstance().level == null ? null : SpellcastersFlask.createFluidForStoredItem(
@@ -107,7 +106,7 @@ public final class AlchemyBrewerScreen extends AbstractContainerScreen<AlchemyBr
             return;
         }
         if (isHovering(TANK_X, TANK_Y, TANK_WIDTH, TANK_HEIGHT, mouseX, mouseY) && brewer.getDisplayPotionId() != null) {
-            var potion = BuiltInRegistries.POTION.get(brewer.getDisplayPotionId());
+            var potion = ForgeRegistries.POTIONS.getValue(brewer.getDisplayPotionId());
             if (potion != null) {
                 var lines = new ArrayList<Component>();
                 var potionName = PotionContentsHelper.createPotionStack(Items.POTION, potion).getHoverName();
@@ -141,8 +140,16 @@ public final class AlchemyBrewerScreen extends AbstractContainerScreen<AlchemyBr
         lines.add(Component.translatable("container.apprenticecodex.alchemy_brewer.fluid.effects")
                 .withStyle(ChatFormatting.LIGHT_PURPLE));
         for (var effect : effects) {
-            var effectLine = SchoolAffinityTooltipHelper.buildTooltipLine(
-                    effect.getEffect().value().getDisplayName().copy(), effect, 1.0F, 20.0F);
+            var effectLine = effect.getEffect().getDisplayName().copy();
+            if (effect.getAmplifier() > 0) {
+                effectLine = Component.translatable("potion.withAmplifier", effectLine,
+                        Component.translatable("potion.potency." + effect.getAmplifier()));
+            }
+            if (!effect.endsWithin(20)) {
+                effectLine = Component.translatable("potion.withDuration", effectLine,
+                        net.minecraft.world.effect.MobEffectUtil.formatDuration(effect, 1.0F));
+            }
+            effectLine.withStyle(effect.getEffect().getCategory().getTooltipFormatting());
             lines.add(Component.literal("- ").withStyle(ChatFormatting.GRAY).append(effectLine));
         }
     }

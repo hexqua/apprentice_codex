@@ -49,6 +49,6 @@ public final class ColorCubeRenderTools {
 
     private static void vertex(VertexConsumer consumer, Matrix4f pose, float x, float y, float z,
                                int red, int green, int blue, int alpha) {
-        consumer.addVertex(pose, x, y, z).setColor(red, green, blue, alpha);
+        consumer.vertex(pose, x, y, z).color(red, green, blue, alpha).endVertex();
     }
 }

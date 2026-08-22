@@ -54,8 +54,6 @@ public final class ApprenticeCodexJadePlugin implements IWailaPlugin {
     @Override
     public void registerClient(IWailaClientRegistration registration) {
         registration.registerBlockComponent(ArcanumInAJarJadeProvider.INSTANCE, ArcanumInAJar.class);
-        registration.registerItemStorageClient(AlchemyBrewerJadeItemStorageProvider.INSTANCE);
-        registration.registerFluidStorageClient(AlchemyBrewerJadeFluidStorageProvider.INSTANCE);
         registration.registerBlockComponent(AtelierStationJadeProvider.INSTANCE, AtelierStation.class);
         registration.registerBlockComponent(EssenceSmokerJadeProvider.INSTANCE, EssenceSmoker.class);
         registration.registerBlockComponent(SpellDispenserJadeProvider.INSTANCE, SpellDispenser.class);

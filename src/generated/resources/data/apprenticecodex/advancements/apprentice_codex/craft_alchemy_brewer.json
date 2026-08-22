@@ -9,13 +9,16 @@
     }
   },
   "display": {
+    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_alchemy_brewer.description"
     },
+    "frame": "task",
+    "hidden": false,
     "icon": {
-      "count": 1,
-      "id": "apprenticecodex:alchemy_brewer"
+      "item": "apprenticecodex:alchemy_brewer"
     },
+    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_alchemy_brewer.title"
     }

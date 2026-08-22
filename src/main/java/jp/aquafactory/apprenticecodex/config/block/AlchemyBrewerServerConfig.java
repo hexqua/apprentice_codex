@@ -1,27 +1,27 @@
 package jp.aquafactory.apprenticecodex.config.block;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 import org.jetbrains.annotations.Nullable;
 
 public final class AlchemyBrewerServerConfig {
     public static final Values DEFAULT_VALUES = new Values(20, 1, 250);
 
-    private final ModConfigSpec.IntValue waterSupplyIntervalTicks;
-    private final ModConfigSpec.IntValue vanillaCauldronWaterLevelIncrease;
-    private final ModConfigSpec.IntValue alchemistCauldronWaterAmountMb;
+    private final ForgeConfigSpec.IntValue waterSupplyIntervalTicks;
+    private final ForgeConfigSpec.IntValue vanillaCauldronWaterLevelIncrease;
+    private final ForgeConfigSpec.IntValue alchemistCauldronWaterAmountMb;
     private @Nullable Values override;
 
     private AlchemyBrewerServerConfig(
-            ModConfigSpec.IntValue waterSupplyIntervalTicks,
-            ModConfigSpec.IntValue vanillaCauldronWaterLevelIncrease,
-            ModConfigSpec.IntValue alchemistCauldronWaterAmountMb
+            ForgeConfigSpec.IntValue waterSupplyIntervalTicks,
+            ForgeConfigSpec.IntValue vanillaCauldronWaterLevelIncrease,
+            ForgeConfigSpec.IntValue alchemistCauldronWaterAmountMb
     ) {
         this.waterSupplyIntervalTicks = waterSupplyIntervalTicks;
         this.vanillaCauldronWaterLevelIncrease = vanillaCauldronWaterLevelIncrease;
         this.alchemistCauldronWaterAmountMb = alchemistCauldronWaterAmountMb;
     }
 
-    public static AlchemyBrewerServerConfig define(ModConfigSpec.Builder builder) {
+    public static AlchemyBrewerServerConfig define(ForgeConfigSpec.Builder builder) {
         builder.push("AlchemyBrewer");
         var waterSupplyIntervalTicks = builder
                 .comment("Interval in ticks between wireless water supply attempts. Minimum is 10 ticks.")

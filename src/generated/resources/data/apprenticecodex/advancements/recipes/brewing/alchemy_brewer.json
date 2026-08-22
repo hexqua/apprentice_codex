@@ -5,7 +5,9 @@
       "conditions": {
         "items": [
           {
-            "items": "minecraft:decorated_pot"
+            "items": [
+              "minecraft:decorated_pot"
+            ]
           }
         ]
       },
@@ -20,13 +22,14 @@
   },
   "requirements": [
     [
-      "has_the_recipe",
-      "has_decorated_pot"
+      "has_decorated_pot",
+      "has_the_recipe"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:alchemy_brewer"
     ]
-  }
+  },
+  "sends_telemetry_event": false
 }

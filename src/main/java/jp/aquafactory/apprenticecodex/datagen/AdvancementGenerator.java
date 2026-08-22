@@ -816,7 +816,7 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_alchemy_brewer.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_alchemy_brewer.description"),
                         null,
-                        AdvancementType.TASK,
+                        FrameType.TASK,
                         true,
                         true,
                         false)

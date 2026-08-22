@@ -16,7 +16,7 @@ public final class AlchemyBrewerRecipeDataGenerator implements DataProvider {
     private final PackOutput.PathProvider pathProvider;
 
     public AlchemyBrewerRecipeDataGenerator(PackOutput output) {
-        pathProvider = output.createPathProvider(PackOutput.Target.DATA_PACK, "recipe");
+        pathProvider = output.createPathProvider(PackOutput.Target.DATA_PACK, "recipes");
     }
 
     @Override public @NotNull CompletableFuture<?> run(@NotNull CachedOutput output) {

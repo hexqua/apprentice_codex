@@ -6,16 +6,16 @@ import jp.aquafactory.apprenticecodex.network.packet.AlchemyBrewerWaterSupplyEff
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class AlchemyBrewerWaterSupplyRenderEvent {
     private static final int DURATION_TICKS = 10;
     private static final int CUBE_COUNT = 3;
@@ -36,7 +36,8 @@ public final class AlchemyBrewerWaterSupplyRenderEvent {
     }
 
     @SubscribeEvent
-    public static void onClientTick(ClientTickEvent.Post event) {
+    public static void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
         if (Minecraft.getInstance().level == null) {
             ACTIVE_EFFECTS.clear();
         }
@@ -65,7 +66,7 @@ public final class AlchemyBrewerWaterSupplyRenderEvent {
         var bufferSource = minecraft.renderBuffers().bufferSource();
         var buffer = bufferSource.getBuffer(WaterCubeRenderTools.RENDER_TYPE);
         var gameTime = level.getGameTime();
-        var partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(true);
+        var partialTick = event.getPartialTick();
 
         poseStack.pushPose();
         poseStack.translate(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);

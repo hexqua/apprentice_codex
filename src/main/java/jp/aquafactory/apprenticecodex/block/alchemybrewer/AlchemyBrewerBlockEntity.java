@@ -11,7 +11,6 @@ import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -28,14 +27,17 @@ import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -81,7 +83,7 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
             return slot == INPUT_SLOT ? 64 : super.getSlotLimit(slot);
         }
     };
-    private final IItemHandler[] sidedHandlers = createSidedHandlers();
+    private LazyOptional<IItemHandler>[] sidedHandlers = createSidedHandlers();
     private boolean autoBrewing;
     private ResourceLocation tankPotion;
     private int tankAmountMb;
@@ -97,7 +99,7 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
             return switch (index) {
                 case MENU_DATA_AUTO_BREWING -> autoBrewing ? 1 : 0;
                 case MENU_DATA_TANK_AMOUNT -> tankAmountMb;
-                case MENU_DATA_DISPLAY_POTION -> registryId(BuiltInRegistries.POTION, getDisplayPotionId());
+                case MENU_DATA_DISPLAY_POTION -> registryId(getDisplayPotionId());
                 case MENU_DATA_DISPLAY_AMOUNT -> getDisplayAmountMb();
                 case MENU_DATA_STATE_FLAGS -> (isProcessing() ? MENU_FLAG_PROCESSING : 0)
                         | (isDisplayPreview() ? MENU_FLAG_PREVIEW : 0);
@@ -242,39 +244,37 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
         if (level == null || tankAmountMb != 0 || activeJob != null) return null;
         var baseRecipes = level.getRecipeManager().getAllRecipesFor(RecipeRegistry.ALCHEMY_BREWER_RECIPE_TYPE.get());
         var candidates = new ArrayList<Candidate>();
-        for (var holder : baseRecipes) {
-            var recipe = holder.value();
+        for (var recipe : baseRecipes) {
             for (int baseSlot = FIRST_MATERIAL_SLOT; baseSlot < OUTPUT_SLOT; baseSlot++) {
                 if (!recipe.base().test(inventory.getStackInSlot(baseSlot))) continue;
                 for (int ingredientSlot = FIRST_MATERIAL_SLOT; ingredientSlot < OUTPUT_SLOT; ingredientSlot++) {
                     if (!recipe.ingredient().test(inventory.getStackInSlot(ingredientSlot))) continue;
                     if (baseSlot == ingredientSlot && inventory.getStackInSlot(baseSlot).getCount() < 2) continue;
-                    var candidate = createCandidate(holder, baseSlot, ingredientSlot);
+                    var candidate = createCandidate(recipe, baseSlot, ingredientSlot);
                     // 無効な datapack ID を予約して素材だけ失うことがないよう、開始候補から除外する。
-                    if (BuiltInRegistries.POTION.containsKey(candidate.result)) candidates.add(candidate);
+                    if (ForgeRegistries.POTIONS.containsKey(candidate.result)) candidates.add(candidate);
                 }
             }
         }
         return candidates.stream().min(CANDIDATE_COMPARATOR).orElse(null);
     }
 
-    private Candidate createCandidate(RecipeHolder<AlchemyBrewerRecipe> holder, int baseSlot, int ingredientSlot) {
-        var recipe = holder.value();
+    private Candidate createCandidate(AlchemyBrewerRecipe recipe, int baseSlot, int ingredientSlot) {
         int modifierSlot = -1;
         ResourceLocation modifierId = null;
         ResourceLocation result = recipe.result();
-        RecipeHolder<AlchemyBrewerModifierRecipe> best = null;
+        AlchemyBrewerModifierRecipe best = null;
         if (level != null){
             for (var modifier : level.getRecipeManager().getAllRecipesFor(RecipeRegistry.ALCHEMY_BREWER_MODIFIER_RECIPE_TYPE.get())) {
-                if (!modifier.value().input().equals(recipe.result())) continue;
+                if (!modifier.input().equals(recipe.result())) continue;
                 for (int slot = FIRST_MATERIAL_SLOT; slot < OUTPUT_SLOT; slot++) {
                     var remaining = inventory.getStackInSlot(slot).getCount()
                             - (slot == baseSlot ? 1 : 0) - (slot == ingredientSlot ? 1 : 0);
-                    if (remaining <= 0 || !modifier.value().ingredient().test(inventory.getStackInSlot(slot))) continue;
+                    if (remaining <= 0 || !modifier.ingredient().test(inventory.getStackInSlot(slot))) continue;
                     if (best == null || slot < modifierSlot
-                            || slot == modifierSlot && modifier.value().priority() > best.value().priority()
-                            || slot == modifierSlot && modifier.value().priority() == best.value().priority()
-                            && modifier.id().toString().compareTo(best.id().toString()) < 0) {
+                            || slot == modifierSlot && modifier.priority() > best.priority()
+                            || slot == modifierSlot && modifier.priority() == best.priority()
+                            && modifier.getId().toString().compareTo(best.getId().toString()) < 0) {
                         best = modifier;
                         modifierSlot = slot;
                     }
@@ -282,10 +282,10 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
             }
         }
         if (best != null) {
-            modifierId = best.id();
-            result = best.value().result();
+            modifierId = best.getId();
+            result = best.result();
         }
-        return new Candidate(holder.id(), modifierId, result, recipe.fluidAmountMb(), recipe.processingTimeTicks(),
+        return new Candidate(recipe.getId(), modifierId, result, recipe.fluidAmountMb(), recipe.processingTimeTicks(),
                 recipe.priority(), baseSlot, ingredientSlot, modifierSlot);
     }
 
@@ -361,7 +361,7 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
 
     private boolean canAcceptOutput(ItemStack stack) {
         var output = inventory.getStackInSlot(OUTPUT_SLOT);
-        return output.isEmpty() || ItemStack.isSameItemSameComponents(output, stack)
+        return output.isEmpty() || ItemStack.isSameItemSameTags(output, stack)
                 && output.getCount() + stack.getCount() <= Math.min(output.getMaxStackSize(), inventory.getSlotLimit(OUTPUT_SLOT));
     }
 
@@ -380,7 +380,9 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
     }
 
     public static @Nullable Potion resolveRegisteredPotion(@Nullable ResourceLocation potionId) {
-        return potionId == null ? null : BuiltInRegistries.POTION.getOptional(potionId).orElse(null);
+        return potionId == null || !ForgeRegistries.POTIONS.containsKey(potionId)
+                ? null
+                : ForgeRegistries.POTIONS.getValue(potionId);
     }
 
     private void consumeTankAmount(int amountMb) {
@@ -399,11 +401,11 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
 
     private boolean isLoadedRecipeIngredient(ItemStack stack) {
         if (level == null || stack.isEmpty()) return !stack.isEmpty();
-        for (var holder : level.getRecipeManager().getAllRecipesFor(RecipeRegistry.ALCHEMY_BREWER_RECIPE_TYPE.get())) {
-            if (holder.value().base().test(stack) || holder.value().ingredient().test(stack)) return true;
+        for (var recipe : level.getRecipeManager().getAllRecipesFor(RecipeRegistry.ALCHEMY_BREWER_RECIPE_TYPE.get())) {
+            if (recipe.base().test(stack) || recipe.ingredient().test(stack)) return true;
         }
-        for (var holder : level.getRecipeManager().getAllRecipesFor(RecipeRegistry.ALCHEMY_BREWER_MODIFIER_RECIPE_TYPE.get())) {
-            if (holder.value().ingredient().test(stack)) return true;
+        for (var recipe : level.getRecipeManager().getAllRecipesFor(RecipeRegistry.ALCHEMY_BREWER_MODIFIER_RECIPE_TYPE.get())) {
+            if (recipe.ingredient().test(stack)) return true;
         }
         return false;
     }
@@ -422,12 +424,13 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
     }
 
     public @Nullable IItemHandler getItemHandler(@Nullable Direction side) {
-        return side == null ? null : sidedHandlers[side.get3DDataValue()];
+        return side == null ? null : sidedHandlers[side.get3DDataValue()].orElse(null);
     }
 
-    private IItemHandler[] createSidedHandlers() {
-        var handlers = new IItemHandler[Direction.values().length];
-        for (var side : Direction.values()) handlers[side.get3DDataValue()] = new AutomationHandler(side);
+    @SuppressWarnings("unchecked")
+    private LazyOptional<IItemHandler>[] createSidedHandlers() {
+        var handlers = new LazyOptional[Direction.values().length];
+        for (var side : Direction.values()) handlers[side.get3DDataValue()] = LazyOptional.of(() -> new AutomationHandler(side));
         return handlers;
     }
 
@@ -446,45 +449,44 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
         @Override public boolean isItemValid(int slot, @NotNull ItemStack stack) { return slot != OUTPUT_SLOT && inventory.isItemValid(slot, stack); }
     }
 
-    @Override protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put("Inventory", inventory.serializeNBT(registries));
+    @Override protected void saveAdditional(@NotNull CompoundTag tag) {
+        super.saveAdditional(tag);
+        tag.put("Inventory", inventory.serializeNBT());
         tag.putBoolean("AutoBrewing", autoBrewing);
         if (tankPotion != null) tag.putString("TankPotion", tankPotion.toString());
         tag.putInt("TankAmountMb", tankAmountMb);
-        if (activeJob != null) tag.put("ActiveJob", activeJob.save(registries));
+        if (activeJob != null) tag.put("ActiveJob", activeJob.save());
     }
 
-    @Override protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
-        super.loadAdditional(tag, registries);
-        if (tag.contains("Inventory", Tag.TAG_COMPOUND)) inventory.deserializeNBT(registries, tag.getCompound("Inventory"));
+    @Override public void load(@NotNull CompoundTag tag) {
+        super.load(tag);
+        if (tag.contains("Inventory", Tag.TAG_COMPOUND)) inventory.deserializeNBT(tag.getCompound("Inventory"));
         autoBrewing = tag.getBoolean("AutoBrewing");
         tankPotion = tag.contains("TankPotion", Tag.TAG_STRING) ? ResourceLocation.tryParse(tag.getString("TankPotion")) : null;
-        tankAmountMb = Math.clamp(tag.getInt("TankAmountMb"), 0, TANK_CAPACITY_MB);
-        activeJob = tag.contains("ActiveJob", Tag.TAG_COMPOUND) ? Job.load(tag.getCompound("ActiveJob"), registries) : null;
+        tankAmountMb = net.minecraft.util.Mth.clamp(tag.getInt("TankAmountMb"), 0, TANK_CAPACITY_MB);
+        activeJob = tag.contains("ActiveJob", Tag.TAG_COMPOUND) ? Job.load(tag.getCompound("ActiveJob")) : null;
     }
 
-    @Override public @NotNull CompoundTag getUpdateTag(HolderLookup.@NotNull Provider registries) {
+    @Override public @NotNull CompoundTag getUpdateTag() {
         var tag = new CompoundTag();
-        saveAdditional(tag, registries);
+        saveAdditional(tag);
         if (previewPotion != null) tag.putString("PreviewPotion", previewPotion.toString());
         tag.putInt("PreviewAmountMb", previewAmountMb);
         tag.putInt("PreviewTotalTicks", previewTotalTicks);
         return tag;
     }
 
-    @Override public void handleUpdateTag(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
-        loadAdditional(tag, registries);
+    @Override public void handleUpdateTag(@NotNull CompoundTag tag) {
+        load(tag);
         previewPotion = tag.contains("PreviewPotion", Tag.TAG_STRING) ? ResourceLocation.tryParse(tag.getString("PreviewPotion")) : null;
         previewAmountMb = tag.getInt("PreviewAmountMb");
         previewTotalTicks = tag.getInt("PreviewTotalTicks");
     }
 
     @Override public Packet<ClientGamePacketListener> getUpdatePacket() { return ClientboundBlockEntityDataPacket.create(this); }
-    @Override public void onDataPacket(@NotNull Connection connection, ClientboundBlockEntityDataPacket packet,
-                                       HolderLookup.@NotNull Provider registries) {
+    @Override public void onDataPacket(@NotNull Connection connection, ClientboundBlockEntityDataPacket packet) {
         // 通常のBlockEntity更新もchunk初期同期と同じ経路で読み、将来のrendererからもプレビューを参照できるようにする。
-        handleUpdateTag(packet.getTag(), registries);
+        handleUpdateTag(packet.getTag());
     }
 
     private void resetStartWait() { waitingCandidate = null; stableTicks = 0; }
@@ -493,10 +495,9 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
         if (level instanceof ServerLevel serverLevel) serverLevel.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
     }
 
-    private static <T> int registryId(net.minecraft.core.Registry<T> registry, @Nullable ResourceLocation id) {
-        if (id == null) return -1;
-        var value = registry.get(id);
-        return value == null ? -1 : registry.getId(value);
+    private static int registryId(@Nullable ResourceLocation id) {
+        var value = resolveRegisteredPotion(id);
+        return value == null ? -1 : BuiltInRegistries.POTION.getId(value);
     }
 
     private static final Comparator<Candidate> CANDIDATE_COMPARATOR = Comparator
@@ -524,19 +525,19 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
             this.reserved = List.copyOf(reserved);
         }
 
-        private CompoundTag save(HolderLookup.Provider registries) {
+        private CompoundTag save() {
             var tag = new CompoundTag();
             tag.putString("BaseRecipe", baseRecipeId.toString());
             if (modifierId != null) tag.putString("ModifierRecipe", modifierId.toString());
             tag.putString("Result", result.toString()); tag.putInt("AmountMb", amountMb);
             tag.putInt("TotalTicks", totalTicks); tag.putInt("ElapsedTicks", elapsedTicks);
             var items = new ListTag();
-            for (var stack : reserved) items.add(stack.save(registries));
+            for (var stack : reserved) items.add(stack.save(new CompoundTag()));
             tag.put("Reserved", items);
             return tag;
         }
 
-        private static @Nullable Job load(CompoundTag tag, HolderLookup.Provider registries) {
+        private static @Nullable Job load(CompoundTag tag) {
             var base = ResourceLocation.tryParse(tag.getString("BaseRecipe"));
             var result = ResourceLocation.tryParse(tag.getString("Result"));
             if (base == null || result == null || tag.getInt("TotalTicks") <= 0) return null;
@@ -544,12 +545,29 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
             var reserved = new ArrayList<ItemStack>();
             var items = tag.getList("Reserved", Tag.TAG_COMPOUND);
             for (int i = 0; i < items.size(); i++) {
-                var stack = ItemStack.parseOptional(registries, items.getCompound(i));
+                var stack = ItemStack.of(items.getCompound(i));
                 if (!stack.isEmpty()) reserved.add(stack);
             }
             int total = tag.getInt("TotalTicks");
-            return new Job(base, modifier, result, Math.clamp(tag.getInt("AmountMb"), 250, 1000), total,
-                    Math.clamp(tag.getInt("ElapsedTicks"), 0, total), reserved);
+            return new Job(base, modifier, result, net.minecraft.util.Mth.clamp(tag.getInt("AmountMb"), 250, 1000), total,
+                    net.minecraft.util.Mth.clamp(tag.getInt("ElapsedTicks"), 0, total), reserved);
         }
+    }
+
+    @Override public void invalidateCaps() {
+        super.invalidateCaps();
+        for (var handler : sidedHandlers) handler.invalidate();
+    }
+
+    @Override public void reviveCaps() {
+        super.reviveCaps();
+        sidedHandlers = createSidedHandlers();
+    }
+
+    @Override public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> capability, @Nullable Direction side) {
+        if (capability == ForgeCapabilities.ITEM_HANDLER && side != null) {
+            return sidedHandlers[side.get3DDataValue()].cast();
+        }
+        return super.getCapability(capability, side);
     }
 }

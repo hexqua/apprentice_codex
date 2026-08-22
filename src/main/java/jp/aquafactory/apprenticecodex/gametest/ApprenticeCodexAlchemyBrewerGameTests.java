@@ -21,11 +21,9 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
@@ -36,16 +34,12 @@ import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraft.world.phys.shapes.CollisionContext;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.OptionalInt;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import java.util.UUID;
-import java.util.function.Consumer;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -62,9 +56,9 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
     @GameTest(template = TEMPLATE)
     public static void initialRecipesAreLoaded(GameTestHelper helper) {
         var manager = helper.getLevel().getRecipeManager();
-        helper.assertValueEqual(manager.getAllRecipesFor(RecipeRegistry.ALCHEMY_BREWER_RECIPE_TYPE.get()).size(), 12,
+        assertValueEqual(helper, manager.getAllRecipesFor(RecipeRegistry.ALCHEMY_BREWER_RECIPE_TYPE.get()).size(), 12,
                 "dedicated brewing recipe count");
-        helper.assertValueEqual(manager.getAllRecipesFor(RecipeRegistry.ALCHEMY_BREWER_MODIFIER_RECIPE_TYPE.get()).size(), 8,
+        assertValueEqual(helper, manager.getAllRecipesFor(RecipeRegistry.ALCHEMY_BREWER_MODIFIER_RECIPE_TYPE.get()).size(), 8,
                 "potion modifier recipe count");
         helper.assertTrue(new ItemStack(Items.NETHER_WART).is(TagRegistry.Items.ALCHEMY_BREWER_HIGH_EFFICIENCY_BASES),
                 "Nether Wart must be included in the high-efficiency base tag");
@@ -80,7 +74,7 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
         var collision = state.getCollisionShape(helper.getLevel(), worldPos, CollisionContext.empty());
         var outline = state.getShape(helper.getLevel(), worldPos, CollisionContext.empty());
 
-        helper.assertValueEqual(collision.max(Direction.Axis.Y), 10.0D / 16.0D, "walking surface height");
+        assertValueEqual(helper, collision.max(Direction.Axis.Y), 10.0D / 16.0D, "walking surface height");
         helper.assertTrue(outline.max(Direction.Axis.Y) > collision.max(Direction.Axis.Y),
                 "Outline shape must include the detailed upper geometry");
         helper.succeed();
@@ -98,9 +92,9 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
             helper.assertFalse(brewer.isAutoBrewing(), "Auto brewing must be disabled when placed");
             helper.assertFalse(brewer.isProcessing(), "Processing must not begin while auto brewing is disabled");
             helper.assertTrue(brewer.isDisplayPreview(), "Result preview must be visible while auto brewing is disabled");
-            helper.assertValueEqual(brewer.getDisplayPotionId(), ResourceLocation.parse("minecraft:swiftness"),
+            assertValueEqual(helper, brewer.getDisplayPotionId(), ResourceLocation.tryParse("minecraft:swiftness"),
                     "preview potion");
-            helper.assertValueEqual(brewer.getDisplayAmountMb(), 750, "preview amount");
+            assertValueEqual(helper, brewer.getDisplayAmountMb(), 750, "preview amount");
             helper.succeed();
         });
     }
@@ -124,41 +118,41 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
         });
         helper.runAfterDelay(250, () -> {
             helper.assertFalse(brewer.isProcessing(), "Processing must stop after completion");
-            helper.assertValueEqual(brewer.getTankAmountMb(), 1000, "Nether Wart output amount");
-            helper.assertValueEqual(brewer.getTankPotionId(), ResourceLocation.parse("minecraft:strong_swiftness"), "brewed potion");
+            assertValueEqual(helper, brewer.getTankAmountMb(), 1000, "Nether Wart output amount");
+            assertValueEqual(helper, brewer.getTankPotionId(), ResourceLocation.tryParse("minecraft:strong_swiftness"), "brewed potion");
             helper.succeed();
         });
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 40)
     public static void atelierStationCollectsMatchingBrewerTankWithOrFilters(GameTestHelper helper) {
-        var station = placeAtelierStation(helper, new BlockPos(1, 1, 1), 0, Potions.REGENERATION.value());
-        station.setFilter(0, potionStack(Potions.REGENERATION.value()));
-        station.setFilter(1, potionStack(Potions.SWIFTNESS.value()));
+        var station = placeAtelierStation(helper, new BlockPos(1, 1, 1), 0, Potions.REGENERATION);
+        station.setFilter(0, potionStack(Potions.REGENERATION));
+        station.setFilter(1, potionStack(Potions.SWIFTNESS));
         var brewer = placeAlchemyBrewer(helper, new BlockPos(2, 1, 1), "minecraft:swiftness", 1000);
 
         helper.succeedWhen(() -> {
-            helper.assertValueEqual(station.getStoredFluidAmount(), 1000, "collected Atelier Station amount");
-            helper.assertValueEqual(brewer.getTankAmountMb(), 0, "drained Alchemy Brewer amount");
+            assertValueEqual(helper, station.getStoredFluidAmount(), 1000, "collected Atelier Station amount");
+            assertValueEqual(helper, brewer.getTankAmountMb(), 0, "drained Alchemy Brewer amount");
             helper.assertTrue(brewer.getTankPotionId() == null, "Empty Alchemy Brewer must clear its potion id");
             helper.assertTrue(station.getStoredFluidsForDisplay().stream().anyMatch(entry ->
                             entry.amountMb() == 1000
-                                    && ItemStack.isSameItemSameComponents(
-                                    entry.representativeItem(), potionStack(Potions.SWIFTNESS.value()))),
+                                    && ItemStack.isSameItemSameTags(
+                                    entry.representativeItem(), potionStack(Potions.SWIFTNESS))),
                     "Atelier Station must store the potion matched by either filter");
         });
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 40)
     public static void atelierStationLeavesMismatchedBrewerTankUntouched(GameTestHelper helper) {
-        var station = placeAtelierStation(helper, new BlockPos(1, 1, 1), 0, Potions.REGENERATION.value());
-        station.setFilter(0, potionStack(Potions.REGENERATION.value()));
+        var station = placeAtelierStation(helper, new BlockPos(1, 1, 1), 0, Potions.REGENERATION);
+        station.setFilter(0, potionStack(Potions.REGENERATION));
         var brewer = placeAlchemyBrewer(helper, new BlockPos(2, 1, 1), "minecraft:swiftness", 1000);
 
         helper.runAfterDelay(25, () -> {
-            helper.assertValueEqual(station.getStoredFluidAmount(), 0, "mismatched Atelier Station amount");
-            helper.assertValueEqual(brewer.getTankAmountMb(), 1000, "mismatched Alchemy Brewer amount");
-            helper.assertValueEqual(brewer.getTankPotionId(), ResourceLocation.parse("minecraft:swiftness"),
+            assertValueEqual(helper, station.getStoredFluidAmount(), 0, "mismatched Atelier Station amount");
+            assertValueEqual(helper, brewer.getTankAmountMb(), 1000, "mismatched Alchemy Brewer amount");
+            assertValueEqual(helper, brewer.getTankPotionId(), ResourceLocation.tryParse("minecraft:swiftness"),
                     "mismatched Alchemy Brewer potion id");
             helper.succeed();
         });
@@ -166,15 +160,15 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
 
     @GameTest(template = TEMPLATE, timeoutTicks = 40)
     public static void atelierStationCollectsOnlyItsRemainingCapacityFromBrewer(GameTestHelper helper) {
-        var station = placeAtelierStation(helper, new BlockPos(1, 1, 1), 15750, Potions.REGENERATION.value());
-        station.setFilter(0, potionStack(Potions.SWIFTNESS.value()));
+        var station = placeAtelierStation(helper, new BlockPos(1, 1, 1), 15750, Potions.REGENERATION);
+        station.setFilter(0, potionStack(Potions.SWIFTNESS));
         var brewer = placeAlchemyBrewer(helper, new BlockPos(2, 1, 1), "minecraft:swiftness", 1000);
 
         helper.succeedWhen(() -> {
-            helper.assertValueEqual(station.getStoredFluidAmount(), AtelierStationBlockEntity.MAX_STORED_FLUID_AMOUNT,
+            assertValueEqual(helper, station.getStoredFluidAmount(), AtelierStationBlockEntity.MAX_STORED_FLUID_AMOUNT,
                     "capacity-limited Atelier Station amount");
-            helper.assertValueEqual(brewer.getTankAmountMb(), 750, "capacity-limited Alchemy Brewer amount");
-            helper.assertValueEqual(brewer.getTankPotionId(), ResourceLocation.parse("minecraft:swiftness"),
+            assertValueEqual(helper, brewer.getTankAmountMb(), 750, "capacity-limited Alchemy Brewer amount");
+            assertValueEqual(helper, brewer.getTankPotionId(), ResourceLocation.tryParse("minecraft:swiftness"),
                     "remaining Alchemy Brewer potion id");
         });
     }
@@ -182,15 +176,15 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
     @GameTest(template = TEMPLATE, timeoutTicks = 40)
     public static void fullAtelierStationLeavesBrewerTankUntouched(GameTestHelper helper) {
         var station = placeAtelierStation(helper, new BlockPos(1, 1, 1),
-                AtelierStationBlockEntity.MAX_STORED_FLUID_AMOUNT, Potions.REGENERATION.value());
-        station.setFilter(0, potionStack(Potions.SWIFTNESS.value()));
+                AtelierStationBlockEntity.MAX_STORED_FLUID_AMOUNT, Potions.REGENERATION);
+        station.setFilter(0, potionStack(Potions.SWIFTNESS));
         var brewer = placeAlchemyBrewer(helper, new BlockPos(2, 1, 1), "minecraft:swiftness", 1000);
 
         helper.runAfterDelay(25, () -> {
-            helper.assertValueEqual(station.getStoredFluidAmount(), AtelierStationBlockEntity.MAX_STORED_FLUID_AMOUNT,
+            assertValueEqual(helper, station.getStoredFluidAmount(), AtelierStationBlockEntity.MAX_STORED_FLUID_AMOUNT,
                     "full Atelier Station amount");
-            helper.assertValueEqual(brewer.getTankAmountMb(), 1000, "full-station Alchemy Brewer amount");
-            helper.assertValueEqual(brewer.getTankPotionId(), ResourceLocation.parse("minecraft:swiftness"),
+            assertValueEqual(helper, brewer.getTankAmountMb(), 1000, "full-station Alchemy Brewer amount");
+            assertValueEqual(helper, brewer.getTankPotionId(), ResourceLocation.tryParse("minecraft:swiftness"),
                     "full-station Alchemy Brewer potion id");
             helper.succeed();
         });
@@ -206,10 +200,10 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
         var result = useBrewer(helper, player, pos);
 
         helper.assertTrue(result.consumesAction(), "Glass bottle interaction must be consumed");
-        helper.assertTrue(ItemStack.isSameItemSameComponents(
-                        player.getMainHandItem(), potionStack(Potions.SWIFTNESS.value())),
+        helper.assertTrue(ItemStack.isSameItemSameTags(
+                        player.getMainHandItem(), potionStack(Potions.SWIFTNESS)),
                 "A single glass bottle must be replaced with the brewed potion");
-        helper.assertValueEqual(brewer.getTankAmountMb(), 0, "remaining potion amount");
+        assertValueEqual(helper, brewer.getTankAmountMb(), 0, "remaining potion amount");
         helper.assertTrue(brewer.getTankPotionId() == null, "Empty tank must clear its potion id");
         helper.succeed();
     }
@@ -218,6 +212,7 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
     public static void processingTimeRejectsValuesOutsideContainerDataRange(GameTestHelper helper) {
         var result = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "processing_time_boundary");
         var maximumRecipe = new AlchemyBrewerRecipe(
+                result,
                 Ingredient.of(Items.NETHER_WART),
                 Ingredient.of(Items.SUGAR),
                 result,
@@ -225,12 +220,13 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
                 AlchemyBrewerRecipe.MAX_PROCESSING_TIME_TICKS,
                 0
         );
-        helper.assertValueEqual(maximumRecipe.processingTimeTicks(), AlchemyBrewerRecipe.MAX_PROCESSING_TIME_TICKS,
+        assertValueEqual(helper, maximumRecipe.processingTimeTicks(), AlchemyBrewerRecipe.MAX_PROCESSING_TIME_TICKS,
                 "maximum synchronized processing time");
 
         var rejected = false;
         try {
             new AlchemyBrewerRecipe(
+                    result,
                     Ingredient.of(Items.NETHER_WART),
                     Ingredient.of(Items.SUGAR),
                     result,
@@ -257,14 +253,14 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
 
         useBrewer(helper, player, pos);
 
-        helper.assertValueEqual(player.getMainHandItem().getCount(), 1, "remaining glass bottle count");
-        helper.assertValueEqual(brewer.getTankAmountMb(), 250, "remaining potion amount");
+        assertValueEqual(helper, player.getMainHandItem().getCount(), 1, "remaining glass bottle count");
+        assertValueEqual(helper, brewer.getTankAmountMb(), 250, "remaining potion amount");
         var droppedPotions = helper.getLevel().getEntitiesOfClass(
                 ItemEntity.class,
                 new AABB(player.blockPosition()).inflate(2.0D),
-                entity -> ItemStack.isSameItemSameComponents(entity.getItem(), potionStack(Potions.SWIFTNESS.value()))
+                entity -> ItemStack.isSameItemSameTags(entity.getItem(), potionStack(Potions.SWIFTNESS))
         );
-        helper.assertValueEqual(droppedPotions.size(), 1, "dropped potion count");
+        assertValueEqual(helper, droppedPotions.size(), 1, "dropped potion count");
         helper.succeed();
     }
 
@@ -277,10 +273,10 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
 
         useBrewer(helper, player, pos);
 
-        helper.assertValueEqual(player.getMainHandItem().getCount(), 1, "remaining glass bottle count");
-        helper.assertTrue(player.getInventory().contains(potionStack(Potions.SWIFTNESS.value())),
+        assertValueEqual(helper, player.getMainHandItem().getCount(), 1, "remaining glass bottle count");
+        helper.assertTrue(player.getInventory().contains(potionStack(Potions.SWIFTNESS)),
                 "Brewed potion must be inserted into an available inventory slot");
-        helper.assertValueEqual(brewer.getTankAmountMb(), 250, "remaining potion amount");
+        assertValueEqual(helper, brewer.getTankAmountMb(), 250, "remaining potion amount");
         helper.succeed();
     }
 
@@ -298,7 +294,7 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
                     "A tank below one dose must open the Alchemy Brewer menu: " + amountMb);
             helper.assertTrue(player.getMainHandItem().is(Items.GLASS_BOTTLE),
                     "A tank below one dose must not consume the glass bottle: " + amountMb);
-            helper.assertValueEqual(brewer.getTankAmountMb(), amountMb, "unchanged sub-dose tank amount");
+            assertValueEqual(helper, brewer.getTankAmountMb(), amountMb, "unchanged sub-dose tank amount");
             player.resetMenuTracking();
         }
 
@@ -309,7 +305,7 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
 
         helper.assertTrue(player.wasMenuOpened(),
                 "An invalid potion id must open the Alchemy Brewer menu");
-        helper.assertValueEqual(brewer.getTankAmountMb(), 250, "unchanged invalid potion amount");
+        assertValueEqual(helper, brewer.getTankAmountMb(), 250, "unchanged invalid potion amount");
         helper.succeed();
     }
 
@@ -348,7 +344,7 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
             var selected = helper.getBlockState(lowerXCauldron);
             helper.assertTrue(selected.is(Blocks.WATER_CAULDRON),
                     "The lower X cauldron must win the final tie-breaker");
-            helper.assertValueEqual(selected.getValue(LayeredCauldronBlock.LEVEL), 1,
+            assertValueEqual(helper, selected.getValue(LayeredCauldronBlock.LEVEL), 1,
                     "selected vanilla cauldron water level");
             helper.assertTrue(helper.getBlockState(higherXCauldron).is(Blocks.CAULDRON),
                     "Only one cauldron may change per supply attempt");
@@ -366,7 +362,7 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
 
         helper.succeedWhen(() -> {
             var state = helper.getBlockState(cauldronPos);
-            helper.assertValueEqual(state.getValue(LayeredCauldronBlock.LEVEL), 3,
+            assertValueEqual(helper, state.getValue(LayeredCauldronBlock.LEVEL), 3,
                     "configured vanilla supply must cap at a full cauldron");
             override.close();
         });
@@ -381,12 +377,12 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
         helper.setBlock(cauldronPos, io.redspace.ironsspellbooks.registries.BlockRegistry.ALCHEMIST_CAULDRON.get());
         var cauldron = (AlchemistCauldronTile) helper.getBlockEntity(cauldronPos);
         cauldron.fluidInventory.fill(
-                new net.neoforged.neoforge.fluids.FluidStack(net.minecraft.world.level.material.Fluids.WATER, 900),
+                new net.minecraftforge.fluids.FluidStack(net.minecraft.world.level.material.Fluids.WATER, 900),
                 IFluidHandler.FluidAction.EXECUTE
         );
 
         helper.succeedWhen(() -> {
-            helper.assertValueEqual(cauldron.getFluidAmount(), 1000,
+            assertValueEqual(helper, cauldron.getFluidAmount(), 1000,
                     "Alchemist Cauldron must accept only its remaining capacity");
             override.close();
         });
@@ -402,12 +398,12 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
                 io.redspace.ironsspellbooks.registries.BlockRegistry.ALCHEMIST_CAULDRON.get());
         helper.setBlock(vanillaCauldronPos, Blocks.CAULDRON);
         var potionCauldron = (AlchemistCauldronTile) helper.getBlockEntity(potionCauldronPos);
-        var potionFluid = PotionFluid.from(potionStack(Potions.SWIFTNESS.value()));
+        var potionFluid = PotionFluid.from(potionStack(Potions.SWIFTNESS));
         potionFluid.setAmount(250);
         potionCauldron.fluidInventory.fill(potionFluid, IFluidHandler.FluidAction.EXECUTE);
 
         helper.succeedWhen(() -> {
-            helper.assertValueEqual(potionCauldron.getFluidAmount(), 250,
+            assertValueEqual(helper, potionCauldron.getFluidAmount(), 250,
                     "A potion-containing Alchemist Cauldron must not receive water");
             helper.assertTrue(helper.getBlockState(vanillaCauldronPos).is(Blocks.WATER_CAULDRON),
                     "The next eligible cauldron must receive water");
@@ -463,13 +459,13 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
 
         useBrewer(helper, player, pos);
 
-        helper.assertValueEqual(AbstractPotionFlaskItem.getStoredDoseCount(player.getMainHandItem()), 4,
+        assertValueEqual(helper, AbstractPotionFlaskItem.getStoredDoseCount(player.getMainHandItem()), 4,
                 "stored dose count");
-        helper.assertTrue(ItemStack.isSameItemSameComponents(
+        helper.assertTrue(ItemStack.isSameItemSameTags(
                         AbstractPotionFlaskItem.getStoredItem(player.getMainHandItem()),
-                        potionStack(Potions.SWIFTNESS.value())),
+                        potionStack(Potions.SWIFTNESS)),
                 "stored potion");
-        helper.assertValueEqual(brewer.getTankAmountMb(), 0, "remaining potion amount");
+        assertValueEqual(helper, brewer.getTankAmountMb(), 0, "remaining potion amount");
         helper.assertFalse(player.isUsingItem(), "Alchemy Brewer interaction must not start drinking the flask");
         helper.succeed();
     }
@@ -483,17 +479,17 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
 
         useBrewer(helper, player, pos);
 
-        helper.assertValueEqual(AbstractPotionFlaskItem.getStoredDoseCount(player.getMainHandItem()), 4,
+        assertValueEqual(helper, AbstractPotionFlaskItem.getStoredDoseCount(player.getMainHandItem()), 4,
                 "stored Alchemist's Flask dose count");
-        helper.assertTrue(ItemStack.isSameItemSameComponents(
+        helper.assertTrue(ItemStack.isSameItemSameTags(
                         AbstractPotionFlaskItem.getStoredItem(player.getMainHandItem()),
-                        potionStack(Potions.SWIFTNESS.value())),
+                        potionStack(Potions.SWIFTNESS)),
                 "stored Alchemist's Flask potion");
         helper.assertTrue(AbstractPotionFlaskItem.isStoredVanillaPotionTypeMismatched(player.getMainHandItem()),
                 "Regular potion in an Alchemist's Flask must retain the mismatch penalty");
-        helper.assertValueEqual(AbstractPotionFlaskItem.getStoredDoseConsumptionCount(player.getMainHandItem()), 2,
+        assertValueEqual(helper, AbstractPotionFlaskItem.getStoredDoseConsumptionCount(player.getMainHandItem()), 2,
                 "mismatched Alchemist's Flask dose consumption");
-        helper.assertValueEqual(brewer.getTankAmountMb(), 0, "remaining potion amount");
+        assertValueEqual(helper, brewer.getTankAmountMb(), 0, "remaining potion amount");
         helper.succeed();
     }
 
@@ -503,7 +499,7 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
         var brewer = placeAlchemyBrewer(helper, pos, "minecraft:swiftness", AlchemyBrewerBlockEntity.DOSE_AMOUNT_MB);
         var nearlyFull = AbstractPotionFlaskItem.copyWithAddedDoses(
                 new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get()),
-                potionStack(Potions.SWIFTNESS.value()),
+                potionStack(Potions.SWIFTNESS),
                 AbstractPotionFlaskItem.getMaxDoseCapacity(new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get())) - 1
         );
         brewer.getInventory().setStackInSlot(AlchemyBrewerBlockEntity.INPUT_SLOT, nearlyFull);
@@ -512,11 +508,11 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
             var output = brewer.getInventory().getStackInSlot(AlchemyBrewerBlockEntity.OUTPUT_SLOT);
             helper.assertTrue(brewer.getInventory().getStackInSlot(AlchemyBrewerBlockEntity.INPUT_SLOT).isEmpty(),
                     "Filled Alchemist's Flask must leave the input slot");
-            helper.assertValueEqual(AbstractPotionFlaskItem.getStoredDoseCount(output),
+            assertValueEqual(helper, AbstractPotionFlaskItem.getStoredDoseCount(output),
                     AbstractPotionFlaskItem.getMaxDoseCapacity(output), "automatic Alchemist's Flask dose count");
             helper.assertTrue(AbstractPotionFlaskItem.isStoredVanillaPotionTypeMismatched(output),
                     "Automatically filled Alchemist's Flask must retain the mismatch penalty");
-            helper.assertValueEqual(brewer.getTankAmountMb(), 0, "automatic fill remaining potion amount");
+            assertValueEqual(helper, brewer.getTankAmountMb(), 0, "automatic fill remaining potion amount");
         });
     }
 
@@ -527,29 +523,29 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
         var player = createPlayer(helper, "alchemy_brewer_partial_spellcasters_flask", pos);
         var nearlyFull = AbstractPotionFlaskItem.copyWithAddedDoses(
                 new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get()),
-                potionStack(Potions.SWIFTNESS.value()),
+                potionStack(Potions.SWIFTNESS),
                 AbstractPotionFlaskItem.getMaxDoseCapacity(new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get())) - 1
         );
         player.setItemInHand(InteractionHand.MAIN_HAND, nearlyFull);
 
         useBrewer(helper, player, pos);
 
-        helper.assertValueEqual(
+        assertValueEqual(helper,
                 AbstractPotionFlaskItem.getStoredDoseCount(player.getMainHandItem()),
                 AbstractPotionFlaskItem.getMaxDoseCapacity(player.getMainHandItem()),
                 "filled dose count"
         );
-        helper.assertValueEqual(brewer.getTankAmountMb(), 750, "capacity-limited remaining potion amount");
+        assertValueEqual(helper, brewer.getTankAmountMb(), 750, "capacity-limited remaining potion amount");
 
         useBrewer(helper, player, pos);
         helper.assertTrue(player.wasMenuOpened(),
                 "A full Spellcaster's Flask must open the Alchemy Brewer menu");
-        helper.assertValueEqual(brewer.getTankAmountMb(), 750, "unchanged full-flask potion amount");
+        assertValueEqual(helper, brewer.getTankAmountMb(), 750, "unchanged full-flask potion amount");
         player.resetMenuTracking();
 
         var mismatched = AbstractPotionFlaskItem.copyWithAddedDoses(
                 new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get()),
-                potionStack(Potions.REGENERATION.value()),
+                potionStack(Potions.REGENERATION),
                 1
         );
         player.setItemInHand(InteractionHand.MAIN_HAND, mismatched);
@@ -557,9 +553,9 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
 
         helper.assertTrue(player.wasMenuOpened(),
                 "A mismatched Spellcaster's Flask must open the Alchemy Brewer menu");
-        helper.assertValueEqual(AbstractPotionFlaskItem.getStoredDoseCount(player.getMainHandItem()), 1,
+        assertValueEqual(helper, AbstractPotionFlaskItem.getStoredDoseCount(player.getMainHandItem()), 1,
                 "unchanged mismatched dose count");
-        helper.assertValueEqual(brewer.getTankAmountMb(), 750, "unchanged mismatched potion amount");
+        assertValueEqual(helper, brewer.getTankAmountMb(), 750, "unchanged mismatched potion amount");
         helper.succeed();
     }
 
@@ -572,7 +568,7 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
         var player = createPlayer(helper, "alchemy_brewer_flask_priority", stonePos);
         var flask = AbstractPotionFlaskItem.copyWithAddedDoses(
                 new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get()),
-                potionStack(Potions.SWIFTNESS.value()),
+                potionStack(Potions.SWIFTNESS),
                 1
         );
         player.setItemInHand(InteractionHand.MAIN_HAND, flask);
@@ -603,13 +599,13 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
         }
 
         var storedFluid = new CompoundTag();
-        storedFluid.put("Item", potionStack(storedPotion).saveOptional(helper.getLevel().registryAccess()));
+        storedFluid.put("Item", potionStack(storedPotion).save(new CompoundTag()));
         storedFluid.putInt("Amount", storedAmountMb);
         var storedFluids = new ListTag();
         storedFluids.add(storedFluid);
         var tag = new CompoundTag();
         tag.put("StoredFluids", storedFluids);
-        station.loadWithComponents(tag, helper.getLevel().registryAccess());
+        station.load(tag);
         return station;
     }
 
@@ -624,7 +620,7 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
         var tag = new CompoundTag();
         tag.putString("TankPotion", potionId);
         tag.putInt("TankAmountMb", amountMb);
-        brewer.loadWithComponents(tag, helper.getLevel().registryAccess());
+        brewer.load(tag);
         return brewer;
     }
 
@@ -666,29 +662,27 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
     }
 
     private static final class MenuTrackingFakePlayer extends FakePlayer {
-        private boolean menuOpened;
-
         private MenuTrackingFakePlayer(GameTestHelper helper, String name) {
             super(helper.getLevel(), new GameProfile(UUID.randomUUID(), name));
         }
 
-        @Override
-        public OptionalInt openMenu(@Nullable MenuProvider menuProvider,
-                                    @Nullable Consumer<RegistryFriendlyByteBuf> extraDataWriter) {
-            menuOpened = menuProvider != null;
-            return menuOpened ? OptionalInt.of(1) : OptionalInt.empty();
-        }
-
         private boolean wasMenuOpened() {
-            return menuOpened;
+            // Forge 1.20.1 の NetworkHooks.openScreen は ServerPlayer#openMenu を経由しないため、
+            // 実際に切り替わったcontainerでメニューopenを観測する。
+            return containerMenu != inventoryMenu;
         }
 
         private void resetMenuTracking() {
-            menuOpened = false;
+            closeContainer();
         }
     }
 
     private static ItemStack potionStack(Potion potion) {
         return PotionContentsHelper.createPotionStack(Items.POTION, potion);
+    }
+
+    private static void assertValueEqual(GameTestHelper helper, Object actual, Object expected, String message) {
+        helper.assertTrue(java.util.Objects.equals(actual, expected),
+                message + ": expected=" + expected + ", actual=" + actual);
     }
 }

@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
+import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
@@ -38,7 +39,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.SmithingRecipe;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -232,20 +232,18 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
 
     private static List<AlchemyBrewerJeiRecipe> collectAlchemyBrewerJeiRecipes(RecipeManager recipeManager) {
         var baseRecipes = recipeManager.getAllRecipesFor(RecipeRegistry.ALCHEMY_BREWER_RECIPE_TYPE.get()).stream()
-                .sorted(Comparator.comparing(recipe -> recipe.id().toString()))
+                .sorted(Comparator.comparing(recipe -> recipe.getId().toString()))
                 .toList();
         var modifierRecipes = recipeManager.getAllRecipesFor(RecipeRegistry.ALCHEMY_BREWER_MODIFIER_RECIPE_TYPE.get()).stream()
-                .sorted(Comparator.comparing(recipe -> recipe.id().toString()))
+                .sorted(Comparator.comparing(recipe -> recipe.getId().toString()))
                 .toList();
         var recipes = new ArrayList<AlchemyBrewerJeiRecipe>();
 
-        for (var baseHolder : baseRecipes) {
-            var base = baseHolder.value();
-            addAlchemyBrewerJeiRecipe(recipes, baseHolder.id(), base, null);
-            for (var modifierHolder : modifierRecipes) {
-                var modifier = modifierHolder.value();
+        for (var base : baseRecipes) {
+            addAlchemyBrewerJeiRecipe(recipes, base.getId(), base, null);
+            for (var modifier : modifierRecipes) {
                 if (modifier.input().equals(base.result())) {
-                    addAlchemyBrewerJeiRecipe(recipes, baseHolder.id(), base, modifierHolder);
+                    addAlchemyBrewerJeiRecipe(recipes, base.getId(), base, modifier);
                 }
             }
         }
@@ -256,24 +254,24 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
             List<AlchemyBrewerJeiRecipe> recipes,
             ResourceLocation baseRecipeId,
             AlchemyBrewerRecipe base,
-            @Nullable RecipeHolder<AlchemyBrewerModifierRecipe> modifierHolder
+            @Nullable AlchemyBrewerModifierRecipe modifier
     ) {
-        var resultId = modifierHolder == null ? base.result() : modifierHolder.value().result();
-        if (!BuiltInRegistries.POTION.containsKey(resultId)) {
+        var resultId = modifier == null ? base.result() : modifier.result();
+        if (!ForgeRegistries.POTIONS.containsKey(resultId)) {
             ApprenticeCodex.LOGGER.warn("Alchemy Brewer JEI recipe skipped: potion {} is not registered.", resultId);
             return;
         }
-        var potion = BuiltInRegistries.POTION.get(resultId);
+        var potion = ForgeRegistries.POTIONS.getValue(resultId);
         if (potion == null) {
             return;
         }
 
-        var modifierId = modifierHolder == null ? null : modifierHolder.id();
+        var modifierId = modifier == null ? null : modifier.getId();
         recipes.add(new AlchemyBrewerJeiRecipe(
                 createAlchemyBrewerJeiRecipeId(baseRecipeId, modifierId),
                 base.base(),
                 base.ingredient(),
-                modifierHolder == null ? null : modifierHolder.value().ingredient(),
+                modifier == null ? null : modifier.ingredient(),
                 PotionContentsHelper.createPotionStack(Items.POTION, potion),
                 base.fluidAmountMb(),
                 base.processingTimeTicks()

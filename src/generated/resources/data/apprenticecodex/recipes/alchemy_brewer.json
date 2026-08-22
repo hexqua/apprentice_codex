@@ -27,7 +27,7 @@
     "FWF"
   ],
   "result": {
-    "count": 1,
-    "id": "apprenticecodex:alchemy_brewer"
-  }
+    "item": "apprenticecodex:alchemy_brewer"
+  },
+  "show_notification": true
 }
