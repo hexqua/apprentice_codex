@@ -1267,7 +1267,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 ResourceLocation.fromNamespaceAndPath("malum", "soul_hunter_cloak"),
                 itemId(ItemRegistry.SOULCOLLECTOR_HAT.get()),
                 List.of(
-                        new MalumRecipeItem(itemId(ItemRegistry.APPRENTICE_MAGE_SCARF.get()), 1),
+                        new MalumRecipeItem(itemId(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get()), 8),
                         new MalumRecipeItem(itemId(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()), 2),
                         new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "processed_soulstone"), 4)
                 ),
@@ -1279,7 +1279,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 ResourceLocation.fromNamespaceAndPath("malum", "soul_hunter_robe"),
                 itemId(ItemRegistry.SOULCOLLECTOR_ROBE.get()),
                 List.of(
-                        new MalumRecipeItem(itemId(ItemRegistry.APPRENTICE_MAGE_TORSO.get()), 1),
+                        new MalumRecipeItem(itemId(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get()), 8),
                         new MalumRecipeItem(itemId(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()), 2),
                         new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "processed_soulstone"), 4)
                 ),
@@ -1291,7 +1291,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 ResourceLocation.fromNamespaceAndPath("malum", "soul_hunter_leggings"),
                 itemId(ItemRegistry.SOULCOLLECTOR_LEGGINGS.get()),
                 List.of(
-                        new MalumRecipeItem(itemId(ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get()), 1),
+                        new MalumRecipeItem(itemId(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get()), 8),
                         new MalumRecipeItem(itemId(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()), 2),
                         new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "processed_soulstone"), 4)
                 ),
@@ -1303,7 +1303,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 ResourceLocation.fromNamespaceAndPath("malum", "soul_hunter_boots"),
                 itemId(ItemRegistry.SOULCOLLECTOR_BOOTS.get()),
                 List.of(
-                        new MalumRecipeItem(itemId(ItemRegistry.APPRENTICE_MAGE_BOOTS.get()), 1),
+                        new MalumRecipeItem(itemId(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get()), 8),
                         new MalumRecipeItem(itemId(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()), 2),
                         new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "processed_soulstone"), 4)
                 ),

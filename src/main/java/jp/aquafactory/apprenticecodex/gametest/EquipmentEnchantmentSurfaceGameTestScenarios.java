@@ -175,20 +175,19 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
     private static void assertSoulcollectorSpiritInfusions(GameTestHelper helper) {
         var level = helper.getLevel();
         assertSoulcollectorSpiritInfusion(level, "soulcollector_hat", "soul_hunter_cloak",
-                ItemRegistry.APPRENTICE_MAGE_SCARF.get(), ItemRegistry.SOULCOLLECTOR_HAT.get());
+                ItemRegistry.SOULCOLLECTOR_HAT.get());
         assertSoulcollectorSpiritInfusion(level, "soulcollector_robe", "soul_hunter_robe",
-                ItemRegistry.APPRENTICE_MAGE_TORSO.get(), ItemRegistry.SOULCOLLECTOR_ROBE.get());
+                ItemRegistry.SOULCOLLECTOR_ROBE.get());
         assertSoulcollectorSpiritInfusion(level, "soulcollector_leggings", "soul_hunter_leggings",
-                ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(), ItemRegistry.SOULCOLLECTOR_LEGGINGS.get());
+                ItemRegistry.SOULCOLLECTOR_LEGGINGS.get());
         assertSoulcollectorSpiritInfusion(level, "soulcollector_boots", "soul_hunter_boots",
-                ItemRegistry.APPRENTICE_MAGE_BOOTS.get(), ItemRegistry.SOULCOLLECTOR_BOOTS.get());
+                ItemRegistry.SOULCOLLECTOR_BOOTS.get());
     }
 
     private static void assertSoulcollectorSpiritInfusion(
             net.minecraft.world.level.Level level,
             String path,
             String malumInputPath,
-            Item apprenticeRobe,
             Item result
     ) {
         var malumInput = ForgeRegistries.ITEMS.getValue(ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, malumInputPath));
@@ -203,7 +202,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "malum/spirit_infusion/" + path),
                 new ItemStack(malumInput),
                 List.of(
-                        new ItemStack(apprenticeRobe),
+                        new ItemStack(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get(), 8),
                         new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get(), 2),
                         new ItemStack(processedSoulstone, 4)
                 ),
