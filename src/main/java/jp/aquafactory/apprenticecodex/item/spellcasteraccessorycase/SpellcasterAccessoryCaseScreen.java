@@ -59,7 +59,6 @@ public final class SpellcasterAccessoryCaseScreen extends AbstractContainerScree
     @Override
     public void render(@NotNull GuiGraphics gui, int mouseX, int mouseY, float partialTick) {
         syncLayoutGeometry();
-        renderBackground(gui, mouseX, mouseY, partialTick);
         super.render(gui, mouseX, mouseY, partialTick);
         renderTooltip(gui, mouseX, mouseY);
     }

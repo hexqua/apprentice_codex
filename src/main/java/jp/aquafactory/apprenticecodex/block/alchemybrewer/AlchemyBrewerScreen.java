@@ -35,7 +35,6 @@ public final class AlchemyBrewerScreen extends AbstractContainerScreen<AlchemyBr
     }
 
     @Override public void render(@NotNull GuiGraphics gui, int mouseX, int mouseY, float partialTicks) {
-        renderBackground(gui, mouseX, mouseY, partialTicks);
         super.render(gui, mouseX, mouseY, partialTicks);
         renderTooltip(gui, mouseX, mouseY);
     }

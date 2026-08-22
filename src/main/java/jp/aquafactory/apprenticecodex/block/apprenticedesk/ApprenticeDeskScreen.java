@@ -64,7 +64,6 @@ public class ApprenticeDeskScreen extends AbstractContainerScreen<ApprenticeDesk
 
     @Override
     public void render(@NotNull GuiGraphics gui, int mouseX, int mouseY, float partialTick) {
-        renderBackground(gui, mouseX, mouseY, partialTick);
         super.render(gui, mouseX, mouseY, partialTick);
         renderTooltip(gui, mouseX, mouseY);
     }
