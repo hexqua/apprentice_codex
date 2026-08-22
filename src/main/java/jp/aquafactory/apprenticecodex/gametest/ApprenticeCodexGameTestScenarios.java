@@ -604,6 +604,8 @@ public class ApprenticeCodexGameTestScenarios {
             var pottedComfortBerryBush = (FlowerPotBlock) BlockRegistry.POTTED_COMFORT_BERRY_BUSH.get();
             helper.assertTrue(pottedComfortBerryBush.getContent() == BlockRegistry.COMFORT_BERRY_BUSH.get(),
                     "Potted Comfort Berry Bush should contain the Comfort Berry Bush block");
+            helper.assertTrue(pottedComfortBerryBush.defaultBlockState().getLightEmission(helper.getLevel(), helper.absolutePos(new BlockPos(1, 1, 1))) == 10,
+                    "Potted Comfort Berry Bush should emit light level 10");
 
             var potPos = new BlockPos(1, 1, 1);
             var absolutePotPos = helper.absolutePos(potPos);
