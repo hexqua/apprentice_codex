@@ -8,6 +8,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -167,6 +168,23 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
             return super.getSlot(slots.size() - 1);
         }
         return super.getSlot(slotId);
+    }
+
+    @Override
+    public void clicked(int slotId, int button, @NotNull ClickType clickType, @NotNull Player player) {
+        var slot = getSlot(slotId);
+        if (slot instanceof CurioSlot curioSlot
+                && clickType == ClickType.CLONE
+                && player.hasInfiniteMaterials()
+                && getCarried().isEmpty()) {
+            var stack = curioSlot.getSlotExtension()
+                    .getCloneStack(curioSlot.getSlotContext(), curioSlot.getItem());
+            if (!stack.isEmpty()) {
+                setCarried(stack.copyWithCount(stack.getMaxStackSize()));
+            }
+            return;
+        }
+        super.clicked(slotId, button, clickType, player);
     }
 
     @Override
