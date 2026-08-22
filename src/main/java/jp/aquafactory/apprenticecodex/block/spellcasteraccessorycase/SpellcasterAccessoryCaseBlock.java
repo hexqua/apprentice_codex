@@ -48,7 +48,7 @@ public final class SpellcasterAccessoryCaseBlock extends BaseEntityBlock {
     public SpellcasterAccessoryCaseBlock(Properties properties) {
         super(properties
                 .instabreak()
-                .sound(SoundType.WOOL)
+                .sound(SoundType.WOOD)
                 .noOcclusion()
                 .pushReaction(PushReaction.BLOCK));
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
@@ -64,7 +64,7 @@ public final class SpellcasterAccessoryCaseBlock extends BaseEntityBlock {
     }
 
     @Override
-    public @Nullable BlockState getStateForPlacement(@NotNull BlockPlaceContext context) {
+    public @NotNull BlockState getStateForPlacement(@NotNull BlockPlaceContext context) {
         return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
