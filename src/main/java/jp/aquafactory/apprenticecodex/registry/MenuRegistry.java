@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoireMenu;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireInscriptionMenu;
+import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCaseMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.bus.api.IEventBus;
@@ -42,6 +43,9 @@ public final class MenuRegistry {
 
     public static final DeferredHolder<MenuType<?>, MenuType<ArchivistsGrimoireMenu>> ARCHIVISTS_GRIMOIRE =
             MENUS.register("archivists_grimoire", () -> IMenuTypeExtension.create(ArchivistsGrimoireMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<SpellcasterAccessoryCaseMenu>> SPELLCASTER_ACCESSORY_CASE =
+            MENUS.register("spellcaster_accessory_case", () -> IMenuTypeExtension.create(SpellcasterAccessoryCaseMenu::new));
 
     public static void register(IEventBus bus) {
         MENUS.register(bus);

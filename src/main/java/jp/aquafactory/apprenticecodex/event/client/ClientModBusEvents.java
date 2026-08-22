@@ -32,6 +32,7 @@ import jp.aquafactory.apprenticecodex.particle.AdditiveRhombusParticle;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireInscriptionScreen;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoireScreen;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
+import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCaseScreen;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceTooltip;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticle;
 import jp.aquafactory.apprenticecodex.particle.ImpactTremorBlockParticle;
@@ -181,6 +182,7 @@ import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.fml.ModList;
+import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.client.CuriosRendererRegistry;
 
 import java.util.concurrent.CompletableFuture;
@@ -332,6 +334,7 @@ public final class ClientModBusEvents {
         event.register(MenuRegistry.ALCHEMY_BREWER.get(), AlchemyBrewerScreen::new);
         event.register(MenuRegistry.ENDER_GRIMOIRE_INSCRIPTION.get(), EnderGrimoireInscriptionScreen::new);
         event.register(MenuRegistry.ARCHIVISTS_GRIMOIRE.get(), ArchivistsGrimoireScreen::new);
+        event.register(MenuRegistry.SPELLCASTER_ACCESSORY_CASE.get(), SpellcasterAccessoryCaseScreen::new);
     }
 
     private static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
@@ -367,7 +370,7 @@ public final class ClientModBusEvents {
             private FloatmountBroomItemRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new FloatmountBroomItemRenderer();
                 }
@@ -378,7 +381,7 @@ public final class ClientModBusEvents {
             private HoverrideBroomItemRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new HoverrideBroomItemRenderer();
                 }
@@ -389,7 +392,7 @@ public final class ClientModBusEvents {
             private LuminousDeviceRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new LuminousDeviceRenderer();
                 }
@@ -400,7 +403,7 @@ public final class ClientModBusEvents {
             private PastelStaffRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new PastelStaffRenderer();
                 }
@@ -411,7 +414,7 @@ public final class ClientModBusEvents {
             private CrystalBladedStaffRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new CrystalBladedStaffRenderer();
                 }
@@ -422,7 +425,7 @@ public final class ClientModBusEvents {
             private ElementalBowRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new ElementalBowRenderer();
                 }
@@ -433,7 +436,7 @@ public final class ClientModBusEvents {
             private FocusStaffbowRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new FocusStaffbowRenderer();
                 }
@@ -444,7 +447,7 @@ public final class ClientModBusEvents {
             private ChargecastCatalystbookRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new ChargecastCatalystbookRenderer();
                 }
@@ -455,7 +458,7 @@ public final class ClientModBusEvents {
             private CircuitHeatStaffRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new CircuitHeatStaffRenderer();
                 }
@@ -466,7 +469,7 @@ public final class ClientModBusEvents {
             private MulticastEchoStaffRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new MulticastEchoStaffRenderer();
                 }
@@ -477,7 +480,7 @@ public final class ClientModBusEvents {
             private MithrilFreecastStaffRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new MithrilFreecastStaffRenderer();
                 }
@@ -488,7 +491,7 @@ public final class ClientModBusEvents {
             private IlluminateStellarStaffRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new IlluminateStellarStaffRenderer();
                 }
@@ -499,7 +502,7 @@ public final class ClientModBusEvents {
             private UniteLunaStaffRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new UniteLunaStaffRenderer();
                 }
@@ -510,7 +513,7 @@ public final class ClientModBusEvents {
             private SwingcastStaffRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new SwingcastStaffRenderer();
                 }
@@ -527,7 +530,7 @@ public final class ClientModBusEvents {
             private SoulstainedSteelSwingcastStaffRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new SoulstainedSteelSwingcastStaffRenderer();
                 }
@@ -538,7 +541,7 @@ public final class ClientModBusEvents {
             private IronSpellcasterGunRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new IronSpellcasterGunRenderer();
                 }
@@ -549,7 +552,7 @@ public final class ClientModBusEvents {
             private CopperSpellcasterGunRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new CopperSpellcasterGunRenderer();
                 }
@@ -560,7 +563,7 @@ public final class ClientModBusEvents {
             private GoldSpellcasterGunRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new GoldSpellcasterGunRenderer();
                 }
@@ -571,7 +574,7 @@ public final class ClientModBusEvents {
             private DiamondSpellcasterGunRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new DiamondSpellcasterGunRenderer();
                 }
@@ -582,7 +585,7 @@ public final class ClientModBusEvents {
             private MalignantSpellcasterGunRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new MalignantSpellcasterGunRenderer();
                 }
@@ -593,7 +596,7 @@ public final class ClientModBusEvents {
             private SpellAmplifierRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new SpellAmplifierRenderer();
                 }
@@ -611,7 +614,7 @@ public final class ClientModBusEvents {
             private ExplorersCaneRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new ExplorersCaneRenderer();
                 }
@@ -622,7 +625,7 @@ public final class ClientModBusEvents {
             private PhotonSiphonRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new PhotonSiphonRenderer();
                 }
@@ -633,7 +636,7 @@ public final class ClientModBusEvents {
             private ReflectcastShieldRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new ReflectcastShieldRenderer();
                 }
@@ -644,7 +647,7 @@ public final class ClientModBusEvents {
             private ParrycastBucklerRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new ParrycastBucklerRenderer();
                 }
@@ -655,7 +658,7 @@ public final class ClientModBusEvents {
             private BulwarkGreatshieldRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new BulwarkGreatshieldRenderer();
                 }
@@ -666,7 +669,7 @@ public final class ClientModBusEvents {
             private ScrollcasterGauntletRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new ScrollcasterGauntletRenderer();
                 }
@@ -678,7 +681,7 @@ public final class ClientModBusEvents {
             private MultipurposeStaffrifleRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new MultipurposeStaffrifleRenderer();
                 }
@@ -687,15 +690,15 @@ public final class ClientModBusEvents {
             }
 
             @Override
-            public HumanoidModel.ArmPose getArmPose(LivingEntity entityLiving, InteractionHand hand, ItemStack itemStack) {
+            public HumanoidModel.ArmPose getArmPose(@NotNull LivingEntity entityLiving, @NotNull InteractionHand hand, @NotNull ItemStack itemStack) {
                 return hand == InteractionHand.MAIN_HAND
                         ? HumanoidModel.ArmPose.CROSSBOW_HOLD
                         : HumanoidModel.ArmPose.ITEM;
             }
 
             @Override
-            public boolean applyForgeHandTransform(PoseStack poseStack, LocalPlayer player, HumanoidArm arm,
-                                                   ItemStack itemInHand, float partialTick, float equipProcess,
+            public boolean applyForgeHandTransform(@NotNull PoseStack poseStack, @NotNull LocalPlayer player, @NotNull HumanoidArm arm,
+                                                   @NotNull ItemStack itemInHand, float partialTick, float equipProcess,
                                                    float swingProcess) {
                 var recoilAmount = MultipurposeStaffrifleClientFireEffectState.getRecoilAmount(partialTick);
                 if (MultipurposeStaffrifleClientAdsState.shouldHandleAsAds(player)) {

@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.config;
 
+import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCaseMenu;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
@@ -23,6 +24,7 @@ public final class ApprenticeCodexClientConfig {
     private static final ModConfigSpec.ConfigValue<List<? extends String>>
             BETTER_COMBAT_SCROLLCASTER_GAUNTLET_THIRD_PERSON_OFFHAND_VISUAL_DENIED_MAINHAND_ITEMS;
     private static final ModConfigSpec.BooleanValue DISABLE_ESSENCE_SMOKER_PARTICLE_TEXTURE_ANALYSIS;
+    private static final ModConfigSpec.IntValue SPELLCASTER_ACCESSORY_CASE_MAX_VISIBLE_CURIOS_COLUMNS;
 
     static {
         var builder = new ModConfigSpec.Builder();
@@ -87,6 +89,20 @@ public final class ApprenticeCodexClientConfig {
                 .defineListAllowEmpty("betterCombatScrollcasterGauntletThirdPersonOffhandVisualDeniedMainhandItems",
                         List.of(),
                         value -> value instanceof String text && ResourceLocation.tryParse(text) != null);
+        builder.push("SpellcasterAccessoryCase");
+        SPELLCASTER_ACCESSORY_CASE_MAX_VISIBLE_CURIOS_COLUMNS = builder
+                .comment(
+                        "Maximum number of Curios columns shown beside the Spellcaster Accessory Case.",
+                        "The entire Curios panel is hidden when it needs more columns than this value.",
+                        "Set to 0 to always show every Curios slot even when the panel may extend off-screen."
+                )
+                .defineInRange(
+                        "maxVisibleCuriosColumns",
+                        SpellcasterAccessoryCaseMenu.DEFAULT_MAX_VISIBLE_CURIOS_COLUMNS,
+                        0,
+                        Integer.MAX_VALUE
+                );
+        builder.pop();
         builder.pop();
 
         builder.push("Spells");
@@ -176,6 +192,10 @@ public final class ApprenticeCodexClientConfig {
 
     public static boolean disableEssenceSmokerParticleTextureAnalysis() {
         return DISABLE_ESSENCE_SMOKER_PARTICLE_TEXTURE_ANALYSIS.get();
+    }
+
+    public static int spellcasterAccessoryCaseMaxVisibleCuriosColumns() {
+        return SPELLCASTER_ACCESSORY_CASE_MAX_VISIBLE_CURIOS_COLUMNS.get();
     }
 
     private static String normalizeEpicFightWeaponCategory(String categoryName) {

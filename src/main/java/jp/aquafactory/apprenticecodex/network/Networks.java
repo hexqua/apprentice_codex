@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.network.packet.AlchemyBrewerWaterSupplyEff
 import jp.aquafactory.apprenticecodex.network.packet.ClientAnchorBlinkPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientConfigureSpellcasterAccessoryCaseMenuPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmLuminousDeviceSelectionPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmSneakSelectionPacket;
@@ -12,6 +13,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientEpicFightAttackcastRi
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientOpenSpellcasterAccessoryCasePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBroomInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBroomDismountInputPacket;
@@ -85,7 +87,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "88";
+    private static final String PROTOCOL_VERSION = "90";
 
     private Networks() {
     }
@@ -140,6 +142,16 @@ public final class Networks {
                 ClientChangeArchivistsGrimoireRowPacket.TYPE,
                 ClientChangeArchivistsGrimoireRowPacket.STREAM_CODEC,
                 ClientChangeArchivistsGrimoireRowPacket::handle
+        );
+        registrar.playToServer(
+                ClientOpenSpellcasterAccessoryCasePacket.TYPE,
+                ClientOpenSpellcasterAccessoryCasePacket.STREAM_CODEC,
+                ClientOpenSpellcasterAccessoryCasePacket::handle
+        );
+        registrar.playToServer(
+                ClientConfigureSpellcasterAccessoryCaseMenuPacket.TYPE,
+                ClientConfigureSpellcasterAccessoryCaseMenuPacket.STREAM_CODEC,
+                ClientConfigureSpellcasterAccessoryCaseMenuPacket::handle
         );
         registrar.playToServer(
                 ClientSwingMagicAttackPacket.TYPE,

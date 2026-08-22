@@ -18,6 +18,7 @@ import jp.aquafactory.apprenticecodex.item.pastelstaff.PastelStaff;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
+import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCase;
 import jp.aquafactory.apprenticecodex.item.blockitem.SpellCalibrationBenchItem;
 import jp.aquafactory.apprenticecodex.item.blockitem.SpellDispenserItem;
 import jp.aquafactory.apprenticecodex.item.blockitem.SpellcasterWorkbenchItem;
@@ -360,6 +361,8 @@ public final class ItemRegistry {
             ITEMS.register("ender_grimoire", EnderGrimoire::new);
     public static final DeferredHolder<Item, Item> ARCHIVISTS_GRIMOIRE =
             ITEMS.register("archivists_grimoire", ArchivistsGrimoire::new);
+    public static final DeferredHolder<Item, Item> SPELLCASTER_ACCESSORY_CASE =
+            ITEMS.register("spellcaster_accessory_case", SpellcasterAccessoryCase::new);
     public static final DeferredHolder<Item, Item> EXPLORERS_CODEX =
             ITEMS.register("explorers_codex", ExplorersCodex::new);
     public static final DeferredHolder<Item, Item> ISEKAI_TRAVEL_GUIDEBOOK =
