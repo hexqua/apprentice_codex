@@ -334,8 +334,7 @@ public abstract class AbstractPotionFlaskItem extends Item {
     public static boolean canAcceptRepresentativeForAutomaticFill(ItemStack flaskStack, ItemStack representativeItem) {
         var flaskItem = getFlaskItem(flaskStack);
         return flaskItem != null
-                && !flaskItem.normalizeAcceptedItem(representativeItem).isEmpty()
-                && !flaskItem.isVanillaPotionTypeMismatched(representativeItem);
+                && !flaskItem.normalizeAcceptedItem(representativeItem).isEmpty();
     }
 
     public static ItemStack getStoredItem(ItemStack stack) {

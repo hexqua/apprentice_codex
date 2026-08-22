@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntity;
+import jp.aquafactory.apprenticecodex.block.alchemybrewer.AlchemyBrewerBlockEntity;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntity;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
@@ -76,6 +77,9 @@ public final class BlockEntityRegistry {
 
     public static final RegistryObject<BlockEntityType<AtelierStationBlockEntity>> ATELIER_STATION = reg(
             "atelier_station", AtelierStationBlockEntity::new, BlockRegistry.ATELIER_STATION
+    );
+    public static final RegistryObject<BlockEntityType<AlchemyBrewerBlockEntity>> ALCHEMY_BREWER = reg(
+            "alchemy_brewer", AlchemyBrewerBlockEntity::new, BlockRegistry.ALCHEMY_BREWER
     );
 
     public static final RegistryObject<BlockEntityType<SpellDispenserBlockEntity>> SPELL_DISPENSER = reg(

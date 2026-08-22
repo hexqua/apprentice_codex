@@ -33,7 +33,7 @@ public final class CreateCompat {
             var compatClass = Class.forName(SPELL_DISPENSER_COMPAT_CLASS);
             compatClass.getMethod("register").invoke(null);
         } catch (ReflectiveOperationException exception) {
-            throw new IllegalStateException("Create 用 Spell Dispenser 互換の初期化に失敗しました", exception);
+            throw new IllegalStateException("Failed to initialize Spell Dispenser compatibility for Create", exception);
         }
 
         ApprenticeCodex.LOGGER.info("Create Spell Dispenser compat enabled");

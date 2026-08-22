@@ -41,7 +41,7 @@ public final class EpicFightCompat {
             registerCompat(SPELLCHARGED_GREATSWORD_COMPAT_CLASS, modEventBus);
             registerCompat(SPELLGUN_COMPAT_CLASS, modEventBus);
         } catch (ReflectiveOperationException exception) {
-            throw new IllegalStateException("Epic Fight 互換の初期化に失敗しました", exception);
+            throw new IllegalStateException("Failed to initialize Epic Fight compatibility", exception);
         }
 
         ApprenticeCodex.LOGGER.info("Epic Fight compat enabled");
@@ -61,7 +61,7 @@ public final class EpicFightCompat {
             var compatClass = Class.forName(SPELLGUN_COMPAT_CLASS);
             return (boolean) compatClass.getMethod("canUseOffhandSpellgun", ServerPlayer.class).invoke(null, player);
         } catch (ReflectiveOperationException exception) {
-            throw new IllegalStateException("Epic Fight のSpellgunオフハンド判定に失敗しました", exception);
+            throw new IllegalStateException("Failed to check Epic Fight offhand Spellgun availability", exception);
         }
     }
 
@@ -76,7 +76,7 @@ public final class EpicFightCompat {
                     .getMethod("queueMainhandCast", ServerPlayer.class, BlockTargetData.class)
                     .invoke(null, player, targetData);
         } catch (ReflectiveOperationException exception) {
-            throw new IllegalStateException("Epic Fight のSpellgunメインハンド発動保留に失敗しました", exception);
+            throw new IllegalStateException("Failed to queue an Epic Fight mainhand Spellgun cast", exception);
         }
     }
 
@@ -91,7 +91,7 @@ public final class EpicFightCompat {
                     .getMethod("queueAttackcastRingTargets", ServerPlayer.class, List.class)
                     .invoke(null, player, ringTargets);
         } catch (ReflectiveOperationException exception) {
-            throw new IllegalStateException("Epic Fight のAttackcast Ring対象同期に失敗しました", exception);
+            throw new IllegalStateException("Failed to synchronize Epic Fight Attackcast Ring targets", exception);
         }
     }
 }

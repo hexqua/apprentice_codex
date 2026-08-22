@@ -1,0 +1,13 @@
+{
+  "type": "apprenticecodex:alchemy_brewer",
+  "base": {
+    "tag": "apprenticecodex:alchemy_brewer/fast_bases"
+  },
+  "fluid_amount_mb": 750,
+  "ingredient": {
+    "item": "apprenticecodex:comfort_berries"
+  },
+  "priority": 0,
+  "processing_time_ticks": 100,
+  "result": "apprenticecodex:meditation"
+}

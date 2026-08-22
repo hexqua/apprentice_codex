@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
+import jp.aquafactory.apprenticecodex.network.packet.AlchemyBrewerWaterSupplyEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientAnchorBlinkPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
@@ -82,7 +83,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "80";
+    private static final String PROTOCOL_VERSION = "82";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -567,6 +568,14 @@ public final class Networks {
                 AtelierStationFluidEffectPacket::encode,
                 AtelierStationFluidEffectPacket::decode,
                 AtelierStationFluidEffectPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                AlchemyBrewerWaterSupplyEffectPacket.class,
+                AlchemyBrewerWaterSupplyEffectPacket::encode,
+                AlchemyBrewerWaterSupplyEffectPacket::decode,
+                AlchemyBrewerWaterSupplyEffectPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

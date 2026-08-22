@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.utility;
 
 import io.redspace.ironsspellbooks.block.alchemist_cauldron.AlchemistCauldronTile;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.NotNull;
@@ -41,5 +42,39 @@ public final class AlchemistCauldronFluidTools {
         var requestedFluid = fluidStack.copy();
         requestedFluid.setAmount(amountMb);
         return cauldronTile.fluidInventory.drain(requestedFluid, action);
+    }
+
+    public static int getTotalFluidAmount(@NotNull AlchemistCauldronTile cauldronTile) {
+        if (cauldronTile.fluidInventory == null) {
+            return 0;
+        }
+
+        var amount = 0;
+        for (var tank = 0; tank < cauldronTile.fluidInventory.getTanks(); ++tank) {
+            amount += cauldronTile.fluidInventory.getFluidInTank(tank).getAmount();
+        }
+        return amount;
+    }
+
+    public static boolean containsOnlyWater(@NotNull AlchemistCauldronTile cauldronTile) {
+        if (cauldronTile.fluidInventory == null) {
+            return false;
+        }
+
+        for (var tank = 0; tank < cauldronTile.fluidInventory.getTanks(); ++tank) {
+            var fluid = cauldronTile.fluidInventory.getFluidInTank(tank);
+            if (!fluid.isEmpty() && fluid.getFluid() != Fluids.WATER) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static int fillWater(@NotNull AlchemistCauldronTile cauldronTile, int amountMb,
+                                @NotNull IFluidHandler.FluidAction action) {
+        if (cauldronTile.fluidInventory == null || amountMb <= 0) {
+            return 0;
+        }
+        return cauldronTile.fluidInventory.fill(new FluidStack(Fluids.WATER, amountMb), action);
     }
 }

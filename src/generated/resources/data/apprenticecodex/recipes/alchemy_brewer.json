@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "minecraft:amethyst_cluster"
+    },
+    "B": {
+      "item": "minecraft:decorated_pot"
+    },
+    "F": {
+      "tag": "minecraft:wooden_fences"
+    },
+    "M": {
+      "item": "irons_spellbooks:magic_cloth"
+    },
+    "S": {
+      "tag": "minecraft:wooden_slabs"
+    },
+    "W": {
+      "item": "minecraft:water_bucket"
+    }
+  },
+  "pattern": [
+    "BMA",
+    "SSS",
+    "FWF"
+  ],
+  "result": {
+    "item": "apprenticecodex:alchemy_brewer"
+  },
+  "show_notification": true
+}

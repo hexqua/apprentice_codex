@@ -810,8 +810,21 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                 .addCriterion(AdvancementTools.CRAFT_TIPPED_ARROW_BY_FLASK_CRITERION, new ImpossibleTrigger.TriggerInstance())
                 .save(saver, advancementId("craft_tipped_arrow_by_flask"), existingFileHelper);
 
-        Advancement.Builder.advancement()
+        var brewer = Advancement.Builder.advancement()
                 .parent(flask)
+                .display(ItemRegistry.ALCHEMY_BREWER.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_alchemy_brewer.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_alchemy_brewer.description"),
+                        null,
+                        FrameType.TASK,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_alchemy_brewer", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.ALCHEMY_BREWER.getId()))
+                .save(saver, advancementId("craft_alchemy_brewer"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(brewer)
                 .display(ItemRegistry.ATELIER_STATION.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_atelier_station.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_atelier_station.description"),

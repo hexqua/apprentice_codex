@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public record AtelierStationFluidEffectPacket(EffectKind kind, long startGameTime, BlockPos stationPos,
-                                              Direction stationFacing, BlockPos sourcePos, int targetEntityId,
-                                              List<SupplyOrbData> supplyOrbs) {
+                                              Direction stationFacing, BlockPos sourcePos, Direction sourceFacing,
+                                              int targetEntityId, List<SupplyOrbData> supplyOrbs) {
     public AtelierStationFluidEffectPacket {
         supplyOrbs = List.copyOf(supplyOrbs);
     }
@@ -28,6 +28,26 @@ public record AtelierStationFluidEffectPacket(EffectKind kind, long startGameTim
                 stationPos.immutable(),
                 stationFacing,
                 cauldronPos.immutable(),
+                Direction.NORTH,
+                -1,
+                List.of()
+        );
+    }
+
+    public static AtelierStationFluidEffectPacket createAlchemyBrewerToStation(
+            BlockPos stationPos,
+            Direction stationFacing,
+            BlockPos brewerPos,
+            Direction brewerFacing,
+            long startGameTime
+    ) {
+        return new AtelierStationFluidEffectPacket(
+                EffectKind.ALCHEMY_BREWER_TO_STATION,
+                startGameTime,
+                stationPos.immutable(),
+                stationFacing,
+                brewerPos.immutable(),
+                brewerFacing,
                 -1,
                 List.of()
         );
@@ -42,6 +62,7 @@ public record AtelierStationFluidEffectPacket(EffectKind kind, long startGameTim
                 stationPos.immutable(),
                 stationFacing,
                 stationPos.immutable(),
+                stationFacing,
                 targetEntityId,
                 supplyOrbs
         );
@@ -53,6 +74,7 @@ public record AtelierStationFluidEffectPacket(EffectKind kind, long startGameTim
         buffer.writeBlockPos(packet.stationPos);
         buffer.writeEnum(packet.stationFacing);
         buffer.writeBlockPos(packet.sourcePos);
+        buffer.writeEnum(packet.sourceFacing);
         buffer.writeVarInt(packet.targetEntityId);
         buffer.writeVarInt(packet.supplyOrbs.size());
         for (var orb : packet.supplyOrbs) {
@@ -72,6 +94,7 @@ public record AtelierStationFluidEffectPacket(EffectKind kind, long startGameTim
         var stationPos = buffer.readBlockPos();
         var stationFacing = buffer.readEnum(Direction.class);
         var sourcePos = buffer.readBlockPos();
+        var sourceFacing = buffer.readEnum(Direction.class);
         var targetEntityId = buffer.readVarInt();
         var orbCount = buffer.readVarInt();
         var supplyOrbs = new ArrayList<SupplyOrbData>(orbCount);
@@ -87,7 +110,7 @@ public record AtelierStationFluidEffectPacket(EffectKind kind, long startGameTim
             ));
         }
         return new AtelierStationFluidEffectPacket(kind, startGameTime, stationPos, stationFacing, sourcePos,
-                targetEntityId, supplyOrbs);
+                sourceFacing, targetEntityId, supplyOrbs);
     }
 
     public static void handle(AtelierStationFluidEffectPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
@@ -100,6 +123,7 @@ public record AtelierStationFluidEffectPacket(EffectKind kind, long startGameTim
 
     public enum EffectKind {
         CAULDRON_TO_STATION,
+        ALCHEMY_BREWER_TO_STATION,
         STATION_TO_PLAYER
     }
 

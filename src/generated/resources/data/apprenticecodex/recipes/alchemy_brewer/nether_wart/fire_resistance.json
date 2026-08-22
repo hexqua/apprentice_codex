@@ -1,0 +1,13 @@
+{
+  "type": "apprenticecodex:alchemy_brewer",
+  "base": {
+    "tag": "apprenticecodex:alchemy_brewer/high_efficiency_bases"
+  },
+  "fluid_amount_mb": 1000,
+  "ingredient": {
+    "item": "minecraft:magma_cream"
+  },
+  "priority": 0,
+  "processing_time_ticks": 200,
+  "result": "minecraft:fire_resistance"
+}

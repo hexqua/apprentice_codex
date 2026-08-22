@@ -103,6 +103,10 @@ public final class TagRegistry {
                 createItemTag("spell_autonomy_card_crafting_materials");
         public static final TagKey<Item> WAND_BASE =
                 createItemTag("wand_base");
+        public static final TagKey<Item> ALCHEMY_BREWER_HIGH_EFFICIENCY_BASES =
+                createItemTag("alchemy_brewer/high_efficiency_bases");
+        public static final TagKey<Item> ALCHEMY_BREWER_FAST_BASES =
+                createItemTag("alchemy_brewer/fast_bases");
         public static final TagKey<Item> MANA_MENDING_DENYLIST =
                 createItemTag("mana_mending_denylist");
         public static final TagKey<Item> ALACRITY_ENCHANTABLE =

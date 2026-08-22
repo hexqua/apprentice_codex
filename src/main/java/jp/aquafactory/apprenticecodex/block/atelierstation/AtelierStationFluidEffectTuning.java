@@ -13,6 +13,7 @@ public final class AtelierStationFluidEffectTuning {
     public static final float CAULDRON_START_DIAMETER = 8.0f / 16.0f;
     public static final float CAULDRON_PRE_DASH_DIAMETER = 6.0f / 16.0f;
     public static final float CAULDRON_DASH_END_DIAMETER = 1.5f / 16.0f;
+    public static final float ALCHEMY_BREWER_PRE_DASH_DIAMETER = 4.0f / 16.0f;
     public static final float CAULDRON_ROTATE_X = 15.0f;
     public static final float CAULDRON_ROTATE_Y = 26.0f;
     public static final float CAULDRON_ROTATE_Z = 19.0f;

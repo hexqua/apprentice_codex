@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.datagen.recipe.EssenceSmokerRecipeDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.recipe.GrindRunnerRecipeDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.recipe.SpellcasterWorkbenchRecipeDataGenerator;
+import jp.aquafactory.apprenticecodex.datagen.recipe.AlchemyBrewerRecipeDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.AutocastAmuletSpellProfileDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.ElementalBowModeDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.ScrollcasterSchoolRuneOverrideDataGenerator;
@@ -55,6 +56,7 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), new CurioLootDataGenerator(output));
         generator.addProvider(event.includeServer(), new EssenceSmokerRecipeDataGenerator(output));
         generator.addProvider(event.includeServer(), new SpellcasterWorkbenchRecipeDataGenerator(output));
+        generator.addProvider(event.includeServer(), new AlchemyBrewerRecipeDataGenerator(output));
         generator.addProvider(event.includeServer(), new LootTableGenerator(output));
         generator.addProvider(event.includeServer(), new SenseEvilHighlightDataGenerator(output, existing));
         generator.addProvider(event.includeServer(), new DamageTypeTagGenerator(output, datapackProvider.getRegistryProvider(), existing));
