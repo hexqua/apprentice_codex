@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.network;
+﻿package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientEpicFightAttackcastRi
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientOpenSpellcasterAccessoryCasePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBroomInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBroomDismountInputPacket;
@@ -88,7 +89,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "88";
+    private static final String PROTOCOL_VERSION = "89";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -207,6 +208,14 @@ public final class Networks {
                 ClientChangeArchivistsGrimoireRowPacket::encode,
                 ClientChangeArchivistsGrimoireRowPacket::decode,
                 ClientChangeArchivistsGrimoireRowPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                ClientOpenSpellcasterAccessoryCasePacket.class,
+                ClientOpenSpellcasterAccessoryCasePacket::encode,
+                ClientOpenSpellcasterAccessoryCasePacket::decode,
+                ClientOpenSpellcasterAccessoryCasePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER)
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

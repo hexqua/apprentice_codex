@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.registry;
+﻿package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.*;
@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBlad
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
+import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCase;
 import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRing;
 import jp.aquafactory.apprenticecodex.item.curios.circlets.AshenCirclet;
 import jp.aquafactory.apprenticecodex.item.curios.circlets.EnchantedCirclet;
@@ -348,6 +349,8 @@ public final class ItemRegistry {
             ITEMS.register("ender_grimoire", EnderGrimoire::new);
     public static final RegistryObject<Item> ARCHIVISTS_GRIMOIRE =
             ITEMS.register("archivists_grimoire", ArchivistsGrimoire::new);
+    public static final RegistryObject<Item> SPELLCASTER_ACCESSORY_CASE =
+            ITEMS.register("spellcaster_accessory_case", SpellcasterAccessoryCase::new);
     public static final RegistryObject<Item> EXPLORERS_CODEX =
             ITEMS.register("explorers_codex", ExplorersCodex::new);
     public static final RegistryObject<Item> ISEKAI_TRAVEL_GUIDEBOOK =

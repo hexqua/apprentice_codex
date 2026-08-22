@@ -170,6 +170,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.JUMPCAST_CHARM.get().getDefaultInstance());
         output.accept(ItemRegistry.ENDER_GRIMOIRE.get());
         output.accept(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
+        output.accept(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get());
         output.accept(ItemRegistry.EXPLORERS_CODEX.get());
         output.accept(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get());
         output.accept(ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get());

@@ -27,6 +27,7 @@
   "block.apprenticecodex.otherworld_lens_lens" : "Otherworld Lens",
   "block.apprenticecodex.wizardlamp_lantern": "Wizard's Lantern",
 
+  "item.apprenticecodex.spellcaster_accessory_case": "Spellcaster's Accessory Case",
   "item.apprenticecodex.partially_used_ink": "Partially Used Ink",
   "item.apprenticecodex.partially_used_ink.named": "Partially Used %1$s",
   "item.apprenticecodex.partially_used_ink.unknown": "Partially Used Mysterious Ink",
@@ -714,6 +715,7 @@
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.disabled.hint": "Turn on to start brewing automatically when the materials are ready.",
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.enabled": "Auto brewing: On",
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.enabled.hint": "Turn off to prevent new brews from starting.",
+  "container.apprenticecodex.spellcaster_accessory_case": "Spellcaster's Accessory Case",
   "jei.apprenticecodex.alchemy_brewer.no_additive": "None",
   "jei.apprenticecodex.alchemy_brewer.amount": "%1$d mB / %2$d doses",
   "jei.apprenticecodex.alchemy_brewer.time": "%s s",

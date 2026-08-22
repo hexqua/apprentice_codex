@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.registry;
+﻿package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskMenu;
@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoireMenu;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireInscriptionMenu;
+import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCaseMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -42,6 +43,9 @@ public final class MenuRegistry {
 
     public static final RegistryObject<MenuType<ArchivistsGrimoireMenu>> ARCHIVISTS_GRIMOIRE =
             MENUS.register("archivists_grimoire", () -> IForgeMenuType.create(ArchivistsGrimoireMenu::new));
+
+    public static final RegistryObject<MenuType<SpellcasterAccessoryCaseMenu>> SPELLCASTER_ACCESSORY_CASE =
+            MENUS.register("spellcaster_accessory_case", () -> IForgeMenuType.create(SpellcasterAccessoryCaseMenu::new));
 
     public static void register(IEventBus bus) {
         MENUS.register(bus);
