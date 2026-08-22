@@ -19,7 +19,7 @@ public class FloatmountBroomItemRenderer extends GeoItemRenderer<FloatmountBroom
     @Override
     public void renderRecursively(PoseStack poseStack, FloatmountBroomItem animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                                  int packedLight, int packedOverlay, int colour) {
+                                  int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
         if (FloatmountBroomRenderSupport.isBoneOrChildOf(bone, FloatmountBroomRenderSupport.STAR_BONE)) {
             renderEmissiveBone(poseStack, animatable, bone, bufferSource, isReRender, partialTick, packedOverlay,
                     FloatmountBroomRenderSupport.resolveStarColour(partialTick));
@@ -34,7 +34,7 @@ public class FloatmountBroomItemRenderer extends GeoItemRenderer<FloatmountBroom
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, colour
+                packedLight, packedOverlay, red, green, blue, alpha
         );
     }
 
@@ -44,7 +44,12 @@ public class FloatmountBroomItemRenderer extends GeoItemRenderer<FloatmountBroom
         var emissiveRenderType = RenderType.entityTranslucent(getTextureLocation(animatable));
         super.renderRecursively(
                 poseStack, animatable, bone, emissiveRenderType, bufferSource, bufferSource.getBuffer(emissiveRenderType),
-                isReRender, partialTick, LightTexture.FULL_BRIGHT, packedOverlay, colour
+                isReRender, partialTick, LightTexture.FULL_BRIGHT, packedOverlay,
+                channel(colour, 16), channel(colour, 8), channel(colour, 0), channel(colour, 24)
         );
+    }
+
+    private static float channel(int colour, int shift) {
+        return (colour >>> shift & 0xFF) / 255.0F;
     }
 }

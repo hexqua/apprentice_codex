@@ -5,11 +5,11 @@ import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.EntityMountEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityMountEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class FloatmountBroomDismountEvents {
     private static final Map<UUID, Confirmation> CONFIRMATIONS = new HashMap<>();
     private static final Map<UUID, SneakInput> SNEAK_INPUTS = new HashMap<>();
@@ -99,10 +99,11 @@ public final class FloatmountBroomDismountEvents {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(PlayerTickEvent.Pre event) {
-        if (!(event.getEntity() instanceof Player player) || player.level().isClientSide) {
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (event.phase != TickEvent.Phase.START || event.player.level().isClientSide) {
             return;
         }
+        var player = event.player;
         var playerId = player.getUUID();
         var confirmation = CONFIRMATIONS.get(playerId);
         if (confirmation == null && !SNEAK_INPUTS.containsKey(playerId)) {

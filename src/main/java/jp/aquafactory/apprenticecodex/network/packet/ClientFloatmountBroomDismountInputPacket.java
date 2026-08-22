@@ -1,38 +1,28 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomDismountEvents;
 import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomEntity;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
-public record ClientFloatmountBroomDismountInputPacket(int broomId, boolean pressed)
-        implements CustomPacketPayload {
-    public static final Type<ClientFloatmountBroomDismountInputPacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "client_floatmount_broom_dismount_input")
-    );
-    public static final StreamCodec<RegistryFriendlyByteBuf, ClientFloatmountBroomDismountInputPacket> STREAM_CODEC =
-            StreamCodec.of((buffer, packet) -> {
-                buffer.writeVarInt(packet.broomId);
-                buffer.writeBoolean(packet.pressed);
-            }, buffer -> new ClientFloatmountBroomDismountInputPacket(
-                    buffer.readVarInt(),
-                    buffer.readBoolean()
-            ));
+import java.util.function.Supplier;
 
-    @Override
-    public @NotNull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+public record ClientFloatmountBroomDismountInputPacket(int broomId, boolean pressed) {
+    public static void encode(ClientFloatmountBroomDismountInputPacket packet, FriendlyByteBuf buffer) {
+        buffer.writeVarInt(packet.broomId);
+        buffer.writeBoolean(packet.pressed);
     }
 
-    public static void handle(ClientFloatmountBroomDismountInputPacket packet, IPayloadContext context) {
+    public static ClientFloatmountBroomDismountInputPacket decode(FriendlyByteBuf buffer) {
+        return new ClientFloatmountBroomDismountInputPacket(buffer.readVarInt(), buffer.readBoolean());
+    }
+
+    public static void handle(ClientFloatmountBroomDismountInputPacket packet,
+                              Supplier<NetworkEvent.Context> contextSupplier) {
+        var context = contextSupplier.get();
         context.enqueueWork(() -> {
-            if (!(context.player() instanceof ServerPlayer sender)
+            var sender = context.getSender();
+            if (sender == null
                     || !(sender.getVehicle() instanceof FloatmountBroomEntity broom)
                     || broom.getId() != packet.broomId
                     || broom.getControllingPassenger() != sender) {
@@ -40,5 +30,6 @@ public record ClientFloatmountBroomDismountInputPacket(int broomId, boolean pres
             }
             FloatmountBroomDismountEvents.handleSneakInput(sender, broom, packet.pressed);
         });
+        context.setPacketHandled(true);
     }
 }

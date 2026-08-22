@@ -2,16 +2,20 @@ package jp.aquafactory.apprenticecodex.event.client;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomEntity;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.NotNull;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RenderGuiOverlayEvent;
+import net.minecraftforge.client.gui.overlay.ForgeGui;
+import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
 import java.util.Arrays;
 
-public final class FloatmountBroomDurabilityHud implements LayeredDraw.Layer {
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+public final class FloatmountBroomDurabilityHud {
     public static final FloatmountBroomDurabilityHud INSTANCE = new FloatmountBroomDurabilityHud();
 
     private static final ResourceLocation CONTAINER = texture("broom_durability_container.png");
@@ -31,9 +35,16 @@ public final class FloatmountBroomDurabilityHud implements LayeredDraw.Layer {
     private FloatmountBroomDurabilityHud() {
     }
 
-    @Override
-    public void render(@NotNull GuiGraphics guiGraphics, @NotNull DeltaTracker deltaTracker) {
+    @SubscribeEvent
+    public static void onRenderGuiOverlay(RenderGuiOverlayEvent.Post event) {
+        if (event.getOverlay() == VanillaGuiOverlay.FOOD_LEVEL.type()) {
+            INSTANCE.render(event.getGuiGraphics());
+        }
+    }
+
+    private void render(GuiGraphics guiGraphics) {
         var minecraft = Minecraft.getInstance();
+        var forgeGui = (ForgeGui) minecraft.gui;
         var player = minecraft.player;
         if (minecraft.options.hideGui || player == null || player.isSpectator()
                 || !(player.getVehicle() instanceof FloatmountBroomEntity broom)) {
@@ -45,7 +56,7 @@ public final class FloatmountBroomDurabilityHud implements LayeredDraw.Layer {
         updateBlinkingState(broom.getId(), durabilitySteps, player.tickCount);
 
         var right = guiGraphics.guiWidth() / 2 + 91;
-        var y = guiGraphics.guiHeight() - minecraft.gui.rightHeight;
+        var y = guiGraphics.guiHeight() - forgeGui.rightHeight;
         for (var icon = 0; icon < ICON_COUNT; icon++) {
             var x = right - icon * ICON_SPACING - ICON_SIZE;
             blit(guiGraphics, CONTAINER, x, y);
@@ -60,7 +71,7 @@ public final class FloatmountBroomDurabilityHud implements LayeredDraw.Layer {
             }
         }
         // AIR_LEVELより先に右側の高さを予約し、満腹度と酸素の間へ配置する。
-        minecraft.gui.rightHeight += 10;
+        forgeGui.rightHeight += 10;
     }
 
     private void updateBlinkingState(int broomId, int durabilitySteps, long now) {

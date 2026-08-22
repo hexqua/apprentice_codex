@@ -5,12 +5,12 @@ import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomEnti
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RenderFrameEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RenderGuiOverlayEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class FloatmountBroomControlHelpOverlayEvent {
     private static int displayedBroomId = -1;
 
@@ -18,7 +18,7 @@ public final class FloatmountBroomControlHelpOverlayEvent {
     }
 
     @SubscribeEvent
-    public static void onRenderFrame(RenderFrameEvent.Pre event) {
+    public static void onRenderFrame(RenderGuiOverlayEvent.Pre event) {
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         if (player == null

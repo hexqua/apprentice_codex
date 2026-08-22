@@ -1,29 +1,15 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.FloatmountBroomConfigState;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.jetbrains.annotations.NotNull;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.network.NetworkEvent;
 
-public record SyncFloatmountBroomConfigPacket(int normalFlightManaThreshold) implements CustomPacketPayload {
-    public static final Type<SyncFloatmountBroomConfigPacket> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_floatmount_broom_config"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, SyncFloatmountBroomConfigPacket> STREAM_CODEC =
-            StreamCodec.of((buffer, packet) -> encode(packet, buffer), SyncFloatmountBroomConfigPacket::decode);
+import java.util.function.Supplier;
 
-    @Override
-    public @NotNull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
+public record SyncFloatmountBroomConfigPacket(int normalFlightManaThreshold) {
     public static void encode(SyncFloatmountBroomConfigPacket packet, FriendlyByteBuf buffer) {
         buffer.writeVarInt(packet.normalFlightManaThreshold);
     }
@@ -32,12 +18,13 @@ public record SyncFloatmountBroomConfigPacket(int normalFlightManaThreshold) imp
         return new SyncFloatmountBroomConfigPacket(buffer.readVarInt());
     }
 
-    public static void handle(SyncFloatmountBroomConfigPacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (FMLEnvironment.dist == Dist.CLIENT) {
-                ClientHandler.handle(packet);
-            }
-        });
+    public static void handle(SyncFloatmountBroomConfigPacket packet,
+                              Supplier<NetworkEvent.Context> contextSupplier) {
+        var context = contextSupplier.get();
+        context.enqueueWork(() ->
+                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientHandler.handle(packet))
+        );
+        context.setPacketHandled(true);
     }
 
     @OnlyIn(Dist.CLIENT)

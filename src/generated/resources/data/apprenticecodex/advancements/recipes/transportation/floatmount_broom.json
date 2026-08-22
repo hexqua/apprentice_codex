@@ -5,7 +5,9 @@
       "conditions": {
         "items": [
           {
-            "items": "minecraft:amethyst_cluster"
+            "items": [
+              "minecraft:amethyst_cluster"
+            ]
           }
         ]
       },
@@ -20,13 +22,14 @@
   },
   "requirements": [
     [
-      "has_the_recipe",
-      "has_amethyst_cluster"
+      "has_amethyst_cluster",
+      "has_the_recipe"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:floatmount_broom"
     ]
-  }
+  },
+  "sends_telemetry_event": false
 }

@@ -3,7 +3,8 @@ package jp.aquafactory.apprenticecodex.item;
 import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomEntity;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.component.DataComponents;
+import jp.aquafactory.apprenticecodex.renderer.item.FloatmountBroomItemRenderer;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
@@ -18,14 +19,18 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.animation.AnimatableManager;
-import software.bernie.geckolib.animation.AnimationController;
-import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public class FloatmountBroomItem extends Item implements GeoItem {
     private static final RawAnimation STATIC = RawAnimation.begin().thenLoop("mount");
@@ -56,7 +61,7 @@ public class FloatmountBroomItem extends Item implements GeoItem {
         }
 
         var broom = new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), level);
-        var customName = stack.get(DataComponents.CUSTOM_NAME);
+        var customName = stack.hasCustomHoverName() ? stack.getHoverName() : null;
         broom.setCustomName(customName);
         broom.setCustomNameVisible(customName != null);
         broom.setPos(hit.getLocation().x, hit.getLocation().y, hit.getLocation().z);
@@ -74,14 +79,16 @@ public class FloatmountBroomItem extends Item implements GeoItem {
                 return InteractionResultHolder.fail(stack);
             }
             level.gameEvent(player, GameEvent.ENTITY_PLACE, hit.getLocation());
-            stack.consume(1, player);
+            if (!player.getAbilities().instabuild) {
+                stack.shrink(1);
+            }
         }
         player.awardStat(Stats.ITEM_USED.get(this));
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context,
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level,
                                 @NotNull List<Component> tooltipComponents, @NotNull TooltipFlag tooltipFlag) {
         tooltipComponents.add(Component.translatable(
                 "item.apprenticecodex.floatmount_broom.desc_1",
@@ -104,7 +111,25 @@ public class FloatmountBroomItem extends Item implements GeoItem {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "main", 0, state -> state.setAndContinue(STATIC)));
+        controllers.add(new AnimationController<>(this, "main", 0, state -> {
+            state.setAnimation(STATIC);
+            return PlayState.CONTINUE;
+        }));
+    }
+
+    @Override
+    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+        consumer.accept(new IClientItemExtensions() {
+            private FloatmountBroomItemRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new FloatmountBroomItemRenderer();
+                }
+                return renderer;
+            }
+        });
     }
 
     @Override

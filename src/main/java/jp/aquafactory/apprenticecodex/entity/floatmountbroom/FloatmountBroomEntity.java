@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.entity.floatmountbroom;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
+import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
@@ -10,7 +11,6 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -28,7 +28,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.LivingEntity;
@@ -40,16 +39,16 @@ import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.common.util.FakePlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.animation.AnimatableManager;
-import software.bernie.geckolib.animation.AnimationController;
-import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.Optional;
@@ -137,11 +136,11 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        builder.define(DAMAGE, 0);
-        builder.define(MAX_DAMAGE, DEFAULT_MAX_DAMAGE);
-        builder.define(MANA_EMERGENCY_LANDING, false);
-        builder.define(DAMAGED, false);
+    protected void defineSynchedData() {
+        entityData.define(DAMAGE, 0);
+        entityData.define(MAX_DAMAGE, DEFAULT_MAX_DAMAGE);
+        entityData.define(MANA_EMERGENCY_LANDING, false);
+        entityData.define(DAMAGED, false);
     }
 
     @Override
@@ -342,34 +341,26 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
             syncPacketPositionCodec(getX(), getY(), getZ());
         }
         if (lerpSteps > 0) {
-            lerpPositionAndRotationStep(lerpSteps, lerpX, lerpY, lerpZ, lerpYRot, lerpXRot);
+            var step = 1.0D / lerpSteps;
+            setPos(
+                    Mth.lerp(step, getX(), lerpX),
+                    Mth.lerp(step, getY(), lerpY),
+                    Mth.lerp(step, getZ(), lerpZ)
+            );
+            setYRot(Mth.rotLerp((float) step, getYRot(), (float) lerpYRot));
+            setXRot(Mth.lerp((float) step, getXRot(), (float) lerpXRot));
             lerpSteps--;
         }
     }
 
     @Override
-    public void lerpTo(double x, double y, double z, float yRot, float xRot, int steps) {
+    public void lerpTo(double x, double y, double z, float yRot, float xRot, int steps, boolean teleport) {
         lerpX = x;
         lerpY = y;
         lerpZ = z;
         lerpYRot = yRot;
         lerpXRot = xRot;
         lerpSteps = 10;
-    }
-
-    @Override
-    public double lerpTargetX() {
-        return lerpSteps > 0 ? lerpX : getX();
-    }
-
-    @Override
-    public double lerpTargetY() {
-        return lerpSteps > 0 ? lerpY : getY();
-    }
-
-    @Override
-    public double lerpTargetZ() {
-        return lerpSteps > 0 ? lerpZ : getZ();
     }
 
     private void applyControlledMovement() {
@@ -590,7 +581,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         var stack = new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get());
         var customName = getCustomName();
         if (customName != null) {
-            stack.set(DataComponents.CUSTOM_NAME, customName);
+            stack.setHoverName(customName);
         }
         return stack;
     }
@@ -615,14 +606,10 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
 
     @Override
     protected void positionRider(@NotNull Entity passenger, @NotNull MoveFunction moveFunction) {
-        super.positionRider(passenger, moveFunction);
-        clampPassengerRotation(passenger);
-    }
-
-    @Override
-    protected @NotNull Vec3 getPassengerAttachmentPoint(@NotNull Entity passenger,
-                                                         @NotNull EntityDimensions dimensions, float partialTick) {
-        return new Vec3(0.0D, RIDER_ATTACHMENT_Y, 0.0D);
+        if (hasPassenger(passenger)) {
+            moveFunction.accept(passenger, getX(), getY() + RIDER_ATTACHMENT_Y, getZ());
+            clampPassengerRotation(passenger);
+        }
     }
 
     private void clampPassengerRotation(Entity passenger) {
@@ -947,8 +934,10 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "main", 0, state ->
-                state.setAndContinue(isVehicle() ? MOUNT : IDLE)));
+        controllers.add(new AnimationController<>(this, "main", 0, state -> {
+            state.setAnimation(isVehicle() ? MOUNT : IDLE);
+            return PlayState.CONTINUE;
+        }));
     }
 
     @Override

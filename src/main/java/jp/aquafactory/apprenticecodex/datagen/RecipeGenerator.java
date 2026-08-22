@@ -769,7 +769,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('E', io.redspace.ironsspellbooks.registries.ItemRegistry.EVOCATION_RUNE.get())
                 .define('H', Items.HAY_BLOCK)
                 .unlockedBy(getHasName(Items.AMETHYST_CLUSTER), has(Items.AMETHYST_CLUSTER))
-                .save(recipeOutput);
+                .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.INSTANT_SEARCH_BRAZIER.get())
                 .pattern("REL")

@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 import java.util.List;
 import java.util.Objects;
@@ -11,27 +11,27 @@ import java.util.stream.Collectors;
 public final class FloatmountBroomServerConfig {
     public static final int DEFAULT_NORMAL_FLIGHT_MANA_THRESHOLD = 100;
 
-    private final ModConfigSpec.IntValue maxDamage;
-    private final ModConfigSpec.IntValue damageRecoveryAmount;
-    private final ModConfigSpec.IntValue damageIFrameTicks;
-    private final ModConfigSpec.ConfigValue<List<? extends String>> iframeIgnoredDamageTypes;
-    private final ModConfigSpec.IntValue normalFlightManaThreshold;
-    private final ModConfigSpec.IntValue lowManaWarningThreshold;
-    private final ModConfigSpec.DoubleValue horizontalManaCostPerTick;
-    private final ModConfigSpec.DoubleValue ascendingManaCostPerTick;
-    private final ModConfigSpec.DoubleValue horizontalAscendingManaCostPerTick;
+    private final ForgeConfigSpec.IntValue maxDamage;
+    private final ForgeConfigSpec.IntValue damageRecoveryAmount;
+    private final ForgeConfigSpec.IntValue damageIFrameTicks;
+    private final ForgeConfigSpec.ConfigValue<List<? extends String>> iframeIgnoredDamageTypes;
+    private final ForgeConfigSpec.IntValue normalFlightManaThreshold;
+    private final ForgeConfigSpec.IntValue lowManaWarningThreshold;
+    private final ForgeConfigSpec.DoubleValue horizontalManaCostPerTick;
+    private final ForgeConfigSpec.DoubleValue ascendingManaCostPerTick;
+    private final ForgeConfigSpec.DoubleValue horizontalAscendingManaCostPerTick;
     private Values override;
 
     private FloatmountBroomServerConfig(
-            ModConfigSpec.IntValue maxDamage,
-            ModConfigSpec.IntValue damageRecoveryAmount,
-            ModConfigSpec.IntValue damageIFrameTicks,
-            ModConfigSpec.ConfigValue<List<? extends String>> iframeIgnoredDamageTypes,
-            ModConfigSpec.IntValue normalFlightManaThreshold,
-            ModConfigSpec.IntValue lowManaWarningThreshold,
-            ModConfigSpec.DoubleValue horizontalManaCostPerTick,
-            ModConfigSpec.DoubleValue ascendingManaCostPerTick,
-            ModConfigSpec.DoubleValue horizontalAscendingManaCostPerTick
+            ForgeConfigSpec.IntValue maxDamage,
+            ForgeConfigSpec.IntValue damageRecoveryAmount,
+            ForgeConfigSpec.IntValue damageIFrameTicks,
+            ForgeConfigSpec.ConfigValue<List<? extends String>> iframeIgnoredDamageTypes,
+            ForgeConfigSpec.IntValue normalFlightManaThreshold,
+            ForgeConfigSpec.IntValue lowManaWarningThreshold,
+            ForgeConfigSpec.DoubleValue horizontalManaCostPerTick,
+            ForgeConfigSpec.DoubleValue ascendingManaCostPerTick,
+            ForgeConfigSpec.DoubleValue horizontalAscendingManaCostPerTick
     ) {
         this.maxDamage = maxDamage;
         this.damageRecoveryAmount = damageRecoveryAmount;
@@ -44,7 +44,7 @@ public final class FloatmountBroomServerConfig {
         this.horizontalAscendingManaCostPerTick = horizontalAscendingManaCostPerTick;
     }
 
-    public static FloatmountBroomServerConfig define(ModConfigSpec.Builder builder) {
+    public static FloatmountBroomServerConfig define(ForgeConfigSpec.Builder builder) {
         builder.push("FloatmountBroom");
 
         var maxDamage = builder

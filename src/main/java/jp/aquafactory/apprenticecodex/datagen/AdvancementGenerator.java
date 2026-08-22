@@ -842,7 +842,7 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_floatmount_broom.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_floatmount_broom.description"),
                         null,
-                        AdvancementType.GOAL,
+                        FrameType.GOAL,
                         true,
                         true,
                         false)

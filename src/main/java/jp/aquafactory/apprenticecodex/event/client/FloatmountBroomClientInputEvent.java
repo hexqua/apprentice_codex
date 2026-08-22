@@ -6,12 +6,12 @@ import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFloatmountBroomInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFloatmountBroomDismountInputPacket;
 import net.minecraft.client.Minecraft;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class FloatmountBroomClientInputEvent {
     private static final int HEARTBEAT_TICKS = 10;
     private static final int DISMOUNT_TRACKING_GRACE_TICKS = FloatmountBroomEntity.DISMOUNT_CONFIRM_TICKS;
@@ -26,7 +26,10 @@ public final class FloatmountBroomClientInputEvent {
     }
 
     @SubscribeEvent
-    public static void onClientTick(ClientTickEvent.Pre event) {
+    public static void onClientTickPre(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.START) {
+            return;
+        }
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         if (player == null || minecraft.level == null) {
@@ -60,7 +63,10 @@ public final class FloatmountBroomClientInputEvent {
     }
 
     @SubscribeEvent
-    public static void onClientTick(ClientTickEvent.Post event) {
+    public static void onClientTickPost(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) {
+            return;
+        }
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         if (player == null || minecraft.level == null

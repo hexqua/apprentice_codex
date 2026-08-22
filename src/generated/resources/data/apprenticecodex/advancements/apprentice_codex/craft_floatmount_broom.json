@@ -9,14 +9,16 @@
     }
   },
   "display": {
+    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_floatmount_broom.description"
     },
     "frame": "goal",
+    "hidden": false,
     "icon": {
-      "count": 1,
-      "id": "apprenticecodex:floatmount_broom"
+      "item": "apprenticecodex:floatmount_broom"
     },
+    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_floatmount_broom.title"
     }

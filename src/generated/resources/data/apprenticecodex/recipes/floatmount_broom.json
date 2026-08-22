@@ -24,7 +24,7 @@
     "HI "
   ],
   "result": {
-    "count": 1,
-    "id": "apprenticecodex:floatmount_broom"
-  }
+    "item": "apprenticecodex:floatmount_broom"
+  },
+  "show_notification": true
 }

@@ -12,7 +12,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.util.Mth;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
-import software.bernie.geckolib.util.Color;
+import software.bernie.geckolib.core.object.Color;
 
 public class FloatmountBroomRenderer extends GeoEntityRenderer<FloatmountBroomEntity> {
     public FloatmountBroomRenderer(EntityRendererProvider.Context context) {
@@ -27,16 +27,16 @@ public class FloatmountBroomRenderer extends GeoEntityRenderer<FloatmountBroomEn
 
     @Override
     protected void applyRotations(FloatmountBroomEntity broom, PoseStack poseStack, float ageInTicks,
-                                  float rotationYaw, float partialTick, float nativeScale) {
+                                  float rotationYaw, float partialTick) {
         // GeoEntityRendererは非LivingEntityのbody yawを0として扱うため、車体自身の補間yawを明示する。
         var broomYaw = Mth.rotLerp(partialTick, broom.yRotO, broom.getYRot());
-        super.applyRotations(broom, poseStack, ageInTicks, broomYaw, partialTick, nativeScale);
+        super.applyRotations(broom, poseStack, ageInTicks, broomYaw, partialTick);
     }
 
     @Override
     public void renderRecursively(PoseStack poseStack, FloatmountBroomEntity animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                                  int packedLight, int packedOverlay, int colour) {
+                                  int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
         if (FloatmountBroomRenderSupport.isBoneOrChildOf(bone, FloatmountBroomRenderSupport.STAR_BONE)) {
             renderEmissiveBone(poseStack, animatable, bone, bufferSource, isReRender, partialTick, packedOverlay,
                     FloatmountBroomRenderSupport.resolveStarColour(partialTick));
@@ -51,7 +51,7 @@ public class FloatmountBroomRenderer extends GeoEntityRenderer<FloatmountBroomEn
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, colour
+                packedLight, packedOverlay, red, green, blue, alpha
         );
     }
 
@@ -61,8 +61,13 @@ public class FloatmountBroomRenderer extends GeoEntityRenderer<FloatmountBroomEn
         var emissiveRenderType = RenderType.entityTranslucent(getTextureLocation(animatable));
         super.renderRecursively(
                 poseStack, animatable, bone, emissiveRenderType, bufferSource, bufferSource.getBuffer(emissiveRenderType),
-                isReRender, partialTick, LightTexture.FULL_BRIGHT, packedOverlay, colour
+                isReRender, partialTick, LightTexture.FULL_BRIGHT, packedOverlay,
+                channel(colour, 16), channel(colour, 8), channel(colour, 0), channel(colour, 24)
         );
+    }
+
+    private static float channel(int colour, int shift) {
+        return (colour >>> shift & 0xFF) / 255.0F;
     }
 
     @Override
@@ -75,11 +80,11 @@ public class FloatmountBroomRenderer extends GeoEntityRenderer<FloatmountBroomEn
             case 4 -> new float[]{0.52F, 0.18F, 0.18F};
             default -> new float[]{1.0F, 1.0F, 1.0F};
         };
-        return Color.ofARGB(
-                base.getAlpha(),
+        return Color.ofRGBA(
                 Mth.clamp(Math.round(base.getRed() * multipliers[0]), 0, 255),
                 Mth.clamp(Math.round(base.getGreen() * multipliers[1]), 0, 255),
-                Mth.clamp(Math.round(base.getBlue() * multipliers[2]), 0, 255)
+                Mth.clamp(Math.round(base.getBlue() * multipliers[2]), 0, 255),
+                base.getAlpha()
         );
     }
 }
