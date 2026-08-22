@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -19,7 +20,9 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
@@ -27,6 +30,8 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.CuriosApi;
+
+import java.util.List;
 
 public final class SpellcasterAccessoryCase extends BlockItem {
     public static final int ROW_COUNT = 3;
@@ -37,7 +42,19 @@ public final class SpellcasterAccessoryCase extends BlockItem {
     private static final String CONTAINER_KEY = "container.apprenticecodex.spellcaster_accessory_case";
 
     public SpellcasterAccessoryCase() {
-        super(BlockRegistry.SPELLCASTER_ACCESSORY_CASE.get(), new Properties().stacksTo(1));
+        super(BlockRegistry.SPELLCASTER_ACCESSORY_CASE.get(), new Properties().stacksTo(1).fireResistant());
+    }
+
+    @Override
+    public void appendHoverText(
+            @NotNull ItemStack stack,
+            Item.@NotNull TooltipContext context,
+            @NotNull List<Component> lines,
+            @NotNull TooltipFlag flag
+    ) {
+        super.appendHoverText(stack, context, lines, flag);
+        lines.add(Component.translatable("item.apprenticecodex.spellcaster_accessory_case.desc_1").withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable("item.apprenticecodex.spellcaster_accessory_case.desc_2").withStyle(ChatFormatting.GRAY));
     }
 
     @Override
