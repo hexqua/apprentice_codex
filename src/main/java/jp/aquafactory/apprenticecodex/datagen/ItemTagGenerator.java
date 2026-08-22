@@ -21,6 +21,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
+import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
@@ -51,6 +52,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
             createTag("malum", "hidden_items/black_crystal");
     private static final TagKey<Item> TOMAGIC_REVERSAL_WEAPON = createTag("traveloptics", "can_cast_reversal");
     private static final TagKey<Item> HIDDEN_FROM_RECIPE_VIEWERS = createTag("c", "hidden_from_recipe_viewers");
+    private static final TagKey<Item> FORGE_BERRIES = createTag("forge", "berries");
+    private static final TagKey<Item> FORGE_TOOLS_RANGED_WEAPON = createTag("forge", "tools/ranged_weapon");
     // ローカル名を 1.21.1 側と揃え、Forge 固有のタグ定義場所だけをこの接着部分へ閉じ込める。
     private static final TagKey<Item> ALACRITY_ENCHANTABLE = TagRegistry.Items.ALACRITY_ENCHANTABLE;
     private static final TagKey<Item> REFLUX_ENCHANTABLE = TagRegistry.Items.REFLUX_ENCHANTABLE;
@@ -73,6 +76,20 @@ public final class ItemTagGenerator extends ItemTagsProvider {
 
     @Override
     protected void addTags(@NotNull HolderLookup.Provider provider) {
+        tag(Tags.Items.INGOTS).add(
+                ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get(),
+                ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get()
+        );
+        tag(Tags.Items.GEMS).add(ItemRegistry.SPELLSTAINED_DIAMOND.get());
+        tag(FORGE_BERRIES).add(ItemRegistry.COMFORT_BERRIES.get());
+        tag(Tags.Items.TOOLS_SHIELDS).add(
+                ItemRegistry.REFLECTCAST_SHIELD.get(),
+                ItemRegistry.PARRYCAST_BUCKLER.get(),
+                ItemRegistry.BULWARK_GREATSHIELD.get()
+        );
+        tag(Tags.Items.TOOLS_BOWS).add(ItemRegistry.ELEMENTAL_BOW.get());
+        tag(FORGE_TOOLS_RANGED_WEAPON).add(ItemRegistry.ELEMENTAL_BOW.get());
+
         tag(TagRegistry.Items.ALCHEMY_BREWER_HIGH_EFFICIENCY_BASES).add(Items.NETHER_WART);
         tag(TagRegistry.Items.ALCHEMY_BREWER_FAST_BASES).add(Items.GLOW_LICHEN);
         tag(IRONS_STAFF).add(
