@@ -33,6 +33,7 @@
   "block.apprenticecodex.otherworld_lens_lens" : "異界の水晶",
   "block.apprenticecodex.wizardlamp_lantern": "魔術師のランタン",
 
+  "item.apprenticecodex.spellcaster_accessory_case": "詠唱者の装身具入れ",
   "item.apprenticecodex.partially_used_ink": "使いかけのインク",
   "item.apprenticecodex.partially_used_ink.named": "使いかけの%1$s",
   "item.apprenticecodex.partially_used_ink.unknown": "使いかけの謎のインク",
@@ -718,6 +719,7 @@
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.disabled.hint": "オンに切り替えると素材が揃っていれば自動で調合を開始する",
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.enabled": "自動調合：オン",
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.enabled.hint": "オフに切り替えると素材が揃っていても調合を開始しなくなる",
+  "container.apprenticecodex.spellcaster_accessory_case": "詠唱者の装身具入れ",
   "jei.apprenticecodex.alchemy_brewer.no_additive": "なし",
   "jei.apprenticecodex.alchemy_brewer.amount": "%1$d mB / %2$d回分",
   "jei.apprenticecodex.alchemy_brewer.time": "%s秒",
