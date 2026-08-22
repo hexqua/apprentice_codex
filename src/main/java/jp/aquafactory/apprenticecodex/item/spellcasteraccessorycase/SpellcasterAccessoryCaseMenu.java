@@ -28,6 +28,7 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
     private static final int PLAYER_INVENTORY_END = PLAYER_INVENTORY_START + 27;
     private static final int HOTBAR_START = PLAYER_INVENTORY_END;
     private static final int HOTBAR_END = HOTBAR_START + 9;
+    private static final int CURIOS_START = HOTBAR_END;
     private final Inventory playerInventory;
     private final int sourceSlot;
     private final SpellcasterAccessoryCase.CaseInventory caseInventory;
@@ -102,7 +103,7 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
         var stack = slot.getItem();
         var copy = stack.copy();
         if (slotIndex < CASE_SLOT_END) {
-            if (!moveItemStackTo(stack, PLAYER_INVENTORY_START, HOTBAR_END, true)) {
+            if (!moveItemStackTo(stack, CURIOS_START, slots.size(), false)) {
                 return ItemStack.EMPTY;
             }
         } else if (slotIndex < HOTBAR_END) {
@@ -111,7 +112,8 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
                 return ItemStack.EMPTY;
             }
         } else {
-            if (!moveItemStackTo(stack, PLAYER_INVENTORY_START, HOTBAR_END, true)) {
+            if (!moveItemStackTo(stack, CASE_SLOT_START, CASE_SLOT_END, false)
+                    && !moveItemStackTo(stack, PLAYER_INVENTORY_START, HOTBAR_END, true)) {
                 return ItemStack.EMPTY;
             }
         }
