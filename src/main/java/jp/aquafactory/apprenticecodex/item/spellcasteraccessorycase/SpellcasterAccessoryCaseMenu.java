@@ -40,6 +40,7 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
     private final Inventory playerInventory;
     private final int sourceSlot;
     private final BlockPos sourcePos;
+    private final ItemStack sourceStack;
     private final SpellcasterAccessoryCaseBlockEntity sourceBlockEntity;
     private final IItemHandler caseInventory;
     private final ICuriosItemHandler curiosHandler;
@@ -66,6 +67,9 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
         this.playerInventory = playerInventory;
         this.sourceSlot = source.sourceSlot();
         this.sourcePos = source.sourcePos();
+        this.sourceStack = sourcePos == null && isPlayerInventorySlot(sourceSlot)
+                ? playerInventory.getItem(sourceSlot)
+                : ItemStack.EMPTY;
         this.sourceBlockEntity = resolveBlockEntity(playerInventory, sourcePos);
         this.caseInventory = resolveCaseInventory(playerInventory, sourceSlot, sourceBlockEntity);
         this.curiosHandler = CuriosApi.getCuriosInventory(playerInventory.player).orElse(null);
@@ -136,8 +140,13 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
             return false;
         }
         if (sourcePos == null) {
-            return isPlayerInventorySlot(sourceSlot)
-                    && playerInventory.getItem(sourceSlot).getItem() instanceof SpellcasterAccessoryCase;
+            if (!isPlayerInventorySlot(sourceSlot)) {
+                return false;
+            }
+            var currentStack = playerInventory.getItem(sourceSlot);
+            return currentStack.getItem() instanceof SpellcasterAccessoryCase
+                    // clientのslot同期ではItemStackインスタンスが置換され得るため、同一性はserver側だけで検証する。
+                    && (player.level().isClientSide || currentStack == sourceStack);
         }
 
         return sourceBlockEntity != null
@@ -172,6 +181,11 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
 
     @Override
     public void clicked(int slotId, int button, @NotNull ClickType clickType, @NotNull Player player) {
+        // 数字キー/Fキー交換はsource slot自身のmayPickupを通らないため、開いたケースを移動元にする操作を直接拒否する。
+        if (sourcePos == null && clickType == ClickType.SWAP && button == sourceSlot) {
+            return;
+        }
+
         var slot = getSlot(slotId);
         if (slot instanceof CurioSlot curioSlot
                 && clickType == ClickType.CLONE
@@ -185,6 +199,12 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
             return;
         }
         super.clicked(slotId, button, clickType, player);
+    }
+
+    @Override
+    public boolean canTakeItemForPickAll(@NotNull ItemStack stack, @NotNull Slot slot) {
+        return (curiosPanelVisible || !(slot instanceof CurioSlot))
+                && super.canTakeItemForPickAll(stack, slot);
     }
 
     @Override
