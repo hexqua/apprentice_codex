@@ -65,6 +65,34 @@ public final class MalumSpiritInfusionRecipeDataGenerator implements DataProvide
                                 malumSpirit("arcane", 64),
                                 malumSpirit("eldritch", 32)
                         )
+                ),
+                spiritInfusionRecipe("soul_covered_plate",
+                        ItemRegistry.SHOCK_ABSORPTION_PLATE.getId(),
+                        ItemRegistry.SOUL_COVERED_PLATE.getId(),
+                        List.of(
+                                new RecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "soul_stained_steel_plating"), 4),
+                                new RecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "refined_soulstone"), 4),
+                                new RecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "twisted_rock"), 8)
+                        ),
+                        List.of(
+                                malumSpirit("wicked", 16),
+                                malumSpirit("arcane", 32),
+                                malumSpirit("earthen", 32)
+                        )
+                ),
+                spiritInfusionRecipe("soul_augmented_weave",
+                        MAGIC_CLOTH,
+                        ItemRegistry.SOUL_AUGMENTED_WEAVE.getId(),
+                        List.of(
+                                new RecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "soulwoven_silk"), 8),
+                                new RecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "null_slate"), 4),
+                                new RecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "mnemonic_fragment"), 4)
+                        ),
+                        List.of(
+                                malumSpirit("wicked", 16),
+                                malumSpirit("arcane", 64),
+                                malumSpirit("eldritch", 32)
+                        )
                 )
         );
         return CompletableFuture.allOf(recipes.stream().map(recipe -> DataProvider.saveStable(

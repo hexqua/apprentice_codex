@@ -53,6 +53,12 @@
     "apprenticecodex:spellstained_diamond",
     "apprenticecodex:spellstained_arcane_ingot",
     "apprenticecodex:emberstained_netherite_ingot",
-    "apprenticecodex:crystalline_arcane_shard"
+    "apprenticecodex:crystalline_arcane_shard",
+    "apprenticecodex:shock_absorption_plate",
+    "apprenticecodex:blast_reactive_plate",
+    "apprenticecodex:wind_accumulation_weave",
+    "apprenticecodex:scrollwoven_parchment",
+    "apprenticecodex:soul_covered_plate",
+    "apprenticecodex:soul_augmented_weave"
   ]
 }

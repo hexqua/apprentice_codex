@@ -149,8 +149,14 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var malumSoulShatterCapableWeaponTag = tag(MALUM_SOUL_SHATTER_CAPABLE_WEAPON);
         var malumSoulwovenPouchEfficientTag = tag(MALUM_SOULWOVEN_POUCH_EFFICIENT);
         var malumReplenishingEnchantableTag = tag(MALUM_REPLENISHING_ENCHANTABLE);
-        tag(MALUM_HIDDEN_UNTIL_VOID).add(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get());
-        tag(MALUM_HIDDEN_UNTIL_BLACK_CRYSTAL).add(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get());
+        tag(MALUM_HIDDEN_UNTIL_VOID).add(
+                ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get(),
+                ItemRegistry.SOUL_AUGMENTED_WEAVE.get()
+        );
+        tag(MALUM_HIDDEN_UNTIL_BLACK_CRYSTAL).add(
+                ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get(),
+                ItemRegistry.SOUL_AUGMENTED_WEAVE.get()
+        );
         var tomagicReversalWeaponTag = tag(TOMAGIC_REVERSAL_WEAPON);
         var transcendenceEnchantableTag = tag(TRANSCENDENCE_ENCHANTABLE);
         var wisdomEnchantableTag = tag(WISDOM_ENCHANTABLE);
@@ -371,7 +377,13 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SPELLSTAINED_DIAMOND.get(),
                 ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get(),
                 ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get(),
-                ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get()
+                ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get(),
+                ItemRegistry.SHOCK_ABSORPTION_PLATE.get(),
+                ItemRegistry.BLAST_REACTIVE_PLATE.get(),
+                ItemRegistry.WIND_ACCUMULATION_WEAVE.get(),
+                ItemRegistry.SCROLLWOVEN_PARCHMENT.get(),
+                ItemRegistry.SOUL_COVERED_PLATE.get(),
+                ItemRegistry.SOUL_AUGMENTED_WEAVE.get()
         );
         tag(CURIOS_SPELLBOOK).add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
