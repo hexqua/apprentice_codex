@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.event.IronSwingcastStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.SoulstainedSteelSwingcastStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.SpellgunConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.client.ClientModBusEvents;
+import jp.aquafactory.apprenticecodex.item.broom.BroomCurioSupport;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.registry.*;
 import net.minecraftforge.api.distmarker.Dist;
@@ -43,6 +44,7 @@ public class ApprenticeCodex
         PoiTypeRegistry.register(bus);
         VillagerProfessionRegistry.register(bus);
         ItemRegistry.ITEMS.register(bus);
+        BroomCurioSupport.register(bus);
         ApprenticeAttributeRegistry.register(bus);
         ParticleRegistry.PARTICLES.register(bus);
         SoundRegistry.register(bus);

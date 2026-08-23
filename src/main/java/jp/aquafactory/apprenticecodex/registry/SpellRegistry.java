@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.spell.boundbow.BoundBow;
 import jp.aquafactory.apprenticecodex.spell.boundsword.BoundSword;
 import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemy;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStream;
+import jp.aquafactory.apprenticecodex.spell.callbroom.CallBroom;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFire;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunk;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhial;
@@ -137,6 +138,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> LINEAR_BUILD = reg("linear_build", LinearBuild::new);
     public static final RegistryObject<AbstractSpell> SERVANT_GAZE = reg("servant_gaze", ServantGaze::new);
     public static final RegistryObject<AbstractSpell> FUJIN = reg("fujin", Fujin::new);
+    public static final RegistryObject<AbstractSpell> CALL_BROOM = reg("call_broom", CallBroom::new);
 
     // 炎.
     public static final RegistryObject<AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);

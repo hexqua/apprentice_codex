@@ -5,14 +5,17 @@ import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
+import jp.aquafactory.apprenticecodex.item.broom.BroomDeploymentState;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.spell.callbroom.CallBroomDeploymentManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -53,6 +56,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     public static final float WIDTH = 0.8F;
@@ -97,6 +101,8 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     private static final String LOW_MANA_WARNING_SHOWN_TAG = "LowManaWarningShown";
     private static final String DAMAGE_TAG = "Damage";
     private static final String DAMAGED_TAG = "Damaged";
+    private static final String CALLED_OWNER_TAG = "CallBroomOwner";
+    private static final String BROOM_ITEM_STACK_TAG = "BroomItemStack";
     /**
      * 箒のEntity原点から乗員のvehicle attachmentまでの基準高さ。
      * 箒ごとの姿勢差は{@link #passengerAttachmentYOffset()}で追加補正する。
@@ -113,6 +119,8 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
             SynchedEntityData.defineId(AbstractBroomEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DAMAGED =
             SynchedEntityData.defineId(AbstractBroomEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<ItemStack> BROOM_ITEM_STACK =
+            SynchedEntityData.defineId(AbstractBroomEntity.class, EntityDataSerializers.ITEM_STACK);
 
     private final AnimatableInstanceCache animationCache = GeckoLibUtil.createInstanceCache(this);
     private float localForwardInput;
@@ -127,6 +135,8 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     private boolean lowManaWarningShown;
     private float turnSpeed;
     private boolean breaking;
+    private @Nullable UUID calledOwnerUuid;
+    private @Nullable ServerPlayer cachedCalledOwner;
     private int lerpSteps;
     private double lerpX;
     private double lerpY;
@@ -181,6 +191,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         entityData.define(MAX_DAMAGE, DEFAULT_MAX_DAMAGE);
         entityData.define(MANA_EMERGENCY_LANDING, false);
         entityData.define(DAMAGED, false);
+        entityData.define(BROOM_ITEM_STACK, ItemStack.EMPTY);
     }
 
     @Override
@@ -191,6 +202,11 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         setDamaged(tag.getBoolean(DAMAGED_TAG) || getDamage() >= maxDamage);
         setManaEmergencyLanding(tag.getBoolean(EMERGENCY_LANDING_TAG));
         lowManaWarningShown = tag.getBoolean(LOW_MANA_WARNING_SHOWN_TAG);
+        calledOwnerUuid = tag.hasUUID(CALLED_OWNER_TAG) ? tag.getUUID(CALLED_OWNER_TAG) : null;
+        cachedCalledOwner = null;
+        setBroomItemStack(tag.contains(BROOM_ITEM_STACK_TAG, Tag.TAG_COMPOUND)
+                ? ItemStack.of(tag.getCompound(BROOM_ITEM_STACK_TAG))
+                : ItemStack.EMPTY);
     }
 
     @Override
@@ -199,6 +215,10 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         tag.putBoolean(DAMAGED_TAG, isDamaged());
         tag.putBoolean(EMERGENCY_LANDING_TAG, isManaEmergencyLanding());
         tag.putBoolean(LOW_MANA_WARNING_SHOWN_TAG, lowManaWarningShown);
+        if (calledOwnerUuid != null) {
+            tag.putUUID(CALLED_OWNER_TAG, calledOwnerUuid);
+        }
+        tag.put(BROOM_ITEM_STACK_TAG, getBroomItemStack().save(new CompoundTag()));
     }
 
     @Override
@@ -212,6 +232,13 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
             tickServerDamageState();
             if (isRemoved()) {
                 return;
+            }
+            if (calledOwnerUuid != null) {
+                var owner = getCalledOwner();
+                if (owner == null || CallBroomDeploymentManager.shouldRecall(this, owner)) {
+                    recallWithoutItem();
+                    return;
+                }
             }
         }
 
@@ -574,6 +601,10 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         if (breaking || isRemoved()) {
             return;
         }
+        if (calledOwnerUuid != null) {
+            recallWithoutItem();
+            return;
+        }
         breaking = true;
         ejectPassengers();
         if (level() instanceof ServerLevel serverLevel
@@ -584,14 +615,22 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     }
 
     @Override
-    public @NotNull InteractionResult interact(Player player, @NotNull InteractionHand hand) {
+    public @NotNull InteractionResult interact(@NotNull Player player, @NotNull InteractionHand hand) {
+        if (calledOwnerUuid != null && !isOwnedBy(player)) {
+            // 魔法で展開した箒は元アイテムが所有者の背中に残るため、第三者には操作させない。
+            return InteractionResult.CONSUME;
+        }
         if (player.isSecondaryUseActive()) {
             if (isVehicle()) {
                 return InteractionResult.PASS;
             }
             if (!level().isClientSide) {
-                // 箒はボート型の共有物として所有者を保存しないため、空席なら設置者以外も回収できる。
-                recoverAsItem(player);
+                if (calledOwnerUuid != null) {
+                    recallWithoutItem();
+                } else {
+                    // 通常設置の箒はボート型の共有物として所有者を保存しないため、空席なら誰でも回収できる。
+                    recoverAsItem(player);
+                }
             }
             return InteractionResult.SUCCESS;
         }
@@ -626,19 +665,38 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     }
 
     private ItemStack createRecoveredStack() {
-        // 回収は修復を兼ねるため、Entity側の状態は持ち帰らず固有名だけを新品へ引き継ぐ。
-        // 今後調整スロット要素が増えたらそれも引き継ぐ(引き続きEntity時のみに持っている情報は持ち帰らない)
-        var stack = new ItemStack(getRecoveryItem());
+        // 回収はEntity側の損傷だけを修復し、展開前の調整内容とスクロールはItemStackごと引き継ぐ。
+        var stack = getBroomItemStack();
         var customName = getCustomName();
         if (customName != null) {
             stack.setHoverName(customName);
+        } else {
+            stack.resetHoverName();
         }
+        BroomDeploymentState.clear(stack);
         return stack;
+    }
+
+    public final void setBroomItemStack(ItemStack stack) {
+        var storedStack = stack.is(getRecoveryItem())
+                ? stack.copyWithCount(1)
+                : new ItemStack(getRecoveryItem());
+        // CallBroomの一時的なEntity UUIDは回収物や同期用copyへ持ち込まない。
+        BroomDeploymentState.clear(storedStack);
+        entityData.set(BROOM_ITEM_STACK, storedStack);
+    }
+
+    public final ItemStack getBroomItemStack() {
+        var stack = entityData.get(BROOM_ITEM_STACK);
+        return stack.is(getRecoveryItem()) ? stack.copyWithCount(1) : new ItemStack(getRecoveryItem());
     }
 
     @Override
     protected boolean canAddPassenger(@NotNull Entity passenger) {
-        return !isDamaged() && passenger instanceof Player && getPassengers().isEmpty();
+        return !isDamaged()
+                && passenger instanceof Player player
+                && (calledOwnerUuid == null || isOwnedBy(player))
+                && getPassengers().isEmpty();
     }
 
     @Override
@@ -649,7 +707,65 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
             resetRidingState();
             setDeltaMovement(inheritedMovement);
             hasImpulse = true;
+            if (calledOwnerUuid != null && isDamaged() && !breaking) {
+                recallWithoutItem();
+            }
         }
+    }
+
+    public final void setCalledOwner(ServerPlayer owner) {
+        calledOwnerUuid = owner.getUUID();
+        cachedCalledOwner = owner;
+    }
+
+    public final boolean isCalledBroom() {
+        return calledOwnerUuid != null;
+    }
+
+    public final boolean isOwnedBy(Player player) {
+        return isOwnedBy(player.getUUID());
+    }
+
+    public final boolean isOwnedBy(UUID ownerId) {
+        return calledOwnerUuid != null && calledOwnerUuid.equals(ownerId);
+    }
+
+    public final @Nullable ServerPlayer getCalledOwner() {
+        if (calledOwnerUuid == null || !(level() instanceof ServerLevel serverLevel)) {
+            return null;
+        }
+        if (cachedCalledOwner != null && !cachedCalledOwner.isRemoved()
+                && calledOwnerUuid.equals(cachedCalledOwner.getUUID())) {
+            return cachedCalledOwner;
+        }
+        cachedCalledOwner = serverLevel.getServer().getPlayerList().getPlayer(calledOwnerUuid);
+        return cachedCalledOwner;
+    }
+
+    public final boolean matchesBroomItem(ItemStack stack) {
+        return stack.is(getRecoveryItem());
+    }
+
+    public final void recallWithoutItem() {
+        if (calledOwnerUuid == null || breaking || isRemoved()) {
+            return;
+        }
+        breaking = true;
+        ejectPassengers();
+        playBroomSound(SoundRegistry.VANILLA_BROOM_RECONSTRUCT.get());
+        discard();
+    }
+
+    @Override
+    public void remove(@NotNull RemovalReason reason) {
+        if (calledOwnerUuid != null
+                && reason != RemovalReason.UNLOADED_WITH_PLAYER
+                && reason != RemovalReason.UNLOADED_TO_CHUNK) {
+            // 明示撤去では装備側を再表示する。RootVehicleとchunk保存ではUUIDを維持する。
+            breaking = true;
+            CallBroomDeploymentManager.onBroomRemoved(this);
+        }
+        super.remove(reason);
     }
 
     private void observeServerRidingMovement() {
