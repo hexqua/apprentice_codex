@@ -18,6 +18,9 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentTooltip;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
+import jp.aquafactory.apprenticecodex.item.armor.EndgameArmorCalibration;
+import jp.aquafactory.apprenticecodex.item.armor.EndgameArmorExplosionKnockbackEvent;
+import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
@@ -40,18 +43,25 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.level.ExplosionKnockbackEvent;
+import net.neoforged.fml.ModList;
 
 import java.util.HashSet;
 
@@ -179,14 +189,15 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     "Magi Agent Suit hood should be accepted by Spell Calibration Bench");
             helper.assertTrue(suitHoodMenu.isAdjustmentSlotEnabled(0),
                     "Magi Agent Suit should enable its first adjustment slot");
-            helper.assertFalse(suitHoodMenu.isAdjustmentSlotEnabled(1),
-                    "Magi Agent Suit should not enable more than one adjustment slot");
+            helper.assertTrue(suitHoodMenu.isAdjustmentSlotEnabled(1)
+                            && suitHoodMenu.isAdjustmentSlotEnabled(2),
+                    "Magi Agent Suit should enable all three adjustment slots");
             helper.assertTrue(suitHoodMenu.getEnabledScrollSlotCount() == 0,
                     "Magi Agent Suit non-chest pieces should not expose scroll slots");
             helper.assertTrue(suitHoodMenu.getSlot(SpellCalibrationBenchMenu.ADJUSTMENT_MENU_SLOT_START).mayPlace(fireRune),
                     "Magi Agent Suit should accept school runes in the first adjustment slot");
-            helper.assertFalse(suitHoodMenu.getSlot(SpellCalibrationBenchMenu.ADJUSTMENT_MENU_SLOT_START + 1).mayPlace(fireRune),
-                    "Magi Agent Suit should reject school runes outside the first adjustment slot");
+            helper.assertTrue(suitHoodMenu.getSlot(SpellCalibrationBenchMenu.ADJUSTMENT_MENU_SLOT_START + 1).mayPlace(fireRune),
+                    "Magi Agent Suit should accept a school rune in any empty adjustment slot");
             helper.assertFalse(suitHoodMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).mayPlace(healScroll),
                     "Magi Agent Suit non-chest pieces should reject scroll placement");
 
@@ -351,7 +362,8 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
     static void spellCalibrationAdjustmentProfilesEnforceDeclaredRules(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var targets = createDeclaredCalibrationAdjustmentTargets();
-            var expectedSlotCounts = new int[]{3, 3, 3, 1, 3, 3, 3, 3, 3, 1, 1, 1, 1, 3, 1, 1, 1, 1};
+            var expectedSlotCounts = new int[]{3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 3, 3, 3, 3, 1,
+                    3, 3, 3, 3, 3, 3, 3, 3};
             var representativeAdjustments = new ItemStack[]{
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()),
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get()),
@@ -370,7 +382,15 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get()),
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get()),
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get()),
-                    new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get())
+                    new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get())
             };
             for (var index = 0; index < targets.length; ++index) {
                 var stack = targets[index];
@@ -606,6 +626,233 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
         });
     }
 
+    static void endgameArmorCalibrationAppliesSharedRulesAndAttributes(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var endgameArmor = new ItemStack[]{
+                    new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get()),
+                    new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get()),
+                    new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get()),
+                    new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()),
+                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_HOOD.get()),
+                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_COAT.get()),
+                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get()),
+                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()),
+                    new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get()),
+                    new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()),
+                    new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get()),
+                    new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get())
+            };
+            for (var stack : endgameArmor) {
+                helper.assertTrue(stack.getItem() instanceof SpellCalibrationAdjustmentTarget target
+                                && target.getCalibrationAdjustmentSlotCount(stack) == EndgameArmorCalibration.SLOT_COUNT,
+                        "Every endgame armor piece should expose three calibration slots: "
+                                + BuiltInRegistries.ITEM.getKey(stack.getItem()));
+            }
+
+            var manaRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get());
+            var manaLeggings = new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get());
+            var manaItem = (ArmorItem) manaLeggings.getItem();
+            var baseMana = modifierTotal(
+                    manaItem.getDefaultAttributeModifiers(manaLeggings),
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA,
+                    AttributeModifier.Operation.ADD_VALUE
+            );
+            for (var slot = 0; slot < EndgameArmorCalibration.SLOT_COUNT; ++slot) {
+                helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                                manaLeggings, slot, manaRune.copy()),
+                        "Arcane Rune should be repeatable in every endgame armor slot");
+            }
+            var tunedMana = modifierTotal(
+                    manaItem.getDefaultAttributeModifiers(manaLeggings),
+                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA,
+                    AttributeModifier.Operation.ADD_VALUE
+            );
+            helper.assertTrue(Math.abs(tunedMana - baseMana - EndgameArmorCalibration.MAX_MANA_PER_RUNE * 3.0D) < 1.0e-9D,
+                    "Three Arcane Runes should add 75 max mana to one armor piece");
+
+            var protectionRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.PROTECTION_RUNE.get());
+            var protectionCoat = new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_COAT.get());
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            protectionCoat, 0, protectionRune),
+                    "Protective Rune should be accepted by endgame armor");
+            helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
+                            protectionCoat, 1, protectionRune),
+                    "Protective Rune should be unique within one armor piece");
+            helper.assertTrue(Math.abs(modifierTotal(
+                            ((ArmorItem) protectionCoat.getItem()).getDefaultAttributeModifiers(protectionCoat),
+                            io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_RESIST,
+                            AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                    ) - EndgameArmorCalibration.SPELL_RESIST_PER_RUNE) < 1.0e-9D,
+                    "Protective Rune should add 5% generic spell resistance");
+
+            var blastBoots = new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get());
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            blastBoots, 0, new ItemStack(ItemRegistry.BLAST_REACTIVE_PLATE.get())),
+                    "Blast-Reactive Plate should be accepted");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            blastBoots, 1, new ItemStack(ItemRegistry.WIND_ACCUMULATION_WEAVE.get())),
+                    "Wind Accumulation Weave should coexist with Blast-Reactive Plate");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            blastBoots, 2, new ItemStack(ItemRegistry.SHOCK_ABSORPTION_PLATE.get())),
+                    "Shock Absorption Plate should coexist with explosion knockback adjustments");
+            helper.assertTrue(Math.abs(modifierTotal(
+                            ((ArmorItem) blastBoots.getItem()).getDefaultAttributeModifiers(blastBoots),
+                            Attributes.EXPLOSION_KNOCKBACK_RESISTANCE,
+                            AttributeModifier.Operation.ADD_VALUE
+                    ) - 0.05D) < 1.0e-9D,
+                    "Blast and wind adjustments should combine to 5% explosion knockback resistance");
+            helper.assertTrue(Math.abs(modifierTotal(
+                            ((ArmorItem) blastBoots.getItem()).getDefaultAttributeModifiers(blastBoots),
+                            Attributes.KNOCKBACK_RESISTANCE,
+                            AttributeModifier.Operation.ADD_VALUE
+                    ) - EndgameArmorCalibration.KNOCKBACK_RESIST_PER_PLATE) < 1.0e-9D,
+                    "Shock Absorption Plate should add 10% knockback resistance");
+
+            var scrollLeggings = new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get());
+            helper.assertFalse(ISpellContainer.isSpellContainer(scrollLeggings),
+                    "Scrollwoven no-op test should start without a spell container");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            scrollLeggings, 0, new ItemStack(ItemRegistry.SCROLLWOVEN_PARCHMENT.get())),
+                    "Scrollwoven Parchment should be accepted by non-chest armor");
+            helper.assertFalse(ISpellContainer.isSpellContainer(scrollLeggings),
+                    "Scrollwoven Parchment should remain a no-op for spell containers in this implementation");
+            helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
+                            new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()),
+                            0,
+                            new ItemStack(ItemRegistry.SCROLLWOVEN_PARCHMENT.get())),
+                    "Chest armor should reject Scrollwoven Parchment");
+
+            var leatherBootsAdjustment = new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get());
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            leatherBootsAdjustment, 0, new ItemStack(Items.LEATHER_BOOTS)),
+                    "Endgame boots should accept Leather Boots");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "endgame_armor_powder_snow_test");
+            helper.assertTrue(((ArmorItem) leatherBootsAdjustment.getItem())
+                            .canWalkOnPowderedSnow(leatherBootsAdjustment, player),
+                    "Leather Boots adjustment should allow walking on powder snow");
+            helper.assertFalse(leatherBootsAdjustment.is(ItemTags.FREEZE_IMMUNE_WEARABLES),
+                    "Leather Boots adjustment should not grant freeze immunity");
+
+            var windOnlyBoots = new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get());
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            windOnlyBoots, 0, new ItemStack(ItemRegistry.WIND_ACCUMULATION_WEAVE.get())),
+                    "Wind Accumulation Weave should be accepted by endgame boots");
+            player.setItemSlot(EquipmentSlot.FEET, windOnlyBoots);
+            var explosionResistance = player.getAttribute(Attributes.EXPLOSION_KNOCKBACK_RESISTANCE);
+            helper.assertTrue(explosionResistance != null,
+                    "Player should expose explosion knockback resistance");
+            var windTestModifierId = ResourceLocation.fromNamespaceAndPath(
+                    "apprenticecodex", "gametest_wind_accumulation"
+            );
+            var existingUnclampedResistance =
+                    EndgameArmorExplosionKnockbackEvent.calculateUnclampedValue(explosionResistance);
+            var temporaryAdjustment = EndgameArmorCalibration.WIND_EXPLOSION_KNOCKBACK_RESIST
+                    - existingUnclampedResistance;
+            if (Math.abs(temporaryAdjustment) > 1.0e-9D) {
+                explosionResistance.addTransientModifier(new AttributeModifier(
+                        windTestModifierId,
+                        temporaryAdjustment,
+                        AttributeModifier.Operation.ADD_VALUE
+                ));
+            }
+            var knockbackEvent = new ExplosionKnockbackEvent(
+                    helper.getLevel(), null, player, new net.minecraft.world.phys.Vec3(1.0D, 0.0D, 0.0D)
+            );
+            EndgameArmorExplosionKnockbackEvent.onExplosionKnockback(knockbackEvent);
+            helper.assertTrue(Math.abs(knockbackEvent.getKnockbackVelocity().x - 1.20D) < 1.0e-9D,
+                    "Negative explosion resistance should amplify explosion knockback by 20%");
+            if (Math.abs(temporaryAdjustment) > 1.0e-9D) {
+                explosionResistance.removeModifier(windTestModifierId);
+            }
+
+            var fireRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get());
+            var suitHood = new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_HOOD.get());
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(suitHood, 2, fireRune),
+                    "Magi Agent Suit should accept its school rune in the third slot");
+            helper.assertTrue(MagiAgentSuitItem.getResolvedCalibrationSchool(suitHood) != null,
+                    "Magi Agent Suit should resolve a school rune from any adjustment slot");
+            helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
+                            new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get()), 0, fireRune),
+                    "Chromatic Magia Dress should reject school runes");
+            helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
+                            new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get()), 0, fireRune),
+                    "Element Maiden Robe should reject school runes");
+
+            var soulPlate = new ItemStack(ItemRegistry.SOUL_COVERED_PLATE.get());
+            var createLoaded = ModList.get().isLoaded("create");
+            var malumLoaded = ModList.get().isLoaded("malum");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
+                            new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_HOOD.get()), 0, soulPlate) == malumLoaded,
+                    "Malum adjustment availability should follow whether Malum is loaded");
+            if (malumLoaded) {
+                var soulArmor = new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get());
+                helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                                soulArmor, 0, soulPlate),
+                        "Soul-Covered Plate should be accepted when Malum is loaded");
+                helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                                soulArmor, 1, new ItemStack(ItemRegistry.SOUL_AUGMENTED_WEAVE.get())),
+                        "Soul-Augmented Weave should be accepted when Malum is loaded");
+                var soulModifiers = ((ArmorItem) soulArmor.getItem()).getDefaultAttributeModifiers(soulArmor);
+                assertOptionalAttributeModifier(helper, soulModifiers,
+                        EndgameArmorCalibration.SOUL_WARD_CAPACITY_ATTRIBUTE,
+                        EndgameArmorCalibration.SOUL_WARD_CAPACITY,
+                        AttributeModifier.Operation.ADD_VALUE);
+                assertOptionalAttributeModifier(helper, soulModifiers,
+                        EndgameArmorCalibration.SOUL_WARD_RECOVERY_RATE_ATTRIBUTE,
+                        EndgameArmorCalibration.SOUL_WARD_RECOVERY_RATE,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+                assertOptionalAttributeModifier(helper, soulModifiers,
+                        EndgameArmorCalibration.MAGIC_PROFICIENCY_ATTRIBUTE,
+                        EndgameArmorCalibration.MAGIC_PROFICIENCY,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+            }
+            if (createLoaded) {
+                var goggles = BuiltInRegistries.ITEM.get(EndgameArmorCalibration.CREATE_GOGGLES).getDefaultInstance();
+                var gogglesHood = new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_HOOD.get());
+                helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                                gogglesHood, 0, goggles),
+                        "Create Goggles should be accepted by an endgame helmet when Create is loaded");
+                helper.assertTrue(EndgameArmorCalibration.hasCreateGoggles(gogglesHood),
+                        "Calibrated helmet should expose the Create Goggles state");
+                player.setItemSlot(EquipmentSlot.HEAD, gogglesHood);
+                helper.assertTrue((boolean) invokeCreateGameTestHook(
+                                "isWearingGoggles",
+                                new Class<?>[]{net.minecraft.world.entity.player.Player.class},
+                                player
+                        ),
+                        "Create should recognize a calibrated endgame helmet as worn goggles");
+            }
+        });
+    }
+
+    private static double modifierTotal(
+            net.minecraft.world.item.component.ItemAttributeModifiers modifiers,
+            net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute> attribute,
+            AttributeModifier.Operation operation
+    ) {
+        return modifiers.modifiers().stream()
+                .filter(entry -> entry.attribute().equals(attribute)
+                        && entry.modifier().operation() == operation)
+                .mapToDouble(entry -> entry.modifier().amount())
+                .sum();
+    }
+
+    private static void assertOptionalAttributeModifier(
+            GameTestHelper helper,
+            net.minecraft.world.item.component.ItemAttributeModifiers modifiers,
+            net.minecraft.resources.ResourceLocation attributeId,
+            double expectedAmount,
+            AttributeModifier.Operation operation
+    ) {
+        var attribute = BuiltInRegistries.ATTRIBUTE.getOptional(attributeId).orElseThrow();
+        helper.assertTrue(Math.abs(modifierTotal(
+                        modifiers,
+                        BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute),
+                        operation
+                ) - expectedAmount) < 1.0e-9D,
+                "Optional calibration attribute should match its fixed value: " + attributeId);
+    }
+
     static void declaredCalibrationAdjustmentTargetsProvideMatchingTooltips(GameTestHelper helper) {
         helper.succeedIf(() -> {
             for (var stack : createDeclaredCalibrationAdjustmentTargets()) {
@@ -694,7 +941,15 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                 new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_COAT.get()),
                 new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get()),
                 new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()),
-                new ItemStack(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get())
+                new ItemStack(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get()),
+                new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get()),
+                new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get()),
+                new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get()),
+                new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()),
+                new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get()),
+                new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()),
+                new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get()),
+                new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get())
         };
     }
 

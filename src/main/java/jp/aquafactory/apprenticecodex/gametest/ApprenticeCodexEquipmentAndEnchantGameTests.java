@@ -576,6 +576,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void endgameArmorCalibrationAppliesSharedRulesAndAttributes(GameTestHelper helper) {
+        SpellCalibrationEquipmentGameTestScenarios.endgameArmorCalibrationAppliesSharedRulesAndAttributes(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void declaredCalibrationAdjustmentTargetsProvideMatchingTooltips(GameTestHelper helper) {
         SpellCalibrationEquipmentGameTestScenarios.declaredCalibrationAdjustmentTargetsProvideMatchingTooltips(helper);
     }

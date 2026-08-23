@@ -7,6 +7,8 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.enchantment.VanillaEnchantmentCompatibility;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.renderer.armor.ChromaticMagiaDressRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
@@ -26,6 +28,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -35,15 +38,19 @@ import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
-public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPresetSpellContainer, WisdomPolicy {
+public class ChromaticMagiaDressItem extends ArmorItem
+        implements GeoItem, IPresetSpellContainer, SpellCalibrationAdjustmentTarget, WisdomPolicy {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final ItemAttributeModifiers armorAttributeModifiers;
+    private final CalibrationAdjustmentProfile calibrationAdjustmentProfile;
 
     public ChromaticMagiaDressItem(Type type) {
         super(Holder.direct(ChromaticMagiaDressStats.MATERIAL), type, ChromaticMagiaDressStats.createProperties(type).fireResistant());
         this.armorAttributeModifiers = ChromaticMagiaDressStats.createAttributeModifiers(type);
+        this.calibrationAdjustmentProfile = EndgameArmorCalibration.createProfile(type, false);
         GeoItem.registerSyncedAnimatable(this);
     }
 
@@ -99,7 +106,7 @@ public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPres
     }
 
     @Override
-    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+    public @NotNull ItemAttributeModifiers getDefaultAttributeModifiers(@NotNull ItemStack stack) {
         var builder = ItemAttributeModifiers.builder();
         for (var entry : super.getDefaultAttributeModifiers(stack).modifiers()) {
             builder.add(entry.attribute(), entry.modifier(), entry.slot());
@@ -113,6 +120,7 @@ public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPres
                 ApprenticeCodexServerConfig.chromaticMagiaDressSpellPowerBonusPerPiece()
         );
         addHistorySpellPowerModifiers(builder, stack);
+        EndgameArmorCalibration.addAttributeModifiers(builder, stack, getType(), this);
         return MagicArmorAttributeHelper.mergeTooltipEquivalentModifiers(
                 builder.build(),
                 "apprenticecodex.chromatic_magia_dress." + ChromaticMagiaDressStats.typeToken(getType()) + ".merged"
@@ -120,7 +128,7 @@ public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPres
     }
 
     @Override
-    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         if (super.supportsEnchantment(stack, enchantment)) {
             return true;
         }
@@ -130,14 +138,14 @@ public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPres
     }
 
     @Override
-    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         return super.isPrimaryItemFor(stack, enchantment)
                 || VanillaEnchantmentCompatibility.isNonVanillaAndSupported(enchantment,
                 supportedEnchantment -> supportsEnchantment(stack, supportedEnchantment));
     }
 
     @Override
-    public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+    public boolean isBookEnchantable(@NotNull ItemStack stack, @NotNull ItemStack book) {
         if (!super.isBookEnchantable(stack, book)) {
             return false;
         }
@@ -147,7 +155,7 @@ public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPres
     }
 
     @Override
-    public int getEnchantmentValue(ItemStack stack) {
+    public int getEnchantmentValue(@NotNull ItemStack stack) {
         return ChromaticMagiaDressStats.enchantmentValue();
     }
 
@@ -157,7 +165,27 @@ public class ChromaticMagiaDressItem extends ArmorItem implements GeoItem, IPres
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+    public @NotNull Optional<TooltipComponent> getTooltipImage(@NotNull ItemStack stack) {
+        return createCalibrationAdjustmentTooltip(stack);
+    }
+
+    @Override
+    public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack targetStack) {
+        return EndgameArmorCalibration.SLOT_COUNT;
+    }
+
+    @Override
+    public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack targetStack) {
+        return calibrationAdjustmentProfile;
+    }
+
+    @Override
+    public boolean canWalkOnPowderedSnow(@NotNull ItemStack stack, @NotNull LivingEntity wearer) {
+        return EndgameArmorCalibration.canWalkOnPowderedSnow(stack, wearer);
+    }
+
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
         lines.add(Component.translatable(getDescriptionId() + ".desc").withStyle(ChatFormatting.GRAY));
     }

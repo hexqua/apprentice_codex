@@ -12,6 +12,8 @@ import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.armor.ElementMaidenRobeRenderer;
 import net.minecraft.ChatFormatting;
@@ -36,6 +38,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.core.component.DataComponents;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,12 +52,13 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
 public class ElementMaidenRobeItem extends ArmorItem
         implements GeoItem, IPresetSpellContainer, UniqueItem, TranscendencePolicy,
-        AttributeEnchantmentPolicy, WisdomPolicy {
+        AttributeEnchantmentPolicy, SpellCalibrationAdjustmentTarget, WisdomPolicy {
     private static final String DESCRIPTION_KEY = "item." + ApprenticeCodex.MODID + ".element_maiden_robe.desc";
     private static final String SPELLBOOK_SCHOOL_POWER_BONUSES_TAG = "ElementMaidenRobeSpellbookSchoolPowerBonuses";
     private static final String ATTRIBUTE_TAG = "Attribute";
@@ -62,10 +66,12 @@ public class ElementMaidenRobeItem extends ArmorItem
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final ItemAttributeModifiers armorAttributeModifiers;
+    private final CalibrationAdjustmentProfile calibrationAdjustmentProfile;
 
     public ElementMaidenRobeItem(Type type) {
         super(Holder.direct(ElementMaidenRobeStats.MATERIAL), type, ElementMaidenRobeStats.createProperties(type).rarity(Rarity.EPIC).fireResistant());
         this.armorAttributeModifiers = ElementMaidenRobeStats.createAttributeModifiers(type);
+        this.calibrationAdjustmentProfile = EndgameArmorCalibration.createProfile(type, false);
         GeoItem.registerSyncedAnimatable(this);
     }
 
@@ -139,7 +145,7 @@ public class ElementMaidenRobeItem extends ArmorItem
     }
 
     @Override
-    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         if (super.supportsEnchantment(stack, enchantment)) {
             return true;
         }
@@ -149,14 +155,14 @@ public class ElementMaidenRobeItem extends ArmorItem
     }
 
     @Override
-    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         return super.isPrimaryItemFor(stack, enchantment)
                 || VanillaEnchantmentCompatibility.isNonVanillaAndSupported(enchantment,
                 supportedEnchantment -> supportsEnchantment(stack, supportedEnchantment));
     }
 
     @Override
-    public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+    public boolean isBookEnchantable(@NotNull ItemStack stack, @NotNull ItemStack book) {
         if (!super.isBookEnchantable(stack, book)) {
             return false;
         }
@@ -166,7 +172,7 @@ public class ElementMaidenRobeItem extends ArmorItem
     }
 
     @Override
-    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+    public @NotNull ItemAttributeModifiers getDefaultAttributeModifiers(@NotNull ItemStack stack) {
         var builder = ItemAttributeModifiers.builder();
         for (var entry : super.getDefaultAttributeModifiers(stack).modifiers()) {
             builder.add(entry.attribute(), entry.modifier(), entry.slot());
@@ -181,6 +187,7 @@ public class ElementMaidenRobeItem extends ArmorItem
         );
         addSpellbookSchoolPowerModifiers(builder, stack);
         addChestMagicEnchantmentModifiers(builder, stack);
+        EndgameArmorCalibration.addAttributeModifiers(builder, stack, getType(), this);
         return MagicArmorAttributeHelper.mergeTooltipEquivalentModifiers(
                 builder.build(),
                 "apprenticecodex.element_maiden_robe." + ElementMaidenRobeStats.typeToken(getType()) + ".merged"
@@ -188,7 +195,7 @@ public class ElementMaidenRobeItem extends ArmorItem
     }
 
     @Override
-    public int getEnchantmentValue(ItemStack stack) {
+    public int getEnchantmentValue(@NotNull ItemStack stack) {
         return ElementMaidenRobeStats.enchantmentValue();
     }
 
@@ -198,7 +205,27 @@ public class ElementMaidenRobeItem extends ArmorItem
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, Item.TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+    public @NotNull Optional<TooltipComponent> getTooltipImage(@NotNull ItemStack stack) {
+        return createCalibrationAdjustmentTooltip(stack);
+    }
+
+    @Override
+    public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack targetStack) {
+        return EndgameArmorCalibration.SLOT_COUNT;
+    }
+
+    @Override
+    public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack targetStack) {
+        return calibrationAdjustmentProfile;
+    }
+
+    @Override
+    public boolean canWalkOnPowderedSnow(@NotNull ItemStack stack, @NotNull LivingEntity wearer) {
+        return EndgameArmorCalibration.canWalkOnPowderedSnow(stack, wearer);
+    }
+
+    @Override
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
         lines.add(Component.translatable(DESCRIPTION_KEY).withStyle(ChatFormatting.GRAY));
     }

@@ -65,7 +65,10 @@ final class LegacyCalibrationAdjustmentStorage {
             return readLegacyIdList(owner, "ReflectcastShieldCalibration", slot);
         }
         if (item instanceof MagiAgentSuitItem) {
-            return readLegacySingleId(owner, "MagiAgentSuitCalibration", "AdjustmentItem");
+            // 旧形式は1枠しか持たないため、3枠化後も保存済みルーンは先頭枠だけへ移行する。
+            return slot == 0
+                    ? readLegacySingleId(owner, "MagiAgentSuitCalibration", "AdjustmentItem")
+                    : ItemStack.EMPTY;
         }
         if (item instanceof AbstractSpellGunItem) {
             return readLegacySpellGun(owner, lookupProvider);
