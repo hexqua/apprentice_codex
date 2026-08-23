@@ -42,96 +42,172 @@ public final class CreativeTabRegistry {
     }
 
     private static void addItemsToTab(CreativeModeTab.ItemDisplayParameters params, CreativeModeTab.Output output) {
+        addBlockToTab(output);
+        addSimpleMaterialToTab(output);
+        addCalibrationItemToTab(output);
+        addFoodsToTab(output);
+        addSwingcastStaffToTab(output);
+        addSpellgunRelatedItemToTab(output);
+        addOffhandItemToTab(output);
+        addUniqueMagicWeaponToTab(output);
+        addUniqueStaffToTab(output);
+        addUniqueMagicItemToTab(output);
+        addSpellbookToTab(output);
+        addCuriosToTab(output);
+        addArmorToTab(output);
+        addSpellScrollsToTab(output);
+    }
+
+    private static void addBlockToTab(CreativeModeTab.Output output) {
         output.accept(ItemRegistry.APPRENTICE_DESK.get());
+        output.accept(ItemRegistry.ARCANUM_IN_A_JAR.get());
+        output.accept(ItemRegistry.ESSENCE_SMOKER.get());
+
+        output.accept(ItemRegistry.SPELL_CALIBRATION_BENCH.get());
+        output.accept(ItemRegistry.SPELLCASTER_WORKBENCH.get());
+
+        output.accept(ItemRegistry.ALCHEMY_BREWER.get());
+        output.accept(ItemRegistry.ATELIER_STATION.get());
+        output.accept(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get());
+        output.accept(ItemRegistry.SPELL_DISPENSER.get());
+        output.accept(ItemRegistry.CREATIVE_SPELL_DISPENSER.get());
+    }
+
+    private static void addSimpleMaterialToTab(CreativeModeTab.Output output) {
+        output.accept(ItemRegistry.ARCANE_CINDER.get());
+        output.accept(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get());
+        output.accept(ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get());
+        output.accept(ItemRegistry.SPELLSTAINED_DIAMOND.get());
+
+        output.accept(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get());
+        output.accept(ItemRegistry.SPELL_EXTRACT_SHARD.get());
+
+        output.accept(ItemRegistry.BULLET_RUNE.get());
+        output.accept(ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get());
+
         output.accept(ItemRegistry.CRUDE_INK.get());
         for (var source : PartiallyUsedInkState.OfficialInk.values()) {
             output.accept(PartiallyUsedInkState.create(source, source.creativeDefaultCapacity()));
         }
-        output.accept(ItemRegistry.SPELLCASTER_WORKBENCH.get());
-        output.accept(ItemRegistry.SPELL_CALIBRATION_BENCH.get());
-        output.accept(ItemRegistry.SPELL_DISPENSER.get());
-        output.accept(ItemRegistry.CREATIVE_SPELL_DISPENSER.get());
-        output.accept(ItemRegistry.ARCANUM_IN_A_JAR.get());
-        output.accept(ItemRegistry.ESSENCE_SMOKER.get());
-        output.accept(ItemRegistry.ATELIER_STATION.get());
-        output.accept(ItemRegistry.ALCHEMY_BREWER.get());
-        output.accept(ItemRegistry.BULLET_RUNE.get());
-        output.accept(ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get());
-        output.accept(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get());
-        output.accept(ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get());
-        output.accept(ItemRegistry.ARCANE_CINDER.get());
+    }
+
+    private static void addCalibrationItemToTab(CreativeModeTab.Output output) {
         output.accept(ItemRegistry.WISDOM_SHARD.get());
         output.accept(ItemRegistry.SHOCK_ABSORPTION_PLATE.get());
         output.accept(ItemRegistry.BLAST_REACTIVE_PLATE.get());
         output.accept(ItemRegistry.WIND_ACCUMULATION_WEAVE.get());
         output.accept(ItemRegistry.SCROLLWOVEN_PARCHMENT.get());
+        if (isInstalledMalum()){
+            output.accept(ItemRegistry.SOUL_COVERED_PLATE.get());
+            output.accept(ItemRegistry.SOUL_AUGMENTED_WEAVE.get());
+        }
         output.accept(ItemRegistry.OVERDRIVE_BROOM_ENGINE.get());
-        output.accept(ItemRegistry.SPELL_EXTRACT_SHARD.get());
-        output.accept(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get());
-        output.accept(ItemRegistry.SPELLSTAINED_DIAMOND.get());
+    }
+
+    private static void addFoodsToTab(CreativeModeTab.Output output) {
         output.accept(ItemRegistry.COMFORT_BERRIES.get());
         output.accept(ItemRegistry.COMFORT_SANDWICH.get());
-        output.accept(ItemRegistry.FLOATMOUNT_BROOM.get());
-        output.accept(ItemRegistry.HOVERRIDE_BROOM.get());
-        output.accept(ItemRegistry.RAPID_SPELLCASTER_ROUND.get());
-        output.accept(ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get());
-        output.accept(ItemRegistry.BASIC_SPELLCASTER_ROUND.get());
-        output.accept(ItemRegistry.EMPTY_BASIC_SPELLCASTER_CASING.get());
-        output.accept(ItemRegistry.ARCANE_SPELLCASTER_ROUND.get());
-        output.accept(ItemRegistry.EMPTY_ARCANE_SPELLCASTER_CASING.get());
-        output.accept(ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get());
-        output.accept(ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get());
-        output.accept(ItemRegistry.SPELL_DOMINATOR_ROUND.get());
-        output.accept(ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get());
-        output.accept(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get());
-        output.accept(ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get());
-        addCreateRoundMaterialsToTab(output);
-        output.accept(ItemRegistry.SPELL_INVOKE_CARD.get().getDefaultInstance());
-        output.accept(ItemRegistry.SPELL_AUTONOMY_CARD.get().getDefaultInstance());
+    }
+
+    private static void addSpellgunRelatedItemToTab(CreativeModeTab.Output output) {
         output.accept(ItemRegistry.IRON_SPELLCASTER_GUN.get());
         output.accept(ItemRegistry.COPPER_SPELLCASTER_GUN.get());
         output.accept(ItemRegistry.GOLD_SPELLCASTER_GUN.get());
         output.accept(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get());
+        if (isInstalledMalum()){
+            output.accept(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get());
+        }
+
+        output.accept(ItemRegistry.RAPID_SPELLCASTER_ROUND.get());
+        output.accept(ItemRegistry.BASIC_SPELLCASTER_ROUND.get());
+        output.accept(ItemRegistry.ARCANE_SPELLCASTER_ROUND.get());
+        output.accept(ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get());
+        output.accept(ItemRegistry.SPELL_DOMINATOR_ROUND.get());
+        output.accept(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get());
+        output.accept(ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get());
+        output.accept(ItemRegistry.EMPTY_BASIC_SPELLCASTER_CASING.get());
+        output.accept(ItemRegistry.EMPTY_ARCANE_SPELLCASTER_CASING.get());
+        output.accept(ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get());
+        output.accept(ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get());
+        output.accept(ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get());
+        addCreateRoundMaterialsToTab(output);
+    }
+
+    private static void addOffhandItemToTab(CreativeModeTab.Output output) {
         output.accept(ItemRegistry.IRON_SPELL_AMPLIFIER.get());
         output.accept(ItemRegistry.COPPER_SPELL_AMPLIFIER.get());
         output.accept(ItemRegistry.GOLD_SPELL_AMPLIFIER.get());
         output.accept(ItemRegistry.DIAMOND_SPELL_AMPLIFIER.get());
         output.accept(ItemRegistry.SILVER_SPELL_AMPLIFIER.get());
         output.accept(ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get());
+        if (isInstalledMalum()){
+            output.accept(ItemRegistry.SOULSTAINED_STEEL_SPELL_AMPLIFIER.get());
+        }
+        output.accept(ItemRegistry.PHOTON_SIPHON.get());
+        output.accept(ItemRegistry.EXPLORERS_CANE.get());
+        output.accept(ItemRegistry.REFLECTCAST_SHIELD.get());
+        output.accept(ItemRegistry.PARRYCAST_BUCKLER.get());
+        output.accept(ItemRegistry.BULWARK_GREATSHIELD.get());
+    }
+
+    private static void addSwingcastStaffToTab(CreativeModeTab.Output output) {
         output.accept(ItemRegistry.IRON_SWINGCAST_STAFF.get());
         output.accept(ItemRegistry.COPPER_SWINGCAST_STAFF.get());
         output.accept(ItemRegistry.GOLD_SWINGCAST_STAFF.get());
         output.accept(ItemRegistry.DIAMOND_SWINGCAST_STAFF.get());
-        output.accept(ItemRegistry.SILVER_SWINGCAST_STAFF.get());
         output.accept(ItemRegistry.NETHERITE_SWINGCAST_STAFF.get());
+        output.accept(ItemRegistry.SILVER_SWINGCAST_STAFF.get());
+        if (isInstalledMalum()){
+            output.accept(ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get());
+        }
         output.accept(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
         output.accept(ItemRegistry.REVOLVERCAST_STAFF.get());
-        output.accept(ItemRegistry.PHOTON_SIPHON.get());
-        output.accept(ItemRegistry.EXPLORERS_CANE.get());
-        output.accept(ItemRegistry.SPELLCASTERS_FLASK.get());
-        output.accept(ItemRegistry.ALCHEMISTS_FLASK.get());
+    }
+
+    private static void addUniqueStaffToTab(CreativeModeTab.Output output) {
         output.accept(ItemRegistry.PASTEL_STAFF.get());
         output.accept(ItemRegistry.MULTICAST_ECHO_STAFF.get());
-        output.accept(ItemRegistry.ZENITH_STAFF.get());
-        output.accept(ItemRegistry.FOCUS_STAFFBOW.get());
-        output.accept(ItemRegistry.SMASHCAST_SCEPTER.get());
-        output.accept(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
-        output.accept(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
-        output.accept(ItemRegistry.CHARGECAST_CATALYSTBOOK.get().getDefaultInstance());
-        output.accept(ItemRegistry.STORAGE_STABILIZER.get());
-        output.accept(ItemRegistry.LUMINOUS_DEVICE.get());
         output.accept(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
+        output.accept(ItemRegistry.ZENITH_STAFF.get());
+
+        output.accept(ItemRegistry.SMASHCAST_SCEPTER.get());
+        output.accept(ItemRegistry.FOCUS_STAFFBOW.get());
+        output.accept(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
         output.accept(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-        output.accept(ItemRegistry.MANA_FORCE_BLADE.get());
-        output.accept(ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance());
-        output.accept(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
+
         output.accept(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
         output.accept(ItemRegistry.ILLUMINATE_STELLAR_STAFF.get());
         output.accept(ItemRegistry.UNITE_LUNA_STAFF.get());
+    }
+
+    private static void addUniqueMagicWeaponToTab(CreativeModeTab.Output output) {
+        output.accept(ItemRegistry.MANA_FORCE_BLADE.get());
+        output.accept(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
+        output.accept(ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance());
         output.accept(ItemRegistry.ELEMENTAL_BOW.get());
-        output.accept(ItemRegistry.REFLECTCAST_SHIELD.get());
-        output.accept(ItemRegistry.PARRYCAST_BUCKLER.get());
-        output.accept(ItemRegistry.BULWARK_GREATSHIELD.get());
+    }
+
+    private static void addUniqueMagicItemToTab(CreativeModeTab.Output output) {
+        output.accept(ItemRegistry.INSTANT_SEARCH_BRAZIER.get());
+        output.accept(ItemRegistry.GRIMOIRE_MANIFEST.get());
+        output.accept(ItemRegistry.STORAGE_STABILIZER.get());
+        output.accept(ItemRegistry.LUMINOUS_DEVICE.get());
+
+        // 下記は未Imbueでは機能せず、本来はImbue済みのアイテムを直接大量生産するもののため、クリエタブからは抜く.
+        // ItemRegistry.SPELL_INVOKE_CARD
+        // ItemRegistry.SPELL_AUTONOMY_CARD
+
+        output.accept(ItemRegistry.SPELLCASTERS_FLASK.get());
+        output.accept(ItemRegistry.ALCHEMISTS_FLASK.get());
+
+        output.accept(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        output.accept(ItemRegistry.CHARGECAST_CATALYSTBOOK.get().getDefaultInstance());
+
+        output.accept(ItemRegistry.FLOATMOUNT_BROOM.get());
+        output.accept(ItemRegistry.HOVERRIDE_BROOM.get());
+    }
+
+    private static void addArmorToTab(CreativeModeTab.Output output) {
         output.accept(ItemRegistry.APPRENTICE_MAGE_SCARF.get());
         output.accept(ItemRegistry.APPRENTICE_MAGE_TORSO.get());
         output.accept(ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get());
@@ -140,6 +216,12 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.ENCHANTRESS_ROBE.get());
         output.accept(ItemRegistry.ENCHANTRESS_LEGGINGS.get());
         output.accept(ItemRegistry.ENCHANTRESS_BOOTS.get());
+        if (isInstalledMalum()){
+            output.accept(ItemRegistry.SOULCOLLECTOR_HAT.get());
+            output.accept(ItemRegistry.SOULCOLLECTOR_ROBE.get());
+            output.accept(ItemRegistry.SOULCOLLECTOR_LEGGINGS.get());
+            output.accept(ItemRegistry.SOULCOLLECTOR_BOOTS.get());
+        }
         output.accept(ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get());
         output.accept(ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get());
         output.accept(ItemRegistry.STEALTH_RUNE_ARMOR_LEG.get());
@@ -148,40 +230,56 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get());
         output.accept(ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get());
         output.accept(ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get());
-        output.accept(ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get());
-        output.accept(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get());
-        output.accept(ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get());
-        output.accept(ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get());
         output.accept(ItemRegistry.MAGI_AGENT_SUIT_HOOD.get());
         output.accept(ItemRegistry.MAGI_AGENT_SUIT_COAT.get());
         output.accept(ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get());
         output.accept(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get());
-        output.accept(ItemRegistry.GRIMOIRE_MANIFEST.get());
-        output.accept(ItemRegistry.INSTANT_SEARCH_BRAZIER.get());
+        output.accept(ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get());
+        output.accept(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get());
+        output.accept(ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get());
+        output.accept(ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get());
+    }
+
+    private static void addSpellbookToTab(CreativeModeTab.Output output) {
+        output.accept(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get());
+        output.accept(ItemRegistry.EXPLORERS_CODEX.get());
+        output.accept(ItemRegistry.ENDER_GRIMOIRE.get());
+        output.accept(ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get());
+        output.accept(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
+    }
+
+    private static void addCuriosToTab(CreativeModeTab.Output output) {
+        // ring
         output.accept(ItemRegistry.SCARLET_THIRST.get());
         output.accept(ItemRegistry.CRAFTSMANS_DELIGHT.get());
         output.accept(ItemRegistry.SPELL_CAST_PARRYING_RING.get());
         output.accept(ItemRegistry.ATTACKCAST_RING.get());
-        output.accept(ItemRegistry.PROTECTION_SPELL_SUPPORTER.get());
-        output.accept(ItemRegistry.SPELLCASTER_AMMO_POUCH.get());
-        output.accept(ItemRegistry.SPELLCASTER_QUIVER.get());
+
+        // amulet
         output.accept(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get());
         output.accept(ItemRegistry.AUTOCAST_AMULET.get().getDefaultInstance());
         output.accept(ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get().getDefaultInstance());
+
+        // belt
+        output.accept(ItemRegistry.PROTECTION_SPELL_SUPPORTER.get());
+        output.accept(ItemRegistry.SPELLCASTER_AMMO_POUCH.get());
+        if (ModList.get().isLoaded(CreateCompat.MOD_ID)) {
+            output.accept(ItemRegistry.MAGI_COMPRESSOR_GADGET.get());
+        }
+
+        // head
         output.accept(ItemRegistry.ASHEN_CIRCLET.get());
         output.accept(ItemRegistry.ENCHANTED_CIRCLET.get());
-        output.accept(ItemRegistry.MANA_SHIELD_CHARM.get());
+
+        // foot
         output.accept(ItemRegistry.MANA_THRUSTER.get());
-        output.accept(ItemRegistry.MAGI_COMPRESSOR_GADGET.get());
         output.accept(ItemRegistry.JUMPCAST_CHARM.get().getDefaultInstance());
-        output.accept(ItemRegistry.ENDER_GRIMOIRE.get());
-        output.accept(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
-        output.accept(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get());
-        output.accept(ItemRegistry.EXPLORERS_CODEX.get());
-        output.accept(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get());
-        output.accept(ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get());
-        addMalumRelatedItemsToTab(output);
-        addSpellScrollsToTab(output);
+
+        // charm
+        output.accept(ItemRegistry.MANA_SHIELD_CHARM.get());
+
+        // multi
+        output.accept(ItemRegistry.SPELLCASTER_QUIVER.get());
     }
 
     private static void addCreateRoundMaterialsToTab(CreativeModeTab.Output output) {
@@ -195,22 +293,10 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.SPELL_CASING_MOLD.get());
     }
 
-    private static void addMalumRelatedItemsToTab(CreativeModeTab.Output output) {
+    private static boolean isInstalledMalum(){
         // ID名は早々変わらないため、決め打ちで持つ.
         // 機能そのものは入っていなくても安全に無効化されるため、単に見栄え対応用.
-        if (!ModList.get().isLoaded("malum")) {
-            return;
-        }
-
-        output.accept(ItemRegistry.SOULSTAINED_STEEL_SPELL_AMPLIFIER.get());
-        output.accept(ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get());
-        output.accept(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get());
-        output.accept(ItemRegistry.SOULCOLLECTOR_HAT.get());
-        output.accept(ItemRegistry.SOULCOLLECTOR_ROBE.get());
-        output.accept(ItemRegistry.SOULCOLLECTOR_LEGGINGS.get());
-        output.accept(ItemRegistry.SOULCOLLECTOR_BOOTS.get());
-        output.accept(ItemRegistry.SOUL_COVERED_PLATE.get());
-        output.accept(ItemRegistry.SOUL_AUGMENTED_WEAVE.get());
+        return ModList.get().isLoaded("malum");
     }
 
     private static void addSpellScrollsToTab(CreativeModeTab.Output output) {
