@@ -822,6 +822,20 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.assistWingsLavaContactDoesNotRemoveWing(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
+    public static void assistWingsSuccessfulCastRestartsRemovalGrace(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsSuccessfulCastRestartsRemovalGrace(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
+    public static void assistWingsRejectsOtherBroomsWithoutChangingState(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsRejectsOtherBroomsWithoutChangingState(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ASSIST_WINGS_ISOLATED_BATCH)
+    public static void assistWingsHoverrideUsesSurfaceAndAirJumpCounts(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.assistWingsHoverrideUsesSurfaceAndAirJumpCounts(helper);
+    }
     @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 80)
     public static void multicastEchoStaffInstantCastRunsAfterDelayAndAppliesPenaltyCooldown(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.multicastEchoStaffInstantCastRunsAfterDelayAndAppliesPenaltyCooldown(helper);

@@ -46,6 +46,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowConfigPack
 import jp.aquafactory.apprenticecodex.network.packet.SyncChargecastCatalystbookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
+import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomAssistWingsJumpPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncInstantSearchBrazierConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
@@ -85,7 +86,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "85";
+    private static final String PROTOCOL_VERSION = "86";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -257,6 +258,14 @@ public final class Networks {
                 HoverrideBroomReleaseResultPacket::encode,
                 HoverrideBroomReleaseResultPacket::decode,
                 HoverrideBroomReleaseResultPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                HoverrideBroomAssistWingsJumpPacket.class,
+                HoverrideBroomAssistWingsJumpPacket::encode,
+                HoverrideBroomAssistWingsJumpPacket::decode,
+                HoverrideBroomAssistWingsJumpPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
         CHANNEL.registerMessage(
