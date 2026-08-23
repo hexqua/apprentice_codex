@@ -21,7 +21,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 public final class ElementMaidenRobeStats {
-    public static final double MAX_MANA_BONUS = 150.0D;
+    public static final double MAX_MANA_BONUS = 125.0D;
 
     private static final int DURABILITY_MULTIPLIER = 37;
     private static final int ENCHANTMENT_VALUE = 22;
