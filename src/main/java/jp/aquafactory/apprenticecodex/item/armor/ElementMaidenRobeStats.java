@@ -23,8 +23,12 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 public final class ElementMaidenRobeStats {
+<<<<<<< HEAD
     public static final ArmorMaterial MATERIAL = new ElementMaidenRobeMaterial();
-    public static final double MAX_MANA_BONUS = 150.0D;
+    public static final double MAX_MANA_BONUS = 125.0D;
+=======
+    public static final double MAX_MANA_BONUS = 125.0D;
+>>>>>>> cd52df928 (入手時期調整に合わせ、元素の乙女の魔法性能及び初期設定値を少しナーフ)
 
     private static final int DURABILITY_MULTIPLIER = 37;
     private static final int ENCHANTMENT_VALUE = 22;
