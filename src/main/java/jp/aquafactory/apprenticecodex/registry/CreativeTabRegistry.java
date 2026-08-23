@@ -56,6 +56,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.ATELIER_STATION.get());
         output.accept(ItemRegistry.ALCHEMY_BREWER.get());
         output.accept(ItemRegistry.BULLET_RUNE.get());
+        output.accept(ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get());
         output.accept(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get());
         output.accept(ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get());
         output.accept(ItemRegistry.ARCANE_CINDER.get());

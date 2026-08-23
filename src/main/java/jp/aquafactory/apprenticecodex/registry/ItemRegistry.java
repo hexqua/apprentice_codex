@@ -172,7 +172,7 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> SPELL_EXTRACT_SHARD = ITEMS.register("spell_extract_shard", SpellExtractShard::new);
     public static final DeferredHolder<Item, Item> CRYSTALLINE_ARCANE_SHARD = simple("crystalline_arcane_shard");
     public static final DeferredHolder<Item, Item> BULLET_RUNE = simple("bullet_rune");
-    public static final DeferredHolder<Item, Item> MITHRIL_WEAVE_OFFCUTS = simple("mithril_weave_offcuts");
+    public static final DeferredHolder<Item, Item> MITHRIL_WEAVE_OFFCUTS = simpleFireImmune("mithril_weave_offcuts");
     public static final DeferredHolder<Item, Item> SHOCK_ABSORPTION_PLATE = simpleFireImmune("shock_absorption_plate");
     public static final DeferredHolder<Item, Item> BLAST_REACTIVE_PLATE = simpleFireImmune("blast_reactive_plate");
     public static final DeferredHolder<Item, Item> WIND_ACCUMULATION_WEAVE = simple("wind_accumulation_weave");
