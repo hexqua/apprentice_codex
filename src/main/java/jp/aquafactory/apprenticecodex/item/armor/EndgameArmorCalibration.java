@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.item.armor;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHint;
@@ -8,8 +10,11 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -41,6 +46,16 @@ public final class EndgameArmorCalibration {
     public static final double SOUL_WARD_CAPACITY = 3.0D;
     public static final double SOUL_WARD_RECOVERY_RATE = 0.15D;
     public static final double MAGIC_PROFICIENCY = 0.15D;
+    public static final int STORED_SCROLL_SLOT_COUNT = 1;
+
+    private static final String SCROLL_SLOT_EMPTY_KEY =
+            "item.apprenticecodex.endgame_armor.scroll_slot.empty";
+    private static final String SCROLL_SLOT_SPELL_KEY =
+            "item.apprenticecodex.endgame_armor.scroll_slot.spell";
+    private static final String SCROLL_SLOT_INACTIVE_KEY =
+            "item.apprenticecodex.endgame_armor.scroll_slot.inactive";
+    private static final String SCROLL_SLOT_REQUIRES_KEY =
+            "item.apprenticecodex.endgame_armor.scroll_slot.requires";
 
     public static final ResourceLocation CREATE_GOGGLES =
             ResourceLocation.fromNamespaceAndPath(CreateCompat.MOD_ID, "goggles");
@@ -210,6 +225,118 @@ public final class EndgameArmorCalibration {
         return false;
     }
 
+    public static boolean usesStoredCalibrationScrolls(ItemStack armorStack) {
+        return armorStack.getItem() instanceof ArmorItem armorItem
+                && armorItem.getType() != ArmorItem.Type.CHESTPLATE
+                && isEndgameArmor(armorStack.getItem());
+    }
+
+    public static int getEnabledStoredScrollSlotCount(ItemStack armorStack) {
+        return usesStoredCalibrationScrolls(armorStack) && hasScrollwovenParchment(armorStack)
+                ? STORED_SCROLL_SLOT_COUNT
+                : 0;
+    }
+
+    public static @NotNull ItemStack getStoredScroll(ItemStack armorStack, int slot) {
+        return slot == 0 && usesStoredCalibrationScrolls(armorStack)
+                ? EndgameArmorScrollStorage.get(armorStack)
+                : ItemStack.EMPTY;
+    }
+
+    public static @NotNull ItemStack getStoredScroll(
+            ItemStack armorStack,
+            int slot,
+            HolderLookup.Provider lookupProvider
+    ) {
+        return slot == 0 && usesStoredCalibrationScrolls(armorStack)
+                ? EndgameArmorScrollStorage.get(armorStack, lookupProvider)
+                : ItemStack.EMPTY;
+    }
+
+    public static void setStoredScroll(ItemStack armorStack, int slot, ItemStack scrollStack) {
+        if (slot == 0 && usesStoredCalibrationScrolls(armorStack)) {
+            EndgameArmorScrollStorage.set(armorStack, scrollStack);
+        }
+    }
+
+    public static void setStoredScroll(
+            ItemStack armorStack,
+            int slot,
+            ItemStack scrollStack,
+            HolderLookup.Provider lookupProvider
+    ) {
+        if (slot == 0 && usesStoredCalibrationScrolls(armorStack)) {
+            EndgameArmorScrollStorage.set(armorStack, scrollStack, lookupProvider);
+        }
+    }
+
+    public static boolean hasAnyStoredScroll(ItemStack armorStack) {
+        return usesStoredCalibrationScrolls(armorStack) && !EndgameArmorScrollStorage.get(armorStack).isEmpty();
+    }
+
+    public static @NotNull SpellCalibrationImbueState evaluateStoredScroll(
+            ItemStack armorStack,
+            int slot,
+            SpellData spellData
+    ) {
+        if (!usesStoredCalibrationScrolls(armorStack)) {
+            // 胴体は従来どおりSpellContainerを使うため、共通Helper側の検証を通過した呪文をそのまま受理する。
+            return slot == 0 && spellData != SpellData.EMPTY && spellData.getSpell() != null
+                    ? SpellCalibrationImbueState.ACCEPTED_USABLE
+                    : SpellCalibrationImbueState.REJECTED;
+        }
+        return slot == 0
+                && getEnabledStoredScrollSlotCount(armorStack) == STORED_SCROLL_SLOT_COUNT
+                && spellData != SpellData.EMPTY
+                && spellData.getSpell() != null
+                ? SpellCalibrationImbueState.ACCEPTED_USABLE
+                : SpellCalibrationImbueState.REJECTED;
+    }
+
+    public static @NotNull SpellData getStoredSpellData(ItemStack armorStack) {
+        var scrollStack = getStoredScroll(armorStack, 0);
+        var container = ISpellContainer.get(scrollStack);
+        if (container == null) {
+            return SpellData.EMPTY;
+        }
+        var spellData = container.getSpellAtIndex(0);
+        // Iron'sの@NotNull宣言に反してnullになり得るため、イベントへ渡す前に空として扱う。
+        //noinspection ConstantValue
+        return spellData == null ? SpellData.EMPTY : spellData;
+    }
+
+    public static void appendStoredScrollTooltip(ItemStack armorStack, List<Component> lines) {
+        if (!usesStoredCalibrationScrolls(armorStack)) {
+            return;
+        }
+        var enabled = getEnabledStoredScrollSlotCount(armorStack) > 0;
+        var spellData = getStoredSpellData(armorStack);
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+            if (enabled) {
+                lines.add(Component.translatable(SCROLL_SLOT_EMPTY_KEY).withStyle(ChatFormatting.GRAY));
+            }
+            return;
+        }
+
+        var spellName = spellData.getSpell().getDisplayName(null).copy()
+                .append(" ")
+                .append(Integer.toString(spellData.getLevel()))
+                .withStyle(spellData.getSpell().getSchoolType().getDisplayName().getStyle());
+        if (enabled) {
+            lines.add(Component.translatable(SCROLL_SLOT_SPELL_KEY, spellName).withStyle(ChatFormatting.AQUA));
+        } else {
+            lines.add(Component.translatable(SCROLL_SLOT_INACTIVE_KEY, spellName).withStyle(ChatFormatting.YELLOW));
+            lines.add(Component.translatable(
+                    SCROLL_SLOT_REQUIRES_KEY,
+                    ItemRegistry.SCROLLWOVEN_PARCHMENT.get().getDescription()
+            ).withStyle(ChatFormatting.DARK_GRAY));
+        }
+    }
+
+    private static boolean hasScrollwovenParchment(ItemStack armorStack) {
+        return containsAdjustment(armorStack, stack -> stack.is(ItemRegistry.SCROLLWOVEN_PARCHMENT.get()));
+    }
+
     private static boolean containsAdjustment(ItemStack armorStack, java.util.function.Predicate<ItemStack> matcher) {
         if (!(armorStack.getItem() instanceof SpellCalibrationAdjustmentTarget target)) {
             return false;
@@ -222,7 +349,7 @@ public final class EndgameArmorCalibration {
         return false;
     }
 
-    private static boolean isEndgameArmor(Item item) {
+    public static boolean isEndgameArmor(Item item) {
         return item instanceof ChromaticMagiaDressItem
                 || item instanceof MagiAgentSuitItem
                 || item instanceof ElementMaidenRobeItem;

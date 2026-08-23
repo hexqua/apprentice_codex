@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.swingstaff;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.common.EventBusSubscriber;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
@@ -10,7 +11,7 @@ public final class SwingcastStaffSpellSelectionEvents {
     private SwingcastStaffSpellSelectionEvents() {
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onSpellSelection(SpellSelectionManager.SpellSelectionEvent event) {
         var player = event.getEntity();
         var mainHandStack = player.getMainHandItem();

@@ -20,7 +20,15 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentTooltip;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.armor.EndgameArmorCalibration;
 import jp.aquafactory.apprenticecodex.item.armor.EndgameArmorExplosionKnockbackEvent;
+import jp.aquafactory.apprenticecodex.item.armor.EndgameArmorSpellSelectionEvents;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
+import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoireSpellSelectionEvents;
+import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireSpellSelectionEvents;
+import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
+import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffSpellSelectionEvents;
+import jp.aquafactory.apprenticecodex.entity.broom.BroomSpellSelectionEvents;
+import jp.aquafactory.apprenticecodex.event.BetterCombatOffhandAttributeRescueEvent;
+import jp.aquafactory.apprenticecodex.spell.callbroom.CallBroomSpellSelectionEvents;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
@@ -60,6 +68,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.level.ExplosionKnockbackEvent;
 import net.neoforged.fml.ModList;
 
@@ -710,12 +720,12 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
 
             var scrollLeggings = new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get());
             helper.assertFalse(ISpellContainer.isSpellContainer(scrollLeggings),
-                    "Scrollwoven no-op test should start without a spell container");
+                    "Scrollwoven armor should start without a spell container");
             helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                             scrollLeggings, 0, new ItemStack(ItemRegistry.SCROLLWOVEN_PARCHMENT.get())),
                     "Scrollwoven Parchment should be accepted by non-chest armor");
             helper.assertFalse(ISpellContainer.isSpellContainer(scrollLeggings),
-                    "Scrollwoven Parchment should remain a no-op for spell containers in this implementation");
+                    "Scrollwoven Parchment should use independent storage instead of a spell container");
             helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
                             new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()),
                             0,
@@ -823,6 +833,132 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                         "Create should recognize a calibrated endgame helmet as worn goggles");
             }
         });
+    }
+
+    static void endgameArmorScrollwovenSlotsPersistAndFollowSelectionOrder(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertSpellSelectionPriority(helper, ArchivistsGrimoireSpellSelectionEvents.class, EventPriority.HIGHEST);
+            assertSpellSelectionPriority(helper, EnderGrimoireSpellSelectionEvents.class, EventPriority.HIGHEST);
+            assertSpellSelectionPriority(helper, EndgameArmorSpellSelectionEvents.class, EventPriority.HIGH);
+            assertSpellSelectionPriority(helper, SwingcastStaffSpellSelectionEvents.class, EventPriority.NORMAL);
+            assertSpellSelectionPriority(helper, BroomSpellSelectionEvents.class, EventPriority.LOW);
+            assertSpellSelectionPriority(helper, CallBroomSpellSelectionEvents.class, EventPriority.LOW);
+            assertSpellSelectionPriority(helper, BetterCombatOffhandAttributeRescueEvent.class, EventPriority.LOWEST);
+
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var scroll = createSpellScroll(spell);
+            var eligibleArmor = new ItemStack[]{
+                    new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get()),
+                    new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get()),
+                    new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()),
+                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_HOOD.get()),
+                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get()),
+                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()),
+                    new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get()),
+                    new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get()),
+                    new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get())
+            };
+            for (var armorStack : eligibleArmor) {
+                helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                                armorStack, 0, new ItemStack(ItemRegistry.SCROLLWOVEN_PARCHMENT.get())),
+                        "Eligible endgame armor should accept Scrollwoven Parchment: "
+                                + BuiltInRegistries.ITEM.getKey(armorStack.getItem()));
+                helper.assertTrue(EndgameArmorCalibration.getEnabledStoredScrollSlotCount(armorStack) == 1,
+                        "Scrollwoven Parchment should enable one stored scroll slot");
+                helper.assertTrue(SpellCalibrationImbueHelper.evaluateScrollAt(armorStack, 0, scroll, helper.getLevel().registryAccess())
+                                == SpellCalibrationImbueState.ACCEPTED_USABLE,
+                        "Enabled endgame armor should accept an unrestricted spell scroll");
+                EndgameArmorCalibration.setStoredScroll(armorStack, 0, scroll, helper.getLevel().registryAccess());
+                helper.assertTrue(EndgameArmorCalibration.getStoredSpellData(armorStack).getSpell() == spell,
+                        "Endgame armor should preserve the stored scroll spell");
+                helper.assertFalse(ISpellContainer.isSpellContainer(armorStack),
+                        "Non-chest endgame armor should not become a spell container");
+            }
+
+            var dormantArmor = eligibleArmor[0];
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            dormantArmor, 0, ItemStack.EMPTY),
+                    "Scrollwoven Parchment should be removable while a scroll is stored");
+            helper.assertTrue(EndgameArmorCalibration.getEnabledStoredScrollSlotCount(dormantArmor) == 0,
+                    "Removing Scrollwoven Parchment should disable the stored slot");
+            helper.assertTrue(EndgameArmorCalibration.getStoredSpellData(dormantArmor).getSpell() == spell,
+                    "Removing Scrollwoven Parchment should preserve the dormant scroll");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "scrollwoven_armor_test");
+            var dormantMenu = createSpellCalibrationBenchMenuWithTarget(player, dormantArmor);
+            helper.assertFalse(dormantMenu.isScrollSlotEnabled(0),
+                    "A dormant armor scroll slot should remain disabled");
+            helper.assertFalse(dormantMenu.getScrollItem(0).isEmpty(),
+                    "A dormant stored scroll should remain visible at the Calibration Bench");
+            helper.assertTrue(dormantMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).mayPickup(player),
+                    "A dormant stored scroll should remain extractable");
+            helper.assertFalse(dormantMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).mayPlace(scroll),
+                    "A dormant armor scroll slot should reject insertion");
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            dormantArmor, 0, new ItemStack(ItemRegistry.SCROLLWOVEN_PARCHMENT.get())),
+                    "Scrollwoven Parchment should be reinstallable");
+            helper.assertTrue(EndgameArmorCalibration.getEnabledStoredScrollSlotCount(dormantArmor) == 1
+                            && EndgameArmorCalibration.getStoredSpellData(dormantArmor).getSpell() == spell,
+                    "Reinstalling Scrollwoven Parchment should reactivate the stored scroll");
+
+            var chestArmor = new ItemStack[]{
+                    new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get()),
+                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_COAT.get()),
+                    new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get())
+            };
+            for (var armorStack : chestArmor) {
+                helper.assertFalse(EndgameArmorCalibration.usesStoredCalibrationScrolls(armorStack),
+                        "Chest armor should preserve its native spell container path");
+                helper.assertTrue(EndgameArmorCalibration.getEnabledStoredScrollSlotCount(armorStack) == 0,
+                        "Chest armor should not expose an auxiliary stored scroll slot");
+            }
+
+            var head = eligibleArmor[0];
+            var legs = eligibleArmor[1];
+            var feet = eligibleArmor[2];
+            player.setItemSlot(EquipmentSlot.HEAD, head);
+            player.setItemSlot(EquipmentSlot.LEGS, legs);
+            player.setItemSlot(EquipmentSlot.FEET, feet);
+            var staff = new ItemStack(ItemRegistry.DIAMOND_SWINGCAST_STAFF.get());
+            var mutable = ISpellContainer.create(1, false, false).mutableCopy();
+            mutable.addSpellAtIndex(spell, 1, 0, false);
+            ISpellContainer.set(staff, mutable.toImmutable());
+            helper.assertTrue(((AbstractSwingcastStaffItem) staff.getItem()).allowImbuedSpellInSpellWheel(staff),
+                    "Diamond Swingcast Staff should provide the NORMAL-priority comparison option");
+            player.setItemInHand(InteractionHand.MAIN_HAND, staff);
+
+            var options = new SpellSelectionManager(player).getAllSpells();
+            helper.assertTrue(options.size() >= 4,
+                    "Three armor slots and Swingcast Staff should all remain independent selections");
+            helper.assertTrue(EndgameArmorSpellSelectionEvents.HEAD_SLOT.equals(options.get(0).slot)
+                            && EndgameArmorSpellSelectionEvents.LEGS_SLOT.equals(options.get(1).slot)
+                            && EndgameArmorSpellSelectionEvents.FEET_SLOT.equals(options.get(2).slot),
+                    "HIGH-priority armor selections should use stable head, legs, feet ordering");
+            helper.assertTrue(SpellSelectionManager.MAINHAND.equals(options.get(3).slot),
+                    "NORMAL-priority Swingcast Staff selection should follow HIGH-priority armor selections");
+            helper.assertTrue(ItemStack.isSameItemSameComponents(
+                            SpellSelectionStackResolver.resolveSelectionStack(player, options.get(0).slot), head),
+                    "Scrollwoven head selection should resolve to the equipped armor stack");
+            helper.assertTrue(options.subList(0, 4).stream().allMatch(option -> option.spellData.getSpell() == spell),
+                    "Duplicate event-provided spells should remain independent by equipment source");
+        });
+    }
+
+    private static void assertSpellSelectionPriority(
+            GameTestHelper helper,
+            Class<?> eventClass,
+            EventPriority expected
+    ) {
+        try {
+            var method = eventClass.getDeclaredMethod(
+                    "onSpellSelection",
+                    SpellSelectionManager.SpellSelectionEvent.class
+            );
+            var annotation = method.getAnnotation(SubscribeEvent.class);
+            helper.assertTrue(annotation != null && annotation.priority() == expected,
+                    eventClass.getSimpleName() + " should use " + expected + " priority");
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Failed to inspect spell selection event priority", exception);
+        }
     }
 
     private static double modifierTotal(

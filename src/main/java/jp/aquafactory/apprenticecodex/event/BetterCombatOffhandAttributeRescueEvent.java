@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAtt
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandSpellSelectionRescueCompat;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -48,7 +49,7 @@ public final class BetterCombatOffhandAttributeRescueEvent {
         BetterCombatOffhandAttributeRescueCompat.clear(event.getOriginal());
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onSpellSelection(SpellSelectionManager.SpellSelectionEvent event) {
         if (!ModList.get().isLoaded(BETTER_COMBAT_MOD_ID)) {
             return;

@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.enchantment.VanillaEnchantmentCompatibility;
@@ -12,6 +13,8 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
+import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.renderer.armor.MagiAgentSuitRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
@@ -44,7 +47,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 public class MagiAgentSuitItem extends ArmorItem
-        implements GeoItem, IPresetSpellContainer, SpellCalibrationAdjustmentTarget, WisdomPolicy {
+        implements GeoItem, IPresetSpellContainer, SpellCalibrationAdjustmentTarget,
+        StoredSpellCalibrationImbueTarget, WisdomPolicy {
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = EndgameArmorCalibration.SLOT_COUNT;
 
     private static final String RUNE_HINT_KEY = "item.apprenticecodex.magi_agent_suit.rune_hint";
@@ -196,6 +200,7 @@ public class MagiAgentSuitItem extends ArmorItem
         } else {
             lines.add(Component.translatable(SCHOOL_RUNE_KEY, school.getDisplayName()).withStyle(ChatFormatting.GRAY));
         }
+        EndgameArmorCalibration.appendStoredScrollTooltip(stack, lines);
     }
 
     @Override
@@ -215,6 +220,25 @@ public class MagiAgentSuitItem extends ArmorItem
     @Override
     public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack targetStack) {
         return calibrationAdjustmentProfile;
+    }
+
+    @Override
+    public boolean usesStoredCalibrationScrolls(@NotNull ItemStack targetStack) {
+        return EndgameArmorCalibration.usesStoredCalibrationScrolls(targetStack);
+    }
+
+    @Override
+    public boolean hasAnyStoredCalibrationScroll(@NotNull ItemStack targetStack) {
+        return EndgameArmorCalibration.hasAnyStoredScroll(targetStack);
+    }
+
+    @Override
+    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull SpellData spellData
+    ) {
+        return EndgameArmorCalibration.evaluateStoredScroll(targetStack, slot, spellData);
     }
 
     public static @Nullable SchoolType getResolvedCalibrationSchool(ItemStack stack) {

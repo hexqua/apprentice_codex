@@ -581,6 +581,12 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void endgameArmorScrollwovenSlotsPersistAndFollowSelectionOrder(GameTestHelper helper) {
+        SpellCalibrationEquipmentGameTestScenarios
+                .endgameArmorScrollwovenSlotsPersistAndFollowSelectionOrder(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void declaredCalibrationAdjustmentTargetsProvideMatchingTooltips(GameTestHelper helper) {
         SpellCalibrationEquipmentGameTestScenarios.declaredCalibrationAdjustmentTargetsProvideMatchingTooltips(helper);
     }

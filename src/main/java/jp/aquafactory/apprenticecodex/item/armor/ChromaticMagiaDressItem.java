@@ -3,12 +3,15 @@ package jp.aquafactory.apprenticecodex.item.armor;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.enchantment.VanillaEnchantmentCompatibility;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
+import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.renderer.armor.ChromaticMagiaDressRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
@@ -42,7 +45,8 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 public class ChromaticMagiaDressItem extends ArmorItem
-        implements GeoItem, IPresetSpellContainer, SpellCalibrationAdjustmentTarget, WisdomPolicy {
+        implements GeoItem, IPresetSpellContainer, SpellCalibrationAdjustmentTarget,
+        StoredSpellCalibrationImbueTarget, WisdomPolicy {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final ItemAttributeModifiers armorAttributeModifiers;
     private final CalibrationAdjustmentProfile calibrationAdjustmentProfile;
@@ -180,6 +184,25 @@ public class ChromaticMagiaDressItem extends ArmorItem
     }
 
     @Override
+    public boolean usesStoredCalibrationScrolls(@NotNull ItemStack targetStack) {
+        return EndgameArmorCalibration.usesStoredCalibrationScrolls(targetStack);
+    }
+
+    @Override
+    public boolean hasAnyStoredCalibrationScroll(@NotNull ItemStack targetStack) {
+        return EndgameArmorCalibration.hasAnyStoredScroll(targetStack);
+    }
+
+    @Override
+    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull SpellData spellData
+    ) {
+        return EndgameArmorCalibration.evaluateStoredScroll(targetStack, slot, spellData);
+    }
+
+    @Override
     public boolean canWalkOnPowderedSnow(@NotNull ItemStack stack, @NotNull LivingEntity wearer) {
         return EndgameArmorCalibration.canWalkOnPowderedSnow(stack, wearer);
     }
@@ -188,6 +211,7 @@ public class ChromaticMagiaDressItem extends ArmorItem
     public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
         lines.add(Component.translatable(getDescriptionId() + ".desc").withStyle(ChatFormatting.GRAY));
+        EndgameArmorCalibration.appendStoredScrollTooltip(stack, lines);
     }
 
     @Override

@@ -163,7 +163,8 @@ public final class SpellCalibrationImbueHelper {
         }
 
         var item = targetStack.getItem();
-        if (item instanceof StoredSpellCalibrationImbueTarget storedTarget) {
+        if (item instanceof StoredSpellCalibrationImbueTarget storedTarget
+                && storedTarget.usesStoredCalibrationScrolls(targetStack)) {
             return storedTarget.evaluateCalibrationImbue(targetStack, slot, spellData);
         }
 
@@ -188,7 +189,8 @@ public final class SpellCalibrationImbueHelper {
         }
 
         var item = targetStack.getItem();
-        if (item instanceof StoredSpellCalibrationImbueTarget storedTarget) {
+        if (item instanceof StoredSpellCalibrationImbueTarget storedTarget
+                && storedTarget.usesStoredCalibrationScrolls(targetStack)) {
             return storedTarget.evaluateCalibrationImbue(targetStack, slot, spellData, lookupProvider);
         }
 

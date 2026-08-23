@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.utility;
 
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import jp.aquafactory.apprenticecodex.item.armor.EndgameArmorSpellSelectionEvents;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -24,6 +25,15 @@ public final class SpellSelectionStackResolver {
         }
         if (SpellSelectionManager.OFFHAND.equals(slot)) {
             return player.getOffhandItem();
+        }
+        if (EndgameArmorSpellSelectionEvents.HEAD_SLOT.equals(slot)) {
+            return player.getItemBySlot(EquipmentSlot.HEAD);
+        }
+        if (EndgameArmorSpellSelectionEvents.LEGS_SLOT.equals(slot)) {
+            return player.getItemBySlot(EquipmentSlot.LEGS);
+        }
+        if (EndgameArmorSpellSelectionEvents.FEET_SLOT.equals(slot)) {
+            return player.getItemBySlot(EquipmentSlot.FEET);
         }
 
         for (var equipmentSlot : EquipmentSlot.values()) {

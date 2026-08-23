@@ -1502,5 +1502,9 @@
   "ui.apprenticecodex.hoverride_broom.recover_mana": "Mana restored to the level required for broom acceleration.",
   "ui.apprenticecodex.hoverride_broom.retrieve_help": "Sneak and press %s to retrieve the broom.",
   "ui.apprenticecodex.hoverride_broom.warning_damage": "The broom has sustained critical damage and stopped operating!",
-  "ui.apprenticecodex.hoverride_broom.cannot_mount_damaged": "This broom is too damaged to ride. Retrieve and redeploy it first."
+  "ui.apprenticecodex.hoverride_broom.cannot_mount_damaged": "This broom is too damaged to ride. Retrieve and redeploy it first.",
+  "item.apprenticecodex.endgame_armor.scroll_slot.empty": "Scroll Slot: Empty",
+  "item.apprenticecodex.endgame_armor.scroll_slot.spell": "Scroll Slot: %s",
+  "item.apprenticecodex.endgame_armor.scroll_slot.inactive": "Stored Scroll (inactive): %s",
+  "item.apprenticecodex.endgame_armor.scroll_slot.requires": "Requires %s"
 }

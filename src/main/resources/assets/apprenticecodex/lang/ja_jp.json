@@ -1508,5 +1508,9 @@
   "subtitle.apprenticecodex.sound.vanilla_card_throw": "札を投擲する",
   "subtitle.apprenticecodex.sound.vanilla_feed_ammo": "弾薬を装填する",
   "subtitle.apprenticecodex.sound.vanilla_cast_book": "本を使う",
-  "subtitle.apprenticecodex.sound.vanilla_crystallize_mana": "魔力が結晶化する"
+  "subtitle.apprenticecodex.sound.vanilla_crystallize_mana": "魔力が結晶化する",
+  "item.apprenticecodex.endgame_armor.scroll_slot.empty": "スクロールスロット: 空",
+  "item.apprenticecodex.endgame_armor.scroll_slot.spell": "スクロールスロット: %s",
+  "item.apprenticecodex.endgame_armor.scroll_slot.inactive": "保管中のスクロール（休眠中）: %s",
+  "item.apprenticecodex.endgame_armor.scroll_slot.requires": "%sが必要"
 }
