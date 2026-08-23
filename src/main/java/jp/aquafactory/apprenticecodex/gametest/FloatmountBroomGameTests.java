@@ -126,6 +126,9 @@ public final class FloatmountBroomGameTests {
                 (AbstractBroomItem) ItemRegistry.HOVERRIDE_BROOM.get()
         )) {
             var stack = new ItemStack(broom);
+            // 1.20.1ではcapability付与がstack生成時だけなので、装備可否だけをNBTで切り替える。
+            helper.assertTrue(CuriosApi.getCurio(stack).isPresent(),
+                    "Broom should retain its Curio capability before saddle calibration");
             helper.assertFalse(stack.is(BowGameTestSupport.CURIOS_BACK),
                     "Broom should not use the unconditional Curios back tag");
             helper.assertFalse(CuriosApi.getItemStackSlots(stack, player).containsKey(CuriosSlotConstants.BACK),
@@ -153,6 +156,12 @@ public final class FloatmountBroomGameTests {
                     "Broom should allow removing its Curios calibration");
             helper.assertFalse(AbstractBroomItem.isBackCurioEnabled(stack),
                     "Removing the saddle should disable Curios support");
+            helper.assertTrue(CuriosApi.getCurio(stack).isPresent(),
+                    "Removing the saddle should not detach the existing Curio capability");
+            helper.assertFalse(CuriosApi.getItemStackSlots(stack, player).containsKey(CuriosSlotConstants.BACK),
+                    "Removing the saddle should hide the Curios back slot on the same stack");
+            helper.assertFalse(broom.canEquip(backContext, stack),
+                    "Removing the saddle should make the same stack unequippable");
         }
         helper.succeed();
     }
