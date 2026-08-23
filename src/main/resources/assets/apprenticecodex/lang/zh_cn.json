@@ -1500,5 +1500,9 @@
   "subtitle.apprenticecodex.sound.vanilla_card_throw": "符卡被投掷",
   "subtitle.apprenticecodex.sound.vanilla_feed_ammo": "弹药装填",
   "subtitle.apprenticecodex.sound.vanilla_cast_book": "使用书本",
-  "subtitle.apprenticecodex.sound.vanilla_crystallize_mana": "魔力结晶化"
+  "subtitle.apprenticecodex.sound.vanilla_crystallize_mana": "魔力结晶化",
+  "item.apprenticecodex.endgame_armor.scroll_slot.empty": "卷轴槽位：空",
+  "item.apprenticecodex.endgame_armor.scroll_slot.spell": "卷轴槽位：%s",
+  "item.apprenticecodex.endgame_armor.scroll_slot.inactive": "已储存卷轴（未启用）：%s",
+  "item.apprenticecodex.endgame_armor.scroll_slot.requires": "需要%s"
 }
