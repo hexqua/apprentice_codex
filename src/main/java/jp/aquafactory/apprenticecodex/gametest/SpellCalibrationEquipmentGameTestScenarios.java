@@ -262,6 +262,16 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             assertStackHasSpell(helper, suitCoat, io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get(), 1,
                     "Magi Agent Suit coat should accept scroll imbue at the Spell Calibration Bench");
 
+            var chromaticCoat = new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get());
+            var chromaticCoatMenu = createSpellCalibrationBenchMenuWithTarget(player, chromaticCoat);
+            helper.assertTrue(chromaticCoatMenu.getEnabledScrollSlotCount() == 1,
+                    "Chromatic Magia Dress coat should expose one scroll slot");
+            helper.assertTrue(chromaticCoatMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).mayPlace(healScroll),
+                    "Chromatic Magia Dress coat should accept a scroll in the Spell Calibration Bench slot");
+            chromaticCoatMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).set(healScroll.copy());
+            assertStackHasSpell(helper, chromaticCoat, io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get(), 1,
+                    "Chromatic Magia Dress coat should accept scroll imbue at the Spell Calibration Bench");
+
             var presetStaffMenu = createSpellCalibrationBenchMenuWithTarget(
                     player,
                     createInitializedPresetStack(ItemRegistry.COPPER_SWINGCAST_STAFF.get())
