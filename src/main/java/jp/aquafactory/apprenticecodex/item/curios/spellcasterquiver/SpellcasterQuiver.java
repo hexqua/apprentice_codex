@@ -105,6 +105,7 @@ public class SpellcasterQuiver extends Item implements ICurioItem, InventoryInse
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, level, lines, flag);
 
+        // 収納数をLuminousDevice合わせにするにはCuriosのツールチップ組み立てに逆らう必要が出るため、対応コストを考え見送っている.
         var storedItemCount = getStoredItemCount(stack);
         lines.add(Component.translatable(
                 getDescriptionId() + ".stored_amount",
@@ -116,10 +117,6 @@ public class SpellcasterQuiver extends Item implements ICurioItem, InventoryInse
     @Override
     public @NotNull Optional<TooltipComponent> getTooltipImage(@NotNull ItemStack stack) {
         var contents = readContents(stack);
-        if (contents.isEmpty()) {
-            return Optional.empty();
-        }
-
         var displayStacks = NonNullList.<ItemStack>create();
         for (var entry : contents) {
             displayStacks.add(entry.displayStack.copyWithCount(entry.count));

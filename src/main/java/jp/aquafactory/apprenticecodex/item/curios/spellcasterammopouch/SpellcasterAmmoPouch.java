@@ -75,6 +75,7 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem, InventoryI
     public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> lines, TooltipFlag flag) {
         super.appendHoverText(stack, level, lines, flag);
 
+        // 収納数をLuminousDevice合わせにするにはCuriosのツールチップ組み立てに逆らう必要が出るため、対応コストを考え見送っている.
         var storedItemCount = getStoredItemCount(stack);
         lines.add(Component.translatable(
                 getDescriptionId() + ".stored_amount",
@@ -86,10 +87,6 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem, InventoryI
     @Override
     public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
         var contents = readContents(stack);
-        if (contents.isEmpty()) {
-            return Optional.empty();
-        }
-
         var displayStacks = NonNullList.<ItemStack>create();
         var displayEntries = getDisplayEntries(contents);
         for (var entry : displayEntries) {
