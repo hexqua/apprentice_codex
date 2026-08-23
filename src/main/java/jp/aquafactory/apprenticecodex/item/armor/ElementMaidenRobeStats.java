@@ -25,16 +25,16 @@ public final class ElementMaidenRobeStats {
 
     private static final int DURABILITY_MULTIPLIER = 37;
     private static final int ENCHANTMENT_VALUE = 22;
-    private static final float TOUGHNESS = 4.0F;
+    private static final float TOUGHNESS = 0.0F;
     private static final float KNOCKBACK_RESISTANCE = 0.0F;
     private static final Supplier<Ingredient> REPAIR_INGREDIENT =
             () -> Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get());
 
     private static final Map<ArmorItem.Type, Integer> DEFENSE = Map.of(
-            ArmorItem.Type.HELMET, 1,
-            ArmorItem.Type.CHESTPLATE, 3,
-            ArmorItem.Type.LEGGINGS, 2,
-            ArmorItem.Type.BOOTS, 1
+            ArmorItem.Type.HELMET, 2,
+            ArmorItem.Type.CHESTPLATE, 6,
+            ArmorItem.Type.LEGGINGS, 5,
+            ArmorItem.Type.BOOTS, 2
     );
 
     private static final List<AttributeBonus> COMMON_ATTRIBUTE_BONUSES = List.of(
