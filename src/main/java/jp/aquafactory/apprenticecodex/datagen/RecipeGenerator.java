@@ -273,7 +273,7 @@ public final class RecipeGenerator extends RecipeProvider {
         ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get())
                 .requires(ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get(), 4)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()))
-                .save(recipeOutput);
+                .save(recipeOutput, ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get() + "_restore");
 
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.STORAGE_STABILIZER.get())
                 .pattern(" MA")
