@@ -1679,8 +1679,8 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                 var stack = new ItemStack(item);
                 item.initializeSpellContainer(stack);
 
-                helper.assertTrue(item.getMaterial().value().defense().get(armorType).equals(ArmorMaterials.IRON.value().defense().get(armorType)),
-                        "Chromatic Magia Dress " + armorType + " defense should match iron");
+                helper.assertTrue(item.getMaterial().value().defense().get(armorType) == expectedChromaticMagiaDressDefense(armorType),
+                        "Chromatic Magia Dress " + armorType + " defense changed");
                 helper.assertTrue(Math.abs(item.getMaterial().value().toughness() - 1.0F) < 1.0e-6F,
                         "Chromatic Magia Dress " + armorType + " toughness should be 1");
                 helper.assertTrue(item.getEnchantmentValue(stack) == ChromaticMagiaDressStats.enchantmentValue(),
@@ -1734,10 +1734,10 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                         "Element Maiden Robe " + armorType + " should be a unique item");
                 helper.assertTrue(stack.getRarity() == Rarity.EPIC,
                         "Element Maiden Robe " + armorType + " rarity should be epic");
-                helper.assertTrue(item.getMaterial().value().defense().get(armorType).equals(ArmorMaterials.LEATHER.value().defense().get(armorType)),
-                        "Element Maiden Robe " + armorType + " defense should match leather");
-                helper.assertTrue(Math.abs(item.getMaterial().value().toughness() - 4.0F) < 1.0e-6F,
-                        "Element Maiden Robe " + armorType + " toughness should be 4");
+                helper.assertTrue(item.getMaterial().value().defense().get(armorType).equals(ArmorMaterials.IRON.value().defense().get(armorType)),
+                        "Element Maiden Robe " + armorType + " defense should match iron");
+                helper.assertTrue(Math.abs(item.getMaterial().value().toughness()) < 1.0e-6F,
+                        "Element Maiden Robe " + armorType + " toughness should be 0");
                 helper.assertTrue(item.getEnchantmentValue(stack) == ElementMaidenRobeStats.enchantmentValue(),
                         "Element Maiden Robe " + armorType + " enchantment value changed");
                 helper.assertTrue(item.isValidRepairItem(
@@ -1857,10 +1857,21 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         });
     }
 
+
+    private static int expectedChromaticMagiaDressDefense(ArmorItem.Type armorType) {
+        return switch (armorType) {
+            case HELMET, BOOTS -> 2;
+            case CHESTPLATE -> 7;
+            case LEGGINGS -> 6;
+            case BODY -> throw new IllegalArgumentException("Magi Agent Suit does not use body armor type");
+        };
+    }
+
     private static int expectedMagiAgentSuitDefense(ArmorItem.Type armorType) {
         return switch (armorType) {
             case HELMET, BOOTS -> 3;
-            case CHESTPLATE, LEGGINGS -> 6;
+            case CHESTPLATE -> 7;
+            case LEGGINGS -> 6;
             case BODY -> throw new IllegalArgumentException("Magi Agent Suit does not use body armor type");
         };
     }

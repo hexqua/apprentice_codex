@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": {
+      "item": "apprenticecodex:crystalline_arcane_shard"
+    },
+    "M": {
+      "item": "irons_spellbooks:magic_cloth"
+    },
+    "W": {
+      "item": "minecraft:wind_charge"
+    }
+  },
+  "pattern": [
+    "CWC",
+    "WMW",
+    "CWC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:wind_accumulation_weave"
+  }
+}

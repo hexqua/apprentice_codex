@@ -1,0 +1,43 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "malum"
+    }
+  ],
+  "type": "malum:spirit_infusion",
+  "extraInputs": [
+    {
+      "count": 8,
+      "item": "malum:soulwoven_silk"
+    },
+    {
+      "count": 4,
+      "item": "malum:null_slate"
+    },
+    {
+      "count": 4,
+      "item": "malum:mnemonic_fragment"
+    }
+  ],
+  "input": {
+    "item": "irons_spellbooks:magic_cloth"
+  },
+  "result": {
+    "id": "apprenticecodex:soul_augmented_weave"
+  },
+  "spirits": [
+    {
+      "type": "malum:wicked",
+      "count": 16
+    },
+    {
+      "type": "malum:arcane",
+      "count": 64
+    },
+    {
+      "type": "malum:eldritch",
+      "count": 32
+    }
+  ]
+}

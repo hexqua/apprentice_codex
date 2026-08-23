@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.broom.AbstractBroomItem;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.common.EventBusSubscriber;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
@@ -14,7 +15,7 @@ public final class BroomSpellSelectionEvents {
     private BroomSpellSelectionEvents() {
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOW)
     public static void onSpellSelection(SpellSelectionManager.SpellSelectionEvent event) {
         var player = event.getEntity();
         if (!(player.getVehicle() instanceof AbstractBroomEntity broom)

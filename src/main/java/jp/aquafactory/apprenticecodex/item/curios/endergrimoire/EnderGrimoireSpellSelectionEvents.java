@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.common.EventBusSubscriber;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
@@ -13,7 +14,7 @@ public final class EnderGrimoireSpellSelectionEvents {
     private EnderGrimoireSpellSelectionEvents() {
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onSpellSelection(SpellSelectionManager.SpellSelectionEvent event) {
         var player = event.getEntity();
         var spellbookStack = Utils.getPlayerSpellbookStack(player);

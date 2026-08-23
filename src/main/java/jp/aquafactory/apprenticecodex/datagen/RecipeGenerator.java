@@ -215,6 +215,66 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.SHRIVING_STONE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.SHRIVING_STONE.get()))
                 .save(recipeOutput);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ItemRegistry.BULLET_RUNE.get())
+                .pattern("BBB")
+                .pattern("BRB")
+                .pattern("BBB")
+                .define('R', io.redspace.ironsspellbooks.registries.ItemRegistry.BLANK_RUNE.get())
+                .define('B', ItemRegistry.SPELL_DOMINATOR_ROUND.get())
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.BLANK_RUNE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.BLANK_RUNE.get()))
+                .save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SHOCK_ABSORPTION_PLATE.get())
+                .pattern("ANA")
+                .pattern("NMN")
+                .pattern("ANA")
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get())
+                .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                .define('N', Items.NETHERITE_SCRAP)
+                .unlockedBy(getHasName(Items.NETHERITE_SCRAP), has(Items.NETHERITE_SCRAP))
+                .save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.BLAST_REACTIVE_PLATE.get())
+                .pattern(" G ")
+                .pattern("GPG")
+                .pattern(" G ")
+                .define('P', ItemRegistry.SHOCK_ABSORPTION_PLATE.get())
+                .define('G', Items.GUNPOWDER)
+                .unlockedBy(getHasName(ItemRegistry.SHOCK_ABSORPTION_PLATE.get()), has(ItemRegistry.SHOCK_ABSORPTION_PLATE.get()))
+                .save(recipeOutput);
+
+        // 1.20.1申し送り: ウィンドチャージは1.20.1にないのでピストンに置き換える.
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.WIND_ACCUMULATION_WEAVE.get())
+                .pattern("CWC")
+                .pattern("WMW")
+                .pattern("CWC")
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get())
+                .define('C', ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get())
+                .define('W', Items.WIND_CHARGE)
+                .unlockedBy(getHasName(Items.WIND_CHARGE), has(Items.WIND_CHARGE))
+                .save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SCROLLWOVEN_PARCHMENT.get())
+                .pattern("DUD")
+                .pattern("LUL")
+                .pattern("DUD")
+                .define('U', io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
+                .define('D', ItemRegistry.SPELLSTAINED_DIAMOND.get())
+                .define('L', Items.LEATHER)
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()))
+                .save(recipeOutput);
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get(), 4)
+                .requires(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get())
+                .requires(ItemRegistry.SPELL_EXTRACT_SHARD.get())
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()))
+                .save(recipeOutput);
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get())
+                .requires(ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get(), 4)
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()))
+                .save(recipeOutput, ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get() + "_restore");
+
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.STORAGE_STABILIZER.get())
                 .pattern(" MA")
                 .pattern(" C ")
@@ -1162,11 +1222,11 @@ public final class RecipeGenerator extends RecipeProvider {
         SmithingTransformRecipeBuilder.smithing(
                         Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.PROTECTION_RUNE.get()),
                         Ingredient.of(baseTag),
-                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()),
+                        Ingredient.of(ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get()),
                         RecipeCategory.COMBAT,
                         result
                 )
-                .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()))
+                .unlocks(getHasName(ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get()), has(ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get()))
                 .save(recipeOutput, BuiltInRegistries.ITEM.getKey(result));
     }
 
@@ -1176,13 +1236,13 @@ public final class RecipeGenerator extends RecipeProvider {
             Item result
     ) {
         SmithingTransformRecipeBuilder.smithing(
-                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),
+                        Ingredient.of(ItemRegistry.BULLET_RUNE.get()),
                         Ingredient.of(baseTag),
-                        Ingredient.of(ItemRegistry.SPELL_DOMINATOR_ROUND.get()),
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()),
                         RecipeCategory.COMBAT,
                         result
                 )
-                .unlocks(getHasName(ItemRegistry.SPELL_DOMINATOR_ROUND.get()), has(ItemRegistry.SPELL_DOMINATOR_ROUND.get()))
+                .unlocks(getHasName(ItemRegistry.BULLET_RUNE.get()), has(ItemRegistry.BULLET_RUNE.get()))
                 .save(recipeOutput, BuiltInRegistries.ITEM.getKey(result));
     }
 

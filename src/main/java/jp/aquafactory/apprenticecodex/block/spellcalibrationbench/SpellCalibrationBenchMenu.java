@@ -3,11 +3,14 @@ package jp.aquafactory.apprenticecodex.block.spellcalibrationbench;
 import io.redspace.ironsspellbooks.item.Scroll;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
+import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
+import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
+import jp.aquafactory.apprenticecodex.item.armor.EndgameArmorCalibration;
 import jp.aquafactory.apprenticecodex.item.broom.AbstractBroomItem;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmulet;
@@ -211,7 +214,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     public boolean hasOperationalImbueTarget() {
-        return hasMagiAgentSuitImbueTarget()
+        return hasArmorImbueTarget()
                 || hasBulwarkGreatshield() || hasParrycastBuckler() || hasReflectcastShield()
                 || (!hasAdjustmentTarget() || hasSpellgun())
                 && SpellCalibrationImbueHelper.isSupportedTarget(getGauntletStack());
@@ -238,6 +241,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         }
         if (hasBroom()) {
             return AbstractBroomItem.getEnabledCalibrationScrollSlotCount(getGauntletStack());
+        }
+        if (EndgameArmorCalibration.usesStoredCalibrationScrolls(getGauntletStack())) {
+            return EndgameArmorCalibration.getEnabledStoredScrollSlotCount(getGauntletStack());
         }
         return SpellCalibrationImbueHelper.getSpellSlotCount(getGauntletStack());
     }
@@ -382,6 +388,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         if (hasBroom()) {
             return AbstractBroomItem.getCalibrationScroll(getGauntletStack(), slot);
         }
+        if (EndgameArmorCalibration.usesStoredCalibrationScrolls(getGauntletStack())) {
+            return EndgameArmorCalibration.getStoredScroll(getGauntletStack(), slot, lookupProvider);
+        }
         return hasOperationalImbueTarget()
                 ? SpellCalibrationImbueHelper.createScrollForSlot(getGauntletStack(), slot)
                 : ItemStack.EMPTY;
@@ -473,6 +482,11 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             return;
         }
 
+        if (EndgameArmorCalibration.usesStoredCalibrationScrolls(getGauntletStack())) {
+            EndgameArmorCalibration.setStoredScroll(getGauntletStack(), slot, stack, lookupProvider);
+            return;
+        }
+
         if (!hasOperationalImbueTarget()) {
             return;
         }
@@ -559,8 +573,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     private boolean hasStoredScrollTarget() {
-        return hasGauntlet() || hasChargecastCatalystbook() || hasRevolvercastStaff()
-                || hasAutocastAmulet() || hasSatelliteFollowcastAmulet() || hasBroom();
+        return getGauntletStack().getItem() instanceof StoredSpellCalibrationImbueTarget target
+                && target.usesStoredCalibrationScrolls(getGauntletStack());
     }
 
     private boolean canPersistScrollChanges() {
@@ -576,11 +590,11 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
                 ).canInsert();
     }
 
-    private boolean hasMagiAgentSuitImbueTarget() {
+    private boolean hasArmorImbueTarget() {
         var stack = getGauntletStack();
         return !stack.isEmpty()
-                && stack.getItem() instanceof MagiAgentSuitItem suitItem
-                && suitItem.hasImbueSlot()
+                && ((stack.getItem() instanceof MagiAgentSuitItem suitItem && suitItem.hasImbueSlot())
+                || (stack.getItem() instanceof ChromaticMagiaDressItem dressItem && dressItem.hasImbueSlot()))
                 && SpellCalibrationImbueHelper.isSupportedTarget(stack);
     }
 

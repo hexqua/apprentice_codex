@@ -33,7 +33,7 @@ public final class MagiAgentSuitStats {
 
     private static final Map<ArmorItem.Type, Integer> DEFENSE = Map.of(
             ArmorItem.Type.HELMET, 3,
-            ArmorItem.Type.CHESTPLATE, 6,
+            ArmorItem.Type.CHESTPLATE, 7,
             ArmorItem.Type.LEGGINGS, 6,
             ArmorItem.Type.BOOTS, 3
     );

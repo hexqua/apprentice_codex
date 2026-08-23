@@ -40,6 +40,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> IRONS_STAFF = createTag("irons_spellbooks", "staff");
     private static final TagKey<Item> IRONS_IMBUE_WHITELIST = createTag("irons_spellbooks", "imbue_whitelist");
     private static final TagKey<Item> IRONS_UPGRADE_WHITELIST = createTag("irons_spellbooks", "upgrade_whitelist");
+    private static final TagKey<Item> IRONS_INSCRIBED_RUNE = createTag("irons_spellbooks", "inscribed_rune");
     private static final TagKey<Item> CURIOS_RING = createTag("curios", "ring");
     private static final TagKey<Item> CURIOS_BACK = createTag("curios", "back");
     private static final TagKey<Item> CURIOS_BELT = createTag("curios", "belt");
@@ -137,13 +138,25 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ATTACKCAST_RING.get()
         );
 
+        // ルーンはタグ登録すると除去レシピに自動対応.
+        // それ以外はschoolルーンでなければ基本は気にしなくてOK.
+        tag(IRONS_INSCRIBED_RUNE).add(
+                ItemRegistry.BULLET_RUNE.get()
+        );
+
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
         var malumMagicCapableWeaponTag = tag(MALUM_MAGIC_CAPABLE_WEAPON);
         var malumSoulShatterCapableWeaponTag = tag(MALUM_SOUL_SHATTER_CAPABLE_WEAPON);
         var malumSoulwovenPouchEfficientTag = tag(MALUM_SOULWOVEN_POUCH_EFFICIENT);
         var malumReplenishingEnchantableTag = tag(MALUM_REPLENISHING_ENCHANTABLE);
-        tag(MALUM_HIDDEN_UNTIL_VOID).add(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get());
-        tag(MALUM_HIDDEN_UNTIL_BLACK_CRYSTAL).add(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get());
+        tag(MALUM_HIDDEN_UNTIL_VOID).add(
+                ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get(),
+                ItemRegistry.SOUL_AUGMENTED_WEAVE.get()
+        );
+        tag(MALUM_HIDDEN_UNTIL_BLACK_CRYSTAL).add(
+                ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get(),
+                ItemRegistry.SOUL_AUGMENTED_WEAVE.get()
+        );
         var tomagicReversalWeaponTag = tag(TOMAGIC_REVERSAL_WEAPON);
         var transcendenceEnchantableTag = tag(TRANSCENDENCE_ENCHANTABLE);
         var wisdomEnchantableTag = tag(WISDOM_ENCHANTABLE);
@@ -364,7 +377,14 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SPELLSTAINED_DIAMOND.get(),
                 ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get(),
                 ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get(),
-                ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get()
+                ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get(),
+                ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get(),
+                ItemRegistry.SHOCK_ABSORPTION_PLATE.get(),
+                ItemRegistry.BLAST_REACTIVE_PLATE.get(),
+                ItemRegistry.WIND_ACCUMULATION_WEAVE.get(),
+                ItemRegistry.SCROLLWOVEN_PARCHMENT.get(),
+                ItemRegistry.SOUL_COVERED_PLATE.get(),
+                ItemRegistry.SOUL_AUGMENTED_WEAVE.get()
         );
         tag(CURIOS_SPELLBOOK).add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
