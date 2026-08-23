@@ -378,6 +378,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get(),
                 ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get(),
                 ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get(),
+                ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get(),
                 ItemRegistry.SHOCK_ABSORPTION_PLATE.get(),
                 ItemRegistry.BLAST_REACTIVE_PLATE.get(),
                 ItemRegistry.WIND_ACCUMULATION_WEAVE.get(),
