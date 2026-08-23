@@ -216,6 +216,46 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.BLANK_RUNE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.BLANK_RUNE.get()))
                 .save(recipeWriter);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SHOCK_ABSORPTION_PLATE.get())
+                .pattern("ANA")
+                .pattern("NMN")
+                .pattern("ANA")
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get())
+                .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                .define('N', Items.NETHERITE_SCRAP)
+                .unlockedBy(getHasName(Items.NETHERITE_SCRAP), has(Items.NETHERITE_SCRAP))
+                .save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.BLAST_REACTIVE_PLATE.get())
+                .pattern(" G ")
+                .pattern("GPG")
+                .pattern(" G ")
+                .define('P', ItemRegistry.SHOCK_ABSORPTION_PLATE.get())
+                .define('G', Items.GUNPOWDER)
+                .unlockedBy(getHasName(ItemRegistry.SHOCK_ABSORPTION_PLATE.get()), has(ItemRegistry.SHOCK_ABSORPTION_PLATE.get()))
+                .save(recipeOutput);
+
+        // 1.20.1申し送り: ウィンドチャージは1.20.1にないのでピストンに置き換える.
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.WIND_ACCUMULATION_WEAVE.get())
+                .pattern("CWC")
+                .pattern("WMW")
+                .pattern("CWC")
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get())
+                .define('C', ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get())
+                .define('W', Items.WIND_CHARGE)
+                .unlockedBy(getHasName(Items.WIND_CHARGE), has(Items.WIND_CHARGE))
+                .save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SCROLLWOVEN_PARCHMENT.get())
+                .pattern("DUD")
+                .pattern("LUL")
+                .pattern("DUD")
+                .define('U', io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
+                .define('D', ItemRegistry.SPELLSTAINED_DIAMOND.get())
+                .define('L', Items.LEATHER)
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()))
+                .save(recipeOutput);
+
         ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get(), 4)
                 .requires(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get())
                 .requires(ItemRegistry.SPELL_EXTRACT_SHARD.get())
