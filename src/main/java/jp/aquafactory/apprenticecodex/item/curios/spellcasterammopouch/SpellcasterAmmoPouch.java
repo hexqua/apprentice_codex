@@ -26,6 +26,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
@@ -78,9 +79,10 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem, InventoryI
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> lines, TooltipFlag flag) {
+    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
 
+        // 収納数をLuminousDevice合わせにするにはCuriosのツールチップ組み立てに逆らう必要が出るため、対応コストを考え見送っている.
         var storedItemCount = getStoredItemCount(stack);
         lines.add(Component.translatable(
                 getDescriptionId() + ".stored_amount",
@@ -90,12 +92,8 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem, InventoryI
     }
 
     @Override
-    public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
+    public @NotNull Optional<TooltipComponent> getTooltipImage(@NotNull ItemStack stack) {
         var contents = readContents(stack);
-        if (contents.isEmpty()) {
-            return Optional.empty();
-        }
-
         var displayStacks = NonNullList.<ItemStack>create();
         var displayEntries = getDisplayEntries(contents);
         for (var entry : displayEntries) {
@@ -109,7 +107,7 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem, InventoryI
     }
 
     @Override
-    public boolean overrideStackedOnOther(ItemStack pouchStack, Slot slot, ClickAction action, Player player) {
+    public boolean overrideStackedOnOther(@NotNull ItemStack pouchStack, @NotNull Slot slot, @NotNull ClickAction action, @NotNull Player player) {
         if (action != ClickAction.SECONDARY) {
             return false;
         }
@@ -148,12 +146,12 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem, InventoryI
 
     @Override
     public boolean overrideOtherStackedOnMe(
-            ItemStack pouchStack,
-            ItemStack otherStack,
-            Slot slot,
-            ClickAction action,
-            Player player,
-            SlotAccess slotAccess
+            @NotNull ItemStack pouchStack,
+            @NotNull ItemStack otherStack,
+            @NotNull Slot slot,
+            @NotNull ClickAction action,
+            @NotNull Player player,
+            @NotNull SlotAccess slotAccess
     ) {
         if (action != ClickAction.SECONDARY) {
             return false;
@@ -198,18 +196,18 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem, InventoryI
     }
 
     @Override
-    public boolean isBarVisible(ItemStack stack) {
+    public boolean isBarVisible(@NotNull ItemStack stack) {
         return getStoredItemCount(stack) > 0;
     }
 
     @Override
-    public int getBarWidth(ItemStack stack) {
+    public int getBarWidth(@NotNull ItemStack stack) {
         var storedItemCount = getStoredItemCount(stack);
         return Math.max(1, Math.round(13.0F * storedItemCount / (float) MAX_STORED_ITEMS));
     }
 
     @Override
-    public int getBarColor(ItemStack stack) {
+    public int getBarColor(@NotNull ItemStack stack) {
         return BAR_COLOR;
     }
 
