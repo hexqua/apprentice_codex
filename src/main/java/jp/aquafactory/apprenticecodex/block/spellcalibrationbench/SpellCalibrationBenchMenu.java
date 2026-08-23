@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastS
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
+import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
 import jp.aquafactory.apprenticecodex.item.armor.EndgameArmorCalibration;
 import jp.aquafactory.apprenticecodex.item.broom.AbstractBroomItem;
@@ -213,7 +214,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     public boolean hasOperationalImbueTarget() {
-        return hasMagiAgentSuitImbueTarget()
+        return hasArmorImbueTarget()
                 || hasBulwarkGreatshield() || hasParrycastBuckler() || hasReflectcastShield()
                 || (!hasAdjustmentTarget() || hasSpellgun())
                 && SpellCalibrationImbueHelper.isSupportedTarget(getGauntletStack());
@@ -589,11 +590,11 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
                 ).canInsert();
     }
 
-    private boolean hasMagiAgentSuitImbueTarget() {
+    private boolean hasArmorImbueTarget() {
         var stack = getGauntletStack();
         return !stack.isEmpty()
-                && stack.getItem() instanceof MagiAgentSuitItem suitItem
-                && suitItem.hasImbueSlot()
+                && ((stack.getItem() instanceof MagiAgentSuitItem suitItem && suitItem.hasImbueSlot())
+                || (stack.getItem() instanceof ChromaticMagiaDressItem dressItem && dressItem.hasImbueSlot()))
                 && SpellCalibrationImbueHelper.isSupportedTarget(stack);
     }
 

@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
+import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.jumpcastcharm.JumpcastCharm;
@@ -426,6 +427,7 @@ public final class SpellCalibrationImbueHelper {
                 || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof AbstractImbueShieldItem
                 || item instanceof MagiAgentSuitItem
+                || item instanceof ChromaticMagiaDressItem
                 || item instanceof AbstractOffhandMagicItem
                 || item instanceof AlchemistsFlask
                 || stack.is(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE);
