@@ -39,6 +39,12 @@ public final class ChromaticMagiaDressStats {
             ArmorItem.Type.LEGGINGS, 15,
             ArmorItem.Type.BOOTS, 13
     );
+    private static final Map<ArmorItem.Type, Integer> DEFENSE = Map.of(
+            ArmorItem.Type.HELMET, 2,
+            ArmorItem.Type.CHESTPLATE, 7,
+            ArmorItem.Type.LEGGINGS, 6,
+            ArmorItem.Type.BOOTS, 2
+    );
 
     private static final List<AttributeBonus> COMMON_ATTRIBUTE_BONUSES = List.of(
             new AttributeBonus(AttributeRegistry.MAX_MANA, 125.0D, AttributeModifier.Operation.ADDITION, "max_mana")
@@ -103,8 +109,7 @@ public final class ChromaticMagiaDressStats {
     }
 
     private static int defenseFor(ArmorItem.Type type) {
-        // 鉄防具の値を参照し、1.21.1 側で素材定義が変わっても意図を追えるようにする.
-        return ArmorMaterials.IRON.getDefenseForType(type);
+        return DEFENSE.getOrDefault(type, 0);
     }
 
     private record AttributeBonus(

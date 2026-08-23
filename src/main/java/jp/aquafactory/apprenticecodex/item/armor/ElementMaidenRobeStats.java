@@ -28,7 +28,7 @@ public final class ElementMaidenRobeStats {
 
     private static final int DURABILITY_MULTIPLIER = 37;
     private static final int ENCHANTMENT_VALUE = 22;
-    private static final float TOUGHNESS = 4.0F;
+    private static final float TOUGHNESS = 0.0F;
     private static final float KNOCKBACK_RESISTANCE = 0.0F;
     private static final SoundEvent EQUIP_SOUND = SoundRegistry.VANILLA_ARMOR_EQUIP_ROBE.get();
     private static final Supplier<Ingredient> REPAIR_INGREDIENT =
@@ -39,6 +39,12 @@ public final class ElementMaidenRobeStats {
             ArmorItem.Type.CHESTPLATE, 16,
             ArmorItem.Type.LEGGINGS, 15,
             ArmorItem.Type.BOOTS, 13
+    );
+    private static final Map<ArmorItem.Type, Integer> DEFENSE = Map.of(
+            ArmorItem.Type.HELMET, 2,
+            ArmorItem.Type.CHESTPLATE, 6,
+            ArmorItem.Type.LEGGINGS, 5,
+            ArmorItem.Type.BOOTS, 2
     );
 
     private static final List<AttributeBonus> COMMON_ATTRIBUTE_BONUSES = List.of(
@@ -104,8 +110,7 @@ public final class ElementMaidenRobeStats {
     }
 
     private static int defenseFor(ArmorItem.Type type) {
-        // 革防具の値を参照し、1.21.1 側で素材定義が変わっても意図を追えるようにする.
-        return ArmorMaterials.LEATHER.getDefenseForType(type);
+        return DEFENSE.getOrDefault(type, 0);
     }
 
     private record AttributeBonus(
