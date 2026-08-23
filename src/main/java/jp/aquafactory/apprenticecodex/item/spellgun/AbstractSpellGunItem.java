@@ -88,9 +88,10 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
                     CalibrationAdjustmentRule.unique(
+                            "silver_spell_amplifier",
                             stack -> stack.is(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
                             CalibrationAdjustmentHint.specificItem(ItemRegistry.SILVER_SPELL_AMPLIFIER)
-                    )
+                    ).withEffectLines(CalibrationAdjustmentEffects.changeAttributeOffhand())
             );
     private static final String CALIBRATION_TAG = "SpellgunCalibration";
     private static final String ADJUSTMENT_TAG = "Adjustment";

@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
@@ -78,13 +79,15 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
                     CalibrationAdjustmentRule.unique(
+                            "silver_ring",
                             MithrilFreecastStaff::isSilverRing,
                             CalibrationAdjustmentHints.silverRing()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.addLongSupport()),
                     CalibrationAdjustmentRule.unique(
+                            "wisdom_shard",
                             stack -> stack.is(ItemRegistry.WISDOM_SHARD.get()),
                             CalibrationAdjustmentHints.wisdomShard()
-                    )
+                    ).withEffectLines(CalibrationAdjustmentEffects.changeImbueToSelected())
             );
     private static final String CALIBRATION_TAG = "ParrycastBucklerCalibration";
     private static final String ADJUSTMENTS_TAG = "Adjustments";

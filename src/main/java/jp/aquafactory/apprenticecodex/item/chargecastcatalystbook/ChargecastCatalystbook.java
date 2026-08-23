@@ -98,25 +98,33 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
                     CalibrationAdjustmentRule.repeatable(
+                            "slot_upgrade",
                             ChargecastCatalystbook::isSpellSlotUpgrade,
                             CalibrationAdjustmentHints.slotUpgrades()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(1)),
                     CalibrationAdjustmentRule.unique(
+                            "school_rune",
                             ScrollcasterSchoolRuneResolver::isSchoolRune,
-                            CalibrationAdjustmentHints.schoolRunes()
-                    ),
+                            CalibrationAdjustmentHints.schoolRunes(),
+                            CalibrationAdjustmentHints.schoolRuneConstraint()
+                    ).withEffectLines(CalibrationAdjustmentEffects.changeSpellPower(
+                            ChargecastCatalystbook.SCHOOL_SPELL_POWER_BONUS
+                    )),
                     CalibrationAdjustmentRule.unique(
+                            "wisdom_shard",
                             stack -> stack.is(ItemRegistry.WISDOM_SHARD.get()),
                             CalibrationAdjustmentHints.wisdomShard()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.changeImbueToSelected()),
                     CalibrationAdjustmentRule.unique(
+                            "silver_ring",
                             ChargecastCatalystbook::isSilverRing,
                             CalibrationAdjustmentHints.silverRing()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.convertQuickToPower()),
                     CalibrationAdjustmentRule.unique(
+                            "silver_spell_amplifier",
                             stack -> stack.is(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
                             CalibrationAdjustmentHint.specificItem(ItemRegistry.SILVER_SPELL_AMPLIFIER)
-                    )
+                    ).withEffectLines(CalibrationAdjustmentEffects.changeAttributeOffhand())
             );
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -579,6 +587,16 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
 
     public static boolean hasAnyCalibrationScroll(@NotNull ItemStack stack) {
         return findFirstValidScrollIndex(stack) >= 0;
+    }
+
+    @Override
+    public boolean hasAnyStoredCalibrationScroll(@NotNull ItemStack targetStack) {
+        for (var slot = 0; slot < CALIBRATION_SCROLL_SLOT_COUNT; ++slot) {
+            if (!getCalibrationScroll(targetStack, slot).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static int getSelectedScrollIndex(@NotNull ItemStack stack) {

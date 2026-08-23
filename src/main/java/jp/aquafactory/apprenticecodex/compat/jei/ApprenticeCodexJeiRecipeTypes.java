@@ -19,4 +19,9 @@ public final class ApprenticeCodexJeiRecipeTypes {
             new RecipeType<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcaster_workbench"), SpellcasterWorkbenchRecipe.class);
     public static final RecipeType<AlchemyBrewerJeiRecipe> ALCHEMY_BREWER =
             new RecipeType<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "alchemy_brewer"), AlchemyBrewerJeiRecipe.class);
+    public static final RecipeType<SpellCalibrationAdjustmentJeiRecipe> SPELL_CALIBRATION_ADJUSTMENT =
+            new RecipeType<>(
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_calibration_adjustment"),
+                    SpellCalibrationAdjustmentJeiRecipe.class
+            );
 }

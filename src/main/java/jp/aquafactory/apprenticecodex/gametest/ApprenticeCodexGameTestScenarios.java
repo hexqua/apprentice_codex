@@ -68,11 +68,12 @@ import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.event.errandmage.ErrandMageTradeManager;
 import jp.aquafactory.apprenticecodex.event.ErrandMageVillagerTradesEvent;
-import jp.aquafactory.apprenticecodex.event.ScrollcasterGauntletGrindstoneEvent;
 import jp.aquafactory.apprenticecodex.loot.RandomSpellImbueHelper;
 import jp.aquafactory.apprenticecodex.item.shield.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
+import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff;
@@ -106,6 +107,7 @@ import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntletCastEvent;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntletFreecastContext;
+import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeHelper;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
@@ -265,6 +267,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.GrindstoneMenu;
 import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.alchemy.PotionUtils;
@@ -323,7 +326,6 @@ import net.minecraftforge.common.util.FakePlayer;
 import io.netty.buffer.Unpooled;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.ProjectileImpactEvent;
-import net.minecraftforge.event.GrindstoneEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
@@ -3758,8 +3760,6 @@ public class ApprenticeCodexGameTestScenarios {
 
             helper.assertTrue(lesserUpgrade.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_SLOT_UPGRADES),
                     "Lesser spell slot upgrade should be tagged as a Scrollcaster Gauntlet slot upgrade");
-            helper.assertTrue(enchantedBook.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_ENCHANTMENT_BOOKS),
-                    "Vanilla enchanted book should be tagged as a Scrollcaster Gauntlet enchantment book");
             player.getInventory().setItem(9, recoveryRune.copy());
             var quickMovedRecoveryRune = menu.quickMoveStack(
                     player,
@@ -3794,13 +3794,15 @@ public class ApprenticeCodexGameTestScenarios {
                     "Manual rune override should take precedence over automatic rune lookup"
             );
             helper.assertTrue(menu.getSlot(1).mayPlace(fireRune), "School rune should be accepted as a calibration adjustment");
-            helper.assertTrue(menu.getSlot(2).mayPlace(enchantedBook), "Tagged enchantment books should be accepted as a calibration adjustment");
+            helper.assertFalse(menu.getSlot(2).mayPlace(enchantedBook),
+                    "Enchanted books should no longer be accepted as calibration adjustments");
             helper.assertTrue(menu.getSlot(3).mayPlace(lesserUpgrade), "Tagged slot upgrades should be accepted as a calibration adjustment");
             helper.assertTrue(!menu.getSlot(1).mayPlace(arcaneRune), "Arcane rune should not be treated as a scrollcaster school rune");
 
             menu.getSlot(1).set(fireRune);
             helper.assertTrue(!menu.getSlot(2).mayPlace(iceRune), "Only one school rune should be accepted at a time");
-            helper.assertTrue(menu.getSlot(2).mayPlace(enchantedBook), "Non-rune adjustments should remain accepted after a rune is present");
+            helper.assertFalse(menu.getSlot(2).mayPlace(enchantedBook),
+                    "Enchanted books should remain rejected after a rune is present");
             helper.assertTrue(!SpellCalibrationAdjustmentGameTestSupport.getCalibrationAdjustment(gauntlet, 0).isEmpty(),
                     "Adjustment item should be stored on the gauntlet NBT");
         });
@@ -3858,105 +3860,169 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    static void spellCalibrationBenchSyncsGauntletEnchantments(GameTestHelper helper) {
+    static void scrollcasterGauntletUsesNormalEnchantmentSurfaces(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_calibration_enchantment_test");
-            var menu = createSpellCalibrationBenchMenu(helper, player, new BlockPos(0, 1, 0));
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
-            gauntlet.enchant(Enchantments.MENDING, 1);
+            var item = gauntlet.getItem();
+            helper.assertTrue(item.isEnchantable(gauntlet),
+                    "Scrollcaster Gauntlet should be enchantable");
+            helper.assertTrue(item.getEnchantmentValue(gauntlet) == 22,
+                    "Scrollcaster Gauntlet enchantability should be 22");
 
-            menu.getSlot(0).set(gauntlet);
-            helper.assertTrue(EnchantmentHelper.getEnchantments(gauntlet).isEmpty(),
-                    "Bench-owned gauntlet enchantments should be rebuilt and clear external enchantments");
-
-            menu.getSlot(1).set(createEnchantedBook(new EnchantmentInstance(Enchantments.SHARPNESS, 1)));
-            helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.SHARPNESS) == 1,
-                    "Sharpness book should enchant the Scrollcaster Gauntlet");
-
-            menu.getSlot(2).set(createEnchantedBook(new EnchantmentInstance(Enchantments.UNBREAKING, 1)));
-            helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.UNBREAKING) == 0,
-                    "Durability-target enchantments should not transfer from Bench books");
-            helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.SHARPNESS) == 1,
-                    "Invalid Bench books should not remove compatible left-slot enchantments");
-
-            menu.getSlot(1).set(createEnchantedBook(
-                    new EnchantmentInstance(Enchantments.UNBREAKING, 1),
-                    new EnchantmentInstance(Enchantments.BLOCK_FORTUNE, 3)
-            ));
-            menu.getSlot(2).set(ItemStack.EMPTY);
-            helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.BLOCK_FORTUNE) == 0,
-                    "Only the first stored enchantment on a multi-enchanted book should be considered");
-
-            menu.getSlot(1).set(createEnchantedBook(new EnchantmentInstance(EnchantmentRegistry.WISDOM.get(), 1)));
-            helper.assertTrue(gauntlet.getEnchantmentLevel(EnchantmentRegistry.WISDOM.get()) == 1,
-                    "Explicitly supported Apprentice enchantments should transfer from Bench books");
+            for (var supported : List.of(
+                    Enchantments.SHARPNESS,
+                    Enchantments.BLOCK_FORTUNE,
+                    EnchantmentRegistry.WISDOM.get(),
+                    EnchantmentRegistry.ALACRITY.get()
+            )) {
+                helper.assertTrue(item.canApplyAtEnchantingTable(gauntlet, supported),
+                        "Scrollcaster Gauntlet enchanting table should support "
+                                + ForgeRegistries.ENCHANTMENTS.getKey(supported));
+                helper.assertTrue(item.isBookEnchantable(
+                                gauntlet,
+                                createEnchantedBook(new EnchantmentInstance(supported, 1))
+                        ),
+                        "Scrollcaster Gauntlet anvil should support "
+                                + ForgeRegistries.ENCHANTMENTS.getKey(supported));
+            }
+            for (var rejected : List.of(
+                    Enchantments.UNBREAKING,
+                    Enchantments.MENDING,
+                    EnchantmentRegistry.PLUNDER.get()
+            )) {
+                helper.assertFalse(item.canApplyAtEnchantingTable(gauntlet, rejected),
+                        "Scrollcaster Gauntlet should reject " + ForgeRegistries.ENCHANTMENTS.getKey(rejected));
+            }
+            helper.assertTrue(item instanceof NonDamageableAnvilMergeItem,
+                    "Scrollcaster Gauntlet should use the non-damageable anvil merge path");
+            helper.assertTrue(((NonDamageableAnvilMergeItem) item)
+                            .isAnvilMergeEnchantmentAllowed(gauntlet, Enchantments.SHARPNESS),
+                    "Scrollcaster Gauntlet anvil merge should accept Sharpness");
 
             if (ModList.get().isLoaded(MALUM_MOD_ID)) {
-                var spiritPlunder = ForgeRegistries.ENCHANTMENTS.getValue(MALUM_SPIRIT_PLUNDER);
-                helper.assertTrue(spiritPlunder != null, "Malum Spirit Plunder enchantment should be registered");
-                menu.getSlot(1).set(createEnchantedBook(new EnchantmentInstance(spiritPlunder, 1)));
-                helper.assertTrue(gauntlet.getEnchantmentLevel(spiritPlunder) == 1,
-                        "Malum Spirit Plunder should transfer when the Scrollcaster Gauntlet is a soul hunter weapon");
-            }
-
-            menu.getSlot(1).set(createEnchantedBook(new EnchantmentInstance(Enchantments.SHARPNESS, 1)));
-            var duplicateSharpness = createEnchantedBook(new EnchantmentInstance(Enchantments.SHARPNESS, 4));
-            helper.assertFalse(menu.getSlot(2).mayPlace(duplicateSharpness),
-                    "Duplicate Bench enchantments should be rejected before insertion");
-            menu.getSlot(2).set(duplicateSharpness);
-            helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.SHARPNESS) == 1,
-                    "Rejected duplicate Bench enchantments should not replace the installed level");
-
-            menu.getSlot(1).set(createEnchantedBook(new EnchantmentInstance(Enchantments.SHARPNESS, 2)));
-            menu.getSlot(2).set(createEnchantedBook(new EnchantmentInstance(Enchantments.SMITE, 5)));
-            helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.SHARPNESS) == 2,
-                    "Left Bench slot should win incompatible enchantments");
-            helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.SMITE) == 0,
-                    "Right-slot incompatible enchantments should be skipped");
-
-            menu.getSlot(1).set(ItemStack.EMPTY);
-            menu.getSlot(2).set(ItemStack.EMPTY);
-            helper.assertTrue(EnchantmentHelper.getEnchantments(gauntlet).isEmpty(),
-                    "Removing Bench books should clear gauntlet enchantments");
-
-            var sharpnessId = ForgeRegistries.ENCHANTMENTS.getKey(Enchantments.SHARPNESS);
-            var mendingId = ForgeRegistries.ENCHANTMENTS.getKey(Enchantments.MENDING);
-            helper.assertTrue(sharpnessId != null, "Sharpness should have a registry id");
-            helper.assertTrue(mendingId != null, "Mending should have a registry id");
-            try (var ignored = ApprenticeCodexServerConfig.useScrollcasterGauntletConfigOverrideForGameTest(
-                    List.of(sharpnessId.toString()),
-                    List.of(sharpnessId.toString(), mendingId.toString())
-            )) {
-                menu.getSlot(1).set(createEnchantedBook(new EnchantmentInstance(Enchantments.SHARPNESS, 1)));
-                helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.SHARPNESS) == 0,
-                        "Denied Scrollcaster Gauntlet enchantments should not transfer even when normally supported or compat-allowed");
-
-                menu.getSlot(1).set(createEnchantedBook(new EnchantmentInstance(Enchantments.MENDING, 1)));
-                helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.MENDING) == 1,
-                        "Compat additional allowed Scrollcaster Gauntlet enchantments should transfer when not denied");
+                for (var enchantmentId : List.of(MALUM_SPIRIT_PLUNDER, MALUM_HAUNTED, MALUM_ANIMATED)) {
+                    var enchantment = ForgeRegistries.ENCHANTMENTS.getValue(enchantmentId);
+                    helper.assertTrue(enchantment != null,
+                            "Malum enchantment should be registered: " + enchantmentId);
+                    helper.assertTrue(item.canApplyAtEnchantingTable(gauntlet, enchantment),
+                            "Scrollcaster Gauntlet should support compatible Malum enchantment " + enchantmentId);
+                }
             }
         });
     }
 
-    static void scrollcasterGauntletGrindstoneDoesNotExposeOutput(GameTestHelper helper) {
+    static void nonDamageableAnvilMergeRejectsStoredRightContents(GameTestHelper helper) {
         helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "non_damageable_anvil_stored_contents_test");
+            var left = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            var right = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            right.enchant(Enchantments.SHARPNESS, 1);
+
+            var emptyMerge = NonDamageableAnvilMergeHelper.tryMergeSameItem(left, right, null, player);
+            helper.assertTrue(emptyMerge != null,
+                    "Non-damageable anvil merge should accept an empty right input");
+
+            var leftAdjustment = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get());
+            CalibrationAdjustmentStorage.set(
+                    left,
+                    0,
+                    ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT,
+                    leftAdjustment
+            );
+            var leftContentMerge = NonDamageableAnvilMergeHelper.tryMergeSameItem(left, right, null, player);
+            helper.assertTrue(leftContentMerge != null,
+                    "Non-damageable anvil merge should accept stored contents on the left input");
+            helper.assertTrue(!CalibrationAdjustmentStorage.get(
+                    leftContentMerge.output(),
+                    0,
+                    ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT
+            ).isEmpty(), "Non-damageable anvil merge should preserve stored left contents");
+
+            CalibrationAdjustmentStorage.set(
+                    right,
+                    0,
+                    ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT,
+                    leftAdjustment
+            );
+            helper.assertTrue(NonDamageableAnvilMergeHelper.tryMergeSameItem(left, right, null, player) == null,
+                    "Non-damageable anvil merge should reject a right input with a calibration adjustment");
+            CalibrationAdjustmentStorage.set(
+                    right,
+                    0,
+                    ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT,
+                    ItemStack.EMPTY
+            );
+
+            var disabledStoredSlot = ScrollcasterGauntlet.CALIBRATION_SCROLL_SLOT_COUNT - 1;
+            ScrollcasterGauntlet.setCalibrationScroll(
+                    right,
+                    disabledStoredSlot,
+                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())
+            );
+            helper.assertTrue(NonDamageableAnvilMergeHelper.tryMergeSameItem(left, right, null, player) == null,
+                    "Non-damageable anvil merge should reject a right input with a stored scroll in a disabled slot");
+            ScrollcasterGauntlet.setCalibrationScroll(right, disabledStoredSlot, ItemStack.EMPTY);
+
+            helper.assertTrue(NonDamageableAnvilMergeHelper.tryMergeSameItem(left, right, null, player) != null,
+                    "Non-damageable anvil merge should recover after clearing stored right contents");
+        });
+    }
+
+    static void scrollcasterGauntletKeepsLegacyEnchantmentsAndAllowsBookExtraction(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "scrollcaster_legacy_enchantment_test");
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            var legacyBook = createEnchantedBook(new EnchantmentInstance(Enchantments.SHARPNESS, 2));
+            gauntlet.enchant(Enchantments.SHARPNESS, 2);
+            CalibrationAdjustmentStorage.set(
+                    gauntlet,
+                    0,
+                    ScrollcasterGauntlet.CALIBRATION_ADJUSTMENT_SLOT_COUNT,
+                    legacyBook
+            );
+
+            var menu = createSpellCalibrationBenchMenu(helper, player, new BlockPos(0, 1, 0));
+            menu.getSlot(0).set(gauntlet);
+            helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.SHARPNESS) == 2,
+                    "Opening the Calibration Bench should preserve existing gauntlet enchantments");
+            helper.assertTrue(menu.getSlot(1).mayPickup(player),
+                    "Legacy enchanted books should remain extractable from disabled adjustment rules");
+            var extractedBook = menu.getSlot(1).remove(1);
+            helper.assertTrue(EnchantmentHelper.getEnchantments(extractedBook)
+                            .getOrDefault(Enchantments.SHARPNESS, 0) == 2,
+                    "Extracted legacy books should preserve their enchantment");
+            helper.assertFalse(menu.getSlot(1).mayPlace(extractedBook),
+                    "Extracted enchanted books should not be insertable again");
+            helper.assertTrue(gauntlet.getEnchantmentLevel(Enchantments.SHARPNESS) == 2,
+                    "Extracting a legacy book should not remove the gauntlet enchantment");
+        });
+    }
+
+    static void scrollcasterGauntletGrindstoneRemovesEnchantments(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "scrollcaster_grindstone_test");
+            var grindstonePos = new BlockPos(0, 1, 0);
+            helper.setBlock(grindstonePos, Blocks.GRINDSTONE);
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
             gauntlet.enchant(Enchantments.SHARPNESS, 1);
-            var event = new GrindstoneEvent.OnPlaceItem(gauntlet, ItemStack.EMPTY, -1);
-            ScrollcasterGauntletGrindstoneEvent.onGrindstonePlaceItem(event);
-            helper.assertTrue(event.isCanceled(),
-                    "Scrollcaster Gauntlet grindstone placement should be canceled");
-            helper.assertTrue(event.getOutput().isEmpty(),
-                    "Canceled Scrollcaster Gauntlet grindstone placement should not expose an output");
-
-            var normalBookEvent = new GrindstoneEvent.OnPlaceItem(
-                    createEnchantedBook(new EnchantmentInstance(Enchantments.SHARPNESS, 1)),
-                    ItemStack.EMPTY,
-                    -1
+            var menu = new GrindstoneMenu(
+                    0,
+                    player.getInventory(),
+                    net.minecraft.world.inventory.ContainerLevelAccess.create(
+                            helper.getLevel(),
+                            helper.absolutePos(grindstonePos)
+                    )
             );
-            ScrollcasterGauntletGrindstoneEvent.onGrindstonePlaceItem(normalBookEvent);
-            helper.assertFalse(normalBookEvent.isCanceled(),
-                    "Non-gauntlet grindstone placement should stay available for vanilla handling");
+
+            menu.getSlot(0).set(gauntlet);
+            var output = menu.getSlot(2).getItem();
+            helper.assertTrue(output.is(ItemRegistry.SCROLLCASTER_GAUNTLET.get()),
+                    "Scrollcaster Gauntlet should expose a grindstone output");
+            helper.assertTrue(output.getEnchantmentLevel(Enchantments.SHARPNESS) == 0,
+                    "Scrollcaster Gauntlet grindstone output should remove Sharpness");
         });
     }
 

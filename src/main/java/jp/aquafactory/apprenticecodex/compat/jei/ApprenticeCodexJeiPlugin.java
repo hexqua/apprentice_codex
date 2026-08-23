@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.jei.AlchemistCauldronJeiRecipe;
 import io.redspace.ironsspellbooks.jei.AlchemistCauldronRecipeCategory;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.potion.SchoolAffinityPotion;
 import jp.aquafactory.apprenticecodex.recipe.alchemybrewer.AlchemyBrewerRecipe;
 import jp.aquafactory.apprenticecodex.recipe.alchemybrewer.AlchemyBrewerModifierRecipe;
@@ -62,7 +63,6 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
     private static final String EN_US_RESOURCE_PATH = "assets/" + ApprenticeCodex.MODID + "/lang/en_us.json";
     private static final int MAX_INFO_LINES = 32;
     private static final List<Item> BREWING_CONTAINERS = List.of(Items.POTION, Items.SPLASH_POTION, Items.LINGERING_POTION);
-
     private static final ResourceLocation PLUGIN_UID =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "jei_plugin");
     private static final Set<String> EN_US_TRANSLATION_KEYS = loadEnUsTranslationKeys();
@@ -79,7 +79,8 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                 new GrindRunnerRecipeCategory(guiHelper, buildGrindRunnerCatalyst()),
                 new EssenceSmokerRecipeCategory(guiHelper),
                 new SpellcasterWorkbenchRecipeCategory(guiHelper),
-                new AlchemyBrewerRecipeCategory(guiHelper)
+                new AlchemyBrewerRecipeCategory(guiHelper),
+                new SpellCalibrationAdjustmentRecipeCategory(guiHelper)
         );
     }
 
@@ -99,6 +100,10 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
     public void registerRecipes(@NotNull IRecipeRegistration registration) {
         registerAffinityPotionJeiRecipes(registration);
         registerCustomRecipes(registration);
+        registration.addRecipes(
+                ApprenticeCodexJeiRecipeTypes.SPELL_CALIBRATION_ADJUSTMENT,
+                collectSpellCalibrationAdjustmentJeiRecipes()
+        );
         Map<String, GroupedJeiInfo> groupedInfos = new LinkedHashMap<>();
 
         for (var item : ForgeRegistries.ITEMS.getValues()) {
@@ -163,6 +168,10 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(
                 new ItemStack(ItemRegistry.ALCHEMY_BREWER.get()),
                 ApprenticeCodexJeiRecipeTypes.ALCHEMY_BREWER
+        );
+        registration.addRecipeCatalyst(
+                new ItemStack(ItemRegistry.SPELL_CALIBRATION_BENCH.get()),
+                ApprenticeCodexJeiRecipeTypes.SPELL_CALIBRATION_ADJUSTMENT
         );
     }
 
@@ -247,6 +256,89 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                 }
             }
         }
+        return recipes;
+    }
+
+    private static List<SpellCalibrationAdjustmentJeiRecipe> collectSpellCalibrationAdjustmentJeiRecipes() {
+        var recipes = new ArrayList<SpellCalibrationAdjustmentJeiRecipe>();
+        ForgeRegistries.ITEMS.getValues().stream()
+                .sorted(Comparator.comparing(item -> ForgeRegistries.ITEMS.getKey(item).toString()))
+                .forEach(item -> {
+                    if (!(item instanceof SpellCalibrationAdjustmentTarget target)) {
+                        return;
+                    }
+
+                    var targetStack = item.getDefaultInstance().copyWithCount(1);
+                    for (var rule : target.getCalibrationAdjustmentProfile(targetStack).rules()) {
+                        var candidates = rule.collectDisplayCandidates();
+                        var targetId = ForgeRegistries.ITEMS.getKey(item);
+                        if (candidates.isEmpty()) {
+                            ApprenticeCodex.LOGGER.warn(
+                                    "Spell Calibration Bench JEI rule skipped because it has no display candidates: {}/{}.",
+                                    targetId,
+                                    rule.displayId()
+                            );
+                            continue;
+                        }
+
+                        var displayCandidates = new ArrayList<ItemStack>();
+                        var displayResults = new ArrayList<ItemStack>();
+                        for (var candidate : candidates) {
+                            var result = targetStack.copy();
+                            boolean applied;
+                            try {
+                                applied = target.trySetCalibrationAdjustment(result, 0, candidate);
+                            } catch (RuntimeException exception) {
+                                ApprenticeCodex.LOGGER.warn(
+                                        "Spell Calibration Bench JEI candidate skipped because its sample failed to build: {}/{}/{}.",
+                                        targetId,
+                                        rule.displayId(),
+                                        ForgeRegistries.ITEMS.getKey(candidate.getItem()),
+                                        exception
+                                );
+                                continue;
+                            }
+                            if (!applied) {
+                                ApprenticeCodex.LOGGER.warn(
+                                        "Spell Calibration Bench JEI candidate skipped because it could not be applied: {}/{}/{}.",
+                                        targetId,
+                                        rule.displayId(),
+                                        ForgeRegistries.ITEMS.getKey(candidate.getItem())
+                                );
+                                continue;
+                            }
+                            displayCandidates.add(candidate);
+                            displayResults.add(result);
+                        }
+                        if (displayCandidates.isEmpty()) {
+                            ApprenticeCodex.LOGGER.warn(
+                                    "Spell Calibration Bench JEI rule skipped because none of its display candidates could be applied: {}/{}.",
+                                    targetId,
+                                    rule.displayId()
+                            );
+                            continue;
+                        }
+
+                        recipes.add(new SpellCalibrationAdjustmentJeiRecipe(
+                                ResourceLocation.fromNamespaceAndPath(
+                                        ApprenticeCodex.MODID,
+                                        String.join(
+                                                "/",
+                                                "jei",
+                                                "spell_calibration_bench",
+                                                targetId.getNamespace(),
+                                                targetId.getPath(),
+                                                rule.displayId()
+                                        )
+                                ),
+                                targetStack,
+                                displayCandidates,
+                                displayResults,
+                                rule.effectLines(),
+                                rule.constraintDisplay()
+                        ));
+                    }
+                });
         return recipes;
     }
 

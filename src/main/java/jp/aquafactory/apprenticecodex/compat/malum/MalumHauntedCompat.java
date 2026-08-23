@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff;
 import jp.aquafactory.apprenticecodex.item.pastelstaff.PastelStaff;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaff;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.resources.ResourceLocation;
@@ -66,7 +67,8 @@ public final class MalumHauntedCompat {
                 || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof FocusStaffbow
                 || item instanceof ChargedTwinBladeStaff
-                || item instanceof ManaForceBlade;
+                || item instanceof ManaForceBlade
+                || item instanceof ScrollcasterGauntlet;
     }
 
     public static double resolveHauntedMagicDamageBonus(ItemStack stack) {

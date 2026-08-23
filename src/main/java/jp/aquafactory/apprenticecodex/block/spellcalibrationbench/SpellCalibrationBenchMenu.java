@@ -373,7 +373,6 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     private void refreshTargetCalibration() {
         var gauntletStack = getGauntletStack();
         if (hasGauntlet()) {
-            ScrollcasterGauntlet.refreshCalibrationEnchantments(gauntletStack);
             ScrollcasterGauntlet.refreshResolvedCalibrationSchool(gauntletStack);
             ScrollcasterGauntlet.refreshSelectedSpellContainer(gauntletStack);
         } else if (hasChargecastCatalystbook()) {

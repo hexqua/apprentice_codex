@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
@@ -50,17 +51,20 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
                     CalibrationAdjustmentRule.repeatable(
+                            "slot_upgrade",
                             AutocastAmulet::isCalibrationSlotUpgrade,
                             CalibrationAdjustmentHints.slotUpgrades()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(1)),
                     CalibrationAdjustmentRule.unique(
+                            "silver_ring",
                             AutocastAmulet::isSilverRing,
                             CalibrationAdjustmentHints.silverRing()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.addLongSupport()),
                     CalibrationAdjustmentRule.unique(
+                            "wisdom_shard",
                             AutocastAmulet::isWisdomShard,
                             CalibrationAdjustmentHints.wisdomShard()
-                    )
+                    ).withEffectLines(CalibrationAdjustmentEffects.adaptAutocastSituation())
             );
 
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.autocast_amulet.desc_";
@@ -301,6 +305,16 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
 
     public static void setCalibrationScroll(@NotNull ItemStack amuletStack, int slot, @NotNull ItemStack stack) {
         setCalibrationItem(amuletStack, SCROLLS_TAG, slot, getStoredSpellSlotCount(), stack);
+    }
+
+    @Override
+    public boolean hasAnyStoredCalibrationScroll(@NotNull ItemStack targetStack) {
+        for (var slot = 0; slot < getStoredSpellSlotCount(); ++slot) {
+            if (!getCalibrationScroll(targetStack, slot).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static int getEnabledSpellSlotCount(@NotNull ItemStack amuletStack) {

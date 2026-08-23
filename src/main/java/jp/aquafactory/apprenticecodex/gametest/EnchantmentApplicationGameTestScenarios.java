@@ -147,7 +147,9 @@ final class EnchantmentApplicationGameTestScenarios {
                     expectedMultipurposeStaffrifleEnchantments(new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get())),
                     "Multipurpose Staffrifle");
             assertExactEnchantmentSurfaces(helper,
-                    new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get()), Set.of(), "Scrollcaster Gauntlet");
+                    new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get()),
+                    expectedScrollcasterGauntletEnchantments(new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get())),
+                    "Scrollcaster Gauntlet");
             assertExactEnchantmentSurfaces(helper,
                     new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()),
                     registryIdSet(EnchantmentRegistry.SHELL, EnchantmentRegistry.SYNCHRONIZATION,
@@ -343,7 +345,7 @@ final class EnchantmentApplicationGameTestScenarios {
                 new AttributePolicyCase(ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get(),
                         Set.of(AttributeEnchantmentType.ALACRITY, AttributeEnchantmentType.REFLUX,
                                 AttributeEnchantmentType.RESERVOIR, AttributeEnchantmentType.TENSE)),
-                new AttributePolicyCase(ItemRegistry.SCROLLCASTER_GAUNTLET.get(), Set.of()),
+                new AttributePolicyCase(ItemRegistry.SCROLLCASTER_GAUNTLET.get(), all),
                 new AttributePolicyCase(ItemRegistry.MANA_FORCE_BLADE.get(),
                         Set.of(AttributeEnchantmentType.SURGE, AttributeEnchantmentType.ATTUNEMENT)),
                 new AttributePolicyCase(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
@@ -403,8 +405,8 @@ final class EnchantmentApplicationGameTestScenarios {
         helper.assertTrue(ItemRegistry.MANA_FORCE_BLADE.get().canApplyAtEnchantingTable(
                         new ItemStack(ItemRegistry.MANA_FORCE_BLADE.get()), transcendence),
                 "Mana Force Blade should accept Transcendence");
-        helper.assertFalse(((TranscendencePolicy) gauntlet).supportsDirectTranscendenceApplication(),
-                "Scrollcaster Gauntlet should only receive projected Transcendence");
+        helper.assertTrue(((TranscendencePolicy) gauntlet).supportsDirectTranscendenceApplication(),
+                "Scrollcaster Gauntlet should accept Transcendence through normal enchanting");
         helper.assertTrue(((TranscendencePolicy) elementalBow).transcendenceHandling()
                         == TranscendencePolicy.Handling.INTERNAL,
                 "Elemental Bow should keep internal Transcendence handling");
@@ -747,7 +749,7 @@ final class EnchantmentApplicationGameTestScenarios {
     }
 
     private static Set<ResourceLocation> expectedSmashcastScepterEnchantingTableEnchantments(ItemStack stack) {
-        var expected = new LinkedHashSet<ResourceLocation>();
+        var expected = collectAllowedEnchantments(enchantment -> enchantment.category.canEnchant(stack.getItem()));
         expected.add(ResourceLocation.withDefaultNamespace("smite"));
         expected.add(ResourceLocation.withDefaultNamespace("bane_of_arthropods"));
         expected.add(ResourceLocation.withDefaultNamespace("fire_aspect"));
@@ -807,6 +809,34 @@ final class EnchantmentApplicationGameTestScenarios {
                 EnchantmentRegistry.RESERVOIR, EnchantmentRegistry.SURGE, EnchantmentRegistry.TENSE,
                 EnchantmentRegistry.WISDOM, EnchantmentRegistry.PLUNDER);
         addExpectedMalumSpiritPlunderIfPresent(stack, expected);
+        return expected;
+    }
+
+    private static Set<ResourceLocation> expectedScrollcasterGauntletEnchantments(ItemStack stack) {
+        var sword = new ItemStack(Items.DIAMOND_SWORD);
+        var pickaxe = new ItemStack(Items.DIAMOND_PICKAXE);
+        var durability = new ItemStack(Items.ELYTRA);
+        var expected = collectAllowedEnchantments(enchantment ->
+                (enchantment.canApplyAtEnchantingTable(sword)
+                        || enchantment.canApplyAtEnchantingTable(pickaxe))
+                        && !enchantment.canApplyAtEnchantingTable(durability));
+        expected.addAll(collectAllowedEnchantments(enchantment -> enchantment.category.canEnchant(stack.getItem())));
+        expected.addAll(registryIdSet(
+                EnchantmentRegistry.ALACRITY,
+                EnchantmentRegistry.REFLUX,
+                EnchantmentRegistry.RESERVOIR,
+                EnchantmentRegistry.SURGE,
+                EnchantmentRegistry.ATTUNEMENT,
+                EnchantmentRegistry.TENSE,
+                EnchantmentRegistry.TRANSCENDENCE,
+                EnchantmentRegistry.WISDOM
+        ));
+        addExpectedMalumHauntedIfPresent(stack, expected);
+        addExpectedMalumSpiritPlunderIfPresent(stack, expected);
+        addExpectedMalumReplenishingIfPresent(expected);
+        if (ModList.get().isLoaded(MALUM_MOD_ID)) {
+            expected.add(MALUM_ANIMATED);
+        }
         return expected;
     }
 

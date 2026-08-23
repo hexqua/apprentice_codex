@@ -82,21 +82,30 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
                     CalibrationAdjustmentRule.repeatable(
+                            "slot_upgrade",
                             RevolvercastStaff::isCalibrationSlotUpgrade,
                             CalibrationAdjustmentHints.slotUpgrades()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(
+                            CALIBRATION_SCROLL_SLOTS_PER_UPGRADE
+                    )),
                     CalibrationAdjustmentRule.unique(
+                            "school_rune",
                             ScrollcasterSchoolRuneResolver::isSchoolRune,
-                            CalibrationAdjustmentHints.schoolRunes()
-                    ),
+                            CalibrationAdjustmentHints.schoolRunes(),
+                            CalibrationAdjustmentHints.schoolRuneConstraint()
+                    ).withEffectLines(CalibrationAdjustmentEffects.changeSpellPower(
+                            RevolvercastStaff.SCHOOL_SPELL_POWER_BONUS
+                    )),
                     CalibrationAdjustmentRule.unique(
+                            "recovery_rune",
                             RevolvercastStaff::isRecoveryRune,
                             CalibrationAdjustmentHints.recoveryRune()
-                    ),
+                    ).withEffectLines(CalibrationAdjustmentEffects.switchSlotOnFailedCast()),
                     CalibrationAdjustmentRule.unique(
+                            "silver_ring",
                             RevolvercastStaff::isSilverRing,
                             CalibrationAdjustmentHints.silverRing()
-                    )
+                    ).withEffectLines(CalibrationAdjustmentEffects.addLongSupport())
             );
 
     private static final String ORB_CONTROLLER = "orb";
@@ -506,6 +515,16 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
 
     public static boolean hasAnyCalibrationScroll(@NotNull ItemStack staffStack) {
         return findFirstValidScrollIndex(staffStack) >= 0;
+    }
+
+    @Override
+    public boolean hasAnyStoredCalibrationScroll(@NotNull ItemStack targetStack) {
+        for (var slot = 0; slot < CALIBRATION_SCROLL_SLOT_COUNT; ++slot) {
+            if (!getCalibrationScroll(targetStack, slot).isEmpty()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static int getEnabledCalibrationScrollSlotCount(@NotNull ItemStack staffStack) {
