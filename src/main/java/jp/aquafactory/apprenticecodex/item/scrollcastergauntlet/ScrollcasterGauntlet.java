@@ -529,10 +529,12 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             return false;
         }
 
-        // 1.21.1 では Malum 側の supported_items で許可されるため、1.20.1 では個別に合成する。
-        if (MalumHauntedCompat.isAnimatedEnchantment(enchantmentId)
-                || (MalumHauntedCompat.isHauntedEnchantment(enchantmentId)
-                && MalumHauntedCompat.isSupportedHauntedMainhandItem(gauntletStack))) {
+        // Malum 1.20.1 の Animated は説明上大鎌専用のため、1.21.1 の supported_items とは分けて拒否する。
+        if (MalumHauntedCompat.isAnimatedEnchantment(enchantmentId)) {
+            return false;
+        }
+        if (MalumHauntedCompat.isHauntedEnchantment(enchantmentId)
+                && MalumHauntedCompat.isSupportedHauntedMainhandItem(gauntletStack)) {
             return true;
         }
 

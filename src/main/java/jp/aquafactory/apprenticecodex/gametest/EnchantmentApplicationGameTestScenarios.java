@@ -835,9 +835,6 @@ final class EnchantmentApplicationGameTestScenarios {
         addExpectedMalumHauntedIfPresent(stack, expected);
         addExpectedMalumSpiritPlunderIfPresent(stack, expected);
         addExpectedMalumReplenishingIfPresent(expected);
-        if (ModList.get().isLoaded(MALUM_MOD_ID)) {
-            expected.add(MALUM_ANIMATED);
-        }
         return expected;
     }
 

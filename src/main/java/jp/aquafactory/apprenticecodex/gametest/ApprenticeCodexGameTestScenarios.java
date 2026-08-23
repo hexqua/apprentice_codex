@@ -3905,13 +3905,25 @@ public class ApprenticeCodexGameTestScenarios {
                     "Scrollcaster Gauntlet anvil merge should accept Sharpness");
 
             if (ModList.get().isLoaded(MALUM_MOD_ID)) {
-                for (var enchantmentId : List.of(MALUM_SPIRIT_PLUNDER, MALUM_HAUNTED, MALUM_ANIMATED)) {
+                for (var enchantmentId : List.of(MALUM_SPIRIT_PLUNDER, MALUM_HAUNTED)) {
                     var enchantment = ForgeRegistries.ENCHANTMENTS.getValue(enchantmentId);
                     helper.assertTrue(enchantment != null,
                             "Malum enchantment should be registered: " + enchantmentId);
                     helper.assertTrue(item.canApplyAtEnchantingTable(gauntlet, enchantment),
                             "Scrollcaster Gauntlet should support compatible Malum enchantment " + enchantmentId);
                 }
+                var animated = ForgeRegistries.ENCHANTMENTS.getValue(MALUM_ANIMATED);
+                helper.assertTrue(animated != null, "Malum Animated enchantment should be registered");
+                helper.assertFalse(item.canApplyAtEnchantingTable(gauntlet, animated),
+                        "Scrollcaster Gauntlet should reject Malum Animated on 1.20.1");
+                helper.assertFalse(item.isBookEnchantable(
+                                gauntlet,
+                                createEnchantedBook(new EnchantmentInstance(animated, 1))
+                        ),
+                        "Scrollcaster Gauntlet anvil should reject Malum Animated on 1.20.1");
+                helper.assertFalse(((NonDamageableAnvilMergeItem) item)
+                                .isAnvilMergeEnchantmentAllowed(gauntlet, animated),
+                        "Scrollcaster Gauntlet anvil merge should reject Malum Animated on 1.20.1");
             }
         });
     }
