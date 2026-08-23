@@ -15,15 +15,11 @@ import jp.aquafactory.apprenticecodex.item.spellchargedgreatsword.SpellchargedGr
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -40,7 +36,6 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -82,8 +77,8 @@ public class ManaTranscription extends AbstractSpell {
                     "ui.apprenticecodex.mana_transcription.target_operation.work_count"
             );
         } else if (resolution.success() && resolution.candidates().size() == 1) {
-            var candidate = resolution.candidates().getFirst();
-            targetOperation = Enchantment.getFullname(candidate.enchantment(), candidate.level()).copy();
+            var candidate = resolution.candidates().get(0);
+            targetOperation = candidate.enchantment().getFullname(candidate.level()).copy();
         } else if (resolution.success()) {
             targetOperation = Component.translatable(
                     "ui.apprenticecodex.mana_transcription.target_operation.random",
@@ -188,7 +183,7 @@ public class ManaTranscription extends AbstractSpell {
         if (castData.mode == ManaTranscriptionLogic.Mode.EXTRACTION && castData.selectedEnchantment != null) {
             sendActionBar(player, Component.translatable(
                     "ui.apprenticecodex.mana_transcription.operation_help.enchantment",
-                    Enchantment.getFullname(castData.selectedEnchantment, castData.selectedLevel),
+                    castData.selectedEnchantment.getFullname(castData.selectedLevel),
                     castData.requiredExperience
             ));
         } else {
@@ -253,9 +248,13 @@ public class ManaTranscription extends AbstractSpell {
             return;
         }
 
-        EnchantmentHelper.updateEnchantments(target, mutable -> mutable.set(selected, 0));
-        var oldRepairCost = target.getOrDefault(DataComponents.REPAIR_COST, 0);
-        target.set(DataComponents.REPAIR_COST, AnvilMenu.calculateIncreasedRepairCost(oldRepairCost));
+        var enchantments = EnchantmentHelper.getEnchantments(target);
+        enchantments.remove(selected);
+        if (target.is(Items.ENCHANTED_BOOK)) {
+            target.removeTagKey("StoredEnchantments");
+        }
+        EnchantmentHelper.setEnchantments(enchantments, target);
+        target.setRepairCost(AnvilMenu.calculateIncreasedRepairCost(target.getBaseRepairCost()));
 
         var result = EnchantedBookItem.createForEnchantment(new EnchantmentInstance(selected, castData.selectedLevel));
         player.getInventory().offhand.set(
@@ -264,7 +263,7 @@ public class ManaTranscription extends AbstractSpell {
         );
         sendActionBar(player, Component.translatable(
                 "ui.apprenticecodex.mana_transcription.finished_enchantment",
-                Enchantment.getFullname(selected, castData.selectedLevel)
+                selected.getFullname(castData.selectedLevel)
         ).withStyle(ChatFormatting.GREEN));
     }
 
@@ -272,7 +271,7 @@ public class ManaTranscription extends AbstractSpell {
         var target = player.getMainHandItem();
         var operationItem = ManaTranscriptionLogic.physicalOffhandItem(player);
         var consumedItemName = operationItem.getHoverName();
-        target.set(DataComponents.REPAIR_COST, 0);
+        target.setRepairCost(0);
 
         if (player.isCreative()) {
             sendActionBar(player, Component.translatable(
@@ -352,7 +351,7 @@ public class ManaTranscription extends AbstractSpell {
         private ResourceLocation selectedEnchantmentId;
         private int selectedLevel;
         private int requiredExperience;
-        private transient Holder<Enchantment> selectedEnchantment;
+        private transient Enchantment selectedEnchantment;
         private transient ItemStack targetReference = ItemStack.EMPTY;
         private transient ItemStack operationItemReference = ItemStack.EMPTY;
         private transient ItemStack targetSnapshot = ItemStack.EMPTY;
@@ -372,9 +371,8 @@ public class ManaTranscription extends AbstractSpell {
             operationItemSnapshot = operationItemReference.copy();
             if (selected != null) {
                 selectedEnchantment = selected.enchantment();
-                selectedEnchantmentId = selected.enchantment().unwrapKey()
-                        .map(ResourceKey::location)
-                        .orElse(null);
+                selectedEnchantmentId = net.minecraftforge.registries.ForgeRegistries.ENCHANTMENTS
+                        .getKey(selected.enchantment());
                 selectedLevel = selected.level();
             }
         }
@@ -429,7 +427,7 @@ public class ManaTranscription extends AbstractSpell {
         }
 
         @Override
-        public CompoundTag serializeNBT(HolderLookup.@NotNull Provider provider) {
+        public CompoundTag serializeNBT() {
             var tag = new CompoundTag();
             tag.putBoolean("Locked", locked);
             tag.putString("Mode", mode.name());
@@ -442,7 +440,7 @@ public class ManaTranscription extends AbstractSpell {
         }
 
         @Override
-        public void deserializeNBT(HolderLookup.@NotNull Provider provider, CompoundTag tag) {
+        public void deserializeNBT(CompoundTag tag) {
             locked = tag.getBoolean("Locked");
             try {
                 mode = tag.contains("Mode")

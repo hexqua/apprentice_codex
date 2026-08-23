@@ -9,24 +9,23 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.manatranscription.ManaTranscription;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.server.network.Filterable;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.WritableBookContent;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.GameType;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.neoforged.fml.ModList;
-
-import java.util.List;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.fml.ModList;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -40,8 +39,7 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
     public static void extractionConsumesPointsAndUsesVanillaRepairCost(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createPlayer(helper, "mana_transcription_extract");
-            var enchantments = player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-            var unbreaking = enchantments.getOrThrow(Enchantments.UNBREAKING);
+            var unbreaking = Enchantments.UNBREAKING;
             var target = new ItemStack(Items.DIAMOND_SWORD);
             target.enchant(unbreaking, 1);
             player.setItemInHand(InteractionHand.MAIN_HAND, target);
@@ -55,13 +53,13 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
                     "Mana Transcription should accept an enchanted mainhand and blank writable book");
             spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
 
-            helper.assertTrue(EnchantmentHelper.getEnchantmentsForCrafting(target).isEmpty(),
+            helper.assertTrue(EnchantmentHelper.getEnchantments(target).isEmpty(),
                     "Mana Transcription should remove the selected enchantment from the target");
-            helper.assertTrue(target.getOrDefault(DataComponents.REPAIR_COST, 0) == 1,
+            helper.assertTrue(target.getBaseRepairCost() == 1,
                     "Mana Transcription should increase repair cost with the vanilla formula");
-            var resultEnchantments = EnchantmentHelper.getEnchantmentsForCrafting(player.getOffhandItem());
+            var resultEnchantments = EnchantmentHelper.getEnchantments(player.getOffhandItem());
             helper.assertTrue(player.getOffhandItem().is(Items.ENCHANTED_BOOK)
-                            && resultEnchantments.getLevel(unbreaking) == 1,
+                            && resultEnchantments.getOrDefault(unbreaking, 0) == 1,
                     "Mana Transcription should replace the writable book with the selected enchanted book");
             helper.assertTrue(player.totalExperience == experienceBefore - 16,
                     "Unbreaking I should cost the cumulative XP required for level 2");
@@ -76,8 +74,7 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
             }
 
             var player = createPlayer(helper, "mana_transcription_better_combat");
-            var enchantments = player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-            var unbreaking = enchantments.getOrThrow(Enchantments.UNBREAKING);
+            var unbreaking = Enchantments.UNBREAKING;
             var target = new ItemStack(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
             target.enchant(unbreaking, 1);
             player.setItemInHand(InteractionHand.MAIN_HAND, target);
@@ -103,9 +100,9 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
 
             var physicalOffhand = player.getInventory().offhand.get(0);
             helper.assertTrue(physicalOffhand.is(Items.ENCHANTED_BOOK)
-                            && EnchantmentHelper.getEnchantmentsForCrafting(physicalOffhand).getLevel(unbreaking) == 1,
+                            && EnchantmentHelper.getEnchantments(physicalOffhand).getOrDefault(unbreaking, 0) == 1,
                     "Mana Transcription should replace the physical offhand book with the enchanted result");
-            helper.assertTrue(EnchantmentHelper.getEnchantmentsForCrafting(player.getMainHandItem()).isEmpty(),
+            helper.assertTrue(EnchantmentHelper.getEnchantments(player.getMainHandItem()).isEmpty(),
                     "Mana Transcription should remove the enchantment from the two-handed target");
         });
     }
@@ -114,9 +111,8 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
     public static void curseOverridesHigherNonCurseWeight(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createPlayer(helper, "mana_transcription_curse");
-            var enchantments = player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-            var vanishing = enchantments.getOrThrow(Enchantments.VANISHING_CURSE);
-            var unbreaking = enchantments.getOrThrow(Enchantments.UNBREAKING);
+            var vanishing = Enchantments.VANISHING_CURSE;
+            var unbreaking = Enchantments.UNBREAKING;
             var target = new ItemStack(Items.DIAMOND_SWORD);
             target.enchant(vanishing, 1);
             target.enchant(unbreaking, 3);
@@ -130,12 +126,12 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
                     "Mana Transcription should accept curse extraction");
             spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
 
-            var targetEnchantments = EnchantmentHelper.getEnchantmentsForCrafting(target);
-            var resultEnchantments = EnchantmentHelper.getEnchantmentsForCrafting(player.getOffhandItem());
-            helper.assertTrue(targetEnchantments.getLevel(vanishing) == 0
-                            && targetEnchantments.getLevel(unbreaking) == 3,
+            var targetEnchantments = EnchantmentHelper.getEnchantments(target);
+            var resultEnchantments = EnchantmentHelper.getEnchantments(player.getOffhandItem());
+            helper.assertTrue(targetEnchantments.getOrDefault(vanishing, 0) == 0
+                            && targetEnchantments.getOrDefault(unbreaking, 0) == 3,
                     "A curse should be extracted before a higher-weight non-curse enchantment");
-            helper.assertTrue(resultEnchantments.getLevel(vanishing) == 1,
+            helper.assertTrue(resultEnchantments.getOrDefault(vanishing, 0) == 1,
                     "The extracted book should contain the curse");
         });
     }
@@ -144,9 +140,8 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
     public static void tiedCandidatesChooseExactlyOneOnServer(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createPlayer(helper, "mana_transcription_tie");
-            var enchantments = player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-            var unbreaking = enchantments.getOrThrow(Enchantments.UNBREAKING);
-            var sharpness = enchantments.getOrThrow(Enchantments.SHARPNESS);
+            var unbreaking = Enchantments.UNBREAKING;
+            var sharpness = Enchantments.SHARPNESS;
             var target = new ItemStack(Items.DIAMOND_SWORD);
             target.enchant(unbreaking, 1);
             target.enchant(sharpness, 2);
@@ -160,14 +155,15 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
                     "Equal weighted enchantments should be valid server-side candidates");
             spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
 
-            var remaining = EnchantmentHelper.getEnchantmentsForCrafting(target);
-            var extracted = EnchantmentHelper.getEnchantmentsForCrafting(player.getOffhandItem());
-            var extractedUnbreaking = extracted.getLevel(unbreaking) == 1;
-            var extractedSharpness = extracted.getLevel(sharpness) == 2;
+            var remaining = EnchantmentHelper.getEnchantments(target);
+            var extracted = EnchantmentHelper.getEnchantments(player.getOffhandItem());
+            var extractedUnbreaking = extracted.getOrDefault(unbreaking, 0) == 1;
+            var extractedSharpness = extracted.getOrDefault(sharpness, 0) == 2;
             helper.assertTrue(extractedUnbreaking ^ extractedSharpness,
                     "A server-authoritative tie should extract exactly one candidate");
             helper.assertTrue(remaining.size() == 1
-                            && (remaining.getLevel(unbreaking) == 1 ^ remaining.getLevel(sharpness) == 2),
+                            && (remaining.getOrDefault(unbreaking, 0) == 1
+                            ^ remaining.getOrDefault(sharpness, 0) == 2),
                     "The unselected tied candidate should remain on the target");
         });
     }
@@ -176,8 +172,7 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
     public static void stackedWritableBooksInsertOutputWithoutReplacingStack(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createPlayer(helper, "mana_transcription_stacked_books");
-            var enchantments = player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-            var unbreaking = enchantments.getOrThrow(Enchantments.UNBREAKING);
+            var unbreaking = Enchantments.UNBREAKING;
             var target = new ItemStack(Items.DIAMOND_SWORD);
             target.enchant(unbreaking, 1);
             var writableBooks = new ItemStack(Items.WRITABLE_BOOK, 2);
@@ -196,7 +191,7 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
                     "A stacked writable book should consume one item without replacing the offhand stack");
             helper.assertTrue(player.getInventory().items.stream().anyMatch(stack ->
                             stack.is(Items.ENCHANTED_BOOK)
-                                    && EnchantmentHelper.getEnchantmentsForCrafting(stack).getLevel(unbreaking) == 1),
+                                    && EnchantmentHelper.getEnchantments(stack).getOrDefault(unbreaking, 0) == 1),
                     "The enchanted-book output should be inserted into the inventory");
         });
     }
@@ -206,7 +201,7 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
         helper.succeedIf(() -> {
             var player = createPlayer(helper, "mana_transcription_reset");
             var target = new ItemStack(Items.DIAMOND_SWORD);
-            target.set(DataComponents.REPAIR_COST, 3);
+            target.setRepairCost(3);
             player.setItemInHand(InteractionHand.MAIN_HAND, target);
             player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(ItemRegistry.SPELLSTAINED_DIAMOND.get()));
             player.giveExperiencePoints(1_000);
@@ -218,7 +213,7 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
                     "Mana Transcription should accept a tagged reset catalyst");
             spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
 
-            helper.assertTrue(target.getOrDefault(DataComponents.REPAIR_COST, 0) == 0,
+            helper.assertTrue(target.getBaseRepairCost() == 0,
                     "Mana Transcription should clear the repair cost");
             helper.assertTrue(player.getOffhandItem().isEmpty(),
                     "Survival repair-cost reset should consume one catalyst");
@@ -231,14 +226,13 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
     public static void extractionRejectsWrittenAndSingleEnchantmentBooks(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createPlayer(helper, "mana_transcription_rejections");
-            var enchantments = player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-            var unbreaking = enchantments.getOrThrow(Enchantments.UNBREAKING);
+            var unbreaking = Enchantments.UNBREAKING;
             var target = new ItemStack(Items.DIAMOND_SWORD);
             target.enchant(unbreaking, 1);
             var writtenBook = new ItemStack(Items.WRITABLE_BOOK);
-            writtenBook.set(DataComponents.WRITABLE_BOOK_CONTENT, new WritableBookContent(List.of(
-                    Filterable.passThrough("draft")
-            )));
+            var pages = new ListTag();
+            pages.add(StringTag.valueOf("draft"));
+            writtenBook.getOrCreateTag().put("pages", pages);
             player.setItemInHand(InteractionHand.MAIN_HAND, target);
             player.setItemInHand(InteractionHand.OFF_HAND, writtenBook);
             player.giveExperiencePoints(1_000);
@@ -248,12 +242,42 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
             helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
                     "Mana Transcription should reject a writable book with non-empty raw text");
 
-            var enchantedBook = new ItemStack(Items.ENCHANTED_BOOK);
-            enchantedBook.enchant(unbreaking, 1);
+            var enchantedBook = EnchantedBookItem.createForEnchantment(
+                    new EnchantmentInstance(unbreaking, 1)
+            );
             player.setItemInHand(InteractionHand.MAIN_HAND, enchantedBook);
             player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.WRITABLE_BOOK));
             helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
                     "Mana Transcription should reject an enchanted book with one enchantment");
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void multipleEnchantmentBookExtractsSelectedOnly(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createPlayer(helper, "mana_transcription_multi_enchantment_book");
+            var target = EnchantedBookItem.createForEnchantment(
+                    new EnchantmentInstance(Enchantments.UNBREAKING, 3)
+            );
+            EnchantedBookItem.addEnchantment(target, new EnchantmentInstance(Enchantments.SHARPNESS, 1));
+            player.setItemInHand(InteractionHand.MAIN_HAND, target);
+            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.WRITABLE_BOOK));
+            player.giveExperiencePoints(1_000);
+
+            var spell = spell();
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
+                    "Mana Transcription should accept an enchanted book with multiple enchantments");
+            spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
+
+            var remaining = EnchantmentHelper.getEnchantments(target);
+            var extracted = EnchantmentHelper.getEnchantments(player.getOffhandItem());
+            helper.assertTrue(remaining.size() == 1
+                            && remaining.getOrDefault(Enchantments.SHARPNESS, 0) == 1,
+                    "Mana Transcription should remove only the selected enchantment from the source book");
+            helper.assertTrue(extracted.size() == 1
+                            && extracted.getOrDefault(Enchantments.UNBREAKING, 0) == 3,
+                    "Mana Transcription should transcribe the highest-priority enchantment from the source book");
         });
     }
 
@@ -263,7 +287,7 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
             var player = createPlayer(helper, "mana_transcription_creative_reset");
             player.gameMode.changeGameModeForPlayer(GameType.CREATIVE);
             var target = new ItemStack(Items.DIAMOND_SWORD);
-            target.set(DataComponents.REPAIR_COST, 7);
+            target.setRepairCost(7);
             player.setItemInHand(InteractionHand.MAIN_HAND, target);
             player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(ItemRegistry.SPELLSTAINED_DIAMOND.get()));
 
@@ -273,7 +297,7 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
                     "Creative Mana Transcription should ignore experience requirements");
             spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
 
-            helper.assertTrue(target.getOrDefault(DataComponents.REPAIR_COST, 0) == 0,
+            helper.assertTrue(target.getBaseRepairCost() == 0,
                     "Creative Mana Transcription should still mutate the target");
             helper.assertTrue(player.getOffhandItem().getCount() == 1,
                     "Creative Mana Transcription should not consume the reset catalyst");
@@ -286,8 +310,7 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
     public static void changedHandsFailCompletionWithoutMutation(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createPlayer(helper, "mana_transcription_swap");
-            var enchantments = player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-            var unbreaking = enchantments.getOrThrow(Enchantments.UNBREAKING);
+            var unbreaking = Enchantments.UNBREAKING;
             var target = new ItemStack(Items.DIAMOND_SWORD);
             target.enchant(unbreaking, 1);
             player.setItemInHand(InteractionHand.MAIN_HAND, target);
@@ -302,7 +325,8 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
             player.setItemInHand(InteractionHand.MAIN_HAND, target.copy());
             spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magicData);
 
-            helper.assertTrue(EnchantmentHelper.getEnchantmentsForCrafting(player.getMainHandItem()).getLevel(unbreaking) == 1,
+            helper.assertTrue(EnchantmentHelper.getEnchantments(player.getMainHandItem())
+                            .getOrDefault(unbreaking, 0) == 1,
                     "An identical replacement stack should still fail the identity lock");
             helper.assertTrue(player.totalExperience == experienceBefore,
                     "A completion-time hand mismatch should not consume experience");
@@ -313,7 +337,7 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
     public static void castTimeIgnoresReductionAttribute(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createPlayer(helper, "mana_transcription_cast_time");
-            var attribute = player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION);
+            var attribute = player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION.get());
             helper.assertTrue(attribute != null, "Cast-time reduction attribute should be available");
             if (attribute != null) {
                 attribute.setBaseValue(10.0D);
@@ -328,7 +352,7 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
         return (ManaTranscription) SpellRegistry.MANA_TRANSCRIPTION.get();
     }
 
-    private static net.neoforged.neoforge.common.util.FakePlayer createPlayer(GameTestHelper helper, String name) {
+    private static FakePlayer createPlayer(GameTestHelper helper, String name) {
         return ApprenticeCodexGameTestScenarios.createTrackedEquipmentTestPlayer(
                 helper, new BlockPos(0, 2, 0), name
         );

@@ -2,10 +2,8 @@ package jp.aquafactory.apprenticecodex.spell.manatranscription;
 
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.HandStackResolver;
-import net.minecraft.core.Holder;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.tags.EnchantmentTags;
+import net.minecraft.nbt.Tag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -25,9 +23,9 @@ final class ManaTranscriptionLogic {
     static Resolution resolve(Player player) {
         var target = player.getMainHandItem();
         var operationItem = physicalOffhandItem(player);
-        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(target);
-        int repairCost = target.getOrDefault(DataComponents.REPAIR_COST, 0);
-        var hasEnchantment = enchantments.entrySet().stream().anyMatch(entry -> entry.getIntValue() > 0);
+        var enchantments = EnchantmentHelper.getEnchantments(target);
+        int repairCost = target.getBaseRepairCost();
+        var hasEnchantment = enchantments.entrySet().stream().anyMatch(entry -> entry.getValue() > 0);
 
         if (target.isEmpty() || !hasEnchantment && repairCost <= 0) {
             return Resolution.failure(Failure.INVALID_TARGET);
@@ -50,14 +48,14 @@ final class ManaTranscriptionLogic {
     }
 
     private static Resolution resolveExtraction(Player player, ItemStack target, ItemStack operationItem, int repairCost) {
-        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(target);
+        var enchantments = EnchantmentHelper.getEnchantments(target);
         var allCandidates = enchantments.entrySet().stream()
-                .filter(entry -> entry.getIntValue() > 0)
+                .filter(entry -> entry.getValue() > 0)
                 .map(entry -> new Candidate(
                         entry.getKey(),
-                        entry.getIntValue(),
-                        entry.getKey().is(EnchantmentTags.CURSE),
-                        saturatedMultiply(entry.getIntValue(), entry.getKey().value().getAnvilCost())
+                        entry.getValue(),
+                        entry.getKey().isCurse(),
+                        saturatedMultiply(entry.getValue(), anvilCost(entry.getKey()))
                 ))
                 .toList();
         if (target.is(Items.ENCHANTED_BOOK) && allCandidates.size() == 1) {
@@ -75,7 +73,7 @@ final class ManaTranscriptionLogic {
             return Resolution.failure(Failure.NO_ENCHANTMENT);
         }
 
-        var representative = candidates.getFirst();
+        var representative = candidates.get(0);
         var enchantmentCost = representative.curse()
                 ? saturatedMultiply(representative.weightedLevel(), 4)
                 : representative.weightedLevel();
@@ -97,8 +95,26 @@ final class ManaTranscriptionLogic {
     }
 
     static boolean isBlankWritableBook(ItemStack stack) {
-        var content = stack.get(DataComponents.WRITABLE_BOOK_CONTENT);
-        return content == null || content.pages().stream().allMatch(page -> page.raw().isEmpty());
+        if (!stack.hasTag()) {
+            return true;
+        }
+
+        var pages = stack.getOrCreateTag().getList("pages", Tag.TAG_STRING);
+        for (var index = 0; index < pages.size(); ++index) {
+            if (!pages.getString(index).isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static int anvilCost(Enchantment enchantment) {
+        return switch (enchantment.getRarity()) {
+            case COMMON -> 1;
+            case UNCOMMON -> 2;
+            case RARE -> 4;
+            case VERY_RARE -> 8;
+        };
     }
 
     static ItemStack physicalOffhandItem(Player player) {
@@ -179,7 +195,7 @@ final class ManaTranscriptionLogic {
         NO_WORK_COUNT
     }
 
-    record Candidate(Holder<Enchantment> enchantment, int level, boolean curse, int weightedLevel) {
+    record Candidate(Enchantment enchantment, int level, boolean curse, int weightedLevel) {
     }
 
     record Resolution(boolean success, Mode mode, List<Candidate> candidates, int requiredExperience, Failure failure) {

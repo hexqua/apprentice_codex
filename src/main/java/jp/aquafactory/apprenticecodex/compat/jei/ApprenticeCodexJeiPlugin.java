@@ -32,7 +32,6 @@ import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IVanillaCategoryExtensionRegistration;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.AnvilMenu;
@@ -364,16 +363,14 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
             return List.of();
         }
 
-        var enchantments = clientLevel.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-        var unbreaking = enchantments.getOrThrow(Enchantments.UNBREAKING);
+        var unbreaking = Enchantments.UNBREAKING;
         var enchantedTarget = new ItemStack(Items.DIAMOND_SWORD);
         enchantedTarget.enchant(unbreaking, 3);
         var extractedTarget = enchantedTarget.copy();
-        EnchantmentHelper.updateEnchantments(extractedTarget, mutable -> mutable.set(unbreaking, 0));
-        extractedTarget.set(
-                DataComponents.REPAIR_COST,
-                AnvilMenu.calculateIncreasedRepairCost(extractedTarget.getOrDefault(DataComponents.REPAIR_COST, 0))
-        );
+        var extractedEnchantments = EnchantmentHelper.getEnchantments(extractedTarget);
+        extractedEnchantments.remove(unbreaking);
+        EnchantmentHelper.setEnchantments(extractedEnchantments, extractedTarget);
+        extractedTarget.setRepairCost(AnvilMenu.calculateIncreasedRepairCost(extractedTarget.getBaseRepairCost()));
         var enchantedBook = EnchantedBookItem.createForEnchantment(new EnchantmentInstance(unbreaking, 3));
 
         var recipes = new ArrayList<ManaTranscriptionJeiRecipe>();
@@ -396,9 +393,9 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         }
         if (!effectiveResetItems.isEmpty()) {
             var workedTarget = new ItemStack(Items.DIAMOND_SWORD);
-            workedTarget.set(DataComponents.REPAIR_COST, 7);
+            workedTarget.setRepairCost(7);
             var resetTarget = workedTarget.copy();
-            resetTarget.set(DataComponents.REPAIR_COST, 0);
+            resetTarget.setRepairCost(0);
             recipes.add(new ManaTranscriptionJeiRecipe(
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "jei/mana_transcription/repair_cost_reset"),
                     ManaTranscriptionJeiRecipe.Mode.REPAIR_COST_RESET,
