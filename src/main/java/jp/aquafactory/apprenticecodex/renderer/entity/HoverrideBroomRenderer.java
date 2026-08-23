@@ -17,8 +17,8 @@ public final class HoverrideBroomRenderer extends BroomEntityRenderer<HoverrideB
 
     @Override
     protected void applyRotations(HoverrideBroomEntity broom, PoseStack poseStack, float ageInTicks,
-                                  float rotationYaw, float partialTick, float nativeScale) {
-        super.applyRotations(broom, poseStack, ageInTicks, rotationYaw, partialTick, nativeScale);
+                                  float rotationYaw, float partialTick) {
+        super.applyRotations(broom, poseStack, ageInTicks, rotationYaw, partialTick);
 
         var intensity = broom.getSpeedEffectIntensity();
         var pitch = switch (broom.getPresentationState()) {
