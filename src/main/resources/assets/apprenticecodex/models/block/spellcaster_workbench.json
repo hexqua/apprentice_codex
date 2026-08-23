@@ -4,7 +4,7 @@
 	"texture_size": [64, 64],
 	"textures": {
 		"0": "apprenticecodex:block/spellcaster_workbench",
-		"particle": "apprenticecodex:block/spellcaster_workbench"
+		"particle": "apprenticecodex:block/wooden_machine_particle"
 	},
 	"elements": [
 		{

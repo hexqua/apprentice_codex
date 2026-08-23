@@ -6,7 +6,7 @@
 	"texture_size": [64, 64],
 	"textures": {
 		"0": "apprenticecodex:block/arcanum_in_a_jar",
-		"particle": "apprenticecodex:block/arcanum_in_a_jar"
+		"particle": "apprenticecodex:block/arcanum_in_a_jar_particle"
 	},
 	"elements": [
 		{
