@@ -216,6 +216,17 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.BLANK_RUNE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.BLANK_RUNE.get()))
                 .save(recipeWriter);
 
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get(), 4)
+                .requires(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get())
+                .requires(ItemRegistry.SPELL_EXTRACT_SHARD.get())
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()))
+                .save(recipeOutput);
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get())
+                .requires(ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get(), 4)
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()))
+                .save(recipeOutput);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.STORAGE_STABILIZER.get())
                 .pattern(" MA")
                 .pattern(" C ")
@@ -1169,11 +1180,11 @@ public final class RecipeGenerator extends RecipeProvider {
         SmithingTransformRecipeBuilder.smithing(
                         Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.PROTECTION_RUNE.get()),
                         Ingredient.of(baseTag),
-                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()),
+                        Ingredient.of(ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get()),
                         RecipeCategory.COMBAT,
                         result
                 )
-                .unlocks(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()))
+                .unlocks(getHasName(ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get()), has(ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get()))
                 .save(recipeWriter, ForgeRegistries.ITEMS.getKey(result));
     }
 

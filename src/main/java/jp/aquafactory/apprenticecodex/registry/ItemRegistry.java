@@ -161,6 +161,7 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> SPELL_EXTRACT_SHARD = ITEMS.register("spell_extract_shard", SpellExtractShard::new);
     public static final RegistryObject<Item> CRYSTALLINE_ARCANE_SHARD = simple("crystalline_arcane_shard");
     public static final RegistryObject<Item> BULLET_RUNE = simple("bullet_rune");
+    public static final RegistryObject<Item> MITHRIL_WEAVE_OFFCUTS = simple("mithril_weave_offcuts");
 
     public static final RegistryObject<Item> COMFORT_BERRIES =
             ITEMS.register("comfort_berries", () -> new ItemNameBlockItem(
