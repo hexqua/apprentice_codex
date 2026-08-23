@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.entity.floatmountbroom;
+package jp.aquafactory.apprenticecodex.entity.broom;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
@@ -7,7 +7,6 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
-import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
@@ -34,6 +33,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.DismountHelper;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
@@ -51,9 +51,10 @@ import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.Objects;
 import java.util.Optional;
 
-public class FloatmountBroomEntity extends Entity implements GeoEntity {
+public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     public static final float WIDTH = 0.8F;
     public static final float HEIGHT = 0.5F;
     public static final int DISMOUNT_CONFIRM_TICKS = 30;
@@ -76,6 +77,8 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
     private static final float TURN_DAMPING = 0.9F;
     private static final float INPUT_EPSILON = 1.0e-4F;
     private static final int SERVER_INPUT_TIMEOUT_TICKS = 30;
+    private static final int SERVER_RIDING_MOVEMENT_GRACE_TICKS = 2;
+    private static final double MOVEMENT_EPSILON_SQR = 1.0e-8D;
     private static final int DAMAGE_RECOVERY_INTERVAL_TICKS = 10;
     private static final int RETRIEVE_HELP_COOLDOWN_TICKS = 40;
     private static final double RETRIEVE_HELP_DISTANCE_SQR = 16.0D;
@@ -95,20 +98,21 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
     private static final String DAMAGE_TAG = "Damage";
     private static final String DAMAGED_TAG = "Damaged";
     /**
-     * 箒のEntity原点から乗員のvehicle attachmentまでの高さ。モデル調整ではこの値だけを変更する。
+     * 箒のEntity原点から乗員のvehicle attachmentまでの基準高さ。
+     * 箒ごとの姿勢差は{@link #passengerAttachmentYOffset()}で追加補正する。
      */
     public static final float RIDER_ATTACHMENT_Y = 0.05F;
     private static final RawAnimation IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation MOUNT = RawAnimation.begin().thenLoop("mount");
 
     private static final EntityDataAccessor<Integer> DAMAGE =
-            SynchedEntityData.defineId(FloatmountBroomEntity.class, EntityDataSerializers.INT);
+            SynchedEntityData.defineId(AbstractBroomEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> MAX_DAMAGE =
-            SynchedEntityData.defineId(FloatmountBroomEntity.class, EntityDataSerializers.INT);
+            SynchedEntityData.defineId(AbstractBroomEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> MANA_EMERGENCY_LANDING =
-            SynchedEntityData.defineId(FloatmountBroomEntity.class, EntityDataSerializers.BOOLEAN);
+            SynchedEntityData.defineId(AbstractBroomEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DAMAGED =
-            SynchedEntityData.defineId(FloatmountBroomEntity.class, EntityDataSerializers.BOOLEAN);
+            SynchedEntityData.defineId(AbstractBroomEntity.class, EntityDataSerializers.BOOLEAN);
 
     private final AnimatableInstanceCache animationCache = GeckoLibUtil.createInstanceCache(this);
     private float localForwardInput;
@@ -129,10 +133,46 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
     private double lerpZ;
     private double lerpYRot;
     private double lerpXRot;
+    private Vec3 lastServerRidingPosition = Vec3.ZERO;
+    private Vec3 lastServerRidingMovement = Vec3.ZERO;
+    private long lastServerRidingPositionGameTime = Long.MIN_VALUE;
+    private long lastServerRidingMovementGameTime = Long.MIN_VALUE;
 
-    public FloatmountBroomEntity(EntityType<?> type, Level level) {
+    protected AbstractBroomEntity(EntityType<?> type, Level level) {
         super(type, level);
         blocksBuilding = true;
+    }
+
+    protected abstract Item getRecoveryItem();
+
+    protected abstract BroomMessageKeys messageKeys();
+
+    protected boolean requiresMountMana() {
+        return true;
+    }
+
+    public abstract Component createControlHelpMessage();
+
+    protected record BroomMessageKeys(
+            String warningDismount,
+            String retrieveHelp,
+            String warningDamage,
+            String cannotMountDamaged,
+            Optional<String> insufficientMana,
+            String warningLowMana,
+            String manaDepleted,
+            String manaRecovered
+    ) {
+        public BroomMessageKeys {
+            Objects.requireNonNull(warningDismount);
+            Objects.requireNonNull(retrieveHelp);
+            Objects.requireNonNull(warningDamage);
+            Objects.requireNonNull(cannotMountDamaged);
+            Objects.requireNonNull(insufficientMana);
+            Objects.requireNonNull(warningLowMana);
+            Objects.requireNonNull(manaDepleted);
+            Objects.requireNonNull(manaRecovered);
+        }
     }
 
     @Override
@@ -179,12 +219,13 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
             if (level().isClientSide && isControlledByLocalInstance()) {
                 applyControlledMovement();
             } else if (!level().isClientSide && getControllingPassenger() instanceof Player player) {
-                tickServerManaState(player);
+                observeServerRidingMovement();
+                tickControlledServer(player);
                 setDeltaMovement(Vec3.ZERO);
             }
         } else {
             if (!level().isClientSide) {
-                resetManaFlightState();
+                resetRidingState();
             }
             applyUnoccupiedMovement();
         }
@@ -250,10 +291,15 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
                 .add(0.0D, REAR_PARTICLE_Y_OFFSET, 0.0D);
     }
 
-    private void spawnFlightParticles() {
+    protected void spawnFlightParticles() {
         var forcedLanding = isForcedLanding();
-        // W増量は見た目だけのため、serverや他clientへ入力状態を同期してまで再現しない。
+        // FloatmountのW増量は見た目だけのため、serverや他clientへ入力状態を同期してまで再現しない。
         var forwardBoost = !forcedLanding && isControlledByLocalInstance() && localForwardInput > INPUT_EPSILON;
+        spawnDefaultFlightParticles(forwardBoost);
+    }
+
+    protected final void spawnDefaultFlightParticles(boolean forwardBoost) {
+        var forcedLanding = isForcedLanding();
         if (forwardBoost) {
             spawnFlightParticles(ParticleRegistry.ADDITIVE_SPARK.get(), FORWARD_SPARK_COUNT);
             if (tickCount % FORWARD_RHOMBUS_INTERVAL_TICKS == 0) {
@@ -330,7 +376,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         );
     }
 
-    private Vec3 getForwardDirection() {
+    protected final Vec3 getForwardDirection() {
         var yaw = getYRot() * Mth.DEG_TO_RAD;
         return new Vec3(-Mth.sin(yaw), 0.0D, Mth.cos(yaw));
     }
@@ -363,7 +409,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         lerpSteps = 10;
     }
 
-    private void applyControlledMovement() {
+    protected void applyControlledMovement() {
         turnSpeed = Mth.clamp((turnSpeed + localStrafeInput * TURN_ACCELERATION) * TURN_DAMPING,
                 -MAX_TURN_SPEED, MAX_TURN_SPEED);
         setYRot(getYRot() + turnSpeed);
@@ -395,7 +441,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         move(MoverType.SELF, getDeltaMovement());
     }
 
-    private void applyUnoccupiedMovement() {
+    protected void applyUnoccupiedMovement() {
         var movement = getDeltaMovement();
         var horizontal = new Vec3(movement.x * COAST_HORIZONTAL_DAMPING, 0.0D,
                 movement.z * COAST_HORIZONTAL_DAMPING);
@@ -405,7 +451,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         if (isInWaterOrBubble() || isInLava() || !level().noCollision(this, getBoundingBox().deflate(0.01D))) {
             vertical = Math.min(MAX_UNMOUNTED_RISE_SPEED, vertical + 0.03D);
         } else {
-            var surface = FloatmountBroomSurfaceScanner.findSurfaceBelow(level(), getX(), getY(), getZ(), 4, true);
+            var surface = BroomSurfaceScanner.findSurfaceBelow(level(), getX(), getY(), getZ(), 4, true);
             if (surface.isPresent()) {
                 var error = surface.getAsDouble() + HOVER_HEIGHT - getY();
                 vertical = Mth.clamp(error * 0.2D + vertical * 0.6D,
@@ -421,6 +467,10 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         setDeltaMovement(horizontal.x, vertical, horizontal.z);
         move(MoverType.SELF, getDeltaMovement());
         turnSpeed = turnSpeed * (float)COAST_HORIZONTAL_DAMPING;
+    }
+
+    protected double maximumInheritedDismountHorizontalSpeed() {
+        return MAX_HORIZONTAL_SPEED;
     }
 
     @Override
@@ -450,7 +500,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
             if (getDamage() >= getMaxDamage()) {
                 enterDamagedState();
             } else {
-                playBroomSound(SoundRegistry.VANILLA_FLOATMOUNT_BROOM_DAMAGE.get());
+                playBroomSound(SoundRegistry.VANILLA_BROOM_DAMAGE.get());
             }
         }
         gameEvent(GameEvent.ENTITY_DAMAGE, source.getEntity());
@@ -492,7 +542,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         }
         lastRetrieveHelpGameTime = now;
         player.displayClientMessage(Component.translatable(
-                "ui.apprenticecodex.floatmount_broom.retrieve_help",
+                messageKeys().retrieveHelp(),
                 Component.keybind("key.use")
         ).withStyle(ChatFormatting.YELLOW), true);
     }
@@ -503,12 +553,12 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         }
         setDamage(getMaxDamage());
         setDamaged(true);
-        clearServerInput();
-        playBroomSound(SoundRegistry.VANILLA_FLOATMOUNT_BROOM_CRITICAL_DAMAGE.get());
-        playBroomSound(SoundRegistry.VANILLA_FLOATMOUNT_BROOM_EMERGENCY.get());
+        clearRidingInput();
+        playBroomSound(SoundRegistry.VANILLA_BROOM_CRITICAL_DAMAGE.get());
+        playBroomSound(SoundRegistry.VANILLA_BROOM_EMERGENCY.get());
         if (getControllingPassenger() instanceof Player player) {
             player.displayClientMessage(Component.translatable(
-                    "ui.apprenticecodex.floatmount_broom.warning_damage"
+                    messageKeys().warningDamage()
             ).withStyle(ChatFormatting.RED), true);
         }
     }
@@ -552,15 +602,15 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         if (!level().isClientSide) {
             if (isDamaged()) {
                 player.displayClientMessage(Component.translatable(
-                        "ui.apprenticecodex.floatmount_broom.cannot_mount_damaged"
+                        messageKeys().cannotMountDamaged()
                 ).withStyle(ChatFormatting.RED), true);
-                playPlayerNotification(player, SoundRegistry.VANILLA_FLOATMOUNT_BROOM_MOUNT_REJECT.get());
+                playPlayerNotification(player, SoundRegistry.VANILLA_BROOM_MOUNT_REJECT.get());
                 return InteractionResult.CONSUME;
             }
             if (!canMountWithCurrentMana(player)) {
                 return InteractionResult.CONSUME;
             }
-            resetManaFlightState();
+            resetRidingState();
             player.startRiding(this);
         }
         return InteractionResult.SUCCESS;
@@ -571,14 +621,14 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         if (!player.getInventory().add(stack)) {
             player.drop(stack, false);
         }
-        playBroomSound(SoundRegistry.VANILLA_FLOATMOUNT_BROOM_RECONSTRUCT.get());
+        playBroomSound(SoundRegistry.VANILLA_BROOM_RECONSTRUCT.get());
         discard();
     }
 
     private ItemStack createRecoveredStack() {
         // 回収は修復を兼ねるため、Entity側の状態は持ち帰らず固有名だけを新品へ引き継ぐ。
         // 今後調整スロット要素が増えたらそれも引き継ぐ(引き続きEntity時のみに持っている情報は持ち帰らない)
-        var stack = new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get());
+        var stack = new ItemStack(getRecoveryItem());
         var customName = getCustomName();
         if (customName != null) {
             stack.setHoverName(customName);
@@ -595,8 +645,63 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
     protected void removePassenger(@NotNull Entity passenger) {
         super.removePassenger(passenger);
         if (!level().isClientSide && !isVehicle()) {
-            resetManaFlightState();
+            var inheritedMovement = takeServerRidingMovement();
+            resetRidingState();
+            setDeltaMovement(inheritedMovement);
+            hasImpulse = true;
         }
+    }
+
+    private void observeServerRidingMovement() {
+        var now = level().getGameTime();
+        var currentPosition = position();
+        if (lastServerRidingPositionGameTime == Long.MIN_VALUE) {
+            lastServerRidingPosition = currentPosition;
+            lastServerRidingPositionGameTime = now;
+            return;
+        }
+
+        var displacement = currentPosition.subtract(lastServerRidingPosition);
+        if (displacement.lengthSqr() > MOVEMENT_EPSILON_SQR) {
+            var elapsedTicks = Math.max(1L, now - lastServerRidingPositionGameTime);
+            lastServerRidingMovement = clampInheritedDismountMovement(displacement.scale(1.0D / elapsedTicks));
+            lastServerRidingMovementGameTime = now;
+            lastServerRidingPosition = currentPosition;
+            lastServerRidingPositionGameTime = now;
+        } else if (lastServerRidingMovementGameTime != Long.MIN_VALUE
+                && now - lastServerRidingMovementGameTime > SERVER_RIDING_MOVEMENT_GRACE_TICKS) {
+            lastServerRidingMovement = Vec3.ZERO;
+        }
+    }
+
+    private Vec3 takeServerRidingMovement() {
+        observeServerRidingMovement();
+        var now = level().getGameTime();
+        var movement = lastServerRidingMovementGameTime != Long.MIN_VALUE
+                && now - lastServerRidingMovementGameTime <= SERVER_RIDING_MOVEMENT_GRACE_TICKS
+                ? lastServerRidingMovement
+                : Vec3.ZERO;
+        lastServerRidingPosition = Vec3.ZERO;
+        lastServerRidingMovement = Vec3.ZERO;
+        lastServerRidingPositionGameTime = Long.MIN_VALUE;
+        lastServerRidingMovementGameTime = Long.MIN_VALUE;
+        return movement;
+    }
+
+    private Vec3 clampInheritedDismountMovement(Vec3 movement) {
+        if (!Double.isFinite(movement.x) || !Double.isFinite(movement.y) || !Double.isFinite(movement.z)) {
+            return Vec3.ZERO;
+        }
+        var horizontal = new Vec3(movement.x, 0.0D, movement.z);
+        var maximumHorizontalSpeed = maximumInheritedDismountHorizontalSpeed();
+        if (horizontal.length() > maximumHorizontalSpeed) {
+            horizontal = horizontal.normalize().scale(maximumHorizontalSpeed);
+        }
+        return new Vec3(
+                horizontal.x,
+                Mth.clamp(movement.y, -MAX_VERTICAL_SPEED, MAX_VERTICAL_SPEED),
+                horizontal.z
+        );
     }
 
     @Override
@@ -607,12 +712,21 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
     @Override
     protected void positionRider(@NotNull Entity passenger, @NotNull MoveFunction moveFunction) {
         if (hasPassenger(passenger)) {
-            moveFunction.accept(passenger, getX(), getY() + RIDER_ATTACHMENT_Y, getZ());
-            clampPassengerRotation(passenger);
+            moveFunction.accept(passenger, getX(),
+                    getY() + RIDER_ATTACHMENT_Y + passengerAttachmentYOffset(), getZ());
+            updatePassengerRotation(passenger);
         }
     }
 
-    private void clampPassengerRotation(Entity passenger) {
+    protected double passengerAttachmentYOffset() {
+        return 0.0D;
+    }
+
+    protected void updatePassengerRotation(Entity passenger) {
+        clampPassengerRotation(passenger);
+    }
+
+    protected final void clampPassengerRotation(Entity passenger) {
         var center = getYRot() - 90.0F;
         passenger.setYRot(center + Mth.clamp(Mth.wrapDegrees(passenger.getYRot() - center), -105.0F, 105.0F));
         passenger.setYHeadRot(passenger.getYRot());
@@ -659,7 +773,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
             return findSafeDismountTarget(passenger).isEmpty();
         }
 
-        var surface = FloatmountBroomSurfaceScanner.findSurfaceBelow(
+        var surface = BroomSurfaceScanner.findSurfaceBelow(
                 level(), getX(), getY(), getZ(), (int) DANGEROUS_HEIGHT, false
         );
         return surface.isEmpty() || getY() - surface.getAsDouble() >= DANGEROUS_HEIGHT;
@@ -678,7 +792,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
 
     private Optional<DismountTarget> findSafeDismountTarget(LivingEntity passenger) {
         var candidate = preferredDismountPosition(passenger);
-        var surface = FloatmountBroomSurfaceScanner.findSurfaceBelow(
+        var surface = BroomSurfaceScanner.findSurfaceBelow(
                 level(), candidate.x, getY(), candidate.z, (int) DANGEROUS_HEIGHT, false
         );
         if (surface.isEmpty() || getY() - surface.getAsDouble() >= DANGEROUS_HEIGHT) {
@@ -711,6 +825,18 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
             boolean ascending,
             boolean descending
     ) {
+        acceptServerInput(player, strafe, forward, ascending, descending, BroomInputTransition.NONE, 0L);
+    }
+
+    public void acceptServerInput(
+            Player player,
+            float strafe,
+            float forward,
+            boolean ascending,
+            boolean descending,
+            BroomInputTransition transition,
+            long actionSequence
+    ) {
         if (player.getVehicle() != this || getControllingPassenger() != player) {
             return;
         }
@@ -728,7 +854,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
     }
 
     private boolean canMountWithCurrentMana(Player player) {
-        if (player.getAbilities().instabuild) {
+        if (!requiresMountMana() || player.getAbilities().instabuild) {
             return true;
         }
         var requiredMana = ApprenticeCodexServerConfig.floatmountBroomConfig().normalFlightManaThreshold();
@@ -736,24 +862,24 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         if (magicData != null && magicData.getMana() >= requiredMana) {
             return true;
         }
-        player.displayClientMessage(Component.translatable(
-                "ui.apprenticecodex.floatmount_broom.insufficient_mana",
+        messageKeys().insufficientMana().ifPresent(key -> player.displayClientMessage(Component.translatable(
+                key,
                 requiredMana
-        ).withStyle(ChatFormatting.RED), true);
-        playPlayerNotification(player, SoundRegistry.VANILLA_FLOATMOUNT_BROOM_MOUNT_REJECT.get());
+        ).withStyle(ChatFormatting.RED), true));
+        playPlayerNotification(player, SoundRegistry.VANILLA_BROOM_MOUNT_REJECT.get());
         return false;
     }
 
-    private void tickServerManaState(Player player) {
+    protected void tickControlledServer(Player player) {
         if (player.getAbilities().instabuild) {
-            resetManaFlightState();
+            resetRidingState();
             return;
         }
 
         var now = level().getGameTime();
         if (lastServerInputGameTime == Long.MIN_VALUE
                 || now - lastServerInputGameTime > SERVER_INPUT_TIMEOUT_TICKS) {
-            clearServerInput();
+            clearRidingInput();
         }
 
         var magicData = MagicData.getPlayerMagicData(player);
@@ -767,7 +893,7 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
                 setManaEmergencyLanding(false);
                 lowManaWarningShown = false;
                 player.displayClientMessage(Component.translatable(
-                        "ui.apprenticecodex.floatmount_broom.recover_emergency_landing"
+                        messageKeys().manaRecovered()
                 ).withStyle(ChatFormatting.GREEN), true);
                 playBroomSound(SoundRegistry.VANILLA_POWER_ACTIVATE.get());
             }
@@ -784,9 +910,9 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
             if (updatedMana <= 0.0F) {
                 setManaEmergencyLanding(true);
                 player.displayClientMessage(Component.translatable(
-                        "ui.apprenticecodex.floatmount_broom.warning_emergency_landing"
+                        messageKeys().manaDepleted()
                 ).withStyle(ChatFormatting.RED), true);
-                playBroomSound(SoundRegistry.VANILLA_FLOATMOUNT_BROOM_EMERGENCY.get());
+                playBroomSound(SoundRegistry.VANILLA_BROOM_EMERGENCY.get());
                 return;
             }
             mana = updatedMana;
@@ -797,9 +923,9 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
                 && mana < config.normalFlightManaThreshold()) {
             lowManaWarningShown = true;
             player.displayClientMessage(Component.translatable(
-                    "ui.apprenticecodex.floatmount_broom.warning_low_mana"
+                    messageKeys().warningLowMana()
             ).withStyle(ChatFormatting.YELLOW), true);
-            playPlayerNotification(player, SoundRegistry.VANILLA_FLOATMOUNT_BROOM_WARNING.get());
+            playPlayerNotification(player, SoundRegistry.VANILLA_BROOM_WARNING.get());
         } else if (lowManaWarningShown && mana >= config.normalFlightManaThreshold()) {
             lowManaWarningShown = false;
         }
@@ -816,17 +942,17 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         return serverAscending ? Math.max(0.0F, (float)config.ascendingManaCostPerTick()) : 0.0F;
     }
 
-    private static float sanitizeInput(float input) {
+    protected static float sanitizeInput(float input) {
         return Float.isFinite(input) ? Mth.clamp(input, -1.0F, 1.0F) : 0.0F;
     }
 
-    private static void syncMana(Player player, MagicData magicData) {
+    protected static void syncMana(Player player, MagicData magicData) {
         if (player instanceof ServerPlayer serverPlayer && !(serverPlayer instanceof FakePlayer)) {
             PacketDistributor.sendToPlayer(serverPlayer, new SyncManaPacket(magicData));
         }
     }
 
-    private void playBroomSound(SoundEvent sound) {
+    protected final void playBroomSound(SoundEvent sound) {
         level().playSound(null, getX(), getY(), getZ(), sound, SoundSource.PLAYERS, 1.0F, 1.0F);
     }
 
@@ -836,18 +962,21 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
         }
     }
 
-    private void resetManaFlightState() {
+    protected void resetRidingState() {
         setManaEmergencyLanding(false);
         lowManaWarningShown = false;
-        clearServerInput();
+        clearRidingInput();
     }
 
-    private void clearServerInput() {
+    protected void clearRidingInput() {
         localStrafeInput = 0.0F;
         serverForwardInput = 0.0F;
         serverAscending = false;
         descendingInput = false;
         lastServerInputGameTime = Long.MIN_VALUE;
+    }
+
+    public void handleLocalInputTransition(BroomInputTransition transition, long actionSequence) {
     }
 
     public boolean isManaEmergencyLanding() {
@@ -868,6 +997,18 @@ public class FloatmountBroomEntity extends Entity implements GeoEntity {
 
     public boolean isForcedLanding() {
         return isManaEmergencyLanding() || isDamaged();
+    }
+
+    public BroomCoreWarningState getCoreWarningState() {
+        return isForcedLanding() ? BroomCoreWarningState.CRITICAL : BroomCoreWarningState.NONE;
+    }
+
+    public final boolean isLowManaWarningShown() {
+        return lowManaWarningShown;
+    }
+
+    protected final void setLowManaWarningShown(boolean value) {
+        lowManaWarningShown = value;
     }
 
     public boolean isBreaking() {

@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.entity.floatmountbroom.FloatmountBroomEntity;
+import jp.aquafactory.apprenticecodex.entity.broom.AbstractBroomEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
@@ -15,8 +15,8 @@ import net.minecraftforge.fml.common.Mod;
 import java.util.Arrays;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
-public final class FloatmountBroomDurabilityHud {
-    public static final FloatmountBroomDurabilityHud INSTANCE = new FloatmountBroomDurabilityHud();
+public final class BroomDurabilityHud {
+    public static final BroomDurabilityHud INSTANCE = new BroomDurabilityHud();
 
     private static final ResourceLocation CONTAINER = texture("broom_durability_container.png");
     private static final ResourceLocation FULL = texture("broom_durability_full.png");
@@ -32,7 +32,7 @@ public final class FloatmountBroomDurabilityHud {
     private int lastBroomId = -1;
     private int lastDurabilitySteps = -1;
 
-    private FloatmountBroomDurabilityHud() {
+    private BroomDurabilityHud() {
     }
 
     @SubscribeEvent
@@ -47,7 +47,7 @@ public final class FloatmountBroomDurabilityHud {
         var forgeGui = (ForgeGui) minecraft.gui;
         var player = minecraft.player;
         if (minecraft.options.hideGui || player == null || player.isSpectator()
-                || !(player.getVehicle() instanceof FloatmountBroomEntity broom)) {
+                || !(player.getVehicle() instanceof AbstractBroomEntity broom)) {
             resetTracking();
             return;
         }

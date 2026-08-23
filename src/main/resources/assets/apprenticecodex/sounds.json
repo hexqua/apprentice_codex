@@ -370,6 +370,13 @@
       "apprenticecodex:mana_jet"
     ]
   },
+  "broom_accelerate": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.broom_accelerate",
+    "sounds": [
+      "apprenticecodex:mana_jet"
+    ]
+  },
   "mirage": {
     "category": "player",
     "subtitle": "subtitle.apprenticecodex.sound.mirage",
@@ -587,18 +594,18 @@
       "minecraft:block/beacon/activate"
     ]
   },
-  "vanilla_floatmount_broom_reconstruct": {
+  "vanilla_broom_reconstruct": {
     "_apprentice_codex_note": "ベースはSoundEvents.RESPAWN_ANCHOR_CHARGE",
-    "subtitle": "subtitle.apprenticecodex.sound.vanilla_floatmount_broom_reconstruct",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_broom_reconstruct",
     "sounds": [
       "minecraft:block/respawn_anchor/charge1",
       "minecraft:block/respawn_anchor/charge2",
       "minecraft:block/respawn_anchor/charge3"
     ]
   },
-  "vanilla_floatmount_broom_damage": {
+  "vanilla_broom_damage": {
     "_apprentice_codex_note": "ベースはSoundEvents.ARMOR_STAND_HIT",
-    "subtitle": "subtitle.apprenticecodex.sound.vanilla_floatmount_broom_damage",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_broom_damage",
     "sounds": [
       "minecraft:entity/armorstand/hit1",
       "minecraft:entity/armorstand/hit2",
@@ -606,16 +613,16 @@
       "minecraft:entity/armorstand/hit4"
     ]
   },
-  "vanilla_floatmount_broom_critical_damage": {
+  "vanilla_broom_critical_damage": {
     "_apprentice_codex_note": "ベースはSoundEvents.ITEM_BREAK",
-    "subtitle": "subtitle.apprenticecodex.sound.vanilla_floatmount_broom_critical_damage",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_broom_critical_damage",
     "sounds": [
       "minecraft:random/break"
     ]
   },
-  "vanilla_floatmount_broom_warning": {
+  "vanilla_broom_warning": {
     "_apprentice_codex_note": "ベースはSoundEvents.EXPERIENCE_ORB_PICKUP、箒の警告音として低く調整",
-    "subtitle": "subtitle.apprenticecodex.sound.vanilla_floatmount_broom_warning",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_broom_warning",
     "sounds": [
       {
         "name": "minecraft:random/orb",
@@ -624,16 +631,16 @@
       }
     ]
   },
-  "vanilla_floatmount_broom_emergency": {
+  "vanilla_broom_emergency": {
     "_apprentice_codex_note": "ベースはSoundEvents.BEACON_DEACTIVATE",
-    "subtitle": "subtitle.apprenticecodex.sound.vanilla_floatmount_broom_emergency",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_broom_emergency",
     "sounds": [
       "minecraft:block/beacon/deactivate"
     ]
   },
-  "vanilla_floatmount_broom_mount_reject": {
+  "vanilla_broom_mount_reject": {
     "_apprentice_codex_note": "ベースはSoundEvents.ENDER_EYE_DEATH、騎乗拒否として音量を抑えている",
-    "subtitle": "subtitle.apprenticecodex.sound.vanilla_floatmount_broom_mount_reject",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_broom_mount_reject",
     "sounds": [
       {
         "name": "minecraft:entity/endereye/dead1",
@@ -643,6 +650,30 @@
         "name": "minecraft:entity/endereye/dead2",
         "volume": 0.7
       }
+    ]
+  },
+  "vanilla_broom_propulsion_lost": {
+    "_apprentice_codex_note": "ベースはSoundEvents.BEACON_DEACTIVATE",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_broom_propulsion_lost",
+    "sounds": [
+      "minecraft:block/beacon/deactivate"
+    ]
+  },
+  "vanilla_broom_propulsion_recovered": {
+    "_apprentice_codex_note": "ベースはSoundEvents.BEACON_ACTIVATE",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_broom_propulsion_recovered",
+    "sounds": [
+      "minecraft:block/beacon/activate"
+    ]
+  },
+  "vanilla_broom_impulse": {
+    "_apprentice_codex_note": "ベースはSoundEvents.SHULKER_SHOOT",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_broom_impulse",
+    "sounds": [
+      "minecraft:entity/shulker/shoot1",
+      "minecraft:entity/shulker/shoot2",
+      "minecraft:entity/shulker/shoot3",
+      "minecraft:entity/shulker/shoot4"
     ]
   },
   "vanilla_power_tuning": {

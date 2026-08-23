@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.*;
+import jp.aquafactory.apprenticecodex.item.broom.FloatmountBroomItem;
+import jp.aquafactory.apprenticecodex.item.broom.HoverrideBroomItem;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.CrudeInkItem;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkItem;
 import jp.aquafactory.apprenticecodex.item.armor.*;
@@ -456,4 +458,6 @@ public final class ItemRegistry {
             ITEMS.register("bulwark_greatshield", BulwarkGreatshield::new);
     public static final RegistryObject<Item> FLOATMOUNT_BROOM =
             ITEMS.register("floatmount_broom", FloatmountBroomItem::new);
+    public static final RegistryObject<Item> HOVERRIDE_BROOM =
+            ITEMS.register("hoverride_broom", HoverrideBroomItem::new);
 }
