@@ -7,6 +7,8 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.Set;
+
 /**
  * Stack に存在する6種のエンチャントを、装備場所に依存しない modifier へ解決する。
  */
@@ -36,6 +38,37 @@ public final class AttributeEnchantmentResolver {
             String modifierSeedPrefix,
             AdditionalModifierAppender additionalModifierAppender
     ) {
+        return resolveMergedModifiers(
+                baseModifiers,
+                stack,
+                modifierSeedPrefix,
+                AttributeEnchantmentPolicy.ALL_ATTRIBUTE_ENCHANTMENTS,
+                additionalModifierAppender
+        );
+    }
+
+    public static Multimap<Attribute, AttributeModifier> resolveMergedModifiers(
+            Multimap<Attribute, AttributeModifier> baseModifiers,
+            ItemStack stack,
+            String modifierSeedPrefix,
+            Set<AttributeEnchantmentType> effectiveEnchantments
+    ) {
+        return resolveMergedModifiers(
+                baseModifiers,
+                stack,
+                modifierSeedPrefix,
+                effectiveEnchantments,
+                NO_ADDITIONAL_MODIFIERS
+        );
+    }
+
+    private static Multimap<Attribute, AttributeModifier> resolveMergedModifiers(
+            Multimap<Attribute, AttributeModifier> baseModifiers,
+            ItemStack stack,
+            String modifierSeedPrefix,
+            Set<AttributeEnchantmentType> effectiveEnchantments,
+            AdditionalModifierAppender additionalModifierAppender
+    ) {
         if (stack == null || stack.isEmpty()) {
             return baseModifiers;
         }
@@ -44,7 +77,12 @@ public final class AttributeEnchantmentResolver {
         builder.putAll(baseModifiers);
         var hasAdditionalModifiers =
                 additionalModifierAppender.add(builder, stack, modifierSeedPrefix + ".stack");
-        var hasEnchantmentModifiers = addModifiers(builder, stack, modifierSeedPrefix + ".enchant");
+        var hasEnchantmentModifiers = addModifiers(
+                builder,
+                stack,
+                modifierSeedPrefix + ".enchant",
+                effectiveEnchantments
+        );
         if (!hasAdditionalModifiers && !hasEnchantmentModifiers) {
             return baseModifiers;
         }
@@ -60,6 +98,20 @@ public final class AttributeEnchantmentResolver {
             ItemStack stack,
             String modifierSeedPrefix
     ) {
+        return addModifiers(
+                builder,
+                stack,
+                modifierSeedPrefix,
+                AttributeEnchantmentPolicy.ALL_ATTRIBUTE_ENCHANTMENTS
+        );
+    }
+
+    public static boolean addModifiers(
+            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            ItemStack stack,
+            String modifierSeedPrefix,
+            Set<AttributeEnchantmentType> effectiveEnchantments
+    ) {
         if (stack == null || stack.isEmpty()
                 || !(stack.getItem() instanceof AttributeEnchantmentPolicy)) {
             return false;
@@ -67,6 +119,9 @@ public final class AttributeEnchantmentResolver {
 
         var added = false;
         for (var type : AttributeEnchantmentType.values()) {
+            if (!effectiveEnchantments.contains(type)) {
+                continue;
+            }
             var level = type.getLevel(stack);
             if (level <= 0) {
                 continue;

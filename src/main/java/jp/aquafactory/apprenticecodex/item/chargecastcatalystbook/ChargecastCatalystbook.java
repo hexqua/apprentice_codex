@@ -85,8 +85,6 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     private static final String ITEM_TAG = "Item";
     private static final String SELECTED_SCROLL_INDEX_TAG = "SelectedScrollIndex";
     private static final String SCHOOL_POWER_SCHOOL_TAG = "SchoolPowerSchool";
-    private static final double SPELL_POWER_BONUS = 0.10D;
-    private static final double SCHOOL_SPELL_POWER_BONUS = 0.15D;
     private static final UUID MAINHAND_SPELL_POWER_ID = UUID.fromString("eb62e77d-ed42-42c0-a17e-07efab3b3356");
     private static final UUID OFFHAND_SPELL_POWER_ID = UUID.fromString("bc6465d2-f9fb-4ac7-93f5-f9ecb2d400ba");
     private static final Set<AttributeEnchantmentType> SUPPORTED_ATTRIBUTE_ENCHANTMENTS = Set.of(
@@ -108,7 +106,8 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
                             CalibrationAdjustmentHints.schoolRunes(),
                             CalibrationAdjustmentHints.schoolRuneConstraint()
                     ).withEffectLines(CalibrationAdjustmentEffects.changeSpellPower(
-                            ChargecastCatalystbook.SCHOOL_SPELL_POWER_BONUS
+                            SchoolRuneSpellPowerTuning.TUNED_SCHOOL_SPELL_POWER_BONUS,
+                            SchoolRuneSpellPowerTuning.GENERAL_SPELL_POWER_REDUCTION
                     )),
                     CalibrationAdjustmentRule.unique(
                             "wisdom_shard",
@@ -192,17 +191,23 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
         var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
         var schoolAttribute = MagicTools.resolveSchoolPowerAttribute(getResolvedCalibrationSchool(stack));
         if (schoolAttribute != null) {
+            builder.put(AttributeRegistry.SPELL_POWER.get(), new AttributeModifier(
+                    modifierId,
+                    "apprenticecodex.chargecast_catalystbook.spell_power",
+                    SchoolRuneSpellPowerTuning.TUNED_GENERAL_SPELL_POWER_BONUS,
+                    AttributeModifier.Operation.MULTIPLY_BASE
+            ));
             builder.put(schoolAttribute, new AttributeModifier(
                     modifierId,
                     "apprenticecodex.chargecast_catalystbook.school_spell_power",
-                    SCHOOL_SPELL_POWER_BONUS,
+                    SchoolRuneSpellPowerTuning.TUNED_SCHOOL_SPELL_POWER_BONUS,
                     AttributeModifier.Operation.MULTIPLY_BASE
             ));
         } else {
             builder.put(AttributeRegistry.SPELL_POWER.get(), new AttributeModifier(
                     modifierId,
                     "apprenticecodex.chargecast_catalystbook.spell_power",
-                    SPELL_POWER_BONUS,
+                    SchoolRuneSpellPowerTuning.BASE_GENERAL_SPELL_POWER_BONUS,
                     AttributeModifier.Operation.MULTIPLY_BASE
             ));
         }

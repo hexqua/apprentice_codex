@@ -88,6 +88,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -122,7 +123,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                             CalibrationAdjustmentHints.schoolRunes(),
                             CalibrationAdjustmentHints.schoolRuneConstraint()
                     ).withEffectLines(CalibrationAdjustmentEffects.changeSpellPower(
-                            ScrollcasterGauntlet.SCHOOL_SPELL_POWER_BONUS
+                            SchoolRuneSpellPowerTuning.TUNED_SCHOOL_SPELL_POWER_BONUS,
+                            SchoolRuneSpellPowerTuning.GENERAL_SPELL_POWER_REDUCTION
                     ))
             );
 
@@ -167,12 +169,16 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     private static final double ATTACK_SPEED_BONUS = -2.2D;
     private static final double EPIC_FIGHT_ATTACK_DAMAGE_BONUS = 2.0D;
     private static final double EPIC_FIGHT_ATTACK_SPEED_BONUS = 0.0D;
-    private static final double SPELL_POWER_BONUS = 0.05D;
-    private static final double SCHOOL_SPELL_POWER_BONUS = 0.10D;
     private static final UUID SPELL_POWER_MODIFIER_ID = UUID.fromString("be797f84-cdc5-41fd-871f-685cebb23f5c");
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_SWORD);
     private static final ItemStack PICKAXE_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_PICKAXE);
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
+    private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
+            AttributeEnchantmentType.ALACRITY,
+            AttributeEnchantmentType.REFLUX,
+            AttributeEnchantmentType.RESERVOIR,
+            AttributeEnchantmentType.TENSE
+    );
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
@@ -192,7 +198,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                 ? AttributeEnchantmentResolver.resolveMergedModifiers(
                         buildMainhandModifiers(stack),
                         stack,
-                        "apprenticecodex.scrollcaster_gauntlet"
+                        "apprenticecodex.scrollcaster_gauntlet",
+                        DIRECT_ATTRIBUTE_ENCHANTMENTS
                 )
                 : super.getAttributeModifiers(slot, stack);
     }
@@ -228,8 +235,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     @Override
-    public java.util.Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
-        return AttributeEnchantmentPolicy.ALL_ATTRIBUTE_ENCHANTMENTS;
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+        return DIRECT_ATTRIBUTE_ENCHANTMENTS;
     }
 
     @Override
@@ -465,11 +472,20 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         var schoolPowerAttribute = getResolvedSchoolPowerAttribute(stack);
         if (schoolPowerAttribute != null) {
             builder.put(
+                    AttributeRegistry.SPELL_POWER.get(),
+                    new AttributeModifier(
+                            SPELL_POWER_MODIFIER_ID,
+                            "apprenticecodex.scrollcaster_gauntlet.mainhand.spell_power",
+                            SchoolRuneSpellPowerTuning.TUNED_GENERAL_SPELL_POWER_BONUS,
+                            AttributeModifier.Operation.MULTIPLY_BASE
+                    )
+            );
+            builder.put(
                     schoolPowerAttribute,
                     new AttributeModifier(
                             SPELL_POWER_MODIFIER_ID,
                             "apprenticecodex.scrollcaster_gauntlet.mainhand.school_spell_power",
-                            SCHOOL_SPELL_POWER_BONUS,
+                            SchoolRuneSpellPowerTuning.TUNED_SCHOOL_SPELL_POWER_BONUS,
                             AttributeModifier.Operation.MULTIPLY_BASE
                     )
             );
@@ -479,7 +495,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                     new AttributeModifier(
                             SPELL_POWER_MODIFIER_ID,
                             "apprenticecodex.scrollcaster_gauntlet.mainhand.spell_power",
-                            SPELL_POWER_BONUS,
+                            SchoolRuneSpellPowerTuning.BASE_GENERAL_SPELL_POWER_BONUS,
                             AttributeModifier.Operation.MULTIPLY_BASE
                     )
             );
@@ -509,11 +525,16 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         if (enchantmentId == null) {
             return false;
         }
+        if (enchantment == net.minecraft.world.item.enchantment.Enchantments.SWEEPING_EDGE) {
+            return false;
+        }
 
-        // 1.21.1 では Malum 側の supported_items で許可されるため、1.20.1 では個別に合成する。
-        if (MalumHauntedCompat.isAnimatedEnchantment(enchantmentId)
-                || (MalumHauntedCompat.isHauntedEnchantment(enchantmentId)
-                && MalumHauntedCompat.isSupportedHauntedMainhandItem(gauntletStack))) {
+        // Malum 1.20.1 の Animated は説明上大鎌専用のため、1.21.1 の supported_items とは分けて拒否する。
+        if (MalumHauntedCompat.isAnimatedEnchantment(enchantmentId)) {
+            return false;
+        }
+        if (MalumHauntedCompat.isHauntedEnchantment(enchantmentId)
+                && MalumHauntedCompat.isSupportedHauntedMainhandItem(gauntletStack)) {
             return true;
         }
 
@@ -528,7 +549,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     private static boolean isExplicitlySupportedMagicEnchantment(Enchantment enchantment) {
         return MALUM_REPLENISHING.equals(ForgeRegistries.ENCHANTMENTS.getKey(enchantment))
-                || AttributeEnchantmentType.from(enchantment).isPresent()
+                || AttributeEnchantmentType.from(enchantment).map(DIRECT_ATTRIBUTE_ENCHANTMENTS::contains).orElse(false)
                 || matches(enchantment, EnchantmentRegistry.TRANSCENDENCE)
                 || matches(enchantment, EnchantmentRegistry.WISDOM);
     }

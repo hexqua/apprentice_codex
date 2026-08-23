@@ -49,6 +49,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
@@ -192,10 +193,8 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertFalse(suitHoodMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).mayPlace(healScroll),
                     "Magi Agent Suit non-chest pieces should reject scroll placement");
 
-            var mithrilFreecastStaffMenu = createSpellCalibrationBenchMenuWithTarget(
-                    player,
-                    new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get())
-            );
+            var mithrilFreecastStaff = new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
+            var mithrilFreecastStaffMenu = createSpellCalibrationBenchMenuWithTarget(player, mithrilFreecastStaff);
             helper.assertTrue(mithrilFreecastStaffMenu.hasMithrilFreecastStaff(),
                     "Mithril Freecast Staff should be accepted by Spell Calibration Bench as an adjustment target");
             helper.assertTrue(mithrilFreecastStaffMenu.isAdjustmentSlotEnabled(0),
@@ -210,6 +209,28 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     "Mithril Freecast Staff should accept Silver Ring adjustments");
             helper.assertFalse(mithrilFreecastStaffMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).mayPlace(healScroll),
                     "Mithril Freecast Staff should reject scroll placement");
+            var mithrilItem = (MithrilFreecastStaff) mithrilFreecastStaff.getItem();
+            helper.assertTrue(mithrilItem.getAttributeModifiers(EquipmentSlot.MAINHAND, mithrilFreecastStaff)
+                            .get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()).stream()
+                            .anyMatch(modifier -> modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE
+                                    && Math.abs(modifier.getAmount() - 0.10D) < 0.000001D),
+                    "Uncalibrated Mithril Freecast Staff should grant +10% generic spell power");
+            SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                    mithrilFreecastStaff,
+                    0,
+                    fireRune
+            );
+            var tunedMithrilModifiers = mithrilItem.getAttributeModifiers(EquipmentSlot.MAINHAND, mithrilFreecastStaff);
+            helper.assertTrue(tunedMithrilModifiers
+                            .get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()).stream()
+                            .anyMatch(modifier -> modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE
+                                    && Math.abs(modifier.getAmount() - 0.05D) < 0.000001D),
+                    "Fire-tuned Mithril Freecast Staff should retain +5% generic spell power");
+            helper.assertTrue(tunedMithrilModifiers
+                            .get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get()).stream()
+                            .anyMatch(modifier -> modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE
+                                    && Math.abs(modifier.getAmount() - 0.15D) < 0.000001D),
+                    "Fire-tuned Mithril Freecast Staff should grant +15% fire spell power");
 
             var gauntletWithFreecastAdjustmentMenu = createSpellCalibrationBenchMenuWithTarget(
                     player,
@@ -445,6 +466,21 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     gauntletProfile.rules().get(2),
                     "change_spell_power_1",
                     "change_spell_power_2"
+            );
+            var schoolPowerEffects = gauntletProfile.rules().get(2).effectLines();
+            var schoolPowerEffect = (TranslatableContents) schoolPowerEffects.get(0).getContents();
+            var generalReductionEffect = (TranslatableContents) schoolPowerEffects.get(1).getContents();
+            helper.assertTrue(
+                    schoolPowerEffect.getArgs().length == 1
+                            && schoolPowerEffect.getArgs()[0] instanceof Number schoolPower
+                            && schoolPower.longValue() == 15L,
+                    "School rune effect should expose +15% school spell power"
+            );
+            helper.assertTrue(
+                    generalReductionEffect.getArgs().length == 1
+                            && generalReductionEffect.getArgs()[0] instanceof Number reduction
+                            && reduction.longValue() == 5L,
+                    "School rune effect should expose a 5% general spell power reduction"
             );
 
             var autocastProfile = ((SpellCalibrationAdjustmentTarget) targets[4].getItem())

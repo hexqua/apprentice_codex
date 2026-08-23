@@ -503,7 +503,7 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.add_spell_power": "School Spell Power +%d%%",
   "jei.apprenticecodex.spell_calibration_bench.effect.add_spell_resist": "School Spell Resistance +%d%%",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_spell_power_1": "School Spell Power +%d%%",
-  "jei.apprenticecodex.spell_calibration_bench.effect.change_spell_power_2": "Original Spell Power bonus removed",
+  "jei.apprenticecodex.spell_calibration_bench.effect.change_spell_power_2": "Original Spell Power -%d%%",
   "jei.apprenticecodex.spell_calibration_bench.effect.add_long_support": "Supports spells with cast time",
   "jei.apprenticecodex.spell_calibration_bench.effect.add_all_support": "Supports all spell cast types",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_attribute_offhand": "Moves ability bonuses to offhand",

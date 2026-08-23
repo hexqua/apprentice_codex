@@ -31,6 +31,7 @@ import jp.aquafactory.apprenticecodex.item.armor.StealthRuneArmorItem;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.item.spellchargedgreatsword.SpellchargedGreatsword;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.ApprenticeEnchantmentAvailability;
@@ -1096,6 +1097,8 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     0,
                     createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get())
             );
+            stack.enchant(EnchantmentRegistry.SURGE.get(), 1);
+            stack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
             var modifiers = stack.getAttributeModifiers(EquipmentSlot.MAINHAND);
             var epicFightLoaded = ModList.get().isLoaded(EpicFightCompat.MOD_ID);
             var expectedAttackDamageBonus = epicFightLoaded ? 2.0D : 5.0D;
@@ -1116,6 +1119,22 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     expectedAttackSpeedBonus,
                     "Scrollcaster Gauntlet attack speed modifier should match the loaded combat environment"
             );
+            assertSingleModifierAmount(
+                    helper,
+                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    0.10D,
+                    "Scrollcaster Gauntlet spell power should ignore Surge"
+            );
+            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
+            helper.assertTrue(imbuedSchool != null,
+                    "Scrollcaster Gauntlet test could not resolve the selected spell school");
+            var attunementAttribute = jp.aquafactory.apprenticecodex.utility.MagicTools
+                    .resolveSchoolPowerAttribute(imbuedSchool);
+            helper.assertTrue(attunementAttribute != null,
+                    "Scrollcaster Gauntlet test could not resolve the Attunement spell power attribute: " + imbuedSchool.getId());
+            helper.assertTrue(modifiers.get(attunementAttribute).isEmpty(),
+                    "Scrollcaster Gauntlet spell power should ignore Attunement");
         });
     }
     static void apprenticeMageRobeKeepsExpectedAttributeBonuses(GameTestHelper helper) {
