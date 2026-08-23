@@ -292,17 +292,11 @@ public class ManaMending extends AbstractSpell implements ICraftsmansDelightAffe
     }
 
     private void finishMending(LivingEntity entity, ItemStack targetStack, ManaMendingCastData castData) {
-        var hasCraftsmansDelight = CraftsmansDelight.isEquippedBy(entity);
-        if (hasCraftsmansDelight) {
-            targetStack.setRepairCost(0);
-        }
         castData.reset();
         sendActionBar(
                 entity,
                 Component.translatable(
-                        hasCraftsmansDelight
-                                ? "ui.apprenticecodex.mana_mending.repair_finished_bonus"
-                                : "ui.apprenticecodex.mana_mending.repair_finished",
+                        "ui.apprenticecodex.mana_mending.repair_finished",
                         targetStack.getHoverName()
                 ).withStyle(ChatFormatting.GREEN)
         );

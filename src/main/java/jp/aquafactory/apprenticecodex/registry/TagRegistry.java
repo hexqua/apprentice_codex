@@ -111,6 +111,8 @@ public final class TagRegistry {
                 createItemTag("alchemy_brewer/fast_bases");
         public static final TagKey<Item> MANA_MENDING_DENYLIST =
                 createItemTag("mana_mending_denylist");
+        public static final TagKey<Item> MANA_TRANSCRIPTION_REPAIR_COST_RESET_ITEMS =
+                createItemTag("mana_transcription_repair_cost_reset_items");
         public static final TagKey<Item> ALACRITY_ENCHANTABLE =
                 createEnchantableItemTag("alacrity");
         public static final TagKey<Item> REFLUX_ENCHANTABLE =
