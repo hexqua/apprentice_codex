@@ -24,6 +24,52 @@ public final class CalibrationAdjustmentEffects {
         return line("add_spell_resist", percentage(amount));
     }
 
+    public static List<Component> addMaxMana(double amount) {
+        return line("add_max_mana", Math.round(amount));
+    }
+
+    public static List<Component> addKnockbackResistance(double amount) {
+        return line("add_knockback_resist", percentage(amount));
+    }
+
+    public static List<Component> addExplosionKnockbackResistance(double amount) {
+        return List.of(
+                Component.translatable(KEY_PREFIX + "add_explosion_knockback_resist_1", percentage(amount)),
+                Component.translatable(KEY_PREFIX + "add_explosion_knockback_resist_2")
+        );
+    }
+
+    public static List<Component> reduceExplosionKnockbackResistance(double amount) {
+        return List.of(
+                Component.translatable(KEY_PREFIX + "reduce_explosion_knockback_resist_1", percentage(amount)),
+                Component.translatable(KEY_PREFIX + "reduce_explosion_knockback_resist_2")
+        );
+    }
+
+    public static List<Component> gainPowderSnowWalk() {
+        return line("gain_powder_snow_walk");
+    }
+
+    public static List<Component> gainCreateGoggles() {
+        return line("create.add_goggle");
+    }
+
+    public static List<Component> addSoulWard(
+            Component capacityName,
+            double capacity,
+            Component recoveryName,
+            double recoveryRate
+    ) {
+        return List.of(
+                Component.translatable(KEY_PREFIX + "malum.add_soulward_1", capacityName, Math.round(capacity)),
+                Component.translatable(KEY_PREFIX + "malum.add_soulward_2", recoveryName, percentage(recoveryRate))
+        );
+    }
+
+    public static List<Component> addMagicProficiency(Component attributeName, double amount) {
+        return line("malum.add_magic_proficiency", attributeName, percentage(amount));
+    }
+
     public static List<Component> changeSpellPower(double schoolAmount, double generalReduction) {
         return List.of(
                 Component.translatable(KEY_PREFIX + "change_spell_power_1", percentage(schoolAmount)),

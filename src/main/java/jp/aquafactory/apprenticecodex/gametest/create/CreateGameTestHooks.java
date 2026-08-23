@@ -11,6 +11,7 @@ import com.simibubi.create.content.contraptions.Contraption;
 import com.simibubi.create.content.contraptions.MountedStorageManager;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.simibubi.create.content.equipment.toolbox.ToolboxInventory;
+import com.simibubi.create.content.equipment.goggles.GogglesItem;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.compat.create.SpellDispenserMovementBehaviour;
@@ -20,6 +21,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
@@ -36,6 +38,10 @@ import java.util.ArrayList;
 
 public final class CreateGameTestHooks {
     private CreateGameTestHooks() {
+    }
+
+    public static boolean isWearingGoggles(Player player) {
+        return GogglesItem.isWearingGoggles(player);
     }
 
     // optional 依存の absent 環境でも GameTest 本体を読めるよう、Create API 依存はこの隔離クラスへ閉じ込める。
