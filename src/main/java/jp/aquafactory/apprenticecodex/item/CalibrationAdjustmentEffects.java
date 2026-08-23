@@ -70,6 +70,41 @@ public final class CalibrationAdjustmentEffects {
         return line("adapt_back_curios");
     }
 
+    public static List<Component> gainFireward() {
+        return List.of(
+                Component.translatable(KEY_PREFIX + "gain_fireward_1"),
+                Component.translatable(KEY_PREFIX + "gain_fireward_2")
+        );
+    }
+
+    public static List<Component> adaptUnderwaterMobility() {
+        return List.of(
+                Component.translatable(KEY_PREFIX + "adapt_underwater_mobility_1"),
+                Component.translatable(KEY_PREFIX + "adapt_underwater_mobility_2")
+        );
+    }
+
+    public static List<Component> overdriveFloatmountBroom() {
+        return List.of(
+                Component.translatable(KEY_PREFIX + "overdrive_engine.float_1"),
+                Component.translatable(KEY_PREFIX + "overdrive_engine.float_2")
+        );
+    }
+
+    public static List<Component> overdriveHoverrideBroom() {
+        return List.of(
+                Component.translatable(KEY_PREFIX + "overdrive_engine.hover_1"),
+                Component.translatable(KEY_PREFIX + "overdrive_engine.hover_2")
+        );
+    }
+
+    public static List<Component> addRushStyle() {
+        return List.of(
+                Component.translatable(KEY_PREFIX + "add_rush_style_1"),
+                Component.translatable(KEY_PREFIX + "add_rush_style_2")
+        );
+    }
+
     private static List<Component> line(String key, Object... args) {
         return List.of(Component.translatable(KEY_PREFIX + key, args));
     }

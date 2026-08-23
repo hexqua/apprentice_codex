@@ -5,11 +5,13 @@ import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
+import jp.aquafactory.apprenticecodex.item.broom.AbstractBroomItem;
 import jp.aquafactory.apprenticecodex.item.broom.BroomDeploymentState;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.spell.callbroom.CallBroomDeploymentManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.ParticleType;
@@ -28,6 +30,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -40,6 +43,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.util.FakePlayer;
@@ -67,13 +71,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     public static final int DURABILITY_STEPS = 20;
 
     private static final double HOVER_HEIGHT = 0.5D;
-    private static final double MAX_UNMOUNTED_FALL_SPEED = 0.1D;
-    private static final double MAX_UNMOUNTED_RISE_SPEED = 0.1D;
-    private static final double HORIZONTAL_ACCELERATION = 0.04D;
-    private static final double MAX_HORIZONTAL_SPEED = 0.35D;
-    private static final double EMERGENCY_MAX_HORIZONTAL_SPEED = 0.1D;
     private static final double VERTICAL_ACCELERATION = 0.05D;
-    private static final double MAX_VERTICAL_SPEED = 0.15D;
     private static final float TURN_ACCELERATION = 1.0F;
     private static final float MAX_TURN_SPEED = 10.0F;
     private static final double POWERED_HORIZONTAL_DAMPING = 0.9D;
@@ -147,6 +145,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     private Vec3 lastServerRidingMovement = Vec3.ZERO;
     private long lastServerRidingPositionGameTime = Long.MIN_VALUE;
     private long lastServerRidingMovementGameTime = Long.MIN_VALUE;
+    private double bubbleColumnVerticalInfluence;
 
     protected AbstractBroomEntity(EntityType<?> type, Level level) {
         super(type, level);
@@ -159,6 +158,21 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
 
     protected boolean requiresMountMana() {
         return true;
+    }
+
+    protected boolean isWaterMovementPenaltyActive() {
+        return false;
+    }
+
+    protected boolean managesBubbleColumnMovement() {
+        return false;
+    }
+
+    protected boolean ignoresBubbleColumnMovement() {
+        return false;
+    }
+
+    protected void onBroomItemStackChanged(ItemStack stack) {
     }
 
     public abstract Component createControlHelpMessage();
@@ -242,9 +256,11 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
             }
         }
 
+        var movedThisTick = false;
         if (isVehicle()) {
             if (level().isClientSide && isControlledByLocalInstance()) {
                 applyControlledMovement();
+                movedThisTick = true;
             } else if (!level().isClientSide && getControllingPassenger() instanceof Player player) {
                 observeServerRidingMovement();
                 tickControlledServer(player);
@@ -255,9 +271,14 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
                 resetRidingState();
             }
             applyUnoccupiedMovement();
+            movedThisTick = true;
         }
 
-        checkInsideBlocks();
+        // move()自身がblock内判定を行うため、移動しないsideだけ明示的に補う。
+        // これにより操作client・server・追跡clientのcallback回数を1tickにつき1回へそろえる。
+        if (!movedThisTick) {
+            checkInsideBlocks();
+        }
         if (!level().isClientSide && getRemainingFireTicks() > 0) {
             // 接触中の火炎・溶岩ダメージは受けるが、離れた後まで続く炎上は飛行視界を妨げるため残さない。
             clearFire();
@@ -442,6 +463,10 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         setYRot(getYRot() + turnSpeed);
 
         var movement = getDeltaMovement();
+        var bubbleInfluence = currentBubbleColumnVerticalInfluence();
+        var controlledVerticalMovement = movement.y - bubbleInfluence;
+        var waterPenaltyActive = isWaterMovementPenaltyActive();
+        var overdriveEnabled = isOverdriveEnabled();
         var yaw = getYRot() * Mth.DEG_TO_RAD;
         var forward = new Vec3(-Mth.sin(yaw), 0.0D, Mth.cos(yaw));
         // 高所作業で停止しやすくしつつ、入力中はボート相当の滑らかな加速を維持する。
@@ -450,46 +475,66 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
                 : COAST_HORIZONTAL_DAMPING;
         var horizontal = new Vec3(movement.x, 0.0D, movement.z)
                 .scale(horizontalDamping)
-                .add(forward.scale(localForwardInput * HORIZONTAL_ACCELERATION));
-        var maxHorizontalSpeed = isForcedLanding()
-                ? EMERGENCY_MAX_HORIZONTAL_SPEED
-                : MAX_HORIZONTAL_SPEED;
+                .add(forward.scale(localForwardInput
+                        * FloatmountBroomMovement.horizontalAcceleration(waterPenaltyActive, overdriveEnabled)));
+        var maxHorizontalSpeed = FloatmountBroomMovement.maximumHorizontalSpeed(
+                isForcedLanding(), waterPenaltyActive, overdriveEnabled
+        );
         if (horizontal.length() > maxHorizontalSpeed) {
             horizontal = horizontal.normalize().scale(maxHorizontalSpeed);
         }
 
         var forcedLanding = isForcedLanding();
-        var verticalTarget = localAscending ? MAX_VERTICAL_SPEED : descendingInput ? -MAX_VERTICAL_SPEED : 0.0D;
+        var maxVerticalSpeed = FloatmountBroomMovement.maximumVerticalSpeed(waterPenaltyActive);
+        var verticalTarget = localAscending ? maxVerticalSpeed : descendingInput ? -maxVerticalSpeed : 0.0D;
         var vertical = forcedLanding
-                ? -MAX_VERTICAL_SPEED
-                : Mth.clamp(movement.y + Mth.clamp(verticalTarget - movement.y,
-                        -VERTICAL_ACCELERATION, VERTICAL_ACCELERATION), -MAX_VERTICAL_SPEED, MAX_VERTICAL_SPEED);
+                ? -maxVerticalSpeed
+                : Mth.clamp(controlledVerticalMovement + Mth.clamp(verticalTarget - controlledVerticalMovement,
+                        -VERTICAL_ACCELERATION, VERTICAL_ACCELERATION), -maxVerticalSpeed, maxVerticalSpeed);
+        vertical += bubbleInfluence;
         setDeltaMovement(horizontal.x, vertical, horizontal.z);
         move(MoverType.SELF, getDeltaMovement());
     }
 
     protected void applyUnoccupiedMovement() {
         var movement = getDeltaMovement();
+        var bubbleInfluence = currentBubbleColumnVerticalInfluence();
+        var controlledVerticalMovement = movement.y - bubbleInfluence;
+        var waterPenaltyActive = isWaterMovementPenaltyActive();
+        var overdriveEnabled = isOverdriveEnabled();
         var horizontal = new Vec3(movement.x * COAST_HORIZONTAL_DAMPING, 0.0D,
                 movement.z * COAST_HORIZONTAL_DAMPING);
-        var vertical = movement.y;
+        if (waterPenaltyActive) {
+            var maxHorizontalSpeed = FloatmountBroomMovement.maximumHorizontalSpeed(
+                    false, true, overdriveEnabled
+            );
+            if (horizontal.length() > maxHorizontalSpeed) {
+                horizontal = horizontal.normalize().scale(maxHorizontalSpeed);
+            }
+        }
+        var vertical = controlledVerticalMovement;
 
         // 損傷は有人飛行を制限する状態とし、無人時は溶岩などから回収できるよう通常の浮遊を維持する。
         if (isInWaterOrBubble() || isInLava() || !level().noCollision(this, getBoundingBox().deflate(0.01D))) {
-            vertical = Math.min(MAX_UNMOUNTED_RISE_SPEED, vertical + 0.03D);
+            var maximumVerticalSpeed = FloatmountBroomMovement.maximumUnoccupiedVerticalSpeed(waterPenaltyActive);
+            vertical = waterPenaltyActive
+                    ? Mth.clamp(vertical + 0.03D, -maximumVerticalSpeed, maximumVerticalSpeed)
+                    : Math.min(maximumVerticalSpeed, vertical + 0.03D);
         } else {
             var surface = BroomSurfaceScanner.findSurfaceBelow(level(), getX(), getY(), getZ(), 4, true);
             if (surface.isPresent()) {
-                var error = surface.getAsDouble() + HOVER_HEIGHT - getY();
+                var error = surface.get().y() + HOVER_HEIGHT - getY();
                 vertical = Mth.clamp(error * 0.2D + vertical * 0.6D,
-                        -MAX_UNMOUNTED_FALL_SPEED, MAX_UNMOUNTED_RISE_SPEED);
+                        -FloatmountBroomMovement.MAX_UNMOUNTED_FALL_SPEED,
+                        FloatmountBroomMovement.MAX_UNMOUNTED_RISE_SPEED);
                 if (Math.abs(error) < 0.01D && Math.abs(vertical) < 0.01D) {
                     vertical = 0.0D;
                 }
             } else {
-                vertical = Math.max(-MAX_UNMOUNTED_FALL_SPEED, vertical - 0.02D);
+                vertical = Math.max(-FloatmountBroomMovement.MAX_UNMOUNTED_FALL_SPEED, vertical - 0.02D);
             }
         }
+        vertical += bubbleInfluence;
 
         setDeltaMovement(horizontal.x, vertical, horizontal.z);
         move(MoverType.SELF, getDeltaMovement());
@@ -497,13 +542,20 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     }
 
     protected double maximumInheritedDismountHorizontalSpeed() {
-        return MAX_HORIZONTAL_SPEED;
+        return FloatmountBroomMovement.maximumHorizontalSpeed(
+                false, isWaterMovementPenaltyActive(), isOverdriveEnabled()
+        );
     }
 
     @Override
     public boolean hurt(@NotNull DamageSource source, float amount) {
         if (level().isClientSide || isRemoved()) {
             return true;
+        }
+        if (AbstractBroomItem.isFirewardEnabled(getBroomItemStack()) && source.is(DamageTypeTags.IS_FIRE)) {
+            // Fireward Ring本来の耐性に合わせ、溶岩を含む火炎ダメージと付随する炎上を箒だけに無効化する。
+            clearFire();
+            return false;
         }
         if (isInvulnerableTo(source)) {
             return false;
@@ -684,6 +736,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         // CallBroomの一時的なEntity UUIDは回収物や同期用copyへ持ち込まない。
         BroomDeploymentState.clear(storedStack);
         entityData.set(BROOM_ITEM_STACK, storedStack);
+        onBroomItemStackChanged(storedStack);
     }
 
     public final ItemStack getBroomItemStack() {
@@ -815,9 +868,58 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         }
         return new Vec3(
                 horizontal.x,
-                Mth.clamp(movement.y, -MAX_VERTICAL_SPEED, MAX_VERTICAL_SPEED),
+                Mth.clamp(
+                        movement.y,
+                        -FloatmountBroomMovement.maximumVerticalSpeed(isWaterMovementPenaltyActive()),
+                        FloatmountBroomMovement.maximumVerticalSpeed(isWaterMovementPenaltyActive())
+                ),
                 horizontal.z
         );
+    }
+
+    @Override
+    public void onAboveBubbleCol(boolean downwards) {
+        var before = getDeltaMovement();
+        super.onAboveBubbleCol(downwards);
+        finishBubbleColumnMovement(before);
+    }
+
+    @Override
+    public void onInsideBubbleColumn(boolean downwards) {
+        var before = getDeltaMovement();
+        super.onInsideBubbleColumn(downwards);
+        finishBubbleColumnMovement(before);
+    }
+
+    private void finishBubbleColumnMovement(Vec3 before) {
+        if (!managesBubbleColumnMovement()) {
+            return;
+        }
+        if (ignoresBubbleColumnMovement()) {
+            // super側のfall distance更新は維持し、調整効果が対象とする速度だけを戻す。
+            setDeltaMovement(before);
+            bubbleColumnVerticalInfluence = 0.0D;
+            return;
+        }
+        if (!shouldTrackBubbleColumnInfluence()) {
+            bubbleColumnVerticalInfluence = 0.0D;
+            return;
+        }
+        bubbleColumnVerticalInfluence += getDeltaMovement().y - before.y;
+    }
+
+    private double currentBubbleColumnVerticalInfluence() {
+        if (!managesBubbleColumnMovement()
+                || ignoresBubbleColumnMovement()
+                || !shouldTrackBubbleColumnInfluence()
+                || !getFeetBlockState().is(Blocks.BUBBLE_COLUMN)) {
+            bubbleColumnVerticalInfluence = 0.0D;
+        }
+        return bubbleColumnVerticalInfluence;
+    }
+
+    private boolean shouldTrackBubbleColumnInfluence() {
+        return !isVehicle() || level().isClientSide && isControlledByLocalInstance();
     }
 
     @Override
@@ -892,7 +994,9 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         var surface = BroomSurfaceScanner.findSurfaceBelow(
                 level(), getX(), getY(), getZ(), (int) DANGEROUS_HEIGHT, false
         );
-        return surface.isEmpty() || getY() - surface.getAsDouble() >= DANGEROUS_HEIGHT;
+        return surface.isEmpty()
+                || isDangerousDismountSurface(surface.get())
+                || getY() - surface.get().y() >= DANGEROUS_HEIGHT;
     }
 
     private Vec3 preferredDismountPosition(LivingEntity passenger) {
@@ -911,17 +1015,24 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         var surface = BroomSurfaceScanner.findSurfaceBelow(
                 level(), candidate.x, getY(), candidate.z, (int) DANGEROUS_HEIGHT, false
         );
-        if (surface.isEmpty() || getY() - surface.getAsDouble() >= DANGEROUS_HEIGHT) {
+        if (surface.isEmpty()
+                || isDangerousDismountSurface(surface.get())
+                || getY() - surface.get().y() >= DANGEROUS_HEIGHT) {
             return Optional.empty();
         }
 
-        var position = new Vec3(candidate.x, surface.getAsDouble(), candidate.z);
+        var position = new Vec3(candidate.x, surface.get().y(), candidate.z);
         for (var pose : passenger.getDismountPoses()) {
             if (DismountHelper.canDismountTo(level(), position, passenger, pose)) {
                 return Optional.of(new DismountTarget(position, pose));
             }
         }
         return Optional.empty();
+    }
+
+    private boolean isDangerousDismountSurface(BroomSurfaceScanner.Surface surface) {
+        return level().getBlockState(surface.blockPos())
+                .is(TagRegistry.Blocks.BROOM_DANGEROUS_DISMOUNT_SURFACES);
     }
 
     private record DismountTarget(Vec3 position, Pose pose) {
@@ -1049,13 +1160,26 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
 
     private float movementManaCost(FloatmountBroomServerConfig.Values config) {
         var horizontal = Math.abs(serverForwardInput) > INPUT_EPSILON;
+        var overdriveEnabled = isOverdriveEnabled();
         if (horizontal && serverAscending) {
-            return Math.max(0.0F, (float)config.horizontalAscendingManaCostPerTick());
+            return Math.max(0.0F, (float)(overdriveEnabled
+                    ? config.overdriveHorizontalAscendingManaCostPerTick()
+                    : config.horizontalAscendingManaCostPerTick()));
         }
         if (horizontal) {
-            return Math.max(0.0F, (float)config.horizontalManaCostPerTick());
+            return Math.max(0.0F, (float)(overdriveEnabled
+                    ? config.overdriveHorizontalManaCostPerTick()
+                    : config.horizontalManaCostPerTick()));
         }
-        return serverAscending ? Math.max(0.0F, (float)config.ascendingManaCostPerTick()) : 0.0F;
+        return serverAscending
+                ? Math.max(0.0F, (float)(overdriveEnabled
+                        ? config.overdriveAscendingManaCostPerTick()
+                        : config.ascendingManaCostPerTick()))
+                : 0.0F;
+    }
+
+    protected final boolean isOverdriveEnabled() {
+        return AbstractBroomItem.isOverdriveEnabled(getBroomItemStack());
     }
 
     protected static float sanitizeInput(float input) {

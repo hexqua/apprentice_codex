@@ -5,6 +5,8 @@
   "curios.modifiers.feet": "足に装備した時:",
   "curios.apprenticecodex.modifier.for_quiver": "背中か腰に装備したとき：",
 
+  "emf.variable.apprenticecodex.is_hoverride_broom_rider": "描画中のプレイヤーが浮遊走行の箒に騎乗しているか",
+
   "attribute.name.apprenticecodex.max_enchantment_table_level": "最大エンチャントテーブルレベル",
 
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",
@@ -37,6 +39,7 @@
 
   "item.apprenticecodex.arcane_cinder": "神秘の燃え殻",
   "item.apprenticecodex.wisdom_shard": "叡智の破片",
+  "item.apprenticecodex.overdrive_broom_engine": "オーバードライブ箒駆動コア",
   "item.apprenticecodex.spell_extract_shard": "術式抽出の破片",
   "item.apprenticecodex.crystalline_arcane_shard": "結晶化した秘術の破片",
   "item.apprenticecodex.comfort_berries": "安楽の果実",
@@ -220,6 +223,7 @@
   "item.apprenticecodex.common.spellgun.desc_2": "オフハンドに持っている時、[%1$s]で魔法を詠唱する。",
   "item.apprenticecodex.common.spellgun.epicfight.offhand_warning": "オフハンドに持っている間、ガードスキルが使用できなくなる。",
   "item.apprenticecodex.wisdom_shard.desc": "一部アイテムの調整用アイテムとして装着できる。",
+  "item.apprenticecodex.overdrive_broom_engine.desc": "箒関連の調整用アイテムとして装着できる。",
   "item.apprenticecodex.spell_extract_shard.desc_1": "注入されている魔法を取り出すのに使用する。",
   "item.apprenticecodex.spell_extract_shard.desc_2": "取り出す際に注入元のアイテムを破壊する。",
   "item.apprenticecodex.instant_search_brazier.desc_1": "使用すると魔術に関係の深い建築物を探索できる火鉢を生成する。",
@@ -524,6 +528,16 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.add_swingcast_function": "攻撃時に選択中の魔法を打撃詠唱",
   "jei.apprenticecodex.spell_calibration_bench.effect.convert_quick_to_power": "詠唱時間短縮を魔法威力へ変換",
   "jei.apprenticecodex.spell_calibration_bench.effect.adapt_back_curios": "背中装備として背負いに対応",
+  "jei.apprenticecodex.spell_calibration_bench.effect.gain_fireward_1": "火炎耐性を与える",
+  "jei.apprenticecodex.spell_calibration_bench.effect.gain_fireward_2": "効果は箒のみに限定",
+  "jei.apprenticecodex.spell_calibration_bench.effect.adapt_underwater_mobility_1": "水中でも安定した機動性能を維持",
+  "jei.apprenticecodex.spell_calibration_bench.effect.adapt_underwater_mobility_2": "効果は箒のみに限定",
+  "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.float_1": "移動速度が上昇",
+  "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.float_2": "移動時のマナ消費が増加",
+  "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.hover_1": "加速と最高速が上昇",
+  "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.hover_2": "加速全般のマナ消費が増加",
+  "jei.apprenticecodex.spell_calibration_bench.effect.add_rush_style_1": "一定速度以上で接触攻撃可能",
+  "jei.apprenticecodex.spell_calibration_bench.effect.add_rush_style_2": "発動中マナを消費",
 
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "同じ効果のアイテムは複数挿入できない",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "系統のルーンはどれか一つのみ挿入できる",
@@ -1090,7 +1104,7 @@
   "ui.apprenticecodex.floatmount_broom.retrieve_help": "箒はスニークしながら[%s]で回収できる",
   "ui.apprenticecodex.floatmount_broom.warning_damage": "箒の損傷が限界を超えたため墜落する！",
   "ui.apprenticecodex.floatmount_broom.cannot_mount_damaged": "一度箒を回収しないと乗る事ができない！",
-  "ui.apprenticecodex.hoverride_broom.control_help": "[%1$s長押し] 慣性滑走 / [%2$sを離す] マナを消費して加速 / [%3$s] 降りる",
+  "ui.apprenticecodex.hoverride_broom.control_help": "[%1$s] 長押しで滑走 / 離して加速（マナ消費） / [%2$s] 降りる",
   "ui.apprenticecodex.hoverride_broom.warning_dismount": "もう一度[%s]を押すと飛び降りる",
   "ui.apprenticecodex.hoverride_broom.warning_low_mana": "マナが枯渇してしまうと加速を維持できない！",
   "ui.apprenticecodex.hoverride_broom.warning_depleted_mana": "マナが枯渇したため加速ができない！",
@@ -1211,6 +1225,7 @@
   "death.attack.apprenticecodex.field_overseer": "%1$sは裁かれた",
   "death.attack.apprenticecodex.servant_gaze": "%1$sは勝ち上がれなかった",
   "death.attack.apprenticecodex.fujin": "%1$sは%2$sに千切りにされた",
+  "death.attack.apprenticecodex.hoverride_broom": "%1$sは%2$sの不運と踊ってしまった",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",

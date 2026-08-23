@@ -1,8 +1,14 @@
 package jp.aquafactory.apprenticecodex.entity.broom;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
+import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
+import io.redspace.ironsspellbooks.util.ParticleHelper;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.HoverrideBroomServerConfig;
+import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.item.broom.HoverrideBroomItem;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomAssistWingsJumpPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomImpulseEffectPacket;
@@ -11,16 +17,20 @@ import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -31,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.Optional;
-import java.util.OptionalDouble;
+import java.util.Comparator;
 
 public final class HoverrideBroomEntity extends AbstractBroomEntity {
     private static final EntityDataAccessor<Boolean> MANA_DEPLETED =
@@ -40,6 +50,12 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
             SynchedEntityData.defineId(HoverrideBroomEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> PRESENTATION_STATE =
             SynchedEntityData.defineId(HoverrideBroomEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> RUSH_ATTACK_ACTIVE =
+            SynchedEntityData.defineId(HoverrideBroomEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Float> RUSH_DIRECTION_X =
+            SynchedEntityData.defineId(HoverrideBroomEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> RUSH_DIRECTION_Z =
+            SynchedEntityData.defineId(HoverrideBroomEntity.class, EntityDataSerializers.FLOAT);
     private static final float INPUT_EPSILON = 1.0e-4F;
     private static final float MANA_EPSILON = 1.0e-4F;
     private static final int SERVER_INPUT_TIMEOUT_TICKS = 30;
@@ -103,6 +119,9 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     private long lastServerActionSequence;
     private int serverAirborneTicks;
     private long lastAccelerationSoundGameTime = Long.MIN_VALUE;
+    private int serverControlledTick;
+    private Vec3 lastRushObservationPosition;
+    private int lastRushObservationTick = Integer.MIN_VALUE;
 
     private Vec3 lastClientEffectPosition;
 
@@ -138,6 +157,9 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         entityData.define(MANA_DEPLETED, false);
         entityData.define(AIRBORNE_ACCELERATION_LOCKED, false);
         entityData.define(PRESENTATION_STATE, HoverrideBroomPresentation.NORMAL.ordinal());
+        entityData.define(RUSH_ATTACK_ACTIVE, false);
+        entityData.define(RUSH_DIRECTION_X, 0.0F);
+        entityData.define(RUSH_DIRECTION_Z, 1.0F);
     }
 
     @Override
@@ -308,7 +330,8 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
             var released = HoverrideBroomMovement.releaseHorizontal(
                     localInertia,
                     getForwardDirection(),
-                    minimumHorizontalSpeed
+                    minimumHorizontalSpeed,
+                    HoverrideBroomMovement.maximumHorizontalSpeed(isOverdriveEnabled())
             );
             setDeltaMovement(released.x, getDeltaMovement().y, released.z);
             localReleaseImpulsePending = true;
@@ -347,7 +370,8 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
                         movement,
                         getForwardDirection(),
                         localForwardInput,
-                        !isManaDepleted() && !isDamaged() && localAirborneTicks < AIRBORNE_GRACE_TICKS
+                        !isManaDepleted() && !isDamaged() && localAirborneTicks < AIRBORNE_GRACE_TICKS,
+                        isOverdriveEnabled()
                 );
         localReleaseImpulsePending = false;
         if (gliding && (isInWaterOrBubble() || isInLava())) {
@@ -356,12 +380,13 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         }
         if (localAssistWingsJumpActive
                 && localAssistWingsVerticalVelocity <= 0.0D
-                && isWithinAssistWingsLandingDistance(surface)) {
+                && surface.isPresent()
+                && isWithinAssistWingsLandingDistance(surface.get().y())) {
             cancelLocalAssistWingsJump();
         }
         var vertical = localAssistWingsJumpActive
                 ? Math.max(-MAX_MOUNTED_VERTICAL_SPEED, localAssistWingsVerticalVelocity)
-                : mountedVertical(movement.y, surface.orElse(Double.NaN));
+                : mountedVertical(movement.y, surface.map(BroomSurfaceScanner.Surface::y).orElse(Double.NaN));
         if (isDamaged()) {
             vertical = -MAX_MOUNTED_VERTICAL_SPEED;
         }
@@ -398,7 +423,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         var horizontal = HoverrideBroomMovement.horizontal(movement).scale(UNMOUNTED_HORIZONTAL_DAMPING);
         var surface = findRideSurfaceBelow();
         var vertical = surface.isPresent()
-                ? hoverVertical(movement.y, surface.getAsDouble(), MAX_UNMOUNTED_VERTICAL_SPEED)
+                ? hoverVertical(movement.y, surface.get().y(), MAX_UNMOUNTED_VERTICAL_SPEED)
                 : Math.max(-MAX_UNMOUNTED_VERTICAL_SPEED, movement.y - VERTICAL_ACCELERATION);
         setDeltaMovement(horizontal.x, vertical, horizontal.z);
         move(MoverType.SELF, getDeltaMovement());
@@ -406,7 +431,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
 
     @Override
     protected double maximumInheritedDismountHorizontalSpeed() {
-        return HoverrideBroomMovement.MAX_HORIZONTAL_SPEED;
+        return HoverrideBroomMovement.maximumHorizontalSpeed(isOverdriveEnabled());
     }
 
     @Override
@@ -501,9 +526,12 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
 
     @Override
     protected void tickControlledServer(Player player) {
+        serverControlledTick++;
         updateServerSurfaceState();
+        var rushMovement = observeRushMovement();
         if (isDamaged()) {
             cancelServerGlide();
+            setRushAttackActive(false);
             setPresentationState(HoverrideBroomPresentation.NORMAL);
             return;
         }
@@ -520,6 +548,11 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
                 serverGlideActive = true;
                 serverSuccessfulGlideTicks++;
             }
+            if (rushMovement.isPresent() && canStartRushAttack()) {
+                activateRushAttack(player, rushMovement.get(), ApprenticeCodexServerConfig.hoverrideBroomConfig());
+            } else {
+                setRushAttackActive(false);
+            }
             updateServerPresentation();
             return;
         }
@@ -528,7 +561,8 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         var mana = magicData == null ? 0.0F : magicData.getMana();
         var config = ApprenticeCodexServerConfig.hoverrideBroomConfig();
         if (isManaDepleted()) {
-            if (mana + MANA_EPSILON >= config.inertiaReleaseManaCost()) {
+            setRushAttackActive(false);
+            if (mana + MANA_EPSILON >= inertiaReleaseManaCost(config)) {
                 setManaDepleted(false);
                 setLowManaWarningShown(false);
                 player.displayClientMessage(Component.translatable(
@@ -540,26 +574,32 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
             return;
         }
         if (mana <= MANA_EPSILON) {
+            setRushAttackActive(false);
             enterManaDepleted(player);
             updateServerPresentation();
             return;
         }
 
+        double movementManaCost = 0.0D;
         if (serverGlideRequested) {
             serverGlideActive = true;
             serverSuccessfulGlideTicks++;
-            consumeMana(player, magicData, (float)config.inertiaGlideManaCostPerTick());
-            if (isManaDepleted()) {
-                cancelServerGlide();
-            } else {
-                updateLowManaWarning(player, manaAfterConsumption(magicData), config);
-            }
-            updateServerPresentation();
-            return;
+            movementManaCost = inertiaGlideManaCostPerTick(config);
+        } else if (serverForwardInput > INPUT_EPSILON && serverAirborneTicks < AIRBORNE_GRACE_TICKS) {
+            movementManaCost = forwardManaCostPerTick(config);
         }
 
-        if (serverForwardInput > INPUT_EPSILON && serverAirborneTicks < AIRBORNE_GRACE_TICKS) {
-            consumeMana(player, magicData, (float)config.forwardManaCostPerTick());
+        var rushRequested = rushMovement.isPresent() && canStartRushAttack();
+        var totalManaCost = movementManaCost + (rushRequested ? config.rushManaCostPerTick() : 0.0D);
+        var rushPaid = rushRequested && mana + MANA_EPSILON >= totalManaCost;
+        consumeMana(player, magicData, (float)totalManaCost);
+        if (rushPaid && rushMovement.isPresent()) {
+            activateRushAttack(player, rushMovement.get(), config);
+        } else {
+            setRushAttackActive(false);
+        }
+        if (isManaDepleted()) {
+            cancelServerGlide();
         }
         if (!isManaDepleted()) {
             updateLowManaWarning(player, manaAfterConsumption(magicData), config);
@@ -567,8 +607,187 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         updateServerPresentation();
     }
 
+    private Optional<RushMovement> observeRushMovement() {
+        var now = serverControlledTick;
+        var currentPosition = position();
+        if (lastRushObservationPosition == null || lastRushObservationTick == Integer.MIN_VALUE) {
+            lastRushObservationPosition = currentPosition;
+            lastRushObservationTick = now;
+            return Optional.empty();
+        }
+
+        var elapsedTicks = now - lastRushObservationTick;
+        var movement = currentPosition.subtract(lastRushObservationPosition);
+        if (movement.lengthSqr() <= 1.0e-8D) {
+            if (elapsedTicks > HoverrideBroomRushAttack.MAX_OBSERVATION_TICKS) {
+                lastRushObservationPosition = currentPosition;
+                lastRushObservationTick = now;
+            }
+            return Optional.empty();
+        }
+
+        lastRushObservationPosition = currentPosition;
+        lastRushObservationTick = now;
+        if (elapsedTicks < 1L || elapsedTicks > HoverrideBroomRushAttack.MAX_OBSERVATION_TICKS
+                || !Double.isFinite(movement.x) || !Double.isFinite(movement.y) || !Double.isFinite(movement.z)) {
+            return Optional.empty();
+        }
+
+        var horizontal = HoverrideBroomMovement.horizontal(movement);
+        var allowedHorizontal = (HoverrideBroomMovement.maximumHorizontalSpeed(isOverdriveEnabled())
+                + HoverrideBroomRushAttack.MOVEMENT_TOLERANCE_PER_TICK) * elapsedTicks;
+        var allowedVertical = (ASSIST_WINGS_MAX_JUMP_HEIGHT
+                + HoverrideBroomRushAttack.MOVEMENT_TOLERANCE_PER_TICK) * elapsedTicks;
+        if (horizontal.length() > allowedHorizontal || Math.abs(movement.y) > allowedVertical) {
+            return Optional.empty();
+        }
+
+        var speed = horizontal.length() / elapsedTicks;
+        if (speed < HoverrideBroomRushAttack.MINIMUM_SPEED || horizontal.lengthSqr() <= 1.0e-8D) {
+            return Optional.empty();
+        }
+        return Optional.of(new RushMovement(movement, horizontal.normalize(), speed));
+    }
+
+    private boolean canStartRushAttack() {
+        return isVehicle()
+                && getControllingPassenger() instanceof Player
+                && HoverrideBroomItem.isRushStyleEnabled(getBroomItemStack());
+    }
+
+    private void activateRushAttack(
+            Player player,
+            RushMovement rushMovement,
+            HoverrideBroomServerConfig.Values config
+    ) {
+        setRushDirection(rushMovement.direction());
+        setRushAttackActive(true);
+        applyRushAttack(player, rushMovement, config);
+    }
+
+    private void applyRushAttack(
+            Player player,
+            RushMovement rushMovement,
+            HoverrideBroomServerConfig.Values config
+    ) {
+        var currentBox = getBoundingBox();
+        var startBox = currentBox.move(rushMovement.displacement().reverse());
+        var searchBox = currentBox.minmax(startBox).inflate(HoverrideBroomRushAttack.CONTACT_PADDING);
+        var targets = CombatTools.resolveUniqueCombatTargets(level().getEntities(this, searchBox)).stream()
+                .filter(target -> CombatTools.isValidCombatTarget(target, player))
+                .filter(target -> HoverrideBroomRushAttack.intersectsPath(
+                        currentBox, rushMovement.displacement(), target.getBoundingBox()))
+                .sorted(Comparator.comparingDouble(target -> HoverrideBroomRushAttack.pathEntryDistanceSqr(
+                        currentBox, rushMovement.displacement(), target.getBoundingBox())))
+                .limit(HoverrideBroomRushAttack.MAX_TARGETS_PER_TICK)
+                .toList();
+        if (targets.isEmpty()) {
+            return;
+        }
+
+        var lightningSchool = SchoolRegistry.LIGHTNING.get();
+        var baseDamage = HoverrideBroomRushAttack.baseDamage(
+                rushMovement.speed(), config.rushMinimumDamage(), config.rushMaximumDamage());
+        var scaledDamage = baseDamage
+                * (float)player.getAttributeValue(AttributeRegistry.SPELL_POWER.get())
+                * (float)lightningSchool.getPowerFor(player);
+        var source = CombatTools.getDamageSource(level(), this, player, DamageTypes.HOVERRIDE_BROOM);
+        var knockback = HoverrideBroomRushAttack.knockbackStrength(rushMovement.speed());
+        var hitSoundPlayed = false;
+        for (var target : targets) {
+            var applied = CombatTools.applyDamage(
+                    target,
+                    scaledDamage,
+                    source,
+                    lightningSchool,
+                    CombatTools.KnockbackTypes.NO_KNOCKBACK
+            );
+            if (!applied) {
+                continue;
+            }
+            spawnRushHitEffects(target, !hitSoundPlayed);
+            hitSoundPlayed = true;
+            if (target instanceof LivingEntity livingTarget) {
+                // LivingEntity#knockbackは指定方向を減算するため、進行方向へ飛ばすには符号を反転する。
+                livingTarget.knockback(knockback, -rushMovement.direction().x, -rushMovement.direction().z);
+            }
+        }
+    }
+
+    private void spawnRushHitEffects(Entity target, boolean playSound) {
+        if (!(level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        var impact = target.getBoundingBox().getCenter();
+        MagicManager.spawnParticles(
+                serverLevel,
+                ParticleHelper.ELECTRIC_SPARKS,
+                impact.x, impact.y, impact.z,
+                14,
+                0.18D, 0.25D, 0.18D,
+                0.18D,
+                true
+        );
+        MagicManager.spawnParticles(
+                serverLevel,
+                new AdditiveGlowParticleOptions(
+                        ParticleRegistry.ADDITIVE_RHOMBUS.get(),
+                        0.18F,
+                        0.48F, 0.72F, 1.0F,
+                        2,
+                        8,
+                        3,
+                        0.75F,
+                        1.25F,
+                        0.7F,
+                        1.0F,
+                        0.02F,
+                        0.5F,
+                        0.35F,
+                        true
+                ),
+                impact.x, impact.y, impact.z,
+                5,
+                0.2D, 0.2D, 0.2D,
+                0.08D,
+                true
+        );
+        if (playSound) {
+            serverLevel.playSound(
+                    null,
+                    impact.x, impact.y, impact.z,
+                    io.redspace.ironsspellbooks.registries.SoundRegistry.SMALL_LIGHTNING_STRIKE.get(),
+                    SoundSource.PLAYERS,
+                    0.9F,
+                    1.1F + serverLevel.random.nextFloat() * 0.2F
+            );
+        }
+    }
+
+    private record RushMovement(Vec3 displacement, Vec3 direction, double speed) {
+    }
+
     private float manaAfterConsumption(MagicData magicData) {
         return magicData == null ? 0.0F : magicData.getMana();
+    }
+
+    private double forwardManaCostPerTick(HoverrideBroomServerConfig.Values config) {
+        return isOverdriveEnabled()
+                ? config.overdriveForwardManaCostPerTick()
+                : config.forwardManaCostPerTick();
+    }
+
+    private double inertiaGlideManaCostPerTick(HoverrideBroomServerConfig.Values config) {
+        return isOverdriveEnabled()
+                ? config.overdriveInertiaGlideManaCostPerTick()
+                : config.inertiaGlideManaCostPerTick();
+    }
+
+    private double inertiaReleaseManaCost(HoverrideBroomServerConfig.Values config) {
+        return isOverdriveEnabled()
+                ? config.overdriveInertiaReleaseManaCost()
+                : config.inertiaReleaseManaCost();
     }
 
     private void updateLowManaWarning(
@@ -576,7 +795,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
             float mana,
             HoverrideBroomServerConfig.Values config
     ) {
-        var recoveryThreshold = config.inertiaReleaseManaCost();
+        var recoveryThreshold = inertiaReleaseManaCost(config);
         if (!isLowManaWarningShown()
                 && mana <= config.lowManaWarningThreshold()
                 && mana < recoveryThreshold) {
@@ -616,7 +835,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         var config = ApprenticeCodexServerConfig.hoverrideBroomConfig();
         if (accepted && !player.getAbilities().instabuild) {
             var magicData = MagicData.getPlayerMagicData(player);
-            consumeMana(player, magicData, (float)config.inertiaReleaseManaCost());
+            consumeMana(player, magicData, (float)inertiaReleaseManaCost(config));
             if (!isManaDepleted()) {
                 updateLowManaWarning(player, manaAfterConsumption(magicData), config);
             }
@@ -646,11 +865,19 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
             return;
         }
         var config = ApprenticeCodexServerConfig.hoverrideBroomConfig();
+        var overdriveEnabled = isOverdriveEnabled();
+        var maximumSpeed = HoverrideBroomMovement.maximumHorizontalSpeed(overdriveEnabled);
+        var minimumSpeedRatio = overdriveEnabled
+                ? Math.max(
+                        config.inertiaReleaseMinimumSpeedRatio(),
+                        HoverrideBroomMovement.OVERDRIVE_INERTIA_RELEASE_MINIMUM_SPEED_RATIO
+                )
+                : config.inertiaReleaseMinimumSpeedRatio();
         Networks.sendToPlayer(serverPlayer, new HoverrideBroomReleaseResultPacket(
                 getId(),
                 actionSequence,
                 accepted,
-                HoverrideBroomMovement.MAX_HORIZONTAL_SPEED * config.inertiaReleaseMinimumSpeedRatio()
+                maximumSpeed * minimumSpeedRatio
         ));
     }
 
@@ -689,7 +916,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         setAirborneAccelerationLocked(serverAirborneTicks >= AIRBORNE_GRACE_TICKS);
     }
 
-    private OptionalDouble findRideSurfaceBelow() {
+    private Optional<BroomSurfaceScanner.Surface> findRideSurfaceBelow() {
         // Floatmountと同系統の箒として、溶岩面も走行・浮遊を維持できる地表として扱う。
         // プレイヤーの安全な降車地点はAbstractBroomEntity側で引き続き溶岩を除外する。
         return BroomSurfaceScanner.findSurfaceBelow(
@@ -698,11 +925,12 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     }
 
     public boolean isWithinAssistWingsLandingDistance() {
-        return isWithinAssistWingsLandingDistance(findRideSurfaceBelow());
+        var surface = findRideSurfaceBelow();
+        return surface.isPresent() && isWithinAssistWingsLandingDistance(surface.get().y());
     }
 
-    private boolean isWithinAssistWingsLandingDistance(OptionalDouble surface) {
-        return surface.isPresent() && getY() - surface.getAsDouble() <= ASSIST_WINGS_LANDING_DISTANCE;
+    private boolean isWithinAssistWingsLandingDistance(double surfaceY) {
+        return getY() - surfaceY <= ASSIST_WINGS_LANDING_DISTANCE;
     }
 
     public boolean canUseAssistWings(Player player) {
@@ -765,6 +993,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         serverForwardInput = 0.0F;
         lastServerInputGameTime = Long.MIN_VALUE;
         cancelServerGlide();
+        setRushAttackActive(false);
     }
 
     @Override
@@ -780,6 +1009,11 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         localAirborneTicks = 0;
         lastClientEffectPosition = null;
         lastAccelerationSoundGameTime = Long.MIN_VALUE;
+        serverControlledTick = 0;
+        lastRushObservationPosition = null;
+        lastRushObservationTick = Integer.MIN_VALUE;
+        setRushAttackActive(false);
+        setRushDirection(new Vec3(0.0D, 0.0D, 1.0D));
         setPresentationState(HoverrideBroomPresentation.NORMAL);
         resetPassengerYawFollow();
     }
@@ -825,6 +1059,41 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         entityData.set(PRESENTATION_STATE, state.ordinal());
     }
 
+    public boolean isRushAttackActive() {
+        return entityData.get(RUSH_ATTACK_ACTIVE);
+    }
+
+    private void setRushAttackActive(boolean active) {
+        entityData.set(RUSH_ATTACK_ACTIVE, active);
+    }
+
+    public Vec3 getRushAttackDirection() {
+        return new Vec3(entityData.get(RUSH_DIRECTION_X), 0.0D, entityData.get(RUSH_DIRECTION_Z));
+    }
+
+    private void setRushDirection(Vec3 direction) {
+        var horizontal = HoverrideBroomMovement.horizontal(direction);
+        if (!Double.isFinite(horizontal.x) || !Double.isFinite(horizontal.z)
+                || horizontal.lengthSqr() <= 1.0e-8D) {
+            return;
+        }
+        var normalized = horizontal.normalize();
+        entityData.set(RUSH_DIRECTION_X, (float)normalized.x);
+        entityData.set(RUSH_DIRECTION_Z, (float)normalized.z);
+    }
+
+    @Override
+    public boolean isPushable() {
+        return !isRushAttackActive();
+    }
+
+    @Override
+    public boolean canCollideWith(@NotNull Entity other) {
+        // Entity#moveの衝突解決はisPushableとは別にcanCollideWithを参照するため、
+        // 突進中だけモブ等のentity collision shapeを無視する。ブロック衝突には影響しない。
+        return !isRushAttackActive() && super.canCollideWith(other);
+    }
+
     public boolean isServerInertiaGlideActive() {
         return serverGlideActive;
     }
@@ -841,7 +1110,6 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
     public Component createControlHelpMessage() {
         return Component.translatable(
                 "ui.apprenticecodex.hoverride_broom.control_help",
-                Component.keybind("key.jump"),
                 Component.keybind("key.jump"),
                 Component.keybind("key.sneak")
         );

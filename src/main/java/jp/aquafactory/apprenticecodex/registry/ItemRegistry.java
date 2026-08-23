@@ -155,6 +155,8 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> ARTISAN_SMASH_LAUNCHER = simple("artisan_smash_launcher");
     public static final RegistryObject<Item> ARCANE_CINDER = ITEMS.register("arcane_cinder", ArcaneCinderItem::new);
     public static final RegistryObject<Item> WISDOM_SHARD = ITEMS.register("wisdom_shard", WisdomShardItem::new);
+    public static final RegistryObject<Item> OVERDRIVE_BROOM_ENGINE =
+            ITEMS.register("overdrive_broom_engine", OverdriveBroomEngine::new);
     public static final RegistryObject<Item> SPELL_EXTRACT_SHARD = ITEMS.register("spell_extract_shard", SpellExtractShard::new);
     public static final RegistryObject<Item> CRYSTALLINE_ARCANE_SHARD = simple("crystalline_arcane_shard");
 

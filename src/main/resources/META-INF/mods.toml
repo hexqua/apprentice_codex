@@ -103,3 +103,10 @@ description='''${mod_description}'''
     versionRange="[${epicfight_version},)"
     ordering="AFTER"
     side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="entity_model_features"
+    mandatory=false
+    versionRange="[${emf_version},)"
+    ordering="AFTER"
+    side="CLIENT"

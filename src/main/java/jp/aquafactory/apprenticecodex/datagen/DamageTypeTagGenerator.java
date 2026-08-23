@@ -225,13 +225,15 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 UNITE_LUNA,
                 HAUNTED_BONUS,
                 MYSTIC_SHIELD,
-                ANCHOR_BLINK
+                ANCHOR_BLINK,
+                HOVERRIDE_BROOM
         );
 
         // Malum連携: 魔法ダメージ全体をSoul Shatter判定対象にする.
         tag(MALUM_CAN_SOUL_SHATTER).addTag(CODEX_MAGIC).add(
                 HAUNTED_BONUS,
-                MANA_FORCE_BLADE
+                MANA_FORCE_BLADE,
+                HOVERRIDE_BROOM
         );
 
         // Lodestone連携: magic_proficiency は forge:is_magic を見て倍率補正する。
