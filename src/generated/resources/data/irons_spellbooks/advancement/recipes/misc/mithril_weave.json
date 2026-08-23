@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_mithril_weave_offcuts": {
+    "has_mithril_weave": {
       "conditions": {
         "items": [
           {
-            "items": "apprenticecodex:mithril_weave_offcuts"
+            "items": "irons_spellbooks:mithril_weave"
           }
         ]
       },
@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "apprenticecodex:element_maiden_robe_leggings"
+        "recipe": "irons_spellbooks:mithril_weave"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -21,12 +21,12 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_mithril_weave_offcuts"
+      "has_mithril_weave"
     ]
   ],
   "rewards": {
     "recipes": [
-      "apprenticecodex:element_maiden_robe_leggings"
+      "irons_spellbooks:mithril_weave"
     ]
   }
 }

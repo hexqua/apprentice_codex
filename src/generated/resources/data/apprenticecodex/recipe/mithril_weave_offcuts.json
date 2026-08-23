@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "irons_spellbooks:mithril_weave"
+    },
+    {
+      "item": "apprenticecodex:spell_extract_shard"
+    }
+  ],
+  "result": {
+    "count": 4,
+    "id": "apprenticecodex:mithril_weave_offcuts"
+  }
+}
