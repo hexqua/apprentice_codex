@@ -5,7 +5,9 @@
       "conditions": {
         "items": [
           {
-            "items": "irons_spellbooks:energized_core"
+            "items": [
+              "irons_spellbooks:energized_core"
+            ]
           }
         ]
       },
@@ -20,13 +22,14 @@
   },
   "requirements": [
     [
-      "has_the_recipe",
-      "has_energized_core"
+      "has_energized_core",
+      "has_the_recipe"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:overdrive_broom_engine"
     ]
-  }
+  },
+  "sends_telemetry_event": false
 }

@@ -32,9 +32,9 @@ public final class FloatmountBroomEntity extends AbstractBroomEntity {
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        super.defineSynchedData(builder);
-        builder.define(AQUATIC_CALIBRATION, false);
+    protected void defineSynchedData() {
+        super.defineSynchedData();
+        entityData.define(AQUATIC_CALIBRATION, false);
     }
 
     @Override

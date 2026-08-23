@@ -689,7 +689,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
         var baseDamage = HoverrideBroomRushAttack.baseDamage(
                 rushMovement.speed(), config.rushMinimumDamage(), config.rushMaximumDamage());
         var scaledDamage = baseDamage
-                * (float)player.getAttributeValue(AttributeRegistry.SPELL_POWER)
+                * (float)player.getAttributeValue(AttributeRegistry.SPELL_POWER.get())
                 * (float)lightningSchool.getPowerFor(player);
         var source = CombatTools.getDamageSource(level(), this, player, DamageTypes.HOVERRIDE_BROOM);
         var knockback = HoverrideBroomRushAttack.knockbackStrength(rushMovement.speed());

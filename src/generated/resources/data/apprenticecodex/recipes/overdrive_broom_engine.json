@@ -18,7 +18,7 @@
     "ARA"
   ],
   "result": {
-    "count": 1,
-    "id": "apprenticecodex:overdrive_broom_engine"
-  }
+    "item": "apprenticecodex:overdrive_broom_engine"
+  },
+  "show_notification": true
 }

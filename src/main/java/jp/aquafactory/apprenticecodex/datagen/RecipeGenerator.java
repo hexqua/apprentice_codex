@@ -185,7 +185,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('A', ItemRegistry.ARCANE_CINDER.get())
                 .define('R', Items.REDSTONE_BLOCK)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.ENERGIZED_CORE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.ENERGIZED_CORE.get()))
-                .save(recipeOutput);
+                .save(recipeWriter);
 
         ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, ItemRegistry.SPELL_EXTRACT_SHARD.get())
                 .requires(Items.FLINT)

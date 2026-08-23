@@ -912,7 +912,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
         if (!managesBubbleColumnMovement()
                 || ignoresBubbleColumnMovement()
                 || !shouldTrackBubbleColumnInfluence()
-                || !getInBlockState().is(Blocks.BUBBLE_COLUMN)) {
+                || !getFeetBlockState().is(Blocks.BUBBLE_COLUMN)) {
             bubbleColumnVerticalInfluence = 0.0D;
         }
         return bubbleColumnVerticalInfluence;
