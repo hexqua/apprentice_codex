@@ -35,6 +35,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
@@ -139,11 +140,18 @@ public class Wizardlamp extends AbstractSpell implements IClientBlockTargetingSp
             placePos = findPlacePos(level, spellLevel, entity).orElse(null);
         }
 
+        var lanternBlock = BlockRegistry.WIZARDLAMP_LANTERN.get();
+        var lanternState = placePos == null
+                ? lanternBlock.defaultBlockState()
+                : lanternBlock.defaultBlockState().setValue(
+                        WizardlampLanternBlock.WATERLOGGED,
+                        level.getFluidState(placePos).getType() == Fluids.WATER
+                );
         if (placePos != null && BlockTools.tryPlaceBlockByEntity(
                 level,
                 entity,
                 placePos,
-                BlockRegistry.WIZARDLAMP_LANTERN.get().defaultBlockState(),
+                lanternState,
                 Direction.UP
         )) {
             AudioTools.playSoundFromPosition(level, placePos.getCenter(), SoundEvents.WOOD_PLACE, SoundSource.BLOCKS);
