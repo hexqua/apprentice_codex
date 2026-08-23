@@ -193,6 +193,10 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.STORAGE_STABILIZER.get());
         output.accept(ItemRegistry.LUMINOUS_DEVICE.get());
 
+        // 下記は未Imbueでは機能せず、本来はImbue済みのアイテムを直接大量生産するもののため、クリエタブからは抜く.
+        // ItemRegistry.SPELL_INVOKE_CARD
+        // ItemRegistry.SPELL_AUTONOMY_CARD
+
         output.accept(ItemRegistry.SPELLCASTERS_FLASK.get());
         output.accept(ItemRegistry.ALCHEMISTS_FLASK.get());
 
