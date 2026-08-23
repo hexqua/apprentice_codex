@@ -171,6 +171,7 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> OVERDRIVE_BROOM_ENGINE = ITEMS.register("overdrive_broom_engine", OverdriveBroomEngine::new);
     public static final DeferredHolder<Item, Item> SPELL_EXTRACT_SHARD = ITEMS.register("spell_extract_shard", SpellExtractShard::new);
     public static final DeferredHolder<Item, Item> CRYSTALLINE_ARCANE_SHARD = simple("crystalline_arcane_shard");
+    public static final DeferredHolder<Item, Item> BULLET_RUNE = simple("bullet_rune");
     public static final DeferredHolder<Item, Item> COMFORT_BERRIES =
             ITEMS.register("comfort_berries", () -> new ItemNameBlockItem(
                     BlockRegistry.COMFORT_BERRY_BUSH.get(),

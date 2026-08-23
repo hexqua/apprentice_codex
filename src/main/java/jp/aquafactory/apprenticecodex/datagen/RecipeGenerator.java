@@ -215,6 +215,15 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.SHRIVING_STONE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.SHRIVING_STONE.get()))
                 .save(recipeOutput);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ItemRegistry.BULLET_RUNE.get())
+                .pattern("BBB")
+                .pattern("BRB")
+                .pattern("BBB")
+                .define('R', io.redspace.ironsspellbooks.registries.ItemRegistry.BLANK_RUNE.get())
+                .define('B', ItemRegistry.SPELL_DOMINATOR_ROUND.get())
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.BLANK_RUNE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.BLANK_RUNE.get()))
+                .save(recipeOutput);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.STORAGE_STABILIZER.get())
                 .pattern(" MA")
                 .pattern(" C ")
@@ -1176,13 +1185,13 @@ public final class RecipeGenerator extends RecipeProvider {
             Item result
     ) {
         SmithingTransformRecipeBuilder.smithing(
-                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get()),
+                        Ingredient.of(ItemRegistry.BULLET_RUNE.get()),
                         Ingredient.of(baseTag),
-                        Ingredient.of(ItemRegistry.SPELL_DOMINATOR_ROUND.get()),
+                        Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()),
                         RecipeCategory.COMBAT,
                         result
                 )
-                .unlocks(getHasName(ItemRegistry.SPELL_DOMINATOR_ROUND.get()), has(ItemRegistry.SPELL_DOMINATOR_ROUND.get()))
+                .unlocks(getHasName(ItemRegistry.BULLET_RUNE.get()), has(ItemRegistry.BULLET_RUNE.get()))
                 .save(recipeOutput, BuiltInRegistries.ITEM.getKey(result));
     }
 

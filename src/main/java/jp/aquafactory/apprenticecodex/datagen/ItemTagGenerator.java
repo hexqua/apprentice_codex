@@ -40,6 +40,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> IRONS_STAFF = createTag("irons_spellbooks", "staff");
     private static final TagKey<Item> IRONS_IMBUE_WHITELIST = createTag("irons_spellbooks", "imbue_whitelist");
     private static final TagKey<Item> IRONS_UPGRADE_WHITELIST = createTag("irons_spellbooks", "upgrade_whitelist");
+    private static final TagKey<Item> IRONS_INSCRIBED_RUNE = createTag("irons_spellbooks", "inscribed_rune");
     private static final TagKey<Item> CURIOS_RING = createTag("curios", "ring");
     private static final TagKey<Item> CURIOS_BACK = createTag("curios", "back");
     private static final TagKey<Item> CURIOS_BELT = createTag("curios", "belt");
@@ -135,6 +136,12 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.AUTOCAST_AMULET.get(),
                 ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get(),
                 ItemRegistry.ATTACKCAST_RING.get()
+        );
+
+        // ルーンはタグ登録すると除去レシピに自動対応.
+        // それ以外はschoolルーンでなければ基本は気にしなくてOK.
+        tag(IRONS_INSCRIBED_RUNE).add(
+                ItemRegistry.BULLET_RUNE.get()
         );
 
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
