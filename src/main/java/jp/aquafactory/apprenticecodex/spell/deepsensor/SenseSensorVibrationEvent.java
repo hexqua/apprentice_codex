@@ -44,7 +44,6 @@ public final class SenseSensorVibrationEvent {
             GameEvent.HIT_GROUND,
             GameEvent.SPLASH,
             GameEvent.ELYTRA_GLIDE,
-            GameEvent.UNEQUIP,
             GameEvent.ENTITY_DISMOUNT,
             GameEvent.EQUIP,
             GameEvent.ENTITY_MOUNT,

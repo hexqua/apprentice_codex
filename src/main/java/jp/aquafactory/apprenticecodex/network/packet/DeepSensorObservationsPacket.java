@@ -1,32 +1,22 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.spell.deepsensor.DeepSensorClientDisplay;
 import jp.aquafactory.apprenticecodex.spell.deepsensor.DeepSensorObservationBuffer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.jetbrains.annotations.NotNull;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.network.NetworkEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
-public final class DeepSensorObservationsPacket implements CustomPacketPayload {
-    public static final Type<DeepSensorObservationsPacket> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "deep_sensor_observations"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, DeepSensorObservationsPacket> STREAM_CODEC =
-            StreamCodec.of((buffer, packet) -> encode(packet, buffer), DeepSensorObservationsPacket::decode);
-
+public final class DeepSensorObservationsPacket {
     private final ResourceKey<Level> dimension;
     private final List<Observation> observations;
 
@@ -52,7 +42,7 @@ public final class DeepSensorObservationsPacket implements CustomPacketPayload {
         }
     }
 
-    private static void encode(DeepSensorObservationsPacket packet, FriendlyByteBuf buffer) {
+    public static void encode(DeepSensorObservationsPacket packet, FriendlyByteBuf buffer) {
         buffer.writeResourceLocation(packet.dimension.location());
         buffer.writeVarInt(packet.observations.size());
         for (var observation : packet.observations) {
@@ -62,7 +52,7 @@ public final class DeepSensorObservationsPacket implements CustomPacketPayload {
         }
     }
 
-    private static DeepSensorObservationsPacket decode(FriendlyByteBuf buffer) {
+    public static DeepSensorObservationsPacket decode(FriendlyByteBuf buffer) {
         var dimension = ResourceKey.create(Registries.DIMENSION, buffer.readResourceLocation());
         var size = buffer.readVarInt();
         if (size < 0 || size > DeepSensorObservationBuffer.MAX_DISPLAYED_OBSERVATIONS) {
@@ -75,17 +65,13 @@ public final class DeepSensorObservationsPacket implements CustomPacketPayload {
         return new DeepSensorObservationsPacket(dimension, observations);
     }
 
-    @Override
-    public @NotNull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    public static void handle(DeepSensorObservationsPacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (FMLEnvironment.dist == Dist.CLIENT) {
-                ClientHandler.handle(packet);
-            }
-        });
+    public static void handle(DeepSensorObservationsPacket packet,
+                              Supplier<NetworkEvent.Context> contextSupplier) {
+        var context = contextSupplier.get();
+        context.enqueueWork(() ->
+                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ClientHandler.handle(packet))
+        );
+        context.setPacketHandled(true);
     }
 
     public record Observation(BlockPos position, float distance, long expiresAtGameTime) {

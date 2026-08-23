@@ -6,7 +6,6 @@ import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.spell.deepsensor.DeepSensorObservationBuffer;
 import jp.aquafactory.apprenticecodex.spell.deepsensor.SenseSensorVibrationEvent;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -20,11 +19,12 @@ import net.minecraft.world.level.block.SculkSensorBlock;
 import net.minecraft.world.level.block.state.properties.SculkSensorPhase;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.neoforged.neoforge.common.util.FakePlayerFactory;
-import net.neoforged.neoforge.event.VanillaGameEvent;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.common.util.FakePlayerFactory;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.VanillaGameEvent;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -37,19 +37,18 @@ public final class DeepSensorGameTests {
     private static final ResourceLocation STEP_EVENT = ResourceLocation.withDefaultNamespace("step");
     private static final BlockPos SENSOR_POS = new BlockPos(1, 2, 1);
     private static final BlockPos VIBRATION_POS = new BlockPos(3, 2, 1);
-    private static final List<Holder<GameEvent>> SILENCED_GAME_EVENTS = List.of(
+    private static final List<GameEvent> SILENCED_GAME_EVENTS = List.of(
             GameEvent.STEP,
             GameEvent.SWIM,
             GameEvent.HIT_GROUND,
             GameEvent.SPLASH,
             GameEvent.ELYTRA_GLIDE,
-            GameEvent.UNEQUIP,
             GameEvent.ENTITY_DISMOUNT,
             GameEvent.EQUIP,
             GameEvent.ENTITY_MOUNT,
             GameEvent.ENTITY_DAMAGE
     );
-    private static final List<Holder<GameEvent>> EXPLICITLY_AUDIBLE_GAME_EVENTS = List.of(
+    private static final List<GameEvent> EXPLICITLY_AUDIBLE_GAME_EVENTS = List.of(
             GameEvent.PROJECTILE_SHOOT,
             GameEvent.INSTRUMENT_PLAY,
             GameEvent.DRINK,
@@ -131,17 +130,19 @@ public final class DeepSensorGameTests {
         );
         var player = FakePlayerFactory.get(helper.getLevel(), profile);
         player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
-        var senseSensor = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.SENSE_SENSOR.get());
+        var senseSensor = EffectRegistry.SENSE_SENSOR.get();
         player.addEffect(new MobEffectInstance(senseSensor, 40, 0));
 
         try {
             // 保存済み効果を持つプレイヤーの初回tickと、新規発動直後のtickは同じ初期化経路を通る。
-            SenseSensorVibrationEvent.onPlayerTick(new PlayerTickEvent.Post(player));
+            SenseSensorVibrationEvent.onPlayerTick(
+                    new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
             helper.assertTrue(player.hasEffect(senseSensor),
                     "Deep Sensor listener initialization should keep the active effect");
         } finally {
             player.removeEffect(senseSensor);
-            SenseSensorVibrationEvent.onPlayerTick(new PlayerTickEvent.Post(player));
+            SenseSensorVibrationEvent.onPlayerTick(
+                    new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
         }
         helper.succeed();
     }
@@ -212,7 +213,7 @@ public final class DeepSensorGameTests {
         );
     }
 
-    private static net.neoforged.neoforge.common.util.FakePlayer createTestPlayer(
+    private static FakePlayer createTestPlayer(
             GameTestHelper helper,
             String profileName
     ) {
@@ -228,13 +229,12 @@ public final class DeepSensorGameTests {
     }
 
     private static void addSenseSensorEffect(net.minecraft.world.entity.LivingEntity entity) {
-        var senseSensor = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.SENSE_SENSOR.get());
-        entity.addEffect(new MobEffectInstance(senseSensor, 40, 0));
+        entity.addEffect(new MobEffectInstance(EffectRegistry.SENSE_SENSOR.get(), 40, 0));
     }
 
     private static void assertCancellation(
             GameTestHelper helper,
-            Holder<GameEvent> gameEvent,
+            GameEvent gameEvent,
             Entity source,
             boolean expectedCanceled
     ) {
@@ -245,9 +245,7 @@ public final class DeepSensorGameTests {
                 GameEvent.Context.of(source)
         );
         SenseSensorVibrationEvent.onVanillaGameEvent(event);
-        var eventId = gameEvent.unwrapKey()
-                .map(net.minecraft.resources.ResourceKey::location)
-                .orElseGet(() -> BuiltInRegistries.GAME_EVENT.getKey(gameEvent.value()));
+        var eventId = BuiltInRegistries.GAME_EVENT.getKey(gameEvent);
         helper.assertTrue(
                 event.isCanceled() == expectedCanceled,
                 "Deep Sensor cancellation mismatch for " + eventId + ": expected " + expectedCanceled
@@ -256,7 +254,7 @@ public final class DeepSensorGameTests {
 
     private static void assertSculkSensorResponse(
             GameTestHelper helper,
-            Holder<GameEvent> gameEvent,
+            GameEvent gameEvent,
             GameEvent.Context context,
             boolean expectedActive
     ) {
@@ -272,9 +270,7 @@ public final class DeepSensorGameTests {
                         && state.getValue(SculkSensorBlock.POWER) > 0;
                 helper.assertTrue(
                         isActive == expectedActive,
-                        "Sculk Sensor response mismatch for " + gameEvent.unwrapKey()
-                                .map(net.minecraft.resources.ResourceKey::location)
-                                .orElseGet(() -> BuiltInRegistries.GAME_EVENT.getKey(gameEvent.value()))
+                        "Sculk Sensor response mismatch for " + BuiltInRegistries.GAME_EVENT.getKey(gameEvent)
                                 + ": expected active=" + expectedActive
                 );
                 helper.succeed();

@@ -19,11 +19,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class DeepSensorClientDisplay {
     private static final ResourceLocation RHOMBUS_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/particle/glow_rhombus.png");
@@ -71,7 +71,10 @@ public final class DeepSensorClientDisplay {
     }
 
     @SubscribeEvent
-    public static void onClientTick(ClientTickEvent.Post event) {
+    public static void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) {
+            return;
+        }
         var minecraft = Minecraft.getInstance();
         var level = minecraft.level;
         var player = minecraft.player;
@@ -125,7 +128,7 @@ public final class DeepSensorClientDisplay {
             return;
         }
 
-        var partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(true);
+        var partialTick = event.getPartialTick();
         var playerCenter = new Vec3(
                 Mth.lerp(partialTick, player.xo, player.getX()),
                 Mth.lerp(partialTick, player.yo, player.getY()) + player.getBbHeight() * 0.5D,
@@ -256,12 +259,13 @@ public final class DeepSensorClientDisplay {
                                float red, float green, float blue, float alpha) {
         var transformedNormal = normalMatrix.transform(
                 new Vector3f((float) normal.x, (float) normal.y, (float) normal.z));
-        buffer.addVertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
-                .setColor(red * alpha, green * alpha, blue * alpha, alpha)
-                .setUv(u, v)
-                .setOverlay(OverlayTexture.NO_OVERLAY)
-                .setLight(LightTexture.FULL_BRIGHT)
-                .setNormal(transformedNormal.x(), transformedNormal.y(), transformedNormal.z());
+        buffer.vertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
+                .color(red * alpha, green * alpha, blue * alpha, alpha)
+                .uv(u, v)
+                .overlayCoords(OverlayTexture.NO_OVERLAY)
+                .uv2(LightTexture.FULL_BRIGHT)
+                .normal(transformedNormal.x(), transformedNormal.y(), transformedNormal.z())
+                .endVertex();
     }
 
     public record Color(float red, float green, float blue) {

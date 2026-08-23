@@ -630,16 +630,16 @@ public final class Networks {
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
         CHANNEL.registerMessage(
-            nextPacketId++,
-            DeepSensorObservationsPacket.class,
-            DeepSensorObservationsPacket::encode,
-            DeepSensorObservationsPacket::decode,
-            DeepSensorObservationsPacket::handle,
-            Optional.of(NetworkDirection.PLAY_TO_CLIENT)
+                nextPacketId++,
+                DeepSensorObservationsPacket.class,
+                DeepSensorObservationsPacket::encode,
+                DeepSensorObservationsPacket::decode,
+                DeepSensorObservationsPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
         CHANNEL.registerMessage(
-            nextPacketId++,
-            GunSpellTracerPacket.class,
+                nextPacketId++,
+                GunSpellTracerPacket.class,
                 GunSpellTracerPacket::encode,
                 GunSpellTracerPacket::decode,
                 GunSpellTracerPacket::handle,
