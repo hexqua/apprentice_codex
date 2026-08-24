@@ -4,7 +4,7 @@
 	"texture_size": [64, 64],
 	"textures": {
 		"0": "apprenticecodex:block/apprentice_desk",
-		"particle": "apprenticecodex:block/apprentice_desk"
+		"particle": "apprenticecodex:block/wooden_machine_particle"
 	},
 	"elements": [
 		{
