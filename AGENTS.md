@@ -20,7 +20,7 @@
 - Mod ローダー: Minecraft Forge 47.4.10
 - 言語/実行環境: Java 17
 - ビルドツール: Gradle Wrapper（Windows では `./gradlew.bat` を使用）
-- 主要依存 MOD: Iron's Spells 'n Spellbooks（1.20.1-3.16.2）, Iron's Lib（1.20.1-2.1.0）, Curios（5.14.1+1.20.1）, GeckoLib（4.8.3）
+- 主要依存 MOD: Iron's Spells 'n Spellbooks（1.20.1-3.16.3）, Iron's Lib（1.20.1-2.1.0）, Curios（5.14.1+1.20.1）, GeckoLib（4.8.3）
 - ローカルでは `JDK17_HOME` を設定し、必要に応じて `.\scripts\use-java.ps1` で `JAVA_HOME` を切り替える。
 - `main`（1.21.1 / NeoForge）からの backport 作業でも、このブランチの実装と検証には Java 17 を使う。
 
