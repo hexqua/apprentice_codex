@@ -82,6 +82,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     private static final int SERVER_RIDING_MOVEMENT_GRACE_TICKS = 2;
     private static final double MOVEMENT_EPSILON_SQR = 1.0e-8D;
     private static final int DAMAGE_RECOVERY_INTERVAL_TICKS = 10;
+    private static final int RIDER_VIBRATION_INTERVAL_TICKS = 10;
     private static final int RETRIEVE_HELP_COOLDOWN_TICKS = 40;
     private static final double RETRIEVE_HELP_DISTANCE_SQR = 16.0D;
     private static final int DEFAULT_MAX_DAMAGE = 1000;
@@ -130,6 +131,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     private long lastServerInputGameTime = Long.MIN_VALUE;
     private long lastRetrieveHelpGameTime = Long.MIN_VALUE;
     private long lastAcceptedDamageGameTime = Long.MIN_VALUE;
+    private long lastRiderVibrationGameTime = Long.MIN_VALUE;
     private boolean lowManaWarningShown;
     private float turnSpeed;
     private boolean breaking;
@@ -254,6 +256,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
                     return;
                 }
             }
+            tickRiderVibration();
         }
 
         var movedThisTick = false;
@@ -283,6 +286,23 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
             // 接触中の火炎・溶岩ダメージは受けるが、離れた後まで続く炎上は飛行視界を妨げるため残さない。
             clearFire();
         }
+    }
+
+    private void tickRiderVibration() {
+        if (!(getControllingPassenger() instanceof Player player)) {
+            lastRiderVibrationGameTime = Long.MIN_VALUE;
+            return;
+        }
+
+        var gameTime = level().getGameTime();
+        if (lastRiderVibrationGameTime != Long.MIN_VALUE
+                && gameTime - lastRiderVibrationGameTime < RIDER_VIBRATION_INTERVAL_TICKS) {
+            return;
+        }
+
+        // Deep Sensorを含むplayer由来の無音化規則へ統一するため、箒ではなく騎乗者を振動源にする。
+        player.gameEvent(GameEvent.ELYTRA_GLIDE);
+        lastRiderVibrationGameTime = gameTime;
     }
 
     private void tickServerDamageState() {
@@ -756,6 +776,7 @@ public abstract class AbstractBroomEntity extends Entity implements GeoEntity {
     protected void removePassenger(@NotNull Entity passenger) {
         super.removePassenger(passenger);
         if (!level().isClientSide && !isVehicle()) {
+            lastRiderVibrationGameTime = Long.MIN_VALUE;
             var inheritedMovement = takeServerRidingMovement();
             resetRidingState();
             setDeltaMovement(inheritedMovement);
