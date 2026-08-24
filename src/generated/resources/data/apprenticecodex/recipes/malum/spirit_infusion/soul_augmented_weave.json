@@ -1,0 +1,43 @@
+{
+  "type": "malum:spirit_infusion",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "malum"
+    }
+  ],
+  "extra_items": [
+    {
+      "count": 8,
+      "item": "malum:spirit_fabric"
+    },
+    {
+      "count": 4,
+      "item": "malum:null_slate"
+    },
+    {
+      "count": 4,
+      "item": "malum:mnemonic_fragment"
+    }
+  ],
+  "input": {
+    "item": "irons_spellbooks:magic_cloth"
+  },
+  "output": {
+    "item": "apprenticecodex:soul_augmented_weave"
+  },
+  "spirits": [
+    {
+      "type": "wicked",
+      "count": 16
+    },
+    {
+      "type": "arcane",
+      "count": 64
+    },
+    {
+      "type": "eldritch",
+      "count": 32
+    }
+  ]
+}

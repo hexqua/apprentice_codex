@@ -379,7 +379,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             return AbstractBroomItem.getCalibrationScroll(getGauntletStack(), slot);
         }
         if (EndgameArmorCalibration.usesStoredCalibrationScrolls(getGauntletStack())) {
-            return EndgameArmorCalibration.getStoredScroll(getGauntletStack(), slot, lookupProvider);
+            return EndgameArmorCalibration.getStoredScroll(getGauntletStack(), slot);
         }
         return hasOperationalImbueTarget()
                 ? SpellCalibrationImbueHelper.createScrollForSlot(getGauntletStack(), slot)
@@ -473,7 +473,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         }
 
         if (EndgameArmorCalibration.usesStoredCalibrationScrolls(getGauntletStack())) {
-            EndgameArmorCalibration.setStoredScroll(getGauntletStack(), slot, stack, lookupProvider);
+            EndgameArmorCalibration.setStoredScroll(getGauntletStack(), slot, stack);
             return;
         }
 

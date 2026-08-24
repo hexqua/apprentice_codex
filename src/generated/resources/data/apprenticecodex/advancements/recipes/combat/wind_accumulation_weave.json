@@ -1,12 +1,12 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_bullet_rune": {
+    "has_piston": {
       "conditions": {
         "items": [
           {
             "items": [
-              "apprenticecodex:bullet_rune"
+              "minecraft:piston"
             ]
           }
         ]
@@ -15,20 +15,20 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "apprenticecodex:magi_agent_suit_leggings"
+        "recipe": "apprenticecodex:wind_accumulation_weave"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
   },
   "requirements": [
     [
-      "has_bullet_rune",
+      "has_piston",
       "has_the_recipe"
     ]
   ],
   "rewards": {
     "recipes": [
-      "apprenticecodex:magi_agent_suit_leggings"
+      "apprenticecodex:wind_accumulation_weave"
     ]
   },
   "sends_telemetry_event": false

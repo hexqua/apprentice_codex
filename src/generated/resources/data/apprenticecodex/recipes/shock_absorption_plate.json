@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "M": {
+      "item": "irons_spellbooks:magic_cloth"
+    },
+    "N": {
+      "item": "minecraft:netherite_scrap"
+    }
+  },
+  "pattern": [
+    "ANA",
+    "NMN",
+    "ANA"
+  ],
+  "result": {
+    "item": "apprenticecodex:shock_absorption_plate"
+  },
+  "show_notification": true
+}

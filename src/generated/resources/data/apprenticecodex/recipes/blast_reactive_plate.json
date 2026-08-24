@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "G": {
+      "item": "minecraft:gunpowder"
+    },
+    "P": {
+      "item": "apprenticecodex:shock_absorption_plate"
+    }
+  },
+  "pattern": [
+    " G ",
+    "GPG",
+    " G "
+  ],
+  "result": {
+    "item": "apprenticecodex:blast_reactive_plate"
+  },
+  "show_notification": true
+}

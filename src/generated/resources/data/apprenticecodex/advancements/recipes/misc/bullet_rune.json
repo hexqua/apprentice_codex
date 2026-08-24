@@ -1,12 +1,12 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_bullet_rune": {
+    "has_blank_rune": {
       "conditions": {
         "items": [
           {
             "items": [
-              "apprenticecodex:bullet_rune"
+              "irons_spellbooks:blank_rune"
             ]
           }
         ]
@@ -15,20 +15,20 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "apprenticecodex:magi_agent_suit_leggings"
+        "recipe": "apprenticecodex:bullet_rune"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
   },
   "requirements": [
     [
-      "has_bullet_rune",
+      "has_blank_rune",
       "has_the_recipe"
     ]
   ],
   "rewards": {
     "recipes": [
-      "apprenticecodex:magi_agent_suit_leggings"
+      "apprenticecodex:bullet_rune"
     ]
   },
   "sends_telemetry_event": false

@@ -1,12 +1,12 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_bullet_rune": {
+    "has_mithril_weave": {
       "conditions": {
         "items": [
           {
             "items": [
-              "apprenticecodex:bullet_rune"
+              "irons_spellbooks:mithril_weave"
             ]
           }
         ]
@@ -15,20 +15,20 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "apprenticecodex:magi_agent_suit_leggings"
+        "recipe": "apprenticecodex:mithril_weave_offcuts"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
   },
   "requirements": [
     [
-      "has_bullet_rune",
+      "has_mithril_weave",
       "has_the_recipe"
     ]
   ],
   "rewards": {
     "recipes": [
-      "apprenticecodex:magi_agent_suit_leggings"
+      "apprenticecodex:mithril_weave_offcuts"
     ]
   },
   "sends_telemetry_event": false

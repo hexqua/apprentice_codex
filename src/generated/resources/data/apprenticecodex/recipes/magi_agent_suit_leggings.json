@@ -1,7 +1,7 @@
 {
   "type": "minecraft:smithing_transform",
   "addition": {
-    "item": "apprenticecodex:spell_dominator_round"
+    "item": "irons_spellbooks:mithril_scrap"
   },
   "base": {
     "tag": "irons_spellbooks:wizard_base_leggings"
@@ -10,6 +10,6 @@
     "item": "apprenticecodex:magi_agent_suit_leggings"
   },
   "template": {
-    "item": "irons_spellbooks:magic_cloth"
+    "item": "apprenticecodex:bullet_rune"
   }
 }

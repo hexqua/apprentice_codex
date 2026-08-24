@@ -1,12 +1,12 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_bullet_rune": {
+    "has_netherite_scrap": {
       "conditions": {
         "items": [
           {
             "items": [
-              "apprenticecodex:bullet_rune"
+              "minecraft:netherite_scrap"
             ]
           }
         ]
@@ -15,20 +15,20 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "apprenticecodex:magi_agent_suit_leggings"
+        "recipe": "apprenticecodex:shock_absorption_plate"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
   },
   "requirements": [
     [
-      "has_bullet_rune",
+      "has_netherite_scrap",
       "has_the_recipe"
     ]
   ],
   "rewards": {
     "recipes": [
-      "apprenticecodex:magi_agent_suit_leggings"
+      "apprenticecodex:shock_absorption_plate"
     ]
   },
   "sends_telemetry_event": false

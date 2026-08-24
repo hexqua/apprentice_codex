@@ -224,7 +224,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
                 .define('N', Items.NETHERITE_SCRAP)
                 .unlockedBy(getHasName(Items.NETHERITE_SCRAP), has(Items.NETHERITE_SCRAP))
-                .save(recipeOutput);
+                .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.BLAST_REACTIVE_PLATE.get())
                 .pattern(" G ")
@@ -233,7 +233,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('P', ItemRegistry.SHOCK_ABSORPTION_PLATE.get())
                 .define('G', Items.GUNPOWDER)
                 .unlockedBy(getHasName(ItemRegistry.SHOCK_ABSORPTION_PLATE.get()), has(ItemRegistry.SHOCK_ABSORPTION_PLATE.get()))
-                .save(recipeOutput);
+                .save(recipeWriter);
 
         // 1.20.1申し送り: ウィンドチャージは1.20.1にないのでピストンに置き換える.
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.WIND_ACCUMULATION_WEAVE.get())
@@ -242,9 +242,9 @@ public final class RecipeGenerator extends RecipeProvider {
                 .pattern("CWC")
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get())
                 .define('C', ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get())
-                .define('W', Items.WIND_CHARGE)
-                .unlockedBy(getHasName(Items.WIND_CHARGE), has(Items.WIND_CHARGE))
-                .save(recipeOutput);
+                .define('W', Items.PISTON)
+                .unlockedBy(getHasName(Items.PISTON), has(Items.PISTON))
+                .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SCROLLWOVEN_PARCHMENT.get())
                 .pattern("DUD")
@@ -254,18 +254,19 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('D', ItemRegistry.SPELLSTAINED_DIAMOND.get())
                 .define('L', Items.LEATHER)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()))
-                .save(recipeOutput);
+                .save(recipeWriter);
 
         ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get(), 4)
                 .requires(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get())
                 .requires(ItemRegistry.SPELL_EXTRACT_SHARD.get())
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()))
-                .save(recipeOutput);
+                .save(recipeWriter);
 
         ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get())
                 .requires(ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get(), 4)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get()))
-                .save(recipeOutput, ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get() + "_restore");
+                .save(recipeWriter, ResourceLocation.fromNamespaceAndPath(
+                        ApprenticeCodex.MODID, "mithril_weave_offcuts_restore"));
 
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.STORAGE_STABILIZER.get())
                 .pattern(" MA")
@@ -1434,6 +1435,40 @@ public final class RecipeGenerator extends RecipeProvider {
                 ),
                 List.of(
                         new MalumSpiritCost("wicked", 32),
+                        new MalumSpiritCost("arcane", 64),
+                        new MalumSpiritCost("eldritch", 32)
+                )
+        );
+        saveMalumSpiritInfusionRecipe(
+                recipeWriter,
+                ResourceLocation.fromNamespaceAndPath(
+                        ApprenticeCodex.MODID, "malum/spirit_infusion/soul_covered_plate"),
+                itemId(ItemRegistry.SHOCK_ABSORPTION_PLATE.get()),
+                itemId(ItemRegistry.SOUL_COVERED_PLATE.get()),
+                List.of(
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "soul_stained_steel_plating"), 4),
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "processed_soulstone"), 4),
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "twisted_rock"), 8)
+                ),
+                List.of(
+                        new MalumSpiritCost("wicked", 16),
+                        new MalumSpiritCost("arcane", 32),
+                        new MalumSpiritCost("earthen", 32)
+                )
+        );
+        saveMalumSpiritInfusionRecipe(
+                recipeWriter,
+                ResourceLocation.fromNamespaceAndPath(
+                        ApprenticeCodex.MODID, "malum/spirit_infusion/soul_augmented_weave"),
+                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "magic_cloth"),
+                itemId(ItemRegistry.SOUL_AUGMENTED_WEAVE.get()),
+                List.of(
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "spirit_fabric"), 8),
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "null_slate"), 4),
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "mnemonic_fragment"), 4)
+                ),
+                List.of(
+                        new MalumSpiritCost("wicked", 16),
                         new MalumSpiritCost("arcane", 64),
                         new MalumSpiritCost("eldritch", 32)
                 )

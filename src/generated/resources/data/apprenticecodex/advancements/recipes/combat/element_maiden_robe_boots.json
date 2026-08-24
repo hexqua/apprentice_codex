@@ -1,12 +1,12 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_mithril_weave": {
+    "has_mithril_weave_offcuts": {
       "conditions": {
         "items": [
           {
             "items": [
-              "irons_spellbooks:mithril_weave"
+              "apprenticecodex:mithril_weave_offcuts"
             ]
           }
         ]
@@ -22,7 +22,7 @@
   },
   "requirements": [
     [
-      "has_mithril_weave",
+      "has_mithril_weave_offcuts",
       "has_the_recipe"
     ]
   ],

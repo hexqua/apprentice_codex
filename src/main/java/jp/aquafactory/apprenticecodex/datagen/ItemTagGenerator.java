@@ -119,8 +119,14 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         );
 
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
-        tag(MALUM_HIDDEN_UNTIL_VOID).add(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get());
-        tag(MALUM_HIDDEN_UNTIL_BLACK_CRYSTAL).add(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get());
+        tag(MALUM_HIDDEN_UNTIL_VOID).add(
+                ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get(),
+                ItemRegistry.SOUL_AUGMENTED_WEAVE.get()
+        );
+        tag(MALUM_HIDDEN_UNTIL_BLACK_CRYSTAL).add(
+                ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get(),
+                ItemRegistry.SOUL_AUGMENTED_WEAVE.get()
+        );
 
         // 自前の抽象クラスを継承しないアイテムは後の自動収集から漏れるのでここで直接指定する.
         ironsUpgradeWhitelist.add(

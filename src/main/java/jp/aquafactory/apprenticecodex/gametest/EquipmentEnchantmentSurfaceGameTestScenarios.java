@@ -1439,7 +1439,6 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             case HELMET, BOOTS -> 2;
             case CHESTPLATE -> 7;
             case LEGGINGS -> 6;
-            case BODY -> throw new IllegalArgumentException("Magi Agent Suit does not use body armor type");
         };
     }
 

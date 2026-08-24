@@ -32,18 +32,8 @@ public final class CalibrationAdjustmentEffects {
         return line("add_knockback_resist", percentage(amount));
     }
 
-    public static List<Component> addExplosionKnockbackResistance(double amount) {
-        return List.of(
-                Component.translatable(KEY_PREFIX + "add_explosion_knockback_resist_1", percentage(amount)),
-                Component.translatable(KEY_PREFIX + "add_explosion_knockback_resist_2")
-        );
-    }
-
-    public static List<Component> reduceExplosionKnockbackResistance(double amount) {
-        return List.of(
-                Component.translatable(KEY_PREFIX + "reduce_explosion_knockback_resist_1", percentage(amount)),
-                Component.translatable(KEY_PREFIX + "reduce_explosion_knockback_resist_2")
-        );
+    public static List<Component> inactiveIn1201() {
+        return line("inactive_in_1_20_1");
     }
 
     public static List<Component> gainPowderSnowWalk() {

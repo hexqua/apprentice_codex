@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "D": {
+      "item": "apprenticecodex:spellstained_diamond"
+    },
+    "L": {
+      "item": "minecraft:leather"
+    },
+    "U": {
+      "item": "irons_spellbooks:lesser_spell_slot_upgrade"
+    }
+  },
+  "pattern": [
+    "DUD",
+    "LUL",
+    "DUD"
+  ],
+  "result": {
+    "item": "apprenticecodex:scrollwoven_parchment"
+  },
+  "show_notification": true
+}

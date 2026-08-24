@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.armor;
 
+import com.google.common.collect.ImmutableMultimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
@@ -14,11 +15,9 @@ import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -27,8 +26,8 @@ import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.ItemAttributeModifiers;
-import net.neoforged.fml.ModList;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -41,8 +40,6 @@ public final class EndgameArmorCalibration {
     public static final double MAX_MANA_PER_RUNE = 25.0D;
     public static final double SPELL_RESIST_PER_RUNE = 0.05D;
     public static final double KNOCKBACK_RESIST_PER_PLATE = 0.10D;
-    public static final double EXPLOSION_KNOCKBACK_RESIST_PER_PLATE = 0.25D;
-    public static final double WIND_EXPLOSION_KNOCKBACK_RESIST = -0.20D;
     public static final double SOUL_WARD_CAPACITY = 3.0D;
     public static final double SOUL_WARD_RECOVERY_RATE = 0.15D;
     public static final double MAGIC_PROFICIENCY = 0.15D;
@@ -104,12 +101,12 @@ public final class EndgameArmorCalibration {
         rules.add(uniqueItemRule(
                 "endgame_armor_blast_reactive_plate",
                 ItemRegistry.BLAST_REACTIVE_PLATE,
-                CalibrationAdjustmentEffects.addExplosionKnockbackResistance(EXPLOSION_KNOCKBACK_RESIST_PER_PLATE)
+                CalibrationAdjustmentEffects.inactiveIn1201()
         ));
         rules.add(uniqueItemRule(
                 "endgame_armor_wind_accumulation_weave",
                 ItemRegistry.WIND_ACCUMULATION_WEAVE,
-                CalibrationAdjustmentEffects.reduceExplosionKnockbackResistance(-WIND_EXPLOSION_KNOCKBACK_RESIST)
+                CalibrationAdjustmentEffects.inactiveIn1201()
         ));
 
         if (armorType != ArmorItem.Type.CHESTPLATE) {
@@ -157,12 +154,11 @@ public final class EndgameArmorCalibration {
     }
 
     public static void addAttributeModifiers(
-            ItemAttributeModifiers.Builder builder,
+            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
             ItemStack armorStack,
             ArmorItem.Type armorType,
             SpellCalibrationAdjustmentTarget target
     ) {
-        var slotGroup = EquipmentSlotGroup.bySlot(armorType.getSlot());
         var armorId = BuiltInRegistries.ITEM.getKey(armorStack.getItem());
         var prefix = (armorId == null ? "endgame_armor" : armorId.getPath()) + "_calibration";
 
@@ -173,29 +169,23 @@ public final class EndgameArmorCalibration {
             }
             var modifierPrefix = prefix + "_slot_" + slot;
             if (adjustment.is(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get())) {
-                add(builder, AttributeRegistry.MAX_MANA, MAX_MANA_PER_RUNE,
-                        AttributeModifier.Operation.ADD_VALUE, slotGroup, modifierPrefix + "_max_mana");
+                add(builder, AttributeRegistry.MAX_MANA.get(), MAX_MANA_PER_RUNE,
+                        AttributeModifier.Operation.ADDITION, modifierPrefix + "_max_mana");
             } else if (adjustment.is(io.redspace.ironsspellbooks.registries.ItemRegistry.PROTECTION_RUNE.get())) {
-                add(builder, AttributeRegistry.SPELL_RESIST, SPELL_RESIST_PER_RUNE,
-                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE, slotGroup, modifierPrefix + "_spell_resist");
+                add(builder, AttributeRegistry.SPELL_RESIST.get(), SPELL_RESIST_PER_RUNE,
+                        AttributeModifier.Operation.MULTIPLY_BASE, modifierPrefix + "_spell_resist");
             } else if (adjustment.is(ItemRegistry.SHOCK_ABSORPTION_PLATE.get())) {
                 add(builder, Attributes.KNOCKBACK_RESISTANCE, KNOCKBACK_RESIST_PER_PLATE,
-                        AttributeModifier.Operation.ADD_VALUE, slotGroup, modifierPrefix + "_knockback_resist");
-            } else if (adjustment.is(ItemRegistry.BLAST_REACTIVE_PLATE.get())) {
-                add(builder, Attributes.EXPLOSION_KNOCKBACK_RESISTANCE, EXPLOSION_KNOCKBACK_RESIST_PER_PLATE,
-                        AttributeModifier.Operation.ADD_VALUE, slotGroup, modifierPrefix + "_explosion_knockback_resist");
-            } else if (adjustment.is(ItemRegistry.WIND_ACCUMULATION_WEAVE.get())) {
-                add(builder, Attributes.EXPLOSION_KNOCKBACK_RESISTANCE, WIND_EXPLOSION_KNOCKBACK_RESIST,
-                        AttributeModifier.Operation.ADD_VALUE, slotGroup, modifierPrefix + "_wind_accumulation");
+                        AttributeModifier.Operation.ADDITION, modifierPrefix + "_knockback_resist");
             } else if (adjustment.is(ItemRegistry.SOUL_COVERED_PLATE.get())) {
                 addOptional(builder, SOUL_WARD_CAPACITY_ATTRIBUTE, SOUL_WARD_CAPACITY,
-                        AttributeModifier.Operation.ADD_VALUE, slotGroup, modifierPrefix + "_soul_ward_capacity");
+                        AttributeModifier.Operation.ADDITION, modifierPrefix + "_soul_ward_capacity");
                 addOptional(builder, SOUL_WARD_RECOVERY_RATE_ATTRIBUTE, SOUL_WARD_RECOVERY_RATE,
-                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE, slotGroup,
+                        AttributeModifier.Operation.MULTIPLY_BASE,
                         modifierPrefix + "_soul_ward_recovery_rate");
             } else if (adjustment.is(ItemRegistry.SOUL_AUGMENTED_WEAVE.get())) {
                 addOptional(builder, MAGIC_PROFICIENCY_ATTRIBUTE, MAGIC_PROFICIENCY,
-                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE, slotGroup,
+                        AttributeModifier.Operation.MULTIPLY_BASE,
                         modifierPrefix + "_magic_proficiency");
             }
         }
@@ -216,15 +206,6 @@ public final class EndgameArmorCalibration {
                 && containsAdjustment(armorStack, stack -> isRegistryItem(stack, CREATE_GOGGLES));
     }
 
-    public static boolean hasWindAccumulationWeave(LivingEntity livingEntity) {
-        for (var armorStack : livingEntity.getArmorSlots()) {
-            if (containsAdjustment(armorStack, stack -> stack.is(ItemRegistry.WIND_ACCUMULATION_WEAVE.get()))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public static boolean usesStoredCalibrationScrolls(ItemStack armorStack) {
         return armorStack.getItem() instanceof ArmorItem armorItem
                 && armorItem.getType() != ArmorItem.Type.CHESTPLATE
@@ -243,30 +224,9 @@ public final class EndgameArmorCalibration {
                 : ItemStack.EMPTY;
     }
 
-    public static @NotNull ItemStack getStoredScroll(
-            ItemStack armorStack,
-            int slot,
-            HolderLookup.Provider lookupProvider
-    ) {
-        return slot == 0 && usesStoredCalibrationScrolls(armorStack)
-                ? EndgameArmorScrollStorage.get(armorStack, lookupProvider)
-                : ItemStack.EMPTY;
-    }
-
     public static void setStoredScroll(ItemStack armorStack, int slot, ItemStack scrollStack) {
         if (slot == 0 && usesStoredCalibrationScrolls(armorStack)) {
             EndgameArmorScrollStorage.set(armorStack, scrollStack);
-        }
-    }
-
-    public static void setStoredScroll(
-            ItemStack armorStack,
-            int slot,
-            ItemStack scrollStack,
-            HolderLookup.Provider lookupProvider
-    ) {
-        if (slot == 0 && usesStoredCalibrationScrolls(armorStack)) {
-            EndgameArmorScrollStorage.set(armorStack, scrollStack, lookupProvider);
         }
     }
 
@@ -378,27 +338,25 @@ public final class EndgameArmorCalibration {
     }
 
     private static void addOptional(
-            ItemAttributeModifiers.Builder builder,
+            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
             ResourceLocation attributeId,
             double amount,
             AttributeModifier.Operation operation,
-            EquipmentSlotGroup slotGroup,
             String modifierPath
     ) {
-        var attribute = BuiltInRegistries.ATTRIBUTE.getOptional(attributeId).orElse(null);
+        var attribute = ForgeRegistries.ATTRIBUTES.getValue(attributeId);
         if (attribute != null) {
-            add(builder, BuiltInRegistries.ATTRIBUTE.wrapAsHolder(attribute), amount, operation, slotGroup, modifierPath);
+            add(builder, attribute, amount, operation, modifierPath);
         }
     }
 
     private static void add(
-            ItemAttributeModifiers.Builder builder,
-            net.minecraft.core.Holder<Attribute> attribute,
+            ImmutableMultimap.Builder<Attribute, AttributeModifier> builder,
+            Attribute attribute,
             double amount,
             AttributeModifier.Operation operation,
-            EquipmentSlotGroup slotGroup,
             String modifierPath
     ) {
-        MagicArmorAttributeHelper.addModifier(builder, attribute, amount, operation, slotGroup, modifierPath);
+        MagicArmorAttributeHelper.addModifier(builder, attribute, amount, operation, modifierPath);
     }
 }

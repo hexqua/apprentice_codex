@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.swingstaff;
 
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -10,7 +11,7 @@ public final class SwingcastStaffSpellSelectionEvents {
     private SwingcastStaffSpellSelectionEvents() {
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onSpellSelection(SpellSelectionManager.SpellSelectionEvent event) {
         var player = event.getEntity();
         var mainHandStack = player.getMainHandItem();

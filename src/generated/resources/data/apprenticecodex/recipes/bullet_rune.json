@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "item": "apprenticecodex:spell_dominator_round"
+    },
+    "R": {
+      "item": "irons_spellbooks:blank_rune"
+    }
+  },
+  "pattern": [
+    "BBB",
+    "BRB",
+    "BBB"
+  ],
+  "result": {
+    "item": "apprenticecodex:bullet_rune"
+  },
+  "show_notification": true
+}
