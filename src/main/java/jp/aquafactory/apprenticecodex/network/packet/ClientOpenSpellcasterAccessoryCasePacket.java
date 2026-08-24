@@ -1,40 +1,32 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCase;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.jetbrains.annotations.NotNull;
+import net.minecraftforge.network.NetworkEvent;
 
-public record ClientOpenSpellcasterAccessoryCasePacket(int sourceSlot) implements CustomPacketPayload {
-    public static final Type<ClientOpenSpellcasterAccessoryCasePacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "client_open_spellcaster_accessory_case")
-    );
-    public static final StreamCodec<RegistryFriendlyByteBuf, ClientOpenSpellcasterAccessoryCasePacket> STREAM_CODEC =
-            StreamCodec.of(
-                    (buffer, packet) -> buffer.writeVarInt(packet.sourceSlot()),
-                    ClientOpenSpellcasterAccessoryCasePacket::decode
-            );
+import java.util.function.Supplier;
 
-    private static ClientOpenSpellcasterAccessoryCasePacket decode(FriendlyByteBuf buffer) {
+public record ClientOpenSpellcasterAccessoryCasePacket(int sourceSlot) {
+    public static void encode(ClientOpenSpellcasterAccessoryCasePacket packet, FriendlyByteBuf buffer) {
+        buffer.writeVarInt(packet.sourceSlot());
+    }
+
+    public static ClientOpenSpellcasterAccessoryCasePacket decode(FriendlyByteBuf buffer) {
         return new ClientOpenSpellcasterAccessoryCasePacket(buffer.readVarInt());
     }
 
-    public static void handle(ClientOpenSpellcasterAccessoryCasePacket packet, IPayloadContext context) {
+    public static void handle(
+            ClientOpenSpellcasterAccessoryCasePacket packet,
+            Supplier<NetworkEvent.Context> contextSupplier
+    ) {
+        var context = contextSupplier.get();
         context.enqueueWork(() -> {
-            if (context.player() instanceof ServerPlayer sender && sender.isCreative()) {
+            var sender = context.getSender();
+            if (sender instanceof ServerPlayer && sender.isCreative()) {
                 SpellcasterAccessoryCase.openFromInventorySlot(sender, packet.sourceSlot());
             }
         });
-    }
-
-    @Override
-    public @NotNull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+        context.setPacketHandled(true);
     }
 }

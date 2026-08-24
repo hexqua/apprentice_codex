@@ -4,16 +4,16 @@ import jp.aquafactory.apprenticecodex.block.spellcasteraccessorycase.Spellcaster
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.type.ICuriosMenu;
@@ -50,7 +50,7 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
     private boolean curiosPanelVisible;
     private int curiosPanelWidth;
 
-    public SpellcasterAccessoryCaseMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf data) {
+    public SpellcasterAccessoryCaseMenu(int containerId, Inventory playerInventory, FriendlyByteBuf data) {
         this(containerId, playerInventory, readSource(data));
     }
 
@@ -76,12 +76,12 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
         resetSlots();
     }
 
-    public static void writeInventorySource(RegistryFriendlyByteBuf buffer, int sourceSlot) {
+    public static void writeInventorySource(FriendlyByteBuf buffer, int sourceSlot) {
         buffer.writeBoolean(false);
         buffer.writeVarInt(sourceSlot);
     }
 
-    public static void writeBlockSource(RegistryFriendlyByteBuf buffer, BlockPos sourcePos) {
+    public static void writeBlockSource(FriendlyByteBuf buffer, BlockPos sourcePos) {
         buffer.writeBoolean(true);
         buffer.writeBlockPos(sourcePos);
     }
@@ -189,12 +189,13 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
         var slot = getSlot(slotId);
         if (slot instanceof CurioSlot curioSlot
                 && clickType == ClickType.CLONE
-                && player.hasInfiniteMaterials()
+                && player.getAbilities().instabuild
                 && getCarried().isEmpty()) {
-            var stack = curioSlot.getSlotExtension()
-                    .getCloneStack(curioSlot.getSlotContext(), curioSlot.getItem());
+            var stack = curioSlot.getItem();
             if (!stack.isEmpty()) {
-                setCarried(stack.copyWithCount(stack.getMaxStackSize()));
+                var clone = stack.copy();
+                clone.setCount(clone.getMaxStackSize());
+                setCarried(clone);
             }
             return;
         }
@@ -349,7 +350,6 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
                         x,
                         y,
                         stacksHandler.getRenders(),
-                        stacksHandler.getActiveStates(),
                         stacksHandler.canToggleRendering(),
                         false,
                         false
@@ -363,7 +363,7 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
         return slot >= 0 && slot < Inventory.INVENTORY_SIZE || slot == Inventory.SLOT_OFFHAND;
     }
 
-    private static Source readSource(RegistryFriendlyByteBuf data) {
+    private static Source readSource(FriendlyByteBuf data) {
         return data.readBoolean() ? Source.block(data.readBlockPos()) : Source.inventory(data.readVarInt());
     }
 

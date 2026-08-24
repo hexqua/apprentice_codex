@@ -5,8 +5,6 @@ import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterA
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
@@ -15,10 +13,9 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
 public final class SpellcasterAccessoryCaseBlockEntity extends BlockEntity implements MenuProvider {
@@ -43,7 +40,6 @@ public final class SpellcasterAccessoryCaseBlockEntity extends BlockEntity imple
     private ItemStack caseStack = ItemStack.EMPTY;
     private boolean loading;
     private boolean collected;
-    private boolean inventoryLoadPending;
 
     public SpellcasterAccessoryCaseBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityRegistry.SPELLCASTER_ACCESSORY_CASE.get(), pos, state);
@@ -60,23 +56,10 @@ public final class SpellcasterAccessoryCaseBlockEntity extends BlockEntity imple
     }
 
     public void setCaseStack(ItemStack stack) {
-        caseStack = stack.copyWithCount(1);
+        caseStack = copySingle(stack);
         collected = false;
-        if (level == null) {
-            // BlockEntity が Level へ接続される前は registry を取得できないため、setLevel まで復元を保留する。
-            inventoryLoadPending = true;
-        } else {
-            loadInventoryFromCaseStack(level.registryAccess());
-        }
+        loadInventoryFromCaseStack();
         setChanged();
-    }
-
-    @Override
-    public void setLevel(@NotNull Level level) {
-        super.setLevel(level);
-        if (inventoryLoadPending) {
-            loadInventoryFromCaseStack(level.registryAccess());
-        }
     }
 
     public ItemStack takeCaseStack() {
@@ -84,7 +67,7 @@ public final class SpellcasterAccessoryCaseBlockEntity extends BlockEntity imple
             return ItemStack.EMPTY;
         }
 
-        var result = getCaseStack().copyWithCount(1);
+        var result = copySingle(getCaseStack());
         collected = true;
         caseStack = ItemStack.EMPTY;
         loading = true;
@@ -100,13 +83,13 @@ public final class SpellcasterAccessoryCaseBlockEntity extends BlockEntity imple
     }
 
     public ItemStack copyCaseStackForDrop() {
-        return collected ? ItemStack.EMPTY : getCaseStack().copyWithCount(1);
+        return collected ? ItemStack.EMPTY : copySingle(getCaseStack());
     }
 
     @Override
     public @NotNull Component getDisplayName() {
         var stack = getCaseStack();
-        return stack.has(DataComponents.CUSTOM_NAME)
+        return stack.hasCustomHoverName()
                 ? stack.getHoverName()
                 : Component.translatable(CONTAINER_KEY);
     }
@@ -121,25 +104,23 @@ public final class SpellcasterAccessoryCaseBlockEntity extends BlockEntity imple
     }
 
     @Override
-    protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(@NotNull CompoundTag tag) {
+        super.saveAdditional(tag);
         if (!collected) {
             ensureCaseStack();
-            if (!inventoryLoadPending) {
-                SpellcasterAccessoryCase.saveInventory(caseStack, inventory, registries);
-            }
-            tag.put(CASE_STACK_TAG, caseStack.saveOptional(registries));
+            SpellcasterAccessoryCase.saveInventory(caseStack, inventory);
+            tag.put(CASE_STACK_TAG, caseStack.save(new CompoundTag()));
         }
     }
 
     @Override
-    protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
-        super.loadAdditional(tag, registries);
+    public void load(@NotNull CompoundTag tag) {
+        super.load(tag);
         caseStack = tag.contains(CASE_STACK_TAG, Tag.TAG_COMPOUND)
-                ? ItemStack.parseOptional(registries, tag.getCompound(CASE_STACK_TAG))
+                ? ItemStack.of(tag.getCompound(CASE_STACK_TAG))
                 : ItemStack.EMPTY;
         collected = false;
-        loadInventoryFromCaseStack(registries);
+        loadInventoryFromCaseStack();
     }
 
     private void ensureCaseStack() {
@@ -148,25 +129,28 @@ public final class SpellcasterAccessoryCaseBlockEntity extends BlockEntity imple
         }
     }
 
-    private void loadInventoryFromCaseStack(HolderLookup.Provider registries) {
+    private void loadInventoryFromCaseStack() {
         loading = true;
         try {
             for (var slot = 0; slot < inventory.getSlots(); ++slot) {
                 inventory.setStackInSlot(slot, ItemStack.EMPTY);
             }
             if (!caseStack.isEmpty()) {
-                SpellcasterAccessoryCase.loadInventory(caseStack, inventory, registries);
+                SpellcasterAccessoryCase.loadInventory(caseStack, inventory);
             }
         } finally {
             loading = false;
-            inventoryLoadPending = false;
         }
     }
 
     private void syncInventoryToCaseStack() {
         ensureCaseStack();
-        if (level != null && !inventoryLoadPending) {
-            SpellcasterAccessoryCase.saveInventory(caseStack, inventory, level.registryAccess());
-        }
+        SpellcasterAccessoryCase.saveInventory(caseStack, inventory);
+    }
+
+    private static ItemStack copySingle(ItemStack stack) {
+        var result = stack.copy();
+        result.setCount(1);
+        return result;
     }
 }

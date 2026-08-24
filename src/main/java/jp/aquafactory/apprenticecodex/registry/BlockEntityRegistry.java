@@ -87,7 +87,7 @@ public final class BlockEntityRegistry {
             "spell_dispenser", SpellDispenserBlockEntity::new, BlockRegistry.SPELL_DISPENSER, BlockRegistry.CREATIVE_SPELL_DISPENSER
     );
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SpellcasterAccessoryCaseBlockEntity>> SPELLCASTER_ACCESSORY_CASE = reg(
+    public static final RegistryObject<BlockEntityType<SpellcasterAccessoryCaseBlockEntity>> SPELLCASTER_ACCESSORY_CASE = reg(
             "spellcaster_accessory_case", SpellcasterAccessoryCaseBlockEntity::new, BlockRegistry.SPELLCASTER_ACCESSORY_CASE
     );
 

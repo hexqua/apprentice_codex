@@ -1,42 +1,32 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCaseMenu;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.jetbrains.annotations.NotNull;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.function.Supplier;
 
 public record ClientConfigureSpellcasterAccessoryCaseMenuPacket(
         int containerId,
         int maxVisibleCuriosColumns
-) implements CustomPacketPayload {
-    public static final Type<ClientConfigureSpellcasterAccessoryCaseMenuPacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(
-                    ApprenticeCodex.MODID,
-                    "client_configure_spellcaster_accessory_case_menu"
-            )
-    );
-    public static final StreamCodec<RegistryFriendlyByteBuf, ClientConfigureSpellcasterAccessoryCaseMenuPacket>
-            STREAM_CODEC = StreamCodec.of(
-            (buffer, packet) -> {
-                buffer.writeVarInt(packet.containerId());
-                buffer.writeVarInt(packet.maxVisibleCuriosColumns());
-            },
-            ClientConfigureSpellcasterAccessoryCaseMenuPacket::decode
-    );
+) {
+    public static void encode(ClientConfigureSpellcasterAccessoryCaseMenuPacket packet, FriendlyByteBuf buffer) {
+        buffer.writeVarInt(packet.containerId());
+        buffer.writeVarInt(packet.maxVisibleCuriosColumns());
+    }
 
-    private static ClientConfigureSpellcasterAccessoryCaseMenuPacket decode(FriendlyByteBuf buffer) {
+    public static ClientConfigureSpellcasterAccessoryCaseMenuPacket decode(FriendlyByteBuf buffer) {
         return new ClientConfigureSpellcasterAccessoryCaseMenuPacket(buffer.readVarInt(), buffer.readVarInt());
     }
 
-    public static void handle(ClientConfigureSpellcasterAccessoryCaseMenuPacket packet, IPayloadContext context) {
+    public static void handle(
+            ClientConfigureSpellcasterAccessoryCaseMenuPacket packet,
+            Supplier<NetworkEvent.Context> contextSupplier
+    ) {
+        var context = contextSupplier.get();
         context.enqueueWork(() -> {
-            if (!(context.player() instanceof ServerPlayer sender)
+            var sender = context.getSender();
+            if (sender == null
                     || packet.maxVisibleCuriosColumns() < 0
                     || !(sender.containerMenu instanceof SpellcasterAccessoryCaseMenu menu)
                     || menu.containerId != packet.containerId()) {
@@ -46,10 +36,6 @@ public record ClientConfigureSpellcasterAccessoryCaseMenuPacket(
             // clientは表示許容量だけを選び、実際のslot数と全inventory移動はserver側menuが決定する。
             menu.configureMaxVisibleCuriosColumns(packet.maxVisibleCuriosColumns());
         });
-    }
-
-    @Override
-    public @NotNull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+        context.setPacketHandled(true);
     }
 }

@@ -1,4 +1,4 @@
-﻿package jp.aquafactory.apprenticecodex.event.client;
+package jp.aquafactory.apprenticecodex.event.client;
 
 import io.redspace.ironsspellbooks.render.SpellBookCurioRenderer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;

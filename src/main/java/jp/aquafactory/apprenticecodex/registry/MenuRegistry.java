@@ -1,4 +1,4 @@
-﻿package jp.aquafactory.apprenticecodex.registry;
+package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskMenu;

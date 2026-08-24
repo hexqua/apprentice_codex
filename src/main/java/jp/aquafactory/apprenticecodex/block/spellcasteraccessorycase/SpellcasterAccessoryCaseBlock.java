@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex.block.spellcasteraccessorycase;
 
-import com.mojang.serialization.MapCodec;
 import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCaseMenu;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import net.minecraft.core.BlockPos;
@@ -8,7 +7,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -34,11 +32,11 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import net.minecraftforge.network.NetworkHooks;
 
 import java.util.List;
 
 public final class SpellcasterAccessoryCaseBlock extends BaseEntityBlock {
-    public static final MapCodec<SpellcasterAccessoryCaseBlock> CODEC = simpleCodec(SpellcasterAccessoryCaseBlock::new);
     public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     private static final VoxelShape NORTH_SHAPE = Block.box(1.5D, 0.0D, 3.5D, 14.5D, 11.5D, 14.0D);
     private static final VoxelShape SOUTH_SHAPE = Block.box(1.5D, 0.0D, 2.0D, 14.5D, 11.5D, 12.5D);
@@ -56,11 +54,6 @@ public final class SpellcasterAccessoryCaseBlock extends BaseEntityBlock {
 
     public SpellcasterAccessoryCaseBlock() {
         this(Properties.of());
-    }
-
-    @Override
-    protected @NotNull MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
     }
 
     @Override
@@ -105,26 +98,12 @@ public final class SpellcasterAccessoryCaseBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected @NotNull ItemInteractionResult useItemOn(
-            @NotNull ItemStack stack,
+    public @NotNull InteractionResult use(
             @NotNull BlockState state,
             @NotNull Level level,
             @NotNull BlockPos pos,
             @NotNull Player player,
             @NotNull InteractionHand hand,
-            @NotNull BlockHitResult hitResult
-    ) {
-        return openMenu(level, pos, player)
-                ? ItemInteractionResult.sidedSuccess(level.isClientSide)
-                : ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-    }
-
-    @Override
-    protected @NotNull InteractionResult useWithoutItem(
-            @NotNull BlockState state,
-            @NotNull Level level,
-            @NotNull BlockPos pos,
-            @NotNull Player player,
             @NotNull BlockHitResult hitResult
     ) {
         return openMenu(level, pos, player)
@@ -147,7 +126,7 @@ public final class SpellcasterAccessoryCaseBlock extends BaseEntityBlock {
     }
 
     @Override
-    public @NotNull BlockState playerWillDestroy(
+    public void playerWillDestroy(
             @NotNull Level level,
             @NotNull BlockPos pos,
             @NotNull BlockState state,
@@ -156,7 +135,7 @@ public final class SpellcasterAccessoryCaseBlock extends BaseEntityBlock {
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof SpellcasterAccessoryCaseBlockEntity blockEntity) {
             giveToPlayerOrDrop(player, blockEntity.takeCaseStack());
         }
-        return super.playerWillDestroy(level, pos, state, player);
+        super.playerWillDestroy(level, pos, state, player);
     }
 
     @Override
@@ -179,7 +158,11 @@ public final class SpellcasterAccessoryCaseBlock extends BaseEntityBlock {
             return false;
         }
         if (player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(blockEntity, buffer -> SpellcasterAccessoryCaseMenu.writeBlockSource(buffer, pos));
+            NetworkHooks.openScreen(
+                    serverPlayer,
+                    blockEntity,
+                    buffer -> SpellcasterAccessoryCaseMenu.writeBlockSource(buffer, pos)
+            );
         }
         return true;
     }

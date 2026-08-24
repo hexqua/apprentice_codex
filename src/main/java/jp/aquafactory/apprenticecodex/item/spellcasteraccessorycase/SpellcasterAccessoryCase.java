@@ -3,8 +3,6 @@ package jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
@@ -20,14 +18,13 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.CuriosApi;
 
@@ -48,7 +45,7 @@ public final class SpellcasterAccessoryCase extends BlockItem {
     @Override
     public void appendHoverText(
             @NotNull ItemStack stack,
-            Item.@NotNull TooltipContext context,
+            Level context,
             @NotNull List<Component> lines,
             @NotNull TooltipFlag flag
     ) {
@@ -123,10 +120,10 @@ public final class SpellcasterAccessoryCase extends BlockItem {
             return;
         }
 
-        serverPlayer.openMenu(new MenuProvider() {
+        NetworkHooks.openScreen(serverPlayer, new MenuProvider() {
             @Override
             public @NotNull Component getDisplayName() {
-                return stack.has(DataComponents.CUSTOM_NAME)
+                return stack.hasCustomHoverName()
                         ? stack.getHoverName()
                         : Component.translatable(CONTAINER_KEY);
             }
@@ -157,28 +154,25 @@ public final class SpellcasterAccessoryCase extends BlockItem {
 
     public static void loadInventory(
             ItemStack caseStack,
-            ItemStackHandler inventory,
-            HolderLookup.Provider registries
+            ItemStackHandler inventory
     ) {
-        var customData = caseStack.get(DataComponents.CUSTOM_DATA);
-        if (customData == null) {
+        var root = caseStack.getTag();
+        if (root == null) {
             return;
         }
 
-        var root = customData.copyTag();
         if (!root.contains(INVENTORY_TAG, Tag.TAG_COMPOUND)) {
             return;
         }
 
         var inventoryTag = root.getCompound(INVENTORY_TAG).copy();
         inventoryTag.putInt("Size", SLOT_COUNT);
-        inventory.deserializeNBT(registries, inventoryTag);
+        inventory.deserializeNBT(inventoryTag);
     }
 
     public static void saveInventory(
             ItemStack caseStack,
-            IItemHandler inventory,
-            HolderLookup.Provider registries
+            IItemHandler inventory
     ) {
         var inventoryTag = new CompoundTag();
         inventoryTag.putInt("Size", SLOT_COUNT);
@@ -188,25 +182,23 @@ public final class SpellcasterAccessoryCase extends BlockItem {
             if (stack.isEmpty()) {
                 continue;
             }
-            var itemTag = (CompoundTag) stack.saveOptional(registries);
+            var itemTag = stack.save(new CompoundTag());
             itemTag.putInt("Slot", slot);
             items.add(itemTag);
         }
         inventoryTag.put("Items", items);
-        CustomData.update(DataComponents.CUSTOM_DATA, caseStack, root -> root.put(INVENTORY_TAG, inventoryTag));
+        caseStack.getOrCreateTag().put(INVENTORY_TAG, inventoryTag);
     }
 
     public static final class CaseInventory extends ItemStackHandler {
         private final ItemStack caseStack;
         private final LivingEntity wearer;
-        private final HolderLookup.Provider registries;
         private boolean loading;
 
         public CaseInventory(ItemStack caseStack, LivingEntity wearer) {
             super(SLOT_COUNT);
             this.caseStack = caseStack;
             this.wearer = wearer;
-            this.registries = wearer.registryAccess();
             load();
         }
 
@@ -225,14 +217,14 @@ public final class SpellcasterAccessoryCase extends BlockItem {
         private void load() {
             loading = true;
             try {
-                loadInventory(caseStack, this, registries);
+                loadInventory(caseStack, this);
             } finally {
                 loading = false;
             }
         }
 
         private void save() {
-            saveInventory(caseStack, this, registries);
+            saveInventory(caseStack, this);
         }
     }
 }

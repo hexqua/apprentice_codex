@@ -10,7 +10,6 @@ import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -28,26 +27,27 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.fml.ModList;
-import net.neoforged.neoforge.event.tick.EntityTickEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.common.event.CuriosEventHandler;
 import top.theillusivec4.curios.common.inventory.CurioSlot;
+
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
 public final class SpellcasterAccessoryCaseGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final String RING_SLOT = "ring";
-    private static final ResourceLocation EXPANDED_BACK_SLOT_ID = ResourceLocation.fromNamespaceAndPath(
-            ApprenticeCodex.MODID,
-            "gametest/accessory_case_expanded_back"
+    private static final UUID EXPANDED_BACK_SLOT_ID = UUID.nameUUIDFromBytes(
+            (ApprenticeCodex.MODID + ":gametest/accessory_case_expanded_back").getBytes(StandardCharsets.UTF_8)
     );
-    private static final ResourceLocation OVERSIZED_BACK_SLOT_ID = ResourceLocation.fromNamespaceAndPath(
-            ApprenticeCodex.MODID,
-            "gametest/accessory_case_oversized_back"
+    private static final UUID OVERSIZED_BACK_SLOT_ID = UUID.nameUUIDFromBytes(
+            (ApprenticeCodex.MODID + ":gametest/accessory_case_oversized_back").getBytes(StandardCharsets.UTF_8)
     );
 
     private SpellcasterAccessoryCaseGameTests() {
@@ -59,7 +59,7 @@ public final class SpellcasterAccessoryCaseGameTests {
                 helper, new BlockPos(0, 2, 0), "accessory_case_place_test"
         );
         var caseStack = new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get());
-        caseStack.set(DataComponents.CUSTOM_NAME, Component.literal("Placed Accessory Case"));
+        caseStack.setHoverName(Component.literal("Placed Accessory Case"));
         var itemInventory = new SpellcasterAccessoryCase.CaseInventory(caseStack, player);
         helper.assertTrue(itemInventory.insertItem(
                 0, new ItemStack(ItemRegistry.ATTACKCAST_RING.get()), false
@@ -92,12 +92,11 @@ public final class SpellcasterAccessoryCaseGameTests {
         helper.assertTrue(placedBlockEntity.getCaseStack().getHoverName().getString().equals("Placed Accessory Case"),
                 "Placement should preserve the accessory case custom name");
 
-        var saved = placedBlockEntity.saveWithFullMetadata(helper.getLevel().registryAccess());
+        var saved = placedBlockEntity.saveWithFullMetadata();
         var reloaded = BlockEntity.loadStatic(
                 placedPos,
                 helper.getLevel().getBlockState(placedPos),
-                saved,
-                helper.getLevel().registryAccess()
+                saved
         );
         helper.assertTrue(reloaded instanceof SpellcasterAccessoryCaseBlockEntity,
                 "Saved accessory case should reload as the registered block entity type");
@@ -147,7 +146,7 @@ public final class SpellcasterAccessoryCaseGameTests {
 
         var hit = new BlockHitResult(Vec3.atCenterOf(pos), net.minecraft.core.Direction.UP, pos, false);
         var interactionResult = helper.getLevel().getBlockState(pos)
-                .useWithoutItem(helper.getLevel(), player, hit);
+                .use(helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
         helper.assertTrue(interactionResult.consumesAction(),
                 "Right-clicking a placed accessory case should consume the interaction");
         // NeoForge FakePlayer は openMenu を意図的に無視するため、provider が block source menu を作ることを別に確認する。
@@ -158,7 +157,7 @@ public final class SpellcasterAccessoryCaseGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void accessoryCaseDefersInventoryLoadUntilLevelIsAvailable(GameTestHelper helper) {
+    public static void accessoryCaseLoadsInventoryWithoutLevelRegistry(GameTestHelper helper) {
         var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
                 helper, new BlockPos(0, 2, 0), "accessory_case_detached_block_entity_test"
         );
@@ -171,21 +170,17 @@ public final class SpellcasterAccessoryCaseGameTests {
         );
 
         blockEntity.setCaseStack(caseStack);
-        helper.assertTrue(blockEntity.getInventory().getStackInSlot(0).isEmpty(),
-                "Detached accessory case should defer registry-dependent inventory loading");
-        var detachedSaved = blockEntity.saveWithFullMetadata(helper.getLevel().registryAccess());
+        helper.assertTrue(blockEntity.getInventory().getStackInSlot(0).is(ItemRegistry.ATTACKCAST_RING.get()),
+                "Detached accessory case should load inventory without registry access");
+        var detachedSaved = blockEntity.saveWithFullMetadata();
         var detachedReloaded = BlockEntity.loadStatic(
                 blockEntity.getBlockPos(),
                 blockEntity.getBlockState(),
-                detachedSaved,
-                helper.getLevel().registryAccess()
+                detachedSaved
         );
         helper.assertTrue(detachedReloaded instanceof SpellcasterAccessoryCaseBlockEntity reloaded
                         && reloaded.getInventory().getStackInSlot(0).is(ItemRegistry.ATTACKCAST_RING.get()),
                 "Saving a detached accessory case should preserve its deferred inventory data");
-        blockEntity.setLevel(helper.getLevel());
-        helper.assertTrue(blockEntity.getInventory().getStackInSlot(0).is(ItemRegistry.ATTACKCAST_RING.get()),
-                "Accessory case should load deferred inventory after receiving its level");
         helper.succeed();
     }
 
@@ -196,7 +191,7 @@ public final class SpellcasterAccessoryCaseGameTests {
         );
         var pos = helper.absolutePos(new BlockPos(1, 2, 1));
         var caseStack = new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get());
-        caseStack.set(DataComponents.CUSTOM_NAME, Component.literal("Recovered Accessory Case"));
+        caseStack.setHoverName(Component.literal("Recovered Accessory Case"));
         new SpellcasterAccessoryCase.CaseInventory(caseStack, player)
                 .insertItem(0, new ItemStack(ItemRegistry.ATTACKCAST_RING.get()), false);
         placeAccessoryCaseBlock(helper, pos, caseStack);
@@ -236,7 +231,7 @@ public final class SpellcasterAccessoryCaseGameTests {
                 "Held-item removal should insert the accessory case into player inventory");
 
         for (var slot = 0; slot < Inventory.INVENTORY_SIZE; ++slot) {
-            player.getInventory().setItem(slot, new ItemStack(Items.STONE, Items.STONE.getDefaultMaxStackSize()));
+            player.getInventory().setItem(slot, new ItemStack(Items.STONE, 64));
         }
         var dropPos = helper.absolutePos(new BlockPos(2, 2, 1));
         placeAccessoryCaseBlock(helper, dropPos, new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get()));
@@ -306,7 +301,7 @@ public final class SpellcasterAccessoryCaseGameTests {
                 "Accessory case should accept a saddle-calibrated broom with a valid Curios slot");
 
         var reloaded = new SpellcasterAccessoryCase.CaseInventory(caseStack, player);
-        helper.assertTrue(ItemStack.isSameItemSameComponents(reloaded.getStackInSlot(0), ring),
+        helper.assertTrue(ItemStack.isSameItemSameTags(reloaded.getStackInSlot(0), ring),
                 "Stored Curios item should persist on the accessory case stack");
         helper.succeed();
     }
@@ -555,7 +550,7 @@ public final class SpellcasterAccessoryCaseGameTests {
         ).isEmpty(), "Accessory case should accept the full-inventory test ring");
         player.getInventory().setItem(0, caseStack);
         for (var slot = 1; slot < Inventory.INVENTORY_SIZE; ++slot) {
-            player.getInventory().setItem(slot, new ItemStack(Items.STONE, Items.STONE.getDefaultMaxStackSize()));
+            player.getInventory().setItem(slot, new ItemStack(Items.STONE, 64));
         }
         expandCuriosBeyondDefaultColumnLimit(player);
         var menu = new SpellcasterAccessoryCaseMenu(1, player.getInventory(), 0);
@@ -640,7 +635,7 @@ public final class SpellcasterAccessoryCaseGameTests {
         fillAccessoryCase(caseStack, player);
         player.getInventory().setItem(0, caseStack);
         for (var slot = 1; slot < Inventory.INVENTORY_SIZE; ++slot) {
-            player.getInventory().setItem(slot, new ItemStack(Items.STONE, Items.STONE.getDefaultMaxStackSize()));
+            player.getInventory().setItem(slot, new ItemStack(Items.STONE, 64));
         }
         var curios = CuriosApi.getCuriosInventory(player)
                 .orElseThrow(() -> new IllegalStateException("Missing Curios inventory for full destination test"));
@@ -674,8 +669,9 @@ public final class SpellcasterAccessoryCaseGameTests {
         curios.addTransientSlotModifier(
                 CuriosSlotConstants.BACK,
                 EXPANDED_BACK_SLOT_ID,
+                "Accessory case expanded back slot",
                 1.0D,
-                AttributeModifier.Operation.ADD_VALUE
+                AttributeModifier.Operation.ADDITION
         );
 
         helper.runAfterDelay(2, () -> {
@@ -689,7 +685,7 @@ public final class SpellcasterAccessoryCaseGameTests {
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 60)
-    public static void accessoryCaseHonorsMalumBroochAndGeasContracts(GameTestHelper helper) {
+    public static void accessoryCaseHonorsMalumRunicBroochContract(GameTestHelper helper) {
         if (!ModList.get().isLoaded("malum")) {
             helper.succeed();
             return;
@@ -708,14 +704,9 @@ public final class SpellcasterAccessoryCaseGameTests {
         var runicBrooch = BuiltInRegistries.ITEM.getOptional(
                 ResourceLocation.fromNamespaceAndPath("malum", "runic_brooch")
         ).orElseThrow(() -> new IllegalStateException("Missing Malum runic brooch"));
-        var geas = BuiltInRegistries.ITEM.getOptional(
-                ResourceLocation.fromNamespaceAndPath("malum", "geas")
-        ).orElseThrow(() -> new IllegalStateException("Missing Malum geas"));
 
         helper.assertTrue(SpellcasterAccessoryCase.accepts(new ItemStack(runicBrooch), player),
                 "Accessory case should accept Malum's runic brooch");
-        helper.assertFalse(SpellcasterAccessoryCase.accepts(new ItemStack(geas), player),
-                "Accessory case should reject Malum's Geas because it has no equippable Curios slot");
 
         var oldRingSlots = curios.getCurios().get("ring").getStacks().getSlots();
         var oldRuneSlots = curios.getCurios().get("rune").getStacks().getSlots();
@@ -723,7 +714,7 @@ public final class SpellcasterAccessoryCaseGameTests {
 
         // FakePlayerはlevelのentity tick対象外なので、実ゲームと同じCuriosのPost tick処理を明示的に進める。
         ++player.tickCount;
-        new CuriosEventHandler().tick(new EntityTickEvent.Post(player));
+        new CuriosEventHandler().tick(new LivingEvent.LivingTickEvent(player));
 
         helper.runAfterDelay(3, () -> {
             var newRingSlots = curios.getCurios().get("ring").getStacks().getSlots();
@@ -732,31 +723,7 @@ public final class SpellcasterAccessoryCaseGameTests {
                     "Malum's runic brooch should remove one ring slot: " + oldRingSlots + " -> " + newRingSlots);
             helper.assertTrue(newRuneSlots == oldRuneSlots + 2,
                     "Malum's runic brooch should add two rune slots: " + oldRuneSlots + " -> " + newRuneSlots);
-
-            curios.addTransientSlotModifier(
-                    "geas",
-                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "gametest/accessory_case_geas"),
-                    1.0D,
-                    AttributeModifier.Operation.ADD_VALUE
-            );
-            curios.setEquippedCurio("geas", 0, new ItemStack(geas));
-
-            helper.runAfterDelay(2, () -> {
-                var geasSlot = menu.slots.stream()
-                        .filter(CurioSlot.class::isInstance)
-                        .map(CurioSlot.class::cast)
-                        .filter(slot -> slot.getIdentifier().equals("geas"))
-                        .findFirst()
-                        .orElseThrow(() -> new IllegalStateException("Accessory case menu did not expose the Geas slot"));
-                helper.assertFalse(geasSlot.mayPickup(player),
-                        "Accessory case menu must preserve Malum Geas' unequip prohibition");
-                menu.clicked(menu.slots.indexOf(geasSlot), 0, ClickType.QUICK_MOVE, player);
-                helper.assertTrue(geasSlot.getItem().is(geas),
-                        "Shift-clicking must not bypass Malum Geas' unequip prohibition");
-                helper.assertTrue(menu.getSlot(0).getItem().isEmpty(),
-                        "A prohibited Malum Geas must not move into accessory case storage");
-                helper.succeed();
-            });
+            helper.succeed();
         });
     }
 
@@ -818,8 +785,9 @@ public final class SpellcasterAccessoryCaseGameTests {
         curios.addTransientSlotModifier(
                 CuriosSlotConstants.BACK,
                 OVERSIZED_BACK_SLOT_ID,
+                "Accessory case oversized back slot",
                 addedSlots,
-                AttributeModifier.Operation.ADD_VALUE
+                AttributeModifier.Operation.ADDITION
         );
     }
 

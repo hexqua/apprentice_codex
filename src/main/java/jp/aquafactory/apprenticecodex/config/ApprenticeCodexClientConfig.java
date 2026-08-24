@@ -1,4 +1,4 @@
-﻿package jp.aquafactory.apprenticecodex.config;
+package jp.aquafactory.apprenticecodex.config;
 
 import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCaseMenu;
 import net.minecraft.resources.ResourceLocation;

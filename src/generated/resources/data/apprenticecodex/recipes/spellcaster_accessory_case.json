@@ -6,7 +6,7 @@
       "item": "irons_spellbooks:arcane_ingot"
     },
     "C": {
-      "tag": "c:chests"
+      "tag": "forge:chests"
     },
     "G": {
       "item": "minecraft:gold_ingot"
@@ -24,7 +24,7 @@
     "GMG"
   ],
   "result": {
-    "count": 1,
-    "id": "apprenticecodex:spellcaster_accessory_case"
-  }
+    "item": "apprenticecodex:spellcaster_accessory_case"
+  },
+  "show_notification": true
 }

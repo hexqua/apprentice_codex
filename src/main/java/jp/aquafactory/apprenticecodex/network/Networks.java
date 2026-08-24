@@ -1,4 +1,4 @@
-﻿﻿package jp.aquafactory.apprenticecodex.network;
+package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
