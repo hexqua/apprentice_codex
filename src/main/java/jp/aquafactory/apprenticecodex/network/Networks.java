@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.network.packet.AlchemyBrewerWaterSupplyEff
 import jp.aquafactory.apprenticecodex.network.packet.ClientAnchorBlinkPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientConfigureSpellcasterAccessoryCaseMenuPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmLuminousDeviceSelectionPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmSneakSelectionPacket;
@@ -13,6 +14,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientEpicFightAttackcastRi
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientOpenSpellcasterAccessoryCasePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBroomInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBroomDismountInputPacket;
@@ -88,7 +90,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "88";
+    private static final String PROTOCOL_VERSION = "90";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -207,6 +209,22 @@ public final class Networks {
                 ClientChangeArchivistsGrimoireRowPacket::encode,
                 ClientChangeArchivistsGrimoireRowPacket::decode,
                 ClientChangeArchivistsGrimoireRowPacket::handle
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                ClientOpenSpellcasterAccessoryCasePacket.class,
+                ClientOpenSpellcasterAccessoryCasePacket::encode,
+                ClientOpenSpellcasterAccessoryCasePacket::decode,
+                ClientOpenSpellcasterAccessoryCasePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER)
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                ClientConfigureSpellcasterAccessoryCaseMenuPacket.class,
+                ClientConfigureSpellcasterAccessoryCaseMenuPacket::encode,
+                ClientConfigureSpellcasterAccessoryCaseMenuPacket::decode,
+                ClientConfigureSpellcasterAccessoryCaseMenuPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER)
         );
         CHANNEL.registerMessage(
                 nextPacketId++,

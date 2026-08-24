@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEn
 import jp.aquafactory.apprenticecodex.block.alchemybrewer.AlchemyBrewerBlockEntity;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntity;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntity;
+import jp.aquafactory.apprenticecodex.block.spellcasteraccessorycase.SpellcasterAccessoryCaseBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.frostrune.FrostRuneTrapBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockEntity;
@@ -84,6 +85,10 @@ public final class BlockEntityRegistry {
 
     public static final RegistryObject<BlockEntityType<SpellDispenserBlockEntity>> SPELL_DISPENSER = reg(
             "spell_dispenser", SpellDispenserBlockEntity::new, BlockRegistry.SPELL_DISPENSER, BlockRegistry.CREATIVE_SPELL_DISPENSER
+    );
+
+    public static final RegistryObject<BlockEntityType<SpellcasterAccessoryCaseBlockEntity>> SPELLCASTER_ACCESSORY_CASE = reg(
+            "spellcaster_accessory_case", SpellcasterAccessoryCaseBlockEntity::new, BlockRegistry.SPELLCASTER_ACCESSORY_CASE
     );
 
     public static void register(IEventBus eventBus) {

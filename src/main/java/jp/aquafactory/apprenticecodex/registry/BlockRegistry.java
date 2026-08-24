@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmoker;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBench;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbench;
+import jp.aquafactory.apprenticecodex.block.spellcasteraccessorycase.SpellcasterAccessoryCaseBlock;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlock;
 import jp.aquafactory.apprenticecodex.spell.frostrune.FrostRuneTrapBlock;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlock;
@@ -62,6 +63,9 @@ public final class BlockRegistry {
 
     public static final RegistryObject<Block> SPELL_CALIBRATION_BENCH =
             BLOCKS.register("spell_calibration_bench", SpellCalibrationBench::new);
+
+    public static final RegistryObject<Block> SPELLCASTER_ACCESSORY_CASE =
+            BLOCKS.register("spellcaster_accessory_case", SpellcasterAccessoryCaseBlock::new);
 
     public static final RegistryObject<Block> SPELL_DISPENSER =
             BLOCKS.register("spell_dispenser", SpellDispenser::new);

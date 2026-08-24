@@ -27,6 +27,7 @@ import jp.aquafactory.apprenticecodex.particle.AdditiveRhombusParticle;
 import jp.aquafactory.apprenticecodex.particle.ImpactTremorBlockParticle;
 import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireInscriptionScreen;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoireScreen;
+import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCaseScreen;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouchTooltip;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceTooltip;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticle;
@@ -162,6 +163,7 @@ public final class ClientModBusEvents {
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.ALCHEMY_BREWER.get(), AlchemyBrewerScreen::new));
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.ENDER_GRIMOIRE_INSCRIPTION.get(), EnderGrimoireInscriptionScreen::new));
         event.enqueueWork(() -> MenuScreens.register(MenuRegistry.ARCHIVISTS_GRIMOIRE.get(), ArchivistsGrimoireScreen::new));
+        event.enqueueWork(() -> MenuScreens.register(MenuRegistry.SPELLCASTER_ACCESSORY_CASE.get(), SpellcasterAccessoryCaseScreen::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.ENDER_GRIMOIRE.get(), SpellBookCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.ARCHIVISTS_GRIMOIRE.get(), SpellBookCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.EXPLORERS_CODEX.get(), SpellBookCurioRenderer::new));
