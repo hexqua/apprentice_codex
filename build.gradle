@@ -558,7 +558,8 @@ tasks.named('jar', Jar).configure {
         ])
     }
 
-    archiveBaseName.set(project.name)
+    // project.name は作業ディレクトリ名を既定で使用するため、配布ファイル名は固定する。
+    archiveBaseName.set('apprentice_codex')
     archiveVersion.set("${project.mod_version}+mc${project.minecraft_version}")
     finalizedBy 'reobfJar'
 }
