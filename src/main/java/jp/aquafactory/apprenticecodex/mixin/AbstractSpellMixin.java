@@ -49,7 +49,8 @@ public abstract class AbstractSpellMixin {
             method = {"getSpellPower", "getEntityPowerMultiplier"},
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/world/entity/LivingEntity;getAttributeValue(Lnet/minecraft/world/entity/ai/attributes/Attribute;)D"
+                    target = "Lnet/minecraft/world/entity/LivingEntity;getAttributeValue(Lnet/minecraft/world/entity/ai/attributes/Attribute;)D",
+                    remap = true
             )
     )
     private double apprentice_codex$useSpellgunForcedSpellPower(
