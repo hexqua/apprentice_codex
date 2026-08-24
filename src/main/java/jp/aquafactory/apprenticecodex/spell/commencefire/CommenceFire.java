@@ -24,7 +24,6 @@ import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -93,7 +92,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
     }
     @Override
     public Optional<SoundEvent> getSummonSound() {
-        return Optional.of(SoundEvents.SHULKER_TELEPORT);
+        return Optional.of(SoundRegistry.VANILLA_SUMMON_WEAPON.get());
     }
 
     private int getRange(){
