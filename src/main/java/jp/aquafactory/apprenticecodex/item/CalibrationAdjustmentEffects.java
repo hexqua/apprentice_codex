@@ -46,6 +46,10 @@ public final class CalibrationAdjustmentEffects {
         );
     }
 
+    public static List<Component> reduceGravity(double amount) {
+        return line("reduce_gravity", percentage(amount));
+    }
+
     public static List<Component> gainPowderSnowWalk() {
         return line("gain_powder_snow_walk");
     }

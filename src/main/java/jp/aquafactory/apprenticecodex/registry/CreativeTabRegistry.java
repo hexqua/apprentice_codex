@@ -96,6 +96,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.SHOCK_ABSORPTION_PLATE.get());
         output.accept(ItemRegistry.BLAST_REACTIVE_PLATE.get());
         output.accept(ItemRegistry.WIND_ACCUMULATION_WEAVE.get());
+        output.accept(ItemRegistry.ANTI_GRAVITY_WEAVE.get());
         output.accept(ItemRegistry.SCROLLWOVEN_PARCHMENT.get());
         if (isInstalledMalum()){
             output.accept(ItemRegistry.SOUL_COVERED_PLATE.get());
@@ -363,4 +364,3 @@ public final class CreativeTabRegistry {
         return SchoolAffinityRegistry.getAssignedSchool(schoolAffinityPotion.getSlotIndex()).isEmpty();
     }
 }
-

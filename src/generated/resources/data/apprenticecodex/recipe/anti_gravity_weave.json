@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": {
+      "item": "minecraft:chorus_fruit"
+    },
+    "D": {
+      "item": "irons_spellbooks:dragonskin"
+    },
+    "W": {
+      "item": "apprenticecodex:wind_accumulation_weave"
+    }
+  },
+  "pattern": [
+    "DCD",
+    "CWC",
+    "DCD"
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:anti_gravity_weave"
+  }
+}

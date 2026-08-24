@@ -667,7 +667,38 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                                 && target.getCalibrationAdjustmentSlotCount(stack) == EndgameArmorCalibration.SLOT_COUNT,
                         "Every endgame armor piece should expose three calibration slots: "
                                 + BuiltInRegistries.ITEM.getKey(stack.getItem()));
+
+                var antiGravityWeave = new ItemStack(ItemRegistry.ANTI_GRAVITY_WEAVE.get());
+                helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                                stack, 0, antiGravityWeave),
+                        "Anti-Gravity Weave should be accepted by every endgame armor piece: "
+                                + BuiltInRegistries.ITEM.getKey(stack.getItem()));
+                helper.assertFalse(SpellCalibrationAdjustmentGameTestSupport.canPlaceCalibrationAdjustment(
+                                stack, 1, antiGravityWeave),
+                        "Anti-Gravity Weave should be unique within one armor piece: "
+                                + BuiltInRegistries.ITEM.getKey(stack.getItem()));
+                helper.assertTrue(Math.abs(modifierTotal(
+                                ((ArmorItem) stack.getItem()).getDefaultAttributeModifiers(stack),
+                                Attributes.GRAVITY,
+                                AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                        ) + EndgameArmorCalibration.ANTI_GRAVITY_REDUCTION) < 1.0e-9D,
+                        "Anti-Gravity Weave should reduce gravity by 10% on every endgame armor piece: "
+                                + BuiltInRegistries.ITEM.getKey(stack.getItem()));
             }
+
+            var fourPieceGravityModifier = 0.0D;
+            for (var slot = 0; slot < 4; ++slot) {
+                var armorStack = endgameArmor[slot];
+                fourPieceGravityModifier += modifierTotal(
+                        ((ArmorItem) armorStack.getItem()).getDefaultAttributeModifiers(armorStack),
+                        Attributes.GRAVITY,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                );
+            }
+            var expectedFourPieceModifier = -EndgameArmorCalibration.ANTI_GRAVITY_REDUCTION * 4.0D;
+            helper.assertTrue(Math.abs(fourPieceGravityModifier - expectedFourPieceModifier) < 1.0e-9D,
+                    "Anti-Gravity Weave should provide 40% total gravity reduction across four armor pieces: got "
+                            + fourPieceGravityModifier + " / expected " + expectedFourPieceModifier);
 
             var manaRune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get());
             var manaLeggings = new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get());
