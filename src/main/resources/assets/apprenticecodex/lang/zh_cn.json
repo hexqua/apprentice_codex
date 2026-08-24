@@ -454,7 +454,7 @@
   "jei.apprenticecodex.craftsmans_delight.desc_7": "此外，以下法术还可获得额外效果：",
   "jei.apprenticecodex.craftsmans_delight.desc_8": "- 微型伐木工：被砍伐方块的掉落物会聚合至一处",
   "jei.apprenticecodex.craftsmans_delight.desc_9": "- 地形平整器：破环能力从铁级提升至下界合金级",
-  "jei.apprenticecodex.craftsmans_delight.desc_10": "- 触控挖掘：施法范围增加",
+  "jei.apprenticecodex.craftsmans_delight.desc_10": "- 触控挖掘：施法范围增加。安装 Malum 模组时，即使触控挖掘破坏的方块通常不适合用镐采掘，已激活的织法镐也会触发额外采掘效果",
   "jei.apprenticecodex.craftsmans_delight.desc_11": "- 天堂铁拳：采掘附近从芽生方块上长出的最大结晶",
   "jei.apprenticecodex.craftsmans_delight.desc_12": "- 恩泽之雨：成长加速也会作用于生物，并促使其更快再次繁殖",
   "jei.apprenticecodex.craftsmans_delight.desc_13": "- 线性建造：施法范围增加",

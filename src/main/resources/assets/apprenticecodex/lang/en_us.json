@@ -449,7 +449,7 @@
   "jei.apprenticecodex.craftsmans_delight.desc_7": "In addition, the following spells gain extra effects:",
   "jei.apprenticecodex.craftsmans_delight.desc_8": "- Tiny Lumberjack: Drops from chopped blocks are aggregated to one place.",
   "jei.apprenticecodex.craftsmans_delight.desc_9": "- World Flatter: Block-breaking power increases from iron-tier to netherite-tier.",
-  "jei.apprenticecodex.craftsmans_delight.desc_10": "- Touch Dig: Range is increased.",
+  "jei.apprenticecodex.craftsmans_delight.desc_10": "- Touch Dig: Range is increased. With Malum installed, a primed Spellweaving Pickaxe triggers its additional mining effect even when Touch Dig breaks a block that is not normally mineable with a pickaxe.",
   "jei.apprenticecodex.craftsmans_delight.desc_11": "- Heavenly Fist: Harvests mature crystals growing from nearby budding blocks.",
   "jei.apprenticecodex.craftsmans_delight.desc_12": "- Graced Rain: Growth acceleration also affects creatures and helps them breed again sooner.",
   "jei.apprenticecodex.craftsmans_delight.desc_13": "- Linear Build: Range is increased.",
