@@ -36,6 +36,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientBroomInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomReleaseResultPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomImpulseEffectPacket;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.callbroom.CallBroomDeploymentEvents;
@@ -44,6 +45,7 @@ import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -62,6 +64,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MoverType;
@@ -76,6 +79,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.BubbleColumnBlock;
+import net.minecraft.world.level.block.SculkSensorBlock;
+import net.minecraft.world.level.block.state.properties.SculkSensorPhase;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
@@ -99,6 +104,7 @@ import java.util.function.Consumer;
 public final class FloatmountBroomGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final BlockPos TEST_POS = new BlockPos(1, 1, 1);
+    private static final BlockPos VIBRATION_SENSOR_POS = new BlockPos(4, 1, 1);
 
     private FloatmountBroomGameTests() {
     }
@@ -121,6 +127,67 @@ public final class FloatmountBroomGameTests {
         helper.assertTrue(broom instanceof HoverrideBroomEntity,
                 "Hoverride Broom entity type should create its dedicated entity");
         helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 90)
+    public static void mountedFloatmountRepeatedlyEmitsFlightVibrationWhileStationary(GameTestHelper helper) {
+        var broom = spawnBroom(helper, 1.5D);
+        var player = mountForVibrationTest(helper, broom, "floatmount_vibration_rider");
+        placeVibrationSensor(helper);
+
+        helper.runAfterDelay(20, () -> {
+            assertVibrationSensorActive(helper,
+                    "Stationary low-altitude Floatmount riding should emit an Elytra flight vibration");
+            helper.runAfterDelay(50, () -> {
+                assertVibrationSensorActive(helper,
+                        "Continuous Floatmount riding should emit another vibration after the sensor resets");
+                player.stopRiding();
+                helper.succeed();
+            });
+        });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 40)
+    public static void mountedHoverrideEmitsFlightVibrationWhileStationary(GameTestHelper helper) {
+        var broom = spawnHoverrideBroom(helper, 1.5D);
+        var player = mountForVibrationTest(helper, broom, "hoverride_vibration_rider");
+        placeVibrationSensor(helper);
+
+        helper.runAfterDelay(20, () -> {
+            assertVibrationSensorActive(helper,
+                    "Stationary low-altitude Hoverride riding should emit an Elytra flight vibration");
+            player.stopRiding();
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 40)
+    public static void unoccupiedBroomDoesNotEmitFlightVibration(GameTestHelper helper) {
+        spawnBroom(helper, 1.5D);
+        placeVibrationSensor(helper);
+
+        helper.runAfterDelay(25, () -> {
+            helper.assertFalse(isVibrationSensorActive(helper),
+                    "An unoccupied broom must not emit an Elytra flight vibration");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 50)
+    public static void deepSensorSilencesMountedBroomFlightVibration(GameTestHelper helper) {
+        var broom = spawnBroom(helper, 1.5D);
+        var player = serverRider(helper, "floatmount_deep_sensor_rider");
+        var senseSensor = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.SENSE_SENSOR.get());
+        player.addEffect(new MobEffectInstance(senseSensor, 60, 0));
+        mountForVibrationTest(helper, broom, player);
+        placeVibrationSensor(helper);
+
+        helper.runAfterDelay(35, () -> {
+            helper.assertFalse(isVibrationSensorActive(helper),
+                    "Deep Sensor should silence player-sourced broom flight vibrations");
+            player.stopRiding();
+            helper.succeed();
+        });
     }
 
     @GameTest(template = TEMPLATE)
@@ -2605,6 +2672,39 @@ public final class FloatmountBroomGameTests {
         broom.setPos(position.getX() + 0.5D, position.getY() + 0.1D, position.getZ() + 0.5D);
         helper.getLevel().addFreshEntity(broom);
         return broom;
+    }
+
+    private static ServerPlayer mountForVibrationTest(
+            GameTestHelper helper,
+            AbstractBroomEntity broom,
+            String profileName
+    ) {
+        return mountForVibrationTest(helper, broom, serverRider(helper, profileName));
+    }
+
+    private static ServerPlayer mountForVibrationTest(
+            GameTestHelper helper,
+            AbstractBroomEntity broom,
+            ServerPlayer player
+    ) {
+        player.setPos(broom.getX(), broom.getY(), broom.getZ());
+        helper.assertTrue(player.startRiding(broom, true), "Broom vibration test rider should mount directly");
+        return player;
+    }
+
+    private static void placeVibrationSensor(GameTestHelper helper) {
+        // 騎乗後に配置し、ENTITY_MOUNTではなく継続する飛行振動だけを検証する。
+        helper.setBlock(VIBRATION_SENSOR_POS, Blocks.SCULK_SENSOR);
+    }
+
+    private static boolean isVibrationSensorActive(GameTestHelper helper) {
+        var state = helper.getBlockState(VIBRATION_SENSOR_POS);
+        return state.getValue(SculkSensorBlock.PHASE) == SculkSensorPhase.ACTIVE
+                && state.getValue(SculkSensorBlock.POWER) > 0;
+    }
+
+    private static void assertVibrationSensorActive(GameTestHelper helper, String message) {
+        helper.assertTrue(isVibrationSensorActive(helper), message);
     }
 
     private static HoverrideBroomServerConfig.Values rushTestConfig(double forwardManaCost) {
