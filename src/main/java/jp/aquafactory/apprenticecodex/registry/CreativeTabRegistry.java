@@ -55,10 +55,16 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.ESSENCE_SMOKER.get());
         output.accept(ItemRegistry.ATELIER_STATION.get());
         output.accept(ItemRegistry.ALCHEMY_BREWER.get());
+        output.accept(ItemRegistry.BULLET_RUNE.get());
+        output.accept(ItemRegistry.MITHRIL_WEAVE_OFFCUTS.get());
         output.accept(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get());
         output.accept(ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get());
         output.accept(ItemRegistry.ARCANE_CINDER.get());
         output.accept(ItemRegistry.WISDOM_SHARD.get());
+        output.accept(ItemRegistry.SHOCK_ABSORPTION_PLATE.get());
+        output.accept(ItemRegistry.BLAST_REACTIVE_PLATE.get());
+        output.accept(ItemRegistry.WIND_ACCUMULATION_WEAVE.get());
+        output.accept(ItemRegistry.SCROLLWOVEN_PARCHMENT.get());
         output.accept(ItemRegistry.OVERDRIVE_BROOM_ENGINE.get());
         output.accept(ItemRegistry.SPELL_EXTRACT_SHARD.get());
         output.accept(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get());
@@ -203,6 +209,8 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.SOULCOLLECTOR_ROBE.get());
         output.accept(ItemRegistry.SOULCOLLECTOR_LEGGINGS.get());
         output.accept(ItemRegistry.SOULCOLLECTOR_BOOTS.get());
+        output.accept(ItemRegistry.SOUL_COVERED_PLATE.get());
+        output.accept(ItemRegistry.SOUL_AUGMENTED_WEAVE.get());
     }
 
     private static void addSpellScrollsToTab(CreativeModeTab.Output output) {

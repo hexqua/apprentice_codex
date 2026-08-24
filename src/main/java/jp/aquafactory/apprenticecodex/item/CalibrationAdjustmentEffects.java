@@ -24,6 +24,53 @@ public final class CalibrationAdjustmentEffects {
         return line("add_spell_resist", percentage(amount));
     }
 
+    public static List<Component> addMaxMana(double amount) {
+        return line("add_max_mana", Math.round(amount));
+    }
+
+    public static List<Component> addKnockbackResistance(double amount) {
+        return line("add_knockback_resist", percentage(amount));
+    }
+
+    public static List<Component> addKnockbackResistanceAndGravity(
+            double knockbackResistance,
+            double gravity
+    ) {
+        return List.of(
+                Component.translatable(KEY_PREFIX + "add_knockback_resist_and_gravity_1",
+                        percentage(knockbackResistance)),
+                Component.translatable(KEY_PREFIX + "add_knockback_resist_and_gravity_2", percentage(gravity))
+        );
+    }
+
+    public static List<Component> reduceGravity(double amount) {
+        return line("reduce_gravity", percentage(amount));
+    }
+
+    public static List<Component> gainPowderSnowWalk() {
+        return line("gain_powder_snow_walk");
+    }
+
+    public static List<Component> gainCreateGoggles() {
+        return line("create.add_goggle");
+    }
+
+    public static List<Component> addSoulWard(
+            Component capacityName,
+            double capacity,
+            Component recoveryName,
+            double recoveryRate
+    ) {
+        return List.of(
+                Component.translatable(KEY_PREFIX + "malum.add_soulward_1", capacityName, Math.round(capacity)),
+                Component.translatable(KEY_PREFIX + "malum.add_soulward_2", recoveryName, percentage(recoveryRate))
+        );
+    }
+
+    public static List<Component> addMagicProficiency(Component attributeName, double amount) {
+        return line("malum.add_magic_proficiency", attributeName, percentage(amount));
+    }
+
     public static List<Component> changeSpellPower(double schoolAmount, double generalReduction) {
         return List.of(
                 Component.translatable(KEY_PREFIX + "change_spell_power_1", percentage(schoolAmount)),

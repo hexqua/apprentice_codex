@@ -86,7 +86,7 @@ public final class MagicArmorServerConfig {
         var elementMaidenRobeSpellPowerBonus = defineSpellPowerBonus(
                 builder,
                 "ElementMaidenRobe",
-                0.15D
+                0.10D
         );
         var elementMaidenRobeSchoolSpellPowerBonus = defineSchoolSpellPowerBonus(
                 builder,

@@ -13,15 +13,20 @@ import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
-import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.entity.broom.BroomSpellSelectionEvents;
+import jp.aquafactory.apprenticecodex.event.BetterCombatOffhandAttributeRescueEvent;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHint;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentTooltip;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
+import jp.aquafactory.apprenticecodex.item.armor.EndgameArmorCalibration;
+import jp.aquafactory.apprenticecodex.item.armor.EndgameArmorSpellSelectionEvents;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
+import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoireSpellSelectionEvents;
+import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoireSpellSelectionEvents;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmulet;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
@@ -33,11 +38,10 @@ import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.item.spellthrowablecard.AbstractSpellThrowableCardItem;
-import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
-import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
-import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
+import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffSpellSelectionEvents;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.spell.callbroom.CallBroomSpellSelectionEvents;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import jp.aquafactory.apprenticecodex.utility.SpellSelectionStackResolver;
 import net.minecraft.core.BlockPos;
@@ -49,13 +53,19 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.HashSet;
@@ -182,14 +192,15 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     "Magi Agent Suit hood should be accepted by Spell Calibration Bench");
             helper.assertTrue(suitHoodMenu.isAdjustmentSlotEnabled(0),
                     "Magi Agent Suit should enable its first adjustment slot");
-            helper.assertFalse(suitHoodMenu.isAdjustmentSlotEnabled(1),
-                    "Magi Agent Suit should not enable more than one adjustment slot");
+            helper.assertTrue(suitHoodMenu.isAdjustmentSlotEnabled(1)
+                            && suitHoodMenu.isAdjustmentSlotEnabled(2),
+                    "Magi Agent Suit should enable all three adjustment slots");
             helper.assertTrue(suitHoodMenu.getEnabledScrollSlotCount() == 0,
                     "Magi Agent Suit non-chest pieces should not expose scroll slots");
             helper.assertTrue(suitHoodMenu.getSlot(SpellCalibrationBenchMenu.ADJUSTMENT_MENU_SLOT_START).mayPlace(fireRune),
                     "Magi Agent Suit should accept school runes in the first adjustment slot");
-            helper.assertFalse(suitHoodMenu.getSlot(SpellCalibrationBenchMenu.ADJUSTMENT_MENU_SLOT_START + 1).mayPlace(fireRune),
-                    "Magi Agent Suit should reject school runes outside the first adjustment slot");
+            helper.assertTrue(suitHoodMenu.getSlot(SpellCalibrationBenchMenu.ADJUSTMENT_MENU_SLOT_START + 1).mayPlace(fireRune),
+                    "Magi Agent Suit should accept a school rune in any empty adjustment slot");
             helper.assertFalse(suitHoodMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).mayPlace(healScroll),
                     "Magi Agent Suit non-chest pieces should reject scroll placement");
 
@@ -261,6 +272,16 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             suitCoatMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).set(healScroll.copy());
             assertStackHasSpell(helper, suitCoat, io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get(), 1,
                     "Magi Agent Suit coat should accept scroll imbue at the Spell Calibration Bench");
+
+            var chromaticCoat = new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get());
+            var chromaticCoatMenu = createSpellCalibrationBenchMenuWithTarget(player, chromaticCoat);
+            helper.assertTrue(chromaticCoatMenu.getEnabledScrollSlotCount() == 1,
+                    "Chromatic Magia Dress coat should expose one scroll slot");
+            helper.assertTrue(chromaticCoatMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).mayPlace(healScroll),
+                    "Chromatic Magia Dress coat should accept a scroll in the Spell Calibration Bench slot");
+            chromaticCoatMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).set(healScroll.copy());
+            assertStackHasSpell(helper, chromaticCoat, io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get(), 1,
+                    "Chromatic Magia Dress coat should accept scroll imbue at the Spell Calibration Bench");
 
             var presetStaffMenu = createSpellCalibrationBenchMenuWithTarget(
                     player,
@@ -350,7 +371,8 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
     static void spellCalibrationAdjustmentProfilesEnforceDeclaredRules(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var targets = createDeclaredCalibrationAdjustmentTargets();
-            var expectedSlotCounts = new int[]{3, 3, 3, 1, 3, 3, 3, 3, 3, 1, 1, 1, 1, 3, 1, 1, 1, 1};
+            var expectedSlotCounts = new int[]{3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 3, 3, 3, 3, 1,
+                    3, 3, 3, 3, 3, 3, 3, 3};
             var representativeAdjustments = new ItemStack[]{
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()),
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get()),
@@ -369,7 +391,15 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get()),
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get()),
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE.get()),
-                    new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get())
+                    new ItemStack(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get()),
+                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get())
             };
             for (var index = 0; index < targets.length; ++index) {
                 var stack = targets[index];
@@ -589,7 +619,15 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                 new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_COAT.get()),
                 new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get()),
                 new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()),
-                new ItemStack(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get())
+                new ItemStack(ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get()),
+                new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get()),
+                new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get()),
+                new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get()),
+                new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()),
+                new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get()),
+                new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()),
+                new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get()),
+                new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get())
         };
     }
 
@@ -1367,6 +1405,159 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     "Mithril Freecast Staff should keep the selected source cooldown until delayed cooldown but got "
                             + delayedCooldownEvent.getEffectiveCooldown() + " / expected " + selectedSourceCooldown);
         });
+    }
+
+    static void endgameArmorCalibrationAppliesSharedRulesAndAttributes(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var shockBoots = new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get());
+            helper.assertTrue(shockBoots.getItem() instanceof SpellCalibrationAdjustmentTarget target
+                            && target.getCalibrationAdjustmentSlotCount(shockBoots) == EndgameArmorCalibration.SLOT_COUNT,
+                    "Endgame armor should expose three calibration adjustment slots");
+
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            shockBoots, 0, new ItemStack(ItemRegistry.SHOCK_ABSORPTION_PLATE.get())),
+                    "Shock Absorption Plate should be accepted");
+            assertAttributeModifierTotal(helper, shockBoots, Attributes.KNOCKBACK_RESISTANCE,
+                    AttributeModifier.Operation.ADDITION, EndgameArmorCalibration.KNOCKBACK_RESIST_PER_PLATE,
+                    "Shock Absorption Plate should add knockback resistance");
+            assertAttributeModifierTotal(helper, shockBoots, ForgeMod.ENTITY_GRAVITY.get(),
+                    AttributeModifier.Operation.MULTIPLY_BASE, 0.0D,
+                    "Shock Absorption Plate should not change gravity");
+
+            var blastBoots = new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get());
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            blastBoots, 0, new ItemStack(ItemRegistry.BLAST_REACTIVE_PLATE.get())),
+                    "Blast-Reactive Plate should be accepted");
+            assertAttributeModifierTotal(helper, blastBoots, Attributes.KNOCKBACK_RESISTANCE,
+                    AttributeModifier.Operation.ADDITION, EndgameArmorCalibration.BLAST_REACTIVE_KNOCKBACK_RESIST,
+                    "Blast-Reactive Plate should add knockback resistance");
+            assertAttributeModifierTotal(helper, blastBoots, ForgeMod.ENTITY_GRAVITY.get(),
+                    AttributeModifier.Operation.MULTIPLY_BASE, EndgameArmorCalibration.BLAST_REACTIVE_GRAVITY,
+                    "Blast-Reactive Plate should increase gravity");
+
+            var windBoots = new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get());
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            windBoots, 0, new ItemStack(ItemRegistry.WIND_ACCUMULATION_WEAVE.get())),
+                    "Wind Accumulation Weave should be accepted");
+            assertAttributeModifierTotal(helper, windBoots, Attributes.KNOCKBACK_RESISTANCE,
+                    AttributeModifier.Operation.ADDITION, 0.0D,
+                    "Wind Accumulation Weave should not add knockback resistance");
+            assertAttributeModifierTotal(helper, windBoots, ForgeMod.ENTITY_GRAVITY.get(),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    -EndgameArmorCalibration.WIND_ACCUMULATION_GRAVITY_REDUCTION,
+                    "Wind Accumulation Weave should reduce gravity");
+
+            var combinedBoots = new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get());
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            combinedBoots, 0, new ItemStack(ItemRegistry.BLAST_REACTIVE_PLATE.get()))
+                            && SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            combinedBoots, 1, new ItemStack(ItemRegistry.WIND_ACCUMULATION_WEAVE.get())),
+                    "Blast-Reactive Plate and Wind Accumulation Weave should be accepted together");
+            assertAttributeModifierTotal(helper, combinedBoots, Attributes.KNOCKBACK_RESISTANCE,
+                    AttributeModifier.Operation.ADDITION, EndgameArmorCalibration.BLAST_REACTIVE_KNOCKBACK_RESIST,
+                    "Combined adjustments should retain Blast-Reactive Plate knockback resistance");
+            assertAttributeModifierTotal(helper, combinedBoots, ForgeMod.ENTITY_GRAVITY.get(),
+                    AttributeModifier.Operation.MULTIPLY_BASE, 0.0D,
+                    "Opposing gravity adjustments should cancel each other");
+            helper.assertTrue(((SpellCalibrationAdjustmentTarget) combinedBoots.getItem())
+                            .getCalibrationAdjustment(combinedBoots, 0).is(ItemRegistry.BLAST_REACTIVE_PLATE.get())
+                            && ((SpellCalibrationAdjustmentTarget) combinedBoots.getItem())
+                            .getCalibrationAdjustment(combinedBoots, 1).is(ItemRegistry.WIND_ACCUMULATION_WEAVE.get()),
+                    "Gravity adjustments should persist in their calibration slots");
+        });
+    }
+
+    private static void assertAttributeModifierTotal(
+            GameTestHelper helper,
+            ItemStack armorStack,
+            Attribute attribute,
+            AttributeModifier.Operation operation,
+            double expected,
+            String message
+    ) {
+        var modifiers = ((ArmorItem) armorStack.getItem())
+                .getAttributeModifiers(EquipmentSlot.FEET, armorStack);
+        var actual = modifiers.get(attribute).stream()
+                .filter(modifier -> modifier.getOperation() == operation)
+                .mapToDouble(AttributeModifier::getAmount)
+                .sum();
+        helper.assertTrue(Math.abs(actual - expected) < 1.0e-9D,
+                message + ": got " + actual + " / expected " + expected);
+    }
+
+    static void endgameArmorScrollwovenSlotsPersistAndFollowSelectionOrder(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            assertSpellSelectionPriority(helper, ArchivistsGrimoireSpellSelectionEvents.class, EventPriority.HIGHEST);
+            assertSpellSelectionPriority(helper, EnderGrimoireSpellSelectionEvents.class, EventPriority.HIGHEST);
+            assertSpellSelectionPriority(helper, EndgameArmorSpellSelectionEvents.class, EventPriority.HIGH);
+            assertSpellSelectionPriority(helper, SwingcastStaffSpellSelectionEvents.class, EventPriority.NORMAL);
+            assertSpellSelectionPriority(helper, BroomSpellSelectionEvents.class, EventPriority.LOW);
+            assertSpellSelectionPriority(helper, CallBroomSpellSelectionEvents.class, EventPriority.LOW);
+            assertSpellSelectionPriority(helper, BetterCombatOffhandAttributeRescueEvent.class, EventPriority.LOWEST);
+
+            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var scroll = createSpellScroll(
+                    spell);
+            var eligibleArmor = new ItemStack[]{
+                    new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get()),
+                    new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_LEGGINGS.get()),
+                    new ItemStack(ItemRegistry.CHROMATIC_MAGIA_DRESS_BOOTS.get()),
+                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_HOOD.get()),
+                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get()),
+                    new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()),
+                    new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get()),
+                    new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_LEGGINGS.get()),
+                    new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_BOOTS.get())
+            };
+            for (var armor : eligibleArmor) {
+                helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                                armor, 0, new ItemStack(ItemRegistry.SCROLLWOVEN_PARCHMENT.get())),
+                        "Scrollwoven Parchment should be accepted by non-chest endgame armor");
+                helper.assertTrue(SpellCalibrationImbueHelper.evaluateScrollAt(armor, 0, scroll)
+                                == SpellCalibrationImbueState.ACCEPTED_USABLE,
+                        "Scrollwoven armor should accept a spell scroll");
+                EndgameArmorCalibration.setStoredScroll(armor, 0, scroll);
+                var copied = armor.copy();
+                helper.assertTrue(EndgameArmorCalibration.getStoredSpellData(copied).getSpell() == spell,
+                        "Stored armor scroll should survive ItemStack NBT copying");
+                helper.assertFalse(ISpellContainer.isSpellContainer(copied),
+                        "Non-chest endgame armor should keep stored scrolls outside SpellContainer");
+            }
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "scrollwoven_armor_test");
+            player.setItemSlot(EquipmentSlot.HEAD, eligibleArmor[0]);
+            player.setItemSlot(EquipmentSlot.LEGS, eligibleArmor[1]);
+            player.setItemSlot(EquipmentSlot.FEET, eligibleArmor[2]);
+            var options = new SpellSelectionManager(player).getAllSpells();
+            helper.assertTrue(options.size() >= 3,
+                    "Three armor slots should remain independent spell selections");
+            helper.assertTrue(EndgameArmorSpellSelectionEvents.HEAD_SLOT.equals(options.get(0).slot)
+                            && EndgameArmorSpellSelectionEvents.LEGS_SLOT.equals(options.get(1).slot)
+                            && EndgameArmorSpellSelectionEvents.FEET_SLOT.equals(options.get(2).slot),
+                    "Armor spell selections should use stable head, legs, feet ordering");
+            helper.assertTrue(ItemStack.isSameItemSameTags(
+                            SpellSelectionStackResolver.resolveSelectionStack(player, options.get(0).slot),
+                            eligibleArmor[0]),
+                    "Scrollwoven head selection should resolve to the equipped armor stack");
+        });
+    }
+
+    private static void assertSpellSelectionPriority(
+            GameTestHelper helper,
+            Class<?> eventClass,
+            EventPriority expected
+    ) {
+        try {
+            var method = eventClass.getDeclaredMethod(
+                    "onSpellSelection",
+                    SpellSelectionManager.SpellSelectionEvent.class
+            );
+            var annotation = method.getAnnotation(SubscribeEvent.class);
+            helper.assertTrue(annotation != null && annotation.priority() == expected,
+                    eventClass.getSimpleName() + " should use " + expected + " priority");
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Failed to inspect spell selection event priority", exception);
+        }
     }
 
     private static void assertAutocastSpellData(

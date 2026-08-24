@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.broom.BroomCurioSupport;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import top.theillusivec4.curios.api.event.CurioChangeEvent;
@@ -17,7 +18,7 @@ public final class CallBroomSpellSelectionEvents {
     private CallBroomSpellSelectionEvents() {
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOW)
     public static void onSpellSelection(SpellSelectionManager.SpellSelectionEvent event) {
         if (BroomCurioSupport.findUniqueEquippedBroom(event.getEntity()).isEmpty()) {
             return;

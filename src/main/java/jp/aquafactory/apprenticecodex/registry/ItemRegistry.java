@@ -160,6 +160,14 @@ public final class ItemRegistry {
             ITEMS.register("overdrive_broom_engine", OverdriveBroomEngine::new);
     public static final RegistryObject<Item> SPELL_EXTRACT_SHARD = ITEMS.register("spell_extract_shard", SpellExtractShard::new);
     public static final RegistryObject<Item> CRYSTALLINE_ARCANE_SHARD = simple("crystalline_arcane_shard");
+    public static final RegistryObject<Item> BULLET_RUNE = simple("bullet_rune");
+    public static final RegistryObject<Item> MITHRIL_WEAVE_OFFCUTS = simpleFireImmune("mithril_weave_offcuts");
+    public static final RegistryObject<Item> SHOCK_ABSORPTION_PLATE = simpleFireImmune("shock_absorption_plate");
+    public static final RegistryObject<Item> BLAST_REACTIVE_PLATE = simpleFireImmune("blast_reactive_plate");
+    public static final RegistryObject<Item> WIND_ACCUMULATION_WEAVE = simple("wind_accumulation_weave");
+    public static final RegistryObject<Item> SCROLLWOVEN_PARCHMENT = simple("scrollwoven_parchment");
+    public static final RegistryObject<Item> SOUL_COVERED_PLATE = simpleFireImmune("soul_covered_plate");
+    public static final RegistryObject<Item> SOUL_AUGMENTED_WEAVE = simple("soul_augmented_weave");
 
     public static final RegistryObject<Item> COMFORT_BERRIES =
             ITEMS.register("comfort_berries", () -> new ItemNameBlockItem(

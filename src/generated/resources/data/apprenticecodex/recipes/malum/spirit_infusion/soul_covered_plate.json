@@ -1,0 +1,43 @@
+{
+  "type": "malum:spirit_infusion",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "malum"
+    }
+  ],
+  "extra_items": [
+    {
+      "count": 4,
+      "item": "malum:soul_stained_steel_plating"
+    },
+    {
+      "count": 4,
+      "item": "malum:processed_soulstone"
+    },
+    {
+      "count": 8,
+      "item": "malum:twisted_rock"
+    }
+  ],
+  "input": {
+    "item": "apprenticecodex:shock_absorption_plate"
+  },
+  "output": {
+    "item": "apprenticecodex:soul_covered_plate"
+  },
+  "spirits": [
+    {
+      "type": "wicked",
+      "count": 16
+    },
+    {
+      "type": "arcane",
+      "count": 32
+    },
+    {
+      "type": "earthen",
+      "count": 32
+    }
+  ]
+}

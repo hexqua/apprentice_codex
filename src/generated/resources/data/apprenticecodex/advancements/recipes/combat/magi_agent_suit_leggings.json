@@ -1,12 +1,12 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_spell_dominator_round": {
+    "has_bullet_rune": {
       "conditions": {
         "items": [
           {
             "items": [
-              "apprenticecodex:spell_dominator_round"
+              "apprenticecodex:bullet_rune"
             ]
           }
         ]
@@ -22,7 +22,7 @@
   },
   "requirements": [
     [
-      "has_spell_dominator_round",
+      "has_bullet_rune",
       "has_the_recipe"
     ]
   ],

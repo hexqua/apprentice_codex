@@ -38,8 +38,16 @@
   "item.apprenticecodex.crude_ink.desc": "品質が低すぎて、コモン魔法のワンドを作る用途にしかつかえない。",
   "item.apprenticecodex.crude_ink.single_use": "一度で全て使い切る。",
 
+  "item.apprenticecodex.bullet_rune": "魔弾のルーン",
+  "item.apprenticecodex.mithril_weave_offcuts": "ミスリルの織物の端材",
   "item.apprenticecodex.arcane_cinder": "神秘の燃え殻",
   "item.apprenticecodex.wisdom_shard": "叡智の破片",
+  "item.apprenticecodex.shock_absorption_plate": "衝撃吸収装甲板",
+  "item.apprenticecodex.blast_reactive_plate": "加重接地安定装甲板",
+  "item.apprenticecodex.wind_accumulation_weave": "風積みの織物",
+  "item.apprenticecodex.scrollwoven_parchment": "術式織りの織込羊皮紙",
+  "item.apprenticecodex.soul_covered_plate": "被魂装甲板",
+  "item.apprenticecodex.soul_augmented_weave": "魂増強の織物",
   "item.apprenticecodex.overdrive_broom_engine": "オーバードライブ箒駆動コア",
   "item.apprenticecodex.spell_extract_shard": "術式抽出の破片",
   "item.apprenticecodex.crystalline_arcane_shard": "結晶化した秘術の破片",
@@ -518,7 +526,12 @@
 
   "jei.apprenticecodex.spell_calibration_bench.effect.add_scroll_slot": "スクロールスロット+%d",
   "jei.apprenticecodex.spell_calibration_bench.effect.add_spell_power": "系統の魔法の威力+%d%%",
-  "jei.apprenticecodex.spell_calibration_bench.effect.add_spell_resist": "系統の魔法耐性+%d%%",
+  "jei.apprenticecodex.spell_calibration_bench.effect.add_spell_resist": "魔法耐性+%d%%",
+  "jei.apprenticecodex.spell_calibration_bench.effect.add_max_mana": "最大マナ+%d",
+  "jei.apprenticecodex.spell_calibration_bench.effect.add_knockback_resist": "ノックバック耐性+%d%%",
+  "jei.apprenticecodex.spell_calibration_bench.effect.add_knockback_resist_and_gravity_1": "ノックバック耐性+%d%%",
+  "jei.apprenticecodex.spell_calibration_bench.effect.add_knockback_resist_and_gravity_2": "重力+%d%%",
+  "jei.apprenticecodex.spell_calibration_bench.effect.reduce_gravity": "重力-%d%%",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_spell_power_1": "系統の魔法の威力+%d%%",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_spell_power_2": "元の魔法威力-%d%%",
   "jei.apprenticecodex.spell_calibration_bench.effect.add_long_support": "詠唱が必要な魔法にも対応",
@@ -541,6 +554,11 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.hover_2": "加速全般のマナ消費が増加",
   "jei.apprenticecodex.spell_calibration_bench.effect.add_rush_style_1": "一定速度以上で接触攻撃可能",
   "jei.apprenticecodex.spell_calibration_bench.effect.add_rush_style_2": "発動中マナを消費",
+  "jei.apprenticecodex.spell_calibration_bench.effect.gain_powder_snow_walk": "粉雪に埋もれなくなる",
+  "jei.apprenticecodex.spell_calibration_bench.effect.create.add_goggle": "応力や回転数を視覚化",
+  "jei.apprenticecodex.spell_calibration_bench.effect.malum.add_magic_proficiency": "%1$s +%2$d%%",
+  "jei.apprenticecodex.spell_calibration_bench.effect.malum.add_soulward_1": "%1$s +%2$d",
+  "jei.apprenticecodex.spell_calibration_bench.effect.malum.add_soulward_2": "%1$s +%2$d%%",
 
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "同じ効果のアイテムは複数挿入できない",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "系統のルーンはどれか一つのみ挿入できる",
@@ -1486,5 +1504,9 @@
   "subtitle.apprenticecodex.sound.vanilla_card_throw": "札を投擲する",
   "subtitle.apprenticecodex.sound.vanilla_feed_ammo": "弾薬を装填する",
   "subtitle.apprenticecodex.sound.vanilla_cast_book": "本を使う",
-  "subtitle.apprenticecodex.sound.vanilla_crystallize_mana": "魔力が結晶化する"
+  "subtitle.apprenticecodex.sound.vanilla_crystallize_mana": "魔力が結晶化する",
+  "item.apprenticecodex.endgame_armor.scroll_slot.empty": "スクロールスロット: 空",
+  "item.apprenticecodex.endgame_armor.scroll_slot.spell": "スクロールスロット: %s",
+  "item.apprenticecodex.endgame_armor.scroll_slot.inactive": "保管中のスクロール（休眠中）: %s",
+  "item.apprenticecodex.endgame_armor.scroll_slot.requires": "%sが必要"
 }

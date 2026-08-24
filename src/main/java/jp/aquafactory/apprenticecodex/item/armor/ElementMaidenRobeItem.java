@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -12,6 +13,10 @@ import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
+import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.armor.ElementMaidenRobeRenderer;
@@ -53,7 +58,7 @@ import java.util.function.Consumer;
 
 public class ElementMaidenRobeItem extends ArmorItem
         implements GeoItem, IPresetSpellContainer, UniqueItem, TranscendencePolicy, AttributeEnchantmentPolicy,
-        WisdomPolicy {
+        SpellCalibrationAdjustmentTarget, StoredSpellCalibrationImbueTarget, WisdomPolicy {
     private static final ResourceLocation ARMOR_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/element_maiden_robe.png");
     private static final String DESCRIPTION_KEY = "item." + ApprenticeCodex.MODID + ".element_maiden_robe.desc";
@@ -64,11 +69,13 @@ public class ElementMaidenRobeItem extends ArmorItem
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final Type armorType;
     private final Multimap<Attribute, AttributeModifier> armorAttributeModifiers;
+    private final CalibrationAdjustmentProfile calibrationAdjustmentProfile;
 
     public ElementMaidenRobeItem(Type type) {
         super(ElementMaidenRobeStats.MATERIAL, type, new Properties().rarity(Rarity.EPIC).fireResistant());
         this.armorType = type;
         this.armorAttributeModifiers = ElementMaidenRobeStats.createAttributeModifiers(type);
+        this.calibrationAdjustmentProfile = EndgameArmorCalibration.createProfile(type, false);
         GeoItem.registerSyncedAnimatable(this);
     }
 
@@ -174,6 +181,7 @@ public class ElementMaidenRobeItem extends ArmorItem
         );
         addSpellbookSchoolPowerModifiers(extraBuilder, stack);
         addChestMagicEnchantmentModifiers(extraBuilder, stack);
+        EndgameArmorCalibration.addAttributeModifiers(extraBuilder, stack, armorType, this);
 
         var mergedExtraModifiers = MagicArmorAttributeHelper.mergeTooltipEquivalentModifiers(
                 extraBuilder.build(),
@@ -197,9 +205,51 @@ public class ElementMaidenRobeItem extends ArmorItem
     }
 
     @Override
+    public @NotNull java.util.Optional<net.minecraft.world.inventory.tooltip.TooltipComponent> getTooltipImage(
+            @NotNull ItemStack stack
+    ) {
+        return createCalibrationAdjustmentTooltip(stack);
+    }
+
+    @Override
+    public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack targetStack) {
+        return EndgameArmorCalibration.SLOT_COUNT;
+    }
+
+    @Override
+    public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack targetStack) {
+        return calibrationAdjustmentProfile;
+    }
+
+    @Override
+    public boolean usesStoredCalibrationScrolls(@NotNull ItemStack targetStack) {
+        return EndgameArmorCalibration.usesStoredCalibrationScrolls(targetStack);
+    }
+
+    @Override
+    public boolean hasAnyStoredCalibrationScroll(@NotNull ItemStack targetStack) {
+        return EndgameArmorCalibration.hasAnyStoredScroll(targetStack);
+    }
+
+    @Override
+    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
+            @NotNull ItemStack targetStack,
+            int slot,
+            @NotNull SpellData spellData
+    ) {
+        return EndgameArmorCalibration.evaluateStoredScroll(targetStack, slot, spellData);
+    }
+
+    @Override
+    public boolean canWalkOnPowderedSnow(@NotNull ItemStack stack, @NotNull LivingEntity wearer) {
+        return EndgameArmorCalibration.canWalkOnPowderedSnow(stack, wearer);
+    }
+
+    @Override
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, level, lines, flag);
         lines.add(Component.translatable(DESCRIPTION_KEY).withStyle(ChatFormatting.GRAY));
+        EndgameArmorCalibration.appendStoredScrollTooltip(stack, lines);
     }
 
     @Override

@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.network.EquipmentChangedPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import top.theillusivec4.curios.api.event.CurioChangeEvent;
@@ -17,7 +18,7 @@ public final class ArchivistsGrimoireSpellSelectionEvents {
     private ArchivistsGrimoireSpellSelectionEvents() {
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onSpellSelection(SpellSelectionManager.SpellSelectionEvent event) {
         var spellbookStack = Utils.getPlayerSpellbookStack(event.getEntity());
         if (spellbookStack == null || !(spellbookStack.getItem() instanceof ArchivistsGrimoire)) {
