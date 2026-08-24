@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDe
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightCooldownReductionEvent;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightManaCostDiscountEvent;
 import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightSpellSupport;
+import jp.aquafactory.apprenticecodex.gametest.malum.MalumSpellweavingGameTestHelper;
 import jp.aquafactory.apprenticecodex.spell.heavenlyfist.HeavenlyFistFistEntity;
 import jp.aquafactory.apprenticecodex.spell.longstride.LongStrideFluidMovement;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjack;
@@ -56,6 +57,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.fml.ModList;
 
 import java.util.List;
 import java.util.UUID;
@@ -763,6 +765,232 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
                     "Touch Dig should destroy the targeted block inside the extended range");
         });
     }
+
+    static void craftsmansDelightTouchDigActivatesPrimedSpellweavingPickaxeForDirt(GameTestHelper helper) {
+        if (succeedWhenMalumIsMissing(helper)) {
+            return;
+        }
+        helper.runAtTickTime(1, () -> {
+            var context = prepareTouchDigSpellweavingTest(
+                    helper,
+                    "touch_dig_spellweaving_dirt_test",
+                    Blocks.DIRT.defaultBlockState(),
+                    "spellweaving_pickaxe",
+                    true,
+                    true
+            );
+            castTouchDig(helper, context, 1, true);
+            var activatorCount = MalumSpellweavingGameTestHelper.countActivators(
+                    helper.getLevel(), new AABB(context.targetPos()).inflate(4.0D));
+            helper.assertTrue(activatorCount == 1,
+                    "CraftsmansDelight Touch Dig should create one Spellweaving activator for adjacent dirt: "
+                            + activatorCount);
+
+            helper.getLevel().getEntitiesOfClass(
+                    ItemEntity.class,
+                    AABB.ofSize(Vec3.atCenterOf(context.targetPos()), 3.0D, 3.0D, 3.0D)
+            ).forEach(ItemEntity::discard);
+
+            helper.succeedWhen(() -> {
+                helper.assertTrue(helper.getLevel().getBlockState(context.neighborPos()).isAir(),
+                        "Spellweaving should destroy dirt adjacent to the successful Touch Dig target");
+                var inventoryDrops = context.player().getInventory().countItem(Items.DIRT);
+                var worldDrops = helper.getLevel().getEntitiesOfClass(
+                                ItemEntity.class,
+                                new AABB(context.targetPos()).inflate(6.0D),
+                                itemEntity -> itemEntity.getItem().is(Items.DIRT)
+                        ).stream()
+                        .mapToInt(itemEntity -> itemEntity.getItem().getCount())
+                        .sum();
+                helper.assertTrue(inventoryDrops + worldDrops > 0,
+                        "Spellweaving should preserve a dirt drop when the held pickaxe is not the normal matching tool");
+            });
+        });
+    }
+
+    static void touchDigSpellweavingRequiresCraftsmansDelight(GameTestHelper helper) {
+        if (succeedWhenMalumIsMissing(helper)) {
+            return;
+        }
+        helper.runAtTickTime(1, () -> {
+            var context = prepareTouchDigSpellweavingTest(
+                    helper,
+                    "touch_dig_spellweaving_ring_test",
+                    Blocks.DIRT.defaultBlockState(),
+                    "spellweaving_pickaxe",
+                    true,
+                    false
+            );
+            castTouchDig(helper, context, 1, true);
+            assertNoSpellweavingActivator(helper, context,
+                    "Touch Dig should not bypass Spellweaving tool matching without CraftsmansDelight");
+            helper.succeed();
+        });
+    }
+
+    static void touchDigSpellweavingRequiresPrimedPickaxe(GameTestHelper helper) {
+        if (succeedWhenMalumIsMissing(helper)) {
+            return;
+        }
+        helper.runAtTickTime(1, () -> {
+            var context = prepareTouchDigSpellweavingTest(
+                    helper,
+                    "touch_dig_spellweaving_primed_test",
+                    Blocks.DIRT.defaultBlockState(),
+                    "spellweaving_pickaxe",
+                    false,
+                    true
+            );
+            castTouchDig(helper, context, 1, true);
+            assertNoSpellweavingActivator(helper, context,
+                    "Touch Dig should not activate an unprimed Spellweaving Pickaxe");
+            helper.succeed();
+        });
+    }
+
+    static void touchDigSpellweavingExcludesAxe(GameTestHelper helper) {
+        if (succeedWhenMalumIsMissing(helper)) {
+            return;
+        }
+        helper.runAtTickTime(1, () -> {
+            var context = prepareTouchDigSpellweavingTest(
+                    helper,
+                    "touch_dig_spellweaving_axe_test",
+                    Blocks.DIRT.defaultBlockState(),
+                    "spellweaving_axe",
+                    true,
+                    true
+            );
+            castTouchDig(helper, context, 1, true);
+            assertNoSpellweavingActivator(helper, context,
+                    "Touch Dig should not extend the tool mismatch bypass to Spellweaving Axe");
+            helper.succeed();
+        });
+    }
+
+    static void touchDigSpellweavingDoesNotDuplicateNativeMatch(GameTestHelper helper) {
+        if (succeedWhenMalumIsMissing(helper)) {
+            return;
+        }
+        helper.runAtTickTime(1, () -> {
+            var context = prepareTouchDigSpellweavingTest(
+                    helper,
+                    "touch_dig_spellweaving_native_match_test",
+                    Blocks.STONE.defaultBlockState(),
+                    "spellweaving_pickaxe",
+                    true,
+                    true
+            );
+            castTouchDig(helper, context, 1, true);
+            var activatorCount = MalumSpellweavingGameTestHelper.countActivators(
+                    helper.getLevel(), new AABB(context.targetPos()).inflate(4.0D));
+            helper.assertTrue(activatorCount == 1,
+                    "Touch Dig should keep the single native Spellweaving activation for pickaxe-mineable stone: "
+                            + activatorCount);
+            helper.succeed();
+        });
+    }
+
+    static void touchDigSpellweavingKeepsTouchDigHarvestLimit(GameTestHelper helper) {
+        if (succeedWhenMalumIsMissing(helper)) {
+            return;
+        }
+        helper.runAtTickTime(1, () -> {
+            var context = prepareTouchDigSpellweavingTest(
+                    helper,
+                    "touch_dig_spellweaving_harvest_limit_test",
+                    Blocks.OBSIDIAN.defaultBlockState(),
+                    "spellweaving_pickaxe",
+                    true,
+                    true
+            );
+            castTouchDig(helper, context, 1, false);
+            helper.assertTrue(helper.getLevel().getBlockState(context.targetPos()).is(Blocks.OBSIDIAN),
+                    "Touch Dig level 1 should keep its iron harvest limit for obsidian");
+            assertNoSpellweavingActivator(helper, context,
+                    "Failed Touch Dig harvest should not activate Spellweaving");
+            helper.succeed();
+        });
+    }
+
+    private static TouchDigSpellweavingTestContext prepareTouchDigSpellweavingTest(
+            GameTestHelper helper,
+            String profileName,
+            BlockState state,
+            String toolId,
+            boolean primed,
+            boolean equipCraftsmansDelight
+    ) {
+        var playerPos = new BlockPos(0, 12, 0);
+        prepareMiningSpellIsolationArea(helper, playerPos);
+        // Malum の採掘 Entity は owner UUID を Level から引き直すため、完走検証では追跡済み FakePlayer が必要。
+        var player = createTrackedEquipmentTestPlayer(helper, playerPos, profileName);
+        player.setYRot(0.0F);
+        player.setXRot(-90.0F);
+        player.setYHeadRot(0.0F);
+        player.setYBodyRot(0.0F);
+        if (equipCraftsmansDelight) {
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+        }
+        MalumSpellweavingGameTestHelper.equipTool(player, toolId, primed);
+
+        var targetPos = helper.absolutePos(new BlockPos(0, 15, 0));
+        var neighborPos = targetPos.east();
+        helper.getLevel().setBlock(targetPos, state, 3);
+        helper.getLevel().setBlock(neighborPos, state, 3);
+        return new TouchDigSpellweavingTestContext(
+                player,
+                new TouchDigSpell(),
+                MagicData.getPlayerMagicData(player),
+                targetPos,
+                neighborPos
+        );
+    }
+
+    private static void castTouchDig(
+            GameTestHelper helper,
+            TouchDigSpellweavingTestContext context,
+            int spellLevel,
+            boolean expectedPreCastResult
+    ) {
+        helper.assertTrue(context.magicData() != null,
+                "Touch Dig Spellweaving test could not resolve player magic data");
+        helper.assertTrue(context.spell().checkPreCastConditions(
+                        helper.getLevel(), spellLevel, context.player(), context.magicData()) == expectedPreCastResult,
+                "Touch Dig Spellweaving pre-cast result did not match the test setup");
+        context.spell().onCast(
+                helper.getLevel(), spellLevel, context.player(), CastSource.SPELLBOOK, context.magicData());
+    }
+
+    private static void assertNoSpellweavingActivator(
+            GameTestHelper helper,
+            TouchDigSpellweavingTestContext context,
+            String message
+    ) {
+        helper.assertTrue(MalumSpellweavingGameTestHelper.countActivators(
+                        helper.getLevel(), new AABB(context.targetPos()).inflate(4.0D)) == 0,
+                message);
+        helper.assertFalse(helper.getLevel().getBlockState(context.neighborPos()).isAir(),
+                "Negative Spellweaving setup should leave its adjacent block unchanged");
+    }
+
+    private static boolean succeedWhenMalumIsMissing(GameTestHelper helper) {
+        if (ModList.get().isLoaded(MALUM_MOD_ID)) {
+            return false;
+        }
+        helper.succeed();
+        return true;
+    }
+
+    private record TouchDigSpellweavingTestContext(
+            FakePlayer player,
+            TouchDigSpell spell,
+            MagicData magicData,
+            BlockPos targetPos,
+            BlockPos neighborPos
+    ) {
+    }
+
     static void touchDigIgnoresCraftsmansDelightRingEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);

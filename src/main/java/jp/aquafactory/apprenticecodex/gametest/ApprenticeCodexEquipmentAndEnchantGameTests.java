@@ -1944,6 +1944,37 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightExtendsTouchDigRange(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH, timeoutTicks = 300)
+    public static void craftsmansDelightTouchDigActivatesPrimedSpellweavingPickaxeForDirt(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios
+                .craftsmansDelightTouchDigActivatesPrimedSpellweavingPickaxeForDirt(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void touchDigSpellweavingRequiresCraftsmansDelight(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.touchDigSpellweavingRequiresCraftsmansDelight(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void touchDigSpellweavingRequiresPrimedPickaxe(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.touchDigSpellweavingRequiresPrimedPickaxe(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void touchDigSpellweavingExcludesAxe(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.touchDigSpellweavingExcludesAxe(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void touchDigSpellweavingDoesNotDuplicateNativeMatch(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.touchDigSpellweavingDoesNotDuplicateNativeMatch(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void touchDigSpellweavingKeepsTouchDigHarvestLimit(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.touchDigSpellweavingKeepsTouchDigHarvestLimit(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
     public static void touchDigIgnoresCraftsmansDelightRingEnchantments(GameTestHelper helper) {
         EquipmentSpellBehaviorBridgeGameTestScenarios.touchDigIgnoresCraftsmansDelightRingEnchantments(helper);

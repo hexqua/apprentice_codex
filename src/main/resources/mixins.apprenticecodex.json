@@ -47,6 +47,8 @@
     "MagicDataMixin",
     "MagicManagerMixin",
     "MalumReplenishingOffhandMixin",
+    "MalumSpellweavingPickaxeMixin",
+    "MalumTouchDigSpellweavingMixin",
     "MerchantMenuMixin",
     "PotionFluidTypeMixin",
     "PlayerRemoteOwnerCastMixin",

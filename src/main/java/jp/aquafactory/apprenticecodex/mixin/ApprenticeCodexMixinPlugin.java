@@ -23,8 +23,7 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
     private static final String EPIC_FIGHT_MIXIN_PREFIX = "jp.aquafactory.apprenticecodex.mixin.EpicFight";
     private static final String BETTER_COMBAT_MIXIN_PREFIX = "jp.aquafactory.apprenticecodex.mixin.BetterCombat";
     private static final String EFIS_COMPAT_MIXIN_PREFIX = "jp.aquafactory.apprenticecodex.mixin.EfisCompat";
-    private static final String MALUM_REPLENISHING_OFFHAND_MIXIN =
-            "jp.aquafactory.apprenticecodex.mixin.MalumReplenishingOffhandMixin";
+    private static final String MALUM_MIXIN_PREFIX = "jp.aquafactory.apprenticecodex.mixin.Malum";
     private static final String IRONS_JEWELRY_PROJECTILE_HIT_MIXIN =
             "jp.aquafactory.apprenticecodex.mixin.IronsJewelryProjectileHitMixin";
 
@@ -65,7 +64,7 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
             var loadingModList = FMLLoader.getLoadingModList();
             return loadingModList != null && loadingModList.getModFileById(EFIS_COMPAT_MOD_ID) != null;
         }
-        if (MALUM_REPLENISHING_OFFHAND_MIXIN.equals(mixinClassName)) {
+        if (mixinClassName.startsWith(MALUM_MIXIN_PREFIX)) {
             var loadingModList = FMLLoader.getLoadingModList();
             return loadingModList != null && loadingModList.getModFileById(MALUM_MOD_ID) != null;
         }
