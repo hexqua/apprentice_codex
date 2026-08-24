@@ -26,6 +26,7 @@ import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +41,9 @@ public final class EndgameArmorCalibration {
     public static final double MAX_MANA_PER_RUNE = 25.0D;
     public static final double SPELL_RESIST_PER_RUNE = 0.05D;
     public static final double KNOCKBACK_RESIST_PER_PLATE = 0.10D;
+    public static final double BLAST_REACTIVE_KNOCKBACK_RESIST = 0.15D;
+    public static final double BLAST_REACTIVE_GRAVITY = 0.10D;
+    public static final double WIND_ACCUMULATION_GRAVITY_REDUCTION = 0.10D;
     public static final double SOUL_WARD_CAPACITY = 3.0D;
     public static final double SOUL_WARD_RECOVERY_RATE = 0.15D;
     public static final double MAGIC_PROFICIENCY = 0.15D;
@@ -101,12 +105,15 @@ public final class EndgameArmorCalibration {
         rules.add(uniqueItemRule(
                 "endgame_armor_blast_reactive_plate",
                 ItemRegistry.BLAST_REACTIVE_PLATE,
-                CalibrationAdjustmentEffects.inactiveIn1201()
+                CalibrationAdjustmentEffects.addKnockbackResistanceAndGravity(
+                        BLAST_REACTIVE_KNOCKBACK_RESIST,
+                        BLAST_REACTIVE_GRAVITY
+                )
         ));
         rules.add(uniqueItemRule(
                 "endgame_armor_wind_accumulation_weave",
                 ItemRegistry.WIND_ACCUMULATION_WEAVE,
-                CalibrationAdjustmentEffects.inactiveIn1201()
+                CalibrationAdjustmentEffects.reduceGravity(WIND_ACCUMULATION_GRAVITY_REDUCTION)
         ));
 
         if (armorType != ArmorItem.Type.CHESTPLATE) {
@@ -177,6 +184,14 @@ public final class EndgameArmorCalibration {
             } else if (adjustment.is(ItemRegistry.SHOCK_ABSORPTION_PLATE.get())) {
                 add(builder, Attributes.KNOCKBACK_RESISTANCE, KNOCKBACK_RESIST_PER_PLATE,
                         AttributeModifier.Operation.ADDITION, modifierPrefix + "_knockback_resist");
+            } else if (adjustment.is(ItemRegistry.BLAST_REACTIVE_PLATE.get())) {
+                add(builder, Attributes.KNOCKBACK_RESISTANCE, BLAST_REACTIVE_KNOCKBACK_RESIST,
+                        AttributeModifier.Operation.ADDITION, modifierPrefix + "_knockback_resist");
+                add(builder, ForgeMod.ENTITY_GRAVITY.get(), BLAST_REACTIVE_GRAVITY,
+                        AttributeModifier.Operation.MULTIPLY_BASE, modifierPrefix + "_gravity");
+            } else if (adjustment.is(ItemRegistry.WIND_ACCUMULATION_WEAVE.get())) {
+                add(builder, ForgeMod.ENTITY_GRAVITY.get(), -WIND_ACCUMULATION_GRAVITY_REDUCTION,
+                        AttributeModifier.Operation.MULTIPLY_BASE, modifierPrefix + "_gravity");
             } else if (adjustment.is(ItemRegistry.SOUL_COVERED_PLATE.get())) {
                 addOptional(builder, SOUL_WARD_CAPACITY_ATTRIBUTE, SOUL_WARD_CAPACITY,
                         AttributeModifier.Operation.ADDITION, modifierPrefix + "_soul_ward_capacity");

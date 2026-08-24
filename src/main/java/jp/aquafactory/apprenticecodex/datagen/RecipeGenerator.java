@@ -227,15 +227,16 @@ public final class RecipeGenerator extends RecipeProvider {
                 .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.BLAST_REACTIVE_PLATE.get())
-                .pattern(" G ")
-                .pattern("GPG")
-                .pattern(" G ")
+                .pattern("OIO")
+                .pattern("IPI")
+                .pattern("OIO")
                 .define('P', ItemRegistry.SHOCK_ABSORPTION_PLATE.get())
-                .define('G', Items.GUNPOWDER)
+                .define('I', Items.IRON_BLOCK)
+                .define('O', Items.OBSIDIAN)
                 .unlockedBy(getHasName(ItemRegistry.SHOCK_ABSORPTION_PLATE.get()), has(ItemRegistry.SHOCK_ABSORPTION_PLATE.get()))
                 .save(recipeWriter);
 
-        // 1.20.1申し送り: ウィンドチャージは1.20.1にないのでピストンに置き換える.
+        // ウィンドチャージは1.20.1にないのでピストンに置き換えている.
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.WIND_ACCUMULATION_WEAVE.get())
                 .pattern("CWC")
                 .pattern("WMW")

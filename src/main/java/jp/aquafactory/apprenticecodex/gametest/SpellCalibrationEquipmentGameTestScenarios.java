@@ -53,6 +53,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ArmorItem;
@@ -61,6 +62,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -1407,35 +1409,80 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
 
     static void endgameArmorCalibrationAppliesSharedRulesAndAttributes(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var boots = new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get());
-            helper.assertTrue(boots.getItem() instanceof SpellCalibrationAdjustmentTarget target
-                            && target.getCalibrationAdjustmentSlotCount(boots) == EndgameArmorCalibration.SLOT_COUNT,
+            var shockBoots = new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get());
+            helper.assertTrue(shockBoots.getItem() instanceof SpellCalibrationAdjustmentTarget target
+                            && target.getCalibrationAdjustmentSlotCount(shockBoots) == EndgameArmorCalibration.SLOT_COUNT,
                     "Endgame armor should expose three calibration adjustment slots");
 
             helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
-                            boots, 0, new ItemStack(ItemRegistry.BLAST_REACTIVE_PLATE.get())),
-                    "Blast-Reactive Plate should be accepted");
-            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
-                            boots, 1, new ItemStack(ItemRegistry.WIND_ACCUMULATION_WEAVE.get())),
-                    "Wind Accumulation Weave should be accepted");
-            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
-                            boots, 2, new ItemStack(ItemRegistry.SHOCK_ABSORPTION_PLATE.get())),
+                            shockBoots, 0, new ItemStack(ItemRegistry.SHOCK_ABSORPTION_PLATE.get())),
                     "Shock Absorption Plate should be accepted");
+            assertAttributeModifierTotal(helper, shockBoots, Attributes.KNOCKBACK_RESISTANCE,
+                    AttributeModifier.Operation.ADDITION, EndgameArmorCalibration.KNOCKBACK_RESIST_PER_PLATE,
+                    "Shock Absorption Plate should add knockback resistance");
+            assertAttributeModifierTotal(helper, shockBoots, ForgeMod.ENTITY_GRAVITY.get(),
+                    AttributeModifier.Operation.MULTIPLY_BASE, 0.0D,
+                    "Shock Absorption Plate should not change gravity");
 
-            var modifiers = ((ArmorItem) boots.getItem()).getAttributeModifiers(EquipmentSlot.FEET, boots);
-            var knockbackResistance = modifiers.get(Attributes.KNOCKBACK_RESISTANCE).stream()
-                    .filter(modifier -> modifier.getOperation() == AttributeModifier.Operation.ADDITION)
-                    .mapToDouble(AttributeModifier::getAmount)
-                    .sum();
-            helper.assertTrue(Math.abs(knockbackResistance - EndgameArmorCalibration.KNOCKBACK_RESIST_PER_PLATE)
-                            < 1.0e-9D,
-                    "Only Shock Absorption Plate should add knockback resistance in 1.20.1");
-            helper.assertTrue(((SpellCalibrationAdjustmentTarget) boots.getItem())
-                            .getCalibrationAdjustment(boots, 0).is(ItemRegistry.BLAST_REACTIVE_PLATE.get())
-                            && ((SpellCalibrationAdjustmentTarget) boots.getItem())
-                            .getCalibrationAdjustment(boots, 1).is(ItemRegistry.WIND_ACCUMULATION_WEAVE.get()),
-                    "Explosion-related adjustments should persist without applying an effect");
+            var blastBoots = new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get());
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            blastBoots, 0, new ItemStack(ItemRegistry.BLAST_REACTIVE_PLATE.get())),
+                    "Blast-Reactive Plate should be accepted");
+            assertAttributeModifierTotal(helper, blastBoots, Attributes.KNOCKBACK_RESISTANCE,
+                    AttributeModifier.Operation.ADDITION, EndgameArmorCalibration.BLAST_REACTIVE_KNOCKBACK_RESIST,
+                    "Blast-Reactive Plate should add knockback resistance");
+            assertAttributeModifierTotal(helper, blastBoots, ForgeMod.ENTITY_GRAVITY.get(),
+                    AttributeModifier.Operation.MULTIPLY_BASE, EndgameArmorCalibration.BLAST_REACTIVE_GRAVITY,
+                    "Blast-Reactive Plate should increase gravity");
+
+            var windBoots = new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get());
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            windBoots, 0, new ItemStack(ItemRegistry.WIND_ACCUMULATION_WEAVE.get())),
+                    "Wind Accumulation Weave should be accepted");
+            assertAttributeModifierTotal(helper, windBoots, Attributes.KNOCKBACK_RESISTANCE,
+                    AttributeModifier.Operation.ADDITION, 0.0D,
+                    "Wind Accumulation Weave should not add knockback resistance");
+            assertAttributeModifierTotal(helper, windBoots, ForgeMod.ENTITY_GRAVITY.get(),
+                    AttributeModifier.Operation.MULTIPLY_BASE,
+                    -EndgameArmorCalibration.WIND_ACCUMULATION_GRAVITY_REDUCTION,
+                    "Wind Accumulation Weave should reduce gravity");
+
+            var combinedBoots = new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get());
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            combinedBoots, 0, new ItemStack(ItemRegistry.BLAST_REACTIVE_PLATE.get()))
+                            && SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            combinedBoots, 1, new ItemStack(ItemRegistry.WIND_ACCUMULATION_WEAVE.get())),
+                    "Blast-Reactive Plate and Wind Accumulation Weave should be accepted together");
+            assertAttributeModifierTotal(helper, combinedBoots, Attributes.KNOCKBACK_RESISTANCE,
+                    AttributeModifier.Operation.ADDITION, EndgameArmorCalibration.BLAST_REACTIVE_KNOCKBACK_RESIST,
+                    "Combined adjustments should retain Blast-Reactive Plate knockback resistance");
+            assertAttributeModifierTotal(helper, combinedBoots, ForgeMod.ENTITY_GRAVITY.get(),
+                    AttributeModifier.Operation.MULTIPLY_BASE, 0.0D,
+                    "Opposing gravity adjustments should cancel each other");
+            helper.assertTrue(((SpellCalibrationAdjustmentTarget) combinedBoots.getItem())
+                            .getCalibrationAdjustment(combinedBoots, 0).is(ItemRegistry.BLAST_REACTIVE_PLATE.get())
+                            && ((SpellCalibrationAdjustmentTarget) combinedBoots.getItem())
+                            .getCalibrationAdjustment(combinedBoots, 1).is(ItemRegistry.WIND_ACCUMULATION_WEAVE.get()),
+                    "Gravity adjustments should persist in their calibration slots");
         });
+    }
+
+    private static void assertAttributeModifierTotal(
+            GameTestHelper helper,
+            ItemStack armorStack,
+            Attribute attribute,
+            AttributeModifier.Operation operation,
+            double expected,
+            String message
+    ) {
+        var modifiers = ((ArmorItem) armorStack.getItem())
+                .getAttributeModifiers(EquipmentSlot.FEET, armorStack);
+        var actual = modifiers.get(attribute).stream()
+                .filter(modifier -> modifier.getOperation() == operation)
+                .mapToDouble(AttributeModifier::getAmount)
+                .sum();
+        helper.assertTrue(Math.abs(actual - expected) < 1.0e-9D,
+                message + ": got " + actual + " / expected " + expected);
     }
 
     static void endgameArmorScrollwovenSlotsPersistAndFollowSelectionOrder(GameTestHelper helper) {

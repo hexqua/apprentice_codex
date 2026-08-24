@@ -32,8 +32,19 @@ public final class CalibrationAdjustmentEffects {
         return line("add_knockback_resist", percentage(amount));
     }
 
-    public static List<Component> inactiveIn1201() {
-        return line("inactive_in_1_20_1");
+    public static List<Component> addKnockbackResistanceAndGravity(
+            double knockbackResistance,
+            double gravity
+    ) {
+        return List.of(
+                Component.translatable(KEY_PREFIX + "add_knockback_resist_and_gravity_1",
+                        percentage(knockbackResistance)),
+                Component.translatable(KEY_PREFIX + "add_knockback_resist_and_gravity_2", percentage(gravity))
+        );
+    }
+
+    public static List<Component> reduceGravity(double amount) {
+        return line("reduce_gravity", percentage(amount));
     }
 
     public static List<Component> gainPowderSnowWalk() {
