@@ -16,7 +16,7 @@ public final class SpellcasterAccessoryCaseScreen extends AbstractContainerScree
     private static final ResourceLocation CONTAINER_TEXTURE =
             ResourceLocation.withDefaultNamespace("textures/gui/container/generic_54.png");
     private static final ResourceLocation CURIOS_TEXTURE =
-            ResourceLocation.fromNamespaceAndPath("curios", "textures/gui/curios/inventory.png");
+            ResourceLocation.fromNamespaceAndPath("curios", "textures/gui/inventory.png");
     private static final ResourceLocation CURIOS_PANEL_SPRITE =
             ResourceLocation.fromNamespaceAndPath(
                     "apprenticecodex",
@@ -67,6 +67,17 @@ public final class SpellcasterAccessoryCaseScreen extends AbstractContainerScree
         gui.blit(CONTAINER_TEXTURE, mainLeft, topPos + 71, 0, 126, BASE_IMAGE_WIDTH, 96);
         renderCuriosPanel(gui);
         renderCuriosSlots(gui);
+    }
+
+    @Override
+    protected void renderTooltip(@NotNull GuiGraphics gui, int mouseX, int mouseY) {
+        if (hoveredSlot instanceof CurioSlot curioSlot
+                && !curioSlot.hasItem()
+                && menu.getCarried().isEmpty()) {
+            gui.renderTooltip(font, Component.literal(curioSlot.getSlotName()), mouseX, mouseY);
+            return;
+        }
+        super.renderTooltip(gui, mouseX, mouseY);
     }
 
     @Override
