@@ -43,6 +43,7 @@ public final class EndgameArmorCalibration {
     public static final double KNOCKBACK_RESIST_PER_PLATE = 0.10D;
     public static final double EXPLOSION_KNOCKBACK_RESIST_PER_PLATE = 0.25D;
     public static final double WIND_EXPLOSION_KNOCKBACK_RESIST = -0.20D;
+    public static final double ANTI_GRAVITY_REDUCTION = 0.10D;
     public static final double SOUL_WARD_CAPACITY = 3.0D;
     public static final double SOUL_WARD_RECOVERY_RATE = 0.15D;
     public static final double MAGIC_PROFICIENCY = 0.15D;
@@ -110,6 +111,11 @@ public final class EndgameArmorCalibration {
                 "endgame_armor_wind_accumulation_weave",
                 ItemRegistry.WIND_ACCUMULATION_WEAVE,
                 CalibrationAdjustmentEffects.reduceExplosionKnockbackResistance(-WIND_EXPLOSION_KNOCKBACK_RESIST)
+        ));
+        rules.add(uniqueItemRule(
+                "endgame_armor_anti_gravity_weave",
+                ItemRegistry.ANTI_GRAVITY_WEAVE,
+                CalibrationAdjustmentEffects.reduceGravity(ANTI_GRAVITY_REDUCTION)
         ));
 
         if (armorType != ArmorItem.Type.CHESTPLATE) {
@@ -187,6 +193,9 @@ public final class EndgameArmorCalibration {
             } else if (adjustment.is(ItemRegistry.WIND_ACCUMULATION_WEAVE.get())) {
                 add(builder, Attributes.EXPLOSION_KNOCKBACK_RESISTANCE, WIND_EXPLOSION_KNOCKBACK_RESIST,
                         AttributeModifier.Operation.ADD_VALUE, slotGroup, modifierPrefix + "_wind_accumulation");
+            } else if (adjustment.is(ItemRegistry.ANTI_GRAVITY_WEAVE.get())) {
+                add(builder, Attributes.GRAVITY, -ANTI_GRAVITY_REDUCTION,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE, slotGroup, modifierPrefix + "_anti_gravity");
             } else if (adjustment.is(ItemRegistry.SOUL_COVERED_PLATE.get())) {
                 addOptional(builder, SOUL_WARD_CAPACITY_ATTRIBUTE, SOUL_WARD_CAPACITY,
                         AttributeModifier.Operation.ADD_VALUE, slotGroup, modifierPrefix + "_soul_ward_capacity");

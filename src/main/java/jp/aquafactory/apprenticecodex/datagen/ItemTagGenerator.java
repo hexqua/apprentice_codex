@@ -382,6 +382,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SHOCK_ABSORPTION_PLATE.get(),
                 ItemRegistry.BLAST_REACTIVE_PLATE.get(),
                 ItemRegistry.WIND_ACCUMULATION_WEAVE.get(),
+                ItemRegistry.ANTI_GRAVITY_WEAVE.get(),
                 ItemRegistry.SCROLLWOVEN_PARCHMENT.get(),
                 ItemRegistry.SOUL_COVERED_PLATE.get(),
                 ItemRegistry.SOUL_AUGMENTED_WEAVE.get()

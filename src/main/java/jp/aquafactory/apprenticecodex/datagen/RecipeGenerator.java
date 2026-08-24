@@ -254,6 +254,17 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(Items.WIND_CHARGE), has(Items.WIND_CHARGE))
                 .save(recipeOutput);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.ANTI_GRAVITY_WEAVE.get())
+                .pattern("DCD")
+                .pattern("CWC")
+                .pattern("DCD")
+                .define('W', ItemRegistry.WIND_ACCUMULATION_WEAVE.get())
+                .define('C', Items.CHORUS_FRUIT)
+                .define('D', io.redspace.ironsspellbooks.registries.ItemRegistry.DRAGONSKIN.get())
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.DRAGONSKIN.get()),
+                        has(io.redspace.ironsspellbooks.registries.ItemRegistry.DRAGONSKIN.get()))
+                .save(recipeOutput);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SCROLLWOVEN_PARCHMENT.get())
                 .pattern("DUD")
                 .pattern("LUL")
