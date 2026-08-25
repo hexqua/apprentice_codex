@@ -1121,6 +1121,7 @@
   "ui.apprenticecodex.chargecast.reject_spell": "%1$sは詠唱を足す余地がなく、強化詠唱できない！",
   "ui.apprenticecodex.chargecast.spell_denylisted": "%1$sは世界の理から拒絶されている...",
   "ui.apprenticecodex.elemental_bow.mode_switched": "射撃モードを%sに設定",
+  "ui.apprenticecodex.elemental_bow.insufficient_arrow": "詠唱の触媒に使う矢が無い！",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "オーバーヒートで消費マナが%sに増加している！",
   "ui.apprenticecodex.elemental_bow.overheat_insufficient_mana": "オーバーヒートで消費マナが%sに増加していて今のマナでは足りない！",
   "ui.apprenticecodex.focus_staffbow.deny_offhand": "利き手でないと使えない！",

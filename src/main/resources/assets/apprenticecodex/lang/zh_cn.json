@@ -1125,6 +1125,7 @@
   "ui.apprenticecodex.mana_transcription.finished_work_count_creative": "已清除铁砧使用惩罚！",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "已切换发射模式为 %s",
+  "ui.apprenticecodex.elemental_bow.insufficient_arrow": "没有可用作施法媒介的箭矢！",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "过热导致法力值消耗提升至 %s！",
   "ui.apprenticecodex.elemental_bow.overheat_insufficient_mana": "过热导致法力值消耗提升至 %s，你的法力值不足！",
   "ui.apprenticecodex.swingcast.cannot_swing_cast": "%s无法挥击施法！",

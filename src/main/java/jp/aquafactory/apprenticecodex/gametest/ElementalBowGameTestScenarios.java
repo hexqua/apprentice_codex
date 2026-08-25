@@ -29,6 +29,7 @@ import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.level.BlockEvent;
@@ -532,6 +533,23 @@ final class ElementalBowGameTestScenarios {
         });
     }
 
+    static void elementalBowInsufficientArrowErrorUsesDedicatedTranslationKey(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var message = ElementalBow.createInsufficientArrowMessage();
+            assertTranslatableKey(
+                    helper,
+                    message,
+                    "ui.apprenticecodex.elemental_bow.insufficient_arrow",
+                    "Elemental Bow insufficient arrow error should use its dedicated translation key"
+            );
+            helper.assertTrue(
+                    message.getStyle().getColor() != null
+                            && "red".equals(message.getStyle().getColor().serialize()),
+                    "Elemental Bow insufficient arrow error should be red"
+            );
+        });
+    }
+
     static void elementalBowDoesNotConsumeResourcesBeforeFullDraw(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_partial_release_test");
@@ -555,6 +573,39 @@ final class ElementalBowGameTestScenarios {
                     "Elemental Bow should not consume arrows before full draw");
             helper.assertTrue(Math.abs(magicData.getMana() - initialMana) < 1.0e-4F,
                     "Elemental Bow should not consume mana before full draw: " + magicData.getMana());
+        });
+    }
+
+    static void elementalBowDoesNotCastWhenArrowDisappearsDuringDraw(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_lost_during_draw_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW));
+
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Elemental Bow lost-arrow test could not resolve player mana data");
+            magicData.setMana(250.0F);
+            var initialMana = magicData.getMana();
+
+            var useResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(useResult.getResult().consumesAction(),
+                    "Elemental Bow lost-arrow test should start drawing while ammo is available: " + useResult.getResult());
+            player.getInventory().setItem(1, ItemStack.EMPTY);
+
+            stack.getItem().releaseUsing(
+                    stack,
+                    helper.getLevel(),
+                    player,
+                    stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS
+            );
+            player.stopUsingItem();
+
+            helper.assertTrue(stack.getDamageValue() == 0,
+                    "Elemental Bow should not lose durability when its catalyst arrow disappears during draw");
+            helper.assertTrue(Math.abs(magicData.getMana() - initialMana) < 1.0e-4F,
+                    "Elemental Bow should not consume mana when its catalyst arrow disappears during draw");
         });
     }
 
@@ -728,6 +779,22 @@ final class ElementalBowGameTestScenarios {
                     "Elemental Bow Synthesis magic shot should still damage the bow after a successful cast");
             helper.assertTrue(magicData.getMana() < initialMana,
                     "Elemental Bow Synthesis magic shot should still consume spell mana");
+        });
+    }
+
+    static void elementalBowCreativeAllowsMagicModeWithoutArrows(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_magic_creative_empty_test");
+            player.setGameMode(GameType.CREATIVE);
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Elemental Bow magic mode should start without arrows in Creative: " + result.getResult());
+            helper.assertTrue(player.isUsingItem(),
+                    "Elemental Bow magic mode should enter use state without arrows in Creative");
         });
     }
 
