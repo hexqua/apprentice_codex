@@ -7,15 +7,18 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 final class MagneticStabilityAnchorGameTestScenarios {
@@ -112,6 +115,42 @@ final class MagneticStabilityAnchorGameTestScenarios {
             helper.assertTrue(state.getDestroyProgress(player, level, absolutePos) > bareHandProgress,
                     "A pickaxe should break Magnetic Stability Anchor faster than a bare hand");
             assertPlainDrop(helper, state, level.getBlockEntity(absolutePos), player, pickaxe);
+        });
+    }
+
+    static void blockItemPlacementPreservesWaterSource(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var supportPos = ANCHOR_POS.below();
+            var absoluteSupportPos = helper.absolutePos(supportPos);
+            var absoluteAnchorPos = helper.absolutePos(ANCHOR_POS);
+            helper.setBlock(supportPos, Blocks.STONE);
+            helper.setBlock(ANCHOR_POS, Blocks.WATER);
+
+            var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                    helper, new BlockPos(1, 2, 1), "magnetic_anchor_water_placement_test");
+            var anchorStack = new ItemStack(ItemRegistry.MAGNETIC_STABILITY_ANCHOR.get());
+            player.setItemInHand(InteractionHand.MAIN_HAND, anchorStack);
+            var hitResult = new BlockHitResult(
+                    Vec3.atCenterOf(absoluteSupportPos).add(0.0D, 0.5D, 0.0D),
+                    Direction.UP,
+                    absoluteSupportPos,
+                    false
+            );
+
+            var result = anchorStack.getItem().useOn(
+                    new UseOnContext(player, InteractionHand.MAIN_HAND, hitResult)
+            );
+            helper.assertTrue(result.consumesAction(),
+                    "Magnetic Stability Anchor block item should be placeable into source water");
+
+            var state = level.getBlockState(absoluteAnchorPos);
+            helper.assertTrue(state.is(BlockRegistry.MAGNETIC_STABILITY_ANCHOR.get()),
+                    "Block item placement should place Magnetic Stability Anchor");
+            helper.assertTrue(state.getValue(MagneticStabilityAnchorBlock.WATERLOGGED),
+                    "Block item placement should waterlog Magnetic Stability Anchor");
+            helper.assertTrue(state.getFluidState().isSource(),
+                    "Block item placement should preserve source water");
         });
     }
 

@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.block.magneticstabilityanchor;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -50,6 +51,12 @@ public class MagneticStabilityAnchorBlock extends Block implements EntityBlock, 
     public @NotNull VoxelShape getCollisionShape(@NotNull BlockState state, @NotNull BlockGetter level,
                                                  @NotNull BlockPos pos, @NotNull CollisionContext context) {
         return SHAPE;
+    }
+
+    @Override
+    public @NotNull BlockState getStateForPlacement(@NotNull BlockPlaceContext context) {
+        var fluidState = context.getLevel().getFluidState(context.getClickedPos());
+        return defaultBlockState().setValue(WATERLOGGED, fluidState.getType() == Fluids.WATER);
     }
 
     @Override
