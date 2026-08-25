@@ -328,6 +328,16 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = AUTO_MAGNET_ISOLATED_BATCH)
+    public static void magneticStabilityAnchorProtectsItemsAcrossChunkBoundary(GameTestHelper helper) {
+        MagneticStabilityAnchorGameTestScenarios.protectsItemsAcrossChunkBoundary(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = AUTO_MAGNET_ISOLATED_BATCH)
+    public static void magneticStabilityAnchorUnregistersOnlyRemovedAnchorWithinChunk(GameTestHelper helper) {
+        MagneticStabilityAnchorGameTestScenarios.unregistersOnlyRemovedAnchorWithinChunk(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = AUTO_MAGNET_ISOLATED_BATCH)
     public static void magneticStabilityAnchorSupportsWaterloggingAndAlwaysDropsPlainItem(GameTestHelper helper) {
         MagneticStabilityAnchorGameTestScenarios.supportsWaterloggingAndAlwaysDropsPlainItem(helper);
     }
