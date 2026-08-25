@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkItem;
 import jp.aquafactory.apprenticecodex.item.blockitem.AlchemyBrewerItem;
 import jp.aquafactory.apprenticecodex.item.blockitem.ApprenticeDeskItem;
 import jp.aquafactory.apprenticecodex.item.blockitem.AtelierStationItem;
+import jp.aquafactory.apprenticecodex.item.blockitem.MagneticStabilityAnchorItem;
 import jp.aquafactory.apprenticecodex.item.boundweapon.BoundBowItem;
 import jp.aquafactory.apprenticecodex.item.boundweapon.BoundSwordItem;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff;
@@ -327,6 +328,9 @@ public final class ItemRegistry {
                     () -> new SpellDispenserItem(BlockRegistry.CREATIVE_SPELL_DISPENSER.get(), new Item.Properties(), true));
 
     public static final DeferredHolder<Item, Item> ARCANUM_IN_A_JAR = block("arcanum_in_a_jar", BlockRegistry.ARCANUM_IN_A_JAR);
+    public static final DeferredHolder<Item, Item> MAGNETIC_STABILITY_ANCHOR =
+            ITEMS.register("magnetic_stability_anchor", () -> new MagneticStabilityAnchorItem(
+                    BlockRegistry.MAGNETIC_STABILITY_ANCHOR.get(), new Item.Properties()));
     public static final DeferredHolder<Item, Item> ESSENCE_SMOKER = block("essence_smoker", BlockRegistry.ESSENCE_SMOKER);
     public static final DeferredHolder<Item, Item> ATELIER_STATION =
             ITEMS.register("atelier_station",

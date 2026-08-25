@@ -61,6 +61,7 @@ public final class CreativeTabRegistry {
     private static void addBlockToTab(CreativeModeTab.Output output) {
         output.accept(ItemRegistry.APPRENTICE_DESK.get());
         output.accept(ItemRegistry.ARCANUM_IN_A_JAR.get());
+        output.accept(ItemRegistry.MAGNETIC_STABILITY_ANCHOR.get());
         output.accept(ItemRegistry.ESSENCE_SMOKER.get());
 
         output.accept(ItemRegistry.SPELL_CALIBRATION_BENCH.get());

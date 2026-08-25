@@ -88,6 +88,16 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()))
                 .save(recipeOutput, ItemRegistry.ARCANUM_IN_A_JAR.getId());
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, ItemRegistry.MAGNETIC_STABILITY_ANCHOR.get(), 4)
+                .pattern("RAR")
+                .pattern("ACA")
+                .pattern("RAR")
+                .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get())
+                .define('R', Items.REDSTONE)
+                .define('C', Items.COPPER_INGOT)
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get()))
+                .save(recipeOutput);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.DECORATIONS, ItemRegistry.ESSENCE_SMOKER.get())
                 .pattern("A A")
                 .pattern("FEF")

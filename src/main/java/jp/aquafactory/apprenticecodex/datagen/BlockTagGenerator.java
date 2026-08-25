@@ -26,6 +26,7 @@ public final class BlockTagGenerator extends BlockTagsProvider {
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(BlockRegistry.ARCANUM_IN_A_JAR.get());
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(BlockRegistry.ESSENCE_SMOKER.get());
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(BlockRegistry.WIZARDLAMP_LANTERN.get());
+        tag(BlockTags.MINEABLE_WITH_PICKAXE).add(BlockRegistry.MAGNETIC_STABILITY_ANCHOR.get());
         tag(BlockTags.MINEABLE_WITH_AXE).add(BlockRegistry.APPRENTICE_DESK.get());
         tag(BlockTags.MINEABLE_WITH_AXE).add(BlockRegistry.SPELLCASTER_WORKBENCH.get());
         tag(BlockTags.MINEABLE_WITH_AXE).add(BlockRegistry.SPELL_CALIBRATION_BENCH.get());

@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.spell.automagnet;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.compat.botania.BotaniaSolegnoliaCompatBridge;
+import jp.aquafactory.apprenticecodex.block.magneticstabilityanchor.MagneticStabilityAnchorProtection;
 import jp.aquafactory.apprenticecodex.entity.PersistentSummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.mixin.ItemEntityAccessor;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
@@ -183,6 +184,13 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
     }
 
     @Override
+    public boolean isAlwaysTicking() {
+        // 所有者の長距離 teleport で元チャンクが非表示になっても、管理対象から外れて再召喚されないようにする。
+        // 常にプレイヤーの周囲を動くタイプのため、これが負荷要因になることは無い(増殖する方が負荷になりうる)
+        return true;
+    }
+
+    @Override
     public boolean shouldBeSaved() {
         // 実体は capability から再構築するため、ワールド保存に残して次回ログイン時の重複源にしない。
         return false;
@@ -295,6 +303,9 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
             return false;
         }
         if (item.position().distanceToSqr(ownerPos) > rangeSq) {
+            return false;
+        }
+        if (MagneticStabilityAnchorProtection.preventsItemCollection(item)) {
             return false;
         }
         if (BotaniaSolegnoliaCompatBridge.preventsAutoMagnetItemCollection(owner, item)) {
