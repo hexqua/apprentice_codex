@@ -184,6 +184,13 @@ public class AutoMagnetFamiliarEntity extends PersistentSummonWeaponEntity imple
     }
 
     @Override
+    public boolean isAlwaysTicking() {
+        // 所有者の長距離 teleport で元チャンクが非表示になっても、管理対象から外れて再召喚されないようにする。
+        // 常にプレイヤーの周囲を動くタイプのため、これが負荷要因になることは無い(増殖する方が負荷になりうる)
+        return true;
+    }
+
+    @Override
     public boolean shouldBeSaved() {
         // 実体は capability から再構築するため、ワールド保存に残して次回ログイン時の重複源にしない。
         return false;

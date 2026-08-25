@@ -8141,6 +8141,18 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void autoMagnetFamiliarUsesTransientAlwaysTickingLifecycle(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "auto_magnet_lifecycle_test");
+        var familiar = new AutoMagnetFamiliarEntity(EntityRegistry.AUTO_MAGNET_FAMILIAR.get(), level, owner, 4.0, 0.0);
+
+        helper.assertTrue(familiar.isAlwaysTicking(),
+                "AutoMagnet familiar should remain ticking across chunk visibility changes");
+        helper.assertFalse(familiar.shouldBeSaved(),
+                "AutoMagnet familiar should be reconstructed from player spell state");
+        helper.succeed();
+    }
+
     static void autoMagnetNormalModeCollectsWhileStanding(GameTestHelper helper) {
         assertAutoMagnetCollectionMode(helper, AutoMagnetCollectionMode.NORMAL, false, true,
                 "auto_magnet_normal_standing_test");

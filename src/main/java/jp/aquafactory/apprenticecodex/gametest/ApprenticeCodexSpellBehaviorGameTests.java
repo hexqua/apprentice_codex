@@ -583,6 +583,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = AUTO_MAGNET_ISOLATED_BATCH)
+    public static void autoMagnetFamiliarUsesTransientAlwaysTickingLifecycle(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.autoMagnetFamiliarUsesTransientAlwaysTickingLifecycle(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = AUTO_MAGNET_ISOLATED_BATCH)
     public static void magneticStabilityAnchorProtectsItemsByPositionWithoutBlockingOwner(GameTestHelper helper) {
         MagneticStabilityAnchorGameTestScenarios.protectsItemsByPositionWithoutBlockingOwner(helper);
     }
