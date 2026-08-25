@@ -333,6 +333,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = AUTO_MAGNET_ISOLATED_BATCH)
+    public static void magneticStabilityAnchorBlockItemPlacementPreservesWaterSource(GameTestHelper helper) {
+        MagneticStabilityAnchorGameTestScenarios.blockItemPlacementPreservesWaterSource(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = AUTO_MAGNET_ISOLATED_BATCH)
     public static void autoMagnetNormalModeCollectsWhileStanding(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.autoMagnetNormalModeCollectsWhileStanding(helper);
     }
