@@ -90,10 +90,10 @@ final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenari
         });
     }
 
-    static void manaThrusterSuppressesManaRecoveryUntilLanding(GameTestHelper helper) {
+    static void manaThrusterKeepsNaturalManaRecoveryAfterThrust(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createManaThrusterTestPlayer(helper, "mana_thruster_regen_test");
-            var magicData = magicData(helper, player, "regen suppression");
+            var magicData = magicData(helper, player, "regen preservation");
             magicData.setMana(50.0F);
             player.setOnGround(false);
             player.addEffect(new MobEffectInstance(EffectRegistry.MANA_REGENERATION, 200, 1));
@@ -106,21 +106,8 @@ final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenari
                 ManaThrusterFlightManager.tickEquippedPlayer(player);
             }
 
-            helper.assertTrue(ManaThrusterFlightManager.isManaRecoverySuppressed(player),
-                    "Mana Thruster should suppress natural mana recovery after the first successful thrust");
-            helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.MANA_REGEN)) < 1.0e-4D,
-                    "Mana Thruster should reduce final natural mana regen to zero even with regen boosts: "
-                            + player.getAttributeValue(AttributeRegistry.MANA_REGEN));
-            magicData.setMana(magicData.getMana() + 10.0F);
-            helper.assertTrue(Math.abs(magicData.getMana() - 55.0F) < 1.0e-4F,
-                    "Mana Thruster should allow non-natural mana recovery before landing: " + magicData.getMana());
-
-            player.setOnGround(true);
-            ManaThrusterFlightManager.tickEquippedPlayer(player);
-            helper.assertFalse(ManaThrusterFlightManager.isManaRecoverySuppressed(player),
-                    "Mana Thruster should clear mana recovery suppression on landing");
             helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.MANA_REGEN) - boostedManaRegen) < 1.0e-4D,
-                    "Mana Thruster should restore boosted natural mana regen after landing: "
+                    "Mana Thruster should preserve boosted natural mana regen after thrusting: "
                             + player.getAttributeValue(AttributeRegistry.MANA_REGEN));
         });
     }
@@ -155,32 +142,7 @@ final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenari
         });
     }
 
-    static void manaThrusterCreativeFlyingClearsManaRecoverySuppression(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createManaThrusterTestPlayer(helper, "mana_thruster_flying_clears_regen_test");
-            var magicData = magicData(helper, player, "flying recovery clear");
-            magicData.setMana(50.0F);
-            player.setOnGround(false);
-
-            try (var ignored = ApprenticeCodexServerConfig.useManaThrusterConfigOverrideForGameTest(5.0D)) {
-                ManaThrusterFlightManager.setJumpInput(player, true);
-                ManaThrusterFlightManager.tickEquippedPlayer(player);
-                helper.assertTrue(ManaThrusterFlightManager.isManaRecoverySuppressed(player),
-                        "Mana Thruster should suppress mana recovery before creative flight starts");
-
-                player.getAbilities().flying = true;
-                player.setDeltaMovement(Vec3.ZERO);
-                ManaThrusterFlightManager.tickEquippedPlayer(player);
-            }
-
-            helper.assertFalse(ManaThrusterFlightManager.isManaRecoverySuppressed(player),
-                    "Mana Thruster should clear mana recovery suppression when creative flight starts");
-            helper.assertTrue(player.getDeltaMovement().lengthSqr() < 1.0e-8D,
-                    "Mana Thruster should not keep accelerating during creative flight: " + player.getDeltaMovement());
-        });
-    }
-
-    static void manaThrusterSwimmingAcceleratesForwardWithoutSuppressingRecovery(GameTestHelper helper) {
+    static void manaThrusterSwimmingAcceleratesForward(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createManaThrusterTestPlayer(helper, "mana_thruster_swim_accel_test");
             var magicData = magicData(helper, player, "swimming acceleration");
@@ -202,36 +164,10 @@ final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenari
             helper.assertTrue(Math.abs(player.getDeltaMovement().y) < 1.0e-4D,
                     "Mana Thruster should not apply vertical jetpack thrust while swimming: "
                             + player.getDeltaMovement());
-            helper.assertFalse(ManaThrusterFlightManager.isManaRecoverySuppressed(player),
-                    "Mana Thruster should not suppress mana recovery while swimming");
         });
     }
 
-    static void manaThrusterWaterToAirResumesManaRecoverySuppression(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var player = createManaThrusterTestPlayer(helper, "mana_thruster_water_to_air_regen_test");
-            var magicData = magicData(helper, player, "water to air recovery");
-            magicData.setMana(50.0F);
-            player.setOnGround(false);
-            player.setSwimming(true);
-
-            try (var ignored = ApprenticeCodexServerConfig.useManaThrusterConfigOverrideForGameTest(5.0D)) {
-                ManaThrusterFlightManager.setJumpInput(player, true);
-                ManaThrusterFlightManager.tickEquippedPlayer(player);
-                helper.assertFalse(ManaThrusterFlightManager.isManaRecoverySuppressed(player),
-                        "Mana Thruster should keep mana recovery available while underwater/swimming");
-
-                player.setSwimming(false);
-                player.setDeltaMovement(Vec3.ZERO);
-                ManaThrusterFlightManager.tickEquippedPlayer(player);
-            }
-
-            helper.assertTrue(ManaThrusterFlightManager.isManaRecoverySuppressed(player),
-                    "Mana Thruster should resume mana recovery suppression after leaving water into air");
-        });
-    }
-
-    static void manaThrusterElytraFlightAcceleratesForwardAndSuppressesRecovery(GameTestHelper helper) {
+    static void manaThrusterElytraFlightAcceleratesForward(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createManaThrusterTestPlayer(helper, "mana_thruster_elytra_accel_test");
             var magicData = magicData(helper, player, "elytra acceleration");
@@ -253,8 +189,6 @@ final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenari
             helper.assertTrue(Math.abs(player.getDeltaMovement().y) < 1.0e-4D,
                     "Mana Thruster should not apply vertical jetpack thrust while fall flying: "
                             + player.getDeltaMovement());
-            helper.assertTrue(ManaThrusterFlightManager.isManaRecoverySuppressed(player),
-                    "Mana Thruster should suppress mana recovery during elytra-style air acceleration");
         });
     }
 
@@ -273,7 +207,7 @@ final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenari
         });
     }
 
-    static void manaThrusterLavaAllowsUpwardEscapeWithoutSuppressingRecovery(GameTestHelper helper) {
+    static void manaThrusterLavaAllowsUpwardEscape(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createManaThrusterTestPlayer(helper, "mana_thruster_lava_escape_test");
             var magicData = magicData(helper, player, "lava escape");
@@ -291,8 +225,6 @@ final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenari
                     "Mana Thruster should apply upward thrust for escaping lava: " + player.getDeltaMovement());
             helper.assertTrue(Math.abs(magicData.getMana() - 45.0F) < 1.0e-4F,
                     "Mana Thruster should spend mana while thrusting in lava: " + magicData.getMana());
-            helper.assertFalse(ManaThrusterFlightManager.isManaRecoverySuppressed(player),
-                    "Mana Thruster should not suppress mana recovery while the player is touching lava");
         });
     }
 
@@ -319,8 +251,6 @@ final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenari
         helper.assertTrue(Math.abs(magicData.getMana() - 50.0F) < 1.0e-4F,
                 "Mana Thruster should not spend mana in disabled ability context " + profileName + ": "
                         + magicData.getMana());
-        helper.assertFalse(ManaThrusterFlightManager.isManaRecoverySuppressed(player),
-                "Mana Thruster should not suppress recovery in disabled ability context " + profileName);
     }
 
     private static void assertDisabledPlayerContextDoesNotThrust(
@@ -346,8 +276,6 @@ final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenari
         helper.assertTrue(Math.abs(magicData.getMana() - 50.0F) < 1.0e-4F,
                 "Mana Thruster should not spend mana in disabled movement context " + profileName + ": "
                         + magicData.getMana());
-        helper.assertFalse(ManaThrusterFlightManager.isManaRecoverySuppressed(player),
-                "Mana Thruster should not suppress recovery in disabled movement context " + profileName);
     }
 
     private static net.neoforged.neoforge.common.util.FakePlayer createManaThrusterTestPlayer(
