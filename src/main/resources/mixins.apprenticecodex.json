@@ -9,6 +9,7 @@
   "refmap": "mixins.apprenticecodex.refmap.json",
   "plugin": "jp.aquafactory.apprenticecodex.mixin.ApprenticeCodexMixinPlugin",
   "mixins": [
+    "AbstractSpellManaBypassMixin",
     "AbstractSpellMixin",
     "AbstractConeProjectileRemoteOwnerMixin",
     "AbstractFurnaceBlockEntityMixin",
