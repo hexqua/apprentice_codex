@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationScreen;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerParticlePaletteCache;
+import jp.aquafactory.apprenticecodex.block.magneticstabilityanchor.MagneticStabilityAnchorBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchScreen;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchScreen;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserScreen;
@@ -812,6 +813,7 @@ public final class ClientModBusEvents {
         event.registerBlockEntityRenderer(BlockEntityRegistry.FROST_RUNE_TRAP.get(), FrostRuneTrapBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.MAGE_LIGHT_TORCH.get(), MageLightTorchBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.WIZARDLAMP_LANTERN.get(), WizardlampLanternBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(BlockEntityRegistry.MAGNETIC_STABILITY_ANCHOR.get(), MagneticStabilityAnchorBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.PERSONAL_SHELF_CHEST.get(), PersonalShelfChestBlockRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.RIFT_HOLE.get(), RiftHoleBlockEntityRenderer::new);
 
@@ -881,4 +883,3 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.HOVERRIDE_BROOM.get(), HoverrideBroomRenderer::new);
     }
 }
-

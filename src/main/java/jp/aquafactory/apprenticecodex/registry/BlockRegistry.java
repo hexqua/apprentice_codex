@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStation;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJar;
 import jp.aquafactory.apprenticecodex.block.comfortberrybush.ComfortBerryBushBlock;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmoker;
+import jp.aquafactory.apprenticecodex.block.magneticstabilityanchor.MagneticStabilityAnchorBlock;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBench;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbench;
@@ -38,6 +39,8 @@ public final class BlockRegistry {
 
     public static final DeferredHolder<Block, Block> WIZARDLAMP_LANTERN =
             BLOCKS.register("wizardlamp_lantern", WizardlampLanternBlock::new);
+    public static final DeferredHolder<Block, Block> MAGNETIC_STABILITY_ANCHOR =
+            BLOCKS.register("magnetic_stability_anchor", MagneticStabilityAnchorBlock::new);
 
     public static final DeferredHolder<Block, Block> FROST_RUNE_TRAP =
             BLOCKS.register("frost_rune_trap", () -> new FrostRuneTrapBlock());
@@ -106,4 +109,3 @@ public final class BlockRegistry {
         ));
     }
 }
-

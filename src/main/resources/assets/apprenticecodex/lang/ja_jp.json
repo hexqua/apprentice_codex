@@ -33,6 +33,7 @@
   "block.apprenticecodex.otherworld_lens_lens" : "異界の水晶",
   "block.apprenticecodex.wizardlamp_lantern": "魔術師のランタン",
   "block.apprenticecodex.spellcaster_accessory_case": "詠唱者の装身具入れ",
+  "block.apprenticecodex.magnetic_stability_anchor": "磁場安定アンカー",
 
   "item.apprenticecodex.partially_used_ink": "使いかけのインク",
   "item.apprenticecodex.partially_used_ink.named": "使いかけの%1$s",
@@ -249,6 +250,7 @@
   "item.apprenticecodex.spell_dispenser.creative_tooltip": "クリエイティブバージョン",
   "item.apprenticecodex.spellcaster_accessory_case.desc_1": "スニークしながら使うと設置が可能。",
   "item.apprenticecodex.spellcaster_accessory_case.desc_2": "インベントリ画面で右クリックすることで直接開く事ができる。",
+  "item.apprenticecodex.magnetic_stability_anchor.desc": "%1$dx%2$dx%3$dの範囲内にあるアイテムをオートマグネット対象外にする。",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "この杖は現在ロードストーンを指し示している。",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "この杖は現在次元に合わせた振る舞いをしている。",
   "item.apprenticecodex.storage_stabilizer.desc": "スニークをすることで魔法の切り替えが可能",

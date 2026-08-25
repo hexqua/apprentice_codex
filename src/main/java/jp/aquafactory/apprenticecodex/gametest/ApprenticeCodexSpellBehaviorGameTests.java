@@ -313,6 +313,21 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = AUTO_MAGNET_ISOLATED_BATCH)
+    public static void magneticStabilityAnchorProtectsItemsByPositionWithoutBlockingOwner(GameTestHelper helper) {
+        MagneticStabilityAnchorGameTestScenarios.protectsItemsByPositionWithoutBlockingOwner(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = AUTO_MAGNET_ISOLATED_BATCH)
+    public static void magneticStabilityAnchorRemovalRestoresCollectionAndExperienceRemainsUnaffected(GameTestHelper helper) {
+        MagneticStabilityAnchorGameTestScenarios.removalRestoresItemCollectionAndExperienceRemainsUnaffected(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = AUTO_MAGNET_ISOLATED_BATCH)
+    public static void magneticStabilityAnchorSupportsWaterloggingAndAlwaysDropsPlainItem(GameTestHelper helper) {
+        MagneticStabilityAnchorGameTestScenarios.supportsWaterloggingAndAlwaysDropsPlainItem(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = AUTO_MAGNET_ISOLATED_BATCH)
     public static void autoMagnetNormalModeCollectsWhileStanding(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.autoMagnetNormalModeCollectsWhileStanding(helper);
     }

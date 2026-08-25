@@ -33,6 +33,7 @@
   "block.apprenticecodex.otherworld_lens_lens" : "Otherworld Lens",
   "block.apprenticecodex.wizardlamp_lantern": "Wizard's Lantern",
   "block.apprenticecodex.spellcaster_accessory_case": "Spellcaster's Accessory Case",
+  "block.apprenticecodex.magnetic_stability_anchor": "Magnetic Stability Anchor",
 
   "item.apprenticecodex.partially_used_ink": "Partially Used Ink",
   "item.apprenticecodex.partially_used_ink.named": "Partially Used %1$s",
@@ -1508,5 +1509,6 @@
   "item.apprenticecodex.endgame_armor.scroll_slot.empty": "Scroll Slot: Empty",
   "item.apprenticecodex.endgame_armor.scroll_slot.spell": "Scroll Slot: %s",
   "item.apprenticecodex.endgame_armor.scroll_slot.inactive": "Stored Scroll (inactive): %s",
-  "item.apprenticecodex.endgame_armor.scroll_slot.requires": "Requires %s"
+  "item.apprenticecodex.endgame_armor.scroll_slot.requires": "Requires %s",
+  "item.apprenticecodex.magnetic_stability_anchor.desc": "Prevents Auto Magnet from collecting items within a %1$dx%2$dx%3$d area."
 }
