@@ -18,7 +18,6 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -59,27 +58,6 @@ public abstract class AbstractSpellMixin {
     ) {
         var originalValue = caster.getAttributeValue(attribute);
         return SpellgunCastContext.resolveSpellPower((AbstractSpell) (Object) this, caster, originalValue);
-    }
-
-    @Redirect(
-            method = "canBeCastedBy",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lio/redspace/ironsspellbooks/api/magic/MagicData;getMana()F"
-            )
-    )
-    private float apprentice_codex$bypassSpellgunManaCheck(
-            MagicData magicData,
-            int spellLevel,
-            CastSource castSource,
-            MagicData playerMagicData,
-            Player player
-    ) {
-        var mana = magicData.getMana();
-        var spell = (AbstractSpell) (Object) this;
-        return SpellgunCastContext.shouldBypassManaCheck(spell, player)
-                ? Math.max(mana, spell.getManaCost(spellLevel))
-                : mana;
     }
 
     @Redirect(

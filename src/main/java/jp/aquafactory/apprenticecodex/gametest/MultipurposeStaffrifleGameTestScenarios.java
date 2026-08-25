@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeSt
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastEvent;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleRateLimiter;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunCastContext;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -174,8 +175,10 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
     static void multipurposeStaffrifleKeepsNormalManaCost(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+            var item = (MultipurposeStaffrifle) stack.getItem();
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_staffrifle_mana_policy_test");
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().add(new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 1));
 
             helper.assertFalse(stack.getItem() instanceof ManaBypassSpellItem,
                     "Multipurpose Staffrifle should not bypass mana consumption");
@@ -184,8 +187,20 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
             var manaCost = spell.getManaCost(1);
             var magicData = MagicData.getPlayerMagicData(player);
             magicData.setPlayerCastingItem(stack);
+            magicData.setMana(0.0F);
 
             try (var ignored = MultipurposeStaffrifleCastContext.open(player.getUUID(), stack, spell, false)) {
+                helper.assertFalse(SpellgunCastContext.shouldBypassManaCheck(spell, player),
+                        "Multipurpose Staffrifle context must not enable Spellgun mana bypass");
+                helper.assertFalse(spell.canBeCastedBy(1, CastSource.SWORD, magicData, player).isSuccess(),
+                        "Multipurpose Staffrifle should remain mana-gated when mana is insufficient");
+                helper.assertTrue(SpellGunCastEvent.countAvailableAmmo(
+                                player,
+                                player.getInventory(),
+                                item.getAmmoItem(stack)
+                        ) == 1,
+                        "Rejected Multipurpose Staffrifle cast should not consume ammunition");
+
                 var event = new SpellOnCastEvent(
                         player,
                         spell.getSpellId(),
@@ -197,6 +212,10 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
                 ItemManaBypassCastEvent.onSpellCast(event);
                 helper.assertTrue(event.getManaCost() == manaCost,
                         "Multipurpose Staffrifle should keep normal mana cost: " + event.getManaCost());
+
+                magicData.setMana(manaCost);
+                helper.assertTrue(spell.canBeCastedBy(1, CastSource.SWORD, magicData, player).isSuccess(),
+                        "Multipurpose Staffrifle should cast when normal mana requirements are met");
             } catch (Exception exception) {
                 throw new IllegalStateException("Failed to close Multipurpose Staffrifle mana policy test context.", exception);
             }

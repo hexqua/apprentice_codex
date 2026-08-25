@@ -1123,6 +1123,8 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                         "Configured Diamond Spellgun should initiate at zero maximum mana");
                 helper.assertTrue(MagicData.getPlayerMagicData(player).isCasting(),
                         "Maximum mana bypass should enter Iron's normal casting state");
+                helper.assertFalse(SpellgunCastContext.shouldBypassManaCheck(spell, player),
+                        "Maximum mana bypass context must close after cast initiation");
                 MagicData.getPlayerMagicData(player).resetCastingState();
             }
 
