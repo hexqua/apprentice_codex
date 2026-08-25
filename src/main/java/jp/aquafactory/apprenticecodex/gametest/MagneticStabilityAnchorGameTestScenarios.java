@@ -2,12 +2,14 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import jp.aquafactory.apprenticecodex.block.magneticstabilityanchor.MagneticStabilityAnchorBlock;
 import jp.aquafactory.apprenticecodex.block.magneticstabilityanchor.MagneticStabilityAnchorBlockEntity;
+import jp.aquafactory.apprenticecodex.block.magneticstabilityanchor.MagneticStabilityAnchorProtection;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.SectionPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ExperienceOrb;
@@ -18,6 +20,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -79,6 +82,64 @@ final class MagneticStabilityAnchorGameTestScenarios {
                     "Removing Magnetic Stability Anchor should immediately restore item collection");
             helper.succeed();
         });
+    }
+
+    static void protectsItemsAcrossChunkBoundary(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var referencePos = helper.absolutePos(ANCHOR_POS);
+        var nextChunkX = SectionPos.sectionToBlockCoord(SectionPos.blockToSectionCoord(referencePos.getX()) + 1);
+        var anchorPos = new BlockPos(nextChunkX, referencePos.getY() + 8, referencePos.getZ());
+        var itemPosition = new Vec3(anchorPos.getX() - 1.999D, anchorPos.getY() + 0.5D, anchorPos.getZ() + 0.5D);
+        var item = spawnNoGravityItem(level, itemPosition);
+
+        level.setBlockAndUpdate(anchorPos, BlockRegistry.MAGNETIC_STABILITY_ANCHOR.get().defaultBlockState());
+        try {
+            helper.assertTrue(new ChunkPos(item.blockPosition()).x != new ChunkPos(anchorPos).x,
+                    "Chunk boundary test must place the item and anchor in adjacent chunks");
+            helper.assertTrue(MagneticStabilityAnchorProtection.preventsItemCollection(item),
+                    "Magnetic Stability Anchor should protect items across a chunk boundary");
+        } finally {
+            item.discard();
+            level.setBlockAndUpdate(anchorPos, Blocks.AIR.defaultBlockState());
+        }
+        helper.succeed();
+    }
+
+    static void unregistersOnlyRemovedAnchorWithinChunk(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var referencePos = helper.absolutePos(ANCHOR_POS);
+        var chunkMinX = SectionPos.sectionToBlockCoord(SectionPos.blockToSectionCoord(referencePos.getX()));
+        var chunkMinZ = SectionPos.sectionToBlockCoord(SectionPos.blockToSectionCoord(referencePos.getZ()));
+        var anchorY = referencePos.getY() + 8;
+        var firstAnchorPos = new BlockPos(chunkMinX + 4, anchorY, chunkMinZ + 4);
+        var secondAnchorPos = new BlockPos(chunkMinX + 11, anchorY, chunkMinZ + 11);
+        var firstItem = spawnNoGravityItem(level, Vec3.atCenterOf(firstAnchorPos));
+        var secondItem = spawnNoGravityItem(level, Vec3.atCenterOf(secondAnchorPos));
+
+        level.setBlockAndUpdate(firstAnchorPos, BlockRegistry.MAGNETIC_STABILITY_ANCHOR.get().defaultBlockState());
+        level.setBlockAndUpdate(secondAnchorPos, BlockRegistry.MAGNETIC_STABILITY_ANCHOR.get().defaultBlockState());
+        try {
+            helper.assertTrue(MagneticStabilityAnchorProtection.preventsItemCollection(firstItem),
+                    "First Magnetic Stability Anchor should protect its nearby item");
+            helper.assertTrue(MagneticStabilityAnchorProtection.preventsItemCollection(secondItem),
+                    "Second Magnetic Stability Anchor should protect its nearby item");
+
+            level.setBlockAndUpdate(firstAnchorPos, Blocks.AIR.defaultBlockState());
+            helper.assertFalse(MagneticStabilityAnchorProtection.preventsItemCollection(firstItem),
+                    "Removing one anchor should stop protection at its position");
+            helper.assertTrue(MagneticStabilityAnchorProtection.preventsItemCollection(secondItem),
+                    "Removing one anchor should keep another anchor in the same chunk registered");
+
+            level.setBlockAndUpdate(secondAnchorPos, Blocks.AIR.defaultBlockState());
+            helper.assertFalse(MagneticStabilityAnchorProtection.preventsItemCollection(secondItem),
+                    "Removing the last anchor should remove its chunk registration");
+        } finally {
+            firstItem.discard();
+            secondItem.discard();
+            level.setBlockAndUpdate(firstAnchorPos, Blocks.AIR.defaultBlockState());
+            level.setBlockAndUpdate(secondAnchorPos, Blocks.AIR.defaultBlockState());
+        }
+        helper.succeed();
     }
 
     static void supportsWaterloggingAndAlwaysDropsPlainItem(GameTestHelper helper) {
