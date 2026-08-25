@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.curios.manathruster;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -11,13 +10,11 @@ import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.core.particles.DustParticleOptions;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -42,14 +39,6 @@ public final class ManaThrusterFlightManager {
     private static final double PARTICLE_HORIZONTAL_SPREAD = 0.22D;
     private static final double PARTICLE_VERTICAL_SPREAD = 0.04D;
     private static final double PARTICLE_SPEED = 0.01D;
-    private static final ResourceLocation MANA_REGEN_SUPPRESSION_MODIFIER_ID =
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "mana_thruster_natural_mana_regen_suppression");
-    private static final AttributeModifier MANA_REGEN_SUPPRESSION_MODIFIER = new AttributeModifier(
-            MANA_REGEN_SUPPRESSION_MODIFIER_ID,
-            -1.0D,
-            AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
-    );
-
     private static final Map<UUID, State> STATES = new HashMap<>();
 
     private ManaThrusterFlightManager() {
@@ -112,9 +101,6 @@ public final class ManaThrusterFlightManager {
         if (state == null) {
             return;
         }
-        if (ManaThrusterContext.isManaRecoveryFree(player)) {
-            setManaRecoverySuppressed(player, state, false);
-        }
         if (player.onGround() || ManaThrusterContext.isDisabled(player)) {
             clear(player);
             return;
@@ -136,7 +122,6 @@ public final class ManaThrusterFlightManager {
 
         ManaThrusterMovement.applyThrust(player, state.strafeInput, state.forwardInput);
         player.fallDistance = 0.0F;
-        setManaRecoverySuppressed(player, state, !ManaThrusterContext.isManaRecoveryFree(player));
 
         if (manaCost > 0.0F) {
             magicData.setMana(Math.max(0.0F, magicData.getMana() - manaCost));
@@ -146,13 +131,7 @@ public final class ManaThrusterFlightManager {
         playEffects(player, state);
     }
 
-    public static boolean isManaRecoverySuppressed(ServerPlayer player) {
-        var state = STATES.get(player.getUUID());
-        return state != null && state.regenSuppressedUntilLanding;
-    }
-
     public static void clear(ServerPlayer player) {
-        removeManaRegenSuppressionModifier(player);
         STATES.remove(player.getUUID());
     }
 
@@ -253,32 +232,6 @@ public final class ManaThrusterFlightManager {
         }
     }
 
-    private static void setManaRecoverySuppressed(ServerPlayer player, State state, boolean suppressed) {
-        state.regenSuppressedUntilLanding = suppressed;
-        if (suppressed) {
-            applyManaRegenSuppressionModifier(player);
-        } else {
-            removeManaRegenSuppressionModifier(player);
-        }
-    }
-
-    private static void applyManaRegenSuppressionModifier(ServerPlayer player) {
-        var manaRegenAttribute = player.getAttribute(AttributeRegistry.MANA_REGEN);
-        if (manaRegenAttribute == null) {
-            return;
-        }
-        if (manaRegenAttribute.getModifier(MANA_REGEN_SUPPRESSION_MODIFIER_ID) == null) {
-            manaRegenAttribute.addTransientModifier(MANA_REGEN_SUPPRESSION_MODIFIER);
-        }
-    }
-
-    private static void removeManaRegenSuppressionModifier(ServerPlayer player) {
-        var manaRegenAttribute = player.getAttribute(AttributeRegistry.MANA_REGEN);
-        if (manaRegenAttribute != null) {
-            manaRegenAttribute.removeModifier(MANA_REGEN_SUPPRESSION_MODIFIER_ID);
-        }
-    }
-
     private static boolean isPrimaryEquippedCurio(SlotContext slotContext) {
         return CuriosApi.getCuriosInventory(slotContext.entity())
                 .flatMap(inventory -> inventory.findFirstCurio(stack -> stack.getItem() instanceof ManaThruster))
@@ -307,7 +260,6 @@ public final class ManaThrusterFlightManager {
 
     private static final class State {
         private boolean jumpInputActive;
-        private boolean regenSuppressedUntilLanding;
         private float strafeInput;
         private float forwardInput;
         private long lastSoundGameTime = Long.MIN_VALUE;

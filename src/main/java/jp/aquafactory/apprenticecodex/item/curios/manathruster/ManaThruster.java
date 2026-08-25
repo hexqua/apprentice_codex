@@ -51,8 +51,7 @@ public class ManaThruster extends Item implements ICurioItem {
                             ImbueTooltipHelper.getJumpKeyName()
                     ))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            result.add(Component.literal(" ").append(Component.translatable(getDescriptionId() + ".desc_2")).withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
-            result.add(Component.literal(" ").append(Component.translatable(getDescriptionId() + ".desc_3")).withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED)));
+            result.add(Component.literal(" ").append(Component.translatable(getDescriptionId() + ".desc_2")).withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED)));
         }
 
         return result;
