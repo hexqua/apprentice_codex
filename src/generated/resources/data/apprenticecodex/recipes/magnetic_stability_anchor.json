@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_essence"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "pattern": [
+    "RAR",
+    "ACA",
+    "RAR"
+  ],
+  "result": {
+    "count": 4,
+    "item": "apprenticecodex:magnetic_stability_anchor"
+  },
+  "show_notification": true
+}

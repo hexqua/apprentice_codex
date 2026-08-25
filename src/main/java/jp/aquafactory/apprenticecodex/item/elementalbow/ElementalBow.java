@@ -377,6 +377,9 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         var ammoSource = resolveAmmoSource(player, stack, selection);
         var canFireWithoutAmmo = player.getAbilities().instabuild || hasSynthesis(stack);
         if (ammoSource == null && !canFireWithoutAmmo) {
+            if (!level.isClientSide) {
+                player.displayClientMessage(createInsufficientArrowMessage(), true);
+            }
             return InteractionResultHolder.fail(stack);
         }
 
@@ -527,6 +530,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         if (!player.getAbilities().instabuild) {
             if (ammoSource == null && !hasSynthesisEnchantment) {
+                player.displayClientMessage(createInsufficientArrowMessage(), true);
                 return;
             }
 
@@ -736,6 +740,11 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
     public static Component createInsufficientManaMessage(AbstractSpell spell, @Nullable Player caster) {
         return Component.translatable("ui.irons_spellbooks.cast_error_mana", spell.getDisplayName(caster))
+                .withStyle(ChatFormatting.RED);
+    }
+
+    public static Component createInsufficientArrowMessage() {
+        return Component.translatable("ui.apprenticecodex.elemental_bow.insufficient_arrow")
                 .withStyle(ChatFormatting.RED);
     }
 

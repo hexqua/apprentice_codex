@@ -27,6 +27,7 @@
   "block.apprenticecodex.otherworld_lens_lens" : "Otherworld Lens",
   "block.apprenticecodex.wizardlamp_lantern": "Wizard's Lantern",
   "block.apprenticecodex.spellcaster_accessory_case": "Spellcaster's Accessory Case",
+  "block.apprenticecodex.magnetic_stability_anchor": "Magnetic Stability Anchor",
 
   "item.apprenticecodex.partially_used_ink": "Partially Used Ink",
   "item.apprenticecodex.partially_used_ink.named": "Partially Used %1$s",
@@ -341,8 +342,7 @@
   "item.apprenticecodex.mana_shield_charm.desc_2": "Mana barrier does not benefit from armor.",
   "item.apprenticecodex.mana_shield_charm.desc_3": "Stops functioning until mana recovers to %d after depletion.",
   "item.apprenticecodex.mana_thruster.desc_1": "Hold [%s] while airborne to consume mana and accelerate upward.",
-  "item.apprenticecodex.mana_thruster.desc_2": "Once activated, mana regeneration stops until you land.",
-  "item.apprenticecodex.mana_thruster.desc_3": "This thruster itself does not grant fall damage immunity.",
+  "item.apprenticecodex.mana_thruster.desc_2": "This thruster itself does not grant fall damage immunity.",
   "item.apprenticecodex.jumpcast_charm.desc": "Press [%s] while airborne casts the imbued spell.",
   "item.apprenticecodex.spell_cast_parrying_ring.desc_1": "For a brief moment right after casting begins, you can parry attacks from the front.",
   "item.apprenticecodex.spell_cast_parrying_ring.desc_2": "Spells with no cast time or spells that require continuous casting are excluded.",
@@ -1107,6 +1107,7 @@
   "ui.apprenticecodex.mana_transcription.finished_work_count_creative": "Removed the item's prior anvil work!",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "Switched firing mode to %s",
+  "ui.apprenticecodex.elemental_bow.insufficient_arrow": "No arrow available as a casting catalyst!",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "Overheating has increased mana cost to %s!",
   "ui.apprenticecodex.elemental_bow.overheat_insufficient_mana": "Overheating has increased mana cost to %s, and you don't have enough mana!",
   "ui.apprenticecodex.swingcast.cannot_swing_cast": "%s cannot be swing-cast!",
@@ -1503,5 +1504,6 @@
   "item.apprenticecodex.endgame_armor.scroll_slot.empty": "Scroll Slot: Empty",
   "item.apprenticecodex.endgame_armor.scroll_slot.spell": "Scroll Slot: %s",
   "item.apprenticecodex.endgame_armor.scroll_slot.inactive": "Stored Scroll (inactive): %s",
-  "item.apprenticecodex.endgame_armor.scroll_slot.requires": "Requires %s"
+  "item.apprenticecodex.endgame_armor.scroll_slot.requires": "Requires %s",
+  "item.apprenticecodex.magnetic_stability_anchor.desc": "Prevents Auto Magnet from collecting items within a %1$dx%2$dx%3$d area."
 }

@@ -773,8 +773,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
-    public static void manaThrusterSuppressesManaRecoveryUntilLanding(GameTestHelper helper) {
-        ManaThrusterGameTestScenarios.manaThrusterSuppressesManaRecoveryUntilLanding(helper);
+    public static void manaThrusterKeepsNaturalManaRecoveryAfterThrust(GameTestHelper helper) {
+        ManaThrusterGameTestScenarios.manaThrusterKeepsNaturalManaRecoveryAfterThrust(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
@@ -788,23 +788,13 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
-    public static void manaThrusterCreativeFlyingClearsManaRecoverySuppression(GameTestHelper helper) {
-        ManaThrusterGameTestScenarios.manaThrusterCreativeFlyingClearsManaRecoverySuppression(helper);
+    public static void manaThrusterSwimmingAcceleratesForward(GameTestHelper helper) {
+        ManaThrusterGameTestScenarios.manaThrusterSwimmingAcceleratesForward(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
-    public static void manaThrusterSwimmingAcceleratesForwardWithoutSuppressingRecovery(GameTestHelper helper) {
-        ManaThrusterGameTestScenarios.manaThrusterSwimmingAcceleratesForwardWithoutSuppressingRecovery(helper);
-    }
-
-    @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
-    public static void manaThrusterWaterToAirResumesManaRecoverySuppression(GameTestHelper helper) {
-        ManaThrusterGameTestScenarios.manaThrusterWaterToAirResumesManaRecoverySuppression(helper);
-    }
-
-    @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
-    public static void manaThrusterElytraFlightAcceleratesForwardAndSuppressesRecovery(GameTestHelper helper) {
-        ManaThrusterGameTestScenarios.manaThrusterElytraFlightAcceleratesForwardAndSuppressesRecovery(helper);
+    public static void manaThrusterElytraFlightAcceleratesForward(GameTestHelper helper) {
+        ManaThrusterGameTestScenarios.manaThrusterElytraFlightAcceleratesForward(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
@@ -813,8 +803,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
-    public static void manaThrusterLavaAllowsUpwardEscapeWithoutSuppressingRecovery(GameTestHelper helper) {
-        ManaThrusterGameTestScenarios.manaThrusterLavaAllowsUpwardEscapeWithoutSuppressingRecovery(helper);
+    public static void manaThrusterLavaAllowsUpwardEscape(GameTestHelper helper) {
+        ManaThrusterGameTestScenarios.manaThrusterLavaAllowsUpwardEscape(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1917,8 +1907,18 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void elementalBowInsufficientArrowErrorUsesDedicatedTranslationKey(GameTestHelper helper) {
+        ElementalBowGameTestScenarios.elementalBowInsufficientArrowErrorUsesDedicatedTranslationKey(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowDoesNotConsumeResourcesBeforeFullDraw(GameTestHelper helper) {
         ElementalBowGameTestScenarios.elementalBowDoesNotConsumeResourcesBeforeFullDraw(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowDoesNotCastWhenArrowDisappearsDuringDraw(GameTestHelper helper) {
+        ElementalBowGameTestScenarios.elementalBowDoesNotCastWhenArrowDisappearsDuringDraw(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -1959,6 +1959,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void elementalBowSynthesisAllowsMagicModeWithoutArrows(GameTestHelper helper) {
         ElementalBowGameTestScenarios.elementalBowSynthesisAllowsMagicModeWithoutArrows(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowCreativeAllowsMagicModeWithoutArrows(GameTestHelper helper) {
+        ElementalBowGameTestScenarios.elementalBowCreativeAllowsMagicModeWithoutArrows(helper);
     }
 
     @GameTest(template = TEMPLATE)

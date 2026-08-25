@@ -26,6 +26,7 @@
   "block.apprenticecodex.spell_calibration_bench": "法术校准台",
   "block.apprenticecodex.otherworld_lens_lens": "异界水晶",
   "block.apprenticecodex.wizardlamp_lantern": "魔法师灯笼",
+  "block.apprenticecodex.magnetic_stability_anchor": "磁场稳定锚",
   "block.apprenticecodex.spellcaster_accessory_case": "施法者饰品盒",
 
   "item.apprenticecodex.partially_used_ink": "用过的墨水",
@@ -354,8 +355,7 @@
   "item.apprenticecodex.mana_shield_charm.desc_2": "法力屏障无法获得护甲加成。",
   "item.apprenticecodex.mana_shield_charm.desc_3": "法力值耗尽后需恢复至%d点才能再次生效。",
   "item.apprenticecodex.mana_thruster.desc_1": "在空中按住[%s]时，消耗法力值加速上升。",
-  "item.apprenticecodex.mana_thruster.desc_2": "一旦启动，法力值恢复会停止，直到落地。",
-  "item.apprenticecodex.mana_thruster.desc_3": "该推进器本身不会提供摔落伤害免疫。",
+  "item.apprenticecodex.mana_thruster.desc_2": "该推进器本身不会提供摔落伤害免疫。",
   "item.apprenticecodex.magi_compressor_gadget.desc_1": "消耗法力值，储存少量压缩空气。",
   "item.apprenticecodex.magi_compressor_gadget.desc_2": "也可为需要压缩空气的装备供气。",
   "item.apprenticecodex.jumpcast_charm.desc": "在空中按下[%s]时，释放注入的法术。",
@@ -1125,6 +1125,7 @@
   "ui.apprenticecodex.mana_transcription.finished_work_count_creative": "已清除铁砧使用惩罚！",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "已切换发射模式为 %s",
+  "ui.apprenticecodex.elemental_bow.insufficient_arrow": "没有可用作施法媒介的箭矢！",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "过热导致法力值消耗提升至 %s！",
   "ui.apprenticecodex.elemental_bow.overheat_insufficient_mana": "过热导致法力值消耗提升至 %s，你的法力值不足！",
   "ui.apprenticecodex.swingcast.cannot_swing_cast": "%s无法挥击施法！",
@@ -1503,5 +1504,6 @@
   "item.apprenticecodex.endgame_armor.scroll_slot.empty": "卷轴槽位：空",
   "item.apprenticecodex.endgame_armor.scroll_slot.spell": "卷轴槽位：%s",
   "item.apprenticecodex.endgame_armor.scroll_slot.inactive": "已储存卷轴（未启用）：%s",
-  "item.apprenticecodex.endgame_armor.scroll_slot.requires": "需要%s"
+  "item.apprenticecodex.endgame_armor.scroll_slot.requires": "需要%s",
+  "item.apprenticecodex.magnetic_stability_anchor.desc": "使%1$dx%2$dx%3$d范围内的物品不受自动磁吸影响。"
 }

@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEn
 import jp.aquafactory.apprenticecodex.block.alchemybrewer.AlchemyBrewerBlockEntity;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntity;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntity;
+import jp.aquafactory.apprenticecodex.block.magneticstabilityanchor.MagneticStabilityAnchorBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spellcasteraccessorycase.SpellcasterAccessoryCaseBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
 import jp.aquafactory.apprenticecodex.spell.frostrune.FrostRuneTrapBlockEntity;
@@ -50,6 +51,9 @@ public final class BlockEntityRegistry {
 
     public static final RegistryObject<BlockEntityType<WizardlampLanternBlockEntity>> WIZARDLAMP_LANTERN = reg(
             "wizardlamp_lantern", WizardlampLanternBlockEntity::new, BlockRegistry.WIZARDLAMP_LANTERN
+    );
+    public static final RegistryObject<BlockEntityType<MagneticStabilityAnchorBlockEntity>> MAGNETIC_STABILITY_ANCHOR = reg(
+            "magnetic_stability_anchor", MagneticStabilityAnchorBlockEntity::new, BlockRegistry.MAGNETIC_STABILITY_ANCHOR
     );
 
     public static final RegistryObject<BlockEntityType<FrostRuneTrapBlockEntity>> FROST_RUNE_TRAP = reg(
