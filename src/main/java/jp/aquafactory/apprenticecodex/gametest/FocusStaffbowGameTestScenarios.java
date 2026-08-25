@@ -1252,6 +1252,7 @@ final class FocusStaffbowGameTestScenarios {
             var interruptedSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
             var magicData = MagicData.getPlayerMagicData(player);
             helper.assertTrue(magicData != null, "Focus Staffbow creative interruption test requires MagicData");
+            magicData.getSyncedData();
             magicData.initiateCast(interruptedSpell, 1, 60, CastSource.SPELLBOOK, "gametest");
 
             var originalCreativeCooldown = io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.get();
