@@ -1194,6 +1194,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void elementalBowDoesNotCastWhenArrowDisappearsDuringDraw(GameTestHelper helper) {
+        ElementalBowGameTestScenarios.elementalBowDoesNotCastWhenArrowDisappearsDuringDraw(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void elementalBowInfinityAllowsVanillaDrawWithoutArrows(GameTestHelper helper) {
         ElementalBowGameTestScenarios.elementalBowInfinityAllowsVanillaDrawWithoutArrows(helper);
     }
@@ -1231,6 +1236,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void elementalBowSynthesisAllowsMagicModeWithoutArrows(GameTestHelper helper) {
         ElementalBowGameTestScenarios.elementalBowSynthesisAllowsMagicModeWithoutArrows(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowCreativeAllowsMagicModeWithoutArrows(GameTestHelper helper) {
+        ElementalBowGameTestScenarios.elementalBowCreativeAllowsMagicModeWithoutArrows(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -2063,6 +2073,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void elementalBowManaErrorUsesIronsSpellbooksTranslationKey(GameTestHelper helper) {
         ElementalBowGameTestScenarios.elementalBowManaErrorUsesIronsSpellbooksTranslationKey(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void elementalBowInsufficientArrowErrorUsesDedicatedTranslationKey(GameTestHelper helper) {
+        ElementalBowGameTestScenarios.elementalBowInsufficientArrowErrorUsesDedicatedTranslationKey(helper);
     }
 
     @GameTest(template = TEMPLATE)

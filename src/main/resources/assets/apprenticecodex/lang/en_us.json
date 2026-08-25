@@ -1112,6 +1112,7 @@
   "ui.apprenticecodex.mana_transcription.finished_work_count_creative": "Removed the item's prior anvil work!",
 
   "ui.apprenticecodex.elemental_bow.mode_switched": "Switched firing mode to %s",
+  "ui.apprenticecodex.elemental_bow.insufficient_arrow": "No arrow available as a casting catalyst!",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "Overheating has increased mana cost to %s!",
   "ui.apprenticecodex.elemental_bow.overheat_insufficient_mana": "Overheating has increased mana cost to %s, and you don't have enough mana!",
   "ui.apprenticecodex.swingcast.cannot_swing_cast": "%s cannot be swing-cast!",
