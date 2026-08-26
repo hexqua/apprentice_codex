@@ -690,12 +690,24 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.manaShieldCharmRecoveryThresholdMana();
     }
 
-    public static float manaShieldCharmSynchronizationManaPerDamage() {
-        return ITEMS_CONFIG.manaShieldCharmSynchronizationManaPerDamage();
+    public static int manaShieldCharmShellActivationManaCost() {
+        return ITEMS_CONFIG.manaShieldCharmShellActivationManaCost();
     }
 
-    public static float manaShieldCharmNeutralizationRecoverManaPerDamage() {
-        return ITEMS_CONFIG.manaShieldCharmNeutralizationRecoverManaPerDamage();
+    public static float manaShieldCharmSynchronizationAdditionalManaPerDamage() {
+        return ITEMS_CONFIG.manaShieldCharmSynchronizationAdditionalManaPerDamage();
+    }
+
+    public static float manaShieldCharmSynchronizationArmorBypassManaReductionPerDamage() {
+        return ITEMS_CONFIG.manaShieldCharmSynchronizationArmorBypassManaReductionPerDamage();
+    }
+
+    public static int manaShieldCharmNeutralizationAntiManaArrowManaCost() {
+        return ITEMS_CONFIG.manaShieldCharmNeutralizationAntiManaArrowManaCost();
+    }
+
+    public static int manaShieldCharmNeutralizationCounterspellManaCost() {
+        return ITEMS_CONFIG.manaShieldCharmNeutralizationCounterspellManaCost();
     }
 
     public static int manaShieldCharmShellArmorDurabilityDamage() {
@@ -1154,31 +1166,43 @@ public final class ApprenticeCodexServerConfig {
     public static GameTestConfigOverride useManaShieldCharmConfigOverrideForGameTest(
             double manaPerDamage,
             int recoveryThresholdMana,
-            double synchronizationManaPerDamage,
-            double neutralizationRecoverManaPerDamage,
+            int shellActivationManaCost,
+            double synchronizationAdditionalManaPerDamage,
+            double synchronizationArmorBypassManaReductionPerDamage,
+            int neutralizationAntiManaArrowManaCost,
+            int neutralizationCounterspellManaCost,
             int shellArmorDurabilityDamage,
             int invulnerableTimeTicks
     ) {
         var previousManaPerDamage = ITEMS_CONFIG.manaShieldCharmManaPerDamage();
         var previousRecoveryThresholdMana = ITEMS_CONFIG.manaShieldCharmRecoveryThresholdMana();
-        var previousSynchronizationManaPerDamage = ITEMS_CONFIG.manaShieldCharmSynchronizationManaPerDamage();
-        var previousNeutralizationRecoverManaPerDamage = ITEMS_CONFIG.manaShieldCharmNeutralizationRecoverManaPerDamage();
+        var previousShellActivationManaCost = ITEMS_CONFIG.manaShieldCharmShellActivationManaCost();
+        var previousSynchronizationAdditionalManaPerDamage = ITEMS_CONFIG.manaShieldCharmSynchronizationAdditionalManaPerDamage();
+        var previousSynchronizationArmorBypassManaReductionPerDamage = ITEMS_CONFIG.manaShieldCharmSynchronizationArmorBypassManaReductionPerDamage();
+        var previousNeutralizationAntiManaArrowManaCost = ITEMS_CONFIG.manaShieldCharmNeutralizationAntiManaArrowManaCost();
+        var previousNeutralizationCounterspellManaCost = ITEMS_CONFIG.manaShieldCharmNeutralizationCounterspellManaCost();
         var previousShellArmorDurabilityDamage = ITEMS_CONFIG.manaShieldCharmShellArmorDurabilityDamage();
         var previousInvulnerableTimeTicks = ITEMS_CONFIG.manaShieldCharmInvulnerableTimeTicks();
 
         ITEMS_CONFIG.setManaShieldCharmConfigForGameTest(
                 manaPerDamage,
                 recoveryThresholdMana,
-                synchronizationManaPerDamage,
-                neutralizationRecoverManaPerDamage,
+                shellActivationManaCost,
+                synchronizationAdditionalManaPerDamage,
+                synchronizationArmorBypassManaReductionPerDamage,
+                neutralizationAntiManaArrowManaCost,
+                neutralizationCounterspellManaCost,
                 shellArmorDurabilityDamage,
                 invulnerableTimeTicks
         );
         return () -> ITEMS_CONFIG.setManaShieldCharmConfigForGameTest(
                 previousManaPerDamage,
                 previousRecoveryThresholdMana,
-                previousSynchronizationManaPerDamage,
-                previousNeutralizationRecoverManaPerDamage,
+                previousShellActivationManaCost,
+                previousSynchronizationAdditionalManaPerDamage,
+                previousSynchronizationArmorBypassManaReductionPerDamage,
+                previousNeutralizationAntiManaArrowManaCost,
+                previousNeutralizationCounterspellManaCost,
                 previousShellArmorDurabilityDamage,
                 previousInvulnerableTimeTicks
         );
@@ -1664,4 +1688,3 @@ public final class ApprenticeCodexServerConfig {
         return WORLDGEN_CONFIG.enableErrandMageVillageHouseInjection();
     }
 }
-

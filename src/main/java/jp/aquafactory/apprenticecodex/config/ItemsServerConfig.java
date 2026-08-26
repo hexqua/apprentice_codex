@@ -448,12 +448,24 @@ final class ItemsServerConfig {
         return manaShieldCharmConfig.recoveryThresholdMana();
     }
 
-    float manaShieldCharmSynchronizationManaPerDamage() {
-        return manaShieldCharmConfig.synchronizationManaPerDamage();
+    int manaShieldCharmShellActivationManaCost() {
+        return manaShieldCharmConfig.shellActivationManaCost();
     }
 
-    float manaShieldCharmNeutralizationRecoverManaPerDamage() {
-        return manaShieldCharmConfig.neutralizationRecoverManaPerDamage();
+    float manaShieldCharmSynchronizationAdditionalManaPerDamage() {
+        return manaShieldCharmConfig.synchronizationAdditionalManaPerDamage();
+    }
+
+    float manaShieldCharmSynchronizationArmorBypassManaReductionPerDamage() {
+        return manaShieldCharmConfig.synchronizationArmorBypassManaReductionPerDamage();
+    }
+
+    int manaShieldCharmNeutralizationAntiManaArrowManaCost() {
+        return manaShieldCharmConfig.neutralizationAntiManaArrowManaCost();
+    }
+
+    int manaShieldCharmNeutralizationCounterspellManaCost() {
+        return manaShieldCharmConfig.neutralizationCounterspellManaCost();
     }
 
     int manaShieldCharmShellArmorDurabilityDamage() {
@@ -891,16 +903,22 @@ final class ItemsServerConfig {
     void setManaShieldCharmConfigForGameTest(
             double manaPerDamage,
             int recoveryThresholdMana,
-            double synchronizationManaPerDamage,
-            double neutralizationRecoverManaPerDamage,
+            int shellActivationManaCost,
+            double synchronizationAdditionalManaPerDamage,
+            double synchronizationArmorBypassManaReductionPerDamage,
+            int neutralizationAntiManaArrowManaCost,
+            int neutralizationCounterspellManaCost,
             int shellArmorDurabilityDamage,
             int invulnerableTimeTicks
     ) {
         manaShieldCharmConfig.setForGameTest(
                 manaPerDamage,
                 recoveryThresholdMana,
-                synchronizationManaPerDamage,
-                neutralizationRecoverManaPerDamage,
+                shellActivationManaCost,
+                synchronizationAdditionalManaPerDamage,
+                synchronizationArmorBypassManaReductionPerDamage,
+                neutralizationAntiManaArrowManaCost,
+                neutralizationCounterspellManaCost,
                 shellArmorDurabilityDamage,
                 invulnerableTimeTicks
         );
@@ -1180,4 +1198,3 @@ final class ItemsServerConfig {
         );
     }
 }
-

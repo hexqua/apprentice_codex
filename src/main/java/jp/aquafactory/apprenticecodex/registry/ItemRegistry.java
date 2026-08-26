@@ -104,6 +104,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemNameBlockItem;
 import net.minecraft.world.level.block.Block;
+import jp.aquafactory.apprenticecodex.item.antimanaarrow.AntiManaArrowItem;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -490,4 +491,6 @@ public final class ItemRegistry {
             ITEMS.register("floatmount_broom", FloatmountBroomItem::new);
     public static final DeferredHolder<Item, Item> HOVERRIDE_BROOM =
             ITEMS.register("hoverride_broom", HoverrideBroomItem::new);
+    public static final DeferredHolder<Item, Item> ANTI_MANA_ARROW =
+            ITEMS.register("anti_mana_arrow", AntiManaArrowItem::new);
 }

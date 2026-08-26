@@ -1,0 +1,30 @@
+{
+  "type": "apprenticecodex:spellcaster_workbench",
+  "ingredients": [
+    {
+      "count": 4,
+      "ingredient": {
+        "item": "minecraft:arrow"
+      }
+    },
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "apprenticecodex:crystalline_arcane_shard"
+      }
+    },
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "irons_spellbooks:divine_pearl"
+      }
+    }
+  ],
+  "priority": 0,
+  "results": [
+    {
+      "count": 4,
+      "id": "apprenticecodex:anti_mana_arrow"
+    }
+  ]
+}
