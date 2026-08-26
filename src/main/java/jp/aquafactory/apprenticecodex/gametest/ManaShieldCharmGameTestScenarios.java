@@ -364,6 +364,56 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
         });
     }
 
+    static void manaShieldCharmShellExactActivationCostAppliesEffectAndBurnsOut(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var armored = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_shell_exact_cost_armored_test");
+            var bypassArmor = createTrackedEquipmentTestPlayer(helper, new BlockPos(3, 2, 0), "mana_shield_shell_exact_cost_bypass_test");
+            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var shellCharm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+            shellCharm.enchant(enchantmentLookup.getOrThrow(Enchantments.SHELL), 1);
+            equipCurio(armored, CuriosSlotConstants.CHARM, shellCharm.copy());
+            equipCurio(bypassArmor, CuriosSlotConstants.CHARM, shellCharm.copy());
+
+            var armoredChestplate = new ItemStack(Items.IRON_CHESTPLATE);
+            var bypassChestplate = new ItemStack(Items.IRON_CHESTPLATE);
+            armored.setItemSlot(EquipmentSlot.CHEST, armoredChestplate);
+            bypassArmor.setItemSlot(EquipmentSlot.CHEST, bypassChestplate);
+
+            var armoredMana = MagicData.getPlayerMagicData(armored);
+            var bypassMana = MagicData.getPlayerMagicData(bypassArmor);
+            helper.assertTrue(armoredMana != null && bypassMana != null,
+                    "Shell exact activation cost test could not resolve player mana data");
+            armoredMana.setMana(50.0F);
+            bypassMana.setMana(50.0F);
+            armored.invulnerableTime = 0;
+            bypassArmor.invulnerableTime = 0;
+
+            var armoredEvent = postLivingAttackEventForGameTest(
+                    armored, helper.getLevel().damageSources().lava(), 2.0F);
+            var bypassSource = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(
+                    helper.getLevel(), bypassArmor, DamageTypes.UNITE_LUNA);
+            var bypassEvent = postLivingAttackEventForGameTest(bypassArmor, bypassSource, 2.0F);
+
+            helper.assertTrue(armoredEvent.isCanceled(),
+                    "Shell should apply armor mitigation when mana exactly pays its activation cost");
+            helper.assertTrue(armoredChestplate.getDamageValue() == 1,
+                    "Shell should damage armor after activating at its exact mana cost");
+            helper.assertTrue(Math.abs(armoredMana.getMana()) < 1.0e-4F,
+                    "Shell exact activation cost should leave zero mana after applying armor mitigation");
+            helper.assertTrue(getManaShieldCharmState(armored).cooldownActive,
+                    "Shell should burn out after its exact activation cost leaves zero mana");
+
+            helper.assertFalse(bypassEvent.isCanceled(),
+                    "Shell should pass armor-bypass damage when no mana remains to negate it");
+            helper.assertTrue(bypassChestplate.getDamageValue() == 0,
+                    "Shell should not damage armor for an armor-bypass hit at its exact activation cost");
+            helper.assertTrue(Math.abs(bypassMana.getMana()) < 1.0e-4F,
+                    "Shell should remain at zero mana when it negates no armor-bypass damage");
+            helper.assertTrue(getManaShieldCharmState(bypassArmor).cooldownActive,
+                    "Shell should burn out at zero mana even when it negates no damage");
+        });
+    }
+
     static void manaShieldCharmShellChargesActivationCostForFractionalDamage(GameTestHelper helper) {
         helper.runAtTickTime(1, () -> {
             var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_shell_fractional_cost_test");
