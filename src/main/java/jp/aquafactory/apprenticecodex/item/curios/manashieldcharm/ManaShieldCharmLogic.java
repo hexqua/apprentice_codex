@@ -227,8 +227,9 @@ final class ManaShieldCharmLogic {
             ServerPlayer player,
             DamageSource source
     ) {
-        var remainingManaAfterActivation = Math.max(currentMana - shellActivationManaCost(), 0.0F);
-        if (remainingManaAfterActivation <= 0.0F) {
+        var activationManaCost = shellActivationManaCost();
+        var remainingManaAfterActivation = Math.max(currentMana - activationManaCost, 0.0F);
+        if (currentMana < activationManaCost) {
             return new DamageResolution(
                     0.0F,
                     incomingDamage,

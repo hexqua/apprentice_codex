@@ -703,6 +703,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmShellExactActivationCostAppliesEffectAndBurnsOut(GameTestHelper helper) {
+        ManaShieldCharmGameTestScenarios.manaShieldCharmShellExactActivationCostAppliesEffectAndBurnsOut(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void manaShieldCharmShellChargesActivationCostForFractionalDamage(GameTestHelper helper) {
         ManaShieldCharmGameTestScenarios.manaShieldCharmShellChargesActivationCostForFractionalDamage(helper);
     }
