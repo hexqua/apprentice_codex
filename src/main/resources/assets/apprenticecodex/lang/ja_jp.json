@@ -58,6 +58,7 @@
   "item.apprenticecodex.spellstained_diamond": "魔術染めのダイヤモンド",
   "item.apprenticecodex.spellstained_arcane_ingot": "魔術染めの秘術のインゴット",
   "item.apprenticecodex.emberstained_netherite_ingot": "残り火染めのネザライトインゴット",
+  "item.apprenticecodex.anti_mana_arrow": "抗マナの魔矢",
   "item.apprenticecodex.rapid_spellcaster_round": "高速詠唱銃弾",
   "item.apprenticecodex.basic_spellcaster_round": "通常用詠唱銃弾",
   "item.apprenticecodex.arcane_spellcaster_round": "秘術の詠唱銃弾",
@@ -317,6 +318,7 @@
   "item.apprenticecodex.spell_casing_mold.desc": "デプロイヤーにセットして使用する型",
   "item.apprenticecodex.incomplete_spellcaster_round.desc": "組立途中の詠唱銃弾",
   "item.apprenticecodex.round_incomplete_material.desc.no_create": "\"Create\"が導入されていないため用途が存在しない。",
+  "item.apprenticecodex.anti_mana_arrow.desc": "召喚で作られた存在やマナ障壁に真価を発揮する。",
   "item.apprenticecodex.scarlet_thirst.desc": "マナ減少時、余っている体力をマナに変換する。",
   "item.apprenticecodex.craftsmans_delight.desc": "特定の作業魔法を強化し、対象の魔法を効率的に扱えるようになる。",
   "item.apprenticecodex.craftsmans_delight.desc_enchant": "また、対象の魔法でブロックを破壊する際、利き手のエンチャントを反映させる。",
@@ -611,7 +613,7 @@
   "enchantment.apprenticecodex.synthesis.desc": "杖の機能を使って詠唱を行う際に矢が不要になります。",
   "enchantment.apprenticecodex.shell.desc": "マナ障壁が装備者の防具の防御力を得ますが、被弾時に防具が損傷するようになります。",
   "enchantment.apprenticecodex.synchronization.desc": "マナ障壁が装備者の防具のエンチャントの効果を得ますが、消費マナが増えます。",
-  "enchantment.apprenticecodex.neutralization.desc": "マナ障壁が防御力を無視する攻撃を受けた際に完全に無効化し、代わりにマナとして吸収します。",
+  "enchantment.apprenticecodex.neutralization.desc": "マナ障壁がカウンタースペル耐性と抗マナ耐性を得ますが、効果発揮時にマナを消費します。",
   "enchantment.apprenticecodex.compress.desc": "高所からの強打成功時のダメージと、注入魔法を詠唱できた時の魔法力上昇率が上昇します。",
   "enchantment.apprenticecodex.release.desc": "高所からの強打成功時、上空へ大きく跳躍します。",
 
@@ -1204,6 +1206,7 @@
   "effect.apprenticecodex.notched_frozen": "氷の刻みつけ",
   "effect.apprenticecodex.divine_possession": "神降ろし",
   "effect.apprenticecodex.gravity_bound": "重力縛り",
+  "effect.apprenticecodex.inert_mana_shield": "マナ障壁不活性化",
   "effect.apprenticecodex.school_affinity": "親和",
   "effect.apprenticecodex.school_affinity.dynamic": "%sへの親和",
 
@@ -1226,6 +1229,7 @@
   "effect.apprenticecodex.notched_frozen.description": "氷の魔力が刻み込まれた状態。氷結状態が解除されず、一定数刻み込まれると氷の魔力として炸裂する。",
   "effect.apprenticecodex.divine_possession.description": "その身に元素の存在の力を宿した状態。最も高い系統ボーナスを他の系統全てに反映させる。",
   "effect.apprenticecodex.gravity_bound.description": "空中に漂うことが困難になり、ジャンプも自由にできなくなる。",
+  "effect.apprenticecodex.inert_mana_shield.description": "マナ障壁が展開できなくなる。",
 
   "item.minecraft.potion.effect.intelligence": "知性のポーション",
   "item.minecraft.potion.effect.meditation": "瞑想のポーション",

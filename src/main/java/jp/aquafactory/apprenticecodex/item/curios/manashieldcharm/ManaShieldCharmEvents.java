@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.curios.manashieldcharm;
 
+import io.redspace.ironsspellbooks.api.events.CounterSpellEvent;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
@@ -32,6 +33,13 @@ public final class ManaShieldCharmEvents {
 
         if (event.getEntity() instanceof ServerPlayer player) {
             ManaShieldCharmLogic.onDeath(player);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onCounterSpell(CounterSpellEvent event) {
+        if (event.target instanceof ServerPlayer player && !player.level().isClientSide) {
+            ManaShieldCharmLogic.onCounterSpell(event, player);
         }
     }
 }

@@ -727,6 +727,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
         ManaShieldCharmGameTestScenarios.manaShieldCharmNeutralizationAbsorbsBypassArmorDamageDuringCooldown(helper);
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void antiManaArrowNeutralizationConsumesFixedManaAndCancelsDamage(GameTestHelper helper) {
+        ManaShieldCharmGameTestScenarios.antiManaArrowNeutralizationConsumesFixedManaAndCancelsDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void antiManaArrowDisablesUnprotectedManaShieldAfterCurrentHit(GameTestHelper helper) {
+        ManaShieldCharmGameTestScenarios.antiManaArrowDisablesUnprotectedManaShieldAfterCurrentHit(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void neutralizationCounterspellResistanceRequiresFullManaCost(GameTestHelper helper) {
+        ManaShieldCharmGameTestScenarios.neutralizationCounterspellResistanceRequiresFullManaCost(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = MANA_SHIELD_CHARM_FREE_COST_CONFIG_BATCH)
     public static void manaShieldCharmFreeManaCostConfigAbsorbsWithoutDepletionCooldown(GameTestHelper helper) {
         ManaShieldCharmGameTestScenarios.manaShieldCharmFreeManaCostConfigAbsorbsWithoutDepletionCooldown(helper);

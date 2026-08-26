@@ -6,13 +6,15 @@ public final class ManaShieldCharmServerConfig {
     private final ForgeConfigSpec.DoubleValue manaPerDamage;
     private final ForgeConfigSpec.IntValue recoveryThresholdMana;
     private final ForgeConfigSpec.DoubleValue synchronizationManaPerDamage;
-    private final ForgeConfigSpec.DoubleValue neutralizationRecoverManaPerDamage;
+    private final ForgeConfigSpec.IntValue neutralizationAntiManaArrowManaCost;
+    private final ForgeConfigSpec.IntValue neutralizationCounterspellManaCost;
     private final ForgeConfigSpec.IntValue shellArmorDurabilityDamage;
     private final ForgeConfigSpec.IntValue invulnerableTimeTicks;
     private Double manaPerDamageOverride;
     private Integer recoveryThresholdManaOverride;
     private Double synchronizationManaPerDamageOverride;
-    private Double neutralizationRecoverManaPerDamageOverride;
+    private Integer neutralizationAntiManaArrowManaCostOverride;
+    private Integer neutralizationCounterspellManaCostOverride;
     private Integer shellArmorDurabilityDamageOverride;
     private Integer invulnerableTimeTicksOverride;
 
@@ -20,14 +22,16 @@ public final class ManaShieldCharmServerConfig {
             ForgeConfigSpec.DoubleValue manaPerDamage,
             ForgeConfigSpec.IntValue recoveryThresholdMana,
             ForgeConfigSpec.DoubleValue synchronizationManaPerDamage,
-            ForgeConfigSpec.DoubleValue neutralizationRecoverManaPerDamage,
+            ForgeConfigSpec.IntValue neutralizationAntiManaArrowManaCost,
+            ForgeConfigSpec.IntValue neutralizationCounterspellManaCost,
             ForgeConfigSpec.IntValue shellArmorDurabilityDamage,
             ForgeConfigSpec.IntValue invulnerableTimeTicks
     ) {
         this.manaPerDamage = manaPerDamage;
         this.recoveryThresholdMana = recoveryThresholdMana;
         this.synchronizationManaPerDamage = synchronizationManaPerDamage;
-        this.neutralizationRecoverManaPerDamage = neutralizationRecoverManaPerDamage;
+        this.neutralizationAntiManaArrowManaCost = neutralizationAntiManaArrowManaCost;
+        this.neutralizationCounterspellManaCost = neutralizationCounterspellManaCost;
         this.shellArmorDurabilityDamage = shellArmorDurabilityDamage;
         this.invulnerableTimeTicks = invulnerableTimeTicks;
     }
@@ -44,9 +48,12 @@ public final class ManaShieldCharmServerConfig {
         var synchronizationManaPerDamage = builder
                 .comment("Extra mana spent per whole damage point mitigated by Synchronization before the normal barrier stage.")
                 .defineInRange("synchronizationManaPerDamage", 30.0D, 0.0D, 10000.0D);
-        var neutralizationRecoverManaPerDamage = builder
-                .comment("Mana recovered per whole damage point nullified by Neutralization. 0 keeps nullification but disables mana recovery.")
-                .defineInRange("neutralizationRecoverManaPerDamage", 25.0D, 0.0D, 10000.0D);
+        var neutralizationAntiManaArrowManaCost = builder
+                .comment("Mana spent when Neutralization blocks an Anti Mana Arrow. The resistance requires the full cost; 0 makes it free.")
+                .defineInRange("neutralizationAntiManaArrowManaCost", 50, 0, 10000);
+        var neutralizationCounterspellManaCost = builder
+                .comment("Mana spent when Neutralization blocks Counterspell. The resistance requires the full cost; 0 makes it free.")
+                .defineInRange("neutralizationCounterspellManaCost", 100, 0, 10000);
         var shellArmorDurabilityDamage = builder
                 .comment("Durability damage applied to each equipped armor piece when Shell uses the armor path. 0 disables this armor wear.")
                 .defineInRange("shellArmorDurabilityDamage", 1, 0, 1000);
@@ -59,7 +66,8 @@ public final class ManaShieldCharmServerConfig {
                 manaPerDamage,
                 recoveryThresholdMana,
                 synchronizationManaPerDamage,
-                neutralizationRecoverManaPerDamage,
+                neutralizationAntiManaArrowManaCost,
+                neutralizationCounterspellManaCost,
                 shellArmorDurabilityDamage,
                 invulnerableTimeTicks
         );
@@ -79,10 +87,16 @@ public final class ManaShieldCharmServerConfig {
                 : synchronizationManaPerDamageOverride).floatValue();
     }
 
-    public float neutralizationRecoverManaPerDamage() {
-        return (neutralizationRecoverManaPerDamageOverride == null
-                ? neutralizationRecoverManaPerDamage.get()
-                : neutralizationRecoverManaPerDamageOverride).floatValue();
+    public int neutralizationAntiManaArrowManaCost() {
+        return neutralizationAntiManaArrowManaCostOverride == null
+                ? neutralizationAntiManaArrowManaCost.get()
+                : neutralizationAntiManaArrowManaCostOverride;
+    }
+
+    public int neutralizationCounterspellManaCost() {
+        return neutralizationCounterspellManaCostOverride == null
+                ? neutralizationCounterspellManaCost.get()
+                : neutralizationCounterspellManaCostOverride;
     }
 
     public int shellArmorDurabilityDamage() {
@@ -99,14 +113,16 @@ public final class ManaShieldCharmServerConfig {
             double manaPerDamage,
             int recoveryThresholdMana,
             double synchronizationManaPerDamage,
-            double neutralizationRecoverManaPerDamage,
+            int neutralizationAntiManaArrowManaCost,
+            int neutralizationCounterspellManaCost,
             int shellArmorDurabilityDamage,
             int invulnerableTimeTicks
     ) {
         this.manaPerDamageOverride = manaPerDamage;
         this.recoveryThresholdManaOverride = recoveryThresholdMana;
         this.synchronizationManaPerDamageOverride = synchronizationManaPerDamage;
-        this.neutralizationRecoverManaPerDamageOverride = neutralizationRecoverManaPerDamage;
+        this.neutralizationAntiManaArrowManaCostOverride = neutralizationAntiManaArrowManaCost;
+        this.neutralizationCounterspellManaCostOverride = neutralizationCounterspellManaCost;
         this.shellArmorDurabilityDamageOverride = shellArmorDurabilityDamage;
         this.invulnerableTimeTicksOverride = invulnerableTimeTicks;
     }

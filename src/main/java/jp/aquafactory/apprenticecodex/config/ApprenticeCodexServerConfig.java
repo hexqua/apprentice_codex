@@ -694,8 +694,12 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.manaShieldCharmSynchronizationManaPerDamage();
     }
 
-    public static float manaShieldCharmNeutralizationRecoverManaPerDamage() {
-        return ITEMS_CONFIG.manaShieldCharmNeutralizationRecoverManaPerDamage();
+    public static int manaShieldCharmNeutralizationAntiManaArrowManaCost() {
+        return ITEMS_CONFIG.manaShieldCharmNeutralizationAntiManaArrowManaCost();
+    }
+
+    public static int manaShieldCharmNeutralizationCounterspellManaCost() {
+        return ITEMS_CONFIG.manaShieldCharmNeutralizationCounterspellManaCost();
     }
 
     public static int manaShieldCharmShellArmorDurabilityDamage() {
@@ -1155,14 +1159,16 @@ public final class ApprenticeCodexServerConfig {
             double manaPerDamage,
             int recoveryThresholdMana,
             double synchronizationManaPerDamage,
-            double neutralizationRecoverManaPerDamage,
+            int neutralizationAntiManaArrowManaCost,
+            int neutralizationCounterspellManaCost,
             int shellArmorDurabilityDamage,
             int invulnerableTimeTicks
     ) {
         var previousManaPerDamage = ITEMS_CONFIG.manaShieldCharmManaPerDamage();
         var previousRecoveryThresholdMana = ITEMS_CONFIG.manaShieldCharmRecoveryThresholdMana();
         var previousSynchronizationManaPerDamage = ITEMS_CONFIG.manaShieldCharmSynchronizationManaPerDamage();
-        var previousNeutralizationRecoverManaPerDamage = ITEMS_CONFIG.manaShieldCharmNeutralizationRecoverManaPerDamage();
+        var previousNeutralizationAntiManaArrowManaCost = ITEMS_CONFIG.manaShieldCharmNeutralizationAntiManaArrowManaCost();
+        var previousNeutralizationCounterspellManaCost = ITEMS_CONFIG.manaShieldCharmNeutralizationCounterspellManaCost();
         var previousShellArmorDurabilityDamage = ITEMS_CONFIG.manaShieldCharmShellArmorDurabilityDamage();
         var previousInvulnerableTimeTicks = ITEMS_CONFIG.manaShieldCharmInvulnerableTimeTicks();
 
@@ -1170,7 +1176,8 @@ public final class ApprenticeCodexServerConfig {
                 manaPerDamage,
                 recoveryThresholdMana,
                 synchronizationManaPerDamage,
-                neutralizationRecoverManaPerDamage,
+                neutralizationAntiManaArrowManaCost,
+                neutralizationCounterspellManaCost,
                 shellArmorDurabilityDamage,
                 invulnerableTimeTicks
         );
@@ -1178,9 +1185,29 @@ public final class ApprenticeCodexServerConfig {
                 previousManaPerDamage,
                 previousRecoveryThresholdMana,
                 previousSynchronizationManaPerDamage,
-                previousNeutralizationRecoverManaPerDamage,
+                previousNeutralizationAntiManaArrowManaCost,
+                previousNeutralizationCounterspellManaCost,
                 previousShellArmorDurabilityDamage,
                 previousInvulnerableTimeTicks
+        );
+    }
+
+    public static GameTestConfigOverride useManaShieldCharmConfigOverrideForGameTest(
+            double manaPerDamage,
+            int recoveryThresholdMana,
+            double synchronizationManaPerDamage,
+            double legacyNeutralizationValue,
+            int shellArmorDurabilityDamage,
+            int invulnerableTimeTicks
+    ) {
+        return useManaShieldCharmConfigOverrideForGameTest(
+                manaPerDamage,
+                recoveryThresholdMana,
+                synchronizationManaPerDamage,
+                (int) Math.round(legacyNeutralizationValue),
+                100,
+                shellArmorDurabilityDamage,
+                invulnerableTimeTicks
         );
     }
 

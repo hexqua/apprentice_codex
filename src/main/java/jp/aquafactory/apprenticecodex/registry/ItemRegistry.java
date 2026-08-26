@@ -91,6 +91,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemNameBlockItem;
 import net.minecraft.world.level.block.Block;
+import jp.aquafactory.apprenticecodex.item.antimanaarrow.AntiManaArrowItem;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -476,4 +477,6 @@ public final class ItemRegistry {
             ITEMS.register("floatmount_broom", FloatmountBroomItem::new);
     public static final RegistryObject<Item> HOVERRIDE_BROOM =
             ITEMS.register("hoverride_broom", HoverrideBroomItem::new);
+    public static final RegistryObject<Item> ANTI_MANA_ARROW =
+            ITEMS.register("anti_mana_arrow", AntiManaArrowItem::new);
 }

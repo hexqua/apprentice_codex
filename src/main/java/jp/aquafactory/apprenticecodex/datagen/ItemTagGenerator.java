@@ -342,10 +342,12 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get()
         );
         tag(TagRegistry.Items.SPELLCASTER_QUIVER_STORABLE).add(
+                ItemRegistry.ANTI_MANA_ARROW.get(),
                 net.minecraft.world.item.Items.ARROW,
                 net.minecraft.world.item.Items.SPECTRAL_ARROW,
                 net.minecraft.world.item.Items.TIPPED_ARROW
         );
+        tag(net.minecraft.tags.ItemTags.ARROWS).add(ItemRegistry.ANTI_MANA_ARROW.get());
         tag(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE).add(
                 ItemRegistry.ENCHANTED_CIRCLET.get(),
                 ItemRegistry.ENCHANTRESS_ROBE.get(),

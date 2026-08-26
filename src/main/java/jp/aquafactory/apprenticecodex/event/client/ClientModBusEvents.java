@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.event.client;
 
 import io.redspace.ironsspellbooks.render.SpellBookCurioRenderer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.antimanaarrow.AntiManaArrowRenderer;
 import jp.aquafactory.apprenticecodex.block.alchemybrewer.AlchemyBrewerBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.block.alchemybrewer.AlchemyBrewerScreen;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntityRenderer;
@@ -412,5 +413,6 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.FUJIN_SLASH_PROJECTILE.get(), FujinSlashProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FLOATMOUNT_BROOM.get(), FloatmountBroomRenderer::new);
         event.registerEntityRenderer(EntityRegistry.HOVERRIDE_BROOM.get(), HoverrideBroomRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.ANTI_MANA_ARROW.get(), AntiManaArrowRenderer::new);
     }
 }
