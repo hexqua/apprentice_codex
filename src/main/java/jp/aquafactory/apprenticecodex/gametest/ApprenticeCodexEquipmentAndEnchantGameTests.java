@@ -693,33 +693,38 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void manaShieldCharmShellUsesArmorOnlyOnNormalDamageAndWearsArmor(GameTestHelper helper) {
-        ManaShieldCharmGameTestScenarios.manaShieldCharmShellUsesArmorOnlyOnNormalDamageAndWearsArmor(helper);
+    public static void manaShieldCharmShellUsesAllArmorEffectsAndBypassSkipsThem(GameTestHelper helper) {
+        ManaShieldCharmGameTestScenarios.manaShieldCharmShellUsesAllArmorEffectsAndBypassSkipsThem(helper);
     }
 
     @GameTest(template = TEMPLATE)
-    public static void manaShieldCharmShellLowManaBurnoutStillUsesArmorPath(GameTestHelper helper) {
-        ManaShieldCharmGameTestScenarios.manaShieldCharmShellLowManaBurnoutStillUsesArmorPath(helper);
+    public static void manaShieldCharmShellActivationCostBurnoutPassesOriginalHit(GameTestHelper helper) {
+        ManaShieldCharmGameTestScenarios.manaShieldCharmShellActivationCostBurnoutPassesOriginalHit(helper);
     }
 
     @GameTest(template = TEMPLATE)
-    public static void manaShieldCharmSynchronizationChargesEnchantReductionBeforeNormalBarrier(GameTestHelper helper) {
-        ManaShieldCharmGameTestScenarios.manaShieldCharmSynchronizationChargesEnchantReductionBeforeNormalBarrier(helper);
+    public static void manaShieldCharmShellChargesActivationCostForFractionalDamage(GameTestHelper helper) {
+        ManaShieldCharmGameTestScenarios.manaShieldCharmShellChargesActivationCostForFractionalDamage(helper);
     }
 
     @GameTest(template = TEMPLATE)
-    public static void manaShieldCharmSynchronizationBurnoutStopsAfterEnchantReduction(GameTestHelper helper) {
-        ManaShieldCharmGameTestScenarios.manaShieldCharmSynchronizationBurnoutStopsAfterEnchantReduction(helper);
+    public static void manaShieldCharmSynchronizationUsesHigherCostOnOrdinaryDamage(GameTestHelper helper) {
+        ManaShieldCharmGameTestScenarios.manaShieldCharmSynchronizationUsesHigherCostOnOrdinaryDamage(helper);
     }
 
     @GameTest(template = TEMPLATE)
-    public static void manaShieldCharmSynchronizationLowManaBurnoutStopsAfterEnchantStage(GameTestHelper helper) {
-        ManaShieldCharmGameTestScenarios.manaShieldCharmSynchronizationLowManaBurnoutStopsAfterEnchantStage(helper);
+    public static void manaShieldCharmSynchronizationDiscountsArmorBypassAndVoidDamage(GameTestHelper helper) {
+        ManaShieldCharmGameTestScenarios.manaShieldCharmSynchronizationDiscountsArmorBypassAndVoidDamage(helper);
     }
 
     @GameTest(template = TEMPLATE)
-    public static void manaShieldCharmSynchronizationLowManaBurnoutAfterBarrierStage(GameTestHelper helper) {
-        ManaShieldCharmGameTestScenarios.manaShieldCharmSynchronizationLowManaBurnoutAfterBarrierStage(helper);
+    public static void manaShieldCharmSynchronizationDoesNotDiscountInvulnerabilityBypass(GameTestHelper helper) {
+        ManaShieldCharmGameTestScenarios.manaShieldCharmSynchronizationDoesNotDiscountInvulnerabilityBypass(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaShieldCharmSynchronizationReductionDoesNotRecoverMana(GameTestHelper helper) {
+        ManaShieldCharmGameTestScenarios.manaShieldCharmSynchronizationReductionDoesNotRecoverMana(helper);
     }
 
     @GameTest(template = TEMPLATE)

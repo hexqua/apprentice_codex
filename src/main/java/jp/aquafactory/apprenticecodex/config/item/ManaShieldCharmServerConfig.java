@@ -5,14 +5,18 @@ import net.minecraftforge.common.ForgeConfigSpec;
 public final class ManaShieldCharmServerConfig {
     private final ForgeConfigSpec.DoubleValue manaPerDamage;
     private final ForgeConfigSpec.IntValue recoveryThresholdMana;
-    private final ForgeConfigSpec.DoubleValue synchronizationManaPerDamage;
+    private final ForgeConfigSpec.IntValue shellActivationManaCost;
+    private final ForgeConfigSpec.DoubleValue synchronizationAdditionalManaPerDamage;
+    private final ForgeConfigSpec.DoubleValue synchronizationArmorBypassManaReductionPerDamage;
     private final ForgeConfigSpec.IntValue neutralizationAntiManaArrowManaCost;
     private final ForgeConfigSpec.IntValue neutralizationCounterspellManaCost;
     private final ForgeConfigSpec.IntValue shellArmorDurabilityDamage;
     private final ForgeConfigSpec.IntValue invulnerableTimeTicks;
     private Double manaPerDamageOverride;
     private Integer recoveryThresholdManaOverride;
-    private Double synchronizationManaPerDamageOverride;
+    private Integer shellActivationManaCostOverride;
+    private Double synchronizationAdditionalManaPerDamageOverride;
+    private Double synchronizationArmorBypassManaReductionPerDamageOverride;
     private Integer neutralizationAntiManaArrowManaCostOverride;
     private Integer neutralizationCounterspellManaCostOverride;
     private Integer shellArmorDurabilityDamageOverride;
@@ -21,7 +25,9 @@ public final class ManaShieldCharmServerConfig {
     private ManaShieldCharmServerConfig(
             ForgeConfigSpec.DoubleValue manaPerDamage,
             ForgeConfigSpec.IntValue recoveryThresholdMana,
-            ForgeConfigSpec.DoubleValue synchronizationManaPerDamage,
+            ForgeConfigSpec.IntValue shellActivationManaCost,
+            ForgeConfigSpec.DoubleValue synchronizationAdditionalManaPerDamage,
+            ForgeConfigSpec.DoubleValue synchronizationArmorBypassManaReductionPerDamage,
             ForgeConfigSpec.IntValue neutralizationAntiManaArrowManaCost,
             ForgeConfigSpec.IntValue neutralizationCounterspellManaCost,
             ForgeConfigSpec.IntValue shellArmorDurabilityDamage,
@@ -29,7 +35,9 @@ public final class ManaShieldCharmServerConfig {
     ) {
         this.manaPerDamage = manaPerDamage;
         this.recoveryThresholdMana = recoveryThresholdMana;
-        this.synchronizationManaPerDamage = synchronizationManaPerDamage;
+        this.shellActivationManaCost = shellActivationManaCost;
+        this.synchronizationAdditionalManaPerDamage = synchronizationAdditionalManaPerDamage;
+        this.synchronizationArmorBypassManaReductionPerDamage = synchronizationArmorBypassManaReductionPerDamage;
         this.neutralizationAntiManaArrowManaCost = neutralizationAntiManaArrowManaCost;
         this.neutralizationCounterspellManaCost = neutralizationCounterspellManaCost;
         this.shellArmorDurabilityDamage = shellArmorDurabilityDamage;
@@ -45,9 +53,15 @@ public final class ManaShieldCharmServerConfig {
         var recoveryThresholdMana = builder
                 .comment("Mana required to reactivate Mana Shield Charm after depletion. 0 disables depletion cooldown.")
                 .defineInRange("recoveryThresholdMana", 100, 0, 10000);
-        var synchronizationManaPerDamage = builder
-                .comment("Extra mana spent per whole damage point mitigated by Synchronization before the normal barrier stage.")
-                .defineInRange("synchronizationManaPerDamage", 30.0D, 0.0D, 10000.0D);
+        var shellActivationManaCost = builder
+                .comment("Fixed mana spent whenever Shell reacts to incoming damage. The cost is collected even when armor mitigation cannot be applied.")
+                .defineInRange("shellActivationManaCost", 50, 0, 10000);
+        var synchronizationAdditionalManaPerDamage = builder
+                .comment("Additional mana spent per whole damage point absorbed while Synchronization is active.")
+                .defineInRange("synchronizationAdditionalManaPerDamage", 15.0D, 0.0D, 10000.0D);
+        var synchronizationArmorBypassManaReductionPerDamage = builder
+                .comment("Mana cost reduction per whole damage point when Synchronization absorbs eligible armor-bypassing damage. The final cost is clamped to zero.")
+                .defineInRange("synchronizationArmorBypassManaReductionPerDamage", 30.0D, 0.0D, 10000.0D);
         var neutralizationAntiManaArrowManaCost = builder
                 .comment("Mana spent when Neutralization blocks an Anti Mana Arrow. The resistance requires the full cost; 0 makes it free.")
                 .defineInRange("neutralizationAntiManaArrowManaCost", 50, 0, 10000);
@@ -55,7 +69,7 @@ public final class ManaShieldCharmServerConfig {
                 .comment("Mana spent when Neutralization blocks Counterspell. The resistance requires the full cost; 0 makes it free.")
                 .defineInRange("neutralizationCounterspellManaCost", 100, 0, 10000);
         var shellArmorDurabilityDamage = builder
-                .comment("Durability damage applied to each equipped armor piece when Shell uses the armor path. 0 disables this armor wear.")
+                .comment("Multiplier for armor durability damage when Shell gains mitigation. Each equipped armor piece takes ceil(raw damage / 4 * multiplier); 0 disables this armor wear.")
                 .defineInRange("shellArmorDurabilityDamage", 1, 0, 1000);
         var invulnerableTimeTicks = builder
                 .comment("Vanilla-style invulnerability ticks applied after Mana Shield Charm fully negates damage.")
@@ -65,7 +79,9 @@ public final class ManaShieldCharmServerConfig {
         return new ManaShieldCharmServerConfig(
                 manaPerDamage,
                 recoveryThresholdMana,
-                synchronizationManaPerDamage,
+                shellActivationManaCost,
+                synchronizationAdditionalManaPerDamage,
+                synchronizationArmorBypassManaReductionPerDamage,
                 neutralizationAntiManaArrowManaCost,
                 neutralizationCounterspellManaCost,
                 shellArmorDurabilityDamage,
@@ -81,10 +97,20 @@ public final class ManaShieldCharmServerConfig {
         return recoveryThresholdManaOverride == null ? recoveryThresholdMana.get() : recoveryThresholdManaOverride;
     }
 
-    public float synchronizationManaPerDamage() {
-        return (synchronizationManaPerDamageOverride == null
-                ? synchronizationManaPerDamage.get()
-                : synchronizationManaPerDamageOverride).floatValue();
+    public int shellActivationManaCost() {
+        return shellActivationManaCostOverride == null ? shellActivationManaCost.get() : shellActivationManaCostOverride;
+    }
+
+    public float synchronizationAdditionalManaPerDamage() {
+        return (synchronizationAdditionalManaPerDamageOverride == null
+                ? synchronizationAdditionalManaPerDamage.get()
+                : synchronizationAdditionalManaPerDamageOverride).floatValue();
+    }
+
+    public float synchronizationArmorBypassManaReductionPerDamage() {
+        return (synchronizationArmorBypassManaReductionPerDamageOverride == null
+                ? synchronizationArmorBypassManaReductionPerDamage.get()
+                : synchronizationArmorBypassManaReductionPerDamageOverride).floatValue();
     }
 
     public int neutralizationAntiManaArrowManaCost() {
@@ -112,7 +138,9 @@ public final class ManaShieldCharmServerConfig {
     public void setForGameTest(
             double manaPerDamage,
             int recoveryThresholdMana,
-            double synchronizationManaPerDamage,
+            int shellActivationManaCost,
+            double synchronizationAdditionalManaPerDamage,
+            double synchronizationArmorBypassManaReductionPerDamage,
             int neutralizationAntiManaArrowManaCost,
             int neutralizationCounterspellManaCost,
             int shellArmorDurabilityDamage,
@@ -120,7 +148,9 @@ public final class ManaShieldCharmServerConfig {
     ) {
         this.manaPerDamageOverride = manaPerDamage;
         this.recoveryThresholdManaOverride = recoveryThresholdMana;
-        this.synchronizationManaPerDamageOverride = synchronizationManaPerDamage;
+        this.shellActivationManaCostOverride = shellActivationManaCost;
+        this.synchronizationAdditionalManaPerDamageOverride = synchronizationAdditionalManaPerDamage;
+        this.synchronizationArmorBypassManaReductionPerDamageOverride = synchronizationArmorBypassManaReductionPerDamage;
         this.neutralizationAntiManaArrowManaCostOverride = neutralizationAntiManaArrowManaCost;
         this.neutralizationCounterspellManaCostOverride = neutralizationCounterspellManaCost;
         this.shellArmorDurabilityDamageOverride = shellArmorDurabilityDamage;
