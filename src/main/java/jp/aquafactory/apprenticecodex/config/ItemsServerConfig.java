@@ -448,8 +448,16 @@ final class ItemsServerConfig {
         return manaShieldCharmConfig.recoveryThresholdMana();
     }
 
-    float manaShieldCharmSynchronizationManaPerDamage() {
-        return manaShieldCharmConfig.synchronizationManaPerDamage();
+    int manaShieldCharmShellActivationManaCost() {
+        return manaShieldCharmConfig.shellActivationManaCost();
+    }
+
+    float manaShieldCharmSynchronizationAdditionalManaPerDamage() {
+        return manaShieldCharmConfig.synchronizationAdditionalManaPerDamage();
+    }
+
+    float manaShieldCharmSynchronizationArmorBypassManaReductionPerDamage() {
+        return manaShieldCharmConfig.synchronizationArmorBypassManaReductionPerDamage();
     }
 
     int manaShieldCharmNeutralizationAntiManaArrowManaCost() {
@@ -895,7 +903,9 @@ final class ItemsServerConfig {
     void setManaShieldCharmConfigForGameTest(
             double manaPerDamage,
             int recoveryThresholdMana,
-            double synchronizationManaPerDamage,
+            int shellActivationManaCost,
+            double synchronizationAdditionalManaPerDamage,
+            double synchronizationArmorBypassManaReductionPerDamage,
             int neutralizationAntiManaArrowManaCost,
             int neutralizationCounterspellManaCost,
             int shellArmorDurabilityDamage,
@@ -904,7 +914,9 @@ final class ItemsServerConfig {
         manaShieldCharmConfig.setForGameTest(
                 manaPerDamage,
                 recoveryThresholdMana,
-                synchronizationManaPerDamage,
+                shellActivationManaCost,
+                synchronizationAdditionalManaPerDamage,
+                synchronizationArmorBypassManaReductionPerDamage,
                 neutralizationAntiManaArrowManaCost,
                 neutralizationCounterspellManaCost,
                 shellArmorDurabilityDamage,

@@ -616,8 +616,8 @@
   "enchantment.apprenticecodex.red_energy.desc": "Increases duration of effects in flask.",
   "enchantment.apprenticecodex.glow_energy.desc": "Increases potency of effects in flask but reduces the duration.",
   "enchantment.apprenticecodex.synthesis.desc": "Allows casting spells without arrows.",
-  "enchantment.apprenticecodex.shell.desc": "Mana Shield gains the defense value of the wearer's armor, but the armor will be damaged when the wearer is hit.",
-  "enchantment.apprenticecodex.synchronization.desc": "Mana Shield gains the effects of the enchantments on the wearer's armor, but mana consumption increases.",
+  "enchantment.apprenticecodex.shell.desc": "Mana Shield can benefit from armor, but each activation damages the armor and consumes a fixed amount of additional mana.",
+  "enchantment.apprenticecodex.synchronization.desc": "Mana Shield synchronizes its phase with attacks that ignore armor, greatly reducing mana consumption, but synchronization itself adds an additional mana cost.",
   "enchantment.apprenticecodex.neutralization.desc": "Mana Shield gains resistance to Counterspell and anti-mana effects, but consumes mana when either resistance activates.",
 
   "entity.apprenticecodex.sky_edge_projectile": "Sky Edge Sword",

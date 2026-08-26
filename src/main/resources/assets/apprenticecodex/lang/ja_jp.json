@@ -618,8 +618,8 @@
   "enchantment.apprenticecodex.red_energy.desc": "フラスコ内にあるポーションの効果時間が延長されます。",
   "enchantment.apprenticecodex.glow_energy.desc": "フラスコ内にあるポーションの効果レベルが上昇しますが、効果時間が短くなります。",
   "enchantment.apprenticecodex.synthesis.desc": "杖の機能を使って詠唱を行う際に矢が不要になります。",
-  "enchantment.apprenticecodex.shell.desc": "マナ障壁が装備者の防具の防御力を得ますが、被弾時に防具が損傷するようになります。",
-  "enchantment.apprenticecodex.synchronization.desc": "マナ障壁が装備者の防具のエンチャントの効果を得ますが、消費マナが増えます。",
+  "enchantment.apprenticecodex.shell.desc": "マナ障壁が防具の恩恵を受けられるようになりますが、発動の度に防具が損傷し追加のマナを固定で消費します。",
+  "enchantment.apprenticecodex.synchronization.desc": "マナ障壁が防御力を無視する攻撃の位相と同期することでマナ消費を大幅に軽減しますが、同期自体が追加のマナコストを発生させます。",
   "enchantment.apprenticecodex.neutralization.desc": "マナ障壁がカウンタースペル耐性と抗マナ耐性を得ますが、効果発揮時にマナを消費します。",
 
   "entity.apprenticecodex.sky_edge_projectile" : "スカイエッジソード",
