@@ -452,8 +452,12 @@ final class ItemsServerConfig {
         return manaShieldCharmConfig.synchronizationManaPerDamage();
     }
 
-    float manaShieldCharmNeutralizationRecoverManaPerDamage() {
-        return manaShieldCharmConfig.neutralizationRecoverManaPerDamage();
+    int manaShieldCharmNeutralizationAntiManaArrowManaCost() {
+        return manaShieldCharmConfig.neutralizationAntiManaArrowManaCost();
+    }
+
+    int manaShieldCharmNeutralizationCounterspellManaCost() {
+        return manaShieldCharmConfig.neutralizationCounterspellManaCost();
     }
 
     int manaShieldCharmShellArmorDurabilityDamage() {
@@ -892,7 +896,8 @@ final class ItemsServerConfig {
             double manaPerDamage,
             int recoveryThresholdMana,
             double synchronizationManaPerDamage,
-            double neutralizationRecoverManaPerDamage,
+            int neutralizationAntiManaArrowManaCost,
+            int neutralizationCounterspellManaCost,
             int shellArmorDurabilityDamage,
             int invulnerableTimeTicks
     ) {
@@ -900,7 +905,8 @@ final class ItemsServerConfig {
                 manaPerDamage,
                 recoveryThresholdMana,
                 synchronizationManaPerDamage,
-                neutralizationRecoverManaPerDamage,
+                neutralizationAntiManaArrowManaCost,
+                neutralizationCounterspellManaCost,
                 shellArmorDurabilityDamage,
                 invulnerableTimeTicks
         );
@@ -1180,4 +1186,3 @@ final class ItemsServerConfig {
         );
     }
 }
-

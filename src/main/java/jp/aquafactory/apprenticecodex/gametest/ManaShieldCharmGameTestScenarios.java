@@ -117,10 +117,10 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
                     "Mana Shield Charm should not damage armor durability when the burned-out hit is still fully negated");
 
             var secondEvent = postLivingAttackEventForGameTest(player, helper.getLevel().damageSources().lava(), 1.0F);
-            helper.assertTrue(secondEvent.isCanceled(),
-                    "Mana Shield Charm should still cancel repeated contact damage during the burned-out full-negate i-frame");
+            helper.assertFalse(secondEvent.isCanceled(),
+                    "Mana Shield Charm should let damage through while its depletion cooldown is active");
             helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
-                    "Mana Shield Charm should not leak damage during the burned-out full-negate i-frame");
+                    "Posting the cooldown-path event should not directly mutate health");
             helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
                     "Mana Shield Charm should not spend additional mana during the burned-out full-negate i-frame but got " + magicData.getMana());
         });
@@ -590,12 +590,12 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
 
             var event = postLivingAttackEventForGameTest(player, source, 2.0F);
 
-            helper.assertTrue(event.isCanceled(),
-                    "Neutralization should cancel armor-bypass damage even while cooldown is active");
+            helper.assertFalse(event.isCanceled(),
+                    "Neutralization should not cancel armor-bypass damage while cooldown is active");
             helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
                     "Neutralization should fully negate armor-bypass damage");
-            helper.assertTrue(Math.abs(magicData.getMana() - 60.0F) < 1.0e-4F,
-                    "Neutralization should recover mana instead of consuming it");
+            helper.assertTrue(Math.abs(magicData.getMana() - 10.0F) < 1.0e-4F,
+                    "Neutralization should no longer recover mana from armor-bypass damage");
             helper.assertTrue(state.cooldownActive,
                     "Neutralization should not clear cooldown until mana reaches the normal recovery threshold");
             helper.succeed();
@@ -726,7 +726,8 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
                     25.0D,
                     100,
                     30.0D,
-                    0.0D,
+                    50,
+                    0,
                     1,
                     20
             )) {
@@ -739,17 +740,13 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
                 helper.assertTrue(magicData != null, "Neutralization zero-recovery test could not resolve player mana data");
                 magicData.setMana(10.0F);
                 player.invulnerableTime = 0;
-                var initialHealth = player.getHealth();
-                var source = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(helper.getLevel(), player, DamageTypes.UNITE_LUNA);
-
-                var event = postLivingAttackEventForGameTest(player, source, 2.0F);
+                var event = new io.redspace.ironsspellbooks.api.events.CounterSpellEvent(player, player);
+                net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(event);
 
                 helper.assertTrue(event.isCanceled(),
-                        "Neutralization should still nullify armor-bypass damage when configured recovery is zero");
-                helper.assertTrue(Math.abs(player.getHealth() - initialHealth) < 1.0e-4F,
-                        "Neutralization zero-recovery should fully negate armor-bypass damage");
+                        "Neutralization should cancel Counterspell when its configured mana cost is zero");
                 helper.assertTrue(Math.abs(magicData.getMana() - 10.0F) < 1.0e-4F,
-                        "Neutralization zero-recovery should leave mana unchanged");
+                        "Zero-cost Counterspell resistance should leave mana unchanged");
                 helper.succeed();
             }
         });
@@ -821,6 +818,93 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
                         "Mana Shield Charm should cancel repeated damage while configured i-frame gate is active");
                 helper.assertTrue(Math.abs(magicData.getMana() - 75.0F) < 1.0e-4F,
                         "Mana Shield Charm should not spend mana again inside configured i-frame gate");
+            }
+        });
+    }
+
+    static void antiManaArrowNeutralizationConsumesFixedManaAndCancelsDamage(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                    25.0D, 100, 30.0D, 50, 100, 1, 20
+            )) {
+                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "anti_mana_arrow_neutralization");
+                var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+                charm.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                        .getOrThrow(Enchantments.NEUTRALIZATION), 1);
+                equipCurio(player, CuriosSlotConstants.CHARM, charm);
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Anti Mana Arrow test could not resolve player mana data");
+                magicData.setMana(100.0F);
+                player.invulnerableTime = 0;
+                var arrow = new jp.aquafactory.apprenticecodex.item.antimanaarrow.AntiManaArrowEntity(
+                        helper.getLevel(), player, new ItemStack(ItemRegistry.ANTI_MANA_ARROW.get()), new ItemStack(Items.BOW));
+                var event = postLivingAttackEventForGameTest(
+                        player, helper.getLevel().damageSources().arrow(arrow, player), 2.0F);
+
+                helper.assertTrue(event.isCanceled(), "Neutralization should cancel Anti Mana Arrow damage");
+                helper.assertTrue(Math.abs(magicData.getMana() - 50.0F) < 1.0e-4F,
+                        "Neutralization should spend the configured fixed Anti Mana Arrow cost");
+                helper.assertFalse(player.hasEffect(jp.aquafactory.apprenticecodex.registry.EffectRegistry.INERT_MANA_SHIELD),
+                        "Successful Anti Mana resistance should not apply Inert Mana Shield");
+                helper.succeed();
+            }
+        });
+    }
+
+    static void antiManaArrowDisablesUnprotectedManaShieldAfterCurrentHit(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "anti_mana_arrow_inert");
+            equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Anti Mana Arrow inert test could not resolve player mana data");
+            magicData.setMana(100.0F);
+            player.invulnerableTime = 0;
+            var arrow = new jp.aquafactory.apprenticecodex.item.antimanaarrow.AntiManaArrowEntity(
+                    helper.getLevel(), player, new ItemStack(ItemRegistry.ANTI_MANA_ARROW.get()), new ItemStack(Items.BOW));
+            var event = postLivingAttackEventForGameTest(
+                    player, helper.getLevel().damageSources().arrow(arrow, player), 2.0F);
+
+            helper.assertTrue(event.isCanceled(), "The current Anti Mana Arrow hit should still use the active barrier");
+            helper.assertTrue(Math.abs(magicData.getMana() - 50.0F) < 1.0e-4F,
+                    "The current Anti Mana Arrow hit should keep normal barrier mana consumption");
+            var inert = player.getEffect(jp.aquafactory.apprenticecodex.registry.EffectRegistry.INERT_MANA_SHIELD);
+            helper.assertTrue(inert != null && inert.getDuration() == 600,
+                    "Anti Mana Arrow should apply Inert Mana Shield for 30 seconds");
+            helper.assertTrue(inert != null && inert.getCures().isEmpty(),
+                    "Inert Mana Shield should not have milk or other standard cures");
+            helper.succeed();
+        });
+    }
+
+    static void neutralizationCounterspellResistanceRequiresFullManaCost(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            try (var ignored = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                    25.0D, 100, 30.0D, 50, 100, 1, 20
+            )) {
+                var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "counterspell_neutralization");
+                var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+                charm.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                        .getOrThrow(Enchantments.NEUTRALIZATION), 1);
+                equipCurio(player, CuriosSlotConstants.CHARM, charm);
+                var magicData = MagicData.getPlayerMagicData(player);
+                helper.assertTrue(magicData != null, "Counterspell resistance test could not resolve player mana data");
+
+                magicData.setMana(99.0F);
+                var insufficient = new io.redspace.ironsspellbooks.api.events.CounterSpellEvent(player, player);
+                net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(insufficient);
+                helper.assertFalse(insufficient.isCanceled(), "Counterspell resistance should fail below its full cost");
+                helper.assertTrue(Math.abs(magicData.getMana() - 99.0F) < 1.0e-4F,
+                        "Failed Counterspell resistance should not spend mana");
+
+                magicData.setMana(100.0F);
+                var sufficient = new io.redspace.ironsspellbooks.api.events.CounterSpellEvent(player, player);
+                net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(sufficient);
+                helper.assertTrue(sufficient.isCanceled(), "Counterspell resistance should activate at its full cost");
+                helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
+                        "Counterspell resistance should spend exactly its configured cost");
+                helper.assertTrue(getManaShieldCharmState(player).cooldownActive,
+                        "Spending the last mana on Counterspell resistance should start recovery cooldown");
+                helper.succeed();
             }
         });
     }

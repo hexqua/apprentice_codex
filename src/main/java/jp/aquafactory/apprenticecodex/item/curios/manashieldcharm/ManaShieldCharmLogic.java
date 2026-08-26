@@ -1,14 +1,17 @@
 package jp.aquafactory.apprenticecodex.item.curios.manashieldcharm;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.events.CounterSpellEvent;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.item.antimanaarrow.AntiManaArrowEntity;
 import jp.aquafactory.apprenticecodex.spell.forcefield.ForceFieldDefenseEvent;
-import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,6 +20,8 @@ import net.minecraft.world.damagesource.CombatRules;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -79,18 +84,29 @@ final class ManaShieldCharmLogic {
         if (state == null || state.manualReentryGuard) {
             return;
         }
+        if (state.cooldownActive || player.hasEffect(EffectRegistry.INERT_MANA_SHIELD)) {
+            return;
+        }
         if (shouldIgnoreDuringVanillaStyleIFrame(player, event)) {
             event.setCanceled(true);
             return;
         }
 
-        if (event.getSource().is(DamageTypeTags.BYPASSES_ARMOR)
-                && getExclusiveEnchantmentLevel(charmStack, Enchantments.NEUTRALIZATION) > 0) {
-            handleNeutralization(event, player, magicData);
-            return;
-        }
-        if (state.cooldownActive) {
-            return;
+        if (event.getSource().getDirectEntity() instanceof AntiManaArrowEntity) {
+            var hasNeutralization = getExclusiveEnchantmentLevel(charmStack, Enchantments.NEUTRALIZATION) > 0;
+            var resistanceCost = neutralizationAntiManaArrowManaCost();
+            if (hasNeutralization && magicData.getMana() >= resistanceCost) {
+                applyManaResult(player, magicData, magicData.getMana() - resistanceCost);
+                event.setCanceled(true);
+                applyVanillaStyleIFrame(player);
+                event.setInvulnerabilityTicks(Math.max(player.invulnerableTime, invulnerableTimeTicks()));
+                ForceFieldDefenseEvent.spawnManaShieldWallEffect(player, event.getSource(), magicData.getMana() <= 0.0F);
+                return;
+            }
+
+            player.addEffect(new MobEffectInstance(EffectRegistry.INERT_MANA_SHIELD, 20 * 30));
+            player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
+                    SoundRegistry.VANILLA_DEMICREATOR_BREAK.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
         }
 
         var enchantmentMode = resolveEnchantmentMode(charmStack, event.getSource());
@@ -152,6 +168,30 @@ final class ManaShieldCharmLogic {
 
     static void onDeath(ServerPlayer player) {
         withState(player, ManaShieldCharmState::reset);
+    }
+
+    static void onCounterSpell(CounterSpellEvent event, ServerPlayer player) {
+        if (event.isCanceled() || !player.isAlive() || !isEquippedBy(player)
+                || player.hasEffect(EffectRegistry.INERT_MANA_SHIELD)) {
+            return;
+        }
+        refreshCooldownIfRecovered(player);
+        var state = getState(player);
+        if (state == null || state.cooldownActive || state.manualReentryGuard) {
+            return;
+        }
+        var charmStack = getEquippedCharm(player);
+        if (charmStack.isEmpty()
+                || getExclusiveEnchantmentLevel(charmStack, Enchantments.NEUTRALIZATION) <= 0) {
+            return;
+        }
+        var magicData = MagicData.getPlayerMagicData(player);
+        var cost = neutralizationCounterspellManaCost();
+        if (magicData == null || magicData.getMana() < cost) {
+            return;
+        }
+        applyManaResult(player, magicData, magicData.getMana() - cost);
+        event.setCanceled(true);
     }
 
     private static DamageResolution resolveDamage(
@@ -308,23 +348,6 @@ final class ManaShieldCharmLogic {
         }
 
         spellData.edit(CodexSpellStateTypeRegister.MANA_SHIELD_CHARM_STATE, consumer);
-    }
-
-    private static void handleNeutralization(LivingIncomingDamageEvent event, ServerPlayer player, MagicData magicData) {
-        var recoverMana = calculateRecoveryMana(event.getAmount());
-        if (recoverMana > 0.0F) {
-            MagicTools.recoverManaSafely(player, magicData, recoverMana);
-            refreshCooldownIfRecovered(player);
-        }
-
-        event.setCanceled(true);
-        applyVanillaStyleIFrame(player);
-        event.setInvulnerabilityTicks(Math.max(player.invulnerableTime, invulnerableTimeTicks()));
-        ForceFieldDefenseEvent.spawnManaShieldWallEffect(player, event.getSource(), false);
-    }
-
-    private static float calculateRecoveryMana(float incomingDamage) {
-        return countWholeDamageSteps(incomingDamage) * neutralizationRecoverManaPerDamage();
     }
 
     private static EnchantmentMode resolveEnchantmentMode(ItemStack charmStack, DamageSource source) {
@@ -594,8 +617,12 @@ final class ManaShieldCharmLogic {
         return ApprenticeCodexServerConfig.manaShieldCharmSynchronizationManaPerDamage();
     }
 
-    private static float neutralizationRecoverManaPerDamage() {
-        return ApprenticeCodexServerConfig.manaShieldCharmNeutralizationRecoverManaPerDamage();
+    private static int neutralizationAntiManaArrowManaCost() {
+        return ApprenticeCodexServerConfig.manaShieldCharmNeutralizationAntiManaArrowManaCost();
+    }
+
+    private static int neutralizationCounterspellManaCost() {
+        return ApprenticeCodexServerConfig.manaShieldCharmNeutralizationCounterspellManaCost();
     }
 
     private static int invulnerableTimeTicks() {

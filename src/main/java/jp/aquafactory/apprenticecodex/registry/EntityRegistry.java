@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity;
+import jp.aquafactory.apprenticecodex.item.antimanaarrow.AntiManaArrowEntity;
 import jp.aquafactory.apprenticecodex.entity.broom.AbstractBroomEntity;
 import jp.aquafactory.apprenticecodex.entity.broom.FloatmountBroomEntity;
 import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomEntity;
@@ -347,8 +348,16 @@ public final class EntityRegistry {
                     AbstractBroomEntity.WIDTH, AbstractBroomEntity.HEIGHT,
                     64, 1, true, FireBehaviors.VULNERABLE);
 
+    public static final DeferredHolder<EntityType<?>, EntityType<AntiManaArrowEntity>> ANTI_MANA_ARROW =
+            ENTITIES.register("anti_mana_arrow", () -> EntityType.Builder
+                    .<AntiManaArrowEntity>of(AntiManaArrowEntity::new, MobCategory.MISC)
+                    .sized(0.5F, 0.5F)
+                    .eyeHeight(0.13F)
+                    .clientTrackingRange(4)
+                    .updateInterval(20)
+                    .build("anti_mana_arrow"));
+
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);
     }
 }
-

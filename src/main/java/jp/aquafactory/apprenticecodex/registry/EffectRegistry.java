@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.effect.EchoSpell;
 import jp.aquafactory.apprenticecodex.effect.FrostTrapped;
 import jp.aquafactory.apprenticecodex.effect.GravityBound;
 import jp.aquafactory.apprenticecodex.effect.Intelligence;
+import jp.aquafactory.apprenticecodex.effect.InertManaShieldEffect;
 import jp.aquafactory.apprenticecodex.effect.LongStrideMobility;
 import jp.aquafactory.apprenticecodex.effect.ManaRegeneration;
 import jp.aquafactory.apprenticecodex.effect.MistFormEffect;
@@ -67,6 +68,8 @@ public final class EffectRegistry {
             EFFECTS.register("notched_frozen", NotchedFrozenEffect::new);
     public static final DeferredHolder<MobEffect, MobEffect> GRAVITY_BOUND =
             EFFECTS.register("gravity_bound", GravityBound::new);
+    public static final DeferredHolder<MobEffect, MobEffect> INERT_MANA_SHIELD =
+            EFFECTS.register("inert_mana_shield", InertManaShieldEffect::new);
 
     public static void register(IEventBus eventBus) {
         EFFECTS.register(eventBus);
@@ -81,4 +84,3 @@ public final class EffectRegistry {
         });
     }
 }
-
