@@ -104,7 +104,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 TOTEM_OF_PERMAFROST,
                 FIELD_OVERSEER,
                 SERVANT_GAZE,
-                FUJIN
+                FUJIN,
+                COMBUSTION_JET
         );
 
         // IGNORE_ARMOR : 防御力無視、盾無視、ウィッチ抵抗(Malumは無関係)
@@ -120,7 +121,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
 
         // FIRE_DAMAGE: 火炎耐性有効.
         tag(FIRE_DAMAGE).add(
-                THERMAL_PROCESS
+                THERMAL_PROCESS,
+                COMBUSTION_JET
         );
 
         // BYPASSES_IFRAME: 無敵時間を無視するダメージ.
@@ -194,7 +196,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 TOTEM_OF_PERMAFROST,
                 FIELD_OVERSEER,
                 SERVANT_GAZE,
-                FUJIN
+                FUJIN,
+                COMBUSTION_JET
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.

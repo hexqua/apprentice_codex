@@ -45,6 +45,7 @@ public enum DamageMultiplierKey {
     FIELD_OVERSEER("fieldOverseer"),
     SERVANT_GAZE("servantGaze"),
     FUJIN("fujin"),
+    COMBUSTION_JET("combustion_jet"),
     ;
 
     private final String configKey;

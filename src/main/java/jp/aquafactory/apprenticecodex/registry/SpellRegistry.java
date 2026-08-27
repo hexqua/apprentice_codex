@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.spell.boundsword.BoundSword;
 import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemy;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStream;
 import jp.aquafactory.apprenticecodex.spell.callbroom.CallBroom;
+import jp.aquafactory.apprenticecodex.spell.combustionjet.CombustionJet;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFire;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunk;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhial;
@@ -145,6 +146,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> THERMAL_PROCESS = reg("thermal_process", ThermalProcess::new);
     public static final RegistryObject<AbstractSpell> MAGIC_SPEAR = reg("magic_spear", MagicSpear::new);
     public static final RegistryObject<AbstractSpell> ARTISAN_SMASH = reg("artisan_smash", ArtisanSmash::new);
+    public static final RegistryObject<AbstractSpell> COMBUSTION_JET = reg("combustion_jet", CombustionJet::new);
 
     // 聖.
     public static final RegistryObject<AbstractSpell> MAGE_LIGHT = reg("mage_light", MageLight::new);
