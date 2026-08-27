@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.antimanaarrow.AntiManaArrowEntity;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.anchorblink.AnchorBlinkDaggerEntity;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
@@ -347,6 +348,14 @@ public final class EntityRegistry {
             reg("hoverride_broom", HoverrideBroomEntity::new, MobCategory.MISC,
                     AbstractBroomEntity.WIDTH, AbstractBroomEntity.HEIGHT,
                     64, 1, true, FireBehaviors.VULNERABLE);
+
+    public static final RegistryObject<EntityType<AntiManaArrowEntity>> ANTI_MANA_ARROW =
+            ENTITIES.register("anti_mana_arrow", () -> EntityType.Builder
+                    .<AntiManaArrowEntity>of(AntiManaArrowEntity::new, MobCategory.MISC)
+                    .sized(0.5F, 0.5F)
+                    .clientTrackingRange(4)
+                    .updateInterval(20)
+                    .build("anti_mana_arrow"));
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

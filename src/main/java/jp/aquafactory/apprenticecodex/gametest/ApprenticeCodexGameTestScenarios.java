@@ -12275,32 +12275,6 @@ public class ApprenticeCodexGameTestScenarios {
         return Math.max(remainingMana, 0.0F);
     }
 
-    static float resolveExpectedSynchronizationManaAfterHitForGameTest(
-            float incomingDamage,
-            float availableMana,
-            int protection
-    ) {
-        var reducedDamage = CombatRules.getDamageAfterMagicAbsorb(incomingDamage, protection);
-        var remainingMitigatedDamage = Math.max(incomingDamage - reducedDamage, 0.0F);
-        var remainingMana = availableMana;
-        var synchronizationManaPerDamage = ApprenticeCodexServerConfig.manaShieldCharmSynchronizationManaPerDamage();
-
-        if (synchronizationManaPerDamage > 0.0F) {
-            while (remainingMitigatedDamage >= 1.0F && remainingMana >= synchronizationManaPerDamage) {
-                remainingMitigatedDamage -= 1.0F;
-                remainingMana -= synchronizationManaPerDamage;
-            }
-        } else {
-            remainingMitigatedDamage = 0.0F;
-        }
-
-        if (remainingMitigatedDamage >= 1.0F) {
-            return 0.0F;
-        }
-
-        return resolveExpectedBarrierManaAfterHitForGameTest(reducedDamage, remainingMana);
-    }
-
     static int countWholeDamageStepsForGameTest(float damage) {
         var remainingDamage = damage;
         var count = 0;

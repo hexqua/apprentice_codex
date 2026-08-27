@@ -150,6 +150,16 @@ public final class SpellcasterWorkbenchRecipeDataGenerator implements DataProvid
                         List.of(result(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 16)),
                         0
                 ),
+                recipe(
+                        "anti_mana_arrow",
+                        List.of(
+                                ingredient(Items.ARROW, 4),
+                                ingredient(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get(), 1),
+                                ingredient(io.redspace.ironsspellbooks.registries.ItemRegistry.DIVINE_PEARL.get(), 1)
+                        ),
+                        List.of(result(ItemRegistry.ANTI_MANA_ARROW.get(), 4)),
+                        0
+                ),
                 luminousDeviceUpgradeRecipe(
                         "luminous_device_clean_upgrade",
                         ingredient(TagRegistry.Items.LUMINOUS_DEVICE_CLEAN_UPGRADE_CATALYSTS, 1),

@@ -1,20 +1,26 @@
 package jp.aquafactory.apprenticecodex.item.curios.manashieldcharm;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.events.CounterSpellEvent;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.item.antimanaarrow.AntiManaArrowEntity;
 import jp.aquafactory.apprenticecodex.spell.forcefield.ForceFieldDefenseEvent;
-import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.CombatRules;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
@@ -75,30 +81,43 @@ final class ManaShieldCharmLogic {
         if (state == null || state.manualReentryGuard) {
             return;
         }
+        if (state.cooldownActive || player.hasEffect(EffectRegistry.INERT_MANA_SHIELD.get())) {
+            return;
+        }
         if (shouldIgnoreDuringVanillaStyleIFrame(player, event)) {
             event.setCanceled(true);
             return;
         }
 
-        if (event.getSource().is(DamageTypeTags.BYPASSES_ARMOR)
-                && getExclusiveEnchantmentLevel(charmStack, EnchantmentRegistry.NEUTRALIZATION) > 0) {
-            handleNeutralization(event, player, magicData);
-            return;
-        }
-        if (state.cooldownActive) {
-            return;
+        if (event.getSource().getDirectEntity() instanceof AntiManaArrowEntity) {
+            var hasNeutralization = getExclusiveEnchantmentLevel(charmStack, EnchantmentRegistry.NEUTRALIZATION) > 0;
+            var resistanceCost = neutralizationAntiManaArrowManaCost();
+            if (hasNeutralization && magicData.getMana() >= resistanceCost) {
+                applyManaResult(player, magicData, magicData.getMana() - resistanceCost);
+                event.setCanceled(true);
+                applyVanillaStyleIFrame(player);
+                player.invulnerableTime = Math.max(player.invulnerableTime, invulnerableTimeTicks());
+                ForceFieldDefenseEvent.spawnManaShieldWallEffect(player, event.getSource(), magicData.getMana() <= 0.0F);
+                return;
+            }
+
+            player.addEffect(new MobEffectInstance(EffectRegistry.INERT_MANA_SHIELD.get(), 20 * 30));
+            player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
+                    SoundRegistry.VANILLA_DEMICREATOR_BREAK.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
         }
 
-        var enchantmentMode = resolveEnchantmentMode(charmStack, event.getSource());
+        var enchantmentMode = resolveEnchantmentMode(charmStack);
         var resolution = resolveDamage(event.getAmount(), magicData.getMana(), player, event.getSource(), enchantmentMode);
+        if (magicData.getMana() > resolution.remainingMana() + 1.0e-4F) {
+            applyManaResult(player, magicData, resolution.remainingMana());
+        }
         if (resolution.negatedDamage() <= 0.0F) {
             return;
         }
 
-        applyManaResult(player, magicData, resolution.remainingMana());
         event.setCanceled(true);
-        if (resolution.consumeShellArmorDurability()) {
-            damageArmorPiecesForShell(player);
+        if (resolution.shellArmorDurabilityDamage() > 0) {
+            damageArmorPiecesForShell(player, resolution.shellArmorDurabilityDamage());
         }
 
         switch (resolution.mitigationResult()) {
@@ -147,6 +166,30 @@ final class ManaShieldCharmLogic {
         withState(player, ManaShieldCharmState::reset);
     }
 
+    static void onCounterSpell(CounterSpellEvent event, ServerPlayer player) {
+        if (event.isCanceled() || !player.isAlive() || !isEquippedBy(player)
+                || player.hasEffect(EffectRegistry.INERT_MANA_SHIELD.get())) {
+            return;
+        }
+        refreshCooldownIfRecovered(player);
+        var state = getState(player);
+        if (state == null || state.cooldownActive || state.manualReentryGuard) {
+            return;
+        }
+        var charmStack = getEquippedCharm(player);
+        if (charmStack.isEmpty()
+                || getExclusiveEnchantmentLevel(charmStack, EnchantmentRegistry.NEUTRALIZATION) <= 0) {
+            return;
+        }
+        var magicData = MagicData.getPlayerMagicData(player);
+        var cost = neutralizationCounterspellManaCost();
+        if (magicData == null || magicData.getMana() < cost) {
+            return;
+        }
+        applyManaResult(player, magicData, magicData.getMana() - cost);
+        event.setCanceled(true);
+    }
+
     private static DamageResolution resolveDamage(
             float incomingDamage,
             float currentMana,
@@ -174,7 +217,7 @@ final class ManaShieldCharmLogic {
                 barrierResolution.remainingDamage(),
                 barrierResolution.hitManaBudget().remainingMana(),
                 ResidualDamageProfile.VANILLA,
-                false
+                0
         );
     }
 
@@ -184,18 +227,47 @@ final class ManaShieldCharmLogic {
             ServerPlayer player,
             DamageSource source
     ) {
-        var reducedDamage = applyArmorReduction(player, source, incomingDamage);
+        var activationManaCost = shellActivationManaCost();
+        var remainingManaAfterActivation = Math.max(currentMana - activationManaCost, 0.0F);
+        if (currentMana < activationManaCost) {
+            return new DamageResolution(
+                    0.0F,
+                    incomingDamage,
+                    remainingManaAfterActivation,
+                    ResidualDamageProfile.VANILLA,
+                    0
+            );
+        }
+
+        if (source.is(DamageTypeTags.BYPASSES_ARMOR)) {
+            var barrierResolution = negateDamageWithMana(
+                    incomingDamage,
+                    HitManaBudget.forIncomingHit(remainingManaAfterActivation),
+                    manaPerDamage()
+            );
+            return new DamageResolution(
+                    barrierResolution.negatedDamage(),
+                    barrierResolution.remainingDamage(),
+                    barrierResolution.hitManaBudget().remainingMana(),
+                    ResidualDamageProfile.VANILLA,
+                    0
+            );
+        }
+
+        var armorReducedDamage = applyArmorReduction(player, source, incomingDamage);
+        var reducedDamage = applyEnchantmentProtection(player, source, armorReducedDamage);
+        var mitigatedDamage = Math.max(incomingDamage - reducedDamage, 0.0F);
         var barrierResolution = negateDamageWithMana(
                 reducedDamage,
-                HitManaBudget.forIncomingHit(currentMana),
+                HitManaBudget.forIncomingHit(remainingManaAfterActivation),
                 manaPerDamage()
         );
         return new DamageResolution(
-                barrierResolution.negatedDamage(),
+                mitigatedDamage + barrierResolution.negatedDamage(),
                 barrierResolution.remainingDamage(),
                 barrierResolution.hitManaBudget().remainingMana(),
                 ResidualDamageProfile.SHELL,
-                true
+                mitigatedDamage > 1.0e-4F ? shellArmorDurabilityDamage(incomingDamage) : 0
         );
     }
 
@@ -205,34 +277,18 @@ final class ManaShieldCharmLogic {
             ServerPlayer player,
             DamageSource source
     ) {
-        var reducedDamage = applyEnchantmentProtection(player, source, incomingDamage);
-        var mitigatedBySynchronization = Math.max(incomingDamage - reducedDamage, 0.0F);
-        var synchronizationCharge = consumeMitigationCost(
-                mitigatedBySynchronization,
-                HitManaBudget.forIncomingHit(currentMana),
-                synchronizationManaPerDamage()
-        );
-        if (synchronizationCharge.stopBeforeBarrierStage()) {
-            return new DamageResolution(
-                    mitigatedBySynchronization,
-                    reducedDamage,
-                    synchronizationCharge.hitManaBudget().remainingMana(),
-                    ResidualDamageProfile.SYNCHRONIZATION,
-                    false
-            );
-        }
-
+        var manaCostPerDamage = synchronizationManaCostPerDamage(source);
         var barrierResolution = negateDamageWithMana(
-                reducedDamage,
-                synchronizationCharge.hitManaBudget(),
-                manaPerDamage()
+                incomingDamage,
+                HitManaBudget.forIncomingHit(currentMana),
+                manaCostPerDamage
         );
         return new DamageResolution(
-                mitigatedBySynchronization + barrierResolution.negatedDamage(),
+                barrierResolution.negatedDamage(),
                 barrierResolution.remainingDamage(),
                 barrierResolution.hitManaBudget().remainingMana(),
-                ResidualDamageProfile.SYNCHRONIZATION,
-                false
+                ResidualDamageProfile.VANILLA,
+                0
         );
     }
 
@@ -305,26 +361,7 @@ final class ManaShieldCharmLogic {
         spellData.edit(CodexSpellStateTypeRegister.MANA_SHIELD_CHARM_STATE, consumer);
     }
 
-    private static void handleNeutralization(LivingAttackEvent event, ServerPlayer player, MagicData magicData) {
-        var recoverMana = calculateRecoveryMana(event.getAmount());
-        if (recoverMana > 0.0F) {
-            MagicTools.recoverManaSafely(player, magicData, recoverMana);
-            refreshCooldownIfRecovered(player);
-        }
-
-        event.setCanceled(true);
-        applyVanillaStyleIFrame(player);
-        ForceFieldDefenseEvent.spawnManaShieldWallEffect(player, event.getSource(), false);
-    }
-
-    private static float calculateRecoveryMana(float incomingDamage) {
-        return countWholeDamageSteps(incomingDamage) * neutralizationRecoverManaPerDamage();
-    }
-
-    private static EnchantmentMode resolveEnchantmentMode(ItemStack charmStack, DamageSource source) {
-        if (source.is(DamageTypeTags.BYPASSES_ARMOR)) {
-            return EnchantmentMode.NONE;
-        }
+    private static EnchantmentMode resolveEnchantmentMode(ItemStack charmStack) {
         if (getExclusiveEnchantmentLevel(charmStack, EnchantmentRegistry.SHELL) > 0) {
             return EnchantmentMode.SHELL;
         }
@@ -384,38 +421,6 @@ final class ManaShieldCharmLogic {
         );
     }
 
-    private static MitigationChargeResult consumeMitigationCost(
-            float mitigatedDamage,
-            HitManaBudget hitManaBudget,
-            float manaPerDamage
-    ) {
-        var remainingDamage = mitigatedDamage;
-        var remainingMana = hitManaBudget.remainingMana();
-
-        if (manaPerDamage <= 0.0F) {
-            return new MitigationChargeResult(hitManaBudget, false);
-        }
-
-        while (remainingDamage >= DAMAGE_STEP && remainingMana >= manaPerDamage) {
-            remainingDamage -= DAMAGE_STEP;
-            remainingMana -= manaPerDamage;
-        }
-
-        if (remainingDamage >= DAMAGE_STEP) {
-            // Synchronization は enchant 軽減コスト段階で不足した時点で hit を burned-out 扱いにし、
-            // 後段の通常障壁まで進ませない。ここでさらに barrier 側も救済すると 1 ヒット 2 回無料になる。
-            if (hitManaBudget.overdraftAvailable() && remainingMana > 0.0F) {
-                return new MitigationChargeResult(new HitManaBudget(0.0F, false), true);
-            }
-            return new MitigationChargeResult(new HitManaBudget(0.0F, false), true);
-        }
-
-        return new MitigationChargeResult(
-                new HitManaBudget(remainingMana, hitManaBudget.overdraftAvailable()),
-                false
-        );
-    }
-
     private static float applyArmorReduction(ServerPlayer player, DamageSource source, float damage) {
         if (source.is(DamageTypeTags.BYPASSES_ARMOR)) {
             return damage;
@@ -444,12 +449,7 @@ final class ManaShieldCharmLogic {
         return damage;
     }
 
-    private static void damageArmorPiecesForShell(ServerPlayer player) {
-        var durabilityDamage = ApprenticeCodexServerConfig.manaShieldCharmShellArmorDurabilityDamage();
-        if (durabilityDamage <= 0) {
-            return;
-        }
-
+    private static void damageArmorPiecesForShell(ServerPlayer player, int durabilityDamage) {
         for (var slot : new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET}) {
             var armorStack = player.getItemBySlot(slot);
             if (armorStack.isEmpty() || !armorStack.isDamageableItem()) {
@@ -473,18 +473,10 @@ final class ManaShieldCharmLogic {
         switch (profile) {
             case VANILLA -> player.hurt(source, damage);
             case SHELL -> hurtWithShellResidualProfile(player, source, damage);
-            case SYNCHRONIZATION -> hurtWithSynchronizationResidualProfile(player, source, damage);
         }
     }
 
     private static void hurtWithShellResidualProfile(ServerPlayer player, DamageSource source, float damage) {
-        damage = applyResistanceReduction(player, source, damage);
-        damage = applyEnchantmentProtection(player, source, damage);
-        applyDirectResidualDamage(player, source, damage);
-    }
-
-    private static void hurtWithSynchronizationResidualProfile(ServerPlayer player, DamageSource source, float damage) {
-        damage = applyArmorReduction(player, source, damage);
         damage = applyResistanceReduction(player, source, damage);
         applyDirectResidualDamage(player, source, damage);
     }
@@ -562,16 +554,6 @@ final class ManaShieldCharmLogic {
                 .sum();
     }
 
-    private static int countWholeDamageSteps(float damage) {
-        var remainingDamage = damage;
-        var count = 0;
-        while (remainingDamage >= DAMAGE_STEP) {
-            remainingDamage -= DAMAGE_STEP;
-            ++count;
-        }
-        return count;
-    }
-
     private static float manaPerDamage() {
         return ApprenticeCodexServerConfig.manaShieldCharmManaPerDamage();
     }
@@ -580,12 +562,33 @@ final class ManaShieldCharmLogic {
         return ApprenticeCodexServerConfig.manaShieldCharmRecoveryThresholdMana();
     }
 
-    private static float synchronizationManaPerDamage() {
-        return ApprenticeCodexServerConfig.manaShieldCharmSynchronizationManaPerDamage();
+    private static int shellActivationManaCost() {
+        return ApprenticeCodexServerConfig.manaShieldCharmShellActivationManaCost();
     }
 
-    private static float neutralizationRecoverManaPerDamage() {
-        return ApprenticeCodexServerConfig.manaShieldCharmNeutralizationRecoverManaPerDamage();
+    private static int shellArmorDurabilityDamage(float incomingDamage) {
+        var multiplier = ApprenticeCodexServerConfig.manaShieldCharmShellArmorDurabilityDamage();
+        return (int) Math.ceil(incomingDamage / 4.0F * multiplier);
+    }
+
+    private static float synchronizationManaCostPerDamage(DamageSource source) {
+        var cost = manaPerDamage()
+                + ApprenticeCodexServerConfig.manaShieldCharmSynchronizationAdditionalManaPerDamage();
+        var benefitsFromSynchronization = source.is(DamageTypes.FELL_OUT_OF_WORLD)
+                || (source.is(DamageTypeTags.BYPASSES_ARMOR)
+                && !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY));
+        if (benefitsFromSynchronization) {
+            cost -= ApprenticeCodexServerConfig.manaShieldCharmSynchronizationArmorBypassManaReductionPerDamage();
+        }
+        return Math.max(cost, 0.0F);
+    }
+
+    private static int neutralizationAntiManaArrowManaCost() {
+        return ApprenticeCodexServerConfig.manaShieldCharmNeutralizationAntiManaArrowManaCost();
+    }
+
+    private static int neutralizationCounterspellManaCost() {
+        return ApprenticeCodexServerConfig.manaShieldCharmNeutralizationCounterspellManaCost();
     }
 
     private static int invulnerableTimeTicks() {
@@ -600,8 +603,7 @@ final class ManaShieldCharmLogic {
 
     private enum ResidualDamageProfile {
         VANILLA,
-        SHELL,
-        SYNCHRONIZATION
+        SHELL
     }
 
     private enum EnchantmentMode {
@@ -623,9 +625,6 @@ final class ManaShieldCharmLogic {
     ) {
     }
 
-    private record MitigationChargeResult(HitManaBudget hitManaBudget, boolean stopBeforeBarrierStage) {
-    }
-
     private record ArmorStats(float armor, float toughness) {
     }
 
@@ -634,7 +633,7 @@ final class ManaShieldCharmLogic {
             float remainingDamage,
             float remainingMana,
             ResidualDamageProfile residualDamageProfile,
-            boolean consumeShellArmorDurability
+            int shellArmorDurabilityDamage
     ) {
         private MitigationResult mitigationResult() {
             if (remainingDamage <= 0.0F) {

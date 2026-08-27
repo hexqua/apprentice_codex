@@ -189,6 +189,7 @@ public final class CreativeTabRegistry {
     }
 
     private static void addUniqueMagicItemToTab(CreativeModeTab.Output output) {
+        output.accept(ItemRegistry.ANTI_MANA_ARROW.get());
         output.accept(ItemRegistry.INSTANT_SEARCH_BRAZIER.get());
         output.accept(ItemRegistry.GRIMOIRE_MANIFEST.get());
         output.accept(ItemRegistry.STORAGE_STABILIZER.get());
