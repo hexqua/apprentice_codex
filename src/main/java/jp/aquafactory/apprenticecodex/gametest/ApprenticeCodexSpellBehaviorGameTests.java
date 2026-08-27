@@ -179,6 +179,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = COMBUSTION_JET_ISOLATED_BATCH)
+    public static void combustionJetCastStopsBeforeThinCover(GameTestHelper helper) {
+        CombustionJetGameTestScenarios.combustionJetCastStopsBeforeThinCover(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = COMBUSTION_JET_ISOLATED_BATCH)
     public static void combustionJetWaveHitsWideAreaOnce(GameTestHelper helper) {
         CombustionJetGameTestScenarios.combustionJetWaveHitsWideAreaOnce(helper);
     }
