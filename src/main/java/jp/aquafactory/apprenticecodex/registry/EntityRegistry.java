@@ -358,7 +358,7 @@ public final class EntityRegistry {
                     .updateInterval(20)
                     .build("anti_mana_arrow"));
 
-    public static final DeferredHolder<EntityType<?>, EntityType<CombustionJetWaveEntity>> COMBUSTION_JET_WAVE =
+    public static final RegistryObject<EntityType<CombustionJetWaveEntity>> COMBUSTION_JET_WAVE =
             regProjectile("combustion_jet_wave", CombustionJetWaveEntity::new, 64, 1);
 
     public static void register(IEventBus bus) {

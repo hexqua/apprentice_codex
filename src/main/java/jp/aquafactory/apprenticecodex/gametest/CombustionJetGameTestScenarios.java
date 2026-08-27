@@ -15,7 +15,7 @@ import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
+import net.minecraftforge.common.util.FakePlayer;
 
 import java.util.UUID;
 
@@ -39,7 +39,7 @@ final class CombustionJetGameTestScenarios {
         var searchBounds = owner.getBoundingBox().inflate(4.0D);
         var waves = level.getEntitiesOfClass(CombustionJetWaveEntity.class, searchBounds);
         helper.assertTrue(waves.size() == 1, "Combustion Jet should spawn exactly one wave");
-        var wave = waves.getFirst();
+        var wave = waves.get(0);
         helper.assertTrue(Math.abs(wave.getDeltaMovement().length() - 2.25D) < POSITION_EPSILON,
                 "Combustion Jet wave should be 2.25d speed");
         helper.assertTrue(Math.abs(wave.getMaxTravelDistanceForGameTest() - 10.0F) < VALUE_EPSILON,
@@ -71,7 +71,7 @@ final class CombustionJetGameTestScenarios {
 
         var waves = level.getEntitiesOfClass(CombustionJetWaveEntity.class, owner.getBoundingBox().inflate(4.0D));
         helper.assertTrue(waves.size() == 1, "Combustion Jet should spawn exactly one wave before thin cover");
-        var wave = waves.getFirst();
+        var wave = waves.get(0);
         helper.assertTrue(wave.position().distanceTo(eyePosition) < 1.0D,
                 "Combustion Jet should shorten its spawn distance before thin cover");
 

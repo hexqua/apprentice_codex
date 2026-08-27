@@ -29,7 +29,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.event.EventHooks;
+import net.minecraftforge.event.ForgeEventFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -97,8 +97,8 @@ public class CombustionJetWaveEntity extends Projectile
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        builder.define(MAX_TRAVEL_DISTANCE, 0.0F);
+    protected void defineSynchedData() {
+        entityData.define(MAX_TRAVEL_DISTANCE, 0.0F);
     }
 
     @Override
@@ -114,7 +114,7 @@ public class CombustionJetWaveEntity extends Projectile
         if (!level().isClientSide) {
             var blockHit = findBlockCollision(activeMovement);
             var shouldDiscardOnBlockHit = blockHit != null
-                    && !EventHooks.onProjectileImpact(this, blockHit);
+                    && !ForgeEventFactory.onProjectileImpact(this, blockHit);
             var entityMovement = shouldDiscardOnBlockHit
                     ? blockHit.getLocation().subtract(position())
                     : activeMovement;
