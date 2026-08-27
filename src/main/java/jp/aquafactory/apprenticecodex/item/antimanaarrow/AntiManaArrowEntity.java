@@ -75,7 +75,7 @@ public final class AntiManaArrowEntity extends AbstractArrow {
     }
 
     @Override
-    protected @NotNull ItemStack getDefaultPickupItem() {
+    protected @NotNull ItemStack getPickupItem() {
         return ItemRegistry.ANTI_MANA_ARROW.get().getDefaultInstance();
     }
 

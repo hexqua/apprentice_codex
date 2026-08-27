@@ -294,15 +294,13 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
             bypassArmor.invulnerableTime = 0;
             var normalSource = helper.getLevel().damageSources().lava();
             var armorReduced = CombatRules.getDamageAfterAbsorb(
-                    armored,
                     8.0F,
-                    normalSource,
                     getEquippedAttributeTotal(armored, Attributes.ARMOR),
                     getEquippedAttributeTotal(armored, Attributes.ARMOR_TOUGHNESS)
             );
             var fullyReduced = CombatRules.getDamageAfterMagicAbsorb(
                     armorReduced,
-                    EnchantmentHelper.getDamageProtection(helper.getLevel(), armored, normalSource)
+                    EnchantmentHelper.getDamageProtection(armored.getArmorSlots(), normalSource)
             );
             var armoredEvent = postLivingAttackEventForGameTest(armored, normalSource, 8.0F);
             var unarmoredEvent = postLivingAttackEventForGameTest(unarmored, normalSource, 8.0F);
@@ -364,9 +362,8 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
         helper.succeedIf(() -> {
             var armored = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mana_shield_shell_exact_cost_armored_test");
             var bypassArmor = createTrackedEquipmentTestPlayer(helper, new BlockPos(3, 2, 0), "mana_shield_shell_exact_cost_bypass_test");
-            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             var shellCharm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-            shellCharm.enchant(enchantmentLookup.getOrThrow(Enchantments.SHELL), 1);
+            shellCharm.enchant(EnchantmentRegistry.SHELL.get(), 1);
             equipCurio(armored, CuriosSlotConstants.CHARM, shellCharm.copy());
             equipCurio(bypassArmor, CuriosSlotConstants.CHARM, shellCharm.copy());
 
@@ -801,7 +798,7 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
                 helper.assertTrue(event.isCanceled(), "Neutralization should cancel Anti Mana Arrow damage");
                 helper.assertTrue(Math.abs(magicData.getMana() - 50.0F) < 1.0e-4F,
                         "Neutralization should spend the configured fixed Anti Mana Arrow cost");
-                helper.assertFalse(player.hasEffect(jp.aquafactory.apprenticecodex.registry.EffectRegistry.INERT_MANA_SHIELD),
+                helper.assertFalse(player.hasEffect(jp.aquafactory.apprenticecodex.registry.EffectRegistry.INERT_MANA_SHIELD.get()),
                         "Successful Anti Mana resistance should not apply Inert Mana Shield");
                 helper.succeed();
             }
@@ -824,7 +821,7 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
             helper.assertTrue(event.isCanceled(), "The current Anti Mana Arrow hit should still use the active barrier");
             helper.assertTrue(Math.abs(magicData.getMana() - 50.0F) < 1.0e-4F,
                     "The current Anti Mana Arrow hit should keep normal barrier mana consumption");
-            var inert = player.getEffect(jp.aquafactory.apprenticecodex.registry.EffectRegistry.INERT_MANA_SHIELD);
+            var inert = player.getEffect(jp.aquafactory.apprenticecodex.registry.EffectRegistry.INERT_MANA_SHIELD.get());
             helper.assertTrue(inert != null && inert.getDuration() == 600,
                     "Anti Mana Arrow should apply Inert Mana Shield for 30 seconds");
             helper.assertTrue(inert != null && inert.getCurativeItems().isEmpty(),

@@ -81,7 +81,7 @@ final class ManaShieldCharmLogic {
         if (state == null || state.manualReentryGuard) {
             return;
         }
-        if (state.cooldownActive || player.hasEffect(EffectRegistry.INERT_MANA_SHIELD)) {
+        if (state.cooldownActive || player.hasEffect(EffectRegistry.INERT_MANA_SHIELD.get())) {
             return;
         }
         if (shouldIgnoreDuringVanillaStyleIFrame(player, event)) {
@@ -96,12 +96,12 @@ final class ManaShieldCharmLogic {
                 applyManaResult(player, magicData, magicData.getMana() - resistanceCost);
                 event.setCanceled(true);
                 applyVanillaStyleIFrame(player);
-                event.setInvulnerabilityTicks(Math.max(player.invulnerableTime, invulnerableTimeTicks()));
+                player.invulnerableTime = Math.max(player.invulnerableTime, invulnerableTimeTicks());
                 ForceFieldDefenseEvent.spawnManaShieldWallEffect(player, event.getSource(), magicData.getMana() <= 0.0F);
                 return;
             }
 
-            player.addEffect(new MobEffectInstance(EffectRegistry.INERT_MANA_SHIELD, 20 * 30));
+            player.addEffect(new MobEffectInstance(EffectRegistry.INERT_MANA_SHIELD.get(), 20 * 30));
             player.level().playSound(null, player.getX(), player.getY(), player.getZ(),
                     SoundRegistry.VANILLA_DEMICREATOR_BREAK.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
         }
@@ -168,7 +168,7 @@ final class ManaShieldCharmLogic {
 
     static void onCounterSpell(CounterSpellEvent event, ServerPlayer player) {
         if (event.isCanceled() || !player.isAlive() || !isEquippedBy(player)
-                || player.hasEffect(EffectRegistry.INERT_MANA_SHIELD)) {
+                || player.hasEffect(EffectRegistry.INERT_MANA_SHIELD.get())) {
             return;
         }
         refreshCooldownIfRecovered(player);
