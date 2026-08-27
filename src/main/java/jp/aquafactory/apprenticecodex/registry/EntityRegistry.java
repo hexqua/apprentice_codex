@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.SpellInvokeCardE
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunEntity;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleEntity;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
+import jp.aquafactory.apprenticecodex.spell.combustionjet.CombustionJetWaveEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsCoreEntity;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsWingEntity;
@@ -356,6 +357,9 @@ public final class EntityRegistry {
                     .clientTrackingRange(4)
                     .updateInterval(20)
                     .build("anti_mana_arrow"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<CombustionJetWaveEntity>> COMBUSTION_JET_WAVE =
+            regProjectile("combustion_jet_wave", CombustionJetWaveEntity::new, 64, 1);
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

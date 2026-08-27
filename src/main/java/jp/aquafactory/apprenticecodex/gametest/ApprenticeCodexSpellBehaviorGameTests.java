@@ -66,6 +66,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String HIGANBANA_ISOLATED_BATCH = "apprenticecodex.higanbana_isolated";
     private static final String KATANA_AREA_HIT_ISOLATED_BATCH = "apprenticecodex.katana_area_hit_isolated";
     private static final String FUJIN_ISOLATED_BATCH = "apprenticecodex.fujin_isolated";
+    private static final String COMBUSTION_JET_ISOLATED_BATCH = "apprenticecodex.combustion_jet_isolated";
     private static final String OTHERWORLD_LENS_ISOLATED_BATCH = "apprenticecodex.otherworld_lens_isolated";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
@@ -170,6 +171,36 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = FUJIN_ISOLATED_BATCH)
     public static void fujinSlashPiercesAndDamagesEachTargetOnceWithoutKnockback(GameTestHelper helper) {
         FujinGameTestScenarios.fujinSlashPiercesAndDamagesEachTargetOnceWithoutKnockback(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = COMBUSTION_JET_ISOLATED_BATCH)
+    public static void combustionJetCastSpawnsConfiguredWave(GameTestHelper helper) {
+        CombustionJetGameTestScenarios.combustionJetCastSpawnsConfiguredWave(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = COMBUSTION_JET_ISOLATED_BATCH)
+    public static void combustionJetWaveHitsWideAreaOnce(GameTestHelper helper) {
+        CombustionJetGameTestScenarios.combustionJetWaveHitsWideAreaOnce(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = COMBUSTION_JET_ISOLATED_BATCH)
+    public static void combustionJetWaveAppliesEffectsWhenDamageFails(GameTestHelper helper) {
+        CombustionJetGameTestScenarios.combustionJetWaveAppliesEffectsWhenDamageFails(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = COMBUSTION_JET_ISOLATED_BATCH)
+    public static void combustionJetWaveTargetsNonLivingCombatTarget(GameTestHelper helper) {
+        CombustionJetGameTestScenarios.combustionJetWaveTargetsNonLivingCombatTarget(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = COMBUSTION_JET_ISOLATED_BATCH)
+    public static void combustionJetWaveUsesSmallBlockCollision(GameTestHelper helper) {
+        CombustionJetGameTestScenarios.combustionJetWaveUsesSmallBlockCollision(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = COMBUSTION_JET_ISOLATED_BATCH)
+    public static void combustionJetWaveDisappearsAtRange(GameTestHelper helper) {
+        CombustionJetGameTestScenarios.combustionJetWaveDisappearsAtRange(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FUJIN_ISOLATED_BATCH)
