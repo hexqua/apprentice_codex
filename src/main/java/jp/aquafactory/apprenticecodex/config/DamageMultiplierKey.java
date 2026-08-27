@@ -46,6 +46,7 @@ public enum DamageMultiplierKey {
     SERVANT_GAZE("servantGaze"),
     FUJIN("fujin"),
     COMBUSTION_JET("combustion_jet"),
+    BLOOD_BRAND("blood_brand"),
     ;
 
     private final String configKey;
