@@ -54,6 +54,37 @@ final class CombustionJetGameTestScenarios {
         helper.succeed();
     }
 
+    static void combustionJetCastStopsBeforeThinCover(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var owner = createPlayer(helper, "combustion_jet_thin_cover");
+        owner.setYRot(0.0F);
+        owner.setXRot(0.0F);
+        var direction = owner.getLookAngle();
+        var eyePosition = owner.getEyePosition();
+        var coverPosition = BlockPos.containing(eyePosition.add(direction));
+        level.setBlockAndUpdate(coverPosition, Blocks.GLASS_PANE.defaultBlockState());
+        var target = createZombie(level, eyePosition.add(direction.scale(1.75D)).add(0.0D, -0.5D, 0.0D));
+        var targetHealth = target.getHealth();
+        var spell = (CombustionJet) SpellRegistry.COMBUSTION_JET.get();
+
+        spell.onCast(level, 1, owner, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(owner));
+
+        var waves = level.getEntitiesOfClass(CombustionJetWaveEntity.class, owner.getBoundingBox().inflate(4.0D));
+        helper.assertTrue(waves.size() == 1, "Combustion Jet should spawn exactly one wave before thin cover");
+        var wave = waves.getFirst();
+        helper.assertTrue(wave.position().distanceTo(eyePosition) < 1.0D,
+                "Combustion Jet should shorten its spawn distance before thin cover");
+
+        wave.tick();
+        helper.assertTrue(wave.isRemoved(), "Combustion Jet should collide with thin cover after spawning before it");
+        helper.assertTrue(Math.abs(target.getHealth() - targetHealth) < VALUE_EPSILON,
+                "Combustion Jet should not damage targets beyond thin cover near the caster");
+
+        level.setBlockAndUpdate(coverPosition, Blocks.AIR.defaultBlockState());
+        discardAll(target, owner);
+        helper.succeed();
+    }
+
     static void combustionJetWaveHitsWideAreaOnce(GameTestHelper helper) {
         var level = helper.getLevel();
         var owner = createPlayer(helper, "combustion_jet_width");

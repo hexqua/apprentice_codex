@@ -84,7 +84,8 @@ public class CombustionJet extends AbstractSpell {
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         var wave = new CombustionJetWaveEntity(EntityRegistry.COMBUSTION_JET_WAVE.get(), level, entity);
         var direction = entity.getLookAngle();
-        wave.setPos(entity.getEyePosition().add(direction));
+        wave.setPos(entity.getEyePosition());
+        wave.moveToCollisionLimitedSpawnPosition(direction);
         wave.setDamage(getDamage(spellLevel, entity));
         wave.setBurnDuration(getBurnDuration(spellLevel));
         wave.setMaxTravelDistance(getRange());

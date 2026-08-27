@@ -91,6 +91,11 @@ public class CombustionJetWaveEntity extends Projectile
         entityData.set(MAX_TRAVEL_DISTANCE, Math.max(0.0F, maxTravelDistance));
     }
 
+    void moveToCollisionLimitedSpawnPosition(Vec3 movement) {
+        var collision = scanBlockCollision(movement);
+        setPos(collision == null ? position().add(movement) : collision.previousPosition());
+    }
+
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         builder.define(MAX_TRAVEL_DISTANCE, 0.0F);
@@ -230,6 +235,11 @@ public class CombustionJetWaveEntity extends Projectile
     }
 
     private BlockHitResult findBlockCollision(Vec3 movement) {
+        var collision = scanBlockCollision(movement);
+        return collision == null ? null : collision.hitResult();
+    }
+
+    private BlockCollision scanBlockCollision(Vec3 movement) {
         var stepCount = Math.max(1, Mth.ceil(movement.length() / BLOCK_COLLISION_STEP));
         var step = movement.scale(1.0D / stepCount);
         var previousPos = position();
@@ -249,13 +259,16 @@ public class CombustionJetWaveEntity extends Projectile
                     this
             ));
             if (blockHit.getType() == HitResult.Type.BLOCK) {
-                return blockHit;
+                return new BlockCollision(blockHit, previousPos);
             }
-            return new BlockHitResult(
-                    currentPos,
-                    Direction.getNearest(-movement.x, -movement.y, -movement.z),
-                    BlockPos.containing(currentPos),
-                    false
+            return new BlockCollision(
+                    new BlockHitResult(
+                            currentPos,
+                            Direction.getNearest(-movement.x, -movement.y, -movement.z),
+                            BlockPos.containing(currentPos),
+                            false
+                    ),
+                    previousPos
             );
         }
         return null;
@@ -371,6 +384,9 @@ public class CombustionJetWaveEntity extends Projectile
     @Override
     public void setCombatOwnerUuid(@Nullable UUID combatOwnerUuid) {
         this.combatOwnerUuid = combatOwnerUuid;
+    }
+
+    private record BlockCollision(BlockHitResult hitResult, Vec3 previousPosition) {
     }
 
     private record WaveBasis(Vec3 forward, Vec3 lateral, Vec3 up) {
