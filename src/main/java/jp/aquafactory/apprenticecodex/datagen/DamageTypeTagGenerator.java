@@ -120,7 +120,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 FIELD_OVERSEER,
                 SERVANT_GAZE,
                 FUJIN,
-                COMBUSTION_JET
+                COMBUSTION_JET,
+                BLOOD_BRAND
         );
 
         // IGNORE_ARMOR : 防御力無視、盾無視、ウィッチ抵抗(Malumは無関係)
@@ -161,7 +162,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 INSCRIBE_ICE_BURST,
                 LETHAL_ASSAULT,
                 DUAL_ACROBAT,
-                FUJIN
+                FUJIN,
+                BLOOD_BRAND
         );
 
         // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効) ※召喚武器は遠距離扱い.
@@ -212,7 +214,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 FIELD_OVERSEER,
                 SERVANT_GAZE,
                 FUJIN,
-                COMBUSTION_JET
+                COMBUSTION_JET,
+                BLOOD_BRAND
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.
