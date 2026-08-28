@@ -762,7 +762,6 @@
   "config.jade.plugin_apprenticecodex.essence_smoker": "Essence Smoker",
   "config.jade.plugin_apprenticecodex.spell_dispenser": "Spell Dispenser",
   "config.jade.plugin_apprenticecodex.healing_bloom": "Healing Bloom",
-  "config.jade.plugin_apprenticecodex.archer_multiple": "Archer Multiple Bow",
   "config.jade.plugin_apprenticecodex.auto_turret": "Auto Turret",
   "config.jade.plugin_apprenticecodex.search_beacon": "Search Beacon",
   "config.jade.plugin_apprenticecodex.field_overseer": "Field Overseer",
@@ -865,7 +864,7 @@
   "spell.apprenticecodex.mana_transcription": "Mana Transcription",
 
   "spell.apprenticecodex.sky_edge.guide": "Summons a weapon that fires toward your line of sight. It has a wind-up and deals no knockback, but it can ignore the target's invulnerability frames.",
-  "spell.apprenticecodex.archer_multiple.guide": "Summons a magical bow that follows you and keeps firing until it runs out of shots, prioritizing your chosen target or nearby enemies.",
+  "spell.apprenticecodex.archer_multiple.guide": "Summons a magical bow that follows you and continues attacking your chosen target or nearby enemies. The Greater Conjurer's Talisman cannot prevent this spell from entering cooldown.",
   "spell.apprenticecodex.commence_fire.guide": "Summons a magical rifle that follows you. Use it again to unleash a powerful shot.",
   "spell.apprenticecodex.compound_phial.guide": "Instantly brews a potion on the spot and hurls it. It bypasses armor, but it can hit you as well.",
   "spell.apprenticecodex.quick_arms.guide": "Summons a magical handgun and lets you fire it rapidly for a short time.",

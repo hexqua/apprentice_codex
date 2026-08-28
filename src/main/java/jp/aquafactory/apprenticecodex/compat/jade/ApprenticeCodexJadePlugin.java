@@ -9,7 +9,6 @@ import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStation;
 import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmoker;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
-import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretEntity;
 import jp.aquafactory.apprenticecodex.spell.fieldoverseer.FieldOverseerStaffEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
@@ -29,7 +28,6 @@ public final class ApprenticeCodexJadePlugin implements IWailaPlugin {
     public static final ResourceLocation ESSENCE_SMOKER_UID = id("essence_smoker");
     public static final ResourceLocation SPELL_DISPENSER_UID = id("spell_dispenser");
     public static final ResourceLocation HEALING_BLOOM_UID = id("healing_bloom");
-    public static final ResourceLocation ARCHER_MULTIPLE_UID = id("archer_multiple");
     public static final ResourceLocation AUTO_TURRET_UID = id("auto_turret");
     public static final ResourceLocation FIELD_OVERSEER_UID = id("field_overseer");
     public static final ResourceLocation SEARCH_BEACON_UID = id("search_beacon");
@@ -45,7 +43,6 @@ public final class ApprenticeCodexJadePlugin implements IWailaPlugin {
         registration.registerFluidStorage(AlchemyBrewerJadeFluidStorageProvider.INSTANCE, AlchemyBrewerBlockEntity.class);
         registration.registerFluidStorage(AtelierStationJadeFluidStorageProvider.INSTANCE, AtelierStationBlockEntity.class);
         registration.registerEntityDataProvider(HealingBloomJadeProvider.INSTANCE, HealingBloomEntity.class);
-        registration.registerEntityDataProvider(ArcherMultipleJadeProvider.INSTANCE, ArcherMultipleBowEntity.class);
         registration.registerEntityDataProvider(AutoTurretJadeProvider.INSTANCE, AutoTurretEntity.class);
         registration.registerEntityDataProvider(FieldOverseerJadeProvider.INSTANCE, FieldOverseerStaffEntity.class);
         registration.registerEntityDataProvider(SearchBeaconJadeProvider.INSTANCE, SearchBeaconEntity.class);
@@ -58,7 +55,6 @@ public final class ApprenticeCodexJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(EssenceSmokerJadeProvider.INSTANCE, EssenceSmoker.class);
         registration.registerBlockComponent(SpellDispenserJadeProvider.INSTANCE, SpellDispenser.class);
         registration.registerEntityComponent(HealingBloomJadeProvider.INSTANCE, HealingBloomEntity.class);
-        registration.registerEntityComponent(ArcherMultipleJadeProvider.INSTANCE, ArcherMultipleBowEntity.class);
         registration.registerEntityComponent(AutoTurretJadeProvider.INSTANCE, AutoTurretEntity.class);
         registration.registerEntityComponent(FieldOverseerJadeProvider.INSTANCE, FieldOverseerStaffEntity.class);
         registration.registerEntityComponent(SearchBeaconJadeProvider.INSTANCE, SearchBeaconEntity.class);
