@@ -14,7 +14,6 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> ARCANE_BEAM = register("arcane_beam");
     public static final ResourceKey<DamageType> ARCANE_BLAST = register("arcane_blast");
     public static final ResourceKey<DamageType> ARCHER_MULTIPLE = register("archer_multiple");
-    public static final ResourceKey<DamageType> ARCHER_MULTIPLE_LAST = register("archer_multiple_last");
     public static final ResourceKey<DamageType> BREACHING_ENEMY = register("breaching_enemy");
     public static final ResourceKey<DamageType> BULLET_STREAM = register("bullet_stream");
     public static final ResourceKey<DamageType> COMMENCE_FIRE = register("commence_fire");
@@ -82,7 +81,6 @@ public final class DamageTypes {
         context.register(ARCANE_BEAM, createTemplate(ARCANE_BEAM));
         context.register(ARCANE_BLAST, createTemplate(ARCANE_BLAST));
         context.register(ARCHER_MULTIPLE, createTemplate(ARCHER_MULTIPLE));
-        context.register(ARCHER_MULTIPLE_LAST, createTemplate(ARCHER_MULTIPLE));
         context.register(BREACHING_ENEMY, createTemplate(BREACHING_ENEMY));
         context.register(BULLET_STREAM, createTemplate(BULLET_STREAM));
         context.register(COMMENCE_FIRE, createTemplate(COMMENCE_FIRE));

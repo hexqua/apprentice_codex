@@ -96,6 +96,11 @@ public class FieldOverseer extends AbstractSpell implements IClientBlockTargetin
         return 40 + (spellLevel - 1) * 20;
     }
 
+    public int getStaffMaxMana(int spellLevel){
+        // 5発分は無料発射させられる
+        return getConsumeManaPerAttack(spellLevel) * 5;
+    }
+
     public int getDuration() {
         return 20 * 60 * 5;
     }
@@ -203,7 +208,7 @@ public class FieldOverseer extends AbstractSpell implements IClientBlockTargetin
                             getDamage(spellLevel, entity),
                             getRadius(),
                             getConsumeManaPerAttack(spellLevel),
-                            (float) entity.getAttributeValue(AttributeRegistry.MAX_MANA),
+                            getStaffMaxMana(spellLevel),
                             getStaffHealth(spellLevel)
                     );
                     staff.moveTo(placement.get().center().x, placement.get().center().y, placement.get().center().z,
