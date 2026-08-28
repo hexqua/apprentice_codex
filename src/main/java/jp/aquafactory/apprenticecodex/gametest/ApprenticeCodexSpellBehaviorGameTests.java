@@ -625,13 +625,13 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = TOTEM_OF_PERMAFROST_ISOLATED_BATCH)
-    public static void totemOfPermafrostGreaterConjurersTalismanSkipsTimeoutCooldown(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.totemOfPermafrostGreaterConjurersTalismanSkipsTimeoutCooldown(helper);
+    public static void totemOfPermafrostGreaterConjurersTalismanKeepsTimeoutCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.totemOfPermafrostGreaterConjurersTalismanKeepsTimeoutCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = TOTEM_OF_PERMAFROST_ISOLATED_BATCH)
-    public static void totemOfPermafrostGreaterConjurersTalismanSkipsManualRecastCooldown(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.totemOfPermafrostGreaterConjurersTalismanSkipsManualRecastCooldown(helper);
+    public static void totemOfPermafrostGreaterConjurersTalismanKeepsManualRecastCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.totemOfPermafrostGreaterConjurersTalismanKeepsManualRecastCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = TOTEM_OF_PERMAFROST_ISOLATED_BATCH)

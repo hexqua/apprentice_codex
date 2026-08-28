@@ -7932,7 +7932,7 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    static void totemOfPermafrostGreaterConjurersTalismanSkipsTimeoutCooldown(GameTestHelper helper) {
+    static void totemOfPermafrostGreaterConjurersTalismanKeepsTimeoutCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "totem_permafrost_talisman_timeout_test");
             equipGreaterConjurersTalisman(owner);
@@ -7951,12 +7951,12 @@ public class ApprenticeCodexGameTestScenarios {
                     "TotemOfPermafrost talisman timeout should still remove the placed totem");
             helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(spell),
                     "TotemOfPermafrost talisman timeout should remove the active recast");
-            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
-                    "Greater Conjurer's Talisman should suppress TotemOfPermafrost cooldown when the recast ends by timeout");
+            helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "TotemOfPermafrost timeout should apply cooldown even with Greater Conjurer's Talisman");
         });
     }
 
-    static void totemOfPermafrostGreaterConjurersTalismanSkipsManualRecastCooldown(GameTestHelper helper) {
+    static void totemOfPermafrostGreaterConjurersTalismanKeepsManualRecastCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "totem_permafrost_talisman_manual_test");
             equipGreaterConjurersTalisman(owner);
@@ -7972,8 +7972,8 @@ public class ApprenticeCodexGameTestScenarios {
                     "TotemOfPermafrost manual recast with talisman should remove the placed totem");
             helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(spell),
                     "TotemOfPermafrost manual recast with talisman should remove the active recast");
-            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
-                    "Greater Conjurer's Talisman should suppress TotemOfPermafrost cooldown after manual recast");
+            helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "TotemOfPermafrost manual recast should apply cooldown even with Greater Conjurer's Talisman");
         });
     }
 
