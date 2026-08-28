@@ -135,6 +135,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = BLOOD_BRAND_ISOLATED_BATCH)
+    public static void bloodBrandLethalKunaiBurstsAndHeals(GameTestHelper helper) {
+        BloodBrandGameTestScenarios.bloodBrandLethalKunaiBurstsAndHeals(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = BLOOD_BRAND_ISOLATED_BATCH)
     public static void bloodBrandBurstUsesSphereSightAndHalfHealing(GameTestHelper helper) {
         BloodBrandGameTestScenarios.bloodBrandBurstUsesSphereSightAndHalfHealing(helper);
     }

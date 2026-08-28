@@ -130,7 +130,7 @@ public class BloodBrandKunai extends Projectile implements AntiMagicSusceptible 
                 SpellRegistry.BLOOD_BRAND.get().getSchoolType(),
                 CombatTools.KnockbackTypes.NO_KNOCKBACK
         );
-        if (damaged && target instanceof LivingEntity livingTarget
+        if (damaged && target instanceof LivingEntity livingTarget && livingTarget.isAlive()
                 && !(livingTarget instanceof Player) && casterUuid != null) {
             var effect = new MobEffectInstance(
                     EffectRegistry.BLOOD_ENGRAVED,
@@ -223,6 +223,10 @@ public class BloodBrandKunai extends Projectile implements AntiMagicSusceptible 
 
     public double getBurstRangeForGameTest() {
         return burstRange;
+    }
+
+    @Nullable BloodBrandState createBurstState() {
+        return casterUuid == null ? null : new BloodBrandState(casterUuid, burstDamage, burstRange);
     }
 
     private void spawnTrailParticles() {
