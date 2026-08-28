@@ -140,6 +140,7 @@ public final class RemoteOwnerCastSpellProfileDataGenerator extends JsonCodecPro
         putProfiles(profiles, remoteAnchorOwnerProfile(false),
                 jp.aquafactory.apprenticecodex.registry.SpellRegistry.FEATHER_RUSH,
                 jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE,
+                jp.aquafactory.apprenticecodex.registry.SpellRegistry.SHIDEN,
                 jp.aquafactory.apprenticecodex.registry.SpellRegistry.PRECISION_JACK,
                 jp.aquafactory.apprenticecodex.registry.SpellRegistry.THERMAL_PROCESS,
                 jp.aquafactory.apprenticecodex.registry.SpellRegistry.BREACHING_ENEMY,

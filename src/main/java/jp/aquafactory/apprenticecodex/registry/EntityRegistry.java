@@ -52,6 +52,7 @@ import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldProjectileE
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldShieldEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxChargeBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxWeaponryEntity;
+import jp.aquafactory.apprenticecodex.spell.shiden.ShidenKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunEntity;
@@ -147,6 +148,7 @@ public final class EntityRegistry {
                 false, fireBehavior);
     }
 
+    // 既存ワールドの数値IDをずらさないため、新規エンティティは常に既存登録の末尾へ追加する.
     public static final DeferredHolder<EntityType<?>, EntityType<SkyEdgeProjectileEntity>> SKY_EDGE_PROJECTILE =
             regProjectile("sky_edge_projectile", SkyEdgeProjectileEntity::new, 128, 1);
 
@@ -323,7 +325,6 @@ public final class EntityRegistry {
             reg("remote_owner_cast_anchor", RemoteOwnerCastAnchorEntity::new, MobCategory.MISC,
                     0.6f, 1.8f, 32, 1, false, FireBehaviors.IMMUNE);
 
-    // 既存ワールドの数値IDをずらさないため、新規エンティティは常に既存登録の末尾へ追加する.
     public static final DeferredHolder<EntityType<?>, EntityType<FieldOverseerStaffEntity>> FIELD_OVERSEER_STAFF =
             regLiving("field_overseer_staff", FieldOverseerStaffEntity::new,
                     FieldOverseerStaffEntity.WIDTH, FieldOverseerStaffEntity.HEIGHT, 32, FireBehaviors.VULNERABLE);
@@ -364,6 +365,9 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<BloodBrandKunai>> BLOOD_BRAND_KUNAI =
             regProjectile("blood_brand_kunai", BloodBrandKunai::new, 128, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<ShidenKatanaEntity>> SHIDEN_KATANA =
+            regWeapon("shiden_katana", ShidenKatanaEntity::new, 1);
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

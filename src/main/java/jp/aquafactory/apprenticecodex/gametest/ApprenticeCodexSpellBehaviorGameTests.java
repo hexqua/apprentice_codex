@@ -180,6 +180,16 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void shidenUsesTallNarrowAttackAreaAndCanBeInterrupted(GameTestHelper helper) {
+        KatanaAreaHitGameTestScenarios.shidenUsesTallNarrowAttackAreaAndCanBeInterrupted(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void shidenReducesDamageAndKnockbackThroughWall(GameTestHelper helper) {
+        KatanaAreaHitGameTestScenarios.shidenReducesDamageAndKnockbackThroughWall(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
     public static void higanbanaStaysHorizontalAndRejectsWallHits(GameTestHelper helper) {
         KatanaAreaHitGameTestScenarios.higanbanaStaysHorizontalAndRejectsWallHits(helper);
     }

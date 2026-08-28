@@ -110,6 +110,7 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                         profile(ApprenticeCodex.MODID, "arcane_beam", SpellDispenserSpellProfile.OWNER_OPTIONAL_BACKWARD),
                         profile(ApprenticeCodex.MODID, "feather_rush", SpellDispenserSpellProfile.DEFAULT),
                         profile(ApprenticeCodex.MODID, "slash_blade", SpellDispenserSpellProfile.OWNER_OPTIONAL_UP),
+                        profile(ApprenticeCodex.MODID, "shiden", SpellDispenserSpellProfile.OWNER_OPTIONAL_UP),
                         profile(ApprenticeCodex.MODID, "precision_jack", SpellDispenserSpellProfile.DEFAULT),
                         profile(ApprenticeCodex.MODID, "auto_turret", SpellDispenserSpellProfile.DEFAULT),
                         profile(ApprenticeCodex.MODID, "search_beacon", SpellDispenserSpellProfile.DEFAULT),
