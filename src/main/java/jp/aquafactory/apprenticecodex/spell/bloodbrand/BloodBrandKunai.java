@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.registry.AttachmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.ProjectileCollisionTools;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -78,6 +79,7 @@ public class BloodBrandKunai extends Projectile implements AntiMagicSusceptible 
     @Override
     public void tick() {
         super.tick();
+        var cancelledBlockHit = (BlockHitResult) null;
         if (level().isClientSide) {
             spawnTrailParticles();
         } else if (tickCount > LIFE_TICKS) {
@@ -85,8 +87,14 @@ public class BloodBrandKunai extends Projectile implements AntiMagicSusceptible 
             return;
         } else {
             var hitResult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
-            if (hitResult.getType() != HitResult.Type.MISS && !EventHooks.onProjectileImpact(this, hitResult)) {
-                onHit(hitResult);
+            if (hitResult.getType() != HitResult.Type.MISS) {
+                if (EventHooks.onProjectileImpact(this, hitResult)) {
+                    if (hitResult instanceof BlockHitResult blockHit) {
+                        cancelledBlockHit = blockHit;
+                    }
+                } else {
+                    onHit(hitResult);
+                }
             }
             if (isRemoved()) {
                 return;
@@ -94,7 +102,23 @@ public class BloodBrandKunai extends Projectile implements AntiMagicSusceptible 
         }
 
         // Projectileは両側で同じ弾道を進め、serverの位置同期で補正する。
-        move(MoverType.SELF, getDeltaMovement());
+        var movementStart = position();
+        var requestedMovement = getDeltaMovement();
+        move(MoverType.SELF, requestedMovement);
+        if (!level().isClientSide && (horizontalCollision || verticalCollision)) {
+            // 中心線から外れた当たり箱の接触も、通常のブロック着弾と同じ経路で処理する。
+            var physicalHit = cancelledBlockHit != null
+                    ? cancelledBlockHit
+                    : ProjectileCollisionTools.findPhysicalBlockHit(this, movementStart, requestedMovement);
+            if (physicalHit == null) {
+                discard();
+            } else if (cancelledBlockHit != null || EventHooks.onProjectileImpact(this, physicalHit)) {
+                ProjectileCollisionTools.continueAfterCancelledImpact(this, movementStart, requestedMovement);
+            } else {
+                setDeltaMovement(requestedMovement);
+                onHit(physicalHit);
+            }
+        }
         if (isRemoved()) {
             return;
         }
