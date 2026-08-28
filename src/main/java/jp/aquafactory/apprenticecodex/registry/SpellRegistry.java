@@ -123,6 +123,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> DEMICREATOR_WINGS = reg("demicreator_wings", DemicreatorWings::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MIRAGE_AVOIDANCE = reg("mirage_avoidance", MirageAvoidance::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ANCHOR_BLINK = reg("anchor_blink", AnchorBlink::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> SERVANT_GAZE = reg("servant_gaze", ServantGaze::new);
 
     // 召喚.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);
@@ -140,7 +141,6 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> LETHAL_ASSAULT = reg("lethal_assault", LethalAssault::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> EDGE_DANCER = reg("edge_dancer", EdgeDancer::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> LINEAR_BUILD = reg("linear_build", LinearBuild::new);
-    public static final DeferredHolder<AbstractSpell, AbstractSpell> SERVANT_GAZE = reg("servant_gaze", ServantGaze::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> FUJIN = reg("fujin", Fujin::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> CALL_BROOM = reg("call_broom", CallBroom::new);
 
