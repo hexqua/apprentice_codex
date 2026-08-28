@@ -43,6 +43,8 @@ public final class BloodBrandBurst {
                 : DamageTypes.BLOOD_BRAND_BURST;
         var damageSource = CombatTools.getDamageSource(level, origin, caster, damageType);
         var damagedTargets = new HashSet<java.util.UUID>();
+        var healRate = higanbanaEnhanced ? 1.0F : 0.5F;
+        var totalHealing = 0.0F;
 
         for (var rawTarget : level.getEntities((Entity) null, area, entity -> isCandidate(entity, origin, caster))) {
             var resolved = CombatTools.resolutePartEntity(rawTarget);
@@ -57,13 +59,21 @@ public final class BloodBrandBurst {
                 continue;
             }
 
-            CombatTools.applyDamage(
+            var healthBefore = target.getHealth();
+            var damaged = CombatTools.applyDamage(
                     target,
                     damage,
                     damageSource,
                     SpellRegistry.BLOOD_BRAND.get().getSchoolType(),
                     CombatTools.KnockbackTypes.NO_KNOCKBACK
             );
+            if (damaged) {
+                // 余剰ダメージでは回復せず、対象が実際に失った通常体力だけを吸収する。
+                totalHealing += Math.max(0.0F, healthBefore - target.getHealth()) * healRate;
+            }
+        }
+        if (totalHealing > 0.0F) {
+            caster.heal(totalHealing);
         }
 
         spawnParticles(level, center, range);
