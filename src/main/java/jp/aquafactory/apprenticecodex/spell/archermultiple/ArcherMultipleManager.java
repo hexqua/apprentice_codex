@@ -19,11 +19,9 @@ public final class ArcherMultipleManager {
         INVALID
     }
 
-    public static void initialize(ServerPlayer owner, ArcherMultipleBowEntity bow, int duration,
-                                  ArcherMultiple.ArcherMultipleCastData castData) {
+    public static void initialize(ServerPlayer owner, ArcherMultipleBowEntity bow, int duration) {
         bow.setLifecycleOwner(owner);
         bow.setExpirationGameTime(bow.level().getGameTime() + duration);
-        castData.bindBow(bow);
     }
 
     public static ValidationResult validate(ArcherMultipleBowEntity bow) {
