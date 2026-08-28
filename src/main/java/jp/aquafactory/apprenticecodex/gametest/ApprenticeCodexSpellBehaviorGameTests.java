@@ -59,6 +59,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String SUMMON_WEAPON_ANIMATION_BATCH = "apprenticecodex.summon_weapon_animation";
     private static final String COMBAT_TARGET_POLICY_BATCH = "apprenticecodex.combat_target_policy";
     private static final String HIGANBANA_ISOLATED_BATCH = "apprenticecodex.higanbana_isolated";
+    private static final String BLOOD_BRAND_ISOLATED_BATCH = "apprenticecodex.blood_brand_isolated";
     private static final String KATANA_AREA_HIT_ISOLATED_BATCH = "apprenticecodex.katana_area_hit_isolated";
     private static final String FUJIN_ISOLATED_BATCH = "apprenticecodex.fujin_isolated";
     private static final String COMBUSTION_JET_ISOLATED_BATCH = "apprenticecodex.combustion_jet_isolated";
@@ -121,6 +122,31 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = HIGANBANA_ISOLATED_BATCH)
     public static void higanbanaDamageHasNoKnockbackAndHealsHalf(GameTestHelper helper) {
         HiganbanaGameTestScenarios.higanbanaDamageHasNoKnockbackAndHealsHalf(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = BLOOD_BRAND_ISOLATED_BATCH)
+    public static void bloodBrandCastSpawnsOneGravityKunai(GameTestHelper helper) {
+        BloodBrandGameTestScenarios.bloodBrandCastSpawnsOneGravityKunai(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = BLOOD_BRAND_ISOLATED_BATCH)
+    public static void bloodBrandKunaiMarksAndCleansState(GameTestHelper helper) {
+        BloodBrandGameTestScenarios.bloodBrandKunaiMarksAndCleansState(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = BLOOD_BRAND_ISOLATED_BATCH)
+    public static void bloodBrandBurstUsesSphereSightAndHalfHealing(GameTestHelper helper) {
+        BloodBrandGameTestScenarios.bloodBrandBurstUsesSphereSightAndHalfHealing(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = BLOOD_BRAND_ISOLATED_BATCH)
+    public static void bloodBrandHiganbanaBurstEnhancesRangeDamageAndHealing(GameTestHelper helper) {
+        BloodBrandGameTestScenarios.bloodBrandHiganbanaBurstEnhancesRangeDamageAndHealing(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = BLOOD_BRAND_ISOLATED_BATCH)
+    public static void bloodBrandWithoutCasterDoesNotBurst(GameTestHelper helper) {
+        BloodBrandGameTestScenarios.bloodBrandWithoutCasterDoesNotBurst(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)

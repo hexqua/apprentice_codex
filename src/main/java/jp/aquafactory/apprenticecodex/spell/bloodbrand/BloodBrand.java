@@ -9,13 +9,19 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastContext;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 import java.util.Optional;
@@ -47,7 +53,7 @@ public class BloodBrand extends AbstractSpell {
         );
     }
 
-    private float getDamage(int spellLevel, LivingEntity entity) {
+    public float getDamage(int spellLevel, LivingEntity entity) {
         // ダメージそのものは低く、デバフがメイン.
         var rawDamage = 1 + getSpellPower(spellLevel, entity) / 100.0f;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.BLOOD_BRAND);
@@ -89,6 +95,40 @@ public class BloodBrand extends AbstractSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        if (level instanceof ServerLevel serverLevel) {
+            var geometry = resolveLaunchGeometry(entity);
+            var projectile = new BloodBrandKunai(EntityRegistry.BLOOD_BRAND_KUNAI.get(), serverLevel, entity);
+            projectile.setPos(geometry.position());
+            projectile.setDamage(getDamage(spellLevel, entity));
+            projectile.setBurstDamage(getExplodeDamage(spellLevel, entity));
+            projectile.setBurstRange(getExplodeRange());
+            projectile.setProjectileVelocity(geometry.forward());
+            serverLevel.addFreshEntity(projectile);
+        }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
+    }
+
+    private static LaunchGeometry resolveLaunchGeometry(LivingEntity caster) {
+        if (caster instanceof ServerPlayer serverPlayer) {
+            var remoteContext = RemoteOwnerCastContext.get(serverPlayer);
+            if (remoteContext != null) {
+                var forward = normalizeOrFallback(remoteContext.forward(), caster);
+                return new LaunchGeometry(calculateLaunchPosition(remoteContext.eyePosition(), forward), forward);
+            }
+        }
+
+        var forward = normalizeOrFallback(caster.getLookAngle(), caster);
+        return new LaunchGeometry(calculateLaunchPosition(caster.getEyePosition(), forward), forward);
+    }
+
+    private static Vec3 normalizeOrFallback(Vec3 direction, LivingEntity caster) {
+        return direction.lengthSqr() > 1.0E-8D ? direction.normalize() : RotationTools.getFlatForward(caster);
+    }
+
+    private static Vec3 calculateLaunchPosition(Vec3 eyePosition, Vec3 forward) {
+        return eyePosition.add(forward.scale(0.4D)).add(0.0D, -0.25D, 0.0D);
+    }
+
+    private record LaunchGeometry(Vec3 position, Vec3 forward) {
     }
 }

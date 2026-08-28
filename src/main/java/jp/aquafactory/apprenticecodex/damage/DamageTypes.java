@@ -58,6 +58,8 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> FUJIN = register("fujin");
     public static final ResourceKey<DamageType> COMBUSTION_JET = register("combustion_jet");
     public static final ResourceKey<DamageType> BLOOD_BRAND = register("blood_brand");
+    public static final ResourceKey<DamageType> BLOOD_BRAND_BURST = register("blood_brand_burst");
+    public static final ResourceKey<DamageType> BLOOD_BRAND_HIGANBANA_BURST = register("blood_brand_higanbana_burst");
 
     public static final ResourceKey<DamageType> HAUNTED_BONUS = register("haunted_bonus");
     public static final ResourceKey<DamageType> MANA_FORCE_BLADE = register("mana_force_blade");
@@ -124,6 +126,8 @@ public final class DamageTypes {
         context.register(FUJIN, createTemplate(FUJIN));
         context.register(COMBUSTION_JET, createTemplate(COMBUSTION_JET));
         context.register(BLOOD_BRAND, createTemplate(BLOOD_BRAND));
+        context.register(BLOOD_BRAND_BURST, createTemplate(BLOOD_BRAND_BURST));
+        context.register(BLOOD_BRAND_HIGANBANA_BURST, createTemplate(BLOOD_BRAND_HIGANBANA_BURST));
 
         context.register(HAUNTED_BONUS, createTemplate(HAUNTED_BONUS));
         context.register(MANA_FORCE_BLADE, createTemplate(MANA_FORCE_BLADE));
