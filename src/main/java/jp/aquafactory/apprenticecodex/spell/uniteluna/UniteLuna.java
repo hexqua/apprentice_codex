@@ -36,7 +36,7 @@ public class UniteLuna extends AbstractSpell {
 
     public UniteLuna() {
         baseSpellPower = 100;
-        spellPowerPerLevel = 150;
+        spellPowerPerLevel = 100;
         baseManaCost = 160;
         manaCostPerLevel = 160;
         castTime = 0;

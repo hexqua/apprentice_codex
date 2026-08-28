@@ -233,7 +233,6 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 ARCANE_BLAST,
                 COMPOUND_PHIAL,
                 MOON_LIGHT,
-                UNITE_LUNA,
                 HAUNTED_BONUS,
                 MYSTIC_SHIELD,
                 ANCHOR_BLINK,
