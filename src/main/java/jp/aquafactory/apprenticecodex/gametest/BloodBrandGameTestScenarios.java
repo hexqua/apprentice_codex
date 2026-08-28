@@ -139,6 +139,7 @@ final class BloodBrandGameTestScenarios {
         owner.setHealth(5.0F);
         var origin = createCow(level, center);
         var visible = createCow(level, center.add(3.0D, 0.0D, 0.0D));
+        visible.setHealth(2.0F);
         var blocked = createCow(level, center.add(-3.0D, 0.0D, 0.0D));
         var cubeCorner = createCow(level, center.add(4.5D, 0.0D, 4.5D));
         var playerTarget = createPlayer(helper, "blood_brand_player_target", center.add(0.0D, 0.0D, 3.0D));
@@ -164,7 +165,7 @@ final class BloodBrandGameTestScenarios {
         helper.assertTrue(Math.abs(playerTarget.getHealth() - playerHealth) < VALUE_EPSILON,
                 "Blood Brand burst should never damage players");
         helper.assertTrue(Math.abs(owner.getHealth() - (ownerHealth + visibleDamage * 0.5F)) < VALUE_EPSILON,
-                "Blood Brand burst should heal half of its total dealt damage");
+                "Blood Brand burst should heal half of the health actually lost without counting overkill damage");
 
         level.setBlockAndUpdate(wallLower, Blocks.AIR.defaultBlockState());
         level.setBlockAndUpdate(wallUpper, Blocks.AIR.defaultBlockState());

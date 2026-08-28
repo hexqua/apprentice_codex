@@ -10,7 +10,6 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import org.jetbrains.annotations.Nullable;
@@ -63,27 +62,6 @@ public final class BloodBrandEvents {
         }
 
         BloodBrandBurst.burst(level, target, caster, state, event.getSource().is(DamageTypes.HIGANBANA));
-    }
-
-    @SubscribeEvent
-    public static void onLivingDamage(LivingDamageEvent.Post event) {
-        if (event.getEntity().level().isClientSide) {
-            return;
-        }
-
-        var source = event.getSource();
-        float healRate;
-        if (source.is(DamageTypes.BLOOD_BRAND_HIGANBANA_BURST)) {
-            healRate = 1.0F;
-        } else if (source.is(DamageTypes.BLOOD_BRAND_BURST)) {
-            healRate = 0.5F;
-        } else {
-            return;
-        }
-
-        if (source.getEntity() instanceof LivingEntity caster && event.getNewDamage() > 0.0F) {
-            caster.heal(event.getNewDamage() * healRate);
-        }
     }
 
     private static @Nullable LivingEntity resolveCaster(ServerLevel originLevel, UUID casterUuid) {
