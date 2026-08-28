@@ -36,6 +36,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 
 public class ServantGazeStaffEntity extends PersistentSummonWeaponEntity implements GeoEntity, AntiMagicSusceptible {
     private static final int ATTACK_INTERVAL = 40;
@@ -54,6 +55,9 @@ public class ServantGazeStaffEntity extends PersistentSummonWeaponEntity impleme
     private float damage;
     private double radius;
     private int attackManaCost;
+    private UUID lifecycleOwnerUuid;
+    private long expirationGameTime = -1L;
+    private boolean lifecycleEnding;
 
     public ServantGazeStaffEntity(EntityType<?> type, Level level) {
         super(type, level);
@@ -63,6 +67,7 @@ public class ServantGazeStaffEntity extends PersistentSummonWeaponEntity impleme
 
     public ServantGazeStaffEntity(EntityType<?> type, Level level, LivingEntity owner) {
         super(type, level, owner);
+        lifecycleOwnerUuid = owner.getUUID();
         setNoGravity(true);
         noPhysics = true;
     }
@@ -74,10 +79,17 @@ public class ServantGazeStaffEntity extends PersistentSummonWeaponEntity impleme
 
     @Override
     public void tickOnServer(ServerLevel level) {
-        if (!(getOwner() instanceof ServerPlayer owner) || !owner.isAlive() || owner.level() != level) {
-            discard();
+        var validation = ServantGazeManager.validate(this);
+        if (validation == ServantGazeManager.ValidationResult.EXPIRED) {
+            ServantGazeManager.expire(this);
             return;
         }
+        if (validation == ServantGazeManager.ValidationResult.INVALID) {
+            discardForLifecycle();
+            return;
+        }
+        var owner = resolvePlayerOwner();
+        if (owner == null) return;
 
         noPhysics = true;
         followTargetPosition(getStandbyPosition());
@@ -164,11 +176,41 @@ public class ServantGazeStaffEntity extends PersistentSummonWeaponEntity impleme
         this.attackManaCost = Math.max(0, attackManaCost);
     }
 
+    void setLifecycleOwner(ServerPlayer owner) {
+        lifecycleOwnerUuid = owner.getUUID();
+        setOwner(owner);
+    }
+
+    void setExpirationGameTime(long expirationGameTime) {
+        this.expirationGameTime = expirationGameTime;
+    }
+
+    long getExpirationGameTime() {
+        return expirationGameTime;
+    }
+
+    boolean hasExpirationGameTime() {
+        return expirationGameTime >= 0L;
+    }
+
+    ServerPlayer resolvePlayerOwner() {
+        if (getOwner() instanceof ServerPlayer owner) return owner;
+        if (lifecycleOwnerUuid == null || !(level() instanceof ServerLevel serverLevel)) return null;
+        return serverLevel.getServer().getPlayerList().getPlayer(lifecycleOwnerUuid);
+    }
+
+    boolean isOwnedBy(ServerPlayer player) {
+        if (lifecycleOwnerUuid != null) return lifecycleOwnerUuid.equals(player.getUUID());
+        return getOwner() != null && getOwner().getUUID().equals(player.getUUID());
+    }
+
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         configure(tag.getInt("SpellLevel"), tag.getFloat("Damage"), tag.getDouble("Radius"),
                 tag.getInt("AttackManaCost"));
+        lifecycleOwnerUuid = tag.hasUUID("LifecycleOwner") ? tag.getUUID("LifecycleOwner") : null;
+        expirationGameTime = tag.contains("ExpirationGameTime") ? tag.getLong("ExpirationGameTime") : -1L;
     }
 
     @Override
@@ -178,6 +220,8 @@ public class ServantGazeStaffEntity extends PersistentSummonWeaponEntity impleme
         tag.putFloat("Damage", damage);
         tag.putDouble("Radius", radius);
         tag.putInt("AttackManaCost", attackManaCost);
+        if (lifecycleOwnerUuid != null) tag.putUUID("LifecycleOwner", lifecycleOwnerUuid);
+        if (hasExpirationGameTime()) tag.putLong("ExpirationGameTime", expirationGameTime);
     }
 
     @Override public boolean canBeCollidedWith() { return false; }
@@ -187,14 +231,43 @@ public class ServantGazeStaffEntity extends PersistentSummonWeaponEntity impleme
     @Override public void push(@NotNull Entity entity) {}
     @Override public @NotNull PushReaction getPistonPushReaction() { return PushReaction.IGNORE; }
     @Override public boolean hurt(@NotNull DamageSource source, float amount) { return false; }
-    @Override public boolean shouldBeSaved() { return false; }
-
     @Override
     public void onAntiMagic(MagicData playerMagicData) {
         if (!level().isClientSide && !isRemoved()) {
-            if (getOwner() instanceof ServerPlayer owner) ServantGazeManager.deactivate(owner);
-            else discard();
+            var owner = resolvePlayerOwner();
+            if (owner != null) ServantGazeManager.cancel(owner,
+                    io.redspace.ironsspellbooks.capabilities.magic.RecastResult.COUNTERSPELL);
+            else discardForLifecycle();
         }
+    }
+
+    void discardForLifecycle() {
+        lifecycleEnding = true;
+        discard();
+    }
+
+    @Override
+    public void remove(@NotNull RemovalReason reason) {
+        var notifyOwner = reason.shouldDestroy() && !lifecycleEnding;
+        lifecycleEnding = true;
+        if (notifyOwner && !level().isClientSide) {
+            ServantGazeManager.onDestroyed(this);
+        }
+        if (!isRemoved()) {
+            super.remove(reason);
+        }
+    }
+
+    @Override
+    public boolean isAlwaysTicking() {
+        // 所有者の長距離teleport後も元chunkで停止せず、次tickで追従位置へ移動させる。
+        return true;
+    }
+
+    @Override
+    public boolean shouldBeSaved() {
+        // recastと一体で管理し、logoutやserver再起動を跨いで実体を復元しない。
+        return false;
     }
 
     @Override
