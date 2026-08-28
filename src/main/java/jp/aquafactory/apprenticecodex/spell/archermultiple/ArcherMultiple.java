@@ -157,8 +157,10 @@ public class ArcherMultiple  extends AbstractSpell {
                 );
                 summonTestBow.setPriorityTarget(targetEntity);
                 summonTestBow.setDamage(getDamage(spellLevel, entity));
-                ArcherMultipleManager.initialize(player, summonTestBow, getDuration(), castData);
-                serverLevel.addFreshEntity(summonTestBow);
+                ArcherMultipleManager.initialize(player, summonTestBow, getDuration());
+                if (serverLevel.addFreshEntity(summonTestBow)) {
+                    castData.bindBow(summonTestBow);
+                }
             }
 
             var recastInstance = new RecastInstance(getSpellId(), spellLevel, getRecastCount(spellLevel, entity),
