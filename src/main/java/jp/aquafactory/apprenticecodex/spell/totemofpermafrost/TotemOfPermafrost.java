@@ -38,6 +38,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
@@ -67,7 +68,7 @@ public class TotemOfPermafrost extends AbstractSpell implements IClientBlockTarg
                 Component.translatable("ui.irons_spellbooks.aoe_damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
                 Component.translatable("ui.irons_spellbooks.radius", Utils.stringTruncation(getRadius(), 0)),
                 Component.translatable("ui.irons_spellbooks.slowness_effect", getSlownessAmplifier(spellLevel, caster) + 1),
-                Component.translatable("ui.irons_spellbooks.duration", Utils.timeFromTicks(getDuration(spellLevel, caster), 1))
+                Component.translatable("ui.irons_spellbooks.duration", Utils.timeFromTicks(getDuration(), 1))
         );
     }
 
@@ -89,8 +90,9 @@ public class TotemOfPermafrost extends AbstractSpell implements IClientBlockTarg
         return 8.0;
     }
 
-    private int getDuration(int spellLevel, LivingEntity caster) {
-        return 20 * 5 + Math.round(10 * getSpellPower(spellLevel, caster) / 100.0f);
+    private int getDuration() {
+        // 二重に総火力が伸びて分かりづらくなるため、時間は固定化.
+        return 20 * 6;
     }
 
     @Override
@@ -204,7 +206,7 @@ public class TotemOfPermafrost extends AbstractSpell implements IClientBlockTarg
                             getSpellId(),
                             spellLevel,
                             getRecastCount(spellLevel, entity),
-                            getDuration(spellLevel, entity),
+                            getDuration(),
                             castSource,
                             castData
                     );
@@ -217,30 +219,10 @@ public class TotemOfPermafrost extends AbstractSpell implements IClientBlockTarg
     }
 
     @Override
-    public void castSpell(Level world, int spellLevel, ServerPlayer serverPlayer, CastSource castSource,
-                          boolean triggerCooldown) {
-        var magicData = MagicData.getPlayerMagicData(serverPlayer);
-        var wasTotemOfPermafrostRecast = magicData.getPlayerRecasts().hasRecastForSpell(this);
-        super.castSpell(world, spellLevel, serverPlayer, castSource, triggerCooldown);
-        if (wasTotemOfPermafrostRecast && hasGreaterConjurersTalisman(serverPlayer)
-                && magicData.getPlayerCooldowns().removeCooldown(getSpellId())) {
-            magicData.getPlayerCooldowns().syncToPlayer(serverPlayer);
-        }
-    }
-
-    @Override
     public void onRecastFinished(ServerPlayer serverPlayer, RecastInstance recastInstance, RecastResult recastResult,
                                  ICastDataSerializable castDataSerializable) {
         removeStoredTotem(serverPlayer.serverLevel(), castDataSerializable);
-        if (hasGreaterConjurersTalisman(serverPlayer)) {
-            return;
-        }
         super.onRecastFinished(serverPlayer, recastInstance, recastResult, castDataSerializable);
-    }
-
-    private static boolean hasGreaterConjurersTalisman(ServerPlayer serverPlayer) {
-        return io.redspace.ironsspellbooks.registries.ItemRegistry.GREATER_CONJURERS_TALISMAN.get()
-                .isEquippedBy(serverPlayer);
     }
 
     private Optional<PlacementHelper.PlacementResult> restorePlacement(Level level, MagicData playerMagicData) {
@@ -307,7 +289,7 @@ public class TotemOfPermafrost extends AbstractSpell implements IClientBlockTarg
         }
 
         @Override
-        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+        public CompoundTag serializeNBT(HolderLookup.@NotNull Provider provider) {
             var tag = new CompoundTag();
             if (position != null) {
                 tag.putInt("PositionX", position.getX());
@@ -321,7 +303,7 @@ public class TotemOfPermafrost extends AbstractSpell implements IClientBlockTarg
         }
 
         @Override
-        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+        public void deserializeNBT(HolderLookup.@NotNull Provider provider, CompoundTag nbt) {
             if (nbt.contains("PositionX")) {
                 position = new BlockPos(nbt.getInt("PositionX"), nbt.getInt("PositionY"), nbt.getInt("PositionZ"));
             } else {

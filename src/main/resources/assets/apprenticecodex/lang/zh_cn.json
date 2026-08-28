@@ -934,7 +934,7 @@
   "spell.apprenticecodex.lethal_assault.guide": "召唤一把魔法步枪进行短点射。一轮射击后会自毁，但其设计正是专门适应这种使用方式。射击虽然不会造成击退，但可以无视目标的受伤无敌时间。",
   "spell.apprenticecodex.dual_acrobat.guide": "召唤两把魔法冲锋枪，短暂蓄力后向前方扫射。虽然不会造成击退，但可以无视目标的受伤无敌时间。",
   "spell.apprenticecodex.artisan_smash.guide": "召唤一把魔法榴弹发射器，射出爆裂弹，在命中地点大范围爆炸。爆风不会破坏物品或地形，但也会击中自己。",
-  "spell.apprenticecodex.totem_of_permafrost.guide": "召唤并放置一个强烈注入冰之魔力的图腾，短时间内以寒气攻击图腾周围。寒气会试图限制目标行动。装备高级召唤师护符时，手动解除图腾不会触发冷却。",
+  "spell.apprenticecodex.totem_of_permafrost.guide": "召唤并放置一个强烈注入冰之魔力的图腾，短时间内以寒气攻击图腾周围。寒气会试图限制目标行动。即使装备高级召唤师护符，也无法阻止该法术进入冷却。",
   "spell.apprenticecodex.field_overseer.guide": "召唤一根自主法杖监视周围，以雷霆魔力轰击附近的敌人。法杖会优先选择生命值较高的敌人。召唤时，施法者的最大魔力值将直接成为法杖的魔力上限，攻击时会消耗法杖储存的魔力。靠近到一定距离后会自动为法杖补充魔力。",
   "spell.apprenticecodex.servant_gaze.guide": "召唤一根跟随你的法杖，向附近的敌人发射纯粹魔力弹。法杖会优先选择生命值较高的敌人。法杖没有维持时间限制，但攻击时会消耗施法者的魔力。",
   "spell.apprenticecodex.otherworld_lens.guide": "从异界具现出一枚水晶透镜。透过透镜看到的景象，仿佛从世界的背面观察一般。透镜极不稳定，只能在保持专注时维持具现，哪怕细小的障碍也会阻止其生成。",
