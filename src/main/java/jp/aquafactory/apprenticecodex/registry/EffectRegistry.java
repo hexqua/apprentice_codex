@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.effect.ArcaneCharge;
+import jp.aquafactory.apprenticecodex.effect.BloodEngravedEffect;
 import jp.aquafactory.apprenticecodex.effect.CastingMobility;
 import jp.aquafactory.apprenticecodex.effect.CraftsmansDelightMobility;
 import jp.aquafactory.apprenticecodex.effect.DivinePossessionEffect;
@@ -70,6 +71,8 @@ public final class EffectRegistry {
             EFFECTS.register("gravity_bound", GravityBound::new);
     public static final RegistryObject<MobEffect> INERT_MANA_SHIELD =
             EFFECTS.register("inert_mana_shield", InertManaShieldEffect::new);
+    public static final DeferredHolder<MobEffect, MobEffect> BLOOD_ENGRAVED =
+            EFFECTS.register("blood_engraved", BloodEngravedEffect::new);
 
     public static void register(IEventBus eventBus) {
         EFFECTS.register(eventBus);
