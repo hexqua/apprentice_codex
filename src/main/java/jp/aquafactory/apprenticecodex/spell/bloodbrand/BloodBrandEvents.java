@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.registry.AttachmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -36,12 +37,20 @@ public final class BloodBrandEvents {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onLivingDeath(LivingDeathEvent event) {
         var target = event.getEntity();
-        if (event.isCanceled() || !(target.level() instanceof ServerLevel level)
-                || !target.hasEffect(EffectRegistry.BLOOD_ENGRAVED)) {
+        if (event.isCanceled() || !(target.level() instanceof ServerLevel level)) {
             return;
         }
 
-        var state = target.getExistingDataOrNull(AttachmentRegistry.BLOOD_BRAND_STATE);
+        BloodBrandState state;
+        if (!(target instanceof Player) && event.getSource().is(DamageTypes.BLOOD_BRAND)
+                && event.getSource().getDirectEntity() instanceof BloodBrandKunai kunai) {
+            // 直撃が致死なら刻印処理へ戻る前に死亡イベントが完了するため、苦無自身の起爆情報を使う。
+            state = kunai.createBurstState();
+        } else if (target.hasEffect(EffectRegistry.BLOOD_ENGRAVED)) {
+            state = target.getExistingDataOrNull(AttachmentRegistry.BLOOD_BRAND_STATE);
+        } else {
+            return;
+        }
         if (state == null || state.isEmpty()) {
             return;
         }

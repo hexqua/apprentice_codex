@@ -100,6 +100,38 @@ final class BloodBrandGameTestScenarios {
         helper.succeed();
     }
 
+    static void bloodBrandLethalKunaiBurstsAndHeals(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var owner = createPlayer(helper, "blood_brand_lethal", testOrigin(helper));
+        owner.setYRot(0.0F);
+        owner.setXRot(0.0F);
+        owner.setHealth(5.0F);
+        var targetPosition = owner.getEyePosition().add(owner.getLookAngle().scale(2.0D)).add(0.0D, -1.0D, 0.0D);
+        var target = createZombie(level, targetPosition);
+        target.setHealth(1.0F);
+        var nearby = createCow(level, targetPosition.add(3.0D, 0.0D, 0.0D));
+        var spell = (BloodBrand) SpellRegistry.BLOOD_BRAND.get();
+        var nearbyHealth = nearby.getHealth();
+        var ownerHealth = owner.getHealth();
+
+        spell.onCast(level, 1, owner, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(owner));
+        var projectile = level.getEntitiesOfClass(BloodBrandKunai.class, owner.getBoundingBox().inflate(4.0D)).getFirst();
+        for (var tick = 0; tick < 4 && !projectile.isRemoved(); ++tick) {
+            projectile.tick();
+        }
+
+        var burstDamage = nearbyHealth - nearby.getHealth();
+        helper.assertTrue(!target.isAlive(), "A lethal Blood Brand kunai should kill its direct target");
+        helper.assertTrue(target.getExistingDataOrNull(AttachmentRegistry.BLOOD_BRAND_STATE) == null,
+                "A lethal Blood Brand kunai should not leave state on its dead direct target");
+        helper.assertTrue(burstDamage > 0.0F, "A lethal Blood Brand kunai should burst around its direct target");
+        helper.assertTrue(Math.abs(owner.getHealth() - (ownerHealth + burstDamage * 0.5F)) < VALUE_EPSILON,
+                "A lethal Blood Brand kunai burst should heal half of its dealt damage");
+
+        discardAll(target, nearby, owner);
+        helper.succeed();
+    }
+
     static void bloodBrandBurstUsesSphereSightAndHalfHealing(GameTestHelper helper) {
         var level = helper.getLevel();
         var center = testOrigin(helper);
