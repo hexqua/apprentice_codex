@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretEntity;
 import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemyShotgunEntity;
+import jp.aquafactory.apprenticecodex.spell.bloodbrand.BloodBrandKunai;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunEntity;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleEntity;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
@@ -360,6 +361,9 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<CombustionJetWaveEntity>> COMBUSTION_JET_WAVE =
             regProjectile("combustion_jet_wave", CombustionJetWaveEntity::new, 64, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<BloodBrandKunai>> BLOOD_BRAND_KUNAI =
+            regProjectile("blood_brand_kunai", BloodBrandKunai::new, 128, 1);
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

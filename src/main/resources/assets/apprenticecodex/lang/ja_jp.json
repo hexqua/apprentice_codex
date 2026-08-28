@@ -686,6 +686,7 @@
   "entity.apprenticecodex.hoverride_broom": "浮遊走行の箒",
   "entity.apprenticecodex.anti_mana_arrow": "抗マナの魔矢",
   "entity.apprenticecodex.combustion_jet_wave": "燃焼熱波",
+  "entity.apprenticecodex.blood_brand_kunai": "刻印の苦無",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "使い走り魔術師",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "使い走り魔術師",
@@ -872,6 +873,7 @@
   "spell.apprenticecodex.call_broom": "箒呼び出し",
   "spell.apprenticecodex.mana_transcription": "マナ転写",
   "spell.apprenticecodex.combustion_jet": "コンバッションジェット",
+  "spell.apprenticecodex.blood_brand": "血の烙印",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して弾が切れるまで攻撃を続ける魔法の弓を召喚する。",
@@ -953,6 +955,7 @@
   "spell.apprenticecodex.call_broom.guide": "背負っている箒を活性化させて呼び出し即座に乗り込む。降りている状態で使用すると箒を安全に回収する。この手順によって呼び出した箒は所有者として紐づき、自分以外が乗り込んだり回収したりできず、ある程度離れたり破損状態で降りると自動で回収される。",
   "spell.apprenticecodex.mana_transcription.guide": "自分のマナと経験値を両手のアイテムに流し込み、利き手のアイテムからエンチャントを一つ抜き出して、オフハンドに持った未記入の本と羽ペンへ転写する。対象アイテムの状態によって要求される経験値が変化し、転写後は金床で扱ったかのように性質を変化させる。対応する媒体をオフハンドに持った場合は媒体を消費することで、利き手のアイテムの金床での使い込みを除去できる。",
   "spell.apprenticecodex.combustion_jet.guide": "視線方向に幅の広い熱波を放射する。熱波は火炎耐性を持つ対象にはダメージを与えられないが、熱波自体が対象を押し戻そうとする。",
+  "spell.apprenticecodex.blood_brand.guide": "命中したモブに対して血の烙印を刻み込む血の魔術のクナイを生成して投擲する。クナイのダメージは微々たるものだが血の烙印を刻み込まれたモブが死ぬと血の魔力が爆ぜて周囲を巻き込む。爆ぜた魔力によって実際に与えたダメージの50%を回復する。彼岸花で倒した場合はより強力な魔力として爆ぜる。ただし、爆ぜた血の魔力は壁に遮られる。烙印と術者の接続が切れた状態では魔力は爆ぜない。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -1217,6 +1220,7 @@
   "effect.apprenticecodex.divine_possession": "神降ろし",
   "effect.apprenticecodex.gravity_bound": "重力縛り",
   "effect.apprenticecodex.inert_mana_shield": "マナ障壁不活性化",
+  "effect.apprenticecodex.blood_engraved": "血の刻印",
   "effect.apprenticecodex.school_affinity": "親和",
   "effect.apprenticecodex.school_affinity.dynamic": "%sへの親和",
 
@@ -1240,6 +1244,7 @@
   "effect.apprenticecodex.divine_possession.description": "その身に元素の存在の力を宿した状態。最も高い系統ボーナスを他の系統全てに反映させる。",
   "effect.apprenticecodex.gravity_bound.description": "空中に漂うことが困難になり、ジャンプも自由にできなくなる。",
   "effect.apprenticecodex.inert_mana_shield.description": "マナ障壁が展開できなくなる。",
+  "effect.apprenticecodex.blood_engraved.description": "血の魔力が刻み込まれた状態。刻み込んだ本人がいる状態で死ぬと血の魔力として爆ぜる。",
 
   "item.minecraft.potion.effect.intelligence": "知性のポーション",
   "item.minecraft.potion.effect.meditation": "瞑想のポーション",
@@ -1300,6 +1305,9 @@
   "death.attack.apprenticecodex.fujin": "%1$sは%2$sに千切りにされた",
   "death.attack.apprenticecodex.hoverride_broom": "%1$sは%2$sの不運と踊ってしまった",
   "death.attack.apprenticecodex.combustion_jet": "%1$sは%2$sによって焼き尽くされた",
+  "death.attack.apprenticecodex.blood_brand": "%1$sは爆発四散した",
+  "death.attack.apprenticecodex.blood_brand_burst": "%1$sは血に飲み込まれた",
+  "death.attack.apprenticecodex.blood_brand_higanbana_burst": "%1$sの血は綺麗な彼岸花として咲き乱れた",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",

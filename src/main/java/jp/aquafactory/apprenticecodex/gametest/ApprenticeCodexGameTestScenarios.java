@@ -155,6 +155,7 @@ import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomLightBlockE
 import jp.aquafactory.apprenticecodex.spell.heavenlyfist.HeavenlyFistFistEntity;
 import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
+import jp.aquafactory.apprenticecodex.spell.bloodbrand.BloodBrandKunai;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarStarEntity;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceBurst;
@@ -10885,6 +10886,10 @@ public class ApprenticeCodexGameTestScenarios {
         var direction = new Vec3(1.0D, 0.0D, 0.0D);
         var speed = 1.55D;
         var projectiles = new LinkedHashMap<String, Projectile>();
+
+        var bloodBrand = new BloodBrandKunai(EntityRegistry.BLOOD_BRAND_KUNAI.get(), level, caster);
+        bloodBrand.setProjectileVelocity(direction);
+        projectiles.put("Blood Brand kunai", bloodBrand);
 
         var skyEdge = new SkyEdgeProjectileEntity(EntityRegistry.SKY_EDGE_PROJECTILE.get(), level, caster);
         skyEdge.setProjectileVelocity(direction, speed);
