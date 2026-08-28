@@ -78,7 +78,6 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 ARCANE_BEAM,
                 ARCANE_BLAST,
                 ARCHER_MULTIPLE,
-                ARCHER_MULTIPLE_LAST,
                 BREACHING_ENEMY,
                 BULLET_STREAM,
                 COMMENCE_FIRE,
@@ -145,7 +144,6 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
 
         // BYPASSES_IFRAME: 無敵時間を無視するダメージ.
         tag(BYPASSES_IFRAME).add(
-                ARCHER_MULTIPLE_LAST,
                 BULLET_STREAM,
                 GRACED_RAIN,
                 SKY_EDGE,
@@ -174,7 +172,6 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 ARCANE_BEAM,
                 ARCANE_BLAST,
                 ARCHER_MULTIPLE,
-                ARCHER_MULTIPLE_LAST,
                 BREACHING_ENEMY,
                 BULLET_STREAM,
                 COMMENCE_FIRE,
@@ -233,7 +230,6 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
         // SUMMON_DAMAGE: 召喚のネックレス系のダメージブーストが乗る.
         tag(SUMMON_DAMAGE).add(
                 ARCHER_MULTIPLE,
-                ARCHER_MULTIPLE_LAST,
                 HEALING_BLOOM,
                 AUTO_TURRET,
                 TIRO_VOLLEY,

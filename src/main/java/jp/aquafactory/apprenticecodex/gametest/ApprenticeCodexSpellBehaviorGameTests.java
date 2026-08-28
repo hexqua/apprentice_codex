@@ -350,8 +350,33 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = ARCHER_MULTIPLE_ISOLATED_BATCH)
-    public static void archerMultipleTimeoutWithGreaterConjurersTalismanSkipsCooldown(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.archerMultipleTimeoutWithGreaterConjurersTalismanSkipsCooldown(helper);
+    public static void archerMultipleInitialCastUsesFixedDurationAndSerializableLifecycle(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.archerMultipleInitialCastUsesFixedDurationAndSerializableLifecycle(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ARCHER_MULTIPLE_ISOLATED_BATCH)
+    public static void archerMultipleTimeoutWithGreaterConjurersTalismanKeepsCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.archerMultipleTimeoutWithGreaterConjurersTalismanKeepsCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ARCHER_MULTIPLE_ISOLATED_BATCH)
+    public static void archerMultipleManualRecastRemovesBowsAndStartsCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.archerMultipleManualRecastRemovesBowsAndStartsCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ARCHER_MULTIPLE_ISOLATED_BATCH)
+    public static void archerMultipleCounterspellRemovesBowsAndStartsCooldown(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.archerMultipleCounterspellRemovesBowsAndStartsCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ARCHER_MULTIPLE_ISOLATED_BATCH)
+    public static void archerMultipleLongTeleportKeepsFollowing(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.archerMultipleLongTeleportKeepsFollowing(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = ARCHER_MULTIPLE_ISOLATED_BATCH)
+    public static void archerMultipleDamageUsesSummonDamageAttribute(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.archerMultipleDamageUsesSummonDamageAttribute(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ARCHER_MULTIPLE_ISOLATED_BATCH, timeoutTicks = 60)

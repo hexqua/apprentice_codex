@@ -1,18 +1,16 @@
 package jp.aquafactory.apprenticecodex.spell.archermultiple;
 
-import io.redspace.ironsspellbooks.capabilities.magic.SummonManager;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.PersistentSummonWeaponEntity;
-import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.*;
-import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
@@ -21,7 +19,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import java.util.UUID;
 
 public class ArcherMultipleBowEntity extends PersistentSummonWeaponEntity {
 
@@ -51,7 +49,6 @@ public class ArcherMultipleBowEntity extends PersistentSummonWeaponEntity {
     private int slot;
     private int maxSlot;
     private float damage;
-    private int restBulletCount;
     private int currentChargeTick;
     private int currentCoolDownTick;
     private int currentLockOnTick;
@@ -60,7 +57,9 @@ public class ArcherMultipleBowEntity extends PersistentSummonWeaponEntity {
     private boolean isReadyToFire;
     private Entity autoTarget;
     private int currentHitSequence;
-    private boolean summonTrackingCleanedUp;
+    private UUID lifecycleOwnerUuid;
+    private long expirationGameTime = -1L;
+    private boolean lifecycleEnding;
 
     public ArcherMultipleBowEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -70,6 +69,7 @@ public class ArcherMultipleBowEntity extends PersistentSummonWeaponEntity {
         super(pEntityType, pLevel, owner);
         this.slot = Math.min(slot, maxSlot);
         this.maxSlot = Math.max(maxSlot, 1);
+        lifecycleOwnerUuid = owner.getUUID();
         setStandbyPosition(owner);
     }
 
@@ -94,9 +94,7 @@ public class ArcherMultipleBowEntity extends PersistentSummonWeaponEntity {
         if (tag.contains("Damage")) {
             damage = tag.getFloat("Damage");
         }
-        if (tag.contains("RestBulletCount")) {
-            restBulletCount = tag.getInt("RestBulletCount");
-        }
+        lifecycleOwnerUuid = tag.hasUUID("OwnerUUID") ? tag.getUUID("OwnerUUID") : lifecycleOwnerUuid;
     }
 
     @Override
@@ -105,24 +103,36 @@ public class ArcherMultipleBowEntity extends PersistentSummonWeaponEntity {
         tag.putInt("Slot", slot);
         tag.putInt("MaxSlot", maxSlot);
         tag.putFloat("Damage", damage);
-        tag.putInt("RestBulletCount", restBulletCount);
     }
 
     public void setDamage(float damage) {
         this.damage = damage;
     }
 
-    public void setRestBulletCount(int count) {
-        this.restBulletCount = count;
+    void setLifecycleOwner(ServerPlayer owner) {
+        lifecycleOwnerUuid = owner.getUUID();
     }
 
-    public int getRestBulletCount() {
-        return restBulletCount;
+    void setExpirationGameTime(long expirationGameTime) {
+        this.expirationGameTime = expirationGameTime;
     }
 
-    public @Nullable String getOwnerName() {
-        var owner = getOwner();
-        return owner != null ? owner.getName().getString() : null;
+    long getExpirationGameTime() {
+        return expirationGameTime;
+    }
+
+    boolean hasExpirationGameTime() {
+        return expirationGameTime >= 0L;
+    }
+
+    ServerPlayer resolvePlayerOwner() {
+        if (lifecycleOwnerUuid == null || !(level() instanceof ServerLevel serverLevel)) return null;
+        if (getOwner() instanceof ServerPlayer owner && lifecycleOwnerUuid.equals(owner.getUUID())) return owner;
+        return serverLevel.getServer().getPlayerList().getPlayer(lifecycleOwnerUuid);
+    }
+
+    boolean isOwnedBy(Entity entity) {
+        return lifecycleOwnerUuid != null && lifecycleOwnerUuid.equals(entity.getUUID());
     }
 
     public int getStage() {
@@ -195,8 +205,17 @@ public class ArcherMultipleBowEntity extends PersistentSummonWeaponEntity {
 
     @Override
     public void tickOnServer(ServerLevel level) {
+        var validation = ArcherMultipleManager.validate(this);
+        if (validation == ArcherMultipleManager.ValidationResult.EXPIRED) {
+            ArcherMultipleManager.expire(this);
+            return;
+        }
+        if (validation == ArcherMultipleManager.ValidationResult.INVALID) {
+            discardForLifecycle();
+            return;
+        }
         if (!(getOwner() instanceof LivingEntity owner)) {
-            discard();
+            discardForLifecycle();
             return;
         }
 
@@ -277,16 +296,10 @@ public class ArcherMultipleBowEntity extends PersistentSummonWeaponEntity {
             ++currentChargeTick;
             if (currentChargeTick >= CHARGE_TICK) {
                 if (!canWaitIFrame || target.invulnerableTime <= 0) {
-                    fire(target, level, restBulletCount == 1);
+                    fire(target, level);
                     currentCoolDownTick = COOLDOWN_TICK;
                     isReadyToFire = false;
                     currentChargeTick = 0;
-
-                    if (restBulletCount > 1) {
-                        --restBulletCount;
-                    } else {
-                        remove(RemovalReason.DISCARDED);
-                    }
                 }
             }
         } else if (isLockOn && maxSlot > 0) {
@@ -303,26 +316,18 @@ public class ArcherMultipleBowEntity extends PersistentSummonWeaponEntity {
         setStageByCurrentCharge();
     }
 
-    private void fire(Entity target, Level level, boolean isLastBullet) {
+    private void fire(Entity target, Level level) {
         var targetPosition = RaycastTools.getEntityTargetPosition(target);
-        var damage = this.damage * (isLastBullet ? 2.0f : 1.0f);
-        var soundEvent = isLastBullet ? SoundRegistry.VANILLA_PROJECTILE_SHOOT.get() : SoundEvents.ARROW_SHOOT;
-        var sourceType = isLastBullet ? DamageTypes.ARCHER_MULTIPLE_LAST : DamageTypes.ARCHER_MULTIPLE;
+        var source = createCombatDamageSource(DamageTypes.ARCHER_MULTIPLE);
+        CombatTools.applyDamage(target, damage, source, SpellRegistry.ARCHER_MULTIPLE.get().getSchoolType(),
+                CombatTools.KnockbackTypes.DEFAULT);
+        AudioTools.playSoundFromEntity(level, this, SoundEvents.ARROW_SHOOT, SoundSource.PLAYERS, 0.5f);
 
-        var source = createCombatDamageSource(sourceType);
-        CombatTools.applyDamage(target, damage, source, SpellRegistry.ARCHER_MULTIPLE.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
-        AudioTools.playSoundFromEntity(level, this, soundEvent, SoundSource.PLAYERS, 0.5f);
-
-        // 最終だけ消滅と同じになるため、サーバー側で送る.
-        if (isLastBullet) {
-            createLineParticleServer(position(), targetPosition, 0.2, 0.01, 0.01, ParticleTypes.END_ROD, level);
-        } else {
-            var sequence = entityData.get(HIT_SEQUENCE);
-            entityData.set(HIT_SEQUENCE, sequence + 1);
-            entityData.set(HIT_POSITION_X, (float) targetPosition.x);
-            entityData.set(HIT_POSITION_Y, (float) targetPosition.y);
-            entityData.set(HIT_POSITION_Z, (float) targetPosition.z);
-        }
+        var sequence = entityData.get(HIT_SEQUENCE);
+        entityData.set(HIT_SEQUENCE, sequence + 1);
+        entityData.set(HIT_POSITION_X, (float) targetPosition.x);
+        entityData.set(HIT_POSITION_Y, (float) targetPosition.y);
+        entityData.set(HIT_POSITION_Z, (float) targetPosition.z);
     }
 
     @Override
@@ -367,40 +372,34 @@ public class ArcherMultipleBowEntity extends PersistentSummonWeaponEntity {
         ).orElse(null);
     }
 
-    public static void createLineParticleServer(Vec3 start, Vec3 end, double step,
-                                                double randomOffsetRange, double randomSpeed,
-                                                ParticleOptions particle, Level level) {
-        var direction = end.subtract(start);
-        var length = direction.length();
-        var normalizedDirection = direction.normalize();
-        if (level instanceof ServerLevel server) {
-            for (var offset = 0.0; offset < length; offset += step) {
-                var pos = start.add(normalizedDirection.scale(offset));
-                server.sendParticles(
-                        particle,
-                        pos.x,
-                        pos.y,
-                        pos.z,
-                        1,
-                        server.random.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
-                        server.random.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
-                        server.random.nextDouble() * randomOffsetRange - randomOffsetRange / 2,
-                        randomSpeed
-                );
-            }
-        }
+
+    void discardForLifecycle() {
+        lifecycleEnding = true;
+        discard();
     }
 
     @Override
     public void remove(@NotNull RemovalReason reason) {
-        if (!level().isClientSide && reason.shouldDestroy() && !summonTrackingCleanedUp) {
-            // Archer Multiple は summon 側の UUID 集合が最後の 1 体消滅を拾って
-            // USED_ALL_RECASTS を決めるため、個別消滅時も SummonManager cleanup を通す。
-            summonTrackingCleanedUp = true;
-            SummonManager.removeSummon(this);
-            SummonManager.stopTrackingExpiration(this);
+        var notifyOwner = reason.shouldDestroy() && !lifecycleEnding;
+        lifecycleEnding = true;
+        if (notifyOwner && !level().isClientSide) {
+            ArcherMultipleManager.onDestroyed(this);
         }
-        super.remove(reason);
+        if (!isRemoved()) {
+            super.remove(reason);
+        }
+    }
+
+    @Override
+    public boolean isAlwaysTicking() {
+        // 所有者の長距離teleport後も元chunkで停止せず、次tickで追従位置へ移動させる。
+        return true;
+    }
+
+    @Override
+    public boolean shouldBeSaved() {
+        // 短時間のrecastと一体で管理し、logoutやserver再起動を跨いで実体を復元しない。
+        return false;
     }
 }
 
