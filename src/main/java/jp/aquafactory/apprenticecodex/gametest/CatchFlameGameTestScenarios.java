@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntit
 import jp.aquafactory.apprenticecodex.spell.catchflame.CatchFlame;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -20,11 +21,17 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.portal.PortalShape;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.event.level.BlockEvent;
 
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 final class CatchFlameGameTestScenarios {
     private static final float VALUE_EPSILON = 1.0E-4F;
@@ -167,6 +174,94 @@ final class CatchFlameGameTestScenarios {
         helper.getLevel().setBlockAndUpdate(smokerPosition, Blocks.AIR.defaultBlockState());
         caster.discard();
         helper.succeed();
+    }
+
+    static void catchFlameUsesFlintAndSteelIgnitionBehavior(GameTestHelper helper) {
+        var caster = createPlayer(helper, "catch_flame_flint_behavior", new Vec3(3.5D, 2.0D, 1.5D));
+        var candlePosition = new BlockPos(3, 2, 3);
+        helper.setBlock(candlePosition, Blocks.CANDLE);
+        var absoluteCandlePosition = helper.absolutePos(candlePosition);
+        aimAt(caster, Vec3.atLowerCornerOf(absoluteCandlePosition).add(0.5D, 0.2D, 0.5D));
+
+        try (var ignored = ApprenticeCodexServerConfig.useCatchFlameConfigOverrideForGameTest(
+                new CatchFlameServerConfig.Values(false, true))) {
+            cast(helper, catchFlame(), 1, caster);
+            helper.assertTrue(helper.getBlockState(candlePosition).getValue(BlockStateProperties.LIT),
+                    "Catch Flame should light a candle like flint and steel");
+
+            helper.setBlock(candlePosition, Blocks.AIR);
+            buildNetherPortalFrame(helper);
+            var portalBottom = new BlockPos(3, 2, 3);
+            var portalInteriorCenter = Vec3.atCenterOf(helper.absolutePos(portalBottom));
+            aimAt(caster, portalInteriorCenter.add(-0.5D, 0.0D, 0.0D));
+            var rayStart = caster.getEyePosition(1.0F);
+            var rayEnd = rayStart.add(caster.getViewVector(1.0F).scale(3.0D));
+            var frameHit = helper.getLevel().clip(new ClipContext(
+                    rayStart, rayEnd, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, caster));
+            helper.assertTrue(frameHit.getBlockPos().equals(helper.absolutePos(new BlockPos(2, 2, 3)))
+                            && frameHit.getDirection() == Direction.EAST,
+                    "Portal setup should expose the frame's inner face to Catch Flame: " + frameHit);
+            helper.assertTrue(PortalShape.findEmptyPortalShape(
+                            helper.getLevel(), helper.absolutePos(portalBottom), Direction.Axis.X).isPresent(),
+                    "Portal setup should form a valid empty Nether portal frame");
+            cast(helper, catchFlame(), 1, caster);
+            helper.assertTrue(helper.getBlockState(portalBottom).is(Blocks.NETHER_PORTAL),
+                    "Catch Flame should open a valid Nether portal like flint and steel: "
+                            + helper.getBlockState(portalBottom));
+        }
+
+        caster.discard();
+        helper.succeed();
+    }
+
+    static void catchFlameRespectsPlaceEventWhenIgnitingFire(GameTestHelper helper) {
+        var caster = createPlayer(helper, "catch_flame_place_event", new Vec3(1.5D, 2.0D, 1.5D));
+        var supportPosition = new BlockPos(1, 2, 3);
+        var firePosition = supportPosition.above();
+        helper.setBlock(supportPosition, Blocks.STONE);
+        aimAt(caster, Vec3.atBottomCenterOf(helper.absolutePos(firePosition)));
+        var placeEvents = new AtomicInteger();
+
+        java.util.function.Consumer<BlockEvent.EntityPlaceEvent> cancelListener = event -> {
+            if (event.getEntity() == caster && event.getPlacedBlock().is(Blocks.FIRE)) {
+                placeEvents.incrementAndGet();
+                event.setCanceled(true);
+            }
+        };
+
+        NeoForge.EVENT_BUS.addListener(cancelListener);
+        try {
+            try (var ignored = ApprenticeCodexServerConfig.useCatchFlameConfigOverrideForGameTest(
+                    new CatchFlameServerConfig.Values(false, true))) {
+                cast(helper, catchFlame(), 1, caster);
+            }
+        } finally {
+            NeoForge.EVENT_BUS.unregister(cancelListener);
+        }
+
+        helper.assertTrue(placeEvents.get() == 1,
+                "Catch Flame should fire one place event with the caster as the actor");
+        helper.assertTrue(helper.getBlockState(firePosition).isAir(),
+                "Canceling the Catch Flame place event should restore the fire position");
+
+        caster.discard();
+        helper.succeed();
+    }
+
+    private static void buildNetherPortalFrame(GameTestHelper helper) {
+        for (var x = 3; x <= 4; ++x) {
+            for (var y = 2; y <= 4; ++y) {
+                helper.setBlock(new BlockPos(x, y, 3), Blocks.AIR);
+            }
+        }
+        for (var x = 2; x <= 5; ++x) {
+            helper.setBlock(new BlockPos(x, 1, 3), Blocks.OBSIDIAN);
+            helper.setBlock(new BlockPos(x, 5, 3), Blocks.OBSIDIAN);
+        }
+        for (var y = 2; y <= 4; ++y) {
+            helper.setBlock(new BlockPos(2, y, 3), Blocks.OBSIDIAN);
+            helper.setBlock(new BlockPos(5, y, 3), Blocks.OBSIDIAN);
+        }
     }
 
     private static CatchFlame catchFlame() {

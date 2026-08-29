@@ -275,6 +275,16 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         CatchFlameGameTestScenarios.catchFlameEssenceSmokerBranchNeverFallsBackToSurfaceFire(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = CATCH_FLAME_ISOLATED_BATCH)
+    public static void catchFlameUsesFlintAndSteelIgnitionBehavior(GameTestHelper helper) {
+        CatchFlameGameTestScenarios.catchFlameUsesFlintAndSteelIgnitionBehavior(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CATCH_FLAME_ISOLATED_BATCH)
+    public static void catchFlameRespectsPlaceEventWhenIgnitingFire(GameTestHelper helper) {
+        CatchFlameGameTestScenarios.catchFlameRespectsPlaceEventWhenIgnitingFire(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = FUJIN_ISOLATED_BATCH)
     public static void fujinSlashUsesSmallBlockCollision(GameTestHelper helper) {
         FujinGameTestScenarios.fujinSlashUsesSmallBlockCollision(helper);

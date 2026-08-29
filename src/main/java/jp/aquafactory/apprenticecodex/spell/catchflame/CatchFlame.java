@@ -33,12 +33,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseFireBlock;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -150,6 +152,7 @@ public class CatchFlame extends AbstractSpell {
                 forward,
                 getRange(),
                 0.0D,
+                ClipContext.Block.OUTLINE,
                 candidate -> candidate instanceof LivingEntity
                         && CombatTools.isValidCombatTarget(candidate, combatActor)
         );
@@ -167,7 +170,7 @@ public class CatchFlame extends AbstractSpell {
     }
 
     private static BlockHitResult clipBlock(Level level, LivingEntity caster, Vec3 start, Vec3 end) {
-        return level.clip(new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, caster));
+        return level.clip(new ClipContext(start, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, caster));
     }
 
     private void affectEntities(Level level, int spellLevel, LivingEntity caster, CastTarget castTarget) {
@@ -204,44 +207,35 @@ public class CatchFlame extends AbstractSpell {
     }
 
     private static void tryIgniteBlock(Level level, LivingEntity caster, CastTarget target) {
-        if (target.blockPosition() == null) {
+        if (target.blockPosition() == null || target.hitFace() == null || !canIgniteBlocks(level, caster)) {
+            return;
+        }
+
+        var player = resolveIgnitionPlayer(level, caster);
+        if (level instanceof ServerLevel serverLevel
+                && player != null
+                && !serverLevel.mayInteract(player, target.blockPosition())) {
+            return;
+        }
+
+        var igniter = new ItemStack(Items.FLINT_AND_STEEL);
+        if (player != null && !player.mayUseItemAt(target.blockPosition(), target.hitFace(), igniter)) {
             return;
         }
 
         if (level.getBlockState(target.blockPosition()).getBlock() instanceof EssenceSmoker) {
             var blockEntity = level.getBlockEntity(target.blockPosition());
-            if (canIgniteBlocks(level, caster) && blockEntity instanceof EssenceSmokerBlockEntity essenceSmoker) {
+            if (blockEntity instanceof EssenceSmokerBlockEntity essenceSmoker) {
                 essenceSmoker.ignite(level.getGameTime());
             }
             return;
         }
 
-        if (!canIgniteBlocks(level, caster) || target.hitFace() == null) {
-            return;
-        }
-
-        var firePosition = target.blockPosition().relative(target.hitFace());
-        if (!level.getBlockState(firePosition).isAir() || isAdjacentToPortalFrame(level, firePosition)) {
-            return;
-        }
-
-        var fireState = BaseFireBlock.getState(level, firePosition);
-        if (!fireState.canSurvive(level, firePosition)) {
-            return;
-        }
-
-        level.setBlock(firePosition, fireState, 11);
-        level.gameEvent(caster, GameEvent.BLOCK_PLACE, firePosition);
-    }
-
-    private static boolean isAdjacentToPortalFrame(Level level, BlockPos position) {
-        for (var direction : Direction.values()) {
-            var adjacentPosition = position.relative(direction);
-            if (CatchFlameLoaderHooks.isPortalFrame(level, adjacentPosition)) {
-                return true;
-            }
-        }
-        return false;
+        var hitResult = new BlockHitResult(
+                target.impactPosition(), target.hitFace(), target.blockPosition(), false);
+        var useContext = new UseOnContext(level, player, InteractionHand.MAIN_HAND, igniter, hitResult);
+        // ItemStack 経由で通常の火打ち石と同じ着火処理と配置イベントへ流し、土地保護 MOD も拒否できるようにする。
+        igniter.useOn(useContext);
     }
 
     private static boolean canIgniteBlocks(Level level, LivingEntity caster) {
@@ -282,6 +276,14 @@ public class CatchFlame extends AbstractSpell {
             return serverLevel.getPlayerByUUID(anchor.getCombatOwnerUuid());
         }
         return null;
+    }
+
+    private static @Nullable ServerPlayer resolveIgnitionPlayer(Level level, LivingEntity caster) {
+        var owner = resolveRemoteOwner(level, caster);
+        if (owner instanceof ServerPlayer player) {
+            return player;
+        }
+        return caster instanceof ServerPlayer player ? player : null;
     }
 
     private static void spawnImpactParticles(Level level, Vec3 impactPosition) {
