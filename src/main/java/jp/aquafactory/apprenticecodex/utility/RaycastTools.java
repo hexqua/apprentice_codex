@@ -77,6 +77,11 @@ public final class RaycastTools {
     }
 
     public static TargetResult raycast(Entity source, Vec3 look, double blockRange, double entityRange, double boxWidth, Predicate<Entity> predicate){
+        return raycast(source, look, blockRange, entityRange, boxWidth, ClipContext.Block.COLLIDER, predicate);
+    }
+
+    public static TargetResult raycast(Entity source, Vec3 look, double blockRange, double entityRange, double boxWidth,
+                                       ClipContext.Block blockShape, Predicate<Entity> predicate){
         var level = source.level();
 
         var start = source.getEyePosition(1.0F);
@@ -85,7 +90,7 @@ public final class RaycastTools {
         var blockHit = level.clip(new ClipContext(
                 start,
                 end,
-                ClipContext.Block.COLLIDER,
+                blockShape,
                 ClipContext.Fluid.NONE,
                 source
         ));
@@ -139,6 +144,11 @@ public final class RaycastTools {
 
     public static TargetResult raycast(Entity source, Vec3 look, double range, double boxWidth, Predicate<Entity> predicate){
         return raycast(source, look, range, range, boxWidth, predicate);
+    }
+
+    public static TargetResult raycast(Entity source, Vec3 look, double range, double boxWidth,
+                                       ClipContext.Block blockShape, Predicate<Entity> predicate){
+        return raycast(source, look, range, range, boxWidth, blockShape, predicate);
     }
 
     public static TargetResult raycastFromEye(Entity source, double range, double boxWidth, Predicate<Entity> predicate) {
