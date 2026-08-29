@@ -153,8 +153,7 @@ public class CatchFlame extends AbstractSpell {
                 getRange(),
                 0.0D,
                 ClipContext.Block.OUTLINE,
-                candidate -> candidate instanceof LivingEntity
-                        && CombatTools.isValidCombatTarget(candidate, combatActor)
+                candidate -> CombatTools.isValidCombatTarget(candidate, combatActor)
         );
 
         if (result.hitEntity() != null) {
