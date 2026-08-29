@@ -405,6 +405,13 @@
       "apprenticecodex:spellcharge"
     ]
   },
+  "shiden": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.shiden",
+    "sounds": [
+      "apprenticecodex:shiden"
+    ]
+  },
 
   "smashcast_scepter_smash_air": {
     "_apprentice_codex_note": "ベースはSoundEvents.PLAYER_ATTACK_CRIT",

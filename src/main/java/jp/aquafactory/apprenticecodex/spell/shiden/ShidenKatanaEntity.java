@@ -164,7 +164,7 @@ public class ShidenKatanaEntity extends SummonWeaponEntity implements GeoEntity,
                 attackBox,
                 e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
         );
-        AudioTools.playSoundFromEntity(level, this, SoundRegistry.KATANA_SLASH.get(), SoundSource.PLAYERS);
+        AudioTools.playSoundFromEntity(level, this, SoundRegistry.SHIDEN.get(), SoundSource.PLAYERS);
         AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
         for (var hit : hitResult){
             var isBlockPenetrationHit = hit.blockOccluded();
