@@ -1080,7 +1080,7 @@
   "ui.apprenticecodex.linear_build.retrieved_from_container": "Retrieving from [%s]...",
   "ui.apprenticecodex.linear_build.deplete_mana": "Placement stopped partway because you ran out of mana...",
   "ui.apprenticecodex.linear_build.additional_place_cost": "Additional placement mana cost: %d/block",
-  "ui.apprenticecodex.combustion_jet.burn_time": "Burn duration: %s",
+  "ui.apprenticecodex.burn_time": "Burn duration: %s",
   "ui.apprenticecodex.mana_mending.repair_per_second": "Item repair speed: %s/sec",
   "ui.apprenticecodex.mana_mending.repair_progress": "%1$s repair is %2$s%% complete...",
   "ui.apprenticecodex.mana_mending.repair_finished": "%1$s has been fully repaired!",
