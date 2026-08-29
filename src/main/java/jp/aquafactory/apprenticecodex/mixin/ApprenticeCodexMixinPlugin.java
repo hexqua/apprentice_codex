@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Set;
 
 public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
+    private static final String ACCESSORIES_COMPAT_LAYER_MOD_ID = "accessories_compat_layer";
+    private static final String ACCESSORIES_COMPAT_LAYER_PATCHED_VERSION = "0.1.12";
     private static final String EASY_MAGIC_MOD_ID = "easymagic";
     private static final String APOTHEOSIS_MOD_ID = "apotheosis";
     private static final String JEI_MOD_ID = "jei";
@@ -26,6 +28,8 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
     private static final String MALUM_MIXIN_PREFIX = "jp.aquafactory.apprenticecodex.mixin.Malum";
     private static final String IRONS_JEWELRY_PROJECTILE_HIT_MIXIN =
             "jp.aquafactory.apprenticecodex.mixin.IronsJewelryProjectileHitMixin";
+    private static final String ACCESSORIES_COMPAT_CURIOS_SLOT_PREDICATE_MIXIN =
+            "jp.aquafactory.apprenticecodex.mixin.AccessoriesCompatCuriosSlotBasedPredicateMixin";
 
     @Override
     public void onLoad(String mixinPackage) {
@@ -38,6 +42,17 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+        if (ACCESSORIES_COMPAT_CURIOS_SLOT_PREDICATE_MIXIN.equals(mixinClassName)) {
+            var loadingModList = FMLLoader.getLoadingModList();
+            if (loadingModList == null) {
+                return false;
+            }
+
+            var modFile = loadingModList.getModFileById(ACCESSORIES_COMPAT_LAYER_MOD_ID);
+            // 上流実装へ直接介入するため、調査済みの0.1.12以外には適用しない。
+            return modFile != null && ACCESSORIES_COMPAT_LAYER_PATCHED_VERSION.equals(modFile.versionString());
+        }
+
         if (EASY_MAGIC_MIXIN.equals(mixinClassName)) {
             var loadingModList = FMLLoader.getLoadingModList();
             return loadingModList != null
