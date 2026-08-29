@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.block.essencesmoker;
 
 import com.mojang.serialization.MapCodec;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -162,7 +163,7 @@ public class EssenceSmoker extends BaseEntityBlock {
                 displayError(player, "ui.apprenticecodex.max_count_material");
             } else {
                 displayError(player, "ui.apprenticecodex.need_ignite",
-                        Items.FLINT_AND_STEEL.getDescription());
+                        Items.FLINT_AND_STEEL.getDescription(), SpellRegistry.CATCH_FLAME.get().getDisplayName(player));
             }
             return ItemInteractionResult.CONSUME;
         }
@@ -189,7 +190,7 @@ public class EssenceSmoker extends BaseEntityBlock {
 
         if (blockEntity.hasMaterials() && heldStack.getMaxStackSize() == 1) {
             displayError(player, "ui.apprenticecodex.need_ignite",
-                    Items.FLINT_AND_STEEL.getDescription());
+                    Items.FLINT_AND_STEEL.getDescription(), SpellRegistry.CATCH_FLAME.get().getDisplayName(player));
             return ItemInteractionResult.CONSUME;
         }
 

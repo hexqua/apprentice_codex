@@ -22,6 +22,7 @@ import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunEnti
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleEntity;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
 import jp.aquafactory.apprenticecodex.spell.combustionjet.CombustionJetWaveEntity;
+import jp.aquafactory.apprenticecodex.spell.catchflame.CatchFlameImpactEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsCoreEntity;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsWingEntity;
@@ -368,6 +369,10 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<ShidenKatanaEntity>> SHIDEN_KATANA =
             regWeapon("shiden_katana", ShidenKatanaEntity::new, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<CatchFlameImpactEntity>> CATCH_FLAME_IMPACT =
+            reg("catch_flame_impact", CatchFlameImpactEntity::new, MobCategory.MISC,
+                    0.1F, 0.1F, 32, 1, false, FireBehaviors.IMMUNE);
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

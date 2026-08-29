@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerC
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
+import jp.aquafactory.apprenticecodex.config.spell.CatchFlameServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.LinearBuildServerConfig;
@@ -1553,6 +1554,18 @@ public final class ApprenticeCodexServerConfig {
 
     public static float forceFieldDrainManaBasePerHit() {
         return SPELLS_CONFIG.forceFieldDrainManaBasePerHit();
+    }
+
+    public static CatchFlameServerConfig.Values catchFlameConfig() {
+        return SPELLS_CONFIG.catchFlameConfig();
+    }
+
+    public static GameTestConfigOverride useCatchFlameConfigOverrideForGameTest(
+            CatchFlameServerConfig.Values values
+    ) {
+        var previousValues = SPELLS_CONFIG.catchFlameConfig();
+        SPELLS_CONFIG.setCatchFlameConfigForGameTest(values);
+        return () -> SPELLS_CONFIG.setCatchFlameConfigForGameTest(previousValues);
     }
 
     public static LinearBuildServerConfig.Values linearBuildConfig() {

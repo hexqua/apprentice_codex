@@ -70,7 +70,9 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 DUAL_ACROBAT,
                 COMMENCE_FIRE,
                 SHOCK,
-                ARCANE_BLAST
+                ARCANE_BLAST,
+                CATCH_FLAME,
+                CATCH_FLAME_PENETRATE
         );
 
         // CODEX_MAGIC: このMODの魔法由来ダメージ全体(Malum互換などで使用)
@@ -123,7 +125,9 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 BLOOD_BRAND,
                 BLOOD_BRAND_BURST,
                 BLOOD_BRAND_HIGANBANA_BURST,
-                SHIDEN
+                SHIDEN,
+                CATCH_FLAME,
+                CATCH_FLAME_PENETRATE
         );
 
         // IGNORE_ARMOR : 防御力無視、盾無視、ウィッチ抵抗(Malumは無関係)
@@ -140,7 +144,9 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
         // FIRE_DAMAGE: 火炎耐性有効.
         tag(FIRE_DAMAGE).add(
                 THERMAL_PROCESS,
-                COMBUSTION_JET
+                COMBUSTION_JET,
+                CATCH_FLAME,
+                CATCH_FLAME_PENETRATE
         );
 
         // BYPASSES_IFRAME: 無敵時間を無視するダメージ.
@@ -166,7 +172,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 FUJIN,
                 BLOOD_BRAND_BURST,
                 BLOOD_BRAND_HIGANBANA_BURST,
-                SHIDEN
+                SHIDEN,
+                CATCH_FLAME_PENETRATE
         );
 
         // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効) ※召喚武器は遠距離扱い.
@@ -220,7 +227,9 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 BLOOD_BRAND,
                 BLOOD_BRAND_BURST,
                 BLOOD_BRAND_HIGANBANA_BURST,
-                SHIDEN
+                SHIDEN,
+                CATCH_FLAME,
+                CATCH_FLAME_PENETRATE
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.
