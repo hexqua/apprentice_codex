@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.spell.boundsword.BoundSword;
 import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemy;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStream;
 import jp.aquafactory.apprenticecodex.spell.callbroom.CallBroom;
+import jp.aquafactory.apprenticecodex.spell.catchflame.CatchFlame;
 import jp.aquafactory.apprenticecodex.spell.combustionjet.CombustionJet;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFire;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunk;
@@ -150,6 +151,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MAGIC_SPEAR = reg("magic_spear", MagicSpear::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ARTISAN_SMASH = reg("artisan_smash", ArtisanSmash::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> COMBUSTION_JET = reg("combustion_jet", CombustionJet::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> CATCH_FLAME = reg("catch_flame", CatchFlame::new);
 
     // 聖.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MAGE_LIGHT = reg("mage_light", MageLight::new);

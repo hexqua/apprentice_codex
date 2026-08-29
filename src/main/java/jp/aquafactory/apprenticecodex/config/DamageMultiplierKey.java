@@ -48,6 +48,7 @@ public enum DamageMultiplierKey {
     COMBUSTION_JET("combustion_jet"),
     BLOOD_BRAND("blood_brand"),
     SHIDEN("shiden"),
+    CATCH_FLAME("catchFlame"),
     ;
 
     private final String configKey;

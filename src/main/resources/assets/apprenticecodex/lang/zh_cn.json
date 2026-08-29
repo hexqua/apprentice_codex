@@ -1028,7 +1028,7 @@
   "ui.apprenticecodex.linear_build.invalid_by_deny_list": "%s不允许由该法术放置...",
   "ui.apprenticecodex.linear_build.deplete_mana": "法力不足，放置已中途停止……",
   "ui.apprenticecodex.linear_build.additional_place_cost": "放置时额外法力消耗：%d/方块",
-  "ui.apprenticecodex.combustion_jet.burn_time": "燃烧时间：%s",
+  "ui.apprenticecodex.burn_time": "燃烧时间：%s",
   "ui.apprenticecodex.linear_build.retrieved_from_container": "正在从[%s]取出...",
   "ui.apprenticecodex.mana_mending.repair_per_second": "物品修复速度：%s/秒",
   "ui.apprenticecodex.staff_turret_spell.shot_mana_cost": "每次攻击消耗魔力：%d",
