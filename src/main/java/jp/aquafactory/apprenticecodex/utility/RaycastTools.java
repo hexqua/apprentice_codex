@@ -200,6 +200,10 @@ public final class RaycastTools {
         return hit.getType() == HitResult.Type.MISS;
     }
 
+    public static boolean hasLineOfSight(Level level, Entity source, Vec3 from, Entity target) {
+        return !isAabbBlockOccluded(level, source, from, target.getBoundingBox());
+    }
+
     public static Vec3 getEntityTargetPosition(Entity entity){
         if (entity instanceof LivingEntity le) return le.getEyePosition();
         return entity.position().add(0.0, entity.getBbHeight() * 0.5, 0.0);
