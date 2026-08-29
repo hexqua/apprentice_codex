@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
 import jp.aquafactory.apprenticecodex.spell.catchflame.CatchFlame;
+import jp.aquafactory.apprenticecodex.spell.catchflame.CatchFlameImpactEntity;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -79,6 +80,29 @@ final class CatchFlameGameTestScenarios {
                 "Catch Flame should include non-living combat targets without bypassing fire immunity");
 
         discardAll(crystal, blaze, caster);
+        helper.succeed();
+    }
+
+    static void catchFlameTargetsFireImmuneEndCrystalWithoutDamagingIt(GameTestHelper helper) {
+        var caster = createPlayer(helper, "catch_flame_end_crystal_target", new Vec3(1.5D, 2.0D, 1.5D));
+        var crystalPosition = helper.absoluteVec(new Vec3(1.5D, 2.0D, 3.0D));
+        var crystal = new EndCrystal(helper.getLevel(), crystalPosition.x, crystalPosition.y, crystalPosition.z);
+        helper.getLevel().addFreshEntity(crystal);
+        aimAt(caster, crystal.getBoundingBox().getCenter());
+
+        cast(helper, catchFlame(), 2, caster);
+
+        var impacts = helper.getLevel().getEntitiesOfClass(
+                CatchFlameImpactEntity.class,
+                crystal.getBoundingBox().inflate(0.15D)
+        );
+        helper.assertTrue(impacts.size() == 1,
+                "Catch Flame should target a valid non-living End Crystal");
+        helper.assertTrue(crystal.isAlive(),
+                "Catch Flame should not bypass an End Crystal's fire immunity");
+
+        discardAll(crystal, caster);
+        impacts.forEach(Entity::discard);
         helper.succeed();
     }
 
