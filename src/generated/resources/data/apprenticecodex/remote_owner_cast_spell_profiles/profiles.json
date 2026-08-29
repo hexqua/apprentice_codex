@@ -472,6 +472,12 @@
       "profile": {
         "cast_mode": "remote_anchor_owner_magic"
       },
+      "spell": "apprenticecodex:shiden"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_anchor_owner_magic"
+      },
       "spell": "apprenticecodex:precision_jack"
     },
     {

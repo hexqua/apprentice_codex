@@ -457,6 +457,13 @@
       "spell": "apprenticecodex:slash_blade"
     },
     {
+      "profile": {
+        "owner_required": false,
+        "up_offset": 0.5
+      },
+      "spell": "apprenticecodex:shiden"
+    },
+    {
       "spell": "apprenticecodex:precision_jack"
     },
     {

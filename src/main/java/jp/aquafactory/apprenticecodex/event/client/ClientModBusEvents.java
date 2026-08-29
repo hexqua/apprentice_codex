@@ -147,6 +147,7 @@ import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHoleBlockEntityRenderer
 import jp.aquafactory.apprenticecodex.spell.shock.ShockBoltRenderer;
 import jp.aquafactory.apprenticecodex.spell.silentassassin.SilentAssassinRifleRenderer;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileRenderer;
+import jp.aquafactory.apprenticecodex.spell.shiden.ShidenKatanaRenderer;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaRenderer;
 import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWingLayer;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrowerRenderer;
@@ -870,6 +871,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.WORLD_FLATTER_DRILL.get(), WorldFlatterDrillRenderer::new);
         event.registerEntityRenderer(EntityRegistry.GRIND_RUNNER_WHEEL.get(), GrindRunnerWheelRenderer::new);
         event.registerEntityRenderer(EntityRegistry.SLASH_BLADE_KATANA.get(), SlashBladeKatanaRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.SHIDEN_KATANA.get(), ShidenKatanaRenderer::new);
         event.registerEntityRenderer(EntityRegistry.MOON_LIGHT_KATANA.get(), MoonLightKatanaRenderer::new);
         event.registerEntityRenderer(EntityRegistry.MOON_LIGHT_CHARGE_CUT.get(), MoonLightChargeCutRenderer::new);
         event.registerEntityRenderer(EntityRegistry.HIGANBANA_KATANA.get(), HiganbanaKatanaRenderer::new);
