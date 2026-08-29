@@ -127,6 +127,7 @@ import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskScreen;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchScreen;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.ModelEvent;
@@ -375,6 +376,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.TINY_LUMBERJACK_SAW.get(), TinyLumberjackSawRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ARCANE_BEAM.get(), ArcaneBeamRenderer::new);
         event.registerEntityRenderer(EntityRegistry.SHOCK_BOLT.get(), ShockBoltRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.CATCH_FLAME_IMPACT.get(), NoopRenderer::new);
         event.registerEntityRenderer(EntityRegistry.MANA_SLASH_PROJECTILE.get(), ManaSlashProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FLY_SWATTER_LAUNCHER.get(), FlySwatterLauncherRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FLY_SWATTER_PROJECTILE.get(), FlySwatterProjectileRenderer::new);

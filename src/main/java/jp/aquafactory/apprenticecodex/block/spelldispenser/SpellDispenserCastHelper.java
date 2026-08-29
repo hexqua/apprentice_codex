@@ -224,7 +224,9 @@ public final class SpellDispenserCastHelper {
                 // 空撃ち音を suppress する条件は「発射処理へ入れたか」で判断する。
                 // そのため onCast 本体へ到達した時点からは失敗でも reachedOnCast=true として扱う。
                 syncProxyMana(manaAccess, magicData);
-                spell.onCast(level, spellData.getLevel(), spellCaster, castSource, magicData);
+                SpellDispenserCastContext.run(
+                        () -> spell.onCast(level, spellData.getLevel(), spellCaster, castSource, magicData)
+                );
             } catch (RuntimeException exception) {
                 result = exceptionFailure(level, failurePos, validation, spellId, CastStage.CAST, exception, true, cooldownTicks, ownerProfile);
                 return result;
@@ -465,7 +467,9 @@ public final class SpellDispenserCastHelper {
             session.markReachedOnCast();
             try {
                 syncProxyMana(session.manaAccess(), magicData);
-                spell.onCast(level, spellData.getLevel(), spellCaster, session.castSource(), magicData);
+                SpellDispenserCastContext.run(
+                        () -> spell.onCast(level, spellData.getLevel(), spellCaster, session.castSource(), magicData)
+                );
             } catch (RuntimeException exception) {
                 exceptionFailure(
                         level,
