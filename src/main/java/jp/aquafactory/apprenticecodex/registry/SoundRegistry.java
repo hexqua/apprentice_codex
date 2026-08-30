@@ -76,11 +76,10 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> SMG = reg("smg");
     public static final RegistryObject<SoundEvent> SPELLCHARGE = reg("spellcharge");
     public static final RegistryObject<SoundEvent> SHIDEN = reg("shiden");
-
+    public static final RegistryObject<SoundEvent> THERMAL_SLICE = reg("thermal_slice");
     public static final RegistryObject<SoundEvent> SMASHCAST_SCEPTER_SMASH_AIR = reg("smashcast_scepter_smash_air");
     public static final RegistryObject<SoundEvent> SMASHCAST_SCEPTER_SMASH_GROUND = reg("smashcast_scepter_smash_ground");
     public static final RegistryObject<SoundEvent> SMASHCAST_SCEPTER_SMASH_GROUND_HEAVY = reg("smashcast_scepter_smash_ground_heavy");
-
     public static final RegistryObject<SoundEvent> VANILLA_SUMMON_WEAPON = reg("vanilla_summon_weapon");
     public static final RegistryObject<SoundEvent> VANILLA_SUMMON_MAGICAL_ENTITY = reg("vanilla_summon_magical_entity");
     public static final RegistryObject<SoundEvent> VANILLA_DISAPPEAR_MAGICAL_ENTITY = reg("vanilla_disappear_magical_entity");
@@ -121,6 +120,8 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> VANILLA_FEED_AMMO = reg("vanilla_feed_ammo");
     public static final RegistryObject<SoundEvent> VANILLA_CAST_BOOK = reg("vanilla_cast_book");
     public static final RegistryObject<SoundEvent> VANILLA_CRYSTALLIZE_MANA = reg("vanilla_crystallize_mana");
+
+
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);
     }

@@ -49,6 +49,7 @@ public enum DamageMultiplierKey {
     BLOOD_BRAND("bloodBrand"),
     SHIDEN("shiden"),
     CATCH_FLAME("catchFlame"),
+    THERMAL_SLICE("thermalSlice"),
     ;
 
     private final String configKey;
