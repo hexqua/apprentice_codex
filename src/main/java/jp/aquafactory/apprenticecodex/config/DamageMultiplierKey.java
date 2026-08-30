@@ -45,8 +45,8 @@ public enum DamageMultiplierKey {
     FIELD_OVERSEER("fieldOverseer"),
     SERVANT_GAZE("servantGaze"),
     FUJIN("fujin"),
-    COMBUSTION_JET("combustion_jet"),
-    BLOOD_BRAND("blood_brand"),
+    COMBUSTION_JET("combustionJet"),
+    BLOOD_BRAND("bloodBrand"),
     SHIDEN("shiden"),
     CATCH_FLAME("catchFlame"),
     ;
