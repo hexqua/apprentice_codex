@@ -181,6 +181,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void thermalSliceRejectsWallHitsAndDamagesVisibleTarget(GameTestHelper helper) {
+        KatanaAreaHitGameTestScenarios.thermalSliceRejectsWallHitsAndDamagesVisibleTarget(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
     public static void shidenUsesTallNarrowAttackAreaAndCanBeInterrupted(GameTestHelper helper) {
         KatanaAreaHitGameTestScenarios.shidenUsesTallNarrowAttackAreaAndCanBeInterrupted(helper);
     }

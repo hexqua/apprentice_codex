@@ -1,11 +1,13 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.shiden.ShidenKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity;
+import jp.aquafactory.apprenticecodex.spell.thermalslice.ThermalSliceKatanaEntity;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.core.BlockPos;
@@ -217,6 +219,45 @@ final class KatanaAreaHitGameTestScenarios {
                 "Slash Blade should keep full damage against a visible target");
         helper.assertTrue(target.getDeltaMovement().distanceTo(initialMovement) > POSITION_EPSILON,
                 "Slash Blade should keep default knockback against a visible target");
+
+        discard(owner, weapon, target);
+        helper.succeed();
+    }
+
+    static void thermalSliceRejectsWallHitsAndDamagesVisibleTarget(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var owner = createPlayer(helper, "thermal_slice_wall_owner", new Vec3(4.5D, 2.0D, 2.5D));
+        owner.setYRot(0.0F);
+        var weapon = new ThermalSliceKatanaEntity(EntityRegistry.THERMAL_SLICE_KATANA.get(), level, owner);
+        weapon.setDamage(4.0F);
+        level.addFreshEntity(weapon);
+
+        var target = createZombie(level, weapon.position().add(0.0D, 0.0D, 2.0D));
+        target.getAttribute(Attributes.ARMOR).setBaseValue(0.0D);
+        var initialHealth = target.getHealth();
+        var wallCenter = BlockPos.containing(weapon.position().add(0.0D, 0.0D, 1.0D));
+        for (var x = wallCenter.getX() - 1; x <= wallCenter.getX() + 1; ++x) {
+            for (var y = wallCenter.getY(); y <= wallCenter.getY() + 2; ++y) {
+                level.setBlockAndUpdate(new BlockPos(x, y, wallCenter.getZ()), Blocks.STONE.defaultBlockState());
+            }
+        }
+
+        weapon.slash(level);
+        helper.assertTrue(Math.abs(target.getHealth() - initialHealth) < HEALTH_EPSILON,
+                "Thermal Slice should reject a fully occluded target");
+
+        for (var x = wallCenter.getX() - 1; x <= wallCenter.getX() + 1; ++x) {
+            for (var y = wallCenter.getY(); y <= wallCenter.getY() + 2; ++y) {
+                level.setBlockAndUpdate(new BlockPos(x, y, wallCenter.getZ()), Blocks.AIR.defaultBlockState());
+            }
+        }
+        weapon.slash(level);
+
+        helper.assertTrue(target.getHealth() < initialHealth - HEALTH_EPSILON,
+                "Thermal Slice should damage a visible target");
+        var damageSource = target.getLastDamageSource();
+        helper.assertTrue(damageSource != null && damageSource.is(DamageTypes.THERMAL_SLICE),
+                "Thermal Slice should use its own damage type");
 
         discard(owner, weapon, target);
         helper.succeed();
