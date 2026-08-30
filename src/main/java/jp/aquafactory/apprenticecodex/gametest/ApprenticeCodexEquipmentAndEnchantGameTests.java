@@ -2021,6 +2021,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void heavenlyFistWithUnresolvedOwnerLeavesBuddingCrystal(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.heavenlyFistWithUnresolvedOwnerLeavesBuddingCrystal(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void heavenlyFistInAdventureModeLeavesBuddingCrystal(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.heavenlyFistInAdventureModeLeavesBuddingCrystal(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
+    public static void heavenlyFistCanceledBreakEventLeavesBuddingCrystal(GameTestHelper helper) {
+        EquipmentSpellBehaviorBridgeGameTestScenarios.heavenlyFistCanceledBreakEventLeavesBuddingCrystal(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MINING_SPELL_ISOLATED_BATCH)
     public static void heavenlyFistWithoutCraftsmansDelightLeavesBuddingCrystal(GameTestHelper helper) {
         EquipmentSpellBehaviorBridgeGameTestScenarios.heavenlyFistWithoutCraftsmansDelightLeavesBuddingCrystal(helper);
     }
