@@ -207,7 +207,7 @@ public class LethalAssaultRifleEntity extends SummonWeaponEntity implements Anti
         if (aimResult.hitEntity() != null) {
             var target = CombatTools.resolutePartEntity(aimResult.hitEntity());
             var source = createCombatDamageSource(DamageTypes.LETHAL_ASSAULT);
-            CombatTools.applyDamage(target, damage, source, SpellRegistry.LETHAL_ASSAULT.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+            CombatTools.applyDamage(target, damage, source, SpellRegistry.LETHAL_ASSAULT.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
         }
 
         if (level instanceof ServerLevel server) {

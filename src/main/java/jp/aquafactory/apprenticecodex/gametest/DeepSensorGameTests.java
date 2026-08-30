@@ -34,6 +34,11 @@ import java.util.UUID;
 @PrefixGameTestTemplate(false)
 public final class DeepSensorGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
+    // 隣接するGameTest構造はスカルクセンサーの受信範囲に入るため、振動を発生させるテスト同士を分離する。
+    private static final String SCULK_STEP_ISOLATED_BATCH = "apprenticecodex.deep_sensor_sculk_step_isolated";
+    private static final String SCULK_PROJECTILE_ISOLATED_BATCH = "apprenticecodex.deep_sensor_sculk_projectile_isolated";
+    private static final String SCULK_SNEAKING_ISOLATED_BATCH = "apprenticecodex.deep_sensor_sculk_sneaking_isolated";
+    private static final String SCULK_WOOL_ISOLATED_BATCH = "apprenticecodex.deep_sensor_sculk_wool_isolated";
     private static final ResourceLocation STEP_EVENT = ResourceLocation.withDefaultNamespace("step");
     private static final BlockPos SENSOR_POS = new BlockPos(1, 2, 1);
     private static final BlockPos VIBRATION_POS = new BlockPos(3, 2, 1);
@@ -181,28 +186,28 @@ public final class DeepSensorGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 20)
+    @GameTest(template = TEMPLATE, batch = SCULK_STEP_ISOLATED_BATCH, timeoutTicks = 20)
     public static void activeEffectKeepsSculkSensorInactiveForStep(GameTestHelper helper) {
         var player = createTestPlayer(helper, "deep_sensor_sculk_step");
         addSenseSensorEffect(player);
         assertSculkSensorResponse(helper, GameEvent.STEP, GameEvent.Context.of(player), false);
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 20)
+    @GameTest(template = TEMPLATE, batch = SCULK_PROJECTILE_ISOLATED_BATCH, timeoutTicks = 20)
     public static void activeEffectLetsSculkSensorReceiveProjectileShoot(GameTestHelper helper) {
         var player = createTestPlayer(helper, "deep_sensor_sculk_projectile");
         addSenseSensorEffect(player);
         assertSculkSensorResponse(helper, GameEvent.PROJECTILE_SHOOT, GameEvent.Context.of(player), true);
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 20)
+    @GameTest(template = TEMPLATE, batch = SCULK_SNEAKING_ISOLATED_BATCH, timeoutTicks = 20)
     public static void sneakingStillSuppressesAudibleGameEvent(GameTestHelper helper) {
         var player = createTestPlayer(helper, "deep_sensor_sculk_sneaking");
         player.setShiftKeyDown(true);
         assertSculkSensorResponse(helper, GameEvent.PROJECTILE_SHOOT, GameEvent.Context.of(player), false);
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 20)
+    @GameTest(template = TEMPLATE, batch = SCULK_WOOL_ISOLATED_BATCH, timeoutTicks = 20)
     public static void woolStillSuppressesStepWithoutEffect(GameTestHelper helper) {
         var player = createTestPlayer(helper, "deep_sensor_sculk_wool");
         assertSculkSensorResponse(

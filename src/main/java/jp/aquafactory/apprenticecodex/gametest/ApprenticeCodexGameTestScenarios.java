@@ -145,6 +145,7 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfile;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerDirectionMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
+import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultiple;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWings;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
@@ -247,6 +248,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.CombatRules;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -485,6 +487,8 @@ public class ApprenticeCodexGameTestScenarios {
             UUID.fromString("dc11d258-0a7d-4e1e-a0c6-74754fb91d25");
     static final UUID TOTEM_OF_PERMAFROST_SUMMON_DAMAGE_TEST_MODIFIER_ID =
             UUID.fromString("7543bb74-30b3-4e0e-9d73-6e4d71d1e218");
+    static final UUID ARCHER_MULTIPLE_SUMMON_DAMAGE_TEST_MODIFIER_ID =
+            UUID.fromString("0ba0d6e2-80a3-4d08-b2e8-8892c3cf6834");
     static final UUID VANILLA_BASE_ATTACK_DAMAGE_MODIFIER_ID =
             UUID.fromString("CB3F55D3-645C-4F38-A497-9C13A33DB5CF");
     static final UUID VANILLA_BASE_ATTACK_SPEED_MODIFIER_ID =
@@ -493,7 +497,6 @@ public class ApprenticeCodexGameTestScenarios {
     static final ResourceLocation MALUM_ANIMATED = MalumHauntedCompat.animatedEnchantmentId();
     static final ResourceLocation MALUM_SPIRIT_PLUNDER = ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "spirit_plunder");
     static final ResourceLocation MALUM_REPLENISHING = ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "replenishing");
-
     ApprenticeCodexGameTestScenarios() {
     }
 
@@ -6559,30 +6562,150 @@ public class ApprenticeCodexGameTestScenarios {
         bloom.die(level.damageSources().genericKill());
     }
 
-    static void archerMultipleTimeoutWithGreaterConjurersTalismanSkipsCooldown(GameTestHelper helper) {
+    static void archerMultipleInitialCastUsesFixedDurationAndSerializableLifecycle(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createArcherMultiplePlayer(helper, new BlockPos(0, 12, 0), "archer_multiple_fixed_duration_test");
+            castArcherMultiple(helper, player, 5);
+
+            var spell = SpellRegistry.ARCHER_MULTIPLE.get();
+            var recast = MagicData.getPlayerMagicData(player).getPlayerRecasts().getRecastInstance(spell.getSpellId());
+            helper.assertTrue(recast != null, "Archer Multiple should create a recast instance on initial cast");
+            helper.assertTrue(recast.getTicksToLive() == 600,
+                    "Archer Multiple duration should remain fixed at 600 ticks for every spell level");
+            helper.assertTrue(getOwnedArcherMultipleBows(helper, player).size() == 4,
+                    "Archer Multiple should summon exactly four bows");
+            helper.assertTrue(recast.getCastData() instanceof ArcherMultiple.ArcherMultipleCastData,
+                    "Archer Multiple should use its own lifecycle cast data");
+            var castData = (ArcherMultiple.ArcherMultipleCastData) recast.getCastData();
+            helper.assertTrue(castData.getBowUuids().size() == 4,
+                    "Archer Multiple cast data should track every summoned bow");
+            helper.assertTrue(helper.getLevel().dimension().location().equals(castData.getDimension()),
+                    "Archer Multiple cast data should track the summon dimension");
+
+            var nbtRestored = new ArcherMultiple.ArcherMultipleCastData();
+            nbtRestored.deserializeNBT(castData.serializeNBT());
+            assertArcherMultipleCastDataEquals(helper, castData, nbtRestored, "NBT");
+
+            var buffer = new FriendlyByteBuf(Unpooled.buffer());
+            castData.writeToBuffer(buffer);
+            var bufferRestored = new ArcherMultiple.ArcherMultipleCastData();
+            bufferRestored.readFromBuffer(buffer);
+            assertArcherMultipleCastDataEquals(helper, castData, bufferRestored, "network buffer");
+        });
+    }
+
+    static void archerMultipleTimeoutWithGreaterConjurersTalismanKeepsCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var playerPos = new BlockPos(0, 12, 0);
             prepareSummonedEntityIsolationArea(helper, playerPos);
             var player = createArcherMultiplePlayer(helper, playerPos, "archer_multiple_greater_conjurer_timeout_test");
             equipGreaterConjurersTalisman(player);
-
             castArcherMultiple(helper, player, 1);
 
             var spell = SpellRegistry.ARCHER_MULTIPLE.get();
             var magicData = MagicData.getPlayerMagicData(player);
             var recast = magicData.getPlayerRecasts().getRecastInstance(spell.getSpellId());
             helper.assertTrue(recast != null, "Archer Multiple should create a recast instance on initial cast");
-            helper.assertTrue(magicData.getPlayerRecasts().hasRecastForSpell(spell),
-                    "Archer Multiple recast should remain active before timeout completion");
-
-            magicData.getPlayerRecasts().removeRecast(recast, io.redspace.ironsspellbooks.capabilities.magic.RecastResult.TIMEOUT);
+            magicData.getPlayerRecasts().removeRecast(recast,
+                    io.redspace.ironsspellbooks.capabilities.magic.RecastResult.TIMEOUT);
 
             helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(spell),
-                    "Archer Multiple recast should be removed after timeout completion");
-            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
-                    "Greater Conjurer's Talisman should suppress Archer Multiple cooldown when the recast ends by timeout");
+                    "Archer Multiple timeout should remove the active recast");
+            helper.assertTrue(getOwnedArcherMultipleBows(helper, player).isEmpty(),
+                    "Archer Multiple timeout should remove every summoned bow");
+            helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "Greater Conjurer's Talisman must not suppress Archer Multiple cooldown");
         });
     }
+
+    static void archerMultipleManualRecastRemovesBowsAndStartsCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createArcherMultiplePlayer(helper, new BlockPos(0, 12, 0), "archer_multiple_manual_recast_test");
+            castArcherMultiple(helper, player, 1);
+            var spell = SpellRegistry.ARCHER_MULTIPLE.get();
+            var magicData = MagicData.getPlayerMagicData(player);
+
+            spell.castSpell(helper.getLevel(), 1, player, CastSource.SPELLBOOK, true);
+
+            helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(spell),
+                    "Archer Multiple manual recast should consume the active recast");
+            helper.assertTrue(getOwnedArcherMultipleBows(helper, player).isEmpty(),
+                    "Archer Multiple manual recast should remove every summoned bow");
+            helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "Archer Multiple manual recast should start its normal cooldown");
+        });
+    }
+
+    static void archerMultipleCounterspellRemovesBowsAndStartsCooldown(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createArcherMultiplePlayer(helper, new BlockPos(0, 12, 0), "archer_multiple_counterspell_test");
+            castArcherMultiple(helper, player, 1);
+            var spell = SpellRegistry.ARCHER_MULTIPLE.get();
+            var magicData = MagicData.getPlayerMagicData(player);
+            var recast = magicData.getPlayerRecasts().getRecastInstance(spell.getSpellId());
+            helper.assertTrue(recast != null, "Archer Multiple counterspell test requires an active recast");
+
+            // Iron'sのSummonManagerはCOUNTERSPELL時にrecastを復元するが、Archer Multipleは
+            // 小型で個別解除が困難な4本を一括解除できる対抗手段として、意図的に保護対象外とする。
+            magicData.getPlayerRecasts().removeRecast(recast,
+                    io.redspace.ironsspellbooks.capabilities.magic.RecastResult.COUNTERSPELL);
+
+            helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(spell),
+                    "Archer Multiple should intentionally consume its recast instead of restoring it like SummonManager summons");
+            helper.assertTrue(getOwnedArcherMultipleBows(helper, player).isEmpty(),
+                    "Counterspell should intentionally remove every Archer Multiple bow");
+            helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "Counterspell should start Archer Multiple's normal cooldown");
+        });
+    }
+
+    static void archerMultipleLongTeleportKeepsFollowing(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createArcherMultiplePlayer(helper, new BlockPos(0, 12, 0), "archer_multiple_teleport_test");
+            castArcherMultiple(helper, player, 1);
+            var bows = getOwnedArcherMultipleBows(helper, player);
+            helper.assertTrue(bows.size() == 4, "Archer Multiple teleport test requires four bows");
+
+            player.setPos(player.getX() + 96.0D, player.getY(), player.getZ());
+            bows.forEach(bow -> bow.tickOnServer(helper.getLevel()));
+
+            helper.assertTrue(bows.stream().allMatch(bow -> !bow.isRemoved() && bow.distanceToSqr(player) < 64.0D),
+                    "Archer Multiple bows should immediately resume following after a long same-dimension teleport");
+            helper.assertTrue(MagicData.getPlayerMagicData(player).getPlayerRecasts()
+                            .hasRecastForSpell(SpellRegistry.ARCHER_MULTIPLE.get()),
+                    "A same-dimension teleport should not consume the Archer Multiple recast");
+        });
+    }
+
+    static void archerMultipleDamageUsesSummonDamageAttribute(GameTestHelper helper) {
+        var player = createArcherMultiplePlayer(helper, new BlockPos(0, 12, 0), "archer_multiple_summon_damage_test");
+        var baseTarget = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 12, 0));
+        baseTarget.setNoAi(true);
+        var baseBow = createArcherMultipleDamageTestBow(helper, player, 4.0F);
+        var baseHealth = baseTarget.getHealth();
+        fireArcherMultipleForGameTest(baseBow, baseTarget, helper.getLevel());
+        var baseDamage = baseHealth - baseTarget.getHealth();
+        baseTarget.discard();
+
+        player.getAttribute(AttributeRegistry.SUMMON_DAMAGE.get()).addTransientModifier(new AttributeModifier(
+                ARCHER_MULTIPLE_SUMMON_DAMAGE_TEST_MODIFIER_ID,
+                "Archer Multiple Summon Damage test",
+                0.5D,
+                AttributeModifier.Operation.MULTIPLY_BASE
+        ));
+        var boostedTarget = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 12, 0));
+        boostedTarget.setNoAi(true);
+        var boostedBow = createArcherMultipleDamageTestBow(helper, player, 4.0F);
+        var boostedHealth = boostedTarget.getHealth();
+        fireArcherMultipleForGameTest(boostedBow, boostedTarget, helper.getLevel());
+        var boostedDamage = boostedHealth - boostedTarget.getHealth();
+
+        helper.assertTrue(baseDamage > 0.0F, "Archer Multiple should damage the baseline target");
+        helper.assertTrue(boostedDamage > baseDamage + 0.1F,
+                "Archer Multiple should retain Summon Damage scaling: " + boostedDamage + " <= " + baseDamage);
+        helper.succeed();
+    }
+
     static void archerMultipleAllBowRemovalEndsRecastAndStartsCooldown(GameTestHelper helper) {
         var playerPos = new BlockPos(0, 12, 0);
         prepareSummonedEntityIsolationArea(helper, playerPos);
@@ -7932,7 +8055,7 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    static void totemOfPermafrostGreaterConjurersTalismanSkipsTimeoutCooldown(GameTestHelper helper) {
+    static void totemOfPermafrostGreaterConjurersTalismanKeepsTimeoutCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "totem_permafrost_talisman_timeout_test");
             equipGreaterConjurersTalisman(owner);
@@ -7951,12 +8074,12 @@ public class ApprenticeCodexGameTestScenarios {
                     "TotemOfPermafrost talisman timeout should still remove the placed totem");
             helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(spell),
                     "TotemOfPermafrost talisman timeout should remove the active recast");
-            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
-                    "Greater Conjurer's Talisman should suppress TotemOfPermafrost cooldown when the recast ends by timeout");
+            helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "TotemOfPermafrost timeout should apply cooldown even with Greater Conjurer's Talisman");
         });
     }
 
-    static void totemOfPermafrostGreaterConjurersTalismanSkipsManualRecastCooldown(GameTestHelper helper) {
+    static void totemOfPermafrostGreaterConjurersTalismanKeepsManualRecastCooldown(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "totem_permafrost_talisman_manual_test");
             equipGreaterConjurersTalisman(owner);
@@ -7972,8 +8095,8 @@ public class ApprenticeCodexGameTestScenarios {
                     "TotemOfPermafrost manual recast with talisman should remove the placed totem");
             helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(spell),
                     "TotemOfPermafrost manual recast with talisman should remove the active recast");
-            helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
-                    "Greater Conjurer's Talisman should suppress TotemOfPermafrost cooldown after manual recast");
+            helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
+                    "TotemOfPermafrost manual recast should apply cooldown even with Greater Conjurer's Talisman");
         });
     }
 
@@ -11875,13 +11998,55 @@ public class ApprenticeCodexGameTestScenarios {
         return blooms.get(0);
     }
 
+    static void assertArcherMultipleCastDataEquals(
+            GameTestHelper helper,
+            ArcherMultiple.ArcherMultipleCastData expected,
+            ArcherMultiple.ArcherMultipleCastData actual,
+            String transport
+    ) {
+        helper.assertTrue(expected.getBowUuids().equals(actual.getBowUuids()),
+                "Archer Multiple " + transport + " should preserve bow UUIDs");
+        helper.assertTrue(java.util.Objects.equals(expected.getDimension(), actual.getDimension()),
+                "Archer Multiple " + transport + " should preserve the summon dimension");
+    }
+
+    static ArcherMultipleBowEntity createArcherMultipleDamageTestBow(
+            GameTestHelper helper,
+            FakePlayer owner,
+            float damage
+    ) {
+        var bow = new ArcherMultipleBowEntity(
+                EntityRegistry.ARCHER_MULTIPLE_BOW.get(),
+                helper.getLevel(),
+                owner,
+                0,
+                1
+        );
+        bow.setDamage(damage);
+        return bow;
+    }
+
+    static void fireArcherMultipleForGameTest(
+            ArcherMultipleBowEntity bow,
+            Entity target,
+            Level level
+    ) {
+        try {
+            var method = ArcherMultipleBowEntity.class.getDeclaredMethod("fire", Entity.class, Level.class);
+            method.setAccessible(true);
+            method.invoke(bow, target, level);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Failed to invoke Archer Multiple fire for GameTest", exception);
+        }
+    }
+
     static FakePlayer createArcherMultiplePlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
         player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
-        // SummonManager は owner を level lookup で引き直して recast cleanup するため、
-        // Archer Multiple の summon 消滅テストでは FakePlayer もワールドへ参加させる。
+        // 独自lifecycleがownerとrecastの整合性をlevel上でも検証するため、
+        // Archer Multipleの消滅・追従テストではFakePlayerもワールドへ参加させる。
         helper.getLevel().addFreshEntity(player);
         return player;
     }

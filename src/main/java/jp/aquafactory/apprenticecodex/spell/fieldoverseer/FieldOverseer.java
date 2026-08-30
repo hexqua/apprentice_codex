@@ -2,7 +2,6 @@ package jp.aquafactory.apprenticecodex.spell.fieldoverseer;
 
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
@@ -93,6 +92,11 @@ public class FieldOverseer extends AbstractSpell implements IClientBlockTargetin
 
     public int getConsumeManaPerAttack(int spellLevel) {
         return 40 + (spellLevel - 1) * 20;
+    }
+
+    public int getStaffMaxMana(int spellLevel){
+        // 5発分は無料発射させられる
+        return getConsumeManaPerAttack(spellLevel) * 5;
     }
 
     public int getDuration() {
@@ -202,7 +206,7 @@ public class FieldOverseer extends AbstractSpell implements IClientBlockTargetin
                             getDamage(spellLevel, entity),
                             getRadius(),
                             getConsumeManaPerAttack(spellLevel),
-                            (float) entity.getAttributeValue(AttributeRegistry.MAX_MANA.get()),
+                            getStaffMaxMana(spellLevel),
                             getStaffHealth(spellLevel)
                     );
                     staff.moveTo(placement.get().center().x, placement.get().center().y, placement.get().center().z,

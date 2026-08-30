@@ -36,13 +36,13 @@ public class SlashBlade extends AbstractSummonWeaponSpell<SlashBladeKatanaEntity
             .setMinRarity(SpellRarity.COMMON)
             .setSchoolResource(SchoolRegistry.EVOCATION_RESOURCE)
             .setMaxLevel(10)
-            .setCooldownSeconds(1)
+            .setCooldownSeconds(1.5)
             .build();
 
     public SlashBlade() {
         super(SlashBladeKatanaEntity.class);
-        baseSpellPower = 500;
-        spellPowerPerLevel = 150;
+        baseSpellPower = 400;
+        spellPowerPerLevel = 50;
         baseManaCost = 10;
         manaCostPerLevel = 3;
         castTime = 15;
