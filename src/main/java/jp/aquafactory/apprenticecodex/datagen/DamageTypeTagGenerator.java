@@ -127,7 +127,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 BLOOD_BRAND_HIGANBANA_BURST,
                 SHIDEN,
                 CATCH_FLAME,
-                CATCH_FLAME_PENETRATE
+                CATCH_FLAME_PENETRATE,
+                THERMAL_SLICE
         );
 
         // IGNORE_ARMOR : 防御力無視、盾無視、ウィッチ抵抗(Malumは無関係)
@@ -173,7 +174,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 BLOOD_BRAND_BURST,
                 BLOOD_BRAND_HIGANBANA_BURST,
                 SHIDEN,
-                CATCH_FLAME_PENETRATE
+                CATCH_FLAME_PENETRATE,
+                THERMAL_SLICE
         );
 
         // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効) ※召喚武器は遠距離扱い.
@@ -229,7 +231,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 BLOOD_BRAND_HIGANBANA_BURST,
                 SHIDEN,
                 CATCH_FLAME,
-                CATCH_FLAME_PENETRATE
+                CATCH_FLAME_PENETRATE,
+                THERMAL_SLICE
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.

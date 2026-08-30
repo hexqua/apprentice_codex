@@ -64,6 +64,7 @@ import jp.aquafactory.apprenticecodex.spell.shock.ShockBoltEntity;
 import jp.aquafactory.apprenticecodex.spell.silentassassin.SilentAssassinRifleEntity;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrowerEntity;
+import jp.aquafactory.apprenticecodex.spell.thermalslice.ThermalSliceKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawEntity;
 import jp.aquafactory.apprenticecodex.spell.tirovolley.TiroVolleyMusketEntity;
 import jp.aquafactory.apprenticecodex.spell.totemofpermafrost.TotemOfPermafrostTotemEntity;
@@ -373,6 +374,9 @@ public final class EntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<CatchFlameImpactEntity>> CATCH_FLAME_IMPACT =
             reg("catch_flame_impact", CatchFlameImpactEntity::new, MobCategory.MISC,
                     0.1F, 0.1F, 32, 1, false, FireBehaviors.IMMUNE);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<ThermalSliceKatanaEntity>> THERMAL_SLICE_KATANA =
+            regWeapon("thermal_slice_katana", ThermalSliceKatanaEntity::new, 1);
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

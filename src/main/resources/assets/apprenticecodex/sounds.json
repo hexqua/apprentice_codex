@@ -412,6 +412,13 @@
       "apprenticecodex:shiden"
     ]
   },
+  "thermal_slice": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.thermal_slice",
+    "sounds": [
+      "apprenticecodex:thermal_slice"
+    ]
+  },
 
   "smashcast_scepter_smash_air": {
     "_apprentice_codex_note": "ベースはSoundEvents.MACE_SMASH_AIR",

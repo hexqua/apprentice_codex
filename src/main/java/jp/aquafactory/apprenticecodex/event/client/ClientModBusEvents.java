@@ -129,6 +129,7 @@ import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerRendere
 import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssaultRifleRenderer;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightTorchBlockEntityRenderer;
+import jp.aquafactory.apprenticecodex.spell.thermalslice.ThermalSliceKatanaRenderer;
 import jp.aquafactory.apprenticecodex.spell.wizardlamp.WizardlampLanternBlockEntityRenderer;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileRenderer;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeRenderer;
@@ -891,5 +892,6 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.ANTI_MANA_ARROW.get(), AntiManaArrowRenderer::new);
         event.registerEntityRenderer(EntityRegistry.COMBUSTION_JET_WAVE.get(), CombustionJetWaveRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BLOOD_BRAND_KUNAI.get(), BloodBrandKunaiRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.THERMAL_SLICE_KATANA.get(), ThermalSliceKatanaRenderer::new);
     }
 }
