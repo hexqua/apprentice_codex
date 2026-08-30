@@ -81,6 +81,11 @@ public final class ApprenticeCodexSpellDispenserGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellDispenserWizardlampPlacesLanternInAirWithoutBlockTarget(GameTestHelper helper) {
+        SpellDispenserGameTestScenarios.spellDispenserWizardlampPlacesLanternInAirWithoutBlockTarget(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellDispenserCastHelperUsesNeutralLivingCasterProfileForMagicMissile(GameTestHelper helper) {
         SpellDispenserGameTestScenarios.spellDispenserCastHelperUsesNeutralLivingCasterProfileForMagicMissile(helper);
     }

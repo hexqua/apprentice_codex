@@ -34,8 +34,10 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
@@ -181,9 +183,36 @@ public class Wizardlamp extends AbstractSpell implements IClientBlockTargetingSp
             return resolveClientPlacePos(level, entity, clientTarget.get(), getRange());
         }
 
-        return BlockTools.findPlacePos(level, entity, getRange())
-                .map(BlockTools.PlaceData::pos)
-                .filter(pos -> canPlaceAt(level, pos));
+        return findServerPlacePos(level, entity, getRange());
+    }
+
+    private static Optional<BlockPos> findServerPlacePos(Level level, LivingEntity entity, double range) {
+        if (range <= 0.0D) {
+            return Optional.empty();
+        }
+
+        var start = entity.getEyePosition(1.0F);
+        var end = start.add(entity.getViewVector(1.0F).scale(range));
+        var hit = level.clip(new ClipContext(
+                start,
+                end,
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE,
+                entity
+        ));
+
+        BlockPos placePos;
+        if (hit.getType() == HitResult.Type.MISS) {
+            // client の MISS 照準と同じ終点を使い、照準 packet のない自動詠唱でも空中設置を維持する。
+            placePos = BlockPos.containing(hit.getLocation());
+        } else {
+            var hitPos = hit.getBlockPos();
+            placePos = level.getBlockState(hitPos).canBeReplaced()
+                    ? hitPos
+                    : hitPos.relative(hit.getDirection());
+        }
+
+        return canPlaceAt(level, placePos) ? Optional.of(placePos.immutable()) : Optional.empty();
     }
 
     public static Optional<BlockPos> resolveClientPlacePos(Level level, LivingEntity entity,
