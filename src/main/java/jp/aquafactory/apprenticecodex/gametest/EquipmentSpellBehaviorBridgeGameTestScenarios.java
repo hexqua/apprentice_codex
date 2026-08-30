@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import com.mojang.authlib.GameProfile;
+import io.netty.channel.embedded.EmbeddedChannel;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
@@ -8,6 +10,8 @@ import io.redspace.ironsspellbooks.entity.spells.spectral_hammer.SpectralHammer;
 import io.redspace.ironsspellbooks.spells.nature.TouchDigSpell;
 
 import java.util.List;
+import java.util.UUID;
+import java.util.function.Consumer;
 
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -37,6 +41,10 @@ import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -48,11 +56,13 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.AmethystClusterBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 
@@ -856,7 +866,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             var level = helper.getLevel();
             var playerPos = new BlockPos(0, 12, 0);
             prepareMiningSpellIsolationArea(helper, playerPos);
-            var player = createEquipmentTestPlayer(helper, playerPos, "heavenly_fist_crystal_harvest_test");
+            var player = createServerEquipmentTestPlayer(helper, playerPos);
             equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
             var heldTool = new ItemStack(Items.DIAMOND_PICKAXE);
             heldTool.enchant(Enchantments.SILK_TOUCH, 1);
@@ -880,12 +890,89 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
         });
     }
 
+    static void heavenlyFistWithUnresolvedOwnerLeavesBuddingCrystal(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var level = helper.getLevel();
+            var playerPos = new BlockPos(0, 12, 0);
+            prepareMiningSpellIsolationArea(helper, playerPos);
+            var player = createEquipmentTestPlayer(helper, playerPos, "heavenly_fist_unresolved_owner_test");
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+
+            var sourcePos = helper.absolutePos(new BlockPos(1, 12, 1));
+            var clusterPos = sourcePos.east();
+            level.setBlock(sourcePos, Blocks.BUDDING_AMETHYST.defaultBlockState(), 3);
+            level.setBlock(clusterPos, matureAmethystCluster(Direction.EAST), 3);
+
+            spawnHeavenlyFist(level, player, Vec3.atCenterOf(sourcePos), 2.0F);
+            helper.runAtTickTime(28, () -> {
+                helper.assertTrue(level.getBlockState(clusterPos).is(Blocks.AMETHYST_CLUSTER),
+                        "Heavenly Fist should not harvest crystals when its owner cannot resolve to an online player");
+                helper.succeed();
+            });
+        });
+    }
+
+    static void heavenlyFistInAdventureModeLeavesBuddingCrystal(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var level = helper.getLevel();
+            var playerPos = new BlockPos(0, 12, 0);
+            prepareMiningSpellIsolationArea(helper, playerPos);
+            var player = createServerEquipmentTestPlayer(helper, playerPos);
+            player.gameMode.changeGameModeForPlayer(GameType.ADVENTURE);
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+
+            var sourcePos = helper.absolutePos(new BlockPos(1, 12, 1));
+            var clusterPos = sourcePos.east();
+            level.setBlock(sourcePos, Blocks.BUDDING_AMETHYST.defaultBlockState(), 3);
+            level.setBlock(clusterPos, matureAmethystCluster(Direction.EAST), 3);
+
+            spawnHeavenlyFist(level, player, Vec3.atCenterOf(sourcePos), 2.0F);
+            helper.runAtTickTime(28, () -> {
+                helper.assertTrue(level.getBlockState(clusterPos).is(Blocks.AMETHYST_CLUSTER),
+                        "Heavenly Fist should respect Adventure mode block restrictions");
+                helper.succeed();
+            });
+        });
+    }
+
+    static void heavenlyFistCanceledBreakEventLeavesBuddingCrystal(GameTestHelper helper) {
+        helper.runAtTickTime(1, () -> {
+            var level = helper.getLevel();
+            var playerPos = new BlockPos(0, 12, 0);
+            prepareMiningSpellIsolationArea(helper, playerPos);
+            var player = createServerEquipmentTestPlayer(helper, playerPos);
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+
+            var sourcePos = helper.absolutePos(new BlockPos(1, 12, 1));
+            var clusterPos = sourcePos.east();
+            level.setBlock(sourcePos, Blocks.BUDDING_AMETHYST.defaultBlockState(), 3);
+            level.setBlock(clusterPos, matureAmethystCluster(Direction.EAST), 3);
+            Consumer<BlockEvent.BreakEvent> cancelListener = event -> {
+                if (event.getPlayer() == player && event.getPos().equals(clusterPos)) {
+                    event.setCanceled(true);
+                }
+            };
+            MinecraftForge.EVENT_BUS.addListener(cancelListener);
+
+            spawnHeavenlyFist(level, player, Vec3.atCenterOf(sourcePos), 2.0F);
+            helper.runAtTickTime(28, () -> {
+                try {
+                    helper.assertTrue(level.getBlockState(clusterPos).is(Blocks.AMETHYST_CLUSTER),
+                            "Heavenly Fist should respect canceled block break events");
+                    helper.succeed();
+                } finally {
+                    MinecraftForge.EVENT_BUS.unregister(cancelListener);
+                }
+            });
+        });
+    }
+
     static void heavenlyFistWithoutCraftsmansDelightLeavesBuddingCrystal(GameTestHelper helper) {
         helper.runAtTickTime(1, () -> {
             var level = helper.getLevel();
             var playerPos = new BlockPos(0, 12, 0);
             prepareMiningSpellIsolationArea(helper, playerPos);
-            var player = createEquipmentTestPlayer(helper, playerPos, "heavenly_fist_no_crystal_harvest_test");
+            var player = createServerEquipmentTestPlayer(helper, playerPos);
 
             var sourcePos = helper.absolutePos(new BlockPos(1, 12, 1));
             var clusterPos = sourcePos.east();
@@ -906,7 +993,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             var level = helper.getLevel();
             var playerPos = new BlockPos(0, 12, 0);
             prepareMiningSpellIsolationArea(helper, playerPos);
-            var player = createEquipmentTestPlayer(helper, playerPos, "heavenly_fist_crystal_source_guard_test");
+            var player = createServerEquipmentTestPlayer(helper, playerPos);
             equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
 
             var supportPos = helper.absolutePos(new BlockPos(1, 12, 1));
@@ -928,7 +1015,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             var level = helper.getLevel();
             var playerPos = new BlockPos(0, 12, 0);
             prepareMiningSpellIsolationArea(helper, playerPos);
-            var player = createEquipmentTestPlayer(helper, playerPos, "heavenly_fist_immature_bud_test");
+            var player = createServerEquipmentTestPlayer(helper, playerPos);
             equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
 
             var sourcePos = helper.absolutePos(new BlockPos(1, 12, 1));
@@ -1222,5 +1309,27 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             helper.assertTrue(amplifiedTaken > baselineTaken,
                     "Amplified haunted bonus damage should exceed baseline damage");
         });
+    }
+
+    private static ServerPlayer createServerEquipmentTestPlayer(GameTestHelper helper, BlockPos pos) {
+        var level = helper.getLevel();
+        var server = level.getServer();
+        var profile = new GameProfile(UUID.randomUUID(), "heavenly_fist_server_owner_test");
+        var player = new ServerPlayer(server, level, profile);
+        var connection = new Connection(PacketFlow.SERVERBOUND);
+        new EmbeddedChannel(connection);
+        // placeNewPlayerはlevelのempty tick状態を変えて後続GameTestのentity tick条件へ干渉するため、
+        // ServerPlayerとして必要な接続だけを構成する。
+        new ServerGamePacketListenerImpl(server, connection, player);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
+        player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
+        return player;
+    }
+
+    private static void equipRingCurio(ServerPlayer player, ItemStack ringStack) {
+        var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+                .orElseThrow(() -> new IllegalStateException("Missing curios inventory for curio equip test"));
+        curiosInventory.setEquippedCurio(io.redspace.ironsspellbooks.compat.Curios.RING_SLOT, 0, ringStack);
     }
 }

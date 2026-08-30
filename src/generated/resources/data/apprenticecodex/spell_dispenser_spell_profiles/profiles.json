@@ -628,6 +628,24 @@
         "owner_required": false
       },
       "spell": "apprenticecodex:artisan_smash"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
+      "spell": "apprenticecodex:heavenly_fist"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
+      "spell": "apprenticecodex:combustion_jet"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
+      "spell": "apprenticecodex:wizardlamp"
     }
   ]
 }

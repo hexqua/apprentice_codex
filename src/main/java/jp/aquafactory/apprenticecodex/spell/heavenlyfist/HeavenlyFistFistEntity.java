@@ -16,6 +16,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -28,6 +29,7 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -159,10 +161,25 @@ public class HeavenlyFistFistEntity extends Entity implements GeoEntity, Traceab
         }
 
         HeavenlyFistPressingProcessor.processItems(level, lockedCenter, maxProcessCount);
-        if (owner instanceof LivingEntity livingOwner) {
-            HeavenlyFistCrystalHarvestProcessor.harvest(level, livingOwner, lockedCenter, radius);
+        var harvestOwner = resolveOnlineHarvestOwner(level);
+        if (harvestOwner != null) {
+            HeavenlyFistCrystalHarvestProcessor.harvest(level, harvestOwner, lockedCenter, radius);
         }
         playImpactEffects(level);
+    }
+
+    private @Nullable ServerPlayer resolveOnlineHarvestOwner(ServerLevel level) {
+        var owner = getOwner();
+        if (owner instanceof ServerPlayer serverPlayer && !(serverPlayer instanceof FakePlayer)) {
+            return serverPlayer;
+        }
+
+        if (ownerUuid == null) {
+            return null;
+        }
+
+        // SpellDispenser の代理術者では装備や土地権限を確定できないため、採取時点の実プレイヤーを使う。
+        return level.getServer().getPlayerList().getPlayer(ownerUuid);
     }
 
     private void playImpactEffects(ServerLevel level) {

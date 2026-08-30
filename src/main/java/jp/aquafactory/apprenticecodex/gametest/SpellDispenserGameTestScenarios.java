@@ -266,6 +266,34 @@ final class SpellDispenserGameTestScenarios {
         });
     }
 
+    static void spellDispenserWizardlampPlacesLanternInAirWithoutBlockTarget(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var castPos = helper.absolutePos(new BlockPos(5, 4, 8));
+            var forward = new Vec3(0.0D, 0.0D, -1.0D);
+            var castBasePosition = Vec3.atCenterOf(castPos);
+            // 1.20.1のSpellDispenserCastHelperが適用する標準forward offsetに合わせて実際の視点位置を求める。
+            var castOrigin = castBasePosition.add(forward.scale(0.7D));
+            var expectedPos = BlockPos.containing(castOrigin.add(forward.scale(6.0D)));
+            var scrollStack = createSpellScroll(SpellRegistry.WIZARDLAMP.get());
+
+            for (var distance = 0; distance <= 6; distance++) {
+                level.setBlockAndUpdate(BlockPos.containing(castOrigin.add(forward.scale(distance))), Blocks.AIR.defaultBlockState());
+            }
+            level.setBlockAndUpdate(expectedPos.below(), Blocks.AIR.defaultBlockState());
+            helper.assertTrue(level.getBlockState(expectedPos).isAir() && level.getBlockState(expectedPos.below()).isAir(),
+                    "Spell Dispenser Wizardlamp aerial placement fixture was not empty");
+            var castResult = SpellDispenserCastHelper.tryCast(
+                    level, castBasePosition, forward, scrollStack, null
+            );
+
+            helper.assertTrue(castResult.succeeded(),
+                    "Spell Dispenser Wizardlamp failed without a block target: failureType="
+                            + castResult.failureType() + ", validation=" + castResult.validation().failureReason());
+            helper.assertTrue(level.getBlockState(expectedPos).is(BlockRegistry.WIZARDLAMP_LANTERN.get()),
+                    "Spell Dispenser Wizardlamp did not place a lantern at its aerial range endpoint");
+        });
+    }
     static void spellDispenserCastHelperUsesNeutralLivingCasterProfileForMagicMissile(GameTestHelper helper) {
         var level = (ServerLevel) helper.getLevel();
         var castPos = new BlockPos(0, 1, 0);
