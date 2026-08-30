@@ -6,20 +6,21 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.ForgeHooks;
 
 final class HeavenlyFistCrystalHarvestProcessor {
     private HeavenlyFistCrystalHarvestProcessor() {
     }
 
-    static void harvest(ServerLevel level, LivingEntity owner, Vec3 center, double radius) {
+    static void harvest(ServerLevel level, ServerPlayer owner, Vec3 center, double radius) {
         if (!CraftsmansDelight.isEquippedBy(owner)) {
             return;
         }
@@ -103,8 +104,15 @@ final class HeavenlyFistCrystalHarvestProcessor {
                 && level.getBlockState(pos).is(TagRegistry.Blocks.HEAVENLY_FIST_CRYSTAL_HARVEST_SOURCES);
     }
 
-    private static void harvestBlock(ServerLevel level, LivingEntity owner, BlockPos pos, BlockState state,
+    private static void harvestBlock(ServerLevel level, ServerPlayer owner, BlockPos pos, BlockState state,
                                      net.minecraft.world.item.ItemStack tool) {
+        var gameType = owner.gameMode.getGameModeForPlayer();
+        if (!level.mayInteract(owner, pos)
+                || owner.blockActionRestricted(level, pos, gameType)
+                || ForgeHooks.onBlockBreakEvent(level, gameType, owner, pos) == -1) {
+            return;
+        }
+
         var blockEntity = state.hasBlockEntity() ? level.getBlockEntity(pos) : null;
         level.levelEvent(2001, pos, Block.getId(state));
         Block.dropResources(state, level, pos, blockEntity, owner, tool);
