@@ -281,6 +281,16 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = CATCH_FLAME_ISOLATED_BATCH)
+    public static void catchFlameIgnitesEssenceSmokerThroughPlayerInteraction(GameTestHelper helper) {
+        CatchFlameGameTestScenarios.catchFlameIgnitesEssenceSmokerThroughPlayerInteraction(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CATCH_FLAME_ISOLATED_BATCH)
+    public static void catchFlameRespectsCancelledEssenceSmokerInteraction(GameTestHelper helper) {
+        CatchFlameGameTestScenarios.catchFlameRespectsCancelledEssenceSmokerInteraction(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CATCH_FLAME_ISOLATED_BATCH)
     public static void catchFlameUsesFlintAndSteelIgnitionBehavior(GameTestHelper helper) {
         CatchFlameGameTestScenarios.catchFlameUsesFlintAndSteelIgnitionBehavior(helper);
     }
