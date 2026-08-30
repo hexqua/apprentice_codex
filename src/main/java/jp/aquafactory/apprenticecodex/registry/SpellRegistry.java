@@ -65,6 +65,7 @@ import jp.aquafactory.apprenticecodex.spell.remoteeye.RemoteEye;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeacon;
 import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.servantgaze.ServantGaze;
+import jp.aquafactory.apprenticecodex.spell.shiden.Shiden;
 import jp.aquafactory.apprenticecodex.spell.shock.Shock;
 import jp.aquafactory.apprenticecodex.spell.silentassassin.SilentAssassin;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBlade;
@@ -178,6 +179,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> SHOCK = reg("shock", Shock::new);
     public static final RegistryObject<AbstractSpell> DUAL_ACROBAT = reg("dual_acrobat", DualAcrobat::new);
     public static final RegistryObject<AbstractSpell> FIELD_OVERSEER = reg("field_overseer", FieldOverseer::new);
+    public static final RegistryObject<AbstractSpell> SHIDEN = reg("shiden", Shiden::new);
 
     // 自然.
     public static final RegistryObject<AbstractSpell> COMPOUND_PHIAL = reg("compound_phial", CompoundPhial::new);

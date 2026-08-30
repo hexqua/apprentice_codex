@@ -52,6 +52,7 @@ import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldProjectileE
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldShieldEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxChargeBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxWeaponryEntity;
+import jp.aquafactory.apprenticecodex.spell.shiden.ShidenKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunEntity;
@@ -364,6 +365,9 @@ public final class EntityRegistry {
 
     public static final RegistryObject<EntityType<BloodBrandKunai>> BLOOD_BRAND_KUNAI =
             regProjectile("blood_brand_kunai", BloodBrandKunai::new, 128, 1);
+
+    public static final RegistryObject<EntityType<ShidenKatanaEntity>> SHIDEN_KATANA =
+            regWeapon("shiden_katana", ShidenKatanaEntity::new, 1);
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);
