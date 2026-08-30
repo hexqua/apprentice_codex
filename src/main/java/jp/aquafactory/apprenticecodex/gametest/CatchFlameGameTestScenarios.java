@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastContext;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.CatchFlameServerConfig;
@@ -22,6 +23,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -29,6 +32,7 @@ import net.minecraft.world.level.portal.PortalShape;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.level.BlockEvent;
 
 import java.util.UUID;
@@ -195,6 +199,63 @@ final class CatchFlameGameTestScenarios {
         helper.succeed();
     }
 
+    static void catchFlameIgnitesEssenceSmokerThroughPlayerInteraction(GameTestHelper helper) {
+        var caster = createPlayer(helper, "catch_flame_smoker_ignite", new Vec3(1.5D, 2.0D, 1.5D));
+        var smokerPosition = helper.absolutePos(new BlockPos(1, 2, 3));
+        var essenceSmoker = prepareEssenceSmoker(helper, smokerPosition);
+        aimAt(caster, Vec3.atCenterOf(smokerPosition));
+
+        try (var ignored = ApprenticeCodexServerConfig.useCatchFlameConfigOverrideForGameTest(
+                new CatchFlameServerConfig.Values(true, false))) {
+            SpellDispenserCastContext.run(() -> cast(helper, catchFlame(), 1, caster));
+        }
+
+        helper.assertTrue(essenceSmoker.isProcessing(),
+                "Catch Flame should ignite an Essence Smoker through its normal player interaction");
+        helper.assertTrue(helper.getLevel().getBlockState(smokerPosition.above()).isAir(),
+                "Catch Flame should not place surface fire after igniting an Essence Smoker");
+
+        helper.getLevel().setBlockAndUpdate(smokerPosition, Blocks.AIR.defaultBlockState());
+        caster.discard();
+        helper.succeed();
+    }
+
+    static void catchFlameRespectsCancelledEssenceSmokerInteraction(GameTestHelper helper) {
+        var caster = createPlayer(helper, "catch_flame_smoker_protection", new Vec3(1.5D, 2.0D, 1.5D));
+        var smokerPosition = helper.absolutePos(new BlockPos(1, 2, 3));
+        var essenceSmoker = prepareEssenceSmoker(helper, smokerPosition);
+        aimAt(caster, Vec3.atCenterOf(smokerPosition));
+        var interactionEvents = new AtomicInteger();
+
+        java.util.function.Consumer<PlayerInteractEvent.RightClickBlock> cancelListener = event -> {
+            if (event.getEntity() == caster && event.getPos().equals(smokerPosition)) {
+                interactionEvents.incrementAndGet();
+                event.setCanceled(true);
+            }
+        };
+
+        MinecraftForge.EVENT_BUS.addListener(cancelListener);
+        try {
+            try (var ignored = ApprenticeCodexServerConfig.useCatchFlameConfigOverrideForGameTest(
+                    new CatchFlameServerConfig.Values(true, false))) {
+                SpellDispenserCastContext.run(() -> cast(helper, catchFlame(), 1, caster));
+            }
+        } finally {
+            MinecraftForge.EVENT_BUS.unregister(cancelListener);
+        }
+
+        helper.assertTrue(interactionEvents.get() == 1,
+                "Catch Flame should fire one Essence Smoker interaction event with the caster as the actor");
+        helper.assertTrue(!essenceSmoker.isProcessing(),
+                "Canceling the Essence Smoker interaction should prevent Catch Flame from starting processing");
+        helper.assertTrue(helper.getLevel().getBlockState(smokerPosition.above()).isAir(),
+                "Canceling the Essence Smoker interaction should not fall back to surface fire");
+
+        helper.getLevel().setBlockAndUpdate(smokerPosition, Blocks.AIR.defaultBlockState());
+        caster.discard();
+        helper.succeed();
+    }
+
     static void catchFlameUsesFlintAndSteelIgnitionBehavior(GameTestHelper helper) {
         var caster = createPlayer(helper, "catch_flame_flint_behavior", new Vec3(3.5D, 2.0D, 1.5D));
         var candlePosition = new BlockPos(3, 2, 3);
@@ -285,6 +346,19 @@ final class CatchFlameGameTestScenarios {
 
     private static CatchFlame catchFlame() {
         return (CatchFlame) SpellRegistry.CATCH_FLAME.get();
+    }
+
+    private static EssenceSmokerBlockEntity prepareEssenceSmoker(GameTestHelper helper, BlockPos smokerPosition) {
+        helper.getLevel().setBlockAndUpdate(smokerPosition, BlockRegistry.ESSENCE_SMOKER.get().defaultBlockState());
+        var blockEntity = helper.getLevel().getBlockEntity(smokerPosition);
+        if (!(blockEntity instanceof EssenceSmokerBlockEntity essenceSmoker)) {
+            throw new IllegalStateException("Failed to create an Essence Smoker for Catch Flame GameTest");
+        }
+        if (!essenceSmoker.setCatalyst(new ItemStack(Items.BLAZE_POWDER))
+                || !essenceSmoker.addMaterial(new ItemStack(Items.BONE_MEAL))) {
+            throw new IllegalStateException("Failed to prepare an Essence Smoker recipe for Catch Flame GameTest");
+        }
+        return essenceSmoker;
     }
 
     private static void cast(GameTestHelper helper, CatchFlame spell, int spellLevel, LivingEntity caster) {
