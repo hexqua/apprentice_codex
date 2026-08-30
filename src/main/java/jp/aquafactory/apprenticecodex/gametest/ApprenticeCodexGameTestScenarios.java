@@ -57,6 +57,7 @@ import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
 import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomEntity;
 import jp.aquafactory.apprenticecodex.event.ErrandMageVillagerTradesEvent;
 import jp.aquafactory.apprenticecodex.event.errandmage.ErrandMageTradeManager;
+import jp.aquafactory.apprenticecodex.event.errandmage.ErrandMageTradeStack;
 import jp.aquafactory.apprenticecodex.loot.RandomSpellImbueHelper;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomAssistWingsJumpPacket;
@@ -235,7 +236,9 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.Connection;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
@@ -288,6 +291,7 @@ import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.component.BundleContents;
@@ -1609,13 +1613,94 @@ public class ApprenticeCodexGameTestScenarios {
 
             var healingPotion = PotionContentsHelper.createPotionStack(Items.POTION, net.minecraft.world.item.alchemy.Potions.HEALING.value());
             var regenerationPotion = PotionContentsHelper.createPotionStack(Items.POTION, net.minecraft.world.item.alchemy.Potions.REGENERATION.value());
-            var healingPotionCost = ErrandMageTradeHelper.createPaymentStack(healingPotion);
+            var healingPotionDefinition = new ErrandMageTradeStack(
+                    BuiltInRegistries.ITEM.getKey(Items.POTION),
+                    1,
+                    Optional.of(BuiltInRegistries.POTION.getKey(Potions.HEALING.value())),
+                    false
+            );
+            var healingPotionCost = ErrandMageTradeHelper.createPaymentStack(healingPotionDefinition, healingPotion);
             helper.assertTrue(healingPotionCost.test(healingPotion),
                     "Payment stack should satisfy its own potion component");
             helper.assertFalse(healingPotionCost.test(regenerationPotion),
                     "Payment stack should not accept a different potion component");
         });
     }
+
+    static void errandMageComfortBerriesPaymentsSurviveSerialization(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var comfortBerries = new ItemStack(ItemRegistry.COMFORT_BERRIES.get(), 22);
+            var definition = new ErrandMageTradeStack(
+                    ItemRegistry.COMFORT_BERRIES.getId(),
+                    22,
+                    Optional.empty(),
+                    false
+            );
+            var currentCost = ErrandMageTradeHelper.createPaymentStack(definition, comfortBerries);
+            var syncedCurrentCost = roundTripItemCostThroughNetwork(
+                    currentCost,
+                    helper.getLevel().registryAccess()
+            );
+            helper.assertTrue(syncedCurrentCost.test(comfortBerries),
+                    "Current Comfort Berries payment should survive merchant offer sync");
+
+            var legacyCost = new ItemCost(
+                    comfortBerries.getItemHolder(),
+                    comfortBerries.getCount(),
+                    DataComponentPredicate.allOf(comfortBerries.getComponents()),
+                    comfortBerries.copy()
+            );
+            var syncedLegacyCost = roundTripItemCostThroughNetwork(
+                    legacyCost,
+                    helper.getLevel().registryAccess()
+            );
+            helper.assertFalse(syncedLegacyCost.components().test(comfortBerries),
+                    "Legacy Comfort Berries FOOD predicate should reproduce the sync mismatch");
+            helper.assertTrue(syncedLegacyCost.test(comfortBerries),
+                    "Legacy synced Comfort Berries payment should be migrated");
+
+            var savedLegacyCost = roundTripItemCostThroughNbt(
+                    legacyCost,
+                    helper.getLevel().registryAccess()
+            );
+            helper.assertTrue(savedLegacyCost.test(comfortBerries),
+                    "Legacy saved Comfort Berries payment should be migrated");
+
+            var alteredBerries = comfortBerries.copy();
+            alteredBerries.set(DataComponents.RARITY, Rarity.EPIC);
+            helper.assertFalse(savedLegacyCost.test(alteredBerries),
+                    "Comfort Berries migration should preserve non-FOOD component requirements");
+
+            var customPackBerries = comfortBerries.copyWithCount(21);
+            var customPackLegacyCost = new ItemCost(
+                    customPackBerries.getItemHolder(),
+                    customPackBerries.getCount(),
+                    DataComponentPredicate.allOf(customPackBerries.getComponents()),
+                    customPackBerries.copy()
+            );
+            var syncedCustomPackLegacyCost = roundTripItemCostThroughNetwork(
+                    customPackLegacyCost,
+                    helper.getLevel().registryAccess()
+            );
+            helper.assertFalse(syncedCustomPackLegacyCost.test(customPackBerries),
+                    "Legacy FOOD migration should not rewrite custom Comfort Berries payment counts");
+
+            var comfortSandwich = new ItemStack(ItemRegistry.COMFORT_SANDWICH.get());
+            var legacySandwichCost = new ItemCost(
+                    comfortSandwich.getItemHolder(),
+                    comfortSandwich.getCount(),
+                    DataComponentPredicate.allOf(comfortSandwich.getComponents()),
+                    comfortSandwich.copy()
+            );
+            var syncedLegacySandwichCost = roundTripItemCostThroughNetwork(
+                    legacySandwichCost,
+                    helper.getLevel().registryAccess()
+            );
+            helper.assertFalse(syncedLegacySandwichCost.test(comfortSandwich),
+                    "Legacy FOOD migration should remain limited to default Comfort Berries trades");
+        });
+    }
+
     static void errandMageTradesMatchExpectedOffers(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var trades = createEmptyVillagerTrades();
@@ -15892,6 +15977,22 @@ public class ApprenticeCodexGameTestScenarios {
                 Enchantments.GLOW_ENERGY,
                 Enchantments.SYNTHESIS
         );
+    }
+
+    static ItemCost roundTripItemCostThroughNetwork(ItemCost cost, RegistryAccess registryAccess) {
+        var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), registryAccess);
+        try {
+            ItemCost.STREAM_CODEC.encode(buffer, cost);
+            return ItemCost.STREAM_CODEC.decode(buffer);
+        } finally {
+            buffer.release();
+        }
+    }
+
+    static ItemCost roundTripItemCostThroughNbt(ItemCost cost, RegistryAccess registryAccess) {
+        var ops = registryAccess.createSerializationContext(NbtOps.INSTANCE);
+        var encoded = ItemCost.CODEC.encodeStart(ops, cost).getOrThrow();
+        return ItemCost.CODEC.parse(ops, encoded).getOrThrow();
     }
 
     static <T> void assertBuiltinRegistryEntries(

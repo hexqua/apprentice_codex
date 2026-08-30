@@ -14,6 +14,11 @@ public abstract class ItemCostMixin {
     private void apprenticecodex$ignoreComponentsForErrandMagePayments(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
         var itemCost = (ItemCost) (Object) this;
         if (!ErrandMageTradeHelper.shouldIgnorePaymentTags(itemCost.item().value())) {
+            // 1.21.1で保存・同期された旧安楽の果実取引は、FOOD 内の effect Supplier が
+            // 復号時に別インスタンスとなるため、意味が同じでもvanillaの等価判定だけ失敗する。
+            if (ErrandMageTradeHelper.matchesLegacyComfortBerriesPayment(stack, itemCost)) {
+                cir.setReturnValue(true);
+            }
             return;
         }
 

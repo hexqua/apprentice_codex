@@ -153,6 +153,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void errandMageComfortBerriesPaymentsSurviveSerialization(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.errandMageComfortBerriesPaymentsSurviveSerialization(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void errandMageTradesMatchExpectedOffers(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.errandMageTradesMatchExpectedOffers(helper);
     }
