@@ -72,6 +72,7 @@ import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsCor
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsWingRenderer;
 import jp.aquafactory.apprenticecodex.spell.dualacrobat.DualAcrobatSmgRenderer;
 import jp.aquafactory.apprenticecodex.spell.combustionjet.CombustionJetWaveRenderer;
+import jp.aquafactory.apprenticecodex.spell.bloodbrand.BloodBrandKunaiRenderer;
 import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingRenderer;
@@ -416,5 +417,6 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.HOVERRIDE_BROOM.get(), HoverrideBroomRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ANTI_MANA_ARROW.get(), AntiManaArrowRenderer::new);
         event.registerEntityRenderer(EntityRegistry.COMBUSTION_JET_WAVE.get(), CombustionJetWaveRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.BLOOD_BRAND_KUNAI.get(), BloodBrandKunaiRenderer::new);
     }
 }
