@@ -23,7 +23,6 @@ import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastContext;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
-import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.core.BlockPos;
@@ -224,16 +223,15 @@ public class CatchFlame extends AbstractSpell {
         }
 
         if (level.getBlockState(target.blockPosition()).getBlock() instanceof EssenceSmoker) {
-            if (player != null) {
-                // 通常の右クリック経路へ流し、土地保護 MOD が EssenceSmoker の操作も拒否できるようにする。
-                BlockTools.useItemOnBlockByPlayerMainHand(
-                        level, player, target.blockPosition(), igniter, target.hitFace());
-            } else {
-                // player を持たない caster は設定で明示的に許可された場合だけここへ到達するため、既存動作を維持する。
-                var blockEntity = level.getBlockEntity(target.blockPosition());
-                if (blockEntity instanceof EssenceSmokerBlockEntity essenceSmoker) {
-                    essenceSmoker.ignite(level.getGameTime());
-                }
+            if (player != null && !CatchFlameLoaderHooks.mayIgniteEssenceSmoker(
+                    player, target.blockPosition(), target.hitFace(), igniter)) {
+                return;
+            }
+
+            // 通常の右クリックは完成品回収やスニーク時の隣接着火も起こすため、保護判定後は着火だけを実行する。
+            var blockEntity = level.getBlockEntity(target.blockPosition());
+            if (blockEntity instanceof EssenceSmokerBlockEntity essenceSmoker) {
+                essenceSmoker.ignite(level.getGameTime());
             }
             return;
         }
