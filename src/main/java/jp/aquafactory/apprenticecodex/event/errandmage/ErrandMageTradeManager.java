@@ -64,7 +64,8 @@ public final class ErrandMageTradeManager extends SimpleJsonResourceReloadListen
 
     private static VillagerTrades.ItemListing createListing(ErrandMageTradeDefinition definition) {
         return (trader, random) -> {
-            var primaryCost = definition.costs().get(random.nextInt(definition.costs().size())).createStack();
+            var primaryCostDefinition = definition.costs().get(random.nextInt(definition.costs().size()));
+            var primaryCost = primaryCostDefinition.createStack();
             var result = definition.result().createStack();
             if (primaryCost.isEmpty() || result.isEmpty()) {
                 return null;
@@ -72,7 +73,7 @@ public final class ErrandMageTradeManager extends SimpleJsonResourceReloadListen
 
             if (definition.type() == ErrandMageTradeDefinition.Type.BUY) {
                 return new MerchantOffer(
-                        ErrandMageTradeHelper.createPaymentStack(primaryCost),
+                        ErrandMageTradeHelper.createPaymentStack(primaryCostDefinition, primaryCost),
                         result,
                         definition.maxUses(),
                         definition.xp(),
@@ -82,14 +83,18 @@ public final class ErrandMageTradeManager extends SimpleJsonResourceReloadListen
 
             var secondaryCost = Optional.<ItemCost>empty();
             if (definition.costB().isPresent()) {
-                var secondaryCostStack = definition.costB().get().createStack();
+                var secondaryCostDefinition = definition.costB().get();
+                var secondaryCostStack = secondaryCostDefinition.createStack();
                 if (secondaryCostStack.isEmpty()) {
                     return null;
                 }
-                secondaryCost = java.util.Optional.of(ErrandMageTradeHelper.createPaymentStack(secondaryCostStack));
+                secondaryCost = java.util.Optional.of(ErrandMageTradeHelper.createPaymentStack(
+                        secondaryCostDefinition,
+                        secondaryCostStack
+                ));
             }
             return new MerchantOffer(
-                    ErrandMageTradeHelper.createPaymentStack(primaryCost),
+                    ErrandMageTradeHelper.createPaymentStack(primaryCostDefinition, primaryCost),
                     secondaryCost,
                     result,
                     definition.maxUses(),
