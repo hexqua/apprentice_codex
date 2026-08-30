@@ -5,7 +5,6 @@ import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
-import net.minecraft.core.particles.ColorParticleOption;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -23,8 +22,6 @@ public final class BloodBrandBurst {
     private static final float HIGANBANA_MULTIPLIER = 1.5F;
     private static final DustParticleOptions BLOOD_DUST =
             new DustParticleOptions(new Vector3f(0.7F, 0.02F, 0.04F), 1.35F);
-    private static final ColorParticleOption DARK_BLOOD_EFFECT =
-            ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, 0.24F, 0.0F, 0.025F);
     private static final int DUST_COUNT = 72;
     private static final int EFFECT_COUNT = 56;
 
@@ -110,14 +107,12 @@ public final class BloodBrandBurst {
     }
 
     private static void spawnParticles(ServerLevel level, Vec3 center, double range) {
-        spawnParticleCloud(level, center, range, BLOOD_DUST, DUST_COUNT);
-        spawnParticleCloud(level, center, range, DARK_BLOOD_EFFECT, EFFECT_COUNT);
+        spawnBloodDustCloud(level, center, range);
+        spawnEntityEffectCloud(level, center, range);
     }
 
-    private static <T extends net.minecraft.core.particles.ParticleOptions> void spawnParticleCloud(
-            ServerLevel level, Vec3 center, double range, T particle, int count
-    ) {
-        for (var i = 0; i < count; ++i) {
+    private static void spawnBloodDustCloud(ServerLevel level, Vec3 center, double range) {
+        for (var i = 0; i < DUST_COUNT; ++i) {
             var direction = new Vec3(
                     level.random.nextGaussian(),
                     level.random.nextGaussian(),
@@ -131,7 +126,7 @@ public final class BloodBrandBurst {
             var distance = range * Math.cbrt(level.random.nextDouble());
             var position = center.add(direction.scale(distance));
             level.sendParticles(
-                    particle,
+                    BLOOD_DUST,
                     position.x,
                     position.y,
                     position.z,
@@ -142,5 +137,35 @@ public final class BloodBrandBurst {
                     0.01D
             );
         }
+    }
+
+    private static void spawnEntityEffectCloud(ServerLevel level, Vec3 center, double range) {
+        for (var i = 0; i < EFFECT_COUNT; ++i) {
+            var position = randomPositionInSphere(level, center, range);
+            // 1.20.1のENTITY_EFFECTは速度引数をRGBとして解釈するため、count=0で色を直接指定する。
+            level.sendParticles(
+                    ParticleTypes.ENTITY_EFFECT,
+                    position.x,
+                    position.y,
+                    position.z,
+                    0,
+                    0.24D,
+                    0.0D,
+                    0.025D,
+                    1.0D
+            );
+        }
+    }
+
+    private static Vec3 randomPositionInSphere(ServerLevel level, Vec3 center, double range) {
+        var direction = new Vec3(
+                level.random.nextGaussian(),
+                level.random.nextGaussian(),
+                level.random.nextGaussian()
+        );
+        direction = direction.lengthSqr() <= 1.0E-8D
+                ? new Vec3(0.0D, 1.0D, 0.0D)
+                : direction.normalize();
+        return center.add(direction.scale(range * Math.cbrt(level.random.nextDouble())));
     }
 }

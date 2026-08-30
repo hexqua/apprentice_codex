@@ -4,14 +4,13 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.effect.BloodEngravedEffect;
-import jp.aquafactory.apprenticecodex.registry.AttachmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.ForgeProjectileImpactTools;
 import jp.aquafactory.apprenticecodex.utility.ProjectileCollisionTools;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -26,7 +25,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -88,12 +86,15 @@ public class BloodBrandKunai extends Projectile implements AntiMagicSusceptible 
         } else {
             var hitResult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
             if (hitResult.getType() != HitResult.Type.MISS) {
-                if (EventHooks.onProjectileImpact(this, hitResult)) {
+                var impactAction = ForgeProjectileImpactTools.resolveImpactAction(this, hitResult);
+                if (impactAction == ForgeProjectileImpactTools.ImpactAction.CONTINUE) {
                     if (hitResult instanceof BlockHitResult blockHit) {
                         cancelledBlockHit = blockHit;
                     }
-                } else {
+                } else if (impactAction == ForgeProjectileImpactTools.ImpactAction.PROCESS) {
                     onHit(hitResult);
+                } else {
+                    discard();
                 }
             }
             if (isRemoved()) {
@@ -110,13 +111,16 @@ public class BloodBrandKunai extends Projectile implements AntiMagicSusceptible 
             var physicalHit = cancelledBlockHit != null
                     ? cancelledBlockHit
                     : ProjectileCollisionTools.findPhysicalBlockHit(this, movementStart, requestedMovement);
-            if (physicalHit == null) {
-                discard();
-            } else if (cancelledBlockHit != null || EventHooks.onProjectileImpact(this, physicalHit)) {
+            var impactAction = physicalHit == null || cancelledBlockHit != null
+                    ? ForgeProjectileImpactTools.ImpactAction.CONTINUE
+                    : ForgeProjectileImpactTools.resolveImpactAction(this, physicalHit);
+            if (physicalHit != null && impactAction == ForgeProjectileImpactTools.ImpactAction.CONTINUE) {
                 ProjectileCollisionTools.continueAfterCancelledImpact(this, movementStart, requestedMovement);
-            } else {
+            } else if (physicalHit != null && impactAction == ForgeProjectileImpactTools.ImpactAction.PROCESS) {
                 setDeltaMovement(requestedMovement);
                 onHit(physicalHit);
+            } else {
+                discard();
             }
         }
         if (isRemoved()) {
@@ -157,7 +161,7 @@ public class BloodBrandKunai extends Projectile implements AntiMagicSusceptible 
         if (damaged && target instanceof LivingEntity livingTarget && livingTarget.isAlive()
                 && !(livingTarget instanceof Player) && casterUuid != null) {
             var effect = new MobEffectInstance(
-                    EffectRegistry.BLOOD_ENGRAVED,
+                    EffectRegistry.BLOOD_ENGRAVED.get(),
                     BloodEngravedEffect.DURATION_TICKS,
                     0,
                     false,
@@ -165,12 +169,9 @@ public class BloodBrandKunai extends Projectile implements AntiMagicSusceptible 
                     true
             );
             livingTarget.addEffect(effect, owner);
-            if (livingTarget.hasEffect(EffectRegistry.BLOOD_ENGRAVED)) {
+            if (livingTarget.hasEffect(EffectRegistry.BLOOD_ENGRAVED.get())) {
                 // 再刻印は最後にダメージを通した術者と威力へ置き換える。
-                livingTarget.setData(
-                        AttachmentRegistry.BLOOD_BRAND_STATE,
-                        new BloodBrandState(casterUuid, burstDamage, burstRange)
-                );
+                BloodBrandState.set(livingTarget, new BloodBrandState(casterUuid, burstDamage, burstRange));
             }
         }
         discard();
@@ -202,7 +203,7 @@ public class BloodBrandKunai extends Projectile implements AntiMagicSusceptible 
     }
 
     @Override
-    protected void defineSynchedData(@NotNull SynchedEntityData.Builder builder) {
+    protected void defineSynchedData() {
     }
 
     @Override

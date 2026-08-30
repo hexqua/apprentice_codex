@@ -1,6 +1,6 @@
 package jp.aquafactory.apprenticecodex.effect;
 
-import jp.aquafactory.apprenticecodex.registry.AttachmentRegistry;
+import jp.aquafactory.apprenticecodex.spell.bloodbrand.BloodBrandState;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
@@ -14,17 +14,15 @@ public class BloodEngravedEffect extends MobEffect {
     }
 
     @Override
-    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
+    public boolean isDurationEffectTick(int duration, int amplifier) {
         return true;
     }
 
     @Override
-    public boolean applyEffectTick(@NotNull LivingEntity livingEntity, int amplifier) {
-        if (livingEntity.level().isClientSide) {
-            return true;
+    public void applyEffectTick(@NotNull LivingEntity livingEntity, int amplifier) {
+        if (!livingEntity.level().isClientSide && BloodBrandState.get(livingEntity) == null) {
+            // 効果だけをコマンド等で付与しても起爆情報を復元できないため、不完全な状態は残さない。
+            livingEntity.removeEffect(this);
         }
-
-        // 効果だけをコマンド等で付与しても起爆情報を復元できないため、不完全な状態は残さない。
-        return livingEntity.getExistingDataOrNull(AttachmentRegistry.BLOOD_BRAND_STATE) != null;
     }
 }
