@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.thermalslice;
 
+import io.redspace.ironsspellbooks.util.ParticleHelper;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -7,7 +8,6 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.GeoBonePoseCache;
 import jp.aquafactory.apprenticecodex.renderer.ISwordTrailEntity;
 import jp.aquafactory.apprenticecodex.utility.*;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -94,7 +94,7 @@ public class ThermalSliceKatanaEntity extends SummonWeaponEntity implements GeoE
         var tipLocal = pose.tip().subtract(position());
         var rootWorld = rootLocal.yRot(yawRad).add(position());
         var tipWorld = tipLocal.yRot(yawRad).add(position());
-        EffectTools.createLineParticle(rootWorld, tipWorld, 0.25, 0.1, 0.01, ParticleTypes.END_ROD, level());
+        EffectTools.createLineParticle(rootWorld, tipWorld, 0.25, 0.1, 0.01, ParticleHelper.FIRE, level());
     }
 
     @Override
@@ -154,7 +154,7 @@ public class ThermalSliceKatanaEntity extends SummonWeaponEntity implements GeoE
                 ATTACK_HALF_HEIGHT,
                 ATTACK_DEPTH
         );
-        var source = createCombatDamageSource(DamageTypes.SLASH_BLADE);
+        var source = createCombatDamageSource(DamageTypes.THERMAL_SLICE);
         var hitResult = RaycastTools.hitsHorizontalOrientedBox(
                 level,
                 this,
@@ -164,16 +164,15 @@ public class ThermalSliceKatanaEntity extends SummonWeaponEntity implements GeoE
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.THERMAL_SLICE.get(), SoundSource.PLAYERS);
         AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
         for (var hit : hitResult){
-            // todo:SlashBladeコピペのため、壁貫通ダメージは無しにする.
-            var isBlockPenetrationHit = hit.blockOccluded();
+            if (hit.blockOccluded()) {
+                continue;
+            }
             CombatTools.applyDamage(
                     hit.entity(),
-                    isBlockPenetrationHit ? 0 : damage,
+                    damage,
                     source,
-                    SpellRegistry.SLASH_BLADE.get().getSchoolType(),
-                    isBlockPenetrationHit
-                            ? CombatTools.KnockbackTypes.NO_KNOCKBACK
-                            : CombatTools.KnockbackTypes.DEFAULT
+                    SpellRegistry.THERMAL_SLICE.get().getSchoolType(),
+                    CombatTools.KnockbackTypes.DEFAULT
             );
         }
     }
