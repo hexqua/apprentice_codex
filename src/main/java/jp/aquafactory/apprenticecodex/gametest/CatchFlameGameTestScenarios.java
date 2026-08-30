@@ -61,12 +61,9 @@ final class CatchFlameGameTestScenarios {
         helper.succeed();
     }
 
-    static void catchFlameRejectsFireImmuneTargetsIncludingEndCrystal(GameTestHelper helper) {
+    static void catchFlameRejectsFireImmuneLivingTarget(GameTestHelper helper) {
         var caster = createPlayer(helper, "catch_flame_fire_immune", new Vec3(1.5D, 2.0D, 1.5D));
         var blaze = createLiving(helper, EntityType.BLAZE, new Vec3(1.5D, 2.0D, 3.0D));
-        var crystalPosition = helper.absoluteVec(new Vec3(1.5D, 2.0D, 3.0D));
-        var crystal = new EndCrystal(helper.getLevel(), crystalPosition.x, crystalPosition.y, crystalPosition.z);
-        helper.getLevel().addFreshEntity(crystal);
         aimAt(caster, blaze.getBoundingBox().getCenter());
         var blazeHealth = blaze.getHealth();
 
@@ -76,14 +73,12 @@ final class CatchFlameGameTestScenarios {
                 "Catch Flame should not damage a fire-immune living target");
         helper.assertTrue(blaze.getRemainingFireTicks() <= 0,
                 "Catch Flame should not ignite a fire-immune living target");
-        helper.assertTrue(crystal.isAlive(),
-                "Catch Flame should include non-living combat targets without bypassing fire immunity");
 
-        discardAll(crystal, blaze, caster);
+        discardAll(blaze, caster);
         helper.succeed();
     }
 
-    static void catchFlameTargetsFireImmuneEndCrystalWithoutDamagingIt(GameTestHelper helper) {
+    static void catchFlameDamagesFireVulnerableEndCrystal(GameTestHelper helper) {
         var caster = createPlayer(helper, "catch_flame_end_crystal_target", new Vec3(1.5D, 2.0D, 1.5D));
         var crystalPosition = helper.absoluteVec(new Vec3(1.5D, 2.0D, 3.0D));
         var crystal = new EndCrystal(helper.getLevel(), crystalPosition.x, crystalPosition.y, crystalPosition.z);
@@ -98,8 +93,8 @@ final class CatchFlameGameTestScenarios {
         );
         helper.assertTrue(impacts.size() == 1,
                 "Catch Flame should target a valid non-living End Crystal");
-        helper.assertTrue(crystal.isAlive(),
-                "Catch Flame should not bypass an End Crystal's fire immunity");
+        helper.assertFalse(crystal.isAlive(),
+                "Catch Flame should damage a fire-vulnerable End Crystal in Minecraft 1.20.1");
 
         discardAll(crystal, caster);
         impacts.forEach(Entity::discard);

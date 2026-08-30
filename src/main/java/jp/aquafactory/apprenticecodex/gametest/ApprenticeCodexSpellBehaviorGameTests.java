@@ -256,13 +256,13 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = CATCH_FLAME_ISOLATED_BATCH)
-    public static void catchFlameRejectsFireImmuneTargetsIncludingEndCrystal(GameTestHelper helper) {
-        CatchFlameGameTestScenarios.catchFlameRejectsFireImmuneTargetsIncludingEndCrystal(helper);
+    public static void catchFlameRejectsFireImmuneLivingTarget(GameTestHelper helper) {
+        CatchFlameGameTestScenarios.catchFlameRejectsFireImmuneLivingTarget(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = CATCH_FLAME_ISOLATED_BATCH)
-    public static void catchFlameTargetsFireImmuneEndCrystalWithoutDamagingIt(GameTestHelper helper) {
-        CatchFlameGameTestScenarios.catchFlameTargetsFireImmuneEndCrystalWithoutDamagingIt(helper);
+    public static void catchFlameDamagesFireVulnerableEndCrystal(GameTestHelper helper) {
+        CatchFlameGameTestScenarios.catchFlameDamagesFireVulnerableEndCrystal(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = CATCH_FLAME_ISOLATED_BATCH)
