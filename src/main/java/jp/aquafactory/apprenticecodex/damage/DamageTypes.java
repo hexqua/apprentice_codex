@@ -60,6 +60,8 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> BLOOD_BRAND_BURST = register("blood_brand_burst");
     public static final ResourceKey<DamageType> BLOOD_BRAND_HIGANBANA_BURST = register("blood_brand_higanbana_burst");
     public static final ResourceKey<DamageType> SHIDEN = register("shiden");
+    public static final ResourceKey<DamageType> CATCH_FLAME = register("catch_flame");
+    public static final ResourceKey<DamageType> CATCH_FLAME_PENETRATE = register("catch_flame_penetrate");
 
     public static final ResourceKey<DamageType> HAUNTED_BONUS = register("haunted_bonus");
     public static final ResourceKey<DamageType> MANA_FORCE_BLADE = register("mana_force_blade");
@@ -128,6 +130,9 @@ public final class DamageTypes {
         context.register(BLOOD_BRAND_BURST, createTemplate(BLOOD_BRAND_BURST));
         context.register(BLOOD_BRAND_HIGANBANA_BURST, createTemplate(BLOOD_BRAND_HIGANBANA_BURST));
         context.register(SHIDEN, createTemplate(SHIDEN));
+        context.register(CATCH_FLAME, createTemplate(CATCH_FLAME));
+        context.register(CATCH_FLAME_PENETRATE, createTemplate(CATCH_FLAME)); // 共通のメッセージを使うため意図的に被らせてる.
+
 
         context.register(HAUNTED_BONUS, createTemplate(HAUNTED_BONUS));
         context.register(MANA_FORCE_BLADE, createTemplate(MANA_FORCE_BLADE));

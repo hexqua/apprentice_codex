@@ -382,6 +382,12 @@
       "profile": {
         "cast_mode": "remote_player_geometry"
       },
+      "spell": "apprenticecodex:catch_flame"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
       "spell": "apprenticecodex:compound_phial"
     },
     {

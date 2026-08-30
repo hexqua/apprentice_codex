@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.config;
 
 import jp.aquafactory.apprenticecodex.config.spell.AutoMagnetServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.BoundBowServerConfig;
+import jp.aquafactory.apprenticecodex.config.spell.CatchFlameServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.DemicreatorWingsServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.ForceFieldServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.LinearBuildServerConfig;
@@ -18,6 +19,7 @@ import java.util.List;
 public final class SpellsServerConfig {
     private final AutoMagnetServerConfig autoMagnetConfig;
     private final BoundBowServerConfig boundBowConfig;
+    private final CatchFlameServerConfig catchFlameConfig;
     private final DemicreatorWingsServerConfig demicreatorWingsConfig;
     private final ForceFieldServerConfig forceFieldConfig;
     private final LinearBuildServerConfig linearBuildConfig;
@@ -29,6 +31,7 @@ public final class SpellsServerConfig {
     private SpellsServerConfig(
             AutoMagnetServerConfig autoMagnetConfig,
             BoundBowServerConfig boundBowConfig,
+            CatchFlameServerConfig catchFlameConfig,
             DemicreatorWingsServerConfig demicreatorWingsConfig,
             ForceFieldServerConfig forceFieldConfig,
             LinearBuildServerConfig linearBuildConfig,
@@ -39,6 +42,7 @@ public final class SpellsServerConfig {
     ) {
         this.autoMagnetConfig = autoMagnetConfig;
         this.boundBowConfig = boundBowConfig;
+        this.catchFlameConfig = catchFlameConfig;
         this.demicreatorWingsConfig = demicreatorWingsConfig;
         this.forceFieldConfig = forceFieldConfig;
         this.linearBuildConfig = linearBuildConfig;
@@ -52,6 +56,7 @@ public final class SpellsServerConfig {
         builder.push("Spells");
         var autoMagnetConfig = AutoMagnetServerConfig.define(builder);
         var boundBowConfig = BoundBowServerConfig.define(builder);
+        var catchFlameConfig = CatchFlameServerConfig.define(builder);
         var demicreatorWingsConfig = DemicreatorWingsServerConfig.define(builder);
         var forceFieldConfig = ForceFieldServerConfig.define(builder);
         var linearBuildConfig = LinearBuildServerConfig.define(builder);
@@ -64,6 +69,7 @@ public final class SpellsServerConfig {
         return new SpellsServerConfig(
                 autoMagnetConfig,
                 boundBowConfig,
+                catchFlameConfig,
                 demicreatorWingsConfig,
                 forceFieldConfig,
                 linearBuildConfig,
@@ -88,6 +94,14 @@ public final class SpellsServerConfig {
 
     void setBoundBowConfigForGameTest(int maxPowerEnchantmentLevel, float forgeArrowManaCost) {
         boundBowConfig.setForGameTest(maxPowerEnchantmentLevel, forgeArrowManaCost);
+    }
+
+    CatchFlameServerConfig.Values catchFlameConfig() {
+        return catchFlameConfig.values();
+    }
+
+    void setCatchFlameConfigForGameTest(CatchFlameServerConfig.Values values) {
+        catchFlameConfig.setForGameTest(values);
     }
 
     boolean isDemicreatorWingsDimensionAllowed(ResourceLocation dimensionId) {

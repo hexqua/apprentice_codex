@@ -355,10 +355,14 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                         SpellDispenserSpellProfile.OWNER_OPTIONAL
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
-                                        getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.SHOCK),
-                                        SpellDispenserSpellProfile.OWNER_OPTIONAL
-                                ),
-                                new SpellDispenserSpellProfileDefinition(
+                                getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.SHOCK),
+                                SpellDispenserSpellProfile.OWNER_OPTIONAL
+                        ),
+                        new SpellDispenserSpellProfileDefinition(
+                                getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.CATCH_FLAME),
+                                SpellDispenserSpellProfile.OWNER_OPTIONAL
+                        ),
+                        new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.COMPOUND_PHIAL),
                                         SpellDispenserSpellProfile.OWNER_OPTIONAL
                                 ),

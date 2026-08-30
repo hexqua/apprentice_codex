@@ -657,6 +657,7 @@
   "entity.apprenticecodex.extract_potion_projectile": "抽出されたポーション液",
   "entity.apprenticecodex.charged_twin_blade_staff_thrown": "複製された双刃の召魔杖",
   "entity.apprenticecodex.shock_bolt": "衝撃ボルト",
+  "entity.apprenticecodex.catch_flame_impact": "火付けの着弾",
   "entity.apprenticecodex.moon_light_charge_cut": "月光斬",
   "entity.apprenticecodex.phalanx_charge_beam": "チャージビーム",
   "entity.apprenticecodex.spell_dispenser_anchor": "詠唱代行存在",
@@ -870,6 +871,7 @@
   "spell.apprenticecodex.combustion_jet": "コンバッションジェット",
   "spell.apprenticecodex.blood_brand": "血の烙印",
   "spell.apprenticecodex.shiden": "紫電",
+  "spell.apprenticecodex.catch_flame": "火付け",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して攻撃を続ける魔法の弓を召喚する。大魔術師のお守りを装備していてもクールダウンの発生は抑制できない。",
@@ -953,6 +955,7 @@
   "spell.apprenticecodex.combustion_jet.guide": "視線方向に幅の広い熱波を放射する。熱波は火炎耐性を持つ対象にはダメージを与えられないが、熱波自体が対象を押し戻そうとする。",
   "spell.apprenticecodex.blood_brand.guide": "命中したモブに対して血の烙印を刻み込む血の魔術のクナイを生成して投擲する。クナイのダメージは微々たるものだが血の烙印を刻み込まれたモブが死ぬと血の魔力が爆ぜて周囲を巻き込む。爆ぜた魔力によって実際に与えたダメージの50%を回復する。彼岸花で倒した場合はより強力な魔力として爆ぜる。ただし、爆ぜた血の魔力は壁に遮られる。烙印と術者の接続が切れた状態では魔力は爆ぜない。",
   "spell.apprenticecodex.shiden.guide": "魔法の刀を召喚して素早く斬り上げる。斬撃は威力と衝撃力が下がるもののブロックに完全に阻まれることはない。",
+  "spell.apprenticecodex.catch_flame.guide": "瞬間的に手に火の魔力を練り上げて火を起こす。対象が炎上している場合は無敵時間を無視することができる。エッセンス燻製器やブロック表面を着火させることもでき、この着火行為は魔法の地形破壊の設定を無視する。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -1008,7 +1011,7 @@
   "ui.apprenticecodex.mana_transcription.target_operation.random": "%s種類から詠唱開始時に決定",
   "ui.apprenticecodex.mana_transcription.target_operation.work_count": "金床での使用回数",
   "ui.apprenticecodex.linear_build.additional_place_cost": "設置時追加消費マナ: %d/ブロック",
-  "ui.apprenticecodex.combustion_jet.burn_time": "炎上時間: %s",
+  "ui.apprenticecodex.burn_time": "炎上時間: %s",
 
   "ui.apprenticecodex.spellgun.missing_ammo": "弾切れだ！(弾:%1$s)",
   "ui.apprenticecodex.spellgun.not_imbued": "%1$sには魔法が注入されていない！",
@@ -1036,7 +1039,7 @@
   "ui.apprenticecodex.not_match_material": "%1$sは%2$sとは反応しないようだ",
   "ui.apprenticecodex.max_count_material": "それ以上素材を吊るせない！",
   "ui.apprenticecodex.need_material_and_catalyst": "先に触媒と素材をセットする必要がある！",
-  "ui.apprenticecodex.need_ignite": "%1$sで着火する必要がある！",
+  "ui.apprenticecodex.need_ignite": "%1$sか%2$sで着火する必要がある！",
   "ui.apprenticecodex.now_smoke_processing": "まだ時間がかかりそうだ",
   "ui.apprenticecodex.cant_open_hole": "%sを対象に取るには不安定すぎる",
   "ui.apprenticecodex.spell.dimension_not_allowed": "このディメンションではこの魔法を使用できない",
@@ -1306,6 +1309,7 @@
   "death.attack.apprenticecodex.blood_brand_burst": "%1$sは血に飲み込まれた",
   "death.attack.apprenticecodex.blood_brand_higanbana_burst": "%1$sの血は綺麗な彼岸花として咲き乱れた",
   "death.attack.apprenticecodex.shiden": "%1$sは竹を割るように切断された",
+  "death.attack.apprenticecodex.catch_flame": "%1$sは火だるまになった",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",

@@ -111,6 +111,7 @@ public final class RemoteOwnerCastSpellProfileDataGenerator extends JsonCodecPro
                 jp.aquafactory.apprenticecodex.registry.SpellRegistry.UNITE_LUNA,
                 jp.aquafactory.apprenticecodex.registry.SpellRegistry.SKY_EDGE,
                 jp.aquafactory.apprenticecodex.registry.SpellRegistry.SHOCK,
+                jp.aquafactory.apprenticecodex.registry.SpellRegistry.CATCH_FLAME,
                 jp.aquafactory.apprenticecodex.registry.SpellRegistry.COMPOUND_PHIAL,
                 jp.aquafactory.apprenticecodex.registry.SpellRegistry.EARTH_FORGE,
                 jp.aquafactory.apprenticecodex.registry.SpellRegistry.HARVEST_MOON,

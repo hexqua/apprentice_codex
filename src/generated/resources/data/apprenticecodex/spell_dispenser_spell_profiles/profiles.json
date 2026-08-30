@@ -534,6 +534,12 @@
       "profile": {
         "owner_required": false
       },
+      "spell": "apprenticecodex:catch_flame"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
       "spell": "apprenticecodex:compound_phial"
     },
     {

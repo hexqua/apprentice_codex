@@ -42,7 +42,7 @@ public class CombustionJet extends AbstractSpell {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
                 Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 0)),
-                Component.translatable("ui.apprenticecodex.combustion_jet.burn_time", Utils.timeFromTicks(getBurnDuration(spellLevel), 1))
+                Component.translatable("ui.apprenticecodex.burn_time", Utils.timeFromTicks(getBurnDuration(spellLevel), 1))
         );
     }
 

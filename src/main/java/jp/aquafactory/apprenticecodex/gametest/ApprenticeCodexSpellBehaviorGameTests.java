@@ -68,6 +68,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String KATANA_AREA_HIT_ISOLATED_BATCH = "apprenticecodex.katana_area_hit_isolated";
     private static final String FUJIN_ISOLATED_BATCH = "apprenticecodex.fujin_isolated";
     private static final String COMBUSTION_JET_ISOLATED_BATCH = "apprenticecodex.combustion_jet_isolated";
+    private static final String CATCH_FLAME_ISOLATED_BATCH = "apprenticecodex.catch_flame_isolated";
     private static final String OTHERWORLD_LENS_ISOLATED_BATCH = "apprenticecodex.otherworld_lens_isolated";
 
     private ApprenticeCodexSpellBehaviorGameTests() {
@@ -247,6 +248,51 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = COMBUSTION_JET_ISOLATED_BATCH)
     public static void combustionJetWaveDisappearsAtRange(GameTestHelper helper) {
         CombustionJetGameTestScenarios.combustionJetWaveDisappearsAtRange(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CATCH_FLAME_ISOLATED_BATCH)
+    public static void catchFlameDamagesAndPenetratesBurningTargetIFrames(GameTestHelper helper) {
+        CatchFlameGameTestScenarios.catchFlameDamagesAndPenetratesBurningTargetIFrames(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CATCH_FLAME_ISOLATED_BATCH)
+    public static void catchFlameRejectsFireImmuneLivingTarget(GameTestHelper helper) {
+        CatchFlameGameTestScenarios.catchFlameRejectsFireImmuneLivingTarget(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CATCH_FLAME_ISOLATED_BATCH)
+    public static void catchFlameDamagesFireVulnerableEndCrystal(GameTestHelper helper) {
+        CatchFlameGameTestScenarios.catchFlameDamagesFireVulnerableEndCrystal(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CATCH_FLAME_ISOLATED_BATCH)
+    public static void catchFlameAreaRejectsTargetsBehindThinCover(GameTestHelper helper) {
+        CatchFlameGameTestScenarios.catchFlameAreaRejectsTargetsBehindThinCover(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CATCH_FLAME_ISOLATED_BATCH)
+    public static void catchFlameUsesSeparateDispenserAndNonPlayerIgnitionRules(GameTestHelper helper) {
+        CatchFlameGameTestScenarios.catchFlameUsesSeparateDispenserAndNonPlayerIgnitionRules(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CATCH_FLAME_ISOLATED_BATCH)
+    public static void catchFlameRejectsIgnitionFromUnresolvedRemoteOwner(GameTestHelper helper) {
+        CatchFlameGameTestScenarios.catchFlameRejectsIgnitionFromUnresolvedRemoteOwner(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CATCH_FLAME_ISOLATED_BATCH)
+    public static void catchFlameEssenceSmokerBranchNeverFallsBackToSurfaceFire(GameTestHelper helper) {
+        CatchFlameGameTestScenarios.catchFlameEssenceSmokerBranchNeverFallsBackToSurfaceFire(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CATCH_FLAME_ISOLATED_BATCH)
+    public static void catchFlameUsesFlintAndSteelIgnitionBehavior(GameTestHelper helper) {
+        CatchFlameGameTestScenarios.catchFlameUsesFlintAndSteelIgnitionBehavior(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CATCH_FLAME_ISOLATED_BATCH)
+    public static void catchFlameRespectsPlaceEventWhenIgnitingFire(GameTestHelper helper) {
+        CatchFlameGameTestScenarios.catchFlameRespectsPlaceEventWhenIgnitingFire(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = FUJIN_ISOLATED_BATCH)
