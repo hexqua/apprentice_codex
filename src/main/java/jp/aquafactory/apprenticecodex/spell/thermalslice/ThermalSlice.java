@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.ICastData;
 import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
@@ -144,7 +145,18 @@ public class ThermalSlice extends AbstractSummonWeaponSpell<ThermalSliceKatanaEn
             return CompleteCastTypes.RELEASE_WEAPON;
         }
 
-        weapon.slash(level);
+        if (!ThermalSliceMovementEvent.startDash(entity, weapon.getId())) {
+            weapon.slash(level);
+        }
         return CompleteCastTypes.KEEP_WEAPON;
+    }
+
+    @Override
+    public void onClientCast(Level level, int spellLevel, LivingEntity entity, ICastData castData) {
+        if (level.isClientSide) {
+            // サーバー同期を待つ補正ワープを避けるため、同じ固定距離のダッシュをクライアントでも予測する。
+            ThermalSliceMovementEvent.startDash(entity, -1);
+        }
+        super.onClientCast(level, spellLevel, entity, castData);
     }
 }

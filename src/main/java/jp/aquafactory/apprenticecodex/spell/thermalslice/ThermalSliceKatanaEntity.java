@@ -135,6 +135,9 @@ public class ThermalSliceKatanaEntity extends SummonWeaponEntity implements GeoE
     }
 
     public void slash(Level level){
+        if (isSlashed) {
+            return;
+        }
         if (!(getOwner() instanceof LivingEntity owner)) {
             return;
         }
@@ -175,6 +178,10 @@ public class ThermalSliceKatanaEntity extends SummonWeaponEntity implements GeoE
                     CombatTools.KnockbackTypes.DEFAULT
             );
         }
+    }
+
+    public boolean isSlashed() {
+        return isSlashed;
     }
 
     private void refreshAttackPose(LivingEntity owner) {

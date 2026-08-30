@@ -248,7 +248,10 @@ final class KatanaAreaHitGameTestScenarios {
                 level.setBlockAndUpdate(new BlockPos(x, y, wallCenter.getZ()), Blocks.AIR.defaultBlockState());
             }
         }
-        weapon.slash(level);
+        var visibleWeapon = new ThermalSliceKatanaEntity(EntityRegistry.THERMAL_SLICE_KATANA.get(), level, owner);
+        visibleWeapon.setDamage(4.0F);
+        level.addFreshEntity(visibleWeapon);
+        visibleWeapon.slash(level);
 
         helper.assertTrue(target.getHealth() < initialHealth - HEALTH_EPSILON,
                 "Thermal Slice should damage a visible target");
@@ -256,7 +259,7 @@ final class KatanaAreaHitGameTestScenarios {
         helper.assertTrue(damageSource != null && damageSource.is(DamageTypes.THERMAL_SLICE),
                 "Thermal Slice should use its own damage type");
 
-        discard(owner, weapon, target);
+        discard(owner, weapon, visibleWeapon, target);
         helper.succeed();
     }
 
