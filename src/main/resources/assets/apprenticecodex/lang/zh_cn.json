@@ -914,7 +914,7 @@
   "spell.apprenticecodex.linear_build.guide": "从目标方块侧面开始，沿直线放置手持方块，直到即将与自身坐标的对应轴相交为止。双手都没有持有方块时无法施放；如果目标方块具有方向或形状，会尽量复制它。使用方块优先选择副手，消耗则优先从手持以外的来源扣除。也可以从与你绑定的个人交互界面和末影箱、附近属于你的工具箱和宠物、已装备的背包，以及随身携带的潜影盒或收纳袋中取出方块。",
   "spell.apprenticecodex.treasure_divination.guide": "集中魔力，感知最近的贵重物品距离。探测到的物品不一定真正贵重，且可探测目标有限。",
   "spell.apprenticecodex.healing_bloom.guide": "召唤一朵魔法花，轻柔照亮周围区域。靠近可获得治愈效果，随着时间推移会生长舒心浆果。每位施法者同时只能维持一朵；潜行施法可替换之前的花朵。",
-  "spell.apprenticecodex.search_beacon.guide": "召唤一个魔法火盆，根据你供奉的物品搜寻不同结构。找到目标后，会用发光标记指引方向。若一无所获，会归还部分供奉物品。可用物品与魔法学派紧密相关。",
+  "spell.apprenticecodex.search_beacon.guide": "召唤一个魔法火盆，根据你供奉的物品搜寻不同结构。新发现的目标会以黄色标记显示；若未发现新目标，部分供奉物品可能会被退还。即使没有新发现的目标，曾由搜寻信标发现的目标也会以蓝色标记显示，而曾到访过至少一次的地点则会以红色标记显示。可用物品与魔法学派紧密相关。",
   "spell.apprenticecodex.tamers_pocket.guide": "将你视线内或附近的一只驯服宠物存入私人魔法领域。若视线内无驯服宠物，但已存储了一只，则会将其召唤到你身边。存储期间，宠物会自然恢复生命值，但速度极慢。",
   "spell.apprenticecodex.harvest_moon.guide": "收割你周围的作物，不会破坏植株，并将作物转移到你身上。",
   "spell.apprenticecodex.shock.guide": "发射由元素能量转化的闪电。",
