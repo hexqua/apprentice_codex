@@ -199,10 +199,11 @@ final class CatchFlameGameTestScenarios {
         helper.succeed();
     }
 
-    static void catchFlameIgnitesEssenceSmokerThroughPlayerInteraction(GameTestHelper helper) {
+    static void catchFlameIgnitesEssenceSmokerWhileSneakingWithoutSurfaceFire(GameTestHelper helper) {
         var caster = createPlayer(helper, "catch_flame_smoker_ignite", new Vec3(1.5D, 2.0D, 1.5D));
         var smokerPosition = helper.absolutePos(new BlockPos(1, 2, 3));
         var essenceSmoker = prepareEssenceSmoker(helper, smokerPosition);
+        caster.setShiftKeyDown(true);
         aimAt(caster, Vec3.atCenterOf(smokerPosition));
 
         try (var ignored = ApprenticeCodexServerConfig.useCatchFlameConfigOverrideForGameTest(
@@ -211,9 +212,38 @@ final class CatchFlameGameTestScenarios {
         }
 
         helper.assertTrue(essenceSmoker.isProcessing(),
-                "Catch Flame should ignite an Essence Smoker through its normal player interaction");
+                "Catch Flame should ignite an Essence Smoker while the actor is sneaking");
         helper.assertTrue(helper.getLevel().getBlockState(smokerPosition.above()).isAir(),
-                "Catch Flame should not place surface fire after igniting an Essence Smoker");
+                "Sneaking should not redirect Essence Smoker ignition to adjacent surface fire");
+
+        helper.getLevel().setBlockAndUpdate(smokerPosition, Blocks.AIR.defaultBlockState());
+        caster.discard();
+        helper.succeed();
+    }
+
+    static void catchFlamePreservesCompletedEssenceSmokerContents(GameTestHelper helper) {
+        var caster = createPlayer(helper, "catch_flame_smoker_completed", new Vec3(1.5D, 2.0D, 1.5D));
+        var smokerPosition = helper.absolutePos(new BlockPos(1, 2, 3));
+        var essenceSmoker = prepareEssenceSmoker(helper, smokerPosition);
+        var completedState = essenceSmoker.getUpdateTag();
+        completedState.putBoolean("Processing", false);
+        completedState.putBoolean("Completed", true);
+        essenceSmoker.load(completedState);
+        aimAt(caster, Vec3.atCenterOf(smokerPosition));
+
+        try (var ignored = ApprenticeCodexServerConfig.useCatchFlameConfigOverrideForGameTest(
+                new CatchFlameServerConfig.Values(true, false))) {
+            SpellDispenserCastContext.run(() -> cast(helper, catchFlame(), 1, caster));
+        }
+
+        helper.assertTrue(essenceSmoker.isCompleted(),
+                "Catch Flame should not collect or reset a completed Essence Smoker");
+        helper.assertTrue(essenceSmoker.getItem(1).is(Items.BONE_MEAL),
+                "Catch Flame should preserve completed Essence Smoker contents");
+        helper.assertTrue(caster.getInventory().countItem(Items.BONE_MEAL) == 0,
+                "Catch Flame should not transfer completed Essence Smoker contents to its synthetic actor");
+        helper.assertTrue(helper.getLevel().getBlockState(smokerPosition.above()).isAir(),
+                "A completed Essence Smoker should not fall back to surface fire");
 
         helper.getLevel().setBlockAndUpdate(smokerPosition, Blocks.AIR.defaultBlockState());
         caster.discard();
