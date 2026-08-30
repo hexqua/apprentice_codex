@@ -634,6 +634,24 @@
         "up_offset": 0.5
       },
       "spell": "apprenticecodex:fujin"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
+      "spell": "apprenticecodex:heavenly_fist"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
+      "spell": "apprenticecodex:combustion_jet"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
+      "spell": "apprenticecodex:wizardlamp"
     }
   ]
 }
