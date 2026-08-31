@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
 import jp.aquafactory.apprenticecodex.effect.SenseSensor;
 import jp.aquafactory.apprenticecodex.effect.SpectralWingEffect;
 import jp.aquafactory.apprenticecodex.effect.ThermalProcessing;
+import jp.aquafactory.apprenticecodex.effect.ThermalSundered;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -61,6 +62,8 @@ public final class EffectRegistry {
             EFFECTS.register("spectral_wing", SpectralWingEffect::new);
     public static final RegistryObject<MobEffect> THERMAL_PROCESSING =
             EFFECTS.register("thermal_processing", ThermalProcessing::new);
+    public static final RegistryObject<MobEffect> THERMAL_SUNDERED =
+            EFFECTS.register("thermal_sundered", ThermalSundered::new);
     public static final RegistryObject<MobEffect> PENETRATED_ARMOR =
             EFFECTS.register("penetrated_armor", PenetratedArmor::new);
     public static final RegistryObject<MobEffect> FROST_TRAPPED =
