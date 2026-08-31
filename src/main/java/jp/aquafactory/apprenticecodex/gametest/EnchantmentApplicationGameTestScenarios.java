@@ -832,6 +832,7 @@ final class EnchantmentApplicationGameTestScenarios {
                 EnchantmentRegistry.WISDOM
         ));
         expected.remove(ResourceLocation.withDefaultNamespace("sweeping"));
+        expected.remove(ResourceLocation.withDefaultNamespace("efficiency"));
         addExpectedMalumHauntedIfPresent(stack, expected);
         addExpectedMalumSpiritPlunderIfPresent(stack, expected);
         addExpectedMalumReplenishingIfPresent(expected);

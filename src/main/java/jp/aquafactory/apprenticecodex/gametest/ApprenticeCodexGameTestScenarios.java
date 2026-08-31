@@ -4024,6 +4024,7 @@ public class ApprenticeCodexGameTestScenarios {
             for (var supported : List.of(
                     Enchantments.SHARPNESS,
                     Enchantments.BLOCK_FORTUNE,
+                    Enchantments.SILK_TOUCH,
                     EnchantmentRegistry.WISDOM.get(),
                     EnchantmentRegistry.ALACRITY.get()
             )) {
@@ -4038,12 +4039,18 @@ public class ApprenticeCodexGameTestScenarios {
                                 + ForgeRegistries.ENCHANTMENTS.getKey(supported));
             }
             for (var rejected : List.of(
+                    Enchantments.BLOCK_EFFICIENCY,
                     Enchantments.UNBREAKING,
                     Enchantments.MENDING,
                     EnchantmentRegistry.PLUNDER.get()
             )) {
                 helper.assertFalse(item.canApplyAtEnchantingTable(gauntlet, rejected),
                         "Scrollcaster Gauntlet should reject " + ForgeRegistries.ENCHANTMENTS.getKey(rejected));
+                helper.assertFalse(item.isBookEnchantable(gauntlet,
+                                createEnchantedBook(new EnchantmentInstance(rejected, 1))),
+                        "Scrollcaster Gauntlet enchanted book should reject " + ForgeRegistries.ENCHANTMENTS.getKey(rejected));
+                helper.assertFalse(((NonDamageableAnvilMergeItem) item).isAnvilMergeEnchantmentAllowed(gauntlet, rejected),
+                        "Scrollcaster Gauntlet anvil merge should reject " + ForgeRegistries.ENCHANTMENTS.getKey(rejected));
             }
             helper.assertTrue(item instanceof NonDamageableAnvilMergeItem,
                     "Scrollcaster Gauntlet should use the non-damageable anvil merge path");

@@ -525,7 +525,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         if (enchantmentId == null) {
             return false;
         }
-        if (enchantment == net.minecraft.world.item.enchantment.Enchantments.SWEEPING_EDGE) {
+        if (enchantment == net.minecraft.world.item.enchantment.Enchantments.SWEEPING_EDGE
+                || enchantment == net.minecraft.world.item.enchantment.Enchantments.BLOCK_EFFICIENCY) {
             return false;
         }
 
