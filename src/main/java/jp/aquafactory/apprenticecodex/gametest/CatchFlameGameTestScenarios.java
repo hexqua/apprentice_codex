@@ -7,7 +7,9 @@ import jp.aquafactory.apprenticecodex.block.essencesmoker.EssenceSmokerBlockEnti
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastContext;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.CatchFlameServerConfig;
+import jp.aquafactory.apprenticecodex.effect.ThermalSundered;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
@@ -16,7 +18,10 @@ import jp.aquafactory.apprenticecodex.spell.catchflame.CatchFlameImpactEntity;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -62,6 +67,49 @@ final class CatchFlameGameTestScenarios {
                 "Catch Flame should bypass invulnerability frames on a burning target");
 
         discardAll(target, caster);
+        helper.succeed();
+    }
+
+    static void catchFlameExtendsThermalSunderedOnlyAfterSuccessfulDamage(GameTestHelper helper) {
+        var caster = createPlayer(helper, "catch_flame_thermal_sundered", new Vec3(1.5D, 2.0D, 1.5D));
+        var target = createLiving(helper, EntityType.ZOMBIE, new Vec3(1.5D, 2.0D, 3.0D));
+        var effect = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.THERMAL_SUNDERED.get());
+        target.addEffect(new MobEffectInstance(effect, 20, 3, false, true, true));
+        aimAt(caster, target.getBoundingBox().getCenter());
+        var initialHealth = target.getHealth();
+
+        cast(helper, catchFlame(), 2, caster);
+
+        var extended = target.getEffect(effect);
+        helper.assertTrue(target.getHealth() < initialHealth - VALUE_EPSILON,
+                "Catch Flame setup damage should succeed");
+        helper.assertTrue(extended != null
+                        && extended.getDuration() == ThermalSundered.ON_FIRE_EXTENDED_DURATION_TICKS
+                        && extended.getAmplifier() == 3,
+                "Successful Catch Flame damage should extend Thermal Sundered to five seconds without changing its amplifier");
+
+        target.removeEffect(effect);
+        target.addEffect(new MobEffectInstance(effect, 120, 3, false, true, true));
+        target.invulnerableTime = 0;
+        cast(helper, catchFlame(), 2, caster);
+        helper.assertTrue(target.getEffect(effect).getDuration() == 120,
+                "Catch Flame should not shorten an already longer Thermal Sundered effect");
+
+        target.discard();
+        var resistedTarget = createLiving(helper, EntityType.ZOMBIE, new Vec3(1.5D, 2.0D, 3.0D));
+        resistedTarget.addEffect(new MobEffectInstance(effect, 20, 3, false, true, true));
+        resistedTarget.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 200));
+        aimAt(caster, resistedTarget.getBoundingBox().getCenter());
+        var resistedHealth = resistedTarget.getHealth();
+
+        cast(helper, catchFlame(), 2, caster);
+
+        helper.assertTrue(Math.abs(resistedTarget.getHealth() - resistedHealth) < VALUE_EPSILON,
+                "Fire Resistance should reject Catch Flame damage");
+        helper.assertTrue(resistedTarget.getEffect(effect).getDuration() == 20,
+                "Rejected Catch Flame damage should not extend Thermal Sundered");
+
+        discardAll(resistedTarget, caster);
         helper.succeed();
     }
 

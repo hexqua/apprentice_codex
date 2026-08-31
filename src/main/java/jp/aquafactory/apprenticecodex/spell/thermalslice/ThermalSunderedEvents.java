@@ -19,6 +19,6 @@ public final class ThermalSunderedEvents {
             return;
         }
 
-        ThermalSunderedLogic.extendFromOnFireDamage(event.getEntity());
+        ThermalSunderedLogic.extendFromSuccessfulFireDamage(event.getEntity());
     }
 }

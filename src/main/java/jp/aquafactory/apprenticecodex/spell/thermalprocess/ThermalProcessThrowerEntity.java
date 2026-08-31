@@ -457,7 +457,12 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
     }
 
     private void applyOrUpdateThermalProcessing(LivingEntity target) {
-        var current = target.getEffect(EffectRegistry.THERMAL_PROCESSING.get());
+        if (CombatTools.isFireResistant(target)) {
+            return;
+        }
+
+        var thermalProcessing = EffectRegistry.THERMAL_PROCESSING.get();
+        var current = target.getEffect(thermalProcessing);
         var nextAmplifier = current == null
                 ? 0
                 : Math.min(current.getAmplifier() + 1, ThermalProcessing.MAX_AMPLIFIER);
@@ -474,6 +479,10 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
         if (nextAmplifier >= ThermalProcessing.MAX_AMPLIFIER) {
             target.setSecondsOnFire(ThermalProcessing.IGNITE_TICKS / 20);
         }
+    }
+
+    public void applyOrUpdateThermalProcessingForGameTest(LivingEntity target) {
+        applyOrUpdateThermalProcessing(target);
     }
 
     private void spawnBeamParticlesClient(Level level) {
