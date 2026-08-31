@@ -78,6 +78,7 @@ import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWing;
 import jp.aquafactory.apprenticecodex.spell.tamerspocket.TamersPocket;
 import jp.aquafactory.apprenticecodex.spell.terraresonance.TerraResonance;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcess;
+import jp.aquafactory.apprenticecodex.spell.thermalslice.ThermalSlice;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjack;
 import jp.aquafactory.apprenticecodex.spell.tirovolley.TiroVolley;
 import jp.aquafactory.apprenticecodex.spell.totemofpermafrost.TotemOfPermafrost;
@@ -152,6 +153,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ARTISAN_SMASH = reg("artisan_smash", ArtisanSmash::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> COMBUSTION_JET = reg("combustion_jet", CombustionJet::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> CATCH_FLAME = reg("catch_flame", CatchFlame::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> THERMAL_SLICE = reg("thermal_slice", ThermalSlice::new);
 
     // 聖.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MAGE_LIGHT = reg("mage_light", MageLight::new);

@@ -689,6 +689,7 @@
   "entity.apprenticecodex.combustion_jet_wave": "燃焼熱波",
   "entity.apprenticecodex.blood_brand_kunai": "刻印の苦無",
   "entity.apprenticecodex.shiden_katana": "銘刀『紫電』",
+  "entity.apprenticecodex.thermal_slice_katana": "サーマルスライサー",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "使い走り魔術師",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "使い走り魔術師",
@@ -877,6 +878,7 @@
   "spell.apprenticecodex.blood_brand": "血の烙印",
   "spell.apprenticecodex.shiden": "紫電",
   "spell.apprenticecodex.catch_flame": "火付け",
+  "spell.apprenticecodex.thermal_slice": "サーマルスライス",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して攻撃を続ける魔法の弓を召喚する。大魔術師のお守りを装備していてもクールダウンの発生は抑制できない。",
@@ -961,6 +963,7 @@
   "spell.apprenticecodex.blood_brand.guide": "命中したモブに対して血の烙印を刻み込む血の魔術のクナイを生成して投擲する。クナイのダメージは微々たるものだが血の烙印を刻み込まれたモブが死ぬと血の魔力が爆ぜて周囲を巻き込む。爆ぜた魔力によって実際に与えたダメージの50%を回復する。彼岸花で倒した場合はより強力な魔力として爆ぜる。ただし、爆ぜた血の魔力は壁に遮られる。烙印と術者の接続が切れた状態では魔力は爆ぜない。",
   "spell.apprenticecodex.shiden.guide": "魔法の刀を召喚して素早く斬り上げる。斬撃は威力と衝撃力が下がるもののブロックに完全に阻まれることはない。",
   "spell.apprenticecodex.catch_flame.guide": "瞬間的に手に火の魔力を練り上げて火を起こす。対象が炎上している場合は無敵時間を無視することができる。エッセンス燻製器やブロック表面を着火させることもでき、この着火行為は魔法の地形破壊の設定を無視する。",
+  "spell.apprenticecodex.thermal_slice.guide": "炎の魔力を宿した魔法の刀を召喚し、前方に駆け抜けてから斬り伏せる。駆け抜ける距離は一定のため、間合いが近すぎると空振りしてしまう。火炎耐性を持たない対象には炎の魔力を流し込み、炎魔法に対する耐性を一定時間低下させる。この魔法では炎上させることはないが、炎上ダメージが流し込まれた炎の魔力の維持に繋げられる。発動が阻止されることはない。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -1017,6 +1020,8 @@
   "ui.apprenticecodex.mana_transcription.target_operation.work_count": "金床での使用回数",
   "ui.apprenticecodex.linear_build.additional_place_cost": "設置時追加消費マナ: %d/ブロック",
   "ui.apprenticecodex.burn_time": "炎上時間: %s",
+  "ui.apprenticecodex.thermal_slice.dash_distance": "ダッシュ距離: %sブロック",
+  "ui.apprenticecodex.thermal_slice.reduced_fire_spell_resist": "炎魔法耐性を%d%%低下させる",
 
   "ui.apprenticecodex.spellgun.missing_ammo": "弾切れだ！(弾:%1$s)",
   "ui.apprenticecodex.spellgun.not_imbued": "%1$sには魔法が注入されていない！",
@@ -1228,6 +1233,7 @@
   "effect.apprenticecodex.blood_engraved": "血の刻印",
   "effect.apprenticecodex.school_affinity": "親和",
   "effect.apprenticecodex.school_affinity.dynamic": "%sへの親和",
+  "effect.apprenticecodex.thermal_sundered": "熱切断",
 
   "effect.apprenticecodex.arcane_charge.description": "魔法の力が上昇する。",
   "effect.apprenticecodex.casting_mobility.description": "継続詠唱に伴う移動速度低下だけを打ち消す。",
@@ -1250,6 +1256,7 @@
   "effect.apprenticecodex.gravity_bound.description": "空中に漂うことが困難になり、ジャンプも自由にできなくなる。",
   "effect.apprenticecodex.inert_mana_shield.description": "マナ障壁が展開できなくなる。",
   "effect.apprenticecodex.blood_engraved.description": "血の魔力が刻み込まれた状態。刻み込んだ本人がいる状態で死ぬと血の魔力として爆ぜる。",
+  "effect.apprenticecodex.thermal_sundered.description": "炎魔法の耐性が下がる。炎上ダメージを受けると延長される。",
 
   "item.minecraft.potion.effect.intelligence": "知性のポーション",
   "item.minecraft.potion.effect.meditation": "瞑想のポーション",
@@ -1315,6 +1322,7 @@
   "death.attack.apprenticecodex.blood_brand_higanbana_burst": "%1$sの血は綺麗な彼岸花として咲き乱れた",
   "death.attack.apprenticecodex.shiden": "%1$sは竹を割るように切断された",
   "death.attack.apprenticecodex.catch_flame": "%1$sは火だるまになった",
+  "death.attack.apprenticecodex.thermal_slice": "%1$sは伝説にはなれなかった",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",
@@ -1495,6 +1503,7 @@
   "subtitle.apprenticecodex.sound.smg": "サブマシンガンの銃声",
   "subtitle.apprenticecodex.sound.spellcharge": "魔力が溜まる",
   "subtitle.apprenticecodex.sound.shiden": "雷の刀を振るう",
+  "subtitle.apprenticecodex.sound.thermal_slice": "炎の刀を振るう",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_air": "セプターを振り下ろす",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground": "セプターが地面を打つ",
   "subtitle.apprenticecodex.sound.smashcast_scepter_smash_ground_heavy": "セプターが激しく叩きつけられる",

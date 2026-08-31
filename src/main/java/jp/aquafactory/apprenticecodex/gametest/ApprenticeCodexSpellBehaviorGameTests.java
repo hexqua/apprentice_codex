@@ -181,6 +181,46 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void thermalSliceRejectsWallHitsAndDamagesVisibleTarget(GameTestHelper helper) {
+        KatanaAreaHitGameTestScenarios.thermalSliceRejectsWallHitsAndDamagesVisibleTarget(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void thermalSliceAppliesThermalSunderedAfterDamage(GameTestHelper helper) {
+        ThermalSunderedGameTestScenarios.thermalSliceAppliesThermalSunderedAfterDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void thermalSliceSkipsProtectedAndRejectedTargets(GameTestHelper helper) {
+        ThermalSunderedGameTestScenarios.thermalSliceSkipsProtectedAndRejectedTargets(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void thermalSunderedRefreshesWithoutDowngrading(GameTestHelper helper) {
+        ThermalSunderedGameTestScenarios.thermalSunderedRefreshesWithoutDowngrading(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void thermalSliceDashesFixedDistanceAndCanOvershootCloseTarget(GameTestHelper helper) {
+        ThermalSliceMovementGameTestScenarios.thermalSliceDashesFixedDistanceAndCanOvershootCloseTarget(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void thermalSliceStopsAtWallAndSlashesEarly(GameTestHelper helper) {
+        ThermalSliceMovementGameTestScenarios.thermalSliceStopsAtWallAndSlashesEarly(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void thermalSliceKeepsDashDirectionButUsesFinalLookForSlash(GameTestHelper helper) {
+        ThermalSliceMovementGameTestScenarios.thermalSliceKeepsDashDirectionButUsesFinalLookForSlash(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void thermalSlicePreservesVerticalMovementAndFallDistance(GameTestHelper helper) {
+        ThermalSliceMovementGameTestScenarios.thermalSlicePreservesVerticalMovementAndFallDistance(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
     public static void shidenUsesTallNarrowAttackAreaAndCanBeInterrupted(GameTestHelper helper) {
         KatanaAreaHitGameTestScenarios.shidenUsesTallNarrowAttackAreaAndCanBeInterrupted(helper);
     }
