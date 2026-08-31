@@ -963,7 +963,7 @@
   "spell.apprenticecodex.blood_brand.guide": "命中したモブに対して血の烙印を刻み込む血の魔術のクナイを生成して投擲する。クナイのダメージは微々たるものだが血の烙印を刻み込まれたモブが死ぬと血の魔力が爆ぜて周囲を巻き込む。爆ぜた魔力によって実際に与えたダメージの50%を回復する。彼岸花で倒した場合はより強力な魔力として爆ぜる。ただし、爆ぜた血の魔力は壁に遮られる。烙印と術者の接続が切れた状態では魔力は爆ぜない。",
   "spell.apprenticecodex.shiden.guide": "魔法の刀を召喚して素早く斬り上げる。斬撃は威力と衝撃力が下がるもののブロックに完全に阻まれることはない。",
   "spell.apprenticecodex.catch_flame.guide": "瞬間的に手に火の魔力を練り上げて火を起こす。対象が炎上している場合は無敵時間を無視することができる。エッセンス燻製器やブロック表面を着火させることもでき、この着火行為は魔法の地形破壊の設定を無視する。",
-  "spell.apprenticecodex.thermal_slice.guide": "炎の魔力を宿した魔法の刀を召喚し、前方に駆け抜けてから斬り伏せる。駆け抜ける距離は一定のため、間合いが近すぎると空振りしてしまう危険性を持つ。炎の魔力を宿している刀身は火炎耐性で防がれることはなく、火炎耐性が無ければ鎧をも切り裂く。",
+  "spell.apprenticecodex.thermal_slice.guide": "炎の魔力を宿した魔法の刀を召喚し、前方に駆け抜けてから斬り伏せる。駆け抜ける距離は一定のため、間合いが近すぎると空振りしてしまう。火炎耐性を持たない対象には炎の魔力を流し込み、炎魔法に対する耐性を一定時間低下させる。この魔法では炎上させることはないが、炎上ダメージが流し込まれた炎の魔力の維持に繋げられる。発動が阻止されることはない。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -1020,6 +1020,8 @@
   "ui.apprenticecodex.mana_transcription.target_operation.work_count": "金床での使用回数",
   "ui.apprenticecodex.linear_build.additional_place_cost": "設置時追加消費マナ: %d/ブロック",
   "ui.apprenticecodex.burn_time": "炎上時間: %s",
+  "ui.apprenticecodex.thermal_slice.dash_distance": "ダッシュ距離: %sブロック",
+  "ui.apprenticecodex.thermal_slice.reduced_fire_spell_resist": "炎魔法耐性を%d%%低下させる",
 
   "ui.apprenticecodex.spellgun.missing_ammo": "弾切れだ！(弾:%1$s)",
   "ui.apprenticecodex.spellgun.not_imbued": "%1$sには魔法が注入されていない！",
@@ -1254,7 +1256,7 @@
   "effect.apprenticecodex.gravity_bound.description": "空中に漂うことが困難になり、ジャンプも自由にできなくなる。",
   "effect.apprenticecodex.inert_mana_shield.description": "マナ障壁が展開できなくなる。",
   "effect.apprenticecodex.blood_engraved.description": "血の魔力が刻み込まれた状態。刻み込んだ本人がいる状態で死ぬと血の魔力として爆ぜる。",
-  "effect.apprenticecodex.thermal_sundered.description": "防御力と炎魔法の耐性が下がる。炎上ダメージを受けると延長される。",
+  "effect.apprenticecodex.thermal_sundered.description": "炎魔法の耐性が下がる。炎上ダメージを受けると延長される。",
 
   "item.minecraft.potion.effect.intelligence": "知性のポーション",
   "item.minecraft.potion.effect.meditation": "瞑想のポーション",

@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.spell.thermalslice;
 
 import io.redspace.ironsspellbooks.util.ParticleHelper;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.effect.ThermalSundered;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -50,6 +51,7 @@ public class ThermalSliceKatanaEntity extends SummonWeaponEntity implements GeoE
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     private float damage;
+    private int thermalSunderedAmplifier;
     private int lifeTick = 0;
     private boolean isSlashed = false;
     private boolean isStandby = false;
@@ -170,13 +172,16 @@ public class ThermalSliceKatanaEntity extends SummonWeaponEntity implements GeoE
             if (hit.blockOccluded()) {
                 continue;
             }
-            CombatTools.applyDamage(
+            var applied = CombatTools.applyDamage(
                     hit.entity(),
                     damage,
                     source,
                     SpellRegistry.THERMAL_SLICE.get().getSchoolType(),
                     CombatTools.KnockbackTypes.DEFAULT
             );
+            if (applied && hit.entity() instanceof LivingEntity livingTarget) {
+                ThermalSunderedLogic.applyFromThermalSlice(livingTarget, thermalSunderedAmplifier);
+            }
         }
     }
 
@@ -207,6 +212,14 @@ public class ThermalSliceKatanaEntity extends SummonWeaponEntity implements GeoE
         return damage;
     }
 
+    public void setThermalSunderedAmplifier(int amplifier) {
+        thermalSunderedAmplifier = ThermalSundered.clampAmplifier(amplifier);
+    }
+
+    public int getThermalSunderedAmplifierForGameTest() {
+        return thermalSunderedAmplifier;
+    }
+
     @Override
     public boolean isTrailActive() {
         return entityData.get(SHOW_TRAIL);
@@ -221,12 +234,14 @@ public class ThermalSliceKatanaEntity extends SummonWeaponEntity implements GeoE
     protected void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
         damage = pCompound.getFloat("Damage");
+        setThermalSunderedAmplifier(pCompound.getInt("ThermalSunderedAmplifier"));
     }
 
     @Override
     protected void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.addAdditionalSaveData(pCompound);
         pCompound.putFloat("Damage", damage);
+        pCompound.putInt("ThermalSunderedAmplifier", thermalSunderedAmplifier);
     }
 
     @Override
@@ -257,4 +272,3 @@ public class ThermalSliceKatanaEntity extends SummonWeaponEntity implements GeoE
         return cache;
     }
 }
-

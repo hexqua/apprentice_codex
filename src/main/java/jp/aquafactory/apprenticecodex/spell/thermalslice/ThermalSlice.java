@@ -12,6 +12,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
+import jp.aquafactory.apprenticecodex.effect.ThermalSundered;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
@@ -52,7 +53,9 @@ public class ThermalSlice extends AbstractSummonWeaponSpell<ThermalSliceKatanaEn
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 1))
+                Component.translatable("ui.irons_spellbooks.distance", Utils.stringTruncation(getRange(), 1)),
+                Component.translatable("ui.apprenticecodex.thermal_slice.dash_distance", Utils.stringTruncation(ThermalSliceMovementEvent.DASH_DISTANCE, 1)),
+                Component.translatable("ui.apprenticecodex.thermal_slice.reduced_fire_spell_resist", getReducedFireSpellResistPercent(spellLevel))
         );
     }
 
@@ -63,7 +66,20 @@ public class ThermalSlice extends AbstractSummonWeaponSpell<ThermalSliceKatanaEn
 
     private double getRange(){
         // あくまでも理想値であり、壁向きに張り付いて使うとmoveでめり込まない都合上射程が短くなるが仕様.
+        // ダッシュは含まない.
         return ThermalSliceKatanaEntity.getAttackDepth();
+    }
+
+    private int getReducedFireSpellResistPercent(int spellLevel){
+        return ThermalSundered.getFireMagicResistReductionPercent(getThermalSunderedAmplifier(spellLevel));
+    }
+
+    int getThermalSunderedAmplifier(int spellLevel){
+        return ThermalSundered.clampAmplifier(spellLevel - 1);
+    }
+
+    public int getThermalSunderedAmplifierForGameTest(int spellLevel) {
+        return getThermalSunderedAmplifier(spellLevel);
     }
 
     @Override
@@ -111,6 +127,7 @@ public class ThermalSlice extends AbstractSummonWeaponSpell<ThermalSliceKatanaEn
     public ThermalSliceKatanaEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
         var summonWeapon = new ThermalSliceKatanaEntity(EntityRegistry.THERMAL_SLICE_KATANA.get(), level, entity);
         summonWeapon.setDamage(getDamage(spellLevel, entity));
+        summonWeapon.setThermalSunderedAmplifier(getThermalSunderedAmplifier(spellLevel));
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }
@@ -120,6 +137,7 @@ public class ThermalSlice extends AbstractSummonWeaponSpell<ThermalSliceKatanaEn
                                            MagicData playerMagicData, @NotNull ThermalSliceKatanaEntity weapon) {
         // FocusStaffbow などの完了時補正を、直後に行う抜刀攻撃へ反映する。
         weapon.setDamage(getDamage(spellLevel, entity));
+        weapon.setThermalSunderedAmplifier(getThermalSunderedAmplifier(spellLevel));
     }
 
     @Override

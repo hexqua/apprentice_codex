@@ -186,6 +186,21 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void thermalSliceAppliesThermalSunderedAfterDamage(GameTestHelper helper) {
+        ThermalSunderedGameTestScenarios.thermalSliceAppliesThermalSunderedAfterDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void thermalSliceSkipsProtectedAndRejectedTargets(GameTestHelper helper) {
+        ThermalSunderedGameTestScenarios.thermalSliceSkipsProtectedAndRejectedTargets(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void thermalSunderedRefreshesWithoutDowngrading(GameTestHelper helper) {
+        ThermalSunderedGameTestScenarios.thermalSunderedRefreshesWithoutDowngrading(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
     public static void thermalSliceDashesFixedDistanceAndCanOvershootCloseTarget(GameTestHelper helper) {
         ThermalSliceMovementGameTestScenarios.thermalSliceDashesFixedDistanceAndCanOvershootCloseTarget(helper);
     }
