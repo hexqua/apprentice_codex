@@ -4270,6 +4270,7 @@ public class ApprenticeCodexGameTestScenarios {
             var enchantments = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             var sharpness = enchantments.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SHARPNESS);
             var fortune = enchantments.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.FORTUNE);
+            var efficiency = enchantments.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.EFFICIENCY);
             var unbreaking = enchantments.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.UNBREAKING);
             var mending = enchantments.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.MENDING);
             var wisdom = enchantments.getOrThrow(Enchantments.WISDOM);
@@ -4291,7 +4292,7 @@ public class ApprenticeCodexGameTestScenarios {
                 helper.assertTrue(item.isBookEnchantable(gauntlet, createEnchantedBook(supported)),
                         "Scrollcaster Gauntlet anvil should support " + supported.unwrapKey().orElseThrow().location());
             }
-            for (var rejected : List.of(unbreaking, mending, plunder)) {
+            for (var rejected : List.of(efficiency, unbreaking, mending, plunder)) {
                 helper.assertFalse(item.supportsEnchantment(gauntlet, rejected),
                         "Scrollcaster Gauntlet should reject " + rejected.unwrapKey().orElseThrow().location());
                 helper.assertFalse(item.isPrimaryItemFor(gauntlet, rejected),

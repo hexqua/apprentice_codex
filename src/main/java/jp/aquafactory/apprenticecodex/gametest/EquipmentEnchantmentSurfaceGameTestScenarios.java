@@ -1433,7 +1433,6 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "transcendence"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom"),
                     ResourceLocation.withDefaultNamespace("bane_of_arthropods"),
-                    ResourceLocation.withDefaultNamespace("efficiency"),
                     ResourceLocation.withDefaultNamespace("fire_aspect"),
                     ResourceLocation.withDefaultNamespace("fortune"),
                     ResourceLocation.withDefaultNamespace("knockback"),

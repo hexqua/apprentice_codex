@@ -73,6 +73,7 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
                     Set.of(), "Magi Agent Suit");
             assertStaffEnchantmentSurfaces(helper);
             assertFocusStaffbowEnchantmentSurface(helper);
+            assertScrollcasterGauntletEnchantmentSurface(helper);
         });
     }
 
@@ -256,6 +257,15 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
         assertApplicationSurface(helper, stack, enchantments.getOrThrow(Enchantments.SYNTHESIS));
     }
 
+    private static void assertScrollcasterGauntletEnchantmentSurface(GameTestHelper helper) {
+        var stack = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+        assertVanillaEnchantment(helper, stack, "efficiency", false, "Scrollcaster Gauntlet");
+        assertVanillaEnchantment(helper, stack, "fortune", true, "Scrollcaster Gauntlet");
+        assertVanillaEnchantment(helper, stack, "silk_touch", true, "Scrollcaster Gauntlet");
+        assertVanillaEnchantment(helper, stack, "sweeping_edge", true, false, false,
+                "Scrollcaster Gauntlet");
+    }
+
     private static void assertVanillaEnchantment(
             GameTestHelper helper,
             ItemStack stack,
@@ -263,16 +273,28 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
             boolean expected,
             String itemName
     ) {
+        assertVanillaEnchantment(helper, stack, enchantmentPath, expected, expected, expected, itemName);
+    }
+
+    private static void assertVanillaEnchantment(
+            GameTestHelper helper,
+            ItemStack stack,
+            String enchantmentPath,
+            boolean definitionExpected,
+            boolean enchantedBookExpected,
+            boolean enchantingTableExpected,
+            String itemName
+    ) {
         var enchantments = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
         var enchantment = enchantments.getOrThrow(ResourceKey.create(
                 Registries.ENCHANTMENT,
                 ResourceLocation.withDefaultNamespace(enchantmentPath)
         ));
-        helper.assertTrue(enchantment.value().canEnchant(stack) == expected,
+        helper.assertTrue(enchantment.value().canEnchant(stack) == definitionExpected,
                 itemName + " definition rule changed for " + enchantmentPath);
-        helper.assertTrue(stack.supportsEnchantment(enchantment) == expected,
+        helper.assertTrue(stack.supportsEnchantment(enchantment) == enchantedBookExpected,
                 itemName + " enchanted-book rule changed for " + enchantmentPath);
-        helper.assertTrue(stack.getItem().isPrimaryItemFor(stack, enchantment) == expected,
+        helper.assertTrue(stack.getItem().isPrimaryItemFor(stack, enchantment) == enchantingTableExpected,
                 itemName + " enchanting-table rule changed for " + enchantmentPath);
     }
 

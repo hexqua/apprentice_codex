@@ -60,7 +60,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_FIRE_ASPECT = createTag("minecraft", "enchantable/fire_aspect");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_SHARP_WEAPON = createTag("minecraft", "enchantable/sharp_weapon");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_WEAPON = createTag("minecraft", "enchantable/weapon");
-    private static final TagKey<Item> MINECRAFT_ENCHANTABLE_MINING = createTag("minecraft", "enchantable/mining");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_MINING_LOOT = createTag("minecraft", "enchantable/mining_loot");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_TRIDENT = createTag("minecraft", "enchantable/trident");
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_DURABILITY = createTag("minecraft", "enchantable/durability");
@@ -174,7 +173,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var vanillaFireAspectEnchantableTag = tag(MINECRAFT_ENCHANTABLE_FIRE_ASPECT);
         var vanillaSharpWeaponEnchantableTag = tag(MINECRAFT_ENCHANTABLE_SHARP_WEAPON);
         var vanillaWeaponEnchantableTag = tag(MINECRAFT_ENCHANTABLE_WEAPON);
-        var vanillaMiningEnchantableTag = tag(MINECRAFT_ENCHANTABLE_MINING);
         var vanillaMiningLootEnchantableTag = tag(MINECRAFT_ENCHANTABLE_MINING_LOOT);
         var vanillaMaceEnchantableTag = tag(MINECRAFT_ENCHANTABLE_MACE);
         var vanillaTridentEnchantableTag = tag(MINECRAFT_ENCHANTABLE_TRIDENT);
@@ -244,7 +242,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
         vanillaWeaponEnchantableTag.add(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
 
-        // Scrollcaster Gauntlet は剣・ツルハシ・魔法詠唱補助具向けの enchant を通常付与できるようにする。
+        // Scrollcaster Gauntlet は剣・採掘ドロップ・魔法詠唱補助具向けの enchant を通常付与できるようにする。
         malumMagicCapableWeaponTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
         tomagicReversalWeaponTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
@@ -252,7 +250,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaFireAspectEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
         vanillaWeaponEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
-        vanillaMiningEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
         vanillaMiningLootEnchantableTag.add(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
 
         // Multipurpose Staffrifle は main hand で射撃攻撃する武器なので、Malum の主手武器 tag へ明示登録する。

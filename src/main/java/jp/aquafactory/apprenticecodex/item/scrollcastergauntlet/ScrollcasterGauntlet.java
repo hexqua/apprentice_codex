@@ -240,7 +240,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     @Override
     public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
-        if (enchantment.is(net.minecraft.world.item.enchantment.Enchantments.SWEEPING_EDGE)) {
+        if (enchantment.is(net.minecraft.world.item.enchantment.Enchantments.SWEEPING_EDGE)
+                || enchantment.is(net.minecraft.world.item.enchantment.Enchantments.EFFICIENCY)) {
             return false;
         }
         return super.supportsEnchantment(stack, enchantment) || isSupportedEnchantment(stack, enchantment);
