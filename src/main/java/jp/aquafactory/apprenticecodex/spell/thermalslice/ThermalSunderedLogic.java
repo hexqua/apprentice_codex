@@ -2,9 +2,9 @@ package jp.aquafactory.apprenticecodex.spell.thermalslice;
 
 import jp.aquafactory.apprenticecodex.effect.ThermalSundered;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 
 public final class ThermalSunderedLogic {
@@ -12,14 +12,14 @@ public final class ThermalSunderedLogic {
     }
 
     public static void applyFromThermalSlice(LivingEntity target, int amplifier) {
-        if (target.hasEffect(MobEffects.FIRE_RESISTANCE) || target.fireImmune()) {
+        if (CombatTools.isFireResistant(target)) {
             return;
         }
 
         updateEffect(target, ThermalSundered.INITIAL_DURATION_TICKS, amplifier);
     }
 
-    public static void extendFromOnFireDamage(LivingEntity target) {
+    public static void extendFromSuccessfulFireDamage(LivingEntity target) {
         var effect = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.THERMAL_SUNDERED.get());
         var current = target.getEffect(effect);
         if (current == null) {

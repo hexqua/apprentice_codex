@@ -23,6 +23,7 @@ import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastContext;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.spell.thermalslice.ThermalSunderedLogic;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.core.BlockPos;
@@ -198,6 +199,9 @@ public class CatchFlame extends AbstractSpell {
                     getSchoolType(),
                     CombatTools.KnockbackTypes.DEFAULT
             );
+            if (damaged && target instanceof LivingEntity livingTarget) {
+                ThermalSunderedLogic.extendFromSuccessfulFireDamage(livingTarget);
+            }
             var burnDuration = getBurnDuration(spellLevel);
             if (damaged && target.getRemainingFireTicks() < burnDuration) {
                 target.setRemainingFireTicks(burnDuration);

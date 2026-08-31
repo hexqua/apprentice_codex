@@ -1,7 +1,5 @@
 {
   "values": [
-    "apprenticecodex:thermal_process",
-    "apprenticecodex:combustion_jet",
     "apprenticecodex:catch_flame",
     "apprenticecodex:catch_flame_penetrate"
   ]

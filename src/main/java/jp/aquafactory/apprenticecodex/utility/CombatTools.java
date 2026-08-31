@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.*;
@@ -55,6 +56,10 @@ public final class CombatTools {
 
     private static volatile long lastEpicFightCompatLogMs = 0L;
     private static final long EPICFIGHT_COMPAT_LOG_COOLDOWN_MS = 10_000L;
+
+    public static boolean isFireResistant(LivingEntity target) {
+        return target.hasEffect(MobEffects.FIRE_RESISTANCE) || target.fireImmune();
+    }
 
     public static DamageSource getDamageSource(Level level, Entity entity, ResourceKey<DamageType> damageType) {
         var reg = level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
@@ -339,4 +344,3 @@ public final class CombatTools {
         return (!(hitPosition.y <= eyeY - headShotMargin / 2)) && (!(hitPosition.y >= eyeY + headShotMargin / 2));
     }
 }
-

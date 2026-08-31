@@ -144,8 +144,6 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
 
         // FIRE_DAMAGE: 火炎耐性有効.
         tag(FIRE_DAMAGE).add(
-                THERMAL_PROCESS,
-                COMBUSTION_JET,
                 CATCH_FLAME,
                 CATCH_FLAME_PENETRATE
         );
