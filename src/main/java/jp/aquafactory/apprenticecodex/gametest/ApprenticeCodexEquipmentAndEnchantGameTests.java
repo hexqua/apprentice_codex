@@ -2761,6 +2761,36 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void monarchBondAutoRestockRefillsEmptyOwnedTurretAtRangeBoundary(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.autoRestockRefillsEmptyOwnedTurretAtRangeBoundary(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondAutoRestockUsesNearestDeterministicPriority(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.autoRestockUsesNearestDeterministicPriority(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondAutoRestockSkipsIneligibleAndUnaffordableTurrets(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.autoRestockSkipsIneligibleAndUnaffordableTurrets(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondTransferParticleCountScalesAndCaps(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.transferParticleCountScalesAndCaps(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondFieldOverseerManaRangeExtendsWhenEquipped(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.fieldOverseerManaRangeExtendsWhenCharmIsEquipped(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondFieldOverseerManaRangeRemainsEightBlocksWithoutCharm(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.fieldOverseerManaRangeRemainsEightBlocksWithoutCharm(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void gracedRainHealingPostsSpellHealEvent(GameTestHelper helper) {
         CraftsmansDelightGracedRainGameTestScenarios.gracedRainHealingPostsSpellHealEvent(helper);
     }

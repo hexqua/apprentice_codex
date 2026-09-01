@@ -311,29 +311,42 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity, Monarc
             return InteractionResult.SUCCESS;
         }
 
-        if (restBulletCount >= initialBulletCount) {
-            sendRestockMessage(player, "ui.apprenticecodex.auto_turret.restock_not_need", ChatFormatting.YELLOW);
+        if (!(player instanceof ServerPlayer serverPlayer)) {
             return InteractionResult.CONSUME;
+        }
+        switch (tryRestock(serverPlayer)) {
+            case SUCCESS -> sendRestockMessage(player, "ui.apprenticecodex.auto_turret.restock_complete", ChatFormatting.GREEN);
+            case NOT_NEEDED -> sendRestockMessage(player, "ui.apprenticecodex.auto_turret.restock_not_need", ChatFormatting.YELLOW);
+            case INSUFFICIENT_MANA -> sendRestockMessage(player, "ui.apprenticecodex.auto_turret.insufficient_mana", ChatFormatting.RED);
+            case NOT_OWNER -> {
+                return InteractionResult.PASS;
+            }
+        }
+        return InteractionResult.CONSUME;
+    }
+
+    public RestockResult tryRestock(ServerPlayer player) {
+        if (!isOwner(player)) {
+            return RestockResult.NOT_OWNER;
+        }
+        if (restBulletCount >= initialBulletCount) {
+            return RestockResult.NOT_NEEDED;
         }
 
         var magicData = MagicData.getPlayerMagicData(player);
         if (magicData == null || magicData.getMana() + 1.0e-4F < restockManaCost) {
-            sendRestockMessage(player, "ui.apprenticecodex.auto_turret.insufficient_mana", ChatFormatting.RED);
-            return InteractionResult.CONSUME;
+            return RestockResult.INSUFFICIENT_MANA;
         }
 
         magicData.setMana(Math.max(0.0F, magicData.getMana() - restockManaCost));
-        if (player instanceof ServerPlayer serverPlayer) {
-            PacketDistributor.sendToPlayer(serverPlayer, new SyncManaPacket(magicData));
-        }
+        PacketDistributor.sendToPlayer(player, new SyncManaPacket(magicData));
         setRestBulletCountSynced(initialBulletCount);
         discardDelayTick = -1;
-        sendRestockMessage(player, "ui.apprenticecodex.auto_turret.restock_complete", ChatFormatting.GREEN);
         if (level() instanceof ServerLevel serverLevel) {
             AudioTools.playSoundFromEntity(serverLevel, this, SoundRegistry.VANILLA_HOLD_WEAPON.get(), SoundSource.PLAYERS, 0.7f, 1.15f);
             serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER, getX(), getY() + 0.9D, getZ(), 18, 0.35D, 0.45D, 0.35D, 0.08D);
         }
-        return InteractionResult.CONSUME;
+        return RestockResult.SUCCESS;
     }
 
     private boolean isOwner(Player player) {
@@ -342,6 +355,13 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity, Monarc
 
     private static void sendRestockMessage(Player player, String key, ChatFormatting formatting) {
         player.displayClientMessage(Component.translatable(key).withStyle(formatting), true);
+    }
+
+    public enum RestockResult {
+        SUCCESS,
+        NOT_OWNER,
+        NOT_NEEDED,
+        INSUFFICIENT_MANA
     }
 
     private void fire(Entity target, ServerLevel level, LivingEntity owner) {

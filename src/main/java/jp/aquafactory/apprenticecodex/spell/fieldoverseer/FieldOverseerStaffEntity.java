@@ -7,9 +7,9 @@ import io.redspace.ironsspellbooks.particle.ZapParticleOption;
 import io.redspace.ironsspellbooks.util.ParticleHelper;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm.MonarchBondCharm;
 import jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm.MonarchBondHealingTarget;
-import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
-import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.particle.TransferParticleEffect;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.PlacementHelper;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
@@ -61,7 +61,9 @@ public class FieldOverseerStaffEntity extends PathfinderMob implements GeoEntity
     private static final int MAX_TARGETS = 3;
     private static final int MANA_TRANSFER_INTERVAL = 5;
     private static final float MANA_TRANSFER_LIMIT = 20.0F;
-    private static final double MANA_TRANSFER_RANGE_SQR = 8.0D * 8.0D;
+    private static final double MANA_TRANSFER_RANGE = 8.0D;
+    private static final double MANA_TRANSFER_RANGE_SQR = MANA_TRANSFER_RANGE * MANA_TRANSFER_RANGE;
+    private static final double MONARCH_BOND_MANA_TRANSFER_RANGE_SQR = MonarchBondCharm.RANGE * MonarchBondCharm.RANGE;
     private static final float IMPACT_RADIUS = 1.0F;
 
     private static final RawAnimation IDLE_MAIN = RawAnimation.begin().thenLoop("idle_main");
@@ -360,8 +362,11 @@ public class FieldOverseerStaffEntity extends PathfinderMob implements GeoEntity
             return;
         }
         var owner = getSummoner();
+        var rangeSqr = owner instanceof ServerPlayer player && MonarchBondCharm.isEquippedBy(player)
+                ? MONARCH_BOND_MANA_TRANSFER_RANGE_SQR
+                : MANA_TRANSFER_RANGE_SQR;
         if (!(owner instanceof ServerPlayer player) || player.level() != level
-                || player.distanceToSqr(this) > MANA_TRANSFER_RANGE_SQR) {
+                || player.distanceToSqr(this) > rangeSqr) {
             return;
         }
         var missing = getMaxStaffMana() - getCurrentMana();
@@ -382,24 +387,7 @@ public class FieldOverseerStaffEntity extends PathfinderMob implements GeoEntity
     private void spawnManaTransferParticles(ServerLevel level, ServerPlayer player) {
         var start = player.getEyePosition().subtract(0.0D, 0.25D, 0.0D);
         var end = position().add(0.0D, HEIGHT * 0.65D, 0.0D);
-        var travel = end.subtract(start);
-        for (var i = 1; i <= 4; i++) {
-            var point = start.add(travel.scale(i / 5.0D));
-            var particle = i % 3 == 0 ? createManaRhombus() : createManaSpark();
-            level.sendParticles(particle, point.x, point.y, point.z, 1, 0.025D, 0.025D, 0.025D, 0.0D);
-        }
-    }
-
-    private static AdditiveGlowParticleOptions createManaSpark() {
-        return new AdditiveGlowParticleOptions(ParticleRegistry.ADDITIVE_SPARK.get(), 0.11F,
-                0.35F, 0.75F, 1.0F, 2, 11, 3, 0.65F, 1.3F,
-                0.62F, 0.95F, 0.08F, 0.42F, 0.55F, true);
-    }
-
-    private static AdditiveGlowParticleOptions createManaRhombus() {
-        return new AdditiveGlowParticleOptions(ParticleRegistry.ADDITIVE_RHOMBUS.get(), 0.16F,
-                0.35F, 0.75F, 1.0F, 3, 14, 4, 0.75F, 1.25F,
-                0.5F, 0.82F, 0.08F, 0.58F, 0.35F, true);
+        TransferParticleEffect.spawn(level, start, end, TransferParticleEffect.Palette.MANA);
     }
 
     public float getCurrentMana() {

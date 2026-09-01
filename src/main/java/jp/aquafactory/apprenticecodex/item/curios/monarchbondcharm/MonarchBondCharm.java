@@ -17,6 +17,7 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import java.util.List;
 
 public class MonarchBondCharm extends Item implements ICurioItem{
+    public static final double RANGE = 32.0D;
     private final String slotIdentifier;
 
     public MonarchBondCharm() {
@@ -26,7 +27,9 @@ public class MonarchBondCharm extends Item implements ICurioItem{
 
     @Override
     public void curioTick(SlotContext slotContext, ItemStack stack) {
-        // todo:常時tickがあればなにかする.
+        if (slotContext.entity() instanceof net.minecraft.server.level.ServerPlayer wearer) {
+            MonarchBondAutoRestock.tick(wearer);
+        }
     }
 
     @Override

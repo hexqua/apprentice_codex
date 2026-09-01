@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.events.SpellHealEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.capabilities.magic.SummonManager;
@@ -10,6 +11,7 @@ import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm.MonarchBondCharm;
 import jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm.MonarchBondHealingTarget;
 import jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm.MonarchBondHealingEvents;
+import jp.aquafactory.apprenticecodex.particle.TransferParticleEffect;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretEntity;
@@ -21,6 +23,8 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.damagesource.DamageContainer;
 import net.neoforged.neoforge.common.util.FakePlayer;
@@ -141,6 +145,131 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
         });
     }
 
+    static void autoRestockRefillsEmptyOwnedTurretAtRangeBoundary(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var wearer = createWearer(helper, "monarch_bond_auto_restock_boundary");
+            var magicData = MagicData.getPlayerMagicData(wearer);
+            magicData.setMana(17.0F);
+            var turret = createAutoTurret(
+                    helper, wearer, new BlockPos((int) MonarchBondCharm.RANGE, 2, 0), 5, 17);
+            turret.setRestBulletCount(0);
+
+            tickCharmAtRestockInterval(wearer);
+
+            helper.assertTrue(turret.getRestBulletCount() == 5,
+                    "Monarch Bond should refill an empty owned AutoTurret at the range boundary");
+            helper.assertTrue(Math.abs(magicData.getMana()) <= EPSILON,
+                    "Monarch Bond should spend the exact AutoTurret restock mana cost");
+        });
+    }
+
+    static void autoRestockUsesNearestDeterministicPriority(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var wearer = createWearer(helper, "monarch_bond_auto_restock_priority");
+            var magicData = MagicData.getPlayerMagicData(wearer);
+            magicData.setMana(10.0F);
+            var farther = createAutoTurret(helper, wearer, new BlockPos(6, 2, 0), 5, 10);
+            var nearer = createAutoTurret(helper, wearer, new BlockPos(2, 2, 0), 5, 10);
+            farther.setRestBulletCount(0);
+            nearer.setRestBulletCount(0);
+
+            tickCharmAtRestockInterval(wearer);
+
+            helper.assertTrue(nearer.getRestBulletCount() == 5,
+                    "Monarch Bond should prioritize the nearest empty AutoTurret");
+            helper.assertTrue(farther.getRestBulletCount() == 0,
+                    "Monarch Bond should leave the farther AutoTurret empty after mana is exhausted");
+        });
+    }
+
+    static void autoRestockSkipsIneligibleAndUnaffordableTurrets(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var wearer = createWearer(helper, "monarch_bond_auto_restock_filter");
+            var magicData = MagicData.getPlayerMagicData(wearer);
+            magicData.setMana(10.0F);
+            var expensive = createAutoTurret(helper, wearer, new BlockPos(2, 2, 0), 5, 20);
+            var partial = createAutoTurret(helper, wearer, new BlockPos(3, 2, 0), 5, 10);
+            var affordable = createAutoTurret(helper, wearer, new BlockPos(4, 2, 0), 5, 10);
+            var outside = createAutoTurret(helper, wearer, new BlockPos(33, 2, 0), 5, 0);
+            var otherOwner = createEquipmentTestPlayer(
+                    helper, new BlockPos(0, 2, 2), "monarch_bond_auto_restock_other_owner");
+            helper.getLevel().addFreshEntity(otherOwner);
+            var foreign = createAutoTurret(helper, otherOwner, new BlockPos(5, 2, 0), 5, 0);
+            expensive.setRestBulletCount(0);
+            partial.setRestBulletCount(1);
+            affordable.setRestBulletCount(0);
+            outside.setRestBulletCount(0);
+            foreign.setRestBulletCount(0);
+
+            tickCharmAtRestockInterval(wearer);
+
+            helper.assertTrue(expensive.getRestBulletCount() == 0,
+                    "Monarch Bond should skip an AutoTurret whose restock cost cannot be paid");
+            helper.assertTrue(partial.getRestBulletCount() == 1,
+                    "Monarch Bond should not refill an AutoTurret that still has ammunition");
+            helper.assertTrue(affordable.getRestBulletCount() == 5,
+                    "Monarch Bond should continue to a later affordable AutoTurret");
+            helper.assertTrue(outside.getRestBulletCount() == 0,
+                    "Monarch Bond should not refill an AutoTurret outside its range");
+            helper.assertTrue(foreign.getRestBulletCount() == 0,
+                    "Monarch Bond should not refill another owner's AutoTurret");
+        });
+    }
+
+    static void transferParticleCountScalesAndCaps(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            helper.assertTrue(TransferParticleEffect.calculateParticleCount(1.0D) == 4,
+                    "Transfer particles should keep the minimum count at short range");
+            helper.assertTrue(TransferParticleEffect.calculateParticleCount(10.0D) == 5,
+                    "Transfer particles should increase with travel distance");
+            helper.assertTrue(TransferParticleEffect.calculateParticleCount(64.0D) == 16,
+                    "Transfer particles should cap the count at long range");
+        });
+    }
+
+    static void fieldOverseerManaRangeExtendsWhenCharmIsEquipped(GameTestHelper helper) {
+        verifyFieldOverseerManaRange(helper, true, 80.0F, 0.0F);
+    }
+
+    static void fieldOverseerManaRangeRemainsEightBlocksWithoutCharm(GameTestHelper helper) {
+        verifyFieldOverseerManaRange(helper, false, 60.0F, 20.0F);
+    }
+
+    private static void verifyFieldOverseerManaRange(
+            GameTestHelper helper,
+            boolean equipCharm,
+            float expectedStaffMana,
+            float expectedOwnerMana
+    ) {
+        var profileName = equipCharm
+                ? "monarch_bond_field_overseer_extended"
+                : "monarch_bond_field_overseer_base";
+        var owner = createEquipmentTestPlayer(helper, new BlockPos(16, 2, 0), profileName);
+        if (equipCharm) {
+            equipCurio(owner, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MONARCH_BOND_CHARM.get()));
+        }
+        var manaRegen = owner.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN);
+        if (manaRegen != null) {
+            manaRegen.setBaseValue(0.0D);
+        }
+        var ownerMagicData = MagicData.getPlayerMagicData(owner);
+        ownerMagicData.setMana(20.0F);
+        var anchorPos = helper.absolutePos(new BlockPos(0, 2, 0));
+        helper.setBlock(new BlockPos(0, 1, 0), Blocks.STONE);
+        var staff = createFieldOverseerTestEntity(helper, owner, anchorPos, 100.0F, 40);
+        helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(0, 2, 3));
+
+        helper.runAtTickTime(55, () -> {
+            helper.assertTrue(Math.abs(staff.getCurrentMana() - expectedStaffMana) <= EPSILON,
+                    "Field Overseer mana transfer range should depend on Monarch Bond: expected="
+                            + expectedStaffMana + ", actual=" + staff.getCurrentMana());
+            helper.assertTrue(Math.abs(ownerMagicData.getMana() - expectedOwnerMana) <= EPSILON,
+                    "Field Overseer should only drain mana within its effective transfer range: expected="
+                            + expectedOwnerMana + ", actual=" + ownerMagicData.getMana());
+            helper.succeed();
+        });
+    }
+
     private static FakePlayer createWearer(GameTestHelper helper, String profileName) {
         var wearer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), profileName);
         equipCurio(wearer, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MONARCH_BOND_CHARM.get()));
@@ -158,6 +287,35 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
         summon.setHealth(Math.max(1.0F, summon.getMaxHealth() - missingHealth));
         SummonManager.setOwner(summon, owner);
         return summon;
+    }
+
+    private static AutoTurretEntity createAutoTurret(
+            GameTestHelper helper,
+            FakePlayer owner,
+            BlockPos localPos,
+            int initialBulletCount,
+            int restockManaCost
+    ) {
+        var level = helper.getLevel();
+        var anchorPos = helper.absolutePos(localPos);
+        var center = helper.absoluteVec(Vec3.atBottomCenterOf(localPos));
+        var turret = new AutoTurretEntity(EntityRegistry.AUTO_TURRET.get(), level);
+        turret.setOwner(owner);
+        turret.setAnchorPos(anchorPos);
+        turret.setDamage(4.0F);
+        turret.setRestockData(initialBulletCount, restockManaCost);
+        turret.setTurretMaxHealth(20.0F);
+        turret.moveTo(center.x, center.y, center.z, 0.0F, 0.0F);
+        level.addFreshEntity(turret);
+        return turret;
+    }
+
+    private static void tickCharmAtRestockInterval(FakePlayer wearer) {
+        var slotResult = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(wearer)
+                .flatMap(inventory -> inventory.findFirstCurio(ItemRegistry.MONARCH_BOND_CHARM.get()))
+                .orElseThrow(() -> new IllegalStateException("Missing equipped Monarch Bond Charm for GameTest"));
+        wearer.tickCount = 20;
+        ((MonarchBondCharm) slotResult.stack().getItem()).curioTick(slotResult.slotContext(), slotResult.stack());
     }
 
     private static void assertHealth(GameTestHelper helper, LivingEntity entity, float expected, String message) {
