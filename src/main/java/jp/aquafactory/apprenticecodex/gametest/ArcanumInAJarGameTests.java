@@ -1,10 +1,13 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import io.netty.buffer.Unpooled;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJar;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarBlockEntity;
+import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarConfigState;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.network.packet.SyncArcanumInAJarConfigPacket;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
@@ -12,6 +15,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -72,6 +77,60 @@ public final class ArcanumInAJarGameTests {
             helper.assertTrue(drops.stream().allMatch(stack -> stack.getCount() == 1),
                     "Internal contents should be emitted as single-item stacks");
         }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, batch = CONFIG_BATCH)
+    public static void configuredProcessingSettingsRoundTripThroughNetwork(GameTestHelper helper) {
+        var materialItemId = ResourceLocation.withDefaultNamespace("iron_ingot");
+        var productItemId = ResourceLocation.withDefaultNamespace("diamond");
+        var decoded = roundTripConfigPacket(new SyncArcanumInAJarConfigPacket(
+                materialItemId,
+                productItemId,
+                47
+        ));
+
+        helper.assertTrue(decoded.isValid(), "Valid Arcanum in a Jar settings should remain valid after sync");
+        helper.assertTrue(materialItemId.equals(decoded.materialItemId()),
+                "Arcanum in a Jar sync should preserve the material item ID");
+        helper.assertTrue(productItemId.equals(decoded.productItemId()),
+                "Arcanum in a Jar sync should preserve the product item ID");
+        helper.assertTrue(decoded.processingTimeTicks() == 47,
+                "Arcanum in a Jar sync should preserve the processing time");
+
+        try {
+            ArcanumInAJarConfigState.set(
+                    decoded.materialItemId(),
+                    decoded.productItemId(),
+                    decoded.processingTimeTicks()
+            );
+            var synchronizedValues = ArcanumInAJarConfigState.values().orElseThrow();
+            helper.assertTrue(materialItemId.equals(synchronizedValues.materialItemId()),
+                    "Arcanum in a Jar client state should retain the synchronized material");
+            helper.assertTrue(productItemId.equals(synchronizedValues.productItemId()),
+                    "Arcanum in a Jar client state should retain the synchronized product");
+            helper.assertTrue(synchronizedValues.processingTimeTicks() == 47,
+                    "Arcanum in a Jar client state should retain the synchronized processing time");
+
+            var decodedInvalid = roundTripConfigPacket(new SyncArcanumInAJarConfigPacket(null, null, 3));
+            helper.assertFalse(decodedInvalid.isValid(),
+                    "Invalid Arcanum in a Jar settings should remain invalid after sync");
+            helper.assertTrue(decodedInvalid.materialItemId() == null && decodedInvalid.productItemId() == null,
+                    "Invalid Arcanum in a Jar settings should not synchronize item IDs");
+            helper.assertTrue(decodedInvalid.processingTimeTicks() == 3,
+                    "Invalid Arcanum in a Jar settings should still synchronize the processing time");
+            ArcanumInAJarConfigState.set(
+                    decodedInvalid.materialItemId(),
+                    decodedInvalid.productItemId(),
+                    decodedInvalid.processingTimeTicks()
+            );
+            helper.assertTrue(ArcanumInAJarConfigState.values().isEmpty(),
+                    "Invalid Arcanum in a Jar settings should clear the synchronized client state");
+        } finally {
+            ArcanumInAJarConfigState.reset();
+        }
+        helper.assertTrue(ArcanumInAJarConfigState.values().isEmpty(),
+                "Arcanum in a Jar client state should reset when synchronization is cleared");
         helper.succeed();
     }
 
@@ -208,5 +267,15 @@ public final class ArcanumInAJarGameTests {
                 ).stream()
                 .mapToInt(entity -> entity.getItem().getCount())
                 .sum();
+    }
+
+    private static SyncArcanumInAJarConfigPacket roundTripConfigPacket(SyncArcanumInAJarConfigPacket packet) {
+        var buffer = new FriendlyByteBuf(Unpooled.buffer());
+        try {
+            SyncArcanumInAJarConfigPacket.encode(packet, buffer);
+            return SyncArcanumInAJarConfigPacket.decode(buffer);
+        } finally {
+            buffer.release();
+        }
     }
 }

@@ -761,6 +761,7 @@
   "jei.apprenticecodex.alchemy_brewer.amount": "%1$d mB / %2$d回分",
   "jei.apprenticecodex.alchemy_brewer.time": "%s秒",
   "jei.apprenticecodex.alchemy_brewer.tank_output": "錬金醸造台のタンク内に生成されます。",
+  "jei.apprenticecodex.arcanum_in_a_jar.time": "加工時間: %s秒",
 
   "chat.apprenticecodex.spell_dispenser.cast_failed.title": "近くのスペルディスペンサーが魔法詠唱に失敗した",
   "chat.apprenticecodex.spell_dispenser.cast_failed.reason.no_scroll": "理由: 魔法のスクロールが設定されていない",

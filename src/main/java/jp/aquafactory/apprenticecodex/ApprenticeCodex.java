@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.compat.sable.SableCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.event.ApprenticeDeskConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.ArcanumInAJarConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.LuminousDeviceConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.LinearBuildConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.CircuitHeatStaffConfigSyncEvents;
@@ -99,6 +100,7 @@ public class ApprenticeCodex
         AttachmentRegistry.register(modEventBus);
         ModEntityAttributeEvent.register(modEventBus);
         ApprenticeDeskConfigSyncEvents.register(modEventBus);
+        ArcanumInAJarConfigSyncEvents.register(modEventBus);
         LuminousDeviceConfigSyncEvents.register(modEventBus);
         LinearBuildConfigSyncEvents.register(modEventBus);
         CircuitHeatStaffConfigSyncEvents.register(modEventBus);

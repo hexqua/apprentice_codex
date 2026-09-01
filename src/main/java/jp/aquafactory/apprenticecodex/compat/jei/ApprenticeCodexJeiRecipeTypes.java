@@ -15,6 +15,11 @@ public final class ApprenticeCodexJeiRecipeTypes {
             new RecipeType<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "grind_runner"), GrindRunnerRecipe.class);
     public static final RecipeType<EssenceSmokerRecipe> ESSENCE_SMOKER =
             new RecipeType<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "essence_smoker"), EssenceSmokerRecipe.class);
+    public static final RecipeType<ArcanumInAJarJeiRecipe> ARCANUM_IN_A_JAR =
+            new RecipeType<>(
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "arcanum_in_a_jar"),
+                    ArcanumInAJarJeiRecipe.class
+            );
     public static final RecipeType<SpellcasterWorkbenchRecipe> SPELLCASTER_WORKBENCH =
             new RecipeType<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcaster_workbench"), SpellcasterWorkbenchRecipe.class);
     public static final RecipeType<AlchemyBrewerJeiRecipe> ALCHEMY_BREWER =

@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarConfigState;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.recipe.alchemybrewer.AlchemyBrewerRecipe;
@@ -56,6 +57,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 @SuppressWarnings("unused")
@@ -67,6 +69,10 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
     private static final ResourceLocation PLUGIN_UID =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "jei_plugin");
     private static final Set<String> EN_US_TRANSLATION_KEYS = loadEnUsTranslationKeys();
+    private final Runnable arcanumInAJarConfigChangeListener = this::refreshArcanumInAJarRecipe;
+    private @Nullable IJeiRuntime jeiRuntime;
+    private @Nullable ArcanumInAJarConfigState.Values registeredArcanumInAJarSettings;
+    private @Nullable ArcanumInAJarJeiRecipe registeredArcanumInAJarRecipe;
 
     @Override
     public @NotNull ResourceLocation getPluginUid() {
@@ -79,6 +85,7 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         registration.addRecipeCategories(
                 new GrindRunnerRecipeCategory(guiHelper, buildGrindRunnerCatalyst()),
                 new EssenceSmokerRecipeCategory(guiHelper),
+                new ArcanumInAJarRecipeCategory(guiHelper),
                 new SpellcasterWorkbenchRecipeCategory(guiHelper),
                 new AlchemyBrewerRecipeCategory(guiHelper),
                 new SpellCalibrationAdjustmentRecipeCategory(guiHelper),
@@ -168,6 +175,10 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(buildGrindRunnerCatalyst(), ApprenticeCodexJeiRecipeTypes.GRIND_RUNNER);
         registration.addRecipeCatalyst(new ItemStack(ItemRegistry.ESSENCE_SMOKER.get()), ApprenticeCodexJeiRecipeTypes.ESSENCE_SMOKER);
         registration.addRecipeCatalyst(
+                new ItemStack(ItemRegistry.ARCANUM_IN_A_JAR.get()),
+                ApprenticeCodexJeiRecipeTypes.ARCANUM_IN_A_JAR
+        );
+        registration.addRecipeCatalyst(
                 new ItemStack(ItemRegistry.SPELLCASTER_WORKBENCH.get()),
                 ApprenticeCodexJeiRecipeTypes.SPELLCASTER_WORKBENCH
         );
@@ -186,13 +197,70 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
     }
 
     @Override
-    public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
+    public void onRuntimeAvailable(@NotNull IJeiRuntime jeiRuntime) {
+        this.jeiRuntime = jeiRuntime;
+        ArcanumInAJarConfigState.removeChangeListener(arcanumInAJarConfigChangeListener);
+        ArcanumInAJarConfigState.addChangeListener(arcanumInAJarConfigChangeListener);
+        refreshArcanumInAJarRecipe();
+
         var hiddenStacks = collectHiddenAffinityPotionStacks();
-        if (hiddenStacks.isEmpty()) {
+        if (!hiddenStacks.isEmpty()) {
+            jeiRuntime.getIngredientManager().removeIngredientsAtRuntime(VanillaTypes.ITEM_STACK, hiddenStacks);
+        }
+    }
+
+    @Override
+    public void onRuntimeUnavailable() {
+        ArcanumInAJarConfigState.removeChangeListener(arcanumInAJarConfigChangeListener);
+        jeiRuntime = null;
+        registeredArcanumInAJarSettings = null;
+        registeredArcanumInAJarRecipe = null;
+    }
+
+    private void refreshArcanumInAJarRecipe() {
+        if (jeiRuntime == null) {
             return;
         }
 
-        jeiRuntime.getIngredientManager().removeIngredientsAtRuntime(VanillaTypes.ITEM_STACK, hiddenStacks);
+        var settings = ArcanumInAJarConfigState.values().orElse(null);
+        if (Objects.equals(settings, registeredArcanumInAJarSettings)) {
+            return;
+        }
+
+        var recipeManager = jeiRuntime.getRecipeManager();
+        if (registeredArcanumInAJarRecipe != null) {
+            recipeManager.hideRecipes(
+                    ApprenticeCodexJeiRecipeTypes.ARCANUM_IN_A_JAR,
+                    List.of(registeredArcanumInAJarRecipe)
+            );
+        }
+        registeredArcanumInAJarSettings = null;
+        registeredArcanumInAJarRecipe = null;
+
+        if (settings == null) {
+            return;
+        }
+
+        var material = BuiltInRegistries.ITEM.getOptional(settings.materialItemId()).orElse(null);
+        var product = BuiltInRegistries.ITEM.getOptional(settings.productItemId()).orElse(null);
+        if (material == null || material == Items.AIR || product == null || product == Items.AIR) {
+            ApprenticeCodex.LOGGER.warn(
+                    "Arcanum in a Jar JEI recipe skipped: synchronized item settings are invalid ({} -> {}).",
+                    settings.materialItemId(),
+                    settings.productItemId()
+            );
+            registeredArcanumInAJarSettings = settings;
+            return;
+        }
+
+        var recipe = new ArcanumInAJarJeiRecipe(
+                new ItemStack(material),
+                new ItemStack(product),
+                settings.processingTimeTicks()
+        );
+        recipeManager.addRecipes(ApprenticeCodexJeiRecipeTypes.ARCANUM_IN_A_JAR, List.of(recipe));
+        registeredArcanumInAJarSettings = settings;
+        registeredArcanumInAJarRecipe = recipe;
     }
 
     private static String resolveGroupId(ResourceLocation itemId, String groupId) {
