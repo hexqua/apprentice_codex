@@ -280,6 +280,7 @@ public final class CreativeTabRegistry {
 
         // charm
         output.accept(ItemRegistry.MANA_SHIELD_CHARM.get());
+        output.accept(ItemRegistry.MONARCH_BOND_CHARM.get());
 
         // multi
         output.accept(ItemRegistry.SPELLCASTER_QUIVER.get());
