@@ -366,6 +366,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.PARRYCAST_BUCKLER.get(),
                 ItemRegistry.BULWARK_GREATSHIELD.get(),
                 ItemRegistry.MANA_SHIELD_CHARM.get(),
+                ItemRegistry.MONARCH_BOND_CHARM.get(),
                 ItemRegistry.ASHEN_CIRCLET.get(),
                 ItemRegistry.ENCHANTED_CIRCLET.get(),
                 ItemRegistry.ARCANE_CINDER.get(),
