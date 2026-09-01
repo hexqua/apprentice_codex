@@ -758,6 +758,7 @@
   "jei.apprenticecodex.alchemy_brewer.amount": "%1$d mB / %2$d doses",
   "jei.apprenticecodex.alchemy_brewer.time": "%s s",
   "jei.apprenticecodex.alchemy_brewer.tank_output": "Produced in the Alchemy Brewer tank.",
+  "jei.apprenticecodex.arcanum_in_a_jar.time": "Processing Time: %s s",
 
   "chat.apprenticecodex.spell_dispenser.cast_failed.title": "A nearby Spell Dispenser failed to cast a spell.",
   "chat.apprenticecodex.spell_dispenser.cast_failed.reason.no_scroll": "Reason: No spell scroll is set.",

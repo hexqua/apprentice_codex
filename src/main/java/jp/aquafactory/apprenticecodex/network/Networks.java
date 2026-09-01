@@ -34,6 +34,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncHighTierSwingcastStaffC
 import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletNotificationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletProfileSpellIdsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncApprenticeDeskConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncArcanumInAJarConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncAssistWingsJumpPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncBoundBowStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncBoundSwordStatePacket;
@@ -87,7 +88,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "90";
+    private static final String PROTOCOL_VERSION = "91";
 
     private Networks() {
     }
@@ -357,6 +358,11 @@ public final class Networks {
                 SyncIronSwingcastStaffConfigPacket.TYPE,
                 SyncIronSwingcastStaffConfigPacket.STREAM_CODEC,
                 SyncIronSwingcastStaffConfigPacket::handle
+        );
+        registrar.playToClient(
+                SyncArcanumInAJarConfigPacket.TYPE,
+                SyncArcanumInAJarConfigPacket.STREAM_CODEC,
+                SyncArcanumInAJarConfigPacket::handle
         );
         registrar.playToClient(
                 SyncHighTierSwingcastStaffConfigPacket.TYPE,
