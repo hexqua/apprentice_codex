@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.api.events.SpellHealEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.higanbana.Higanbana;
@@ -13,6 +15,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
 
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 final class HiganbanaGameTestScenarios {
     private static final double POSITION_EPSILON = 1.0E-6D;
@@ -87,8 +90,19 @@ final class HiganbanaGameTestScenarios {
         var initialOwnerHealth = owner.getHealth();
         var initialMovement = new Vec3(0.125D, 0.0D, -0.25D);
         target.setDeltaMovement(initialMovement);
+        var healEvent = new AtomicReference<SpellHealEvent>();
+        java.util.function.Consumer<SpellHealEvent> healListener = event -> {
+            if (event.getEntity() == owner && event.getTargetEntity() == owner) {
+                healEvent.set(event);
+            }
+        };
 
-        weapon.slash(level);
+        NeoForge.EVENT_BUS.addListener(healListener);
+        try {
+            weapon.slash(level);
+        } finally {
+            NeoForge.EVENT_BUS.unregister(healListener);
+        }
 
         var dealtDamage = initialTargetHealth - target.getHealth();
         helper.assertTrue(dealtDamage > 0.0F, "Higanbana should damage a valid target");
@@ -96,6 +110,14 @@ final class HiganbanaGameTestScenarios {
                 "Higanbana damage should not knock the target back");
         helper.assertTrue(Math.abs(owner.getHealth() - (initialOwnerHealth + dealtDamage * 0.5F)) < VALUE_EPSILON,
                 "Higanbana should heal exactly 50% of the damage dealt");
+        helper.assertTrue(healEvent.get() != null,
+                "Higanbana healing should post SpellHealEvent");
+        helper.assertTrue(healEvent.get() != null
+                        && Math.abs(healEvent.get().getHealAmount() - dealtDamage * 0.5F) < VALUE_EPSILON,
+                "Higanbana SpellHealEvent should expose the requested healing amount");
+        helper.assertTrue(healEvent.get() != null
+                        && healEvent.get().getSchoolType().equals(SpellRegistry.HIGANBANA.get().getSchoolType()),
+                "Higanbana SpellHealEvent should expose the spell school");
 
         weapon.discard();
         target.discard();

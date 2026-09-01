@@ -333,18 +333,19 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
         var craftsmansDelightAgeEffectEnabled = CraftsmansDelight.isEquippedBy(ownerLiving);
 
         for (var target : targets) {
-            applyHealingEffect(target, source, school, craftsmansDelightAgeEffectEnabled);
+            applyHealingEffect(target, ownerLiving, source, school, craftsmansDelightAgeEffectEnabled);
         }
 
         if (ownerLiving != null && ownerLiving.isAlive()
                 && box.intersects(ownerLiving.getBoundingBox())
                 && !targets.contains(ownerLiving)) {
-            applyHealingEffect(ownerLiving, source, school, craftsmansDelightAgeEffectEnabled);
+            applyHealingEffect(ownerLiving, ownerLiving, source, school, craftsmansDelightAgeEffectEnabled);
         }
     }
 
     private void applyHealingEffect(
             LivingEntity target,
+            @Nullable LivingEntity caster,
             DamageSource source,
             SchoolType school,
             boolean craftsmansDelightAgeEffectEnabled
@@ -353,7 +354,12 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
             CombatTools.applyDamage(target, healAmount, source, school, CombatTools.KnockbackTypes.NO_KNOCKBACK,
                     CombatTools.CombatTargetPolicy.ALLOW_SELF_PROTECT_ALLIES);
         } else {
-            target.heal(healAmount);
+            if (caster != null) {
+                CombatTools.applySpellHealing(caster, target, healAmount, school);
+            } else {
+                // ownerを失った既存entityでも従来の回復挙動は維持し、誤ったcasterではイベントを発火しない。
+                target.heal(healAmount);
+            }
             if (craftsmansDelightAgeEffectEnabled) {
                 applyCraftsmansDelightAgeEffect(target);
             }
@@ -393,4 +399,3 @@ public class GracedRainCloudEntity extends SummonWeaponEntity {
         growthIntervalTicks = Math.max(1, ticks);
     }
 }
-

@@ -73,7 +73,8 @@ public final class BloodBrandBurst {
             }
         }
         if (totalHealing > 0.0F) {
-            caster.heal(totalHealing);
+            CombatTools.applySpellHealing(caster, caster, totalHealing,
+                    SpellRegistry.BLOOD_BRAND.get().getSchoolType());
         }
 
         spawnParticles(level, center, range);

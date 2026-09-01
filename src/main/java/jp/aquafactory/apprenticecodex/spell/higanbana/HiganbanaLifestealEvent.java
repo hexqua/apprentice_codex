@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.spell.higanbana;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -31,7 +33,7 @@ public final class HiganbanaLifestealEvent {
             return;
         }
 
-        attacker.heal(dealtDamage * 0.5f);
+        CombatTools.applySpellHealing(attacker, attacker, dealtDamage * 0.5f,
+                SpellRegistry.HIGANBANA.get().getSchoolType());
     }
 }
-

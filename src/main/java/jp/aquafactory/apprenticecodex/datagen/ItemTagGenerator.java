@@ -366,6 +366,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.PARRYCAST_BUCKLER.get(),
                 ItemRegistry.BULWARK_GREATSHIELD.get(),
                 ItemRegistry.MANA_SHIELD_CHARM.get(),
+                ItemRegistry.MONARCH_BOND_CHARM.get(),
                 ItemRegistry.ASHEN_CIRCLET.get(),
                 ItemRegistry.ENCHANTED_CIRCLET.get(),
                 ItemRegistry.ARCANE_CINDER.get(),
@@ -578,7 +579,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ASHEN_CIRCLET.get(),
                 ItemRegistry.ENCHANTED_CIRCLET.get()
         );
-        tag(CURIOS_CHARM).add(ItemRegistry.MANA_SHIELD_CHARM.get());
+        tag(CURIOS_CHARM).add(
+                ItemRegistry.MANA_SHIELD_CHARM.get(),
+                ItemRegistry.MONARCH_BOND_CHARM.get()
+        );
         tag(CURIOS_FEET).add(
                 ItemRegistry.MANA_THRUSTER.get(),
                 ItemRegistry.JUMPCAST_CHARM.get()
