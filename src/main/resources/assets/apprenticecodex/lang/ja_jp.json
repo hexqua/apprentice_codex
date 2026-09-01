@@ -255,6 +255,7 @@
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "この杖は現在ロードストーンを指し示している。",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "この杖は現在次元に合わせた振る舞いをしている。",
   "item.apprenticecodex.storage_stabilizer.desc": "スニークをすることで魔法の切り替えが可能",
+  "item.apprenticecodex.storage_stabilizer.ender_help": "インベントリ画面で右クリックすることで%sマナ消費してエンダーチェストを直接開く事ができる。",
   "item.apprenticecodex.luminous_device.desc_1": "スニークをすることでアイテム及び魔法を切り替えが可能",
   "item.apprenticecodex.luminous_device.desc_2": "マナポーションをアイテムに使用するとマナを蓄える。",
   "item.apprenticecodex.luminous_device.mana_label": "保持マナ: %1$s/%2$s",
