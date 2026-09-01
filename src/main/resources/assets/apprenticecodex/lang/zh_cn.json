@@ -277,6 +277,7 @@
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "当前指向同维度的磁石。",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "当前根据所在维度调整指向。",
   "item.apprenticecodex.storage_stabilizer.desc": "潜行可切换法术。",
+  "item.apprenticecodex.storage_stabilizer.ender_help": "在物品栏界面中右键点击可消耗%s点魔力直接打开末影箱。",
   "item.apprenticecodex.elemental_bow.mode": "当前发射模式：%s",
   "item.apprenticecodex.elemental_bow.desc": "潜行可切换模式。",
   "item.apprenticecodex.elemental_bow.spell.no_enchantment": "施法需要消耗箭矢",

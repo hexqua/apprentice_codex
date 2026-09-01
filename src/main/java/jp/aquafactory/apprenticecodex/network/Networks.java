@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPa
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientOpenSpellcasterAccessoryCasePacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientOpenStorageStabilizerEnderChestPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBroomInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBroomDismountInputPacket;
@@ -88,7 +89,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "91";
+    private static final String PROTOCOL_VERSION = "92";
 
     private Networks() {
     }
@@ -148,6 +149,11 @@ public final class Networks {
                 ClientOpenSpellcasterAccessoryCasePacket.TYPE,
                 ClientOpenSpellcasterAccessoryCasePacket.STREAM_CODEC,
                 ClientOpenSpellcasterAccessoryCasePacket::handle
+        );
+        registrar.playToServer(
+                ClientOpenStorageStabilizerEnderChestPacket.TYPE,
+                ClientOpenStorageStabilizerEnderChestPacket.STREAM_CODEC,
+                ClientOpenStorageStabilizerEnderChestPacket::handle
         );
         registrar.playToServer(
                 ClientConfigureSpellcasterAccessoryCaseMenuPacket.TYPE,
