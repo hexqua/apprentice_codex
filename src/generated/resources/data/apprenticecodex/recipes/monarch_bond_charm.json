@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "E": {
+      "item": "minecraft:emerald"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    "R": {
+      "item": "irons_spellbooks:evocation_rune"
+    }
+  },
+  "pattern": [
+    " R ",
+    "AEA",
+    " M "
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:monarch_bond_charm"
+  }
+}
