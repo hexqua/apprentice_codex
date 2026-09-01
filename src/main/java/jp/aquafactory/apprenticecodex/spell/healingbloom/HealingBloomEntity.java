@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm.MonarchBondHealingTarget;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
@@ -13,7 +14,6 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
-import jp.aquafactory.apprenticecodex.utility.CombatOwnerUuidSource;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.UndeadTools;
 import net.minecraft.ChatFormatting;
@@ -60,7 +60,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.UUID;
 
-public class HealingBloomEntity extends PathfinderMob implements GeoEntity, AntiMagicSusceptible, CombatOwnerUuidSource {
+public class HealingBloomEntity extends PathfinderMob implements GeoEntity, AntiMagicSusceptible, MonarchBondHealingTarget {
     public static final float WIDTH = 0.85f;
     public static final float HEIGHT = 1.8f;
     private static final int ACTIVATION_DELAY_TICK = 40;
