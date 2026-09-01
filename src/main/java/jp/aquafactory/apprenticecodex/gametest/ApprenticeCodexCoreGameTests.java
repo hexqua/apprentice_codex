@@ -228,6 +228,11 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void scrollcasterGauntletCastModeWorkbenchToggle(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.scrollcasterGauntletCastModeWorkbenchToggle(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void scrollcasterGauntletFreecastStaffAdjustmentEnablesSwingcast(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.scrollcasterGauntletFreecastStaffAdjustmentEnablesSwingcast(helper);
     }

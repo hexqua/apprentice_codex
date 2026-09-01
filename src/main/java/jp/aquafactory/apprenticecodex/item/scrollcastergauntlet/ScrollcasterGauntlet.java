@@ -185,6 +185,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     private static final String ITEM_TAG = "Item";
     private static final String SCHOOL_POWER_SCHOOL_TAG = "SchoolPowerSchool";
     private static final String SELECTED_SCROLL_INDEX_TAG = "SelectedScrollIndex";
+    private static final String USE_GAUNTLET_SELECTION_TAG = "UseGauntletSelection";
     private static final String CAST_ANIMATION = "cast";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final RawAnimation ANIM_CAST = RawAnimation.begin().thenPlay("cast");
@@ -240,7 +241,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     @Override
     public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
-        if (enchantment.is(net.minecraft.world.item.enchantment.Enchantments.SWEEPING_EDGE)) {
+        if (enchantment.is(net.minecraft.world.item.enchantment.Enchantments.SWEEPING_EDGE)
+                || enchantment.is(net.minecraft.world.item.enchantment.Enchantments.EFFICIENCY)) {
             return false;
         }
         return super.supportsEnchantment(stack, enchantment) || isSupportedEnchantment(stack, enchantment);
@@ -287,11 +289,12 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             return InteractionResultHolder.pass(stack);
         }
 
-        var spellData = getSelectedSpellData(stack, level.registryAccess());
-        if (spellData == SpellData.EMPTY || spellData.getSpell() == null || spellData.getSpell() == SpellRegistry.none()) {
+        var resolvedSpell = resolveUseSpell(player, stack);
+        if (resolvedSpell == null) {
             return InteractionResultHolder.pass(stack);
         }
 
+        var spellData = resolvedSpell.spellData();
         var spell = spellData.getSpell();
         var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
         var casted = spell.attemptInitiateCast(
@@ -299,7 +302,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                 spellLevel,
                 level,
                 player,
-                CastSource.SWORD,
+                resolvedSpell.castSource(),
                 true,
                 usedHand == InteractionHand.OFF_HAND ? SpellSelectionManager.OFFHAND : SpellSelectionManager.MAINHAND
         );
@@ -346,8 +349,19 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         ).withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable("item.apprenticecodex.right_click_magic_weapon.item_type")
                 .withStyle(ChatFormatting.GRAY));
+        var castMode = getCastMode(stack);
+        var modeName = Component.translatable(castMode == CastMode.SPELL_WHEEL
+                        ? "item.apprenticecodex.scrollcaster_gauntlet.mode.wheel"
+                        : "item.apprenticecodex.scrollcaster_gauntlet.mode.gauntlet")
+                .withStyle(castMode == CastMode.SPELL_WHEEL ? ChatFormatting.AQUA : ChatFormatting.YELLOW);
         lines.add(Component.translatable(
-                "item.apprenticecodex.scrollcaster_gauntlet.desc",
+                "item.apprenticecodex.scrollcaster_gauntlet.mode.label",
+                modeName
+        ).withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable(
+                castMode == CastMode.SPELL_WHEEL
+                        ? "item.apprenticecodex.scrollcaster_gauntlet.desc.wheel"
+                        : "item.apprenticecodex.scrollcaster_gauntlet.desc.gauntlet",
                 ImbueTooltipHelper.getUseKeyName()
         ).withStyle(ChatFormatting.GRAY));
         var resolvedSchool = getResolvedCalibrationSchool(stack);
@@ -853,6 +867,65 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         return getScrollSpellData(getCalibrationScroll(gauntletStack, selectedIndex, lookupProvider));
     }
 
+    public static @NotNull CastMode getCastMode(@NotNull ItemStack gauntletStack) {
+        if (!(gauntletStack.getItem() instanceof ScrollcasterGauntlet)) {
+            return CastMode.SPELL_WHEEL;
+        }
+
+        var calibrationTag = getCalibrationTag(gauntletStack);
+        return calibrationTag != null && calibrationTag.getBoolean(USE_GAUNTLET_SELECTION_TAG)
+                ? CastMode.GAUNTLET
+                : CastMode.SPELL_WHEEL;
+    }
+
+    public static @NotNull ItemStack copyWithToggledCastMode(@NotNull ItemStack gauntletStack) {
+        if (!(gauntletStack.getItem() instanceof ScrollcasterGauntlet)) {
+            return ItemStack.EMPTY;
+        }
+
+        var result = gauntletStack.copy();
+        setCastMode(result, getCastMode(result) == CastMode.SPELL_WHEEL ? CastMode.GAUNTLET : CastMode.SPELL_WHEEL);
+        return result;
+    }
+
+    public static @Nullable ResolvedUseSpell resolveUseSpell(@NotNull Player player, @NotNull ItemStack gauntletStack) {
+        if (!(gauntletStack.getItem() instanceof ScrollcasterGauntlet)) {
+            return null;
+        }
+
+        SpellData spellData;
+        CastSource castSource;
+        if (getCastMode(gauntletStack) == CastMode.GAUNTLET) {
+            spellData = getSelectedSpellData(gauntletStack, player.level().registryAccess());
+            castSource = CastSource.SWORD;
+        } else {
+            // SpellSelectionManagerの構築前に投影を直し、現在のGauntlet選択もwheel候補へ確実に含める。
+            refreshSelectedSpellContainer(gauntletStack, player.level().registryAccess());
+            var selectionOption = new SpellSelectionManager(player).getSelection();
+            if (selectionOption == null) {
+                return null;
+            }
+            spellData = selectionOption.spellData;
+            castSource = selectionOption.getCastSource();
+        }
+
+        if (spellData == null || spellData == SpellData.EMPTY
+                || spellData.getSpell() == null || spellData.getSpell() == SpellRegistry.none()) {
+            return null;
+        }
+        return new ResolvedUseSpell(spellData, castSource);
+    }
+
+    private static void setCastMode(@NotNull ItemStack gauntletStack, @NotNull CastMode castMode) {
+        updateCalibrationTag(gauntletStack, calibrationTag -> {
+            if (castMode == CastMode.GAUNTLET) {
+                calibrationTag.putBoolean(USE_GAUNTLET_SELECTION_TAG, true);
+            } else {
+                calibrationTag.remove(USE_GAUNTLET_SELECTION_TAG);
+            }
+        });
+    }
+
     @Override
     public List<SneakSelectionView> getSneakSelectionViews(ItemStack stack) {
         return getSelectionViews(stack);
@@ -1198,5 +1271,13 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             Holder<Attribute> attribute,
             AttributeModifier.Operation operation
     ) {
+    }
+
+    public enum CastMode {
+        SPELL_WHEEL,
+        GAUNTLET
+    }
+
+    public record ResolvedUseSpell(@NotNull SpellData spellData, @NotNull CastSource castSource) {
     }
 }

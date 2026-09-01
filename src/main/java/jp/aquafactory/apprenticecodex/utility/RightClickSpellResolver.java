@@ -68,12 +68,7 @@ public final class RightClickSpellResolver {
             return resolveContainerSpell(mainHandStack, player, InteractionHand.MAIN_HAND, "scroll");
         }
         if (mainHandStack.getItem() instanceof ScrollcasterGauntlet) {
-            return createResolvedSpell(
-                    ScrollcasterGauntlet.getSelectedSpellData(mainHandStack, player.level().registryAccess()),
-                    player,
-                    InteractionHand.MAIN_HAND,
-                    "scrollcaster_gauntlet_selected"
-            );
+            return resolveScrollcasterGauntletSpell(player, mainHandStack, InteractionHand.MAIN_HAND);
         }
         if (mainHandStack.getItem() instanceof ChargecastCatalystbook) {
             return resolveChargecastCatalystbookSpell(player, mainHandStack, InteractionHand.MAIN_HAND);
@@ -108,12 +103,7 @@ public final class RightClickSpellResolver {
             return resolveContainerSpell(offHandStack, player, InteractionHand.OFF_HAND, "scroll");
         }
         if (offHandStack.getItem() instanceof ScrollcasterGauntlet) {
-            return createResolvedSpell(
-                    ScrollcasterGauntlet.getSelectedSpellData(offHandStack, player.level().registryAccess()),
-                    player,
-                    InteractionHand.OFF_HAND,
-                    "scrollcaster_gauntlet_selected"
-            );
+            return resolveScrollcasterGauntletSpell(player, offHandStack, InteractionHand.OFF_HAND);
         }
         if (offHandStack.getItem() instanceof ChargecastCatalystbook) {
             return resolveChargecastCatalystbookSpell(player, offHandStack, InteractionHand.OFF_HAND);
@@ -151,6 +141,21 @@ public final class RightClickSpellResolver {
         }
 
         return createResolvedSpell(selectionOption.spellData, player, hand, resolutionPath);
+    }
+
+    private static Optional<ResolvedRightClickSpell> resolveScrollcasterGauntletSpell(
+            Player player,
+            ItemStack stack,
+            InteractionHand hand
+    ) {
+        var resolvedSpell = ScrollcasterGauntlet.resolveUseSpell(player, stack);
+        if (resolvedSpell == null) {
+            return Optional.empty();
+        }
+        var resolutionPath = ScrollcasterGauntlet.getCastMode(stack) == ScrollcasterGauntlet.CastMode.SPELL_WHEEL
+                ? "scrollcaster_gauntlet_wheel_selection"
+                : "scrollcaster_gauntlet_selected";
+        return createResolvedSpell(resolvedSpell.spellData(), player, hand, resolutionPath);
     }
 
     private static Optional<ResolvedRightClickSpell> resolveChargecastCatalystbookSpell(

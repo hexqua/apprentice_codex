@@ -3259,6 +3259,140 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void scrollcasterGauntletCastModeWorkbenchToggle(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var heal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+            var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
+            ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(magicMissile));
+            gauntlet.set(DataComponents.CUSTOM_NAME, Component.literal("Cast Mode Test"));
+            var freecastAdjustment = new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
+            helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
+                            gauntlet,
+                            0,
+                            freecastAdjustment.copy()
+                    ),
+                    "Scrollcaster Gauntlet cast mode test should install its state-preservation adjustment");
+
+            helper.assertTrue(ScrollcasterGauntlet.getCastMode(gauntlet) == ScrollcasterGauntlet.CastMode.SPELL_WHEEL,
+                    "Scrollcaster Gauntlet without mode data should default to spell-wheel selection");
+            assertTooltipKeyAt(helper, gauntlet, 2, "item.apprenticecodex.scrollcaster_gauntlet.mode.label",
+                    "Spell-wheel mode should show the cast mode label");
+            assertTooltipKeyArgumentUsesTranslationKey(
+                    helper,
+                    gauntlet,
+                    "item.apprenticecodex.scrollcaster_gauntlet.mode.label",
+                    0,
+                    "item.apprenticecodex.scrollcaster_gauntlet.mode.wheel",
+                    "Spell-wheel mode label should explicitly identify spell-wheel selection"
+            );
+            assertTooltipKeyArgumentUsesColor(
+                    helper,
+                    gauntlet,
+                    "item.apprenticecodex.scrollcaster_gauntlet.mode.label",
+                    0,
+                    TextColor.fromLegacyFormat(ChatFormatting.AQUA),
+                    "Spell-wheel mode label should use aqua"
+            );
+            assertTooltipKeyAt(helper, gauntlet, 3, "item.apprenticecodex.scrollcaster_gauntlet.desc.wheel",
+                    "Spell-wheel mode should show its dedicated description");
+
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "scrollcaster_gauntlet_cast_mode_workbench_test");
+            player.setItemInHand(InteractionHand.MAIN_HAND, gauntlet);
+            var offhandStaff = new ItemStack(ItemRegistry.ZENITH_STAFF.get());
+            var staffSpells = ISpellContainer.create(1, true, false).mutableCopy();
+            staffSpells.addSpellAtIndex(heal, 1, 0, false);
+            ISpellContainer.set(offhandStaff, staffSpells.toImmutable());
+            player.setItemInHand(InteractionHand.OFF_HAND, offhandStaff);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null,
+                    "Scrollcaster Gauntlet cast mode test could not resolve player magic data");
+            magicData.setMana(1000.0F);
+            magicData.getSyncedData().setSpellSelection(new io.redspace.ironsspellbooks.gui.overlays.SpellSelection(
+                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND,
+                    0
+            ));
+
+            var wheelSpell = ScrollcasterGauntlet.resolveUseSpell(player, gauntlet);
+            helper.assertTrue(wheelSpell != null && wheelSpell.spellData().getSpell() == heal,
+                    "Default Scrollcaster Gauntlet use should resolve the spell-wheel selected spell");
+            var resolvedWheelRightClick = RightClickSpellResolver.resolve(player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(resolvedWheelRightClick.isPresent()
+                            && resolvedWheelRightClick.get().spellData().getSpell() == heal
+                            && "scrollcaster_gauntlet_wheel_selection".equals(resolvedWheelRightClick.get().resolutionPath()),
+                    "Right-click resolver should expose the Scrollcaster Gauntlet spell-wheel mode path");
+            var wheelUseResult = gauntlet.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(wheelUseResult.getResult().consumesAction()
+                            && magicData.getCastingSpellId().equals(heal.getSpellId()),
+                    "Default Scrollcaster Gauntlet use should cast the spell-wheel selected spell");
+            magicData.resetCastingState();
+            magicData.getPlayerCooldowns().removeCooldown(heal.getSpellId());
+
+            var toggleMenu = createSpellcasterWorkbenchMenuWithSingleInput(player, gauntlet.copy());
+            var gauntletModePreview = toggleMenu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem();
+            helper.assertTrue(ScrollcasterGauntlet.getCastMode(gauntletModePreview) == ScrollcasterGauntlet.CastMode.GAUNTLET,
+                    "Spellcaster Workbench should preview gauntlet-selection mode from a default gauntlet");
+            helper.assertTrue("Cast Mode Test".equals(gauntletModePreview.getHoverName().getString()),
+                    "Spellcaster Workbench cast mode toggle should preserve the custom name");
+            helper.assertTrue(ScrollcasterGauntlet.getSelectedScrollIndex(gauntletModePreview) == 0
+                            && ScrollcasterGauntlet.getSelectedSpellData(gauntletModePreview).getSpell() == magicMissile,
+                    "Spellcaster Workbench cast mode toggle should preserve the selected scroll");
+            helper.assertTrue(ItemStack.isSameItemSameComponents(
+                            SpellCalibrationAdjustmentGameTestSupport.getCalibrationAdjustment(gauntletModePreview, 0),
+                            freecastAdjustment
+                    ),
+                    "Spellcaster Workbench cast mode toggle should preserve calibration adjustments");
+
+            var gauntletModeStack = toggleMenu.quickMoveStack(player, SpellcasterWorkbenchMenu.RESULT_SLOT);
+            helper.assertFalse(gauntletModeStack.isEmpty(),
+                    "Spellcaster Workbench should craft the toggled Scrollcaster Gauntlet");
+            helper.assertTrue(toggleMenu.getSlot(0).getItem().isEmpty(),
+                    "Spellcaster Workbench cast mode toggle should consume the single input gauntlet");
+            assertTooltipKeyArgumentUsesTranslationKey(
+                    helper,
+                    gauntletModeStack,
+                    "item.apprenticecodex.scrollcaster_gauntlet.mode.label",
+                    0,
+                    "item.apprenticecodex.scrollcaster_gauntlet.mode.gauntlet",
+                    "Gauntlet mode label should explicitly identify gauntlet selection"
+            );
+            assertTooltipKeyArgumentUsesColor(
+                    helper,
+                    gauntletModeStack,
+                    "item.apprenticecodex.scrollcaster_gauntlet.mode.label",
+                    0,
+                    TextColor.fromLegacyFormat(ChatFormatting.YELLOW),
+                    "Gauntlet mode label should use yellow"
+            );
+            assertTooltipKeyAt(helper, gauntletModeStack, 3, "item.apprenticecodex.scrollcaster_gauntlet.desc.gauntlet",
+                    "Gauntlet-selection mode should show its dedicated description");
+
+            player.setItemInHand(InteractionHand.MAIN_HAND, gauntletModeStack);
+            var gauntletSpell = ScrollcasterGauntlet.resolveUseSpell(player, gauntletModeStack);
+            helper.assertTrue(gauntletSpell != null
+                            && gauntletSpell.spellData().getSpell() == magicMissile
+                            && gauntletSpell.castSource() == CastSource.SWORD,
+                    "Gauntlet-selection mode should resolve the gauntlet-selected spell as a sword cast");
+            var resolvedGauntletRightClick = RightClickSpellResolver.resolve(player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(resolvedGauntletRightClick.isPresent()
+                            && resolvedGauntletRightClick.get().spellData().getSpell() == magicMissile
+                            && "scrollcaster_gauntlet_selected".equals(resolvedGauntletRightClick.get().resolutionPath()),
+                    "Right-click resolver should preserve the Scrollcaster Gauntlet selected-spell mode path");
+            var gauntletUseResult = gauntletModeStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(gauntletUseResult.getResult().consumesAction()
+                            && magicData.getCastingSpellId().equals(magicMissile.getSpellId()),
+                    "Gauntlet-selection mode use should cast the gauntlet-selected spell");
+            magicData.resetCastingState();
+            magicData.getPlayerCooldowns().removeCooldown(magicMissile.getSpellId());
+
+            var reverseToggleMenu = createSpellcasterWorkbenchMenuWithSingleInput(player, gauntletModeStack.copy());
+            var wheelModePreview = reverseToggleMenu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem();
+            helper.assertTrue(ScrollcasterGauntlet.getCastMode(wheelModePreview) == ScrollcasterGauntlet.CastMode.SPELL_WHEEL,
+                    "Spellcaster Workbench should toggle gauntlet-selection mode back to spell-wheel mode");
+        });
+    }
+
     static void scrollcasterGauntletSelectedScrollDrivesImbuedSpell(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
@@ -3268,8 +3402,18 @@ public class ApprenticeCodexGameTestScenarios {
                     "Scrollcaster Gauntlet should show offhand priority tooltip first");
             assertTooltipKeyAt(helper, gauntlet, 1, "item.apprenticecodex.right_click_magic_weapon.item_type",
                     "Scrollcaster Gauntlet should show offhand priority item type tooltip second");
-            assertTooltipKeyAt(helper, gauntlet, 2, "item.apprenticecodex.scrollcaster_gauntlet.desc",
-                    "Scrollcaster Gauntlet should show selected spell cast tooltip third");
+            assertTooltipKeyAt(helper, gauntlet, 2, "item.apprenticecodex.scrollcaster_gauntlet.mode.label",
+                    "Scrollcaster Gauntlet should show its cast mode tooltip third");
+            assertTooltipKeyArgumentUsesColor(
+                    helper,
+                    gauntlet,
+                    "item.apprenticecodex.scrollcaster_gauntlet.mode.label",
+                    0,
+                    TextColor.fromLegacyFormat(ChatFormatting.AQUA),
+                    "Default Scrollcaster Gauntlet mode should be aqua"
+            );
+            assertTooltipKeyAt(helper, gauntlet, 3, "item.apprenticecodex.scrollcaster_gauntlet.desc.wheel",
+                    "Scrollcaster Gauntlet should describe spell-wheel casting by default");
             ScrollcasterGauntlet.refreshSelectedSpellContainer(gauntlet);
             helper.assertFalse(ISpellContainer.isSpellContainer(gauntlet),
                     "Empty Scrollcaster Gauntlet should not expose a spell container");
@@ -3313,6 +3457,9 @@ public class ApprenticeCodexGameTestScenarios {
             ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 1);
             assertSpellData(helper, ISpellContainer.get(gauntlet), 0, heal, 1, false,
                     "Changing Scrollcaster Gauntlet index should change the exposed spell");
+            gauntlet = ScrollcasterGauntlet.copyWithToggledCastMode(gauntlet);
+            helper.assertTrue(ScrollcasterGauntlet.getCastMode(gauntlet) == ScrollcasterGauntlet.CastMode.GAUNTLET,
+                    "Selected-scroll behavior test should explicitly use gauntlet-selection mode");
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
                     "scrollcaster_gauntlet_right_click_resolver_test");
             player.setItemInHand(InteractionHand.MAIN_HAND, gauntlet);
@@ -3582,7 +3729,7 @@ public class ApprenticeCodexGameTestScenarios {
                     "Scrollcaster Gauntlet should detect its Mithril Freecast Staff adjustment");
             helper.assertTrue(gauntletItem.canTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND),
                     "Scrollcaster Gauntlet should be treated as swing-triggerable after freecast adjustment");
-            assertTooltipKeyAt(helper, gauntlet, 3, "item.apprenticecodex.freecast.common.desc",
+            assertTooltipKeyAt(helper, gauntlet, 4, "item.apprenticecodex.freecast.common.desc",
                     "Freecast-adjusted Scrollcaster Gauntlet should show the generic freecast tooltip");
 
             helper.assertTrue(gauntletItem.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
@@ -4270,6 +4417,7 @@ public class ApprenticeCodexGameTestScenarios {
             var enchantments = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             var sharpness = enchantments.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SHARPNESS);
             var fortune = enchantments.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.FORTUNE);
+            var efficiency = enchantments.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.EFFICIENCY);
             var unbreaking = enchantments.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.UNBREAKING);
             var mending = enchantments.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.MENDING);
             var wisdom = enchantments.getOrThrow(Enchantments.WISDOM);
@@ -4291,7 +4439,7 @@ public class ApprenticeCodexGameTestScenarios {
                 helper.assertTrue(item.isBookEnchantable(gauntlet, createEnchantedBook(supported)),
                         "Scrollcaster Gauntlet anvil should support " + supported.unwrapKey().orElseThrow().location());
             }
-            for (var rejected : List.of(unbreaking, mending, plunder)) {
+            for (var rejected : List.of(efficiency, unbreaking, mending, plunder)) {
                 helper.assertFalse(item.supportsEnchantment(gauntlet, rejected),
                         "Scrollcaster Gauntlet should reject " + rejected.unwrapKey().orElseThrow().location());
                 helper.assertFalse(item.isPrimaryItemFor(gauntlet, rejected),
@@ -13997,6 +14145,40 @@ public class ApprenticeCodexGameTestScenarios {
                     message + " (expected=" + expectedColor + ", actual="
                             + component.getStyle().getColor() + ")");
         }
+    }
+
+    static void assertTooltipKeyArgumentUsesTranslationKey(
+            GameTestHelper helper,
+            ItemStack stack,
+            String expectedKey,
+            int argumentIndex,
+            String expectedArgumentKey,
+            String message
+    ) {
+        var tooltipLines = new ArrayList<Component>();
+        stack.getItem().appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
+        var matchingLine = tooltipLines.stream()
+                .filter(component -> component.getContents() instanceof TranslatableContents contents
+                        && expectedKey.equals(contents.getKey()))
+                .findFirst();
+        helper.assertTrue(matchingLine.isPresent(),
+                message + " (missing tooltip key=" + expectedKey + ")");
+        if (matchingLine.isEmpty()) {
+            return;
+        }
+
+        var contents = (TranslatableContents) matchingLine.get().getContents();
+        var args = contents.getArgs();
+        helper.assertTrue(args.length > argumentIndex,
+                message + " (argument count=" + args.length + ")");
+        if (args.length <= argumentIndex) {
+            return;
+        }
+
+        helper.assertTrue(args[argumentIndex] instanceof Component component
+                        && component.getContents() instanceof TranslatableContents argumentContents
+                        && expectedArgumentKey.equals(argumentContents.getKey()),
+                message + " (unexpected argument=" + args[argumentIndex] + ")");
     }
 
     static void assertTooltipKeyAbsent(GameTestHelper helper, ItemStack stack, String key, String message) {
