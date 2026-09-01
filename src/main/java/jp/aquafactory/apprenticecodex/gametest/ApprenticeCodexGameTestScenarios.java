@@ -8066,7 +8066,7 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    private static FieldOverseerStaffEntity createFieldOverseerTestEntity(
+    static FieldOverseerStaffEntity createFieldOverseerTestEntity(
             GameTestHelper helper, FakePlayer owner, BlockPos anchorPos, float maxMana, int attackManaCost) {
         return createDurationBoundFieldOverseer(
                 helper, owner, 1, anchorPos, maxMana, attackManaCost,
