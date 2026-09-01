@@ -1,8 +1,10 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import io.redspace.ironsspellbooks.api.events.SpellHealEvent;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -13,9 +15,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.allay.Allay;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.NeoForge;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 final class CraftsmansDelightGracedRainGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private static final int STARTING_AGE = -1000;
@@ -77,6 +81,36 @@ final class CraftsmansDelightGracedRainGameTestScenarios extends ApprenticeCodex
 
             helper.assertTrue(zombie.getHealth() < startingHealth,
                     "Graced Rain should keep damaging undead targets while Craftsman's Delight is equipped");
+        });
+    }
+
+    static void gracedRainHealingPostsSpellHealEvent(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var owner = createGracedRainOwner(helper, "graced_rain_heal_event_owner", false);
+            var cow = spawnAgeableTarget(helper, EntityType.COW, 0);
+            cow.setHealth(cow.getMaxHealth() - 4.0F);
+            var healEvent = new AtomicReference<SpellHealEvent>();
+            java.util.function.Consumer<SpellHealEvent> healListener = event -> {
+                if (event.getEntity() == owner && event.getTargetEntity() == cow) {
+                    healEvent.set(event);
+                }
+            };
+
+            NeoForge.EVENT_BUS.addListener(healListener);
+            try {
+                processGracedRainEntityEffect(helper, owner, cow);
+            } finally {
+                NeoForge.EVENT_BUS.unregister(healListener);
+            }
+
+            helper.assertTrue(healEvent.get() != null,
+                    "Graced Rain healing should post SpellHealEvent");
+            helper.assertTrue(healEvent.get() != null
+                            && Math.abs(healEvent.get().getHealAmount() - 2.0F) < 1.0E-4F,
+                    "Graced Rain SpellHealEvent should expose the requested healing amount");
+            helper.assertTrue(healEvent.get() != null
+                            && healEvent.get().getSchoolType().equals(SpellRegistry.GRACED_RAIN.get().getSchoolType()),
+                    "Graced Rain SpellHealEvent should expose the spell school");
         });
     }
 

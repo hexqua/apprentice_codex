@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.api.events.SpellHealEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
@@ -25,9 +26,11 @@ import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 final class BloodBrandGameTestScenarios {
     private static final float VALUE_EPSILON = 1.0E-3F;
@@ -113,11 +116,22 @@ final class BloodBrandGameTestScenarios {
         var spell = (BloodBrand) SpellRegistry.BLOOD_BRAND.get();
         var nearbyHealth = nearby.getHealth();
         var ownerHealth = owner.getHealth();
+        var healEvent = new AtomicReference<SpellHealEvent>();
+        java.util.function.Consumer<SpellHealEvent> healListener = event -> {
+            if (event.getEntity() == owner && event.getTargetEntity() == owner) {
+                healEvent.set(event);
+            }
+        };
 
-        spell.onCast(level, 1, owner, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(owner));
-        var projectile = level.getEntitiesOfClass(BloodBrandKunai.class, owner.getBoundingBox().inflate(4.0D)).getFirst();
-        for (var tick = 0; tick < 4 && !projectile.isRemoved(); ++tick) {
-            projectile.tick();
+        NeoForge.EVENT_BUS.addListener(healListener);
+        try {
+            spell.onCast(level, 1, owner, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(owner));
+            var projectile = level.getEntitiesOfClass(BloodBrandKunai.class, owner.getBoundingBox().inflate(4.0D)).getFirst();
+            for (var tick = 0; tick < 4 && !projectile.isRemoved(); ++tick) {
+                projectile.tick();
+            }
+        } finally {
+            NeoForge.EVENT_BUS.unregister(healListener);
         }
 
         var burstDamage = nearbyHealth - nearby.getHealth();
@@ -127,6 +141,14 @@ final class BloodBrandGameTestScenarios {
         helper.assertTrue(burstDamage > 0.0F, "A lethal Blood Brand kunai should burst around its direct target");
         helper.assertTrue(Math.abs(owner.getHealth() - (ownerHealth + burstDamage * 0.5F)) < VALUE_EPSILON,
                 "A lethal Blood Brand kunai burst should heal half of its dealt damage");
+        helper.assertTrue(healEvent.get() != null,
+                "Blood Brand healing should post SpellHealEvent");
+        helper.assertTrue(healEvent.get() != null
+                        && Math.abs(healEvent.get().getHealAmount() - burstDamage * 0.5F) < VALUE_EPSILON,
+                "Blood Brand SpellHealEvent should expose the requested healing amount");
+        helper.assertTrue(healEvent.get() != null
+                        && healEvent.get().getSchoolType().equals(spell.getSchoolType()),
+                "Blood Brand SpellHealEvent should expose the spell school");
 
         discardAll(target, nearby, owner);
         helper.succeed();

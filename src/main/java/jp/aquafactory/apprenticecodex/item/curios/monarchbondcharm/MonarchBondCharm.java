@@ -1,12 +1,16 @@
 package jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm;
 
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.entity.LivingEntity;
+import org.jetbrains.annotations.Nullable;
+import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
@@ -45,5 +49,15 @@ public class MonarchBondCharm extends Item implements ICurioItem{
     @Override
     public boolean canEquipFromUse(SlotContext slotContext, ItemStack stack) {
         return true;
+    }
+
+    public static boolean isEquippedBy(@Nullable LivingEntity entity) {
+        if (entity == null) {
+            return false;
+        }
+
+        return CuriosApi.getCuriosInventory(entity)
+                .map(inventory -> inventory.isEquipped(ItemRegistry.MONARCH_BOND_CHARM.get()))
+                .orElse(false);
     }
 }

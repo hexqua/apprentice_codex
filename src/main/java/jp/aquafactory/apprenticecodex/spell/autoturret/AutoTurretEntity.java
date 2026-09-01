@@ -4,10 +4,10 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm.MonarchBondHealingTarget;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
-import jp.aquafactory.apprenticecodex.utility.CombatOwnerUuidSource;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
@@ -53,7 +53,7 @@ import java.util.Comparator;
 import java.util.Optional;
 import java.util.UUID;
 
-public class AutoTurretEntity extends PathfinderMob implements GeoEntity, CombatOwnerUuidSource {
+public class AutoTurretEntity extends PathfinderMob implements GeoEntity, MonarchBondHealingTarget {
     public static final float WIDTH = 0.9f;
     public static final float HEIGHT = 1.6f;
     private static final int CHARGE_TICK = 15;

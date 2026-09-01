@@ -2734,4 +2734,34 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     public static void luminousDeviceMageLightProfileScalesManaAndDisablesRedundantExtension(GameTestHelper helper) {
         LuminousDeviceGameTestScenarios.luminousDeviceMageLightProfileScalesManaAndDisablesRedundantExtension(helper);
     }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondSpellHealOverflowIsReservedNearestFirst(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.spellHealOverflowIsReservedNearestFirst(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondSpellHealRequiresEquippedWearerAndMatchingOwner(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.spellHealRequiresEquippedWearerAndMatchingOwner(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondGreaterHealFullyRestoresEveryOwnedTarget(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.greaterHealFullyRestoresEveryOwnedTarget(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondSpellLifestealDoesNotDependOnSchool(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.spellLifestealDoesNotDependOnSchool(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondCodexManagedEntitiesExposeHealingTarget(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.codexManagedEntitiesExposeMonarchBondHealingTarget(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void gracedRainHealingPostsSpellHealEvent(GameTestHelper helper) {
+        CraftsmansDelightGracedRainGameTestScenarios.gracedRainHealingPostsSpellHealEvent(helper);
+    }
 }

@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.particle.ZapParticleOption;
 import io.redspace.ironsspellbooks.util.ParticleHelper;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm.MonarchBondHealingTarget;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -50,7 +51,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public class FieldOverseerStaffEntity extends PathfinderMob implements GeoEntity, IMagicSummon {
+public class FieldOverseerStaffEntity extends PathfinderMob implements GeoEntity, IMagicSummon, MonarchBondHealingTarget {
     public static final float WIDTH = 0.5F;
     public static final float HEIGHT = 1.0F;
     private static final int ATTACK_INTERVAL = 40;
@@ -146,6 +147,11 @@ public class FieldOverseerStaffEntity extends PathfinderMob implements GeoEntity
         cachedOwner = owner;
         playerOwned = owner instanceof ServerPlayer;
         entityData.set(OWNER_UUID, Optional.of(ownerUuid));
+    }
+
+    @Override
+    public @Nullable UUID getCombatOwnerUuid() {
+        return ownerUuid;
     }
 
     void setExpirationGameTime(long expirationGameTime) {

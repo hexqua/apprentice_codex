@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.utility;
 
+import io.redspace.ironsspellbooks.api.events.SpellHealEvent;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.util.Utils;
@@ -24,6 +25,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.entity.PartEntity;
 import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.common.NeoForge;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -75,6 +77,18 @@ public final class CombatTools {
                 .orElseGet(() -> (Holder.Reference<DamageType>) level.damageSources().genericKill().typeHolder());
 
         return new DamageSource(holder, projectile, owner);
+    }
+
+    public static void applySpellHealing(LivingEntity caster, LivingEntity target, float amount, SchoolType school) {
+        if (amount <= 0.0F) {
+            return;
+        }
+
+        // Iron's と同じく実回復前に通知し、イベント購読側が回復前の体力から余剰量を計算できるようにする。
+        if (!target.level().isClientSide) {
+            NeoForge.EVENT_BUS.post(new SpellHealEvent(caster, target, amount, school));
+        }
+        target.heal(amount);
     }
 
     public static Entity resolutePartEntity(Entity raw) {
