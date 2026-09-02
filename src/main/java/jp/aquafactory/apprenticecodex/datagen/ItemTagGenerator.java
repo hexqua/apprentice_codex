@@ -581,7 +581,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         );
         tag(CURIOS_CHARM).add(
                 ItemRegistry.MANA_SHIELD_CHARM.get(),
-                ItemRegistry.MONARCH_BOND_CHARM.get()
+                ItemRegistry.MONARCH_BOND_CHARM.get(),
+                ItemRegistry.UNDYING_EMBLEM.get()
         );
         tag(CURIOS_FEET).add(
                 ItemRegistry.MANA_THRUSTER.get(),
