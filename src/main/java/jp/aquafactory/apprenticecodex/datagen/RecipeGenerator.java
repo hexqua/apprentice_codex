@@ -394,6 +394,17 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.EVOCATION_RUNE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.EVOCATION_RUNE.get()))
                 .save(recipeOutput);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.UNDYING_EMBLEM.get())
+                .pattern("ERE")
+                .pattern("MTM")
+                .pattern(" M ")
+                .define('T', Items.TOTEM_OF_UNDYING)
+                .define('E', Items.EMERALD)
+                .define('R', io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get())
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
+                .unlockedBy(getHasName(Items.TOTEM_OF_UNDYING), has(Items.TOTEM_OF_UNDYING))
+                .save(recipeOutput);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.AUTOCAST_AMULET.get())
                 .pattern("I I")
                 .pattern("ACA")

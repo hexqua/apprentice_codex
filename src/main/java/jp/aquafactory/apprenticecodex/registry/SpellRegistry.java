@@ -41,6 +41,7 @@ import jp.aquafactory.apprenticecodex.spell.harvestmoon.HarvestMoon;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloom;
 import jp.aquafactory.apprenticecodex.spell.heavenlyfist.HeavenlyFist;
 import jp.aquafactory.apprenticecodex.spell.higanbana.Higanbana;
+import jp.aquafactory.apprenticecodex.spell.idolreconstruction.IdolReconstruction;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellar;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
 import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssault;
@@ -167,6 +168,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> DIVINE_POSSESSION = reg("divine_possession", DivinePossession::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MANA_MENDING = reg("mana_mending", ManaMending::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> WIZARDLAMP = reg("wizardlamp", Wizardlamp::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> IDOL_RECONSTRUCTION = reg("idol_reconstruction", IdolReconstruction::new);
 
     // 氷.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> FROST_RUNE = reg("frost_rune", FrostRune::new);

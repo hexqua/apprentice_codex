@@ -1549,5 +1549,19 @@
   "item.apprenticecodex.endgame_armor.scroll_slot.spell": "卷轴槽位：%s",
   "item.apprenticecodex.endgame_armor.scroll_slot.inactive": "已储存卷轴（未启用）：%s",
   "item.apprenticecodex.endgame_armor.scroll_slot.requires": "需要%s",
-  "item.apprenticecodex.magnetic_stability_anchor.desc": "使%1$dx%2$dx%3$d范围内的物品不受自动磁吸影响。"
+  "item.apprenticecodex.magnetic_stability_anchor.desc": "使%1$dx%2$dx%3$d范围内的物品不受自动磁吸影响。",
+  "item.apprenticecodex.undying_emblem": "不死徽记",
+  "item.apprenticecodex.undying_emblem.desc_1": "受到致命伤害时，会像不死图腾一样保护佩戴者免于死亡。",
+  "item.apprenticecodex.undying_emblem.desc_2": "发动后徽记不会消失，但需要很长时间才能再次发动。",
+  "item.apprenticecodex.undying_emblem.desc_3": "施放“偶像修复”法术可以缩短这段时间。",
+  "item.apprenticecodex.undying_emblem.desc_4": "再次发动所需时间取决于使用者，因此持有或装备多个徽记不会产生额外效果。",
+  "item.apprenticecodex.undying_emblem.status.label": "致命伤害防护：%s",
+  "item.apprenticecodex.undying_emblem.status.ready": "可发动",
+  "item.apprenticecodex.undying_emblem.status.reconstruct": "冷却中（%s）",
+  "spell.apprenticecodex.idol_reconstruction": "偶像修复",
+  "spell.apprenticecodex.idol_reconstruction.guide": "不死徽记特有的潜在法术。向暂时失去力量的不死徽记注入法力，加快其重新激活。",
+  "ui.apprenticecodex.idol_reconstruction.accelerate_repair_speed": "%1$s的修复速度：%2$d%%",
+  "ui.apprenticecodex.idol_reconstruction.remain_repair_time": "修复完成时间：%s",
+  "ui.apprenticecodex.idol_reconstruction.no_cool_down": "徽记似乎已经可以再次发挥不死之力。",
+  "ui.apprenticecodex.idol_reconstruction.not_found_emblem": "找不到可以注入法力的徽记……"
 }

@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.Focu
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.MirageAvoidanceState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.RemoteEyeState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.UndyingEmblemState;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -59,6 +60,7 @@ public final class CapabilityEvents {
                 newSpellData.edit(CodexSpellStateTypeRegister.MANA_SHIELD_CHARM_STATE, ManaShieldCharmState::reset);
                 newSpellData.edit(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE, MirageAvoidanceState::reset);
                 newSpellData.edit(CodexSpellStateTypeRegister.REMOTE_EYE_STATE, RemoteEyeState::reset);
+                newSpellData.edit(CodexSpellStateTypeRegister.UNDYING_EMBLEM_STATE, UndyingEmblemState::reset);
             }
         }
 

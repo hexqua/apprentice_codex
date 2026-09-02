@@ -120,6 +120,7 @@
   "item.apprenticecodex.autocast_amulet": "Amulet of Spell Autocast",
   "item.apprenticecodex.mana_shield_charm": "Talisman of Mana Shield",
   "item.apprenticecodex.monarch_bond_charm": "Charm of Monarch Bond",
+  "item.apprenticecodex.undying_emblem": "Emblem of Undying",
   "item.apprenticecodex.satellite_followcast_amulet": "Amulet of Satellite Followcast",
   "item.apprenticecodex.mana_thruster": "Mana Thruster",
   "item.apprenticecodex.jumpcast_charm": "Charm of Jumpcast",
@@ -1556,5 +1557,18 @@
   "item.apprenticecodex.endgame_armor.scroll_slot.spell": "Scroll Slot: %s",
   "item.apprenticecodex.endgame_armor.scroll_slot.inactive": "Stored Scroll (inactive): %s",
   "item.apprenticecodex.endgame_armor.scroll_slot.requires": "Requires %s",
-  "item.apprenticecodex.magnetic_stability_anchor.desc": "Prevents Auto Magnet from collecting items within a %1$dx%2$dx%3$d area."
+  "item.apprenticecodex.magnetic_stability_anchor.desc": "Prevents Auto Magnet from collecting items within a %1$dx%2$dx%3$d area.",
+  "item.apprenticecodex.undying_emblem.desc_1": "When its wearer takes fatal damage, protects them from death like a Totem of Undying.",
+  "item.apprenticecodex.undying_emblem.desc_2": "The emblem remains after activation, but requires a long time before it can activate again.",
+  "item.apprenticecodex.undying_emblem.desc_3": "Casting Idol Reconstruction can shorten that time.",
+  "item.apprenticecodex.undying_emblem.desc_4": "The recovery time belongs to the wearer, so carrying or equipping multiple emblems provides no benefit.",
+  "item.apprenticecodex.undying_emblem.status.label": "Fatal Damage Protection: %s",
+  "item.apprenticecodex.undying_emblem.status.ready": "Ready",
+  "item.apprenticecodex.undying_emblem.status.reconstruct": "On Cooldown (%s)",
+  "spell.apprenticecodex.idol_reconstruction": "Idol Reconstruction",
+  "spell.apprenticecodex.idol_reconstruction.guide": "A latent spell unique to the Emblem of Undying. Channels mana into an emblem whose power was temporarily exhausted, hastening its reactivation.",
+  "ui.apprenticecodex.idol_reconstruction.accelerate_repair_speed": "%1$s reconstruction speed: %2$d%%",
+  "ui.apprenticecodex.idol_reconstruction.remain_repair_time": "Time to reconstruction: %s",
+  "ui.apprenticecodex.idol_reconstruction.no_cool_down": "The emblem can already exert its undying power.",
+  "ui.apprenticecodex.idol_reconstruction.not_found_emblem": "No emblem can be found to channel mana into..."
 }

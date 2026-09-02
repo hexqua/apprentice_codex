@@ -27,6 +27,7 @@ import jp.aquafactory.apprenticecodex.event.SoulstainedSteelSwingcastStaffConfig
 import jp.aquafactory.apprenticecodex.event.SpellgunConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ModEntityAttributeEvent;
 import jp.aquafactory.apprenticecodex.event.ZenithStaffConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.UndyingEmblemConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.client.ClientModBusEvents;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeSchoolPowerBonusEvents;
 import jp.aquafactory.apprenticecodex.item.broom.BroomCurioSupport;
@@ -117,6 +118,7 @@ public class ApprenticeCodex
         InstantSearchBrazierConfigSyncEvents.register(modEventBus);
         ManaForceBladeConfigSyncEvents.register(modEventBus);
         ManaShieldCharmConfigSyncEvents.register(modEventBus);
+        UndyingEmblemConfigSyncEvents.register(modEventBus);
         ManaThrusterConfigSyncEvents.register(modEventBus);
         ZenithStaffConfigSyncEvents.register(modEventBus);
         ElementMaidenRobeSchoolPowerBonusEvents.register(modEventBus);
