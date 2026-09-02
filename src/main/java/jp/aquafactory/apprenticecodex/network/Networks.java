@@ -60,6 +60,8 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncLinearBuildConfigPacket
 import jp.aquafactory.apprenticecodex.network.packet.SyncMageLightConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaShieldCharmConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncUndyingEmblemConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncUndyingEmblemStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterActivePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFloatmountBroomConfigPacket;
@@ -92,7 +94,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "92";
+    private static final String PROTOCOL_VERSION = "93";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -106,6 +108,14 @@ public final class Networks {
     }
 
     public static void register() {
+        CHANNEL.registerMessage(nextPacketId++, SyncUndyingEmblemStatePacket.class,
+                SyncUndyingEmblemStatePacket::encode, SyncUndyingEmblemStatePacket::decode, SyncUndyingEmblemStatePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+
+        CHANNEL.registerMessage(nextPacketId++, SyncUndyingEmblemConfigPacket.class,
+                SyncUndyingEmblemConfigPacket::encode, SyncUndyingEmblemConfigPacket::decode, SyncUndyingEmblemConfigPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+
         CHANNEL.registerMessage(
                 nextPacketId++,
                 ClientOpenStorageStabilizerEnderChestPacket.class,

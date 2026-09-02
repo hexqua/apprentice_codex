@@ -84,6 +84,16 @@ public final class ApprenticeCodexServerConfig {
         return DAMAGE_MULTIPLIER_CONFIG.value(key);
     }
 
+    public static int undyingEmblemReconstructionSpeedMultiplier() {
+        return ITEMS_CONFIG.undyingEmblemReconstructionSpeedMultiplier();
+    }
+
+    public static GameTestConfigOverride useUndyingEmblemReconstructionSpeedMultiplierOverrideForGameTest(int value) {
+        var previousValue = ITEMS_CONFIG.undyingEmblemReconstructionSpeedMultiplier();
+        ITEMS_CONFIG.setUndyingEmblemReconstructionSpeedMultiplierForGameTest(value);
+        return () -> ITEMS_CONFIG.setUndyingEmblemReconstructionSpeedMultiplierForGameTest(previousValue);
+    }
+
     public static GameTestConfigOverride useDamageMultiplierOverrideForGameTest(DamageMultiplierKey key, double value) {
         var previousValue = DAMAGE_MULTIPLIER_CONFIG.value(key);
         DAMAGE_MULTIPLIER_CONFIG.setValueForGameTest(key, value);
