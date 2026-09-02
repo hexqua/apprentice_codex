@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
+import jp.aquafactory.apprenticecodex.capability.CapabilityEvents;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
@@ -17,6 +18,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import org.jetbrains.annotations.Nullable;
@@ -50,6 +52,29 @@ public final class UndyingEmblemGameTests {
         var secondDeath = new LivingDeathEvent(player, player.damageSources().generic());
         UndyingEmblemEvents.onLivingDeath(secondDeath);
         helper.assertFalse(secondDeath.isCanceled(), "Undying Emblem must not reactivate during cooldown");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void deathCloneResetsCooldown(GameTestHelper helper) {
+        var original = createEquippedPlayer(helper, "undying_emblem_clone_original");
+        var clone = createEquippedPlayer(helper, "undying_emblem_clone_new");
+        Capabilities.withSpellData(original, data -> data.edit(
+                CodexSpellStateTypeRegister.UNDYING_EMBLEM_STATE,
+                state -> state.setRemainingCooldownTicks(UndyingEmblemRuntime.COOLDOWN_TICKS)
+        ));
+        Capabilities.withSpellData(clone, data -> data.edit(
+                CodexSpellStateTypeRegister.UNDYING_EMBLEM_STATE,
+                state -> state.setRemainingCooldownTicks(1)
+        ));
+
+        CapabilityEvents.onPlayerClone(new PlayerEvent.Clone(clone, original, true));
+
+        helper.assertValueEqual(
+                UndyingEmblemRuntime.getRemainingCooldownTicks(clone),
+                0,
+                "Undying Emblem cooldown after death clone"
+        );
         helper.succeed();
     }
 
