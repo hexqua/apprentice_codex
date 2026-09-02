@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.config.item.MagiCompressorGadgetServerConf
 import jp.aquafactory.apprenticecodex.config.item.ManaForceBladeServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ParrycastBucklerServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaShieldCharmServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.UndyingEmblemServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaThrusterServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MulticastEchoStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MultipurposeStaffrifleServerConfig;
@@ -57,6 +58,7 @@ final class ItemsServerConfig {
     private final BulwarkGreatshieldServerConfig bulwarkGreatshieldConfig;
     private final MagiCompressorGadgetServerConfig magiCompressorGadgetConfig;
     private final ManaShieldCharmServerConfig manaShieldCharmConfig;
+    private final UndyingEmblemServerConfig undyingEmblemConfig;
     private final ManaThrusterServerConfig manaThrusterConfig;
     private final FloatmountBroomServerConfig floatmountBroomConfig;
     private final HoverrideBroomServerConfig hoverrideBroomConfig;
@@ -95,6 +97,7 @@ final class ItemsServerConfig {
             BulwarkGreatshieldServerConfig bulwarkGreatshieldConfig,
             MagiCompressorGadgetServerConfig magiCompressorGadgetConfig,
             ManaShieldCharmServerConfig manaShieldCharmConfig,
+            UndyingEmblemServerConfig undyingEmblemConfig,
             ManaThrusterServerConfig manaThrusterConfig,
             FloatmountBroomServerConfig floatmountBroomConfig,
             HoverrideBroomServerConfig hoverrideBroomConfig,
@@ -132,6 +135,7 @@ final class ItemsServerConfig {
         this.bulwarkGreatshieldConfig = bulwarkGreatshieldConfig;
         this.magiCompressorGadgetConfig = magiCompressorGadgetConfig;
         this.manaShieldCharmConfig = manaShieldCharmConfig;
+        this.undyingEmblemConfig = undyingEmblemConfig;
         this.manaThrusterConfig = manaThrusterConfig;
         this.floatmountBroomConfig = floatmountBroomConfig;
         this.hoverrideBroomConfig = hoverrideBroomConfig;
@@ -172,6 +176,7 @@ final class ItemsServerConfig {
         var bulwarkGreatshieldConfig = BulwarkGreatshieldServerConfig.define(builder);
         var magiCompressorGadgetConfig = MagiCompressorGadgetServerConfig.define(builder);
         var manaShieldCharmConfig = ManaShieldCharmServerConfig.define(builder);
+        var undyingEmblemConfig = UndyingEmblemServerConfig.define(builder);
         var manaThrusterConfig = ManaThrusterServerConfig.define(builder);
         var floatmountBroomConfig = FloatmountBroomServerConfig.define(builder);
         var hoverrideBroomConfig = HoverrideBroomServerConfig.define(builder);
@@ -211,6 +216,7 @@ final class ItemsServerConfig {
                 bulwarkGreatshieldConfig,
                 magiCompressorGadgetConfig,
                 manaShieldCharmConfig,
+                undyingEmblemConfig,
                 manaThrusterConfig,
                 floatmountBroomConfig,
                 hoverrideBroomConfig,
@@ -430,6 +436,14 @@ final class ItemsServerConfig {
 
     float manaShieldCharmManaPerDamage() {
         return manaShieldCharmConfig.manaPerDamage();
+    }
+
+    int undyingEmblemReconstructionSpeedMultiplier() {
+        return undyingEmblemConfig.reconstructionSpeedMultiplier();
+    }
+
+    void setUndyingEmblemReconstructionSpeedMultiplierForGameTest(int value) {
+        undyingEmblemConfig.setForGameTest(value);
     }
 
     float magiCompressorGadgetManaCostPerSecond() {

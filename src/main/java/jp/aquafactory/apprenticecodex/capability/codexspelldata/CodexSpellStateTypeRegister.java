@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.Mana
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.MantisLeapState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.MirageAvoidanceState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.RemoteEyeState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.UndyingEmblemState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SpectralWingState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.TamersPocketState;
@@ -42,6 +43,7 @@ public final class CodexSpellStateTypeRegister {
     public static CodexSpellStateType<MantisLeapState> MANTIS_LEAP_STATE;
     public static CodexSpellStateType<MirageAvoidanceState> MIRAGE_AVOIDANCE_STATE;
     public static CodexSpellStateType<RemoteEyeState> REMOTE_EYE_STATE;
+    public static CodexSpellStateType<UndyingEmblemState> UNDYING_EMBLEM_STATE;
     public static CodexSpellStateType<SearchBeaconState> SEARCH_BEACON_STATE;
     public static CodexSpellStateType<SpectralWingState> SPECTRAL_WING_STATE;
     public static CodexSpellStateType<TamersPocketState> TAMERS_POCKET_STATE;
@@ -65,6 +67,7 @@ public final class CodexSpellStateTypeRegister {
         MANTIS_LEAP_STATE = CodexSpellStates.register("mantis_leap", MantisLeapState::new);
         MIRAGE_AVOIDANCE_STATE = CodexSpellStates.register("mirage_avoidance", MirageAvoidanceState::new);
         REMOTE_EYE_STATE = CodexSpellStates.register("remote_eye", RemoteEyeState::new);
+        UNDYING_EMBLEM_STATE = CodexSpellStates.register("undying_emblem", UndyingEmblemState::new);
         SEARCH_BEACON_STATE = CodexSpellStates.register("search_beacon", SearchBeaconState::new);
         SPECTRAL_WING_STATE = CodexSpellStates.register("spectral_wing", SpectralWingState::new);
         TAMERS_POCKET_STATE = CodexSpellStates.register("tamers_pocket", TamersPocketState::new);
