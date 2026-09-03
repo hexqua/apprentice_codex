@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "apprenticecodex:crystalline_arcane_shard"
+    },
+    "F": {
+      "item": "minecraft:feather"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    }
+  },
+  "pattern": [
+    "F F",
+    "A A",
+    "M M"
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:mana_maneuver_gear"
+  }
+}
