@@ -185,6 +185,7 @@ public final class CreativeTabRegistry {
     private static void addUniqueMagicWeaponToTab(CreativeModeTab.Output output) {
         output.accept(ItemRegistry.MANA_FORCE_BLADE.get());
         output.accept(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
+        output.accept(ItemRegistry.SPELL_REAPER_SCYTHE.get());
         output.accept(ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance());
         output.accept(ItemRegistry.ELEMENTAL_BOW.get());
     }

@@ -1676,6 +1676,23 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                             .is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
                     "Calibration Bench should extract Mana Force Blade spells");
 
+            var spellReaperScythe = createInitializedPresetStack(ItemRegistry.SPELL_REAPER_SCYTHE.get());
+            var spellReaperScytheMenu = createSpellCalibrationBenchMenuWithTarget(player, spellReaperScythe);
+            spellReaperScytheMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START)
+                    .set(createSpellScroll(heal));
+            assertStackHasSpell(helper, spellReaperScythe, heal, 1,
+                    "Calibration Bench should imbue the tag-allowed Spell Reaper Scythe");
+            var extractedScytheScroll = spellReaperScytheMenu
+                    .getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).remove(1);
+            helper.assertTrue(extractedScytheScroll.is(
+                            io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
+                    "Calibration Bench should extract Spell Reaper Scythe spells");
+            var spellReaperScytheContainer = ISpellContainer.get(spellReaperScythe);
+            helper.assertTrue(spellReaperScytheContainer != null
+                            && spellReaperScytheContainer.getMaxSpellCount() == 1
+                            && spellReaperScytheContainer.isEmpty(),
+                    "Calibration Bench should clear the Spell Reaper Scythe spell while preserving its slot");
+
             var circlet = new ItemStack(ItemRegistry.ENCHANTED_CIRCLET.get());
             var circletMenu = createSpellCalibrationBenchMenuWithTarget(player, circlet);
             circletMenu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).set(createSpellScroll(heal));

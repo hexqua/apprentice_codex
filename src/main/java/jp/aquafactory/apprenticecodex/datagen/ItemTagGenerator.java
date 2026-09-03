@@ -67,6 +67,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> MINECRAFT_ENCHANTABLE_VANISHING = createTag("minecraft", "enchantable/vanishing");
     private static final TagKey<Item> MALUM_MAGIC_CAPABLE_WEAPON = createTag("malum", "magic_capable_weapon");
     private static final TagKey<Item> MALUM_SOUL_SHATTER_CAPABLE_WEAPON = createTag("malum", "soul_shatter_capable_weapon");
+    private static final TagKey<Item> MALUM_SCYTHE = createTag("malum", "scythe");
     private static final TagKey<Item> MALUM_SOULWOVEN_POUCH_EFFICIENT = createTag("malum", "soulwoven_pouch_efficient");
     private static final TagKey<Item> MALUM_REPLENISHING_ENCHANTABLE = createTag("malum", "enchantable/replenishing");
     private static final TagKey<Item> MALUM_HIDDEN_UNTIL_VOID = createTag("malum", "hidden_items/void");
@@ -146,6 +147,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var ironsUpgradeWhitelist = tag(IRONS_UPGRADE_WHITELIST);
         var malumMagicCapableWeaponTag = tag(MALUM_MAGIC_CAPABLE_WEAPON);
         var malumSoulShatterCapableWeaponTag = tag(MALUM_SOUL_SHATTER_CAPABLE_WEAPON);
+        var malumScytheTag = tag(MALUM_SCYTHE);
         var malumSoulwovenPouchEfficientTag = tag(MALUM_SOULWOVEN_POUCH_EFFICIENT);
         var malumReplenishingEnchantableTag = tag(MALUM_REPLENISHING_ENCHANTABLE);
         tag(MALUM_HIDDEN_UNTIL_VOID).add(
@@ -274,6 +276,16 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         vanillaSharpWeaponEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         vanillaWeaponEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
         vanillaDurabilityEnchantableTag.add(ItemRegistry.MANA_FORCE_BLADE.get());
+
+        // Spell Reaper Scythe は剣相当の付与面に加え、Malum の大鎌 enchant 判定タグへ参加させる。
+        malumMagicCapableWeaponTag.add(ItemRegistry.SPELL_REAPER_SCYTHE.get());
+        malumSoulShatterCapableWeaponTag.add(ItemRegistry.SPELL_REAPER_SCYTHE.get());
+        malumScytheTag.add(ItemRegistry.SPELL_REAPER_SCYTHE.get());
+        vanillaSwordEnchantableTag.add(ItemRegistry.SPELL_REAPER_SCYTHE.get());
+        vanillaFireAspectEnchantableTag.add(ItemRegistry.SPELL_REAPER_SCYTHE.get());
+        vanillaSharpWeaponEnchantableTag.add(ItemRegistry.SPELL_REAPER_SCYTHE.get());
+        vanillaWeaponEnchantableTag.add(ItemRegistry.SPELL_REAPER_SCYTHE.get());
+        vanillaDurabilityEnchantableTag.add(ItemRegistry.SPELL_REAPER_SCYTHE.get());
 
         // Spell Side Edge は耐久値を持つ剣型の詠唱武器として扱い、1.21.1 の tag 駆動 enchant と互換 MOD 判定に揃える。
         malumMagicCapableWeaponTag.add(ItemRegistry.SPELL_SIDE_EDGE.get());
@@ -679,7 +691,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SOULCOLLECTOR_ROBE.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
-                ItemRegistry.MANA_FORCE_BLADE.get()
+                ItemRegistry.MANA_FORCE_BLADE.get(),
+                ItemRegistry.SPELL_REAPER_SCYTHE.get()
         );
         tag(TagRegistry.Items.SPELL_DISMANTLEABLE).add(
                 net.minecraft.world.item.Items.IRON_SWORD,

@@ -2213,6 +2213,12 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellReaperScytheKeepsExpectedStatsTagsEnchantmentsAndImbueContract(GameTestHelper helper) {
+        EquipmentEnchantmentSurfaceGameTestScenarios
+                .spellReaperScytheKeepsExpectedStatsTagsEnchantmentsAndImbueContract(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void reflectcastShieldKeepsExpectedItemContract(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.reflectcastShieldKeepsExpectedItemContract(helper);
     }

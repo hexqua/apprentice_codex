@@ -26,6 +26,7 @@ import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterA
 import jp.aquafactory.apprenticecodex.item.blockitem.SpellCalibrationBenchItem;
 import jp.aquafactory.apprenticecodex.item.blockitem.SpellDispenserItem;
 import jp.aquafactory.apprenticecodex.item.blockitem.SpellcasterWorkbenchItem;
+import jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScythe;
 import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaff;
 import jp.aquafactory.apprenticecodex.item.armor.ApprenticeMageRobeItem;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
@@ -458,6 +459,8 @@ public final class ItemRegistry {
             ITEMS.register("mana_force_blade", ManaForceBlade::new);
     public static final DeferredHolder<Item, Item> MANA_FORCE_BLADE_SHEATH =
             ITEMS.register("mana_force_blade_sheath", ManaForceBladeSheathItem::new);
+    public static final DeferredHolder<Item, Item> SPELL_REAPER_SCYTHE =
+            ITEMS.register("spell_reaper_scythe", SpellReaperScythe::new);
     public static final DeferredHolder<Item, Item> SPELL_SIDE_EDGE =
             ITEMS.register("spell_side_edge", SpellSideEdge::new);
     public static final DeferredHolder<Item, Item> SPELL_SIDE_EDGE_MIRROR =
