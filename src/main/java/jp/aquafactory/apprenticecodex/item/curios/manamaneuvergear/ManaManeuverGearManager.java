@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearJumpPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearSlidePacket;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
@@ -95,7 +96,11 @@ public final class ManaManeuverGearManager {
             return false;
         }
 
-        ManaManeuverGearMovement.applyWallSlide(player);
+        var clamped = ManaManeuverGearMovement.applyWallSlide(player);
+        if (clamped && !(player instanceof FakePlayer)) {
+            // hurtMarked は本人の水平速度まで上書きするため、サーバーが制限した Y 速度だけを同期する。
+            Networks.sendToPlayer(player, new SyncManaManeuverGearSlidePacket(player.getDeltaMovement().y));
+        }
         var gameTime = player.level().getGameTime();
         var previousGameTime = LAST_WALL_SLIDE_GAME_TIME.put(player.getUUID(), gameTime);
         var started = previousGameTime == null || previousGameTime + 1L < gameTime;

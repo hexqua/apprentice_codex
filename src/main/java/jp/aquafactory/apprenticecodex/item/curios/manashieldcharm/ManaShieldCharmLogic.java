@@ -150,6 +150,31 @@ final class ManaShieldCharmLogic {
         }
     }
 
+    static boolean cancelDuringVanillaStyleIFrame(LivingIncomingDamageEvent event, ServerPlayer player) {
+        if (event.isCanceled()
+                || event.getAmount() <= 0.0F
+                || !player.isAlive()
+                || player.getAbilities().invulnerable
+                || !isEquippedBy(player)
+                || getEquippedCharm(player).isEmpty()
+                || MagicData.getPlayerMagicData(player) == null) {
+            return false;
+        }
+
+        refreshCooldownIfRecovered(player);
+        var state = getState(player);
+        if (state == null
+                || state.manualReentryGuard
+                || state.cooldownActive
+                || player.hasEffect(EffectRegistry.INERT_MANA_SHIELD)
+                || !shouldIgnoreDuringVanillaStyleIFrame(player, event)) {
+            return false;
+        }
+
+        event.setCanceled(true);
+        return true;
+    }
+
     private static boolean shouldIgnoreDuringVanillaStyleIFrame(ServerPlayer player, LivingIncomingDamageEvent event) {
         var invulnerableTimeTicks = invulnerableTimeTicks();
         if (invulnerableTimeTicks <= 0) {

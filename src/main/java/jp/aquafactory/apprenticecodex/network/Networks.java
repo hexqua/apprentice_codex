@@ -40,6 +40,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncApprenticeDeskConfigPac
 import jp.aquafactory.apprenticecodex.network.packet.SyncArcanumInAJarConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncAssistWingsJumpPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearJumpPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearSlidePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncBoundBowStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncBoundSwordStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffOverheatPacket;
@@ -264,6 +265,11 @@ public final class Networks {
                 SyncManaManeuverGearJumpPacket.TYPE,
                 SyncManaManeuverGearJumpPacket.STREAM_CODEC,
                 SyncManaManeuverGearJumpPacket::handle
+        );
+        registrar.playToClient(
+                SyncManaManeuverGearSlidePacket.TYPE,
+                SyncManaManeuverGearSlidePacket.STREAM_CODEC,
+                SyncManaManeuverGearSlidePacket::handle
         );
         registrar.playToClient(
                 ManaManeuverGearFallEffectPacket.TYPE,
