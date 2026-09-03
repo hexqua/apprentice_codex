@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 
 import java.util.ArrayList;
@@ -350,6 +351,76 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     "Spellcharged Greatsword is missing malum:soul_hunter_weapon");
         });
     }
+
+    static void spellReaperScytheKeepsExpectedStatsTagsEnchantmentsAndImbueContract(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var item = (SpellReaperScythe) ItemRegistry.SPELL_REAPER_SCYTHE.get();
+            var stack = item.getDefaultInstance();
+            helper.assertTrue(stack.getMaxDamage() == SpellReaperScythe.DURABILITY,
+                    "Spell Reaper Scythe durability should be " + SpellReaperScythe.DURABILITY
+                            + " but got " + stack.getMaxDamage());
+            helper.assertTrue(item.getEnchantmentValue(stack) == SpellReaperScythe.ENCHANTMENT_VALUE,
+                    "Spell Reaper Scythe enchantability should be " + SpellReaperScythe.ENCHANTMENT_VALUE
+                            + " but got " + item.getEnchantmentValue(stack));
+
+            var modifiers = toModifierMultimap(stack.getAttributeModifiers());
+            assertModifierWithId(
+                    helper,
+                    modifiers.get(Attributes.ATTACK_DAMAGE),
+                    VANILLA_BASE_ATTACK_DAMAGE_MODIFIER_ID,
+                    AttributeModifier.Operation.ADD_VALUE,
+                    SpellReaperScythe.DISPLAY_ATTACK_DAMAGE - 1.0D,
+                    "Spell Reaper Scythe attack damage modifier should display as 10 damage"
+            );
+            assertModifierWithId(
+                    helper,
+                    modifiers.get(Attributes.ATTACK_SPEED),
+                    VANILLA_BASE_ATTACK_SPEED_MODIFIER_ID,
+                    AttributeModifier.Operation.ADD_VALUE,
+                    SpellReaperScythe.DISPLAY_ATTACK_SPEED - 4.0D,
+                    "Spell Reaper Scythe attack speed modifier should display as 1.0 speed"
+            );
+
+            var container = ISpellContainer.get(stack);
+            helper.assertTrue(container != null && container.getMaxSpellCount() == 1
+                            && container.isSpellWheel() && !container.mustEquip() && container.isEmpty(),
+                    "Spell Reaper Scythe should initialize an empty one-slot spell-wheel container");
+            helper.assertTrue(item.createSpellSlotUpgradeResult(
+                    stack,
+                    (SpellSlotUpgradeItem) io.redspace.ironsspellbooks.registries.ItemRegistry
+                            .LESSER_SPELL_SLOT_UPGRADE.get()
+            ).isEmpty(), "Spell Reaper Scythe should reject spell-slot upgrades");
+
+            var mutable = Objects.requireNonNull(container, "Spell Reaper Scythe spell container").mutableCopy();
+            helper.assertTrue(mutable.addSpellAtIndex(
+                            io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get(), 1, 0, false),
+                    "Failed to prepare an imbued Spell Reaper Scythe");
+            ISpellContainer.set(stack, mutable.toImmutable());
+            var shrivenStack = Utils.handleShriving(stack);
+            var shrivenContainer = ISpellContainer.get(shrivenStack);
+            helper.assertFalse(shrivenStack.isEmpty(),
+                    "Shriving Stone should accept an imbued Spell Reaper Scythe");
+            helper.assertTrue(shrivenContainer != null && shrivenContainer.getMaxSpellCount() == 1
+                            && shrivenContainer.isEmpty(),
+                    "Shriving Stone should clear the Spell Reaper Scythe spell while preserving its slot");
+
+            helper.assertTrue(stack.is(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE),
+                    "Spell Reaper Scythe is missing apprenticecodex:spellcaster_workbench_extractable");
+            helper.assertTrue(stack.is(MALUM_MAGIC_CAPABLE_WEAPON),
+                    "Spell Reaper Scythe is missing malum:magic_capable_weapon");
+            helper.assertTrue(stack.is(MALUM_SOUL_SHATTER_CAPABLE_WEAPON),
+                    "Spell Reaper Scythe is missing malum:soul_shatter_capable_weapon");
+            helper.assertTrue(stack.is(MALUM_SCYTHE),
+                    "Spell Reaper Scythe is missing malum:scythe");
+            assertExactEnchantmentSurfaces(
+                    helper,
+                    stack,
+                    expectedSpellReaperScytheEnchantments(helper.getLevel().registryAccess(), stack),
+                    "Spell Reaper Scythe"
+            );
+        });
+    }
+
     static void spellchargedGreatswordChargeMathDecayAndAttributes(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (SpellchargedGreatsword) ItemRegistry.SPELLCHARGED_GREATSWORD.get();

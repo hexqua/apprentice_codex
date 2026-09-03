@@ -144,6 +144,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.CHARGECAST_CATALYSTBOOK.get()
         );
 
+        tag(createTag("malum", "scythe")).add(ItemRegistry.SPELL_REAPER_SCYTHE.get());
+        tag(MALUM_SOUL_HUNTER_WEAPON).add(ItemRegistry.SPELL_REAPER_SCYTHE.get());
         var malumSoulHunterWeaponTag = tag(MALUM_SOUL_HUNTER_WEAPON);
         malumSoulHunterWeaponTag.add(
                 ItemRegistry.PASTEL_STAFF.get(),
@@ -359,7 +361,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SOULCOLLECTOR_ROBE.get(),
                 ItemRegistry.CHROMATIC_MAGIA_DRESS_COAT.get(),
                 ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get(),
-                ItemRegistry.MANA_FORCE_BLADE.get()
+                ItemRegistry.MANA_FORCE_BLADE.get(),
+                ItemRegistry.SPELL_REAPER_SCYTHE.get()
         );
         tag(TagRegistry.Items.SPELL_DISMANTLEABLE).add(
                 net.minecraft.world.item.Items.IRON_SWORD,
