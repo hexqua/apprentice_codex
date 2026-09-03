@@ -277,6 +277,7 @@ public final class CreativeTabRegistry {
         // foot
         output.accept(ItemRegistry.MANA_THRUSTER.get());
         output.accept(ItemRegistry.JUMPCAST_CHARM.get().getDefaultInstance());
+        output.accept(ItemRegistry.MANA_MANEUVER_GEAR.get());
 
         // charm
         output.accept(ItemRegistry.MANA_SHIELD_CHARM.get());

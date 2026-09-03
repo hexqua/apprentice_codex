@@ -40,6 +40,7 @@ public final class ApprenticeCodexServerConfig {
     private static final SpellsServerConfig SPELLS_CONFIG;
     private static final WorldgenServerConfig WORLDGEN_CONFIG;
     private static final ProcessingServerConfig PROCESSING_CONFIG;
+
     static {
         var builder = new ModConfigSpec.Builder();
         builder.push("Compatibility");
@@ -733,6 +734,14 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.manaThrusterManaCostPerTick();
     }
 
+    public static int manaManeuverGearManaCostPerJump() {
+        return ITEMS_CONFIG.manaManeuverGearManaCostPerJump();
+    }
+
+    public static float manaManeuverGearManaPerDamage() {
+        return ITEMS_CONFIG.manaManeuverGearManaPerDamage();
+    }
+
     public static FloatmountBroomServerConfig.Values floatmountBroomConfig() {
         return ITEMS_CONFIG.floatmountBroomConfig();
     }
@@ -1224,6 +1233,20 @@ public final class ApprenticeCodexServerConfig {
 
         ITEMS_CONFIG.setManaThrusterConfigForGameTest(manaCostPerTick);
         return () -> ITEMS_CONFIG.setManaThrusterConfigForGameTest(previousManaCostPerTick);
+    }
+
+    public static GameTestConfigOverride useManaManeuverGearConfigOverrideForGameTest(
+            int manaCostPerJump,
+            double manaPerDamage
+    ) {
+        var previousManaCostPerJump = ITEMS_CONFIG.manaManeuverGearManaCostPerJump();
+        var previousManaPerDamage = ITEMS_CONFIG.manaManeuverGearManaPerDamage();
+
+        ITEMS_CONFIG.setManaManeuverGearConfigForGameTest(manaCostPerJump, manaPerDamage);
+        return () -> ITEMS_CONFIG.setManaManeuverGearConfigForGameTest(
+                previousManaCostPerJump,
+                previousManaPerDamage
+        );
     }
 
     public static GameTestConfigOverride useFloatmountBroomConfigOverrideForGameTest(

@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmSneakSelection
 import jp.aquafactory.apprenticecodex.network.packet.ClientEpicFightAttackcastRingTargetsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientManaManeuverGearJumpPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientOpenSpellcasterAccessoryCasePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientOpenStorageStabilizerEnderChestPacket;
@@ -26,6 +27,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPack
 import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HeavenlyFistPulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
+import jp.aquafactory.apprenticecodex.network.packet.ManaManeuverGearFallEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowConfigPacket;
@@ -37,6 +39,8 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletProfileSp
 import jp.aquafactory.apprenticecodex.network.packet.SyncApprenticeDeskConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncArcanumInAJarConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncAssistWingsJumpPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearJumpPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearSlidePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncBoundBowStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncBoundSwordStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffOverheatPacket;
@@ -91,7 +95,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "93";
+    private static final String PROTOCOL_VERSION = "95";
 
     private Networks() {
     }
@@ -218,6 +222,11 @@ public final class Networks {
                 ClientJumpcastCharmCastPacket::handle
         );
         registrar.playToServer(
+                ClientManaManeuverGearJumpPacket.TYPE,
+                ClientManaManeuverGearJumpPacket.STREAM_CODEC,
+                ClientManaManeuverGearJumpPacket::handle
+        );
+        registrar.playToServer(
                 ClientAnchorBlinkPacket.TYPE,
                 ClientAnchorBlinkPacket.STREAM_CODEC,
                 ClientAnchorBlinkPacket::handle
@@ -251,6 +260,21 @@ public final class Networks {
                 SyncAssistWingsJumpPacket.TYPE,
                 SyncAssistWingsJumpPacket.STREAM_CODEC,
                 SyncAssistWingsJumpPacket::handle
+        );
+        registrar.playToClient(
+                SyncManaManeuverGearJumpPacket.TYPE,
+                SyncManaManeuverGearJumpPacket.STREAM_CODEC,
+                SyncManaManeuverGearJumpPacket::handle
+        );
+        registrar.playToClient(
+                SyncManaManeuverGearSlidePacket.TYPE,
+                SyncManaManeuverGearSlidePacket.STREAM_CODEC,
+                SyncManaManeuverGearSlidePacket::handle
+        );
+        registrar.playToClient(
+                ManaManeuverGearFallEffectPacket.TYPE,
+                ManaManeuverGearFallEffectPacket.STREAM_CODEC,
+                ManaManeuverGearFallEffectPacket::handle
         );
         registrar.playToClient(
                 SyncManaForceBladeConfigPacket.TYPE,
