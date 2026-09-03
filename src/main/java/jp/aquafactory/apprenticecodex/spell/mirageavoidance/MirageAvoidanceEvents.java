@@ -91,19 +91,25 @@ public final class MirageAvoidanceEvents {
 
     @SubscribeEvent
     public static void onLivingAttack(LivingIncomingDamageEvent event) {
+        cancelIncomingDamageIfInvulnerable(event);
+    }
+
+    public static boolean cancelIncomingDamageIfInvulnerable(LivingIncomingDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) {
-            return;
+            return false;
         }
 
         var spellData = Capabilities.getSpellDataOrNull(player);
         if (spellData == null) {
-            return;
+            return false;
         }
 
         var state = spellData.get(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE);
         if (isInvulnerable(player.level(), state)) {
             event.setCanceled(true);
+            return true;
         }
+        return false;
     }
 
     @SubscribeEvent
