@@ -18,6 +18,7 @@ import jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagicArmorServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagiCompressorGadgetServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaForceBladeServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ManaManeuverGearServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ParrycastBucklerServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaShieldCharmServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.UndyingEmblemServerConfig;
@@ -60,6 +61,7 @@ final class ItemsServerConfig {
     private final ManaShieldCharmServerConfig manaShieldCharmConfig;
     private final UndyingEmblemServerConfig undyingEmblemConfig;
     private final ManaThrusterServerConfig manaThrusterConfig;
+    private final ManaManeuverGearServerConfig manaManeuverGearConfig;
     private final FloatmountBroomServerConfig floatmountBroomConfig;
     private final HoverrideBroomServerConfig hoverrideBroomConfig;
     private final IronSwingcastStaffServerConfig ironSwingcastStaffConfig;
@@ -99,6 +101,7 @@ final class ItemsServerConfig {
             ManaShieldCharmServerConfig manaShieldCharmConfig,
             UndyingEmblemServerConfig undyingEmblemConfig,
             ManaThrusterServerConfig manaThrusterConfig,
+            ManaManeuverGearServerConfig manaManeuverGearConfig,
             FloatmountBroomServerConfig floatmountBroomConfig,
             HoverrideBroomServerConfig hoverrideBroomConfig,
             IronSwingcastStaffServerConfig ironSwingcastStaffConfig,
@@ -137,6 +140,7 @@ final class ItemsServerConfig {
         this.manaShieldCharmConfig = manaShieldCharmConfig;
         this.undyingEmblemConfig = undyingEmblemConfig;
         this.manaThrusterConfig = manaThrusterConfig;
+        this.manaManeuverGearConfig = manaManeuverGearConfig;
         this.floatmountBroomConfig = floatmountBroomConfig;
         this.hoverrideBroomConfig = hoverrideBroomConfig;
         this.ironSwingcastStaffConfig = ironSwingcastStaffConfig;
@@ -178,6 +182,7 @@ final class ItemsServerConfig {
         var manaShieldCharmConfig = ManaShieldCharmServerConfig.define(builder);
         var undyingEmblemConfig = UndyingEmblemServerConfig.define(builder);
         var manaThrusterConfig = ManaThrusterServerConfig.define(builder);
+        var manaManeuverGearConfig = ManaManeuverGearServerConfig.define(builder);
         var floatmountBroomConfig = FloatmountBroomServerConfig.define(builder);
         var hoverrideBroomConfig = HoverrideBroomServerConfig.define(builder);
         var ironSwingcastStaffConfig = IronSwingcastStaffServerConfig.define(builder);
@@ -218,6 +223,7 @@ final class ItemsServerConfig {
                 manaShieldCharmConfig,
                 undyingEmblemConfig,
                 manaThrusterConfig,
+                manaManeuverGearConfig,
                 floatmountBroomConfig,
                 hoverrideBroomConfig,
                 ironSwingcastStaffConfig,
@@ -492,6 +498,14 @@ final class ItemsServerConfig {
 
     float manaThrusterManaCostPerTick() {
         return manaThrusterConfig.manaCostPerTick();
+    }
+
+    int manaManeuverGearManaCostPerJump() {
+        return manaManeuverGearConfig.manaCostPerJump();
+    }
+
+    float manaManeuverGearManaPerDamage() {
+        return manaManeuverGearConfig.manaPerDamage();
     }
 
     FloatmountBroomServerConfig.Values floatmountBroomConfig() {
@@ -940,6 +954,10 @@ final class ItemsServerConfig {
 
     void setManaThrusterConfigForGameTest(double manaCostPerTick) {
         manaThrusterConfig.setForGameTest(manaCostPerTick);
+    }
+
+    void setManaManeuverGearConfigForGameTest(int manaCostPerJump, double manaPerDamage) {
+        manaManeuverGearConfig.setForGameTest(manaCostPerJump, manaPerDamage);
     }
 
     void setFloatmountBroomConfigForGameTest(FloatmountBroomServerConfig.Values values) {

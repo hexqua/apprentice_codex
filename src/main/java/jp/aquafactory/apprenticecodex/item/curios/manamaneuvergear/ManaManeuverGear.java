@@ -2,7 +2,6 @@ package jp.aquafactory.apprenticecodex.item.curios.manamaneuvergear;
 
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
-import jp.aquafactory.apprenticecodex.item.curios.manathruster.ManaThrusterFlightManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -25,6 +24,7 @@ public class ManaManeuverGear extends Item implements ICurioItem {
 
     @Override
     public void curioTick(SlotContext slotContext, ItemStack stack) {
+        ManaManeuverGearManager.onCurioTick(slotContext);
     }
 
     @Override

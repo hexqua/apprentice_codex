@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearJumpPacket;
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.AlchemyBrewerWaterSupplyEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientAnchorBlinkPacket;
@@ -13,6 +14,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmSneakSelection
 import jp.aquafactory.apprenticecodex.network.packet.ClientEpicFightAttackcastRingTargetsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientManaManeuverGearJumpPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientOpenSpellcasterAccessoryCasePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientOpenStorageStabilizerEnderChestPacket;
@@ -94,7 +96,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "93";
+    private static final String PROTOCOL_VERSION = "94";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -108,6 +110,12 @@ public final class Networks {
     }
 
     public static void register() {
+        CHANNEL.registerMessage(nextPacketId++, SyncManaManeuverGearJumpPacket.class,
+                SyncManaManeuverGearJumpPacket::encode, SyncManaManeuverGearJumpPacket::decode, SyncManaManeuverGearJumpPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(nextPacketId++, ClientManaManeuverGearJumpPacket.class,
+                ClientManaManeuverGearJumpPacket::encode, ClientManaManeuverGearJumpPacket::decode, ClientManaManeuverGearJumpPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(nextPacketId++, SyncUndyingEmblemStatePacket.class,
                 SyncUndyingEmblemStatePacket::encode, SyncUndyingEmblemStatePacket::decode, SyncUndyingEmblemStatePacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
