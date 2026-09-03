@@ -29,6 +29,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPack
 import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HeavenlyFistPulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
+import jp.aquafactory.apprenticecodex.network.packet.ManaManeuverGearFallEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowConfigPacket;
@@ -96,7 +97,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "94";
+    private static final String PROTOCOL_VERSION = "95";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -110,6 +111,9 @@ public final class Networks {
     }
 
     public static void register() {
+        CHANNEL.registerMessage(nextPacketId++, ManaManeuverGearFallEffectPacket.class,
+                ManaManeuverGearFallEffectPacket::encode, ManaManeuverGearFallEffectPacket::decode, ManaManeuverGearFallEffectPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(nextPacketId++, SyncManaManeuverGearJumpPacket.class,
                 SyncManaManeuverGearJumpPacket::encode, SyncManaManeuverGearJumpPacket::decode, SyncManaManeuverGearJumpPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
