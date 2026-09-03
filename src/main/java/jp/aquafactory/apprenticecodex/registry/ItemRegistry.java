@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBlad
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
+import jp.aquafactory.apprenticecodex.item.curios.manamaneuvergear.ManaManeuverGear;
 import jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm.MonarchBondCharm;
 import jp.aquafactory.apprenticecodex.item.curios.undyingemblem.UndyingEmblem;
 import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCase;
@@ -345,6 +346,8 @@ public final class ItemRegistry {
             ITEMS.register("satellite_followcast_amulet", SatelliteFollowcastAmulet::new);
     public static final RegistryObject<Item> MANA_THRUSTER =
             ITEMS.register("mana_thruster", ManaThruster::new);
+    public static final RegistryObject<Item> MANA_MANEUVER_GEAR =
+            ITEMS.register("mana_maneuver_gear", ManaManeuverGear::new);
     public static final RegistryObject<Item> MAGI_COMPRESSOR_GADGET =
             ITEMS.register("magi_compressor_gadget", MagiCompressorGadget::new);
     public static final RegistryObject<Item> JUMPCAST_CHARM =
