@@ -31,6 +31,7 @@ public final class ManaManeuverGearDamageLogic {
         var incomingDamage = event.getAmount();
         var manaPerDamage = Math.max(0.0F, ApprenticeCodexServerConfig.manaManeuverGearManaPerDamage());
         if (manaPerDamage <= 0.0F) {
+            ManaManeuverGearEffects.playFallDamageReduction(player, incomingDamage);
             event.setCanceled(true);
             return;
         }
@@ -44,6 +45,7 @@ public final class ManaManeuverGearDamageLogic {
         var spentMana = reducedDamage * manaPerDamage;
         magicData.setMana(Math.max(0.0F, currentMana - spentMana));
         syncMana(player, magicData);
+        ManaManeuverGearEffects.playFallDamageReduction(player, reducedDamage);
 
         var remainingDamage = incomingDamage - reducedDamage;
         if (remainingDamage <= EPSILON) {

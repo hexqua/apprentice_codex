@@ -27,6 +27,7 @@ import java.util.UUID;
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ManaManeuverGearManager {
     private static final Map<UUID, Long> LAST_WALL_JUMP_GAME_TIME = new HashMap<>();
+    private static final Map<UUID, Long> LAST_WALL_SLIDE_GAME_TIME = new HashMap<>();
 
     private ManaManeuverGearManager() {
     }
@@ -71,6 +72,7 @@ public final class ManaManeuverGearManager {
         var impulse = ManaManeuverGearMovement.wallJumpImpulse(player.getLookAngle());
         ManaManeuverGearMovement.applyWallJump(player, impulse);
         LAST_WALL_JUMP_GAME_TIME.put(player.getUUID(), gameTime);
+        LAST_WALL_SLIDE_GAME_TIME.remove(player.getUUID());
 
         if (manaCost > 0) {
             magicData.setMana(Math.max(0.0F, magicData.getMana() - manaCost));
@@ -79,6 +81,7 @@ public final class ManaManeuverGearManager {
         if (!(player instanceof FakePlayer)) {
             Networks.sendToPlayer(player, new SyncManaManeuverGearJumpPacket(impulse));
         }
+        ManaManeuverGearEffects.playWallJump(player);
         return true;
     }
 
@@ -88,10 +91,15 @@ public final class ManaManeuverGearManager {
                 || !isEquipped(player)
                 || !ManaManeuverGearMovement.isTouchingWall(player)
                 || player.getDeltaMovement().y >= 0.0D) {
+            LAST_WALL_SLIDE_GAME_TIME.remove(player.getUUID());
             return false;
         }
 
         ManaManeuverGearMovement.applyWallSlide(player);
+        var gameTime = player.level().getGameTime();
+        var previousGameTime = LAST_WALL_SLIDE_GAME_TIME.put(player.getUUID(), gameTime);
+        var started = previousGameTime == null || previousGameTime + 1L < gameTime;
+        ManaManeuverGearEffects.playWallSlide(player, started);
         return true;
     }
 
@@ -107,6 +115,7 @@ public final class ManaManeuverGearManager {
 
     public static void clear(ServerPlayer player) {
         LAST_WALL_JUMP_GAME_TIME.remove(player.getUUID());
+        LAST_WALL_SLIDE_GAME_TIME.remove(player.getUUID());
     }
 
     private static boolean isPrimaryEquippedCurio(SlotContext slotContext) {

@@ -27,6 +27,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPack
 import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HeavenlyFistPulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
+import jp.aquafactory.apprenticecodex.network.packet.ManaManeuverGearFallEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowConfigPacket;
@@ -93,7 +94,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "94";
+    private static final String PROTOCOL_VERSION = "95";
 
     private Networks() {
     }
@@ -263,6 +264,11 @@ public final class Networks {
                 SyncManaManeuverGearJumpPacket.TYPE,
                 SyncManaManeuverGearJumpPacket.STREAM_CODEC,
                 SyncManaManeuverGearJumpPacket::handle
+        );
+        registrar.playToClient(
+                ManaManeuverGearFallEffectPacket.TYPE,
+                ManaManeuverGearFallEffectPacket.STREAM_CODEC,
+                ManaManeuverGearFallEffectPacket::handle
         );
         registrar.playToClient(
                 SyncManaForceBladeConfigPacket.TYPE,
