@@ -372,7 +372,7 @@
   "item.apprenticecodex.mana_thruster.desc_1": "在空中按住[%s]时，消耗法力值加速上升。",
   "item.apprenticecodex.mana_thruster.desc_2": "该推进器本身不会提供摔落伤害免疫。",
   "item.apprenticecodex.mana_maneuver_gear.desc_1": "在空中接触墙壁时按下[%s]，消耗法力值朝视线方向短暂跳跃。",
-  "item.apprenticecodex.mana_maneuver_gear.desc_2": "接触墙壁时潜行，可沿墙壁缓慢滑落。",
+  "item.apprenticecodex.mana_maneuver_gear.desc_2": "接触墙壁时，会沿墙壁缓慢滑落。",
   "item.apprenticecodex.mana_maneuver_gear.desc_3": "受到摔落伤害时，会尝试消耗法力值来减轻伤害。",
   "ui.apprenticecodex.mana_maneuver_gear.insufficient_mana": "法力值不足，无法跳跃！",
   "item.apprenticecodex.magi_compressor_gadget.desc_1": "消耗法力值，储存少量压缩空气。",
