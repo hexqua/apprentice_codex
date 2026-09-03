@@ -22,8 +22,7 @@ public final class ManaShieldCharmEvents {
         }
 
         if (event.getEntity() instanceof ServerPlayer player) {
-            // Shield が継続ヒットを拒否する間は、先行する Gear に無効な落下のマナを消費させない。
-            if (ManaShieldCharmLogic.cancelDuringVanillaStyleIFrame(event, player)) {
+            if (ManaDefenseImmunityResolver.cancelIfImmune(event, player)) {
                 return;
             }
             // 同一イベント内でGearを先に処理し、残ったダメージだけをMana Shieldへ渡す。

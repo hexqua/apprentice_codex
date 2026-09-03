@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import jp.aquafactory.apprenticecodex.capability.Capabilities;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.curios.manamaneuvergear.ManaManeuverGear;
@@ -305,6 +307,24 @@ final class ManaManeuverGearGameTestScenarios extends ApprenticeCodexGameTestSce
             }
             helper.assertTrue(Math.abs(iframeMana.getMana() - 20.0F) < EPSILON,
                     "Fall damage rejected by Mana Shield i-frame should not spend Gear mana");
+
+            var miragePlayer = createGearPlayer(helper, "mana_maneuver_mirage_immunity");
+            var mirageMana = magicData(helper, miragePlayer, "Mirage Avoidance immunity");
+            mirageMana.setMana(7.5F);
+            Capabilities.withSpellData(miragePlayer, data -> data.edit(
+                    CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE,
+                    state -> state.invulnerableUntilGameTime = helper.getLevel().getGameTime() + 15
+            ));
+            try (var ignored = ApprenticeCodexServerConfig.useManaManeuverGearConfigOverrideForGameTest(10, 5.0D)) {
+                var mirage = postLivingAttackEventForGameTest(
+                        miragePlayer, helper.getLevel().damageSources().fall(), 3.5F);
+                helper.assertTrue(mirage.isCanceled(),
+                        "Mirage Avoidance should cancel fall damage before Gear absorption");
+                helper.assertTrue(Math.abs(mirage.getAmount() - 3.5F) < EPSILON,
+                        "Mirage Avoidance immunity should preserve damage before resource-consuming defenses");
+            }
+            helper.assertTrue(Math.abs(mirageMana.getMana() - 7.5F) < EPSILON,
+                    "Fall damage rejected by Mirage Avoidance should not spend Gear mana");
 
             var genericPlayer = createGearPlayer(helper, "mana_maneuver_generic_damage");
             var genericMana = magicData(helper, genericPlayer, "generic damage");

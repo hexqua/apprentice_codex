@@ -52,7 +52,7 @@ public final class MirageAvoidanceEvents {
         }
 
         var player = event.player;
-        var spellData = Capabilities.getSpellDataOrNull(player);
+        var spellData = player.getCapability(Capabilities.SPELL_DATA).orElse(null);
         if (spellData == null) {
             return;
         }
@@ -87,19 +87,25 @@ public final class MirageAvoidanceEvents {
 
     @SubscribeEvent
     public static void onLivingAttack(LivingAttackEvent event) {
+        cancelIncomingDamageIfInvulnerable(event);
+    }
+
+    public static boolean cancelIncomingDamageIfInvulnerable(LivingAttackEvent event) {
         if (!(event.getEntity() instanceof Player player)) {
-            return;
+            return false;
         }
 
-        var spellData = Capabilities.getSpellDataOrNull(player);
+        var spellData = player.getCapability(Capabilities.SPELL_DATA).orElse(null);
         if (spellData == null) {
-            return;
+            return false;
         }
 
         var state = spellData.get(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE);
         if (isInvulnerable(player.level(), state)) {
             event.setCanceled(true);
+            return true;
         }
+        return false;
     }
 
     @SubscribeEvent
@@ -183,7 +189,7 @@ public final class MirageAvoidanceEvents {
     }
 
     public static boolean isInputLocked(Player player) {
-        var spellData = Capabilities.getSpellDataOrNull(player);
+        var spellData = player.getCapability(Capabilities.SPELL_DATA).orElse(null);
         if (spellData == null) {
             return false;
         }
