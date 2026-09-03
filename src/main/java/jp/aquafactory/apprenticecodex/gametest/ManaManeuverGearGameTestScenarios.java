@@ -58,14 +58,23 @@ final class ManaManeuverGearGameTestScenarios extends ApprenticeCodexGameTestSce
             helper.assertTrue(jumped, "Mana Maneuver Gear should wall jump when all server conditions pass");
             helper.assertTrue(Math.abs(player.getDeltaMovement().x - 0.5D) < 1.0e-4D,
                     "Wall jump should preserve and add to horizontal velocity: " + player.getDeltaMovement());
-            helper.assertTrue(Math.abs(player.getDeltaMovement().y) < 1.0e-4D,
-                    "Horizontal wall jump should replace falling Y velocity: " + player.getDeltaMovement());
+            helper.assertTrue(Math.abs(player.getDeltaMovement().y
+                            - ManaManeuverGearMovement.WALL_JUMP_BASE_Y_ACCELERATION) < 1.0e-4D,
+                    "Horizontal wall jump should apply the base upward acceleration: " + player.getDeltaMovement());
             helper.assertTrue(Math.abs(player.getDeltaMovement().z - 0.2D) < 1.0e-4D,
                     "Wall jump should preserve unrelated horizontal velocity: " + player.getDeltaMovement());
             helper.assertTrue(Math.abs(magicData.getMana() - 10.0F) < EPSILON,
                     "Wall jump should spend the configured mana cost: " + magicData.getMana());
             helper.assertTrue(Math.abs(player.fallDistance) < EPSILON,
                     "Wall jump should reset fall distance");
+
+            var upwardImpulse = ManaManeuverGearMovement.wallJumpImpulse(new Vec3(0.0D, 1.0D, 0.0D));
+            helper.assertTrue(Math.abs(upwardImpulse.y - 0.6D) < 1.0e-4D,
+                    "Looking upward should add a smaller upward bonus: " + upwardImpulse);
+            var downwardImpulse = ManaManeuverGearMovement.wallJumpImpulse(new Vec3(0.0D, -1.0D, 0.0D));
+            helper.assertTrue(Math.abs(downwardImpulse.y
+                            - ManaManeuverGearMovement.WALL_JUMP_BASE_Y_ACCELERATION) < 1.0e-4D,
+                    "Looking downward should not reduce the base upward acceleration: " + downwardImpulse);
         });
     }
 
@@ -141,12 +150,12 @@ final class ManaManeuverGearGameTestScenarios extends ApprenticeCodexGameTestSce
     static void wallSlideClampsFallingSpeedAndResetsFallDistance(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createGearPlayerTouchingWall(helper, "mana_maneuver_wall_slide");
-            player.setShiftKeyDown(true);
+            player.setShiftKeyDown(false);
             player.setDeltaMovement(new Vec3(0.2D, -0.6D, -0.1D));
             player.fallDistance = 9.0F;
 
             helper.assertTrue(ManaManeuverGearManager.tickWallSlide(player),
-                    "Sneaking while falling against a wall should activate wall slide");
+                    "Falling against a wall should activate wall slide without sneaking");
             helper.assertTrue(Math.abs(player.getDeltaMovement().y
                             - ManaManeuverGearMovement.WALL_SLIDE_MINIMUM_Y_SPEED) < 1.0e-4D,
                     "Wall slide should clamp vertical speed: " + player.getDeltaMovement());
@@ -165,15 +174,6 @@ final class ManaManeuverGearGameTestScenarios extends ApprenticeCodexGameTestSce
             helper.assertTrue(Math.abs(player.fallDistance) < EPSILON,
                     "An active mild wall slide should still reset fall distance");
 
-            player.setShiftKeyDown(false);
-            player.setDeltaMovement(new Vec3(0.0D, -0.5D, 0.0D));
-            player.fallDistance = 4.0F;
-            helper.assertFalse(ManaManeuverGearManager.tickWallSlide(player),
-                    "Wall slide should require sneaking");
-            helper.assertTrue(Math.abs(player.fallDistance - 4.0F) < EPSILON,
-                    "Inactive wall slide should preserve fall distance");
-
-            player.setShiftKeyDown(true);
             player.setDeltaMovement(new Vec3(0.0D, 0.1D, 0.0D));
             helper.assertFalse(ManaManeuverGearManager.tickWallSlide(player),
                     "Wall slide should not activate while rising");

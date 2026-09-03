@@ -11,7 +11,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.util.FakePlayer;
@@ -69,10 +68,7 @@ public final class ManaManeuverGearManager {
             return false;
         }
 
-        var direction = player.getLookAngle();
-        var impulse = direction.lengthSqr() < 1.0e-6D
-                ? Vec3.ZERO
-                : direction.normalize().scale(ManaManeuverGearMovement.WALL_JUMP_ACCELERATION);
+        var impulse = ManaManeuverGearMovement.wallJumpImpulse(player.getLookAngle());
         ManaManeuverGearMovement.applyWallJump(player, impulse);
         LAST_WALL_JUMP_GAME_TIME.put(player.getUUID(), gameTime);
 
@@ -88,7 +84,6 @@ public final class ManaManeuverGearManager {
 
     public static boolean tickWallSlide(ServerPlayer player) {
         if (player.onGround()
-                || !player.isShiftKeyDown()
                 || isWallMovementBlocked(player)
                 || !isEquipped(player)
                 || !ManaManeuverGearMovement.isTouchingWall(player)
