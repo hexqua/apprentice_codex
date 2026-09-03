@@ -81,6 +81,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
             "apprenticecodex.mana_shield_charm_iframe_config";
     private static final String MANA_THRUSTER_CONFIG_BATCH =
             "apprenticecodex.mana_thruster_config";
+    private static final String MANA_MANEUVER_GEAR_CONFIG_BATCH =
+            "apprenticecodex.mana_maneuver_gear_config";
     private static final String MAGI_COMPRESSOR_GADGET_CONFIG_BATCH =
             "apprenticecodex.magi_compressor_gadget_config";
     private static final String ABSORPTION_AMPLIFY_AMULET_CONFIG_BATCH =
@@ -805,6 +807,51 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
     public static void manaThrusterAppliesFixedThrustAndUsesServerConfigManaCost(GameTestHelper helper) {
         ManaThrusterGameTestScenarios.manaThrusterAppliesFixedThrustAndUsesServerConfigManaCost(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaManeuverGearUsesFeetSlotAndDedicatedImplementation(GameTestHelper helper) {
+        ManaManeuverGearGameTestScenarios.usesFeetSlotAndDedicatedImplementation(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_MANEUVER_GEAR_CONFIG_BATCH)
+    public static void manaManeuverGearWallJumpUsesConfiguredManaAndPreservesHorizontalVelocity(GameTestHelper helper) {
+        ManaManeuverGearGameTestScenarios.wallJumpUsesConfiguredManaAndPreservesHorizontalVelocity(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_MANEUVER_GEAR_CONFIG_BATCH)
+    public static void manaManeuverGearWallJumpRejectsGroundInsufficientManaAndRepeatedTick(GameTestHelper helper) {
+        ManaManeuverGearGameTestScenarios.wallJumpRejectsGroundInsufficientManaAndRepeatedTick(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_MANEUVER_GEAR_CONFIG_BATCH)
+    public static void manaManeuverGearWallJumpRequiresWallButAllowsFreeCreativeFlightContext(GameTestHelper helper) {
+        ManaManeuverGearGameTestScenarios.wallJumpRequiresWallButAllowsFreeCreativeFlightContext(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_MANEUVER_GEAR_CONFIG_BATCH)
+    public static void manaManeuverGearWallMovementRejectsClimbablesAndScaffolding(GameTestHelper helper) {
+        ManaManeuverGearGameTestScenarios.wallMovementRejectsClimbablesAndScaffolding(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_MANEUVER_GEAR_CONFIG_BATCH)
+    public static void manaManeuverGearWallSlideClampsFallingSpeedAndResetsFallDistance(GameTestHelper helper) {
+        ManaManeuverGearGameTestScenarios.wallSlideClampsFallingSpeedAndResetsFallDistance(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_MANEUVER_GEAR_CONFIG_BATCH)
+    public static void manaManeuverGearFallDamageUsesFractionalManaAndKeepsFallDistance(GameTestHelper helper) {
+        ManaManeuverGearGameTestScenarios.fallDamageUsesFractionalManaPerDamageAndKeepsFallDistance(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_MANEUVER_GEAR_CONFIG_BATCH)
+    public static void manaManeuverGearFallDamageSupportsFullFreeAndZeroManaOutcomes(GameTestHelper helper) {
+        ManaManeuverGearGameTestScenarios.fallDamageSupportsFullFreeAndZeroManaOutcomes(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_MANEUVER_GEAR_CONFIG_BATCH)
+    public static void manaManeuverGearRunsBeforeManaShieldAndIgnoresOtherDamage(GameTestHelper helper) {
+        ManaManeuverGearGameTestScenarios.gearRunsBeforeManaShieldAndIgnoresOtherDamage(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)

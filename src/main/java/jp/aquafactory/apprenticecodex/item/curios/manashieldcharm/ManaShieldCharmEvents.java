@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.curios.manashieldcharm;
 
 import io.redspace.ironsspellbooks.api.events.CounterSpellEvent;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.curios.manamaneuvergear.ManaManeuverGearDamageLogic;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -21,7 +22,11 @@ public final class ManaShieldCharmEvents {
         }
 
         if (event.getEntity() instanceof ServerPlayer player) {
-            ManaShieldCharmLogic.onLivingAttack(event, player);
+            // 同一イベント内でGearを先に処理し、残ったダメージだけをMana Shieldへ渡す。
+            ManaManeuverGearDamageLogic.reduceFallDamage(event, player);
+            if (!event.isCanceled() && event.getAmount() > 0.0F) {
+                ManaShieldCharmLogic.onLivingAttack(event, player);
+            }
         }
     }
 
