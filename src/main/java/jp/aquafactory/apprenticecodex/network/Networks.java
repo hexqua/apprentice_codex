@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearSlidePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearJumpPacket;
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.AlchemyBrewerWaterSupplyEffectPacket;
@@ -111,6 +112,9 @@ public final class Networks {
     }
 
     public static void register() {
+        CHANNEL.registerMessage(nextPacketId++, SyncManaManeuverGearSlidePacket.class,
+                SyncManaManeuverGearSlidePacket::encode, SyncManaManeuverGearSlidePacket::decode, SyncManaManeuverGearSlidePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(nextPacketId++, ManaManeuverGearFallEffectPacket.class,
                 ManaManeuverGearFallEffectPacket::encode, ManaManeuverGearFallEffectPacket::decode, ManaManeuverGearFallEffectPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));

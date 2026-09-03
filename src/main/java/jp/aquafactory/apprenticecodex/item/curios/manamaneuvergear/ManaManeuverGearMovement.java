@@ -60,8 +60,6 @@ public final class ManaManeuverGearMovement {
 
         entity.setDeltaMovement(currentVelocity.x, WALL_SLIDE_MINIMUM_Y_SPEED, currentVelocity.z);
         entity.hasImpulse = true;
-        // 壁滑りはサーバーだけで判定するため、操作中の本人にも制限後の落下速度を明示的に同期する。
-        entity.hurtMarked = true;
         entity.fallDistance = 0.0F;
         return true;
     }

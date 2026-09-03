@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.curios.manamaneuvergear.ManaManeuverGear;
 import jp.aquafactory.apprenticecodex.item.curios.manamaneuvergear.ManaManeuverGearManager;
 import jp.aquafactory.apprenticecodex.item.curios.manamaneuvergear.ManaManeuverGearMovement;
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearSlidePacket;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -165,6 +166,13 @@ final class ManaManeuverGearGameTestScenarios extends ApprenticeCodexGameTestSce
             helper.assertTrue(Math.abs(player.fallDistance) < EPSILON,
                     "Wall slide should reset fall distance");
 
+            player.setDeltaMovement(new Vec3(0.45D, -0.6D, -0.35D));
+            SyncManaManeuverGearSlidePacket.applyTo(player, ManaManeuverGearMovement.WALL_SLIDE_MINIMUM_Y_SPEED);
+            helper.assertTrue(Math.abs(player.getDeltaMovement().x - 0.45D) < 1.0e-4D
+                            && Math.abs(player.getDeltaMovement().z + 0.35D) < 1.0e-4D,
+                    "Wall slide synchronization should preserve client horizontal velocity: "
+                            + player.getDeltaMovement());
+
             player.setDeltaMovement(new Vec3(0.0D, -0.05D, 0.0D));
             player.fallDistance = 3.0F;
             helper.assertTrue(ManaManeuverGearManager.tickWallSlide(player),
@@ -253,6 +261,24 @@ final class ManaManeuverGearGameTestScenarios extends ApprenticeCodexGameTestSce
                     "Mana Shield should receive only the damage left after Gear: " + partial.amount());
             helper.assertTrue(player.invulnerableTime == 0,
                     "A depleted Mana Shield should not create invulnerability after partial Gear absorption");
+
+            var iframePlayer = createGearPlayer(helper, "mana_maneuver_shield_iframe");
+            equipCurio(iframePlayer, CuriosSlotConstants.CHARM,
+                    new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+            var iframeMana = magicData(helper, iframePlayer, "Mana Shield i-frame");
+            iframeMana.setMana(20.0F);
+            iframePlayer.invulnerableTime = 15;
+            try (var gearConfig = ApprenticeCodexServerConfig.useManaManeuverGearConfigOverrideForGameTest(10, 5.0D);
+                 var shieldConfig = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
+                         25.0D, 100, 50, 15.0D, 30.0D, 50, 100, 1, 20
+                 )) {
+                var iframe = postLivingAttackEventForGameTest(
+                        iframePlayer, helper.getLevel().damageSources().fall(), 3.0F);
+                helper.assertTrue(iframe.isCanceled(),
+                        "Mana Shield i-frame should cancel fall damage before Gear absorption");
+            }
+            helper.assertTrue(Math.abs(iframeMana.getMana() - 20.0F) < EPSILON,
+                    "Fall damage rejected by Mana Shield i-frame should not spend Gear mana");
 
             var genericPlayer = createGearPlayer(helper, "mana_maneuver_generic_damage");
             var genericMana = magicData(helper, genericPlayer, "generic damage");
