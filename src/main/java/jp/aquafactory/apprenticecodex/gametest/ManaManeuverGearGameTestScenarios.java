@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
@@ -20,6 +21,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LadderBlock;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
+
+import java.util.UUID;
 
 final class ManaManeuverGearGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private static final float EPSILON = 1.0e-4F;
@@ -103,6 +106,29 @@ final class ManaManeuverGearGameTestScenarios extends ApprenticeCodexGameTestSce
                 helper.assertTrue(Math.abs(magicData.getMana() - 10.0F) < EPSILON,
                         "A repeated same-tick request should not spend mana twice");
             }
+        });
+    }
+
+    static void wallJumpRejectsPassengerWithoutSpendingMana(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createPassengerGearPlayerTouchingWall(helper);
+            var magicData = magicData(helper, player, "passenger wall jump rejection");
+            magicData.setMana(20.0F);
+            player.setDeltaMovement(new Vec3(0.1D, -0.7D, 0.2D));
+            helper.assertTrue(player.isPassenger(),
+                    "Mana Maneuver Gear passenger rejection test should mount the player");
+            var movementBeforeRequest = player.getDeltaMovement();
+
+            boolean jumped;
+            try (var ignored = ApprenticeCodexServerConfig.useManaManeuverGearConfigOverrideForGameTest(10, 5.0D)) {
+                jumped = ManaManeuverGearManager.tryWallJump(player);
+            }
+
+            helper.assertFalse(jumped, "Mana Maneuver Gear should not wall jump while the player is riding");
+            helper.assertTrue(player.getDeltaMovement().equals(movementBeforeRequest),
+                    "A rejected passenger wall jump should preserve player velocity: " + player.getDeltaMovement());
+            helper.assertTrue(Math.abs(magicData.getMana() - 20.0F) < EPSILON,
+                    "A rejected passenger wall jump should not spend mana: " + magicData.getMana());
         });
     }
 
@@ -312,6 +338,27 @@ final class ManaManeuverGearGameTestScenarios extends ApprenticeCodexGameTestSce
         helper.getLevel().setBlock(player.blockPosition().east(), Blocks.STONE.defaultBlockState(), 3);
         helper.assertTrue(ManaManeuverGearMovement.isTouchingWall(player),
                 "Mana Maneuver Gear test setup should place the player against a wall");
+        return player;
+    }
+
+    private static FakePlayer createPassengerGearPlayerTouchingWall(GameTestHelper helper) {
+        var player = new FakePlayer(
+                helper.getLevel(),
+                new GameProfile(UUID.randomUUID(), "mana_maneuver_passenger_rejection")
+        ) {
+            @Override
+            public boolean isPassenger() {
+                return true;
+            }
+        };
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 2, 0)));
+        player.setPos(absolutePos.x + 0.2D, absolutePos.y, absolutePos.z);
+        equipCurio(player, CuriosSlotConstants.FEET, new ItemStack(ItemRegistry.MANA_MANEUVER_GEAR.get()));
+        helper.getLevel().setBlock(player.blockPosition().east(), Blocks.STONE.defaultBlockState(), 3);
+        helper.assertTrue(ManaManeuverGearMovement.isTouchingWall(player),
+                "Mana Maneuver Gear passenger rejection test should place the player against a wall");
+        ManaManeuverGearManager.clear(player);
         return player;
     }
 

@@ -825,6 +825,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = MANA_MANEUVER_GEAR_CONFIG_BATCH)
+    public static void manaManeuverGearWallJumpRejectsPassengerWithoutSpendingMana(GameTestHelper helper) {
+        ManaManeuverGearGameTestScenarios.wallJumpRejectsPassengerWithoutSpendingMana(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_MANEUVER_GEAR_CONFIG_BATCH)
     public static void manaManeuverGearWallJumpRequiresWallButAllowsFreeCreativeFlightContext(GameTestHelper helper) {
         ManaManeuverGearGameTestScenarios.wallJumpRequiresWallButAllowsFreeCreativeFlightContext(helper);
     }

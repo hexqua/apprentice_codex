@@ -46,7 +46,11 @@ public final class ManaManeuverGearManager {
     }
 
     public static boolean tryWallJump(ServerPlayer player) {
-        if (player.isSpectator() || player.onGround() || isWallMovementBlocked(player) || !isEquipped(player)) {
+        if (player.isSpectator()
+                || player.isPassenger()
+                || player.onGround()
+                || isWallMovementBlocked(player)
+                || !isEquipped(player)) {
             return false;
         }
         if (!ManaManeuverGearMovement.isTouchingWall(player)) {
