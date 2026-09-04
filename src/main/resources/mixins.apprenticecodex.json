@@ -49,6 +49,7 @@
     "ItemCostMixin",
     "MagicDataMixin",
     "MagicManagerMixin",
+    "MalumAscensionParticleMixin",
     "MalumHiddenBladeParticleMixin",
     "MalumReaperGeasParticleMixin",
     "MalumReplenishingOffhandMixin",
