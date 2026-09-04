@@ -52,6 +52,8 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.KeybindContents;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.server.level.ServerLevel;
+import org.jetbrains.annotations.NotNull;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.util.Mth;
@@ -76,6 +78,11 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.BubbleColumnBlock;
 import net.minecraft.world.level.block.SculkSensorBlock;
 import net.minecraft.world.level.block.state.properties.SculkSensorPhase;
+import net.minecraft.world.level.gameevent.BlockPositionSource;
+import net.minecraft.world.level.gameevent.DynamicGameEventListener;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.gameevent.GameEventListener;
+import net.minecraft.world.level.gameevent.PositionSource;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
@@ -158,10 +165,14 @@ public final class FloatmountBroomGameTests {
     @GameTest(template = TEMPLATE, timeoutTicks = 40)
     public static void unoccupiedBroomDoesNotEmitFlightVibration(GameTestHelper helper) {
         spawnBroom(helper, 1.5D);
-        placeVibrationSensor(helper);
+        var eventListener = new LocalElytraGlideListener(helper.absolutePos(TEST_POS));
+        var dynamicListener = new DynamicGameEventListener<GameEventListener>(eventListener);
+        dynamicListener.add(helper.getLevel());
 
         helper.runAfterDelay(25, () -> {
-            helper.assertFalse(isVibrationSensorActive(helper),
+            dynamicListener.remove(helper.getLevel());
+            // 実スカルクセンサーは並列配置された近隣GameTestの飛行振動も拾うため、この箒の近傍だけを監視する。
+            helper.assertFalse(eventListener.received(),
                     "An unoccupied broom must not emit an Elytra flight vibration");
             helper.succeed();
         });
@@ -2704,6 +2715,42 @@ public final class FloatmountBroomGameTests {
 
     private static void assertVibrationSensorActive(GameTestHelper helper, String message) {
         helper.assertTrue(isVibrationSensorActive(helper), message);
+    }
+
+    private static final class LocalElytraGlideListener implements GameEventListener {
+        private final PositionSource positionSource;
+        private boolean received;
+
+        private LocalElytraGlideListener(BlockPos position) {
+            positionSource = new BlockPositionSource(position);
+        }
+
+        @Override
+        public @NotNull PositionSource getListenerSource() {
+            return positionSource;
+        }
+
+        @Override
+        public int getListenerRadius() {
+            return 2;
+        }
+
+        @Override
+        public boolean handleGameEvent(
+                @NotNull ServerLevel level,
+                @NotNull GameEvent gameEvent,
+                @NotNull GameEvent.Context context,
+                @NotNull Vec3 sourcePosition
+        ) {
+            if (gameEvent.equals(GameEvent.ELYTRA_GLIDE)) {
+                received = true;
+            }
+            return true;
+        }
+
+        private boolean received() {
+            return received;
+        }
     }
 
     private static HoverrideBroomServerConfig.Values rushTestConfig(double forwardManaCost) {
