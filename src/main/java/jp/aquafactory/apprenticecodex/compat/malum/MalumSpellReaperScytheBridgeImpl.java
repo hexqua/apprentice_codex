@@ -2,15 +2,20 @@ package jp.aquafactory.apprenticecodex.compat.malum;
 
 import com.sammy.malum.common.item.IMalumEventResponder;
 import com.sammy.malum.common.item.curiosities.weapons.scythe.MalumScytheItem;
+import com.sammy.malum.core.handlers.enchantment.AscensionHandler;
 import com.sammy.malum.registry.common.MalumDamageTypes;
 import com.sammy.malum.registry.common.MalumParticleEffectTypes;
 import com.sammy.malum.registry.common.MalumSoundEvents;
+import com.sammy.malum.registry.common.enchantment.EnchantmentKeys;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import team.lodestar.lodestone.handlers.ItemEventHandler;
 import team.lodestar.lodestone.helpers.SoundHelper;
@@ -44,6 +49,21 @@ final class MalumSpellReaperScytheBridgeImpl {
 
     static boolean shouldUseNoSweepCombo(LivingEntity attacker) {
         return !MalumScytheItem.canSweep(attacker);
+    }
+
+    static boolean tryTriggerAscension(
+            Level level,
+            Player player,
+            InteractionHand hand,
+            ItemStack stack
+    ) {
+        if (EnchantmentKeys.getEnchantmentLevel(level, EnchantmentKeys.ASCENSION, stack) <= 0) {
+            return false;
+        }
+
+        // 本家処理へ委譲し、Curios・Geas・damage type・cooldownの版固有仕様を重複実装しない。
+        AscensionHandler.triggerAscension(level, player, hand, stack);
+        return true;
     }
 
     private static final class SpellReaperScytheResponder implements IMalumEventResponder {

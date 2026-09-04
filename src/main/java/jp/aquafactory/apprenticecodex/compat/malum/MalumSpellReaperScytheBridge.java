@@ -1,6 +1,10 @@
 package jp.aquafactory.apprenticecodex.compat.malum;
 
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -21,6 +25,23 @@ public final class MalumSpellReaperScytheBridge {
         return attacker != null
                 && isAvailable()
                 && MalumSpellReaperScytheBridgeImpl.shouldUseNoSweepCombo(attacker);
+    }
+
+    public static boolean tryTriggerAscension(
+            Level level,
+            Player player,
+            InteractionHand hand,
+            ItemStack stack
+    ) {
+        if (!isAvailable() || stack.isEmpty()) {
+            return false;
+        }
+
+        try {
+            return MalumSpellReaperScytheBridgeImpl.tryTriggerAscension(level, player, hand, stack);
+        } catch (LinkageError error) {
+            throw new IllegalStateException("Failed to trigger Malum Ascension for Spell Reaper Scythe", error);
+        }
     }
 
     private static void onCommonSetup(FMLCommonSetupEvent event) {

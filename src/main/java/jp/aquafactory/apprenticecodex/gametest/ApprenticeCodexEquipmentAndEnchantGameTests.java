@@ -2244,6 +2244,36 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellReaperScytheRightClickWithoutAscensionIsNoOp(GameTestHelper helper) {
+        SpellReaperScytheGameTestScenarios.spellReaperScytheRightClickWithoutAscensionIsNoOp(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellReaperScytheRightClickWithReboundAloneIsNoOp(GameTestHelper helper) {
+        SpellReaperScytheGameTestScenarios.spellReaperScytheRightClickWithReboundAloneIsNoOp(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellReaperScytheRightClickTriggersMalumAscension(GameTestHelper helper) {
+        SpellReaperScytheGameTestScenarios.spellReaperScytheRightClickTriggersMalumAscension(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellReaperScytheAscensionLevelControlsCooldown(GameTestHelper helper) {
+        SpellReaperScytheGameTestScenarios.spellReaperScytheAscensionLevelControlsCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellReaperScytheAscensionWinsOverForcedRebound(GameTestHelper helper) {
+        SpellReaperScytheGameTestScenarios.spellReaperScytheAscensionWinsOverForcedRebound(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellReaperScytheAscensionUsesMalumCurios(GameTestHelper helper) {
+        SpellReaperScytheGameTestScenarios.spellReaperScytheAscensionUsesMalumCurios(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellReaperScytheBetterCombatKeepsNormalComboWhenSweepAllowed(GameTestHelper helper) {
         SpellReaperScytheGameTestScenarios.spellReaperScytheBetterCombatKeepsNormalComboWhenSweepAllowed(helper);
     }

@@ -12,13 +12,16 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.fml.ModList;
@@ -33,6 +36,20 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     private static final ResourceKey<DamageType> MALUM_SCYTHE_SWEEP = ResourceKey.create(
             Registries.DAMAGE_TYPE,
             ResourceLocation.fromNamespaceAndPath(MalumCompatibility.MOD_ID, "scythe_sweep")
+    );
+    private static final ResourceKey<DamageType> MALUM_SCYTHE_ASCENSION = ResourceKey.create(
+            Registries.DAMAGE_TYPE,
+            ResourceLocation.fromNamespaceAndPath(MalumCompatibility.MOD_ID, "scythe_ascension")
+    );
+    private static final ResourceKey<Enchantment> MALUM_ASCENSION = malumEnchantmentKey("ascension");
+    private static final ResourceKey<Enchantment> MALUM_REBOUND = malumEnchantmentKey("rebound");
+    private static final ResourceLocation MALUM_ASCENSION_EFFECT = ResourceLocation.fromNamespaceAndPath(
+            MalumCompatibility.MOD_ID,
+            "ascension"
+    );
+    private static final ResourceLocation MALUM_SCYTHE_BOOMERANG = ResourceLocation.fromNamespaceAndPath(
+            MalumCompatibility.MOD_ID,
+            "scythe_boomerang"
     );
     private static final float DAMAGE_TOLERANCE = 1.0E-4F;
 
@@ -118,6 +135,122 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
 
     static void spellReaperScytheDoesNotSweepWithHiddenBlade(GameTestHelper helper) {
         assertMalumNecklacePreventsSweep(helper, "necklace_of_the_hidden_blade", "hidden_blade");
+    }
+
+    static void spellReaperScytheRightClickWithoutAscensionIsNoOp(GameTestHelper helper) {
+        var player = prepareUsePlayer(helper, "spell_reaper_no_ascension");
+        var stack = player.getMainHandItem();
+        var item = stack.getItem();
+        var result = item.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+
+        helper.assertTrue(result.getResult() == InteractionResult.PASS,
+                "Spell Reaper Scythe without Ascension should pass right-click");
+        helper.assertFalse(player.getCooldowns().isOnCooldown(item),
+                "Spell Reaper Scythe without Ascension should not start a cooldown");
+        helper.assertTrue(player.getActiveEffects().stream().noneMatch(SpellReaperScytheGameTestScenarios::isAscensionEffect),
+                "Spell Reaper Scythe without Ascension should not grant the Ascension effect");
+        helper.succeed();
+    }
+
+    static void spellReaperScytheRightClickWithReboundAloneIsNoOp(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var player = prepareUsePlayer(helper, "spell_reaper_rebound_noop");
+        var stack = player.getMainHandItem();
+        enchantMalum(helper, stack, MALUM_REBOUND, 1);
+        var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+
+        helper.assertTrue(result.getResult() == InteractionResult.PASS,
+                "Rebound alone should remain a no-op until Spell Reaper throwing is implemented");
+        helper.assertFalse(player.getCooldowns().isOnCooldown(stack.getItem()),
+                "Rebound alone should not start a cooldown");
+        helper.assertFalse(hasMalumScytheBoomerang(helper),
+                "Rebound alone should not spawn a Malum scythe boomerang");
+        helper.succeed();
+    }
+
+    static void spellReaperScytheRightClickTriggersMalumAscension(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var context = prepareAscensionUse(helper, "spell_reaper_ascension", 1);
+        var result = context.stack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
+
+        helper.assertTrue(result.getResult().consumesAction(),
+                "Ascension should consume Spell Reaper Scythe right-click");
+        helper.assertTrue(context.target().getHealth() < context.initialTargetHealth(),
+                "Ascension should damage a valid nearby target");
+        helper.assertTrue(context.target().getLastDamageSource() != null
+                        && context.target().getLastDamageSource().is(MALUM_SCYTHE_ASCENSION),
+                "Ascension physical damage should use malum:scythe_ascension");
+        helper.assertTrue(context.player().getActiveEffects().stream()
+                        .anyMatch(SpellReaperScytheGameTestScenarios::isAscensionEffect),
+                "Successful Ascension should grant the Ascension effect");
+        assertCooldownDuration(helper, context.player(), context.stack().getItem(), 200);
+        helper.succeed();
+    }
+
+    static void spellReaperScytheAscensionLevelControlsCooldown(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var context = prepareAscensionUse(helper, "spell_reaper_ascension_three", 3);
+        context.stack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
+        assertCooldownDuration(helper, context.player(), context.stack().getItem(), 120);
+        helper.succeed();
+    }
+
+    static void spellReaperScytheAscensionWinsOverForcedRebound(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var context = prepareAscensionUse(helper, "spell_reaper_ascension_priority", 1);
+        enchantMalum(helper, context.stack(), MALUM_REBOUND, 1);
+        var result = context.stack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
+
+        helper.assertTrue(result.getResult().consumesAction(),
+                "Forced Ascension and Rebound should still consume right-click");
+        helper.assertTrue(context.target().getHealth() < context.initialTargetHealth(),
+                "Ascension should win over a force-applied Rebound enchantment");
+        helper.assertFalse(hasMalumScytheBoomerang(helper),
+                "Ascension priority should not spawn a Malum scythe boomerang");
+        helper.succeed();
+    }
+
+    static void spellReaperScytheAscensionUsesMalumCurios(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var normal = prepareAscensionUse(helper, "spell_reaper_ascension_normal", 1);
+        normal.stack().getItem().use(helper.getLevel(), normal.player(), InteractionHand.MAIN_HAND);
+        var normalDamage = normal.initialTargetHealth() - normal.target().getHealth();
+        normal.target().discard();
+
+        var narrow = prepareAscensionUse(helper, "spell_reaper_ascension_narrow", 1);
+        equipMalumCurio(helper, narrow.player(), Curios.NECKLACE_SLOT, "necklace_of_the_narrow_edge");
+        narrow.stack().getItem().use(helper.getLevel(), narrow.player(), InteractionHand.MAIN_HAND);
+        var narrowDamage = narrow.initialTargetHealth() - narrow.target().getHealth();
+        helper.assertTrue(narrowDamage > normalDamage,
+                "Narrow Edge should increase Spell Reaper Ascension damage");
+        narrow.target().discard();
+
+        var rising = prepareAscensionUse(helper, "spell_reaper_ascension_rising", 1);
+        equipMalumCurio(helper, rising.player(), "ring", "ring_of_the_rising_edge");
+        rising.stack().getItem().use(helper.getLevel(), rising.player(), InteractionHand.MAIN_HAND);
+        helper.assertTrue(rising.target().getDeltaMovement().y >= 0.5D,
+                "Rising Edge should launch targets hit by Spell Reaper Ascension");
+        helper.succeed();
     }
 
     static void spellReaperScytheBetterCombatKeepsNormalComboWhenSweepAllowed(GameTestHelper helper) {
@@ -249,14 +382,23 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     }
 
     private static void equipMalumNecklace(GameTestHelper helper, FakePlayer player, String necklaceId) {
+        equipMalumCurio(helper, player, Curios.NECKLACE_SLOT, necklaceId);
+    }
+
+    private static void equipMalumCurio(
+            GameTestHelper helper,
+            FakePlayer player,
+            String slotId,
+            String curioId
+    ) {
         var necklace = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(
                 MalumCompatibility.MOD_ID,
-                necklaceId
+                curioId
         ));
-        helper.assertTrue(necklace != Items.AIR, "Missing Malum necklace for GameTest: " + necklaceId);
+        helper.assertTrue(necklace != Items.AIR, "Missing Malum curio for GameTest: " + curioId);
         var curiosInventory = CuriosApi.getCuriosInventory(player)
-                .orElseThrow(() -> new IllegalStateException("Missing Curios inventory for Malum necklace GameTest"));
-        curiosInventory.setEquippedCurio(Curios.NECKLACE_SLOT, 0, new ItemStack(necklace));
+                .orElseThrow(() -> new IllegalStateException("Missing Curios inventory for Malum curio GameTest"));
+        curiosInventory.setEquippedCurio(slotId, 0, new ItemStack(necklace));
     }
 
     private static void clearMalumNecklace(FakePlayer player) {
@@ -358,6 +500,82 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
                 "Spell Reaper Scythe bystander damage should use malum:scythe_sweep");
     }
 
+    private static FakePlayer prepareUsePlayer(GameTestHelper helper, String profileName) {
+        var player = new FakePlayer(
+                helper.getLevel(),
+                new GameProfile(UUID.randomUUID(), profileName)
+        );
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
+        var playerPos = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(2, 2, 1)));
+        player.setPos(playerPos.x, playerPos.y, playerPos.z);
+        player.setYRot(0.0F);
+        player.setXRot(0.0F);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SPELL_REAPER_SCYTHE.get()));
+        return player;
+    }
+
+    private static AscensionUseContext prepareAscensionUse(
+            GameTestHelper helper,
+            String profileName,
+            int ascensionLevel
+    ) {
+        var player = prepareUsePlayer(helper, profileName);
+        var stack = player.getMainHandItem();
+        enchantMalum(helper, stack, MALUM_ASCENSION, ascensionLevel);
+        var target = prepareTarget(helper, new BlockPos(2, 2, 3));
+        return new AscensionUseContext(player, stack, target, target.getHealth());
+    }
+
+    private static void enchantMalum(
+            GameTestHelper helper,
+            ItemStack stack,
+            ResourceKey<Enchantment> enchantmentKey,
+            int level
+    ) {
+        var enchantment = helper.getLevel().registryAccess()
+                .lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(enchantmentKey);
+        stack.enchant(enchantment, level);
+    }
+
+    private static void assertCooldownDuration(
+            GameTestHelper helper,
+            FakePlayer player,
+            Item item,
+            int expectedTicks
+    ) {
+        helper.assertTrue(player.getCooldowns().isOnCooldown(item),
+                "Ascension should start a cooldown");
+        for (int tick = 1; tick < expectedTicks; tick++) {
+            player.getCooldowns().tick();
+        }
+        helper.assertTrue(player.getCooldowns().isOnCooldown(item),
+                "Ascension cooldown ended before " + expectedTicks + " ticks");
+        player.getCooldowns().tick();
+        helper.assertFalse(player.getCooldowns().isOnCooldown(item),
+                "Ascension cooldown should end after " + expectedTicks + " ticks");
+    }
+
+    private static boolean isAscensionEffect(net.minecraft.world.effect.MobEffectInstance effect) {
+        return MALUM_ASCENSION_EFFECT.equals(BuiltInRegistries.MOB_EFFECT.getKey(effect.getEffect().value()));
+    }
+
+    private static boolean hasMalumScytheBoomerang(GameTestHelper helper) {
+        for (var entity : helper.getLevel().getAllEntities()) {
+            if (MALUM_SCYTHE_BOOMERANG.equals(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static ResourceKey<Enchantment> malumEnchantmentKey(String path) {
+        return ResourceKey.create(
+                Registries.ENCHANTMENT,
+                ResourceLocation.fromNamespaceAndPath(MalumCompatibility.MOD_ID, path)
+        );
+    }
+
     private record SweepAttackContext(
             FakePlayer player,
             LivingEntity primaryTarget,
@@ -366,6 +584,14 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
             float primaryHealth,
             float firstBystanderHealth,
             float secondBystanderHealth
+    ) {
+    }
+
+    private record AscensionUseContext(
+            FakePlayer player,
+            ItemStack stack,
+            LivingEntity target,
+            float initialTargetHealth
     ) {
     }
 
