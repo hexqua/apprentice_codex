@@ -14,6 +14,8 @@ import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -141,6 +143,19 @@ public final class SpellReaperScythe extends SwordItem
         var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
         return enchantments.isEmpty() || enchantments.keySet().stream()
                 .allMatch(enchantment -> supportsEnchantment(stack, enchantment));
+    }
+
+    @Override
+    public @NotNull InteractionResultHolder<ItemStack> use(
+            @NotNull Level level,
+            @NotNull Player player,
+            @NotNull InteractionHand hand
+    ) {
+        var stack = player.getItemInHand(hand);
+        if (MalumSpellReaperScytheBridge.tryTriggerAscension(level, player, hand, stack)) {
+            return InteractionResultHolder.success(stack);
+        }
+        return super.use(level, player, hand);
     }
 
     @Override
