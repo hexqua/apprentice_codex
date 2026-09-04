@@ -17,6 +17,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
             "apprenticecodex.equipment_spell_timing_multiplier_config";
     private static final String LUMINOUS_DEVICE_CONFIG_BATCH =
             "apprenticecodex.luminous_device_config";
+    private static final String SPELL_REAPER_SCYTHE_CONFIG_BATCH =
+            "apprenticecodex.spell_reaper_scythe_config";
     private static final String FOCUS_STAFFBOW_CONTINUOUS_BATCH = "apprenticecodex.focus_staffbow_continuous";
     private static final String FOCUS_STAFFBOW_ARROW_CONFIG_BATCH =
             "apprenticecodex.focus_staffbow_arrow_config";
@@ -2259,8 +2261,28 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void spellReaperScytheAscensionLevelControlsCooldown(GameTestHelper helper) {
-        SpellReaperScytheGameTestScenarios.spellReaperScytheAscensionLevelControlsCooldown(helper);
+    public static void spellReaperScytheAscensionLevelControlsManaCost(GameTestHelper helper) {
+        SpellReaperScytheGameTestScenarios.spellReaperScytheAscensionLevelControlsManaCost(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellReaperScytheAscensionRejectsInsufficientMana(GameTestHelper helper) {
+        SpellReaperScytheGameTestScenarios.spellReaperScytheAscensionRejectsInsufficientMana(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = SPELL_REAPER_SCYTHE_CONFIG_BATCH)
+    public static void spellReaperScytheAscensionUsesServerConfigAndZeroFloor(GameTestHelper helper) {
+        SpellReaperScytheGameTestScenarios.spellReaperScytheAscensionUsesServerConfigAndZeroFloor(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellReaperScytheAscensionCreativeBypassesManaAndCooldown(GameTestHelper helper) {
+        SpellReaperScytheGameTestScenarios.spellReaperScytheAscensionCreativeBypassesManaAndCooldown(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellReaperScytheAscensionTooltipShowsTranslatedNameAndMana(GameTestHelper helper) {
+        SpellReaperScytheGameTestScenarios.spellReaperScytheAscensionTooltipShowsTranslatedNameAndMana(helper);
     }
 
     @GameTest(template = TEMPLATE)

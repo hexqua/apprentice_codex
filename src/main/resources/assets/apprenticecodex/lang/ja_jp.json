@@ -318,6 +318,7 @@
   "item.apprenticecodex.mana_force_blade.desc.epicfight": "打刀と同じガードスキルが対応しており、通常ガードでもマナを消費して矢を弾くことができる。",
   "item.apprenticecodex.mana_force_blade.desc.no_imbue": "魔法を注入することでその系統に同調して攻撃力を上昇させる。",
   "item.apprenticecodex.mana_force_blade.desc.imbue_help": "攻撃命中時にマナを%d消費する。",
+  "item.apprenticecodex.spell_reaper_scythe.malum.ascension_cost": "\"%1$s\"発動時に%2$sマナ消費する代わりにクールダウンが非常に短い。",
   "item.apprenticecodex.spell_side_edge.desc": "オフハンドに持っている魔法行使関連の利き手用の補正を得ることができる。",
   "item.apprenticecodex.spell_side_edge.desc.better_combat": "この短刀を利き手に持っている間、オフハンドで攻撃を行わなくなる。",
   "item.apprenticecodex.spell_side_edge_mirror.desc.better_combat": "利き手の詠唱補助の刃と組み合わせると二刀流として振るえる。",
@@ -1227,6 +1228,7 @@
   "ui.apprenticecodex.hoverride_broom.warning_damage": "箒の損傷が限界を超えたため動作を停止する！",
   "ui.apprenticecodex.hoverride_broom.cannot_mount_damaged": "一度箒を回収しないと乗る事ができない！",
   "ui.apprenticecodex.mana_maneuver_gear.insufficient_mana": "ジャンプするためのマナが足りない！",
+  "ui.apprenticecodex.spell_reaper_scythe.ascension_insufficient_mana": "%1$sを使用するためのマナが足りない！",
 
   "ui.apprenticecodex.spell_selector.empty": "選択候補無し",
   "ui.apprenticecodex.luminous_device.clean.desc": "近くの魔術師の光源を掃除",

@@ -1,26 +1,34 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellReaperScytheServerConfig;
 import jp.aquafactory.apprenticecodex.gametest.malum.MalumScytheGameTestHelper;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.server.level.ServerLevel;
@@ -29,6 +37,7 @@ import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import top.theillusivec4.curios.api.CuriosApi;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestScenarios {
@@ -191,11 +200,16 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
         helper.assertTrue(context.player().getActiveEffects().stream()
                         .anyMatch(SpellReaperScytheGameTestScenarios::isAscensionEffect),
                 "Successful Ascension should grant the Ascension effect");
-        assertCooldownDuration(helper, context.player(), context.stack().getItem(), 200);
+        helper.assertTrue(Math.abs(resolveMana(helper, context.player()).getMana() - 800.0F) <= DAMAGE_TOLERANCE,
+                "Ascension level 1 should consume 200 mana");
+        var secondScythe = new ItemStack(ItemRegistry.SPELL_REAPER_SCYTHE.get());
+        helper.assertTrue(context.player().getCooldowns().isOnCooldown(secondScythe.getItem()),
+                "Ascension cooldown should be shared by every Spell Reaper Scythe stack");
+        assertCooldownDuration(helper, context.player(), context.stack().getItem(), 10);
         helper.succeed();
     }
 
-    static void spellReaperScytheAscensionLevelControlsCooldown(GameTestHelper helper) {
+    static void spellReaperScytheAscensionLevelControlsManaCost(GameTestHelper helper) {
         if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
             helper.succeed();
             return;
@@ -203,7 +217,141 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
 
         var context = prepareAscensionUse(helper, "spell_reaper_ascension_three", 3);
         context.stack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
-        assertCooldownDuration(helper, context.player(), context.stack().getItem(), 120);
+        helper.assertTrue(Math.abs(resolveMana(helper, context.player()).getMana() - 880.0F) <= DAMAGE_TOLERANCE,
+                "Ascension level 3 should consume 120 mana");
+        assertCooldownDuration(helper, context.player(), context.stack().getItem(), 10);
+        helper.succeed();
+    }
+
+    static void spellReaperScytheAscensionRejectsInsufficientMana(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var player = new CapturingActionBarFakePlayer(
+                helper.getLevel(),
+                new GameProfile(UUID.randomUUID(), "spell_reaper_ascension_no_mana")
+        );
+        prepareUsePlayer(helper, player);
+        var stack = player.getMainHandItem();
+        enchantMalum(helper, stack, MALUM_ASCENSION, 2);
+        var target = prepareTarget(helper, new BlockPos(2, 2, 3));
+        var initialTargetHealth = target.getHealth();
+        var magicData = resolveMana(helper, player);
+        magicData.setMana(159.0F);
+
+        var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+
+        helper.assertTrue(result.getResult() == InteractionResult.CONSUME,
+                "Insufficient Ascension mana should consume right-click without requesting a hand swing");
+        helper.assertFalse(result.getResult().shouldSwing(),
+                "Insufficient Ascension mana should not play the right-click hand swing");
+        helper.assertTrue(Math.abs(magicData.getMana() - 159.0F) <= DAMAGE_TOLERANCE,
+                "Rejected Ascension should not consume mana");
+        helper.assertTrue(Math.abs(target.getHealth() - initialTargetHealth) <= DAMAGE_TOLERANCE,
+                "Rejected Ascension should not damage targets");
+        helper.assertFalse(player.getCooldowns().isOnCooldown(stack.getItem()),
+                "Rejected Ascension should not start a cooldown");
+        helper.assertTrue(player.getActiveEffects().stream()
+                        .noneMatch(SpellReaperScytheGameTestScenarios::isAscensionEffect),
+                "Rejected Ascension should not grant the Ascension effect");
+        assertInsufficientManaMessage(helper, player.actionBarMessage());
+
+        magicData.setMana(160.0F);
+        stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(Math.abs(magicData.getMana()) <= DAMAGE_TOLERANCE,
+                "Ascension should activate when current mana exactly equals its cost");
+        helper.assertTrue(target.getHealth() < initialTargetHealth,
+                "Exact-cost Ascension should retain its attack effect");
+        helper.succeed();
+    }
+
+    static void spellReaperScytheAscensionUsesServerConfigAndZeroFloor(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var values = new SpellReaperScytheServerConfig.Values(90, 50, 0);
+        try (var ignored = ApprenticeCodexServerConfig.useSpellReaperScytheConfigOverrideForGameTest(values)) {
+            var context = prepareAscensionUse(helper, "spell_reaper_ascension_config", 5);
+            var magicData = resolveMana(helper, context.player());
+            magicData.setMana(0.0F);
+            var result = context.stack().getItem().use(
+                    helper.getLevel(), context.player(), InteractionHand.MAIN_HAND
+            );
+
+            helper.assertTrue(values.ascensionManaCost(1) == 90,
+                    "Configured Ascension level 1 mana cost should equal the base cost");
+            helper.assertTrue(values.ascensionManaCost(2) == 40,
+                    "Configured Ascension level 2 mana cost should apply one reduction");
+            helper.assertTrue(values.ascensionManaCost(5) == 0,
+                    "Configured Ascension mana cost should not become negative");
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Zero-cost Ascension should activate without mana");
+            helper.assertTrue(context.target().getHealth() < context.initialTargetHealth(),
+                    "Zero-cost Ascension should retain its attack effect");
+            helper.assertFalse(context.player().getCooldowns().isOnCooldown(context.stack().getItem()),
+                    "Zero configured cooldown should not add a cooldown");
+        }
+        helper.succeed();
+    }
+
+    static void spellReaperScytheAscensionCreativeBypassesManaAndCooldown(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var context = prepareAscensionUse(helper, "spell_reaper_ascension_creative", 1);
+        context.player().gameMode.changeGameModeForPlayer(GameType.CREATIVE);
+        var magicData = resolveMana(helper, context.player());
+        magicData.setMana(0.0F);
+        context.stack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
+
+        helper.assertTrue(context.target().getHealth() < context.initialTargetHealth(),
+                "Creative Ascension should activate without mana");
+        helper.assertTrue(Math.abs(magicData.getMana()) <= DAMAGE_TOLERANCE,
+                "Creative Ascension should not consume mana");
+        helper.assertFalse(context.player().getCooldowns().isOnCooldown(context.stack().getItem()),
+                "Creative Ascension should not start a cooldown");
+        helper.succeed();
+    }
+
+    static void spellReaperScytheAscensionTooltipShowsTranslatedNameAndMana(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var stack = new ItemStack(ItemRegistry.SPELL_REAPER_SCYTHE.get());
+        var noAscensionTooltip = new ArrayList<Component>();
+        stack.getItem().appendHoverText(
+                stack, Item.TooltipContext.of(helper.getLevel()), noAscensionTooltip, TooltipFlag.Default.NORMAL
+        );
+        helper.assertTrue(noAscensionTooltip.stream().noneMatch(SpellReaperScytheGameTestScenarios::isAscensionCostTooltip),
+                "Spell Reaper Scythe without Ascension should not show an Ascension mana cost");
+
+        enchantMalum(helper, stack, MALUM_ASCENSION, 2);
+        var tooltip = new ArrayList<Component>();
+        stack.getItem().appendHoverText(
+                stack, Item.TooltipContext.of(helper.getLevel()), tooltip, TooltipFlag.Default.NORMAL
+        );
+        var costLine = tooltip.stream()
+                .filter(SpellReaperScytheGameTestScenarios::isAscensionCostTooltip)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Missing Spell Reaper Ascension cost tooltip"));
+        var contents = (TranslatableContents) costLine.getContents();
+        var args = contents.getArgs();
+        helper.assertTrue(args.length == 2 && args[0] instanceof Component,
+                "Ascension cost tooltip should receive the translated enchantment name as its first argument");
+        helper.assertTrue(args[1] instanceof Component manaComponent
+                        && "160".equals(manaComponent.getString())
+                        && manaComponent.getStyle().getColor() != null
+                        && ChatFormatting.AQUA.getColor() != null
+                        && manaComponent.getStyle().getColor().getValue() == ChatFormatting.AQUA.getColor(),
+                "Ascension cost tooltip should show the level 2 mana cost in aqua");
         helper.succeed();
     }
 
@@ -505,13 +653,20 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
                 helper.getLevel(),
                 new GameProfile(UUID.randomUUID(), profileName)
         );
+        prepareUsePlayer(helper, player);
+        return player;
+    }
+
+    private static void prepareUsePlayer(GameTestHelper helper, FakePlayer player) {
         player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var playerPos = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(2, 2, 1)));
         player.setPos(playerPos.x, playerPos.y, playerPos.z);
         player.setYRot(0.0F);
         player.setXRot(0.0F);
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SPELL_REAPER_SCYTHE.get()));
-        return player;
+        var maxMana = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA);
+        helper.assertTrue(maxMana != null, "Spell Reaper Scythe Ascension test requires MAX_MANA");
+        maxMana.setBaseValue(1000.0D);
     }
 
     private static AscensionUseContext prepareAscensionUse(
@@ -522,8 +677,34 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
         var player = prepareUsePlayer(helper, profileName);
         var stack = player.getMainHandItem();
         enchantMalum(helper, stack, MALUM_ASCENSION, ascensionLevel);
+        resolveMana(helper, player).setMana(1000.0F);
         var target = prepareTarget(helper, new BlockPos(2, 2, 3));
         return new AscensionUseContext(player, stack, target, target.getHealth());
+    }
+
+    private static MagicData resolveMana(GameTestHelper helper, Player player) {
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Spell Reaper Scythe Ascension test requires MagicData");
+        return magicData;
+    }
+
+    private static void assertInsufficientManaMessage(GameTestHelper helper, Component message) {
+        helper.assertTrue(message != null && message.getContents() instanceof TranslatableContents contents
+                        && "ui.apprenticecodex.spell_reaper_scythe.ascension_insufficient_mana"
+                        .equals(contents.getKey()),
+                "Insufficient Ascension mana should show the expected action-bar translation key");
+        helper.assertTrue(message.getStyle().getColor() != null
+                        && ChatFormatting.RED.getColor() != null
+                        && message.getStyle().getColor().getValue() == ChatFormatting.RED.getColor(),
+                "Insufficient Ascension mana action-bar message should be red");
+        var args = ((TranslatableContents) message.getContents()).getArgs();
+        helper.assertTrue(args.length == 1 && args[0] instanceof Component,
+                "Insufficient Ascension mana message should receive the translated enchantment name");
+    }
+
+    private static boolean isAscensionCostTooltip(Component line) {
+        return line.getContents() instanceof TranslatableContents contents
+                && "item.apprenticecodex.spell_reaper_scythe.malum.ascension_cost".equals(contents.getKey());
     }
 
     private static void enchantMalum(
@@ -604,6 +785,25 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
         public float getAttackStrengthScale(float adjustTicks) {
             // FakePlayer.tick() は空実装のため、攻撃処理そのものを検証できるよう充填済み状態を固定する。
             return 1.0F;
+        }
+    }
+
+    private static final class CapturingActionBarFakePlayer extends FakePlayer {
+        private Component actionBarMessage;
+
+        private CapturingActionBarFakePlayer(ServerLevel level, GameProfile profile) {
+            super(level, profile);
+        }
+
+        @Override
+        public void displayClientMessage(Component chatComponent, boolean actionBar) {
+            if (actionBar) {
+                actionBarMessage = chatComponent;
+            }
+        }
+
+        private Component actionBarMessage() {
+            return actionBarMessage;
         }
     }
 }

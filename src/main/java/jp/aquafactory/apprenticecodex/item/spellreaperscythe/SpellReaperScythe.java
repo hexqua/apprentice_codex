@@ -6,22 +6,28 @@ import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
 import jp.aquafactory.apprenticecodex.renderer.item.SpellReaperScytheRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Tiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -38,6 +44,7 @@ import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -52,11 +59,15 @@ public final class SpellReaperScythe extends SwordItem
     public static final double ATTACK_SPEED_MODIFIER_AMOUNT = DISPLAY_ATTACK_SPEED - 4.0D;
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_SWORD);
+    private static final ResourceLocation MALUM_ASCENSION_ID = ResourceLocation.fromNamespaceAndPath(
+            MalumCompatibility.MOD_ID,
+            "ascension"
+    );
     private static final Set<ResourceLocation> EXTRA_ENCHANTMENTS = Set.of(
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom"),
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "transcendence"),
             ResourceLocation.fromNamespaceAndPath(MalumCompatibility.MOD_ID, "rebound"),
-            ResourceLocation.fromNamespaceAndPath(MalumCompatibility.MOD_ID, "ascension")
+            MALUM_ASCENSION_ID
     );
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
@@ -152,10 +163,37 @@ public final class SpellReaperScythe extends SwordItem
             @NotNull InteractionHand hand
     ) {
         var stack = player.getItemInHand(hand);
-        if (MalumSpellReaperScytheBridge.tryTriggerAscension(level, player, hand, stack)) {
-            return InteractionResultHolder.success(stack);
+        var ascensionResult = MalumSpellReaperScytheBridge.tryTriggerAscension(level, player, hand, stack);
+        if (ascensionResult != InteractionResult.PASS) {
+            return new InteractionResultHolder<>(ascensionResult, stack);
         }
         return super.use(level, player, hand);
+    }
+
+    @Override
+    public void appendHoverText(
+            @NotNull ItemStack stack,
+            Item.@NotNull TooltipContext context,
+            @NotNull List<Component> lines,
+            @NotNull TooltipFlag flag
+    ) {
+        super.appendHoverText(stack, context, lines, flag);
+        for (var entry : EnchantmentHelper.getEnchantmentsForCrafting(stack).entrySet()) {
+            var enchantmentId = entry.getKey().unwrapKey().map(ResourceKey::location).orElse(null);
+            if (!MALUM_ASCENSION_ID.equals(enchantmentId)) {
+                continue;
+            }
+
+            var enchantmentLevel = entry.getIntValue();
+            var manaCost = ApprenticeCodexServerConfig.spellReaperScytheConfig()
+                    .ascensionManaCost(enchantmentLevel);
+            lines.add(Component.translatable(
+                    "item.apprenticecodex.spell_reaper_scythe.malum.ascension_cost",
+                    Enchantment.getFullname(entry.getKey(), enchantmentLevel),
+                    Component.literal(Integer.toString(manaCost)).withStyle(ChatFormatting.AQUA)
+            ).withStyle(ChatFormatting.GRAY));
+            break;
+        }
     }
 
     @Override

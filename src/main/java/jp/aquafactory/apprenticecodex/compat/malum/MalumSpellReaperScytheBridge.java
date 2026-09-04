@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.compat.malum;
 
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -27,14 +28,14 @@ public final class MalumSpellReaperScytheBridge {
                 && MalumSpellReaperScytheBridgeImpl.shouldUseNoSweepCombo(attacker);
     }
 
-    public static boolean tryTriggerAscension(
+    public static InteractionResult tryTriggerAscension(
             Level level,
             Player player,
             InteractionHand hand,
             ItemStack stack
     ) {
         if (!isAvailable() || stack.isEmpty()) {
-            return false;
+            return InteractionResult.PASS;
         }
 
         try {

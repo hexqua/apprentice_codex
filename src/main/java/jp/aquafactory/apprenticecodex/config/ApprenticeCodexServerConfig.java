@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.config.block.AlchemyBrewerServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.HoverrideBroomServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellReaperScytheServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
@@ -1030,6 +1031,10 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.spellStainedRunicTabletConfig();
     }
 
+    public static SpellReaperScytheServerConfig.Values spellReaperScytheConfig() {
+        return ITEMS_CONFIG.spellReaperScytheConfig();
+    }
+
     public static GameTestConfigOverride useFocusStaffbowConfigOverrideForGameTest(
             boolean enableContinuousFocusedCast,
             boolean enableManaLoan,
@@ -1518,6 +1523,14 @@ public final class ApprenticeCodexServerConfig {
         var previousValues = ITEMS_CONFIG.spellStainedRunicTabletConfig();
         ITEMS_CONFIG.setSpellStainedRunicTabletConfigForGameTest(values);
         return () -> ITEMS_CONFIG.setSpellStainedRunicTabletConfigForGameTest(previousValues);
+    }
+
+    public static GameTestConfigOverride useSpellReaperScytheConfigOverrideForGameTest(
+            SpellReaperScytheServerConfig.Values values
+    ) {
+        var previousValues = ITEMS_CONFIG.spellReaperScytheConfig();
+        ITEMS_CONFIG.setSpellReaperScytheConfigForGameTest(values);
+        return () -> ITEMS_CONFIG.setSpellReaperScytheConfigForGameTest(previousValues);
     }
 
     public static int spellInvokeCardCraftCount() {
