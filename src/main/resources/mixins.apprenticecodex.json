@@ -50,6 +50,7 @@
     "MagicDataMixin",
     "MagicManagerMixin",
     "MalumReplenishingOffhandMixin",
+    "MalumSoulDataHandlerMixin",
     "MalumSpellweavingPickaxeMixin",
     "MalumTouchDigSpellweavingMixin",
     "MerchantMenuMixin",

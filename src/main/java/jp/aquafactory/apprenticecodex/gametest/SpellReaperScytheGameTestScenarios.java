@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
+import jp.aquafactory.apprenticecodex.gametest.malum.MalumScytheGameTestHelper;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -74,6 +75,40 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
                 "Spell Reaper Scythe should deal one Malum sweep hit to the second bystander");
         assertMalumSweepSource(helper, context.firstBystander());
         assertMalumSweepSource(helper, context.secondBystander());
+        helper.succeed();
+    }
+
+    static void spellReaperScytheIsRecognizedByMalumSoulDataHandler(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var player = new FakePlayer(
+                helper.getLevel(),
+                new GameProfile(UUID.randomUUID(), "spell_reaper_malum_scythe_weapon")
+        );
+        var source = player.damageSources().playerAttack(player);
+
+        var spellReaperScythe = new ItemStack(ItemRegistry.SPELL_REAPER_SCYTHE.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, spellReaperScythe);
+        var resolvedSpellReaperScythe = MalumScytheGameTestHelper.getScytheWeapon(source, player);
+        helper.assertTrue(resolvedSpellReaperScythe == player.getMainHandItem(),
+                "Malum should resolve the actual Spell Reaper Scythe stack");
+
+        var malumScytheItem = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(
+                MalumCompatibility.MOD_ID,
+                "soul_stained_steel_scythe"
+        ));
+        helper.assertTrue(malumScytheItem != Items.AIR, "Missing Malum scythe for GameTest");
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(malumScytheItem));
+        var resolvedMalumScythe = MalumScytheGameTestHelper.getScytheWeapon(source, player);
+        helper.assertTrue(resolvedMalumScythe == player.getMainHandItem(),
+                "Malum should keep resolving its native scythe stack");
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIAMOND_SWORD));
+        helper.assertTrue(MalumScytheGameTestHelper.getScytheWeapon(source, player).isEmpty(),
+                "Malum should not resolve an ordinary sword as a scythe");
         helper.succeed();
     }
 
