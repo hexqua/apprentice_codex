@@ -36,6 +36,7 @@ import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellCastParryingRingServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellReaperScytheServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ZenithStaffServerConfig;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
@@ -77,6 +78,7 @@ final class ItemsServerConfig {
     private final SpellCastParryingRingServerConfig spellCastParryingRingConfig;
     private final SpellchargedGreatswordServerConfig spellchargedGreatswordConfig;
     private final SpellStainedRunicTabletServerConfig spellStainedRunicTabletConfig;
+    private final SpellReaperScytheServerConfig spellReaperScytheConfig;
     private final SpellThrowableCardServerConfig spellThrowableCardConfig;
     private final ArchivistsGrimoireServerConfig archivistsGrimoireConfig;
     private final SatelliteFollowcastAmuletServerConfig satelliteFollowcastAmuletConfig;
@@ -117,6 +119,7 @@ final class ItemsServerConfig {
             SpellCastParryingRingServerConfig spellCastParryingRingConfig,
             SpellchargedGreatswordServerConfig spellchargedGreatswordConfig,
             SpellStainedRunicTabletServerConfig spellStainedRunicTabletConfig,
+            SpellReaperScytheServerConfig spellReaperScytheConfig,
             SpellThrowableCardServerConfig spellThrowableCardConfig,
             ArchivistsGrimoireServerConfig archivistsGrimoireConfig,
             SatelliteFollowcastAmuletServerConfig satelliteFollowcastAmuletConfig,
@@ -156,6 +159,7 @@ final class ItemsServerConfig {
         this.spellCastParryingRingConfig = spellCastParryingRingConfig;
         this.spellchargedGreatswordConfig = spellchargedGreatswordConfig;
         this.spellStainedRunicTabletConfig = spellStainedRunicTabletConfig;
+        this.spellReaperScytheConfig = spellReaperScytheConfig;
         this.spellThrowableCardConfig = spellThrowableCardConfig;
         this.archivistsGrimoireConfig = archivistsGrimoireConfig;
         this.satelliteFollowcastAmuletConfig = satelliteFollowcastAmuletConfig;
@@ -198,6 +202,7 @@ final class ItemsServerConfig {
         var spellCastParryingRingConfig = SpellCastParryingRingServerConfig.define(builder);
         var spellchargedGreatswordConfig = SpellchargedGreatswordServerConfig.define(builder);
         var spellStainedRunicTabletConfig = SpellStainedRunicTabletServerConfig.define(builder);
+        var spellReaperScytheConfig = SpellReaperScytheServerConfig.define(builder);
         var spellThrowableCardConfig = SpellThrowableCardServerConfig.define(builder);
         var archivistsGrimoireConfig = ArchivistsGrimoireServerConfig.define(builder);
         var satelliteFollowcastAmuletConfig = SatelliteFollowcastAmuletServerConfig.define(builder);
@@ -239,6 +244,7 @@ final class ItemsServerConfig {
                 spellCastParryingRingConfig,
                 spellchargedGreatswordConfig,
                 spellStainedRunicTabletConfig,
+                spellReaperScytheConfig,
                 spellThrowableCardConfig,
                 archivistsGrimoireConfig,
                 satelliteFollowcastAmuletConfig,
@@ -820,6 +826,10 @@ final class ItemsServerConfig {
         return spellStainedRunicTabletConfig.values();
     }
 
+    SpellReaperScytheServerConfig.Values spellReaperScytheConfig() {
+        return spellReaperScytheConfig.values();
+    }
+
     SpellThrowableCardServerConfig.Values spellThrowableCardConfig() {
         return spellThrowableCardConfig.values();
     }
@@ -1160,6 +1170,10 @@ final class ItemsServerConfig {
 
     void setSpellStainedRunicTabletConfigForGameTest(SpellStainedRunicTabletServerConfig.Values values) {
         spellStainedRunicTabletConfig.setForGameTest(values);
+    }
+
+    void setSpellReaperScytheConfigForGameTest(SpellReaperScytheServerConfig.Values values) {
+        spellReaperScytheConfig.setForGameTest(values);
     }
 
     void setSpellThrowableCardConfigForGameTest(SpellThrowableCardServerConfig.Values values) {
