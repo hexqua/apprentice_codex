@@ -50,6 +50,7 @@
 ./gradlew.bat runGameTestServerCreateSableAeronautics
 ./gradlew.bat runGameTestServerEasyMagic
 ./gradlew.bat runGameTestServerBetterCombat
+./gradlew.bat runGameTestServerMalumBetterCombat
 ./gradlew.bat runGameTestServerEpicFight
 ```
 - 開発クライアント:
@@ -93,6 +94,7 @@ Get-ChildItem build\libs\*.jar
 - `runGameTestServerCreateSableAeronautics` は Create / Sable / Create Simulated / Create Aeronautics / Create Offroad の導入とサーバー起動確認に使う。
 - `runGameTestServerEasyMagic` は Puzzles Lib / Easy Magic 連携の確認に使う。
 - `runGameTestServerBetterCombat` は Cloth Config / Better Combat 連携の確認に使う。
+- `runGameTestServerMalumBetterCombat` は Lodestone / Malum / Cloth Config / Better Combat の組み合わせ連携確認に使う。
 - `runGameTestServerEpicFight` は Epic Fight 連携の確認に使う。
 - Codex が `runGameTestServer` 系を実行する場合、実行ツールによるプロセス強制終了 timeout は、1.21.1 では初回から最低 120 秒、`1.20.1-main` では最低 300 秒に設定する。
 - 出力待機の yield とプロセス強制終了 timeout を混同しない。実行中として返された場合は wait で完了まで追跡し、yield を失敗や再実行として扱わない。
@@ -133,6 +135,7 @@ Get-ChildItem build\libs\*.jar
    - Create Aeronautics / Sable / Create Simulated / Create Offroad: `./gradlew.bat runGameTestServerCreateSableAeronautics`
    - Easy Magic / エンチャントメニュー: `./gradlew.bat runGameTestServerEasyMagic`
    - Better Combat / offhand / weapon_attributes: `./gradlew.bat runGameTestServerBetterCombat`
+   - Malum + Better Combat / 大鎌コンボ切替: `./gradlew.bat runGameTestServerMalumBetterCombat`
    - Epic Fight / mixin / capabilities / item_skins: `./gradlew.bat runGameTestServerEpicFight`
    - client 側の連携確認: 対応する `runClient...` 構成
    - 組み合わせバランス確認: `./gradlew.bat runClientCompatEasyBetter`

@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
+import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatSpellReaperScytheCompat;
 import jp.aquafactory.apprenticecodex.item.spellchargedgreatsword.SpellchargedGreatsword;
 import net.bettercombat.api.AttributesContainer;
 import net.bettercombat.api.WeaponAttributes;
@@ -32,18 +33,24 @@ public abstract class BetterCombatWeaponRegistryMixin {
             method = "loadAttributes(Lnet/minecraft/server/packs/resources/ResourceManager;)V",
             at = @At("TAIL")
     )
-    private static void apprenticecodex$registerSpellchargedGreatswordChargedAttributes(
+    private static void apprenticecodex$registerAdditionalAttributes(
             ResourceManager resourceManager,
             org.spongepowered.asm.mixin.injection.callback.CallbackInfo callback
     ) {
-        var container = containers.get(SPELLCHARGED_GREATSWORD_CHARGED_ATTRIBUTES);
+        apprenticecodex$registerAdditionalAttributes(SPELLCHARGED_GREATSWORD_CHARGED_ATTRIBUTES);
+        apprenticecodex$registerAdditionalAttributes(BetterCombatSpellReaperScytheCompat.NO_SWEEP_ATTRIBUTES);
+    }
+
+    @Unique
+    private static void apprenticecodex$registerAdditionalAttributes(ResourceLocation id) {
+        var container = containers.get(id);
         if (container == null) {
             return;
         }
 
-        var attributes = WeaponRegistry.resolveAttributes(SPELLCHARGED_GREATSWORD_CHARGED_ATTRIBUTES, container);
+        var attributes = WeaponRegistry.resolveAttributes(id, container);
         if (attributes != null) {
-            registrations.put(SPELLCHARGED_GREATSWORD_CHARGED_ATTRIBUTES, attributes);
+            registrations.put(id, attributes);
         }
     }
 

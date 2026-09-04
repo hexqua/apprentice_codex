@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.compat.malum;
 
+import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -14,6 +15,12 @@ public final class MalumSpellReaperScytheBridge {
 
     public static boolean isAvailable() {
         return ModList.get().isLoaded(MalumCompatibility.MOD_ID);
+    }
+
+    public static boolean shouldUseNoSweepCombo(LivingEntity attacker) {
+        return attacker != null
+                && isAvailable()
+                && MalumSpellReaperScytheBridgeImpl.shouldUseNoSweepCombo(attacker);
     }
 
     private static void onCommonSetup(FMLCommonSetupEvent event) {

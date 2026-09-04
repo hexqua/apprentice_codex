@@ -117,6 +117,7 @@ def optionalRuntimeProfileModules = [
         create_sable_aeronautics: ['create', 'sable', 'create_aeronautics'],
         easy_magic          : ['puzzles_lib', 'easy_magic'],
         better_combat       : ['cloth_config', 'better_combat'],
+        malum_better_combat : ['lodestone', 'malum', 'cloth_config', 'better_combat'],
         epic_fight          : ['epic_fight'],
         epic_fight_controller: ['epic_fight', 'yacl', 'controlify'],
         compat_easy_better  : ['create', 'lodestone', 'malum', 'atlas_api', 'irons_jewelry', 'puzzles_lib', 'easy_magic', 'cloth_config', 'better_combat'],
@@ -147,6 +148,7 @@ def optionalRuntimeRequiredModIds = [
         create_sable_aeronautics: 'create,sable,simulated,aeronautics,offroad,aeronautics_bundled',
         easy_magic   : 'puzzleslib,easymagic',
         better_combat: 'cloth_config,bettercombat',
+        malum_better_combat: 'lodestone,malum,cloth_config,bettercombat',
         epic_fight   : 'epicfight',
 ]
 
@@ -269,6 +271,13 @@ neoForge {
             programArguments.addAll '--world', gameTestServerWorldName
         }
 
+        gameTestServerMalumBetterCombat {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty requiredOptionalModsProperty, optionalRuntimeRequiredModIds.malum_better_combat
+            programArguments.addAll '--world', gameTestServerWorldName
+        }
+
         gameTestServerEpicFight {
             type = "gameTestServer"
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
@@ -339,6 +348,7 @@ extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerCompat', expandO
 extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerCreateSableAeronautics', expandOptionalRuntimeModules(['create_sable_aeronautics']))
 extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerEasyMagic', expandOptionalRuntimeModules(['easy_magic']))
 extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerBetterCombat', expandOptionalRuntimeModules(['better_combat']))
+extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerMalumBetterCombat', expandOptionalRuntimeModules(['malum_better_combat']))
 extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerEpicFight', expandOptionalRuntimeModules(['epic_fight']))
 
 def devRuntimeMods = providers.gradleProperty('devRuntimeMods').orNull

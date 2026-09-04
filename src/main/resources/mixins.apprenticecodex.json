@@ -16,6 +16,7 @@
     "AccessoriesCompatCuriosSlotBasedPredicateMixin",
     "ArcaneAnvilMenuMixin",
     "BetterCombatPlayerAttackHelperMixin",
+    "BetterCombatWeaponRegistryAccessor",
     "BetterCombatWeaponRegistryMixin",
     "BlockStateBaseMistFormCollisionMixin",
     "BowItemSpellcasterQuiverMixin",

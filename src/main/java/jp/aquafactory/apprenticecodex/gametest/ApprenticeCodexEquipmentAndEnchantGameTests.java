@@ -2239,6 +2239,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellReaperScytheBetterCombatKeepsNormalComboWhenSweepAllowed(GameTestHelper helper) {
+        SpellReaperScytheGameTestScenarios.spellReaperScytheBetterCombatKeepsNormalComboWhenSweepAllowed(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellReaperScytheBetterCombatUsesNoSweepCombo(GameTestHelper helper) {
+        SpellReaperScytheGameTestScenarios.spellReaperScytheBetterCombatUsesNoSweepCombo(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void reflectcastShieldKeepsExpectedItemContract(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.reflectcastShieldKeepsExpectedItemContract(helper);
     }
