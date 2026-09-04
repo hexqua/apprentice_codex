@@ -42,6 +42,10 @@ final class MalumSpellReaperScytheBridgeImpl {
         ));
     }
 
+    static boolean shouldUseNoSweepCombo(LivingEntity attacker) {
+        return !MalumScytheItem.canSweep(attacker);
+    }
+
     private static final class SpellReaperScytheResponder implements IMalumEventResponder {
         @Override
         public void outgoingDamageEvent(
@@ -61,7 +65,7 @@ final class MalumSpellReaperScytheBridgeImpl {
                     .color(stack.getItem())
                     .upwardOffset(-0.4F)
                     .forwardOffset(0.8F);
-            if (!MalumScytheItem.canSweep(attacker)) {
+            if (shouldUseNoSweepCombo(attacker)) {
                 SoundHelper.playSound(attacker, MalumSoundEvents.SCYTHE_CUT.value(), 1.0F, 0.75F);
                 particle.verticalSlashRotation().horizontalOffset(0.6F).spawn(serverLevel);
                 return;

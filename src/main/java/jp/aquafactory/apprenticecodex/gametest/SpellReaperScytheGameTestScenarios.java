@@ -28,6 +28,7 @@ import top.theillusivec4.curios.api.CuriosApi;
 import java.util.UUID;
 
 final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestScenarios {
+    private static final String BETTER_COMBAT_MOD_ID = "bettercombat";
     private static final ResourceKey<DamageType> MALUM_SCYTHE_SWEEP = ResourceKey.create(
             Registries.DAMAGE_TYPE,
             ResourceLocation.fromNamespaceAndPath(MalumCompatibility.MOD_ID, "scythe_sweep")
@@ -38,7 +39,8 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     }
 
     static void spellReaperScytheUsesVanillaSweepWithoutMalum(GameTestHelper helper) {
-        if (ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+        if (ModList.get().isLoaded(MalumCompatibility.MOD_ID)
+                || ModList.get().isLoaded(BETTER_COMBAT_MOD_ID)) {
             helper.succeed();
             return;
         }
@@ -81,6 +83,55 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
 
     static void spellReaperScytheDoesNotSweepWithHiddenBlade(GameTestHelper helper) {
         assertMalumNecklacePreventsSweep(helper, "necklace_of_the_hidden_blade", "hidden_blade");
+    }
+
+    static void spellReaperScytheBetterCombatKeepsNormalComboWhenSweepAllowed(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(BETTER_COMBAT_MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var context = prepareSweepAttack(helper, "spell_reaper_bettercombat_normal_combo");
+        assertBetterCombatAttack(
+                helper,
+                context.player(),
+                0,
+                "HORIZONTAL_PLANE",
+                "bettercombat:two_handed_slash_horizontal_right"
+        );
+        assertBetterCombatAttack(
+                helper,
+                context.player(),
+                1,
+                "HORIZONTAL_PLANE",
+                "bettercombat:two_handed_slash_horizontal_left"
+        );
+        helper.succeed();
+    }
+
+    static void spellReaperScytheBetterCombatUsesNoSweepCombo(GameTestHelper helper) {
+        if (!ModList.get().isLoaded(BETTER_COMBAT_MOD_ID)
+                || !ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+            helper.succeed();
+            return;
+        }
+
+        var context = prepareSweepAttack(helper, "spell_reaper_bettercombat_no_sweep_combo");
+        equipMalumNecklace(helper, context.player(), "necklace_of_the_narrow_edge");
+        assertBetterCombatNoSweepCombo(helper, context.player(), "Narrow Edge");
+
+        equipMalumNecklace(helper, context.player(), "necklace_of_the_hidden_blade");
+        assertBetterCombatNoSweepCombo(helper, context.player(), "Hidden Blade");
+
+        clearMalumNecklace(context.player());
+        assertBetterCombatAttack(
+                helper,
+                context.player(),
+                0,
+                "HORIZONTAL_PLANE",
+                "bettercombat:two_handed_slash_horizontal_right"
+        );
+        helper.succeed();
     }
 
     private static void assertMalumNecklacePreventsSweep(
@@ -171,6 +222,87 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
         var curiosInventory = CuriosApi.getCuriosInventory(player)
                 .orElseThrow(() -> new IllegalStateException("Missing Curios inventory for Malum necklace GameTest"));
         curiosInventory.setEquippedCurio(Curios.NECKLACE_SLOT, 0, new ItemStack(necklace));
+    }
+
+    private static void clearMalumNecklace(FakePlayer player) {
+        var curiosInventory = CuriosApi.getCuriosInventory(player)
+                .orElseThrow(() -> new IllegalStateException("Missing Curios inventory for Malum necklace GameTest"));
+        curiosInventory.setEquippedCurio(Curios.NECKLACE_SLOT, 0, ItemStack.EMPTY);
+    }
+
+    private static void assertBetterCombatNoSweepCombo(
+            GameTestHelper helper,
+            FakePlayer player,
+            String necklaceName
+    ) {
+        assertBetterCombatAttack(
+                helper,
+                player,
+                0,
+                "VERTICAL_PLANE",
+                "bettercombat:two_handed_slash_vertical_right"
+        );
+        assertBetterCombatAttack(
+                helper,
+                player,
+                1,
+                "VERTICAL_PLANE",
+                "bettercombat:two_handed_slash_vertical_left"
+        );
+        helper.assertTrue(readBetterCombatAttackRangeBonus(player, 0) == 0.5D,
+                "Spell Reaper Scythe should preserve Better Combat range with " + necklaceName);
+        helper.assertTrue(readBetterCombatAttackDamageMultiplier(player, 0) == 1.0D,
+                "Spell Reaper Scythe should preserve Better Combat damage with " + necklaceName);
+    }
+
+    private static void assertBetterCombatAttack(
+            GameTestHelper helper,
+            FakePlayer player,
+            int comboCount,
+            String expectedHitbox,
+            String expectedAnimation
+    ) {
+        try {
+            var attackHand = getBetterCombatAttackHand(player, comboCount);
+            helper.assertTrue(attackHand != null,
+                    "Spell Reaper Scythe should have a Better Combat attack for combo " + comboCount);
+            var attack = attackHand.getClass().getMethod("attack").invoke(attackHand);
+            var hitbox = attack.getClass().getMethod("hitbox").invoke(attack);
+            var animation = (String) attack.getClass().getMethod("animation").invoke(attack);
+            helper.assertTrue(expectedHitbox.equals(hitbox.toString()),
+                    "Unexpected Better Combat hitbox for combo " + comboCount + ": " + hitbox);
+            helper.assertTrue(expectedAnimation.equals(animation),
+                    "Unexpected Better Combat animation for combo " + comboCount + ": " + animation);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Failed to inspect Better Combat attack", exception);
+        }
+    }
+
+    private static double readBetterCombatAttackRangeBonus(FakePlayer player, int comboCount) {
+        try {
+            var attackHand = getBetterCombatAttackHand(player, comboCount);
+            var attributes = attackHand.getClass().getMethod("attributes").invoke(attackHand);
+            return ((Number) attributes.getClass().getMethod("rangeBonus").invoke(attributes)).doubleValue();
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Failed to inspect Better Combat attack range", exception);
+        }
+    }
+
+    private static double readBetterCombatAttackDamageMultiplier(FakePlayer player, int comboCount) {
+        try {
+            var attackHand = getBetterCombatAttackHand(player, comboCount);
+            var attack = attackHand.getClass().getMethod("attack").invoke(attackHand);
+            return ((Number) attack.getClass().getMethod("damageMultiplier").invoke(attack)).doubleValue();
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Failed to inspect Better Combat attack damage", exception);
+        }
+    }
+
+    private static Object getBetterCombatAttackHand(FakePlayer player, int comboCount)
+            throws ReflectiveOperationException {
+        var playerAttackHelper = Class.forName("net.bettercombat.logic.PlayerAttackHelper");
+        return playerAttackHelper.getMethod("getCurrentAttack", net.minecraft.world.entity.player.Player.class, int.class)
+                .invoke(null, player, comboCount);
     }
 
     private static void assertDamageNear(
