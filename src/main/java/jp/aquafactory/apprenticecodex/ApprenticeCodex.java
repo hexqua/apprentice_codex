@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.compat.emf.EmfCompat;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import jp.aquafactory.apprenticecodex.compat.sable.SableCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -93,6 +94,7 @@ public class ApprenticeCodex
         CreateCompat.register(modEventBus);
         SableCompat.register(modEventBus);
         EpicFightCompat.register(modEventBus);
+        MalumSpellReaperScytheBridge.register(modEventBus);
         ParticleRegistry.PARTICLES.register(modEventBus);
         RecipeRegistry.register(modEventBus);
         LootConditionRegistry.register(modEventBus);

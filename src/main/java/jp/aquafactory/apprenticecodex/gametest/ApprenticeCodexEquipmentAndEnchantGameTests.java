@@ -2219,6 +2219,26 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellReaperScytheUsesVanillaSweepWithoutMalum(GameTestHelper helper) {
+        SpellReaperScytheGameTestScenarios.spellReaperScytheUsesVanillaSweepWithoutMalum(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellReaperScytheUsesOneMalumSweepWithMalum(GameTestHelper helper) {
+        SpellReaperScytheGameTestScenarios.spellReaperScytheUsesOneMalumSweepWithMalum(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellReaperScytheDoesNotSweepWithNarrowEdge(GameTestHelper helper) {
+        SpellReaperScytheGameTestScenarios.spellReaperScytheDoesNotSweepWithNarrowEdge(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void spellReaperScytheDoesNotSweepWithHiddenBlade(GameTestHelper helper) {
+        SpellReaperScytheGameTestScenarios.spellReaperScytheDoesNotSweepWithHiddenBlade(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void reflectcastShieldKeepsExpectedItemContract(GameTestHelper helper) {
         EquipmentEnchantmentSurfaceGameTestScenarios.reflectcastShieldKeepsExpectedItemContract(helper);
     }
