@@ -62,9 +62,9 @@ final class MalumSpellReaperScytheBridgeImpl {
             var particle = MalumParticleEffectTypes.SCYTHE_SLASH.createEffect()
                     .originatesFrom(attacker)
                     .targets(target)
-                    .color(stack.getItem())
                     .upwardOffset(-0.4F)
                     .forwardOffset(0.8F);
+            MalumSpellReaperScytheParticleCompat.applyImbueSchoolColor(particle, stack);
             if (shouldUseNoSweepCombo(attacker)) {
                 SoundHelper.playSound(attacker, MalumSoundEvents.SCYTHE_CUT.value(), 1.0F, 0.75F);
                 particle.verticalSlashRotation().horizontalOffset(0.6F).spawn(serverLevel);

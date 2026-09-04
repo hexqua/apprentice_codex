@@ -49,6 +49,8 @@
     "ItemCostMixin",
     "MagicDataMixin",
     "MagicManagerMixin",
+    "MalumHiddenBladeParticleMixin",
+    "MalumReaperGeasParticleMixin",
     "MalumReplenishingOffhandMixin",
     "MalumSoulDataHandlerMixin",
     "MalumSpellweavingPickaxeMixin",
