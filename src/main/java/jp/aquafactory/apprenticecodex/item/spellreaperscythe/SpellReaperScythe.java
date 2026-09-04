@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
@@ -144,7 +145,11 @@ public final class SpellReaperScythe extends SwordItem
 
     @Override
     public boolean canPerformAction(@NotNull ItemStack stack, @NotNull ItemAbility itemAbility) {
-        return itemAbility == ItemAbilities.SWORD_SWEEP || super.canPerformAction(stack, itemAbility);
+        if (itemAbility == ItemAbilities.SWORD_SWEEP) {
+            // Malum導入時は本家大鎌のレスポンダーが範囲攻撃を担うため、バニラスイープを重ねない。
+            return !MalumSpellReaperScytheBridge.isAvailable();
+        }
+        return super.canPerformAction(stack, itemAbility);
     }
 
     @Override

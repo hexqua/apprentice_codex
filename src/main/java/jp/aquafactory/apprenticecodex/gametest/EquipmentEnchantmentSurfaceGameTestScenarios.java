@@ -412,6 +412,9 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     "Spell Reaper Scythe is missing malum:soul_shatter_capable_weapon");
             helper.assertTrue(stack.is(MALUM_SCYTHE),
                     "Spell Reaper Scythe is missing malum:scythe");
+            helper.assertTrue(item.canPerformAction(stack, ItemAbilities.SWORD_SWEEP)
+                            != ModList.get().isLoaded(MALUM_MOD_ID),
+                    "Spell Reaper Scythe should expose vanilla sweep only while Malum is absent");
             assertExactEnchantmentSurfaces(
                     helper,
                     stack,
