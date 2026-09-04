@@ -52,6 +52,7 @@
     "MagicManagerMixin",
     "MalumIronsSpellsCompatMixin",
     "MalumReplenishingOffhandMixin",
+    "MalumSoulDataHandlerMixin",
     "MerchantMenuMixin",
     "MerchantOfferMixin",
     "PotionFluidTypeMixin",

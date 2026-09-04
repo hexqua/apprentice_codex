@@ -2215,6 +2215,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellReaperScytheIsRecognizedByMalumSoulDataHandler(GameTestHelper helper) {
+        SpellReaperScytheGameTestScenarios.spellReaperScytheIsRecognizedByMalumSoulDataHandler(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellReaperScytheDoesNotSweepWithNarrowEdge(GameTestHelper helper) {
         SpellReaperScytheGameTestScenarios.spellReaperScytheDoesNotSweepWithNarrowEdge(helper);
     }
