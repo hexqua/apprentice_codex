@@ -22,6 +22,10 @@ public final class MalumSpellReaperScytheBridge {
         return ModList.get().isLoaded(MalumCompatibility.MOD_ID);
     }
 
+    public static float throwMagicDamage(LivingEntity owner) {
+        return isAvailable() ? MalumSpellReaperScytheBridgeImpl.throwMagicDamage(owner) : 0;
+    }
+
     public static boolean shouldUseNoSweepCombo(LivingEntity attacker) {
         return attacker != null
                 && isAvailable()

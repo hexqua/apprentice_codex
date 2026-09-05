@@ -15,6 +15,7 @@
     "FrozenHumanoidShatterInvoker",
     "ShieldSpellSupporterMixin",
     "EntitySupportedShieldCollisionMixin",
+    "LivingEntityDamageMemoryAccessor",
     "AbstractSpellManaBypassMixin",
     "AbstractSpellMixin",
     "AbstractConeProjectileRemoteOwnerMixin",

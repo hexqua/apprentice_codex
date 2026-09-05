@@ -132,6 +132,29 @@ public final class CombatTools {
     }
 
     @SuppressWarnings("UnusedReturnValue")
+    public static boolean applyUnscaledDamage(Entity target, float amount, DamageSource source, KnockbackTypes type) {
+        return applyUnscaledDamage(target, amount, source, type, CombatTargetPolicy.PROTECT_SELF_AND_ALLIES);
+    }
+
+    public static boolean applyUnscaledDamage(Entity target, float amount, DamageSource source,
+                                              KnockbackTypes type, CombatTargetPolicy policy) {
+        target = resolutePartEntity(target);
+        if (target.level().isClientSide || !Float.isFinite(amount) || amount <= 0
+                || isProtectedCombatTarget(target, resolveDamageOwner(source), policy)) {
+            return false;
+        }
+        // 武器・環境ダメージ向け。Iron'sのschool、威力、耐性、召喚・反復補正を経由しない。
+        var living = target instanceof LivingEntity entity ? entity : null;
+        var suppress = living != null && type == KnockbackTypes.NO_KNOCKBACK;
+        if (suppress) KnockbackControlEvent.markIgnoreNextKnockback(living);
+        try {
+            return target.hurt(source, amount);
+        } finally {
+            if (suppress) KnockbackControlEvent.clearIgnoreNextKnockback(living);
+        }
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
     public static boolean applyDamage(Entity target, float baseAmount, DamageSource source, SchoolType magicSchool,
                                       KnockbackTypes type) {
         return applyDamage(target, baseAmount, source, magicSchool, type, CombatTargetPolicy.PROTECT_SELF_AND_ALLIES);

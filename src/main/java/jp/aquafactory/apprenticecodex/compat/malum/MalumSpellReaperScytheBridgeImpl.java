@@ -40,6 +40,12 @@ final class MalumSpellReaperScytheBridgeImpl {
     private static final IMalumEventResponder RESPONDER = new SpellReaperScytheResponder();
     private static boolean registered;
 
+    static float throwMagicDamage(LivingEntity owner) {
+        // 投擲時に保存し、後の持ち替えや手持ち弱体化でHauntedを失わない。
+        var attribute = owner.getAttribute(team.lodestar.lodestone.registry.common.LodestoneAttributes.MAGIC_DAMAGE);
+        return attribute == null ? 0 : (float) Math.max(0, attribute.getValue());
+    }
+
     private MalumSpellReaperScytheBridgeImpl() {
     }
 

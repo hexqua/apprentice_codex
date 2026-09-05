@@ -85,6 +85,9 @@ public final class EntityRegistry {
     public static final DeferredRegister<EntityType<?>> ENTITIES =
             DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, ApprenticeCodex.MODID);
 
+    public static final DeferredHolder<EntityType<?>, EntityType<jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity>> SCYTHE_THROW =
+            regProjectile("spell_reaper_scythe_throw", jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity::new, 8, 1);
+
     private enum FireBehaviors {
         IMMUNE,
         VULNERABLE
