@@ -50,6 +50,7 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
     private int age;
     private int hoverTicks;
     private boolean ending;
+    private boolean clientSpinStarted;
     private float physical;
     private float magic;
 
@@ -107,6 +108,14 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
 
     @Override public void tick() {
         super.tick();
+        if (level().isClientSide) {
+            // 同期済みの停滞状態から各clientで一度だけ開始し、音の停止はEntityの寿命へ追従させる。
+            if (isHovering() && !clientSpinStarted) {
+                clientSpinStarted = true;
+                ScytheSpinSound.play(this);
+            }
+            return;
+        }
         if (!(level() instanceof ServerLevel)) return;
         checkOwner();
         if (isRemoved()) return;
@@ -138,6 +147,9 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
                 var end = handPosition(player);
                 sweep(position(), end, new HashSet<>(), false, true);
                 PacketDistributor.sendToPlayersTrackingEntityAndSelf(this, new ScytheRecallEffectPacket(position(), end, getTrailColor()));
+                level().playSound(null, end.x, end.y, end.z,
+                        jp.aquafactory.apprenticecodex.registry.SoundRegistry.VANILLA_SCYTHE_CATCH.get(),
+                        net.minecraft.sounds.SoundSource.PLAYERS, 0.65f, 1f);
             }
         } finally {
             discard();

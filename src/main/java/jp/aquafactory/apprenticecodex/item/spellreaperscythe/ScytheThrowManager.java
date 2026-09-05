@@ -99,6 +99,9 @@ public final class ScytheThrowManager {
         ACTIVE.put(player.getUUID(), entity);
         mark(stack, entity.getUUID());
         pay(player, cost);
+        level.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
+                jp.aquafactory.apprenticecodex.registry.SoundRegistry.SCYTHE_THROW.get(),
+                net.minecraft.sounds.SoundSource.PLAYERS, 0.8f, 1f);
     }
 
     public static boolean canPay(Player player, int cost) {

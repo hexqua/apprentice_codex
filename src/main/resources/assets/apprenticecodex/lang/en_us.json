@@ -1,4 +1,7 @@
 {
+  "subtitle.apprenticecodex.sound.scythe_throw": "Scythe thrown",
+  "subtitle.apprenticecodex.sound.scythe_spin": "Scythe spins",
+  "subtitle.apprenticecodex.sound.vanilla_scythe_catch": "Scythe returns to hand",
   "itemGroup.apprenticecodex.main": "Apprentice's Codex",
 
   "curios.identifier.feet": "Feet",
