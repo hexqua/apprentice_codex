@@ -1,4 +1,7 @@
 {
+  "subtitle.apprenticecodex.sound.scythe_throw": "镰刀掷出",
+  "subtitle.apprenticecodex.sound.scythe_spin": "镰刀旋转",
+  "subtitle.apprenticecodex.sound.vanilla_scythe_catch": "镰刀返回手中",
   "itemGroup.apprenticecodex.main": "学徒法典",
 
   "curios.identifier.feet": "脚饰",
