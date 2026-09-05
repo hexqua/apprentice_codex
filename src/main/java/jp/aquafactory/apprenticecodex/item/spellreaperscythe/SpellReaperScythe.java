@@ -105,6 +105,7 @@ public final class SpellReaperScythe extends SwordItem
         super.inventoryTick(stack, level, entity, slotId, isSelected);
         if (!level.isClientSide) {
             initializeSpellContainer(stack);
+            if (entity instanceof Player player) ScytheThrowManager.sanitize(stack, player);
         }
     }
 
@@ -163,11 +164,25 @@ public final class SpellReaperScythe extends SwordItem
             @NotNull InteractionHand hand
     ) {
         var stack = player.getItemInHand(hand);
+        if (ScytheThrowManager.isThrown(stack) || (!level.isClientSide && ScytheThrowManager.active(player) != null)) {
+            return ScytheThrowManager.use(level, player, hand);
+        }
         var ascensionResult = MalumSpellReaperScytheBridge.tryTriggerAscension(level, player, hand, stack);
         if (ascensionResult != InteractionResult.PASS) {
             return new InteractionResultHolder<>(ascensionResult, stack);
         }
-        return super.use(level, player, hand);
+        return ScytheThrowManager.use(level, player, hand);
+    }
+
+    @Override
+    public int getUseDuration(ItemStack stack, net.minecraft.world.entity.LivingEntity entity) { return 72000; }
+
+    @Override
+    public net.minecraft.world.item.UseAnim getUseAnimation(ItemStack stack) { return net.minecraft.world.item.UseAnim.BOW; }
+
+    @Override
+    public void releaseUsing(ItemStack stack, Level level, net.minecraft.world.entity.LivingEntity entity, int remaining) {
+        if (entity instanceof Player player) ScytheThrowManager.release(level, player, stack);
     }
 
     @Override
@@ -178,6 +193,15 @@ public final class SpellReaperScythe extends SwordItem
             @NotNull TooltipFlag flag
     ) {
         super.appendHoverText(stack, context, lines, flag);
+        if (MalumCompatibility.getEnchantmentLevel(stack, MALUM_ASCENSION_ID) == 0) {
+            var config = ApprenticeCodexServerConfig.spellReaperScytheConfig();
+            lines.add(Component.translatable("item.apprenticecodex.spell_reaper_scythe.throw.desc_1",
+                    Component.literal(Integer.toString(config.throwManaCost())).withStyle(ChatFormatting.AQUA))
+                    .withStyle(ChatFormatting.GRAY));
+            lines.add(Component.translatable("item.apprenticecodex.spell_reaper_scythe.throw.desc_2",
+                    Component.literal(Long.toString(config.throwManaPerTick() * 20L)).withStyle(ChatFormatting.AQUA))
+                    .withStyle(ChatFormatting.GRAY));
+        }
         for (var entry : EnchantmentHelper.getEnchantmentsForCrafting(stack).entrySet()) {
             var enchantmentId = entry.getKey().unwrapKey().map(ResourceKey::location).orElse(null);
             if (!MALUM_ASCENSION_ID.equals(enchantmentId)) {

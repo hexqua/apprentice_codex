@@ -23,6 +23,7 @@ public final class BetterCombatSpellReaperScytheCompat {
             ItemStack stack,
             WeaponAttributes originalAttributes
     ) {
+        if (jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowManager.isThrown(stack)) return null;
         if (!stack.is(ItemRegistry.SPELL_REAPER_SCYTHE.get())
                 || !MalumSpellReaperScytheBridge.shouldUseNoSweepCombo(player)) {
             return originalAttributes;

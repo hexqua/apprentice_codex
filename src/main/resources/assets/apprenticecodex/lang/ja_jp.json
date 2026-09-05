@@ -318,6 +318,8 @@
   "item.apprenticecodex.mana_force_blade.desc.epicfight": "打刀と同じガードスキルが対応しており、通常ガードでもマナを消費して矢を弾くことができる。",
   "item.apprenticecodex.mana_force_blade.desc.no_imbue": "魔法を注入することでその系統に同調して攻撃力を上昇させる。",
   "item.apprenticecodex.mana_force_blade.desc.imbue_help": "攻撃命中時にマナを%d消費する。",
+  "item.apprenticecodex.spell_reaper_scythe.throw.desc_1": "%sマナを消費することで投擲することができる。",
+  "item.apprenticecodex.spell_reaper_scythe.throw.desc_2": "持ち替えるか再使用するまで秒間%sマナ消費しながら投擲した先で停滞する。",
   "item.apprenticecodex.spell_reaper_scythe.malum.ascension_cost": "\"%1$s\"発動時に%2$sマナ消費する代わりにクールダウンが非常に短い。",
   "item.apprenticecodex.spell_side_edge.desc": "オフハンドに持っている魔法行使関連の利き手用の補正を得ることができる。",
   "item.apprenticecodex.spell_side_edge.desc.better_combat": "この短刀を利き手に持っている間、オフハンドで攻撃を行わなくなる。",
@@ -714,6 +716,7 @@
   "entity.apprenticecodex.blood_brand_kunai": "刻印の苦無",
   "entity.apprenticecodex.shiden_katana": "銘刀『紫電』",
   "entity.apprenticecodex.thermal_slice_katana": "サーマルスライサー",
+  "entity.apprenticecodex.spell_reaper_scythe_throw": "スペルリーパーの大鎌",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "使い走り魔術師",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "使い走り魔術師",
@@ -1228,6 +1231,7 @@
   "ui.apprenticecodex.hoverride_broom.warning_damage": "箒の損傷が限界を超えたため動作を停止する！",
   "ui.apprenticecodex.hoverride_broom.cannot_mount_damaged": "一度箒を回収しないと乗る事ができない！",
   "ui.apprenticecodex.mana_maneuver_gear.insufficient_mana": "ジャンプするためのマナが足りない！",
+  "ui.apprenticecodex.spell_reaper_scythe.throw_insufficient_mana": "%1$sを投擲するためのマナが足りない！",
   "ui.apprenticecodex.spell_reaper_scythe.ascension_insufficient_mana": "%1$sを使用するためのマナが足りない！",
 
   "ui.apprenticecodex.spell_selector.empty": "選択候補無し",
@@ -1356,6 +1360,7 @@
   "death.attack.apprenticecodex.shiden": "%1$sは竹を割るように切断された",
   "death.attack.apprenticecodex.catch_flame": "%1$sは火だるまになった",
   "death.attack.apprenticecodex.thermal_slice": "%1$sは伝説にはなれなかった",
+  "death.attack.apprenticecodex.spell_reaper_scythe_throw": "%1$sの命は収穫された",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",

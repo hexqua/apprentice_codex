@@ -63,6 +63,10 @@ public abstract class BetterCombatWeaponRegistryMixin {
             ItemStack stack,
             CallbackInfoReturnable<WeaponAttributes> callback
     ) {
+        if (stack != null && jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowManager.isThrown(stack)) {
+            callback.setReturnValue(null);
+            return;
+        }
         if (!SpellchargedGreatsword.isOverchargeActive(stack)) {
             return;
         }

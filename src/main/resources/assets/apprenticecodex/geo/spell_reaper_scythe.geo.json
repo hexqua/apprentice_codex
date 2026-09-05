@@ -101,6 +101,21 @@
 							}
 						}
 					]
+				},
+				{
+					"name": "anchor_tip",
+					"parent": "all",
+					"pivot": [0, 26, -15]
+				},
+				{
+					"name": "anchor_top",
+					"parent": "all",
+					"pivot": [0, 28, 2]
+				},
+				{
+					"name": "anchor_bottom",
+					"parent": "all",
+					"pivot": [0, 1, 0]
 				}
 			]
 		}

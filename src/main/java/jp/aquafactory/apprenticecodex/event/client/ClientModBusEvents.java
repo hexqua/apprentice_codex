@@ -826,6 +826,7 @@ public final class ClientModBusEvents {
         event.registerBlockEntityRenderer(BlockEntityRegistry.RIFT_HOLE.get(), RiftHoleBlockEntityRenderer::new);
 
         event.registerEntityRenderer(EntityRegistry.SKY_EDGE_PROJECTILE.get(), SkyEdgeProjectileRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.SCYTHE_THROW.get(), jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowRenderer::new);
         event.registerEntityRenderer(EntityRegistry.INSCRIBE_ICE_DAGGER.get(), InscribeIceDaggerRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ANCHOR_BLINK_DAGGER.get(), AnchorBlinkDaggerRenderer::new);
         event.registerEntityRenderer(EntityRegistry.MANA_FORCE_BLADE_PROJECTILE.get(), ManaForceBladeProjectileRenderer::new);

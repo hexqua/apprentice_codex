@@ -23,6 +23,9 @@
     "apprenticecodex:blood_brand_higanbana_burst",
     "apprenticecodex:shiden",
     "apprenticecodex:catch_flame_penetrate",
-    "apprenticecodex:thermal_slice"
+    "apprenticecodex:thermal_slice",
+    "apprenticecodex:spell_reaper_scythe_throw_magic",
+    "apprenticecodex:spell_reaper_scythe_throw_continuous",
+    "apprenticecodex:spell_reaper_scythe_throw_continuous_magic"
   ]
 }

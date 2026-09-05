@@ -95,7 +95,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "95";
+    private static final String PROTOCOL_VERSION = "97";
 
     private Networks() {
     }
@@ -106,6 +106,9 @@ public final class Networks {
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar(PROTOCOL_VERSION);
+        registrar.playToClient(jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket.TYPE,
+                jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket.STREAM_CODEC,
+                jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket::handle);
         registrar.playToServer(
                 ClientBlockTargetCastPacket.TYPE,
                 ClientBlockTargetCastPacket.STREAM_CODEC,

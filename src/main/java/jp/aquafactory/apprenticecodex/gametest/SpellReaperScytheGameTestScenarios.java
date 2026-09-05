@@ -152,8 +152,9 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
         var item = stack.getItem();
         var result = item.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
 
-        helper.assertTrue(result.getResult() == InteractionResult.PASS,
-                "Spell Reaper Scythe without Ascension should pass right-click");
+        helper.assertTrue(result.getResult() == InteractionResult.CONSUME && player.isUsingItem(),
+                "Spell Reaper Scythe without Ascension should begin charging");
+        player.releaseUsingItem();
         helper.assertFalse(player.getCooldowns().isOnCooldown(item),
                 "Spell Reaper Scythe without Ascension should not start a cooldown");
         helper.assertTrue(player.getActiveEffects().stream().noneMatch(SpellReaperScytheGameTestScenarios::isAscensionEffect),
@@ -172,8 +173,9 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
         enchantMalum(helper, stack, MALUM_REBOUND, 1);
         var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
 
-        helper.assertTrue(result.getResult() == InteractionResult.PASS,
-                "Rebound alone should remain a no-op until Spell Reaper throwing is implemented");
+        helper.assertTrue(result.getResult() == InteractionResult.CONSUME && player.isUsingItem(),
+                "Rebound alone should begin the independent throw charge");
+        player.releaseUsingItem();
         helper.assertFalse(player.getCooldowns().isOnCooldown(stack.getItem()),
                 "Rebound alone should not start a cooldown");
         helper.assertFalse(hasMalumScytheBoomerang(helper),
