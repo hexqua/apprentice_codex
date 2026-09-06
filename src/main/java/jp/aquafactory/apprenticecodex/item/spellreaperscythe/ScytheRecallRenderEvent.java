@@ -13,14 +13,14 @@ import java.util.List;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ScytheRecallRenderEvent {
-    private record Trail(Vec3 from, Vec3 to, long time, int color) {}
+    private record Trail(Vec3 from, Vec3 to, long time, int color, boolean narrow, float yaw) {}
     private static final List<Trail> TRAILS = new ArrayList<>();
     private static net.minecraft.client.multiplayer.ClientLevel world;
     private ScytheRecallRenderEvent() {}
-    public static void add(Vec3 from, Vec3 to, int color) {
+    public static void add(Vec3 from, Vec3 to, int color, boolean narrow, float yaw) {
         var level = Minecraft.getInstance().level;
         if (world != level) { TRAILS.clear(); world = level; }
-        if (level != null) TRAILS.add(new Trail(from, to, level.getGameTime(), color));
+        if (level != null) TRAILS.add(new Trail(from, to, level.getGameTime(), color, narrow, yaw));
     }
     @SubscribeEvent public static void render(RenderLevelStageEvent event) {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
@@ -38,6 +38,13 @@ public final class ScytheRecallRenderEvent {
             var axis = trail.to.subtract(trail.from);
             var side = new Vec3(-axis.z, 0, axis.x).normalize().scale(1.5);
             if (side.lengthSqr() < 1.0e-8) side = new Vec3(1.5, 0, 0);
+            // Narrowは上下への投擲でも傾かない縦板。真上への帰還ではヨー方向へ帯を広げる。
+            if (trail.narrow) {
+                double radians = Math.toRadians(trail.yaw);
+                side = axis.horizontalDistanceSqr() < 1.0e-8
+                        ? new Vec3(-Math.sin(radians), 0, Math.cos(radians)).scale(1.5)
+                        : new Vec3(0, 1.5, 0);
+            }
             var alpha = Math.max(0, 1 - (world.getGameTime() - trail.time + partial) / 4f);
             // SlashBladeと同じlightningの両面帯を、描画履歴ではなく帰還線分から生成する。
             for (int i = 0; i < 16; i++) {

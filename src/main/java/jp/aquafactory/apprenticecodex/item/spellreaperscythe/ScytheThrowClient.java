@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.spellreaperscythe;
 
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
@@ -23,6 +24,11 @@ public final class ScytheThrowClient {
     public static InteractionResultHolder<ItemStack> use(Player player, ItemStack stack) {
         if (requireRelease) return InteractionResultHolder.fail(stack);
         if (ScytheThrowManager.isThrown(stack)) {
+            requireRelease = true;
+            return InteractionResultHolder.consume(stack);
+        }
+        if (MalumSpellReaperScytheBridge.reboundLevel(player.level(), stack) > 0) {
+            // 即時発射では長押し使用状態を作らない。残マナが古くても要求はserverへ送り、そこで判定する。
             requireRelease = true;
             return InteractionResultHolder.consume(stack);
         }

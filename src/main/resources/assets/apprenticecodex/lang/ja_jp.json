@@ -320,6 +320,8 @@
   "item.apprenticecodex.mana_force_blade.desc.imbue_help": "攻撃命中時にマナを%d消費する。",
   "item.apprenticecodex.spell_reaper_scythe.throw.desc_1": "%sマナを消費することで投擲することができる。",
   "item.apprenticecodex.spell_reaper_scythe.throw.desc_2": "持ち替えるか再使用するまで秒間%sマナ消費しながら投擲した先で停滞する。",
+  "item.apprenticecodex.spell_reaper_scythe.malum.rebound.desc_1": "%sマナを消費することで即座に投擲することができる。",
+  "item.apprenticecodex.spell_reaper_scythe.malum.rebound.desc_2": "通常より遠くに投擲できるが、到達先で停滞せずに手元に即戻ってくる。",
   "item.apprenticecodex.spell_reaper_scythe.malum.ascension_cost": "\"%1$s\"発動時に%2$sマナ消費する代わりにクールダウンが非常に短い。",
   "item.apprenticecodex.spell_side_edge.desc": "オフハンドに持っている魔法行使関連の利き手用の補正を得ることができる。",
   "item.apprenticecodex.spell_side_edge.desc.better_combat": "この短刀を利き手に持っている間、オフハンドで攻撃を行わなくなる。",

@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -30,15 +31,21 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Set;
 import java.util.UUID;
 
 public final class ScytheThrowEntity extends Projectile implements GeoEntity {
+    public enum Mode { NORMAL, REBOUND, NARROW }
     public static final int DEFAULT_TRAIL_COLOR = 0xB4DCFF;
     private static final EntityDataAccessor<Integer> TRAIL_COLOR = SynchedEntityData.defineId(ScytheThrowEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> HOVERING = SynchedEntityData.defineId(ScytheThrowEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> MODE = SynchedEntityData.defineId(ScytheThrowEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Float> THROW_YAW = SynchedEntityData.defineId(ScytheThrowEntity.class, EntityDataSerializers.FLOAT);
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private static final RawAnimation THROW = RawAnimation.begin().thenLoop("throw_normal");
+    private static final RawAnimation THROW_VERTICAL = RawAnimation.begin().thenLoop("throw_vertical");
     private final Set<UUID> outwardContacts = new HashSet<>();
     private Player player;
     private ItemStack original = ItemStack.EMPTY;
@@ -61,15 +68,28 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
     }
 
     public void prepare(Player owner, ItemStack stack, int slot, double distance) {
+        prepare(owner, stack, slot, distance, Mode.NORMAL);
+    }
+
+    public void prepare(Player owner, ItemStack stack, int slot, double distance, Mode mode) {
         this.player = owner;
         this.original = stack;
         this.weapon = stack.copy();
         var school = MagicTools.getImbuedSpellSchool(stack);
         entityData.set(TRAIL_COLOR, school == null ? DEFAULT_TRAIL_COLOR : MagicTools.resolveSchoolTintColor(school));
         this.slot = slot;
+        entityData.set(MODE, mode.ordinal());
+        entityData.set(THROW_YAW, owner.getYRot());
+        setYRot(owner.getYRot());
+        yRotO = getYRot();
         setOwner(owner);
         physical = (float) owner.getAttributeValue(Attributes.ATTACK_DAMAGE);
         magic = MalumSpellReaperScytheBridge.throwMagicDamage(owner);
+        if (isNarrow()) {
+            // 両版のSpellReaperScytheで共通の倍率。各版のMalum装備属性は命中時に別途適用する。
+            physical *= 1.3f;
+            magic *= 1.3f;
+        }
         var eye = owner.getEyePosition();
         var aim = clipDestination(eye, eye.add(owner.getLookAngle().scale(distance)));
         start = handPosition(owner);
@@ -94,6 +114,10 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
 
     public boolean isHovering() { return entityData.get(HOVERING); }
     public int getTrailColor() { return entityData.get(TRAIL_COLOR); }
+    public Mode getMode() { return Mode.values()[entityData.get(MODE)]; }
+    public boolean isRebound() { return getMode() != Mode.NORMAL; }
+    public boolean isNarrow() { return getMode() == Mode.NARROW; }
+    public float getThrowYaw() { return entityData.get(THROW_YAW); }
 
     public void checkOwner() {
         if (ending || isRemoved()) return;
@@ -101,7 +125,7 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
             discard();
         } else if (player.getInventory().selected != slot || !getUUID().equals(ScytheThrowManager.token(player.getMainHandItem()))) {
             recall();
-        } else if (distanceToSqr(player) >= 24 * 24) {
+        } else if (distanceToSqr(player) >= Math.pow(isNarrow() ? 48 : isRebound() ? 32 : 24, 2)) {
             recall();
         }
     }
@@ -127,7 +151,11 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
             var from = position();
             setPos(clipped);
             sweep(from, clipped, outwardContacts, false, false);
-            if (blocked || age >= travelTicks) entityData.set(HOVERING, true);
+            if (isRemoved()) return;
+            if (blocked || age >= travelTicks) {
+                if (isRebound()) recall();
+                else entityData.set(HOVERING, true);
+            }
         } else {
             int cost = ApprenticeCodexServerConfig.spellReaperScytheConfig().throwManaPerTick();
             if (!ScytheThrowManager.canPay(player, cost)) {
@@ -146,7 +174,8 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
             if (player != null && player.isAlive() && player.level() == level()) {
                 var end = handPosition(player);
                 sweep(position(), end, new HashSet<>(), false, true);
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this, new ScytheRecallEffectPacket(position(), end, getTrailColor()));
+                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this,
+                        new ScytheRecallEffectPacket(position(), end, getTrailColor(), isNarrow(), getThrowYaw()));
                 level().playSound(null, end.x, end.y, end.z,
                         jp.aquafactory.apprenticecodex.registry.SoundRegistry.VANILLA_SCYTHE_CATCH.get(),
                         net.minecraft.sounds.SoundSource.PLAYERS, 0.65f, 1f);
@@ -167,6 +196,10 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
     }
 
     private void sweep(Vec3 from, Vec3 to, Set<UUID> contacts, boolean continuous, boolean returning) {
+        if (isNarrow()) {
+            sweepNarrow(from, to, contacts, returning);
+            return;
+        }
         var level = (ServerLevel) level();
         // 広域AABBは候補抽出専用。斜め帰還時はMinkowski拡張した対象との線分交差で絞る。
         var candidates = level.getEntities(this, attackBox(from).minmax(attackBox(to)), e -> CombatTools.isValidCombatTarget(e, player));
@@ -190,6 +223,49 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
         }
     }
 
+    private void sweepNarrow(Vec3 from, Vec3 to, Set<UUID> contacts, boolean returning) {
+        var level = (ServerLevel) level();
+        var box = narrowBox(from, getThrowYaw());
+        var movement = to.subtract(from);
+        record Contact(net.minecraft.world.entity.Entity raw, double time) {}
+        var hits = new ArrayList<Contact>();
+        for (var raw : level.getEntities(this, RaycastTools.movingHorizontalBoxBounds(box, movement),
+                e -> CombatTools.isValidCombatTarget(e, player))) {
+            var time = RaycastTools.firstMovingHorizontalBoxContact(raw.getBoundingBox(), box, movement);
+            if (time.isPresent()) hits.add(new Contact(raw, time.getAsDouble()));
+        }
+        hits.sort(Comparator.comparingDouble(Contact::time).thenComparingInt(hit -> hit.raw().getId()));
+        for (var hit : hits) {
+            var raw = hit.raw();
+            var target = CombatTools.resolutePartEntity(raw);
+            if (contacts.contains(target.getUUID())) continue;
+            var origin = from.lerp(to, hit.time());
+            if (!returning) {
+                var bounds = raw.getBoundingBox();
+                var closest = new Vec3(Math.clamp(origin.x, bounds.minX, bounds.maxX),
+                        Math.clamp(origin.y, bounds.minY, bounds.maxY), Math.clamp(origin.z, bounds.minZ, bounds.maxZ));
+                if (level.clip(new ClipContext(origin, closest, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this))
+                        .getType() != HitResult.Type.MISS) continue;
+            }
+            contacts.add(target.getUUID());
+            if (net.neoforged.neoforge.event.EventHooks.onProjectileImpact(this,
+                    new net.minecraft.world.phys.EntityHitResult(raw, origin))) continue;
+            // 同tick内の候補全員へ当てず、最初の接触地点から帰還する。無敵時間は帰還条件を変えない。
+            if (!returning) setPos(origin);
+            ScytheThrowDamage.hit(level, this, player, target, weapon, physical, magic, false);
+            if (!returning) {
+                recall();
+                return;
+            }
+        }
+    }
+
+    public static RaycastTools.HorizontalOrientedBox narrowBox(Vec3 center, float yaw) {
+        double radians = Math.toRadians(yaw);
+        var forward = new Vec3(-Math.sin(radians), 0, Math.cos(radians));
+        return new RaycastTools.HorizontalOrientedBox(center.subtract(forward.scale(1.5)), forward, 0.05, 1.5, 3);
+    }
+
     @Override public void remove(@NotNull RemovalReason reason) {
         if (!level().isClientSide) ScytheThrowManager.forget(this, player, original);
         super.remove(reason);
@@ -198,6 +274,8 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
     @Override protected void defineSynchedData(SynchedEntityData.Builder builder) {
         builder.define(TRAIL_COLOR, DEFAULT_TRAIL_COLOR);
         builder.define(HOVERING, false);
+        builder.define(MODE, Mode.NORMAL.ordinal());
+        builder.define(THROW_YAW, 0f);
     }
     // セッション限定。保存済みEntityが復元されてもowner無しとして即時破棄する。
     @Override protected void readAdditionalSaveData(@NotNull CompoundTag tag) {}
@@ -205,7 +283,7 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
     @Override public boolean shouldBeSaved() { return false; }
     @Override public @NotNull AABB getBoundingBoxForCulling() { return getBoundingBox().inflate(3); }
     @Override public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "throw", 0, state -> state.setAndContinue(THROW)));
+        controllers.add(new AnimationController<>(this, "throw", 0, state -> state.setAndContinue(isNarrow() ? THROW_VERTICAL : THROW)));
     }
     @Override public AnimatableInstanceCache getAnimatableInstanceCache() { return cache; }
 }

@@ -46,6 +46,20 @@ final class MalumSpellReaperScytheBridgeImpl {
         return attribute == null ? 0 : (float) Math.max(0, attribute.getValue());
     }
 
+    static float scytheProficiency(LivingEntity owner) {
+        var attribute = owner.getAttribute(com.sammy.malum.registry.common.MalumAttributes.SCYTHE_PROFICIENCY);
+        return attribute == null ? 1 : (float) attribute.getValue();
+    }
+
+    static int reboundLevel(Level level, ItemStack stack) {
+        return EnchantmentKeys.getEnchantmentLevel(level, EnchantmentKeys.REBOUND, stack);
+    }
+
+    static boolean hasNarrowEdge(LivingEntity owner) {
+        // canSweepはHidden Bladeでもfalseになるため、Narrow固有の判定を使う。
+        return MalumScytheItem.isEnhanced(owner);
+    }
+
     private MalumSpellReaperScytheBridgeImpl() {
     }
 

@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.spellreaperscythe;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import net.minecraft.ChatFormatting;
@@ -64,7 +65,8 @@ public final class ScytheThrowManager {
 
     public static InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         var stack = player.getItemInHand(hand);
-        if (hand != InteractionHand.MAIN_HAND) return InteractionResultHolder.fail(stack);
+        if (hand != InteractionHand.MAIN_HAND || !(stack.getItem() instanceof SpellReaperScythe)
+                || !player.isAlive() || player.isSpectator()) return InteractionResultHolder.fail(stack);
         if (level.isClientSide) {
             return ScytheThrowClient.use(player, stack);
         }
@@ -74,6 +76,16 @@ public final class ScytheThrowManager {
             return InteractionResultHolder.consume(stack);
         }
         clear(stack);
+        int reboundLevel = MalumSpellReaperScytheBridge.reboundLevel(level, stack);
+        if (reboundLevel > 0) {
+            CHARGES.remove(player.getUUID());
+            player.stopUsingItem();
+            var mode = MalumSpellReaperScytheBridge.hasNarrowEdge(player)
+                    ? ScytheThrowEntity.Mode.NARROW : ScytheThrowEntity.Mode.REBOUND;
+            launch(level, player, stack, player.getInventory().selected, mode == ScytheThrowEntity.Mode.NARROW ? 32 : 16,
+                    mode, ApprenticeCodexServerConfig.spellReaperScytheConfig().reboundManaCost(reboundLevel));
+            return InteractionResultHolder.consume(stack);
+        }
         // client側で不足拒否した使用packetも届き得るため、新しい開始要求は時刻を更新する。
         // 再送で溜めを短縮することはできず、古いserver使用状態を次の正規操作へ持ち越さない。
         CHARGES.put(player.getUUID(), new Charge(level.getGameTime(), stack, player.getInventory().selected));
@@ -87,14 +99,20 @@ public final class ScytheThrowManager {
         if (charge == null || charge.stack != stack || player.getMainHandItem() != stack
                 || player.getInventory().selected != charge.slot || active(player) != null) return;
         var elapsed = level.getGameTime() - charge.started;
-        if (elapsed < 10) return;
+        if (elapsed < 10 || !player.isAlive() || player.isSpectator()
+                || MalumSpellReaperScytheBridge.reboundLevel(level, stack) > 0) return;
         var cost = ApprenticeCodexServerConfig.spellReaperScytheConfig().throwManaCost();
+        launch(level, player, stack, charge.slot, Math.min(40, elapsed) * 0.25, ScytheThrowEntity.Mode.NORMAL, cost);
+    }
+
+    private static void launch(Level level, Player player, ItemStack stack, int slot, double distance,
+                               ScytheThrowEntity.Mode mode, int cost) {
         if (!canPay(player, cost)) {
             insufficientMana(player);
             return;
         }
         var entity = new ScytheThrowEntity(EntityRegistry.SCYTHE_THROW.get(), level);
-        entity.prepare(player, stack, charge.slot, Math.min(40, elapsed) * 0.25);
+        entity.prepare(player, stack, slot, distance, mode);
         if (!level.addFreshEntity(entity)) return;
         ACTIVE.put(player.getUUID(), entity);
         mark(stack, entity.getUUID());

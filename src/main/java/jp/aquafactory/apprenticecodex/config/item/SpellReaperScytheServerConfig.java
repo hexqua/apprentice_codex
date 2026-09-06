@@ -10,6 +10,8 @@ public final class SpellReaperScytheServerConfig {
     private final ModConfigSpec.IntValue ascensionCooldownTicks;
     private final ModConfigSpec.IntValue throwManaCost;
     private final ModConfigSpec.IntValue throwManaPerTick;
+    private final ModConfigSpec.IntValue reboundBaseManaCost;
+    private final ModConfigSpec.IntValue reboundManaCostReductionPerLevel;
     private Values override;
 
     private SpellReaperScytheServerConfig(
@@ -17,13 +19,17 @@ public final class SpellReaperScytheServerConfig {
             ModConfigSpec.IntValue ascensionManaCostReductionPerLevel,
             ModConfigSpec.IntValue ascensionCooldownTicks,
             ModConfigSpec.IntValue throwManaCost,
-            ModConfigSpec.IntValue throwManaPerTick
+            ModConfigSpec.IntValue throwManaPerTick,
+            ModConfigSpec.IntValue reboundBaseManaCost,
+            ModConfigSpec.IntValue reboundManaCostReductionPerLevel
     ) {
         this.ascensionBaseManaCost = ascensionBaseManaCost;
         this.ascensionManaCostReductionPerLevel = ascensionManaCostReductionPerLevel;
         this.ascensionCooldownTicks = ascensionCooldownTicks;
         this.throwManaCost = throwManaCost;
         this.throwManaPerTick = throwManaPerTick;
+        this.reboundBaseManaCost = reboundBaseManaCost;
+        this.reboundManaCostReductionPerLevel = reboundManaCostReductionPerLevel;
     }
 
     public static SpellReaperScytheServerConfig define(ModConfigSpec.Builder builder) {
@@ -41,12 +47,16 @@ public final class SpellReaperScytheServerConfig {
                 .defineInRange("throwManaCost", 100, 0, Integer.MAX_VALUE);
         var throwManaPerTick = builder.comment("Mana consumed each tick while the thrown scythe hovers. 20 ticks = 1 second.")
                 .defineInRange("throwManaPerTick", 3, 0, Integer.MAX_VALUE);
+        var reboundBaseManaCost = builder.comment("Mana consumed when Spell Reaper Scythe is thrown with Rebound I.")
+                .defineInRange("reboundBaseManaCost", 100, 0, Integer.MAX_VALUE);
+        var reboundManaCostReductionPerLevel = builder.comment("Mana cost reduction for each Rebound level above level 1. The final cost cannot be negative.")
+                .defineInRange("reboundManaCostReductionPerLevel", 20, 0, Integer.MAX_VALUE);
         builder.pop();
 
         return new SpellReaperScytheServerConfig(
                 ascensionBaseManaCost,
                 ascensionManaCostReductionPerLevel,
-                ascensionCooldownTicks, throwManaCost, throwManaPerTick
+                ascensionCooldownTicks, throwManaCost, throwManaPerTick, reboundBaseManaCost, reboundManaCostReductionPerLevel
         );
     }
 
@@ -57,7 +67,8 @@ public final class SpellReaperScytheServerConfig {
         return new Values(
                 ascensionBaseManaCost.get(),
                 ascensionManaCostReductionPerLevel.get(),
-                ascensionCooldownTicks.get(), throwManaCost.get(), throwManaPerTick.get()
+                ascensionCooldownTicks.get(), throwManaCost.get(), throwManaPerTick.get(),
+                reboundBaseManaCost.get(), reboundManaCostReductionPerLevel.get()
         );
     }
 
@@ -66,14 +77,21 @@ public final class SpellReaperScytheServerConfig {
     }
 
     public record Values(int ascensionBaseManaCost, int ascensionManaCostReductionPerLevel, int ascensionCooldownTicks,
-                         int throwManaCost, int throwManaPerTick) {
+                         int throwManaCost, int throwManaPerTick,
+                         int reboundBaseManaCost, int reboundManaCostReductionPerLevel) {
         public Values(int base, int reduction, int cooldown) {
             this(base, reduction, cooldown, 100, 3);
+        }
+
+        public Values(int base, int reduction, int cooldown, int throwCost, int upkeep) {
+            this(base, reduction, cooldown, throwCost, upkeep, 100, 20);
         }
 
         public Values {
             throwManaCost = Math.max(0, throwManaCost);
             throwManaPerTick = Math.max(0, throwManaPerTick);
+            reboundBaseManaCost = Math.max(0, reboundBaseManaCost);
+            reboundManaCostReductionPerLevel = Math.max(0, reboundManaCostReductionPerLevel);
             ascensionBaseManaCost = Math.max(0, ascensionBaseManaCost);
             ascensionManaCostReductionPerLevel = Math.max(0, ascensionManaCostReductionPerLevel);
             ascensionCooldownTicks = Math.max(0, Math.min(MAX_COOLDOWN_TICKS, ascensionCooldownTicks));
@@ -83,6 +101,12 @@ public final class SpellReaperScytheServerConfig {
             var reductionLevels = Math.max(0L, (long) enchantmentLevel - 1L);
             var reducedCost = (long) ascensionBaseManaCost
                     - (long) ascensionManaCostReductionPerLevel * reductionLevels;
+            return (int) Math.max(0L, reducedCost);
+        }
+
+        public int reboundManaCost(int enchantmentLevel) {
+            var reductionLevels = Math.max(0L, (long) enchantmentLevel - 1L);
+            var reducedCost = (long) reboundBaseManaCost - (long) reboundManaCostReductionPerLevel * reductionLevels;
             return (int) Math.max(0L, reducedCost);
         }
     }

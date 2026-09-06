@@ -66,7 +66,7 @@ public final class ScytheThrowGameTests {
         h.succeed();
     }
 
-    private static FakePlayer player(GameTestHelper h, float mana) {
+    static FakePlayer player(GameTestHelper h, float mana) {
         var p = new FakePlayer(h.getLevel(), new GameProfile(UUID.randomUUID(), "scythe_throw"));
         p.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         p.setPos(h.absoluteVec(new Vec3(2.5, 2, 2.5)));
