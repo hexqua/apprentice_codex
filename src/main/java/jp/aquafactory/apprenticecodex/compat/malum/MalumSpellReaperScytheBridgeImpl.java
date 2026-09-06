@@ -55,6 +55,31 @@ final class MalumSpellReaperScytheBridgeImpl {
         return EnchantmentKeys.getEnchantmentLevel(level, EnchantmentKeys.REBOUND, stack);
     }
 
+    static int ascensionLevel(Level level, ItemStack stack) {
+        return EnchantmentKeys.getEnchantmentLevel(level, EnchantmentKeys.ASCENSION, stack);
+    }
+
+    static void triggerEpicFightAscension(Player player, ItemStack stack) {
+        if (ascensionLevel(player.level(), stack) <= 0) return;
+        // 攻撃・マナ・装備効果は従来経路へ委譲し、跳躍のみserverから同期する。
+        if (tryTriggerAscension(player.level(), player, InteractionHand.MAIN_HAND, stack) != InteractionResult.SUCCESS) return;
+        var motion = player.getDeltaMovement();
+        motion = new net.minecraft.world.phys.Vec3(motion.x,
+                ((jp.aquafactory.apprenticecodex.mixin.LivingEntityAccessor) player).apprenticecodex$getJumpPower() * 2.0D, motion.z);
+        if (player.isSprinting()) {
+            float yaw = player.getYRot() * ((float) Math.PI / 180F);
+            double impulse = hasNarrowEdge(player) ? -0.4D : 0.75D;
+            motion = motion.add(-Math.sin(yaw) * impulse, 0, Math.cos(yaw) * impulse);
+        }
+        player.setDeltaMovement(motion);
+        player.hasImpulse = true;
+        player.hurtMarked = true;
+        net.neoforged.neoforge.common.CommonHooks.onLivingJump(player);
+        if (player instanceof ServerPlayer server && !(player instanceof net.neoforged.neoforge.common.util.FakePlayer)) {
+            server.connection.send(new net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket(player));
+        }
+    }
+
     static boolean hasNarrowEdge(LivingEntity owner) {
         // canSweepはHidden Bladeでもfalseになるため、Narrow固有の判定を使う。
         return MalumScytheItem.isEnhanced(owner);

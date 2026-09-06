@@ -118,6 +118,7 @@ def optionalRuntimeProfileModules = [
         easy_magic          : ['puzzles_lib', 'easy_magic'],
         better_combat       : ['cloth_config', 'better_combat'],
         malum_better_combat : ['lodestone', 'malum', 'cloth_config', 'better_combat'],
+        malum_epic_fight    : ['lodestone', 'malum', 'epic_fight'],
         epic_fight          : ['epic_fight'],
         epic_fight_controller: ['epic_fight', 'yacl', 'controlify'],
         compat_easy_better  : ['create', 'lodestone', 'malum', 'atlas_api', 'irons_jewelry', 'puzzles_lib', 'easy_magic', 'cloth_config', 'better_combat'],
@@ -149,6 +150,7 @@ def optionalRuntimeRequiredModIds = [
         easy_magic   : 'puzzleslib,easymagic',
         better_combat: 'cloth_config,bettercombat',
         malum_better_combat: 'lodestone,malum,cloth_config,bettercombat',
+        malum_epic_fight: 'lodestone,malum,epicfight',
         epic_fight   : 'epicfight',
 ]
 
@@ -233,6 +235,11 @@ neoForge {
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
+        clientMalumEpicFight {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
         clientEpicFightController {
             client()
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
@@ -285,6 +292,13 @@ neoForge {
             programArguments.addAll '--world', gameTestServerWorldName
         }
 
+        gameTestServerMalumEpicFight {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty requiredOptionalModsProperty, optionalRuntimeRequiredModIds.malum_epic_fight
+            programArguments.addAll '--world', gameTestServerWorldName
+        }
+
         data {
             data()
             programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
@@ -333,7 +347,7 @@ configurations {
     }
 }
 
-['client', 'clientCompat', 'clientCreateSableAeronautics', 'clientEasyMagic', 'clientBetterCombat', 'clientEpicFight', 'clientEpicFightController', 'clientCompatEasyBetter'].each {
+['client', 'clientCompat', 'clientCreateSableAeronautics', 'clientEasyMagic', 'clientBetterCombat', 'clientEpicFight', 'clientMalumEpicFight', 'clientEpicFightController', 'clientCompatEasyBetter'].each {
     extendRunJavaClasspathWithClientRuntimeModules(it)
 }
 
@@ -342,6 +356,7 @@ extendRunJavaClasspathWithOptionalRuntimeModules('clientCreateSableAeronautics',
 extendRunJavaClasspathWithOptionalRuntimeModules('clientEasyMagic', expandOptionalRuntimeModules(['easy_magic']))
 extendRunJavaClasspathWithOptionalRuntimeModules('clientBetterCombat', expandOptionalRuntimeModules(['better_combat']))
 extendRunJavaClasspathWithOptionalRuntimeModules('clientEpicFight', expandOptionalRuntimeModules(['epic_fight']))
+extendRunJavaClasspathWithOptionalRuntimeModules('clientMalumEpicFight', expandOptionalRuntimeModules(['malum_epic_fight']))
 extendRunJavaClasspathWithOptionalRuntimeModules('clientEpicFightController', expandOptionalRuntimeModules(['epic_fight_controller']))
 extendRunJavaClasspathWithOptionalRuntimeModules('clientCompatEasyBetter', expandOptionalRuntimeModules(['compat_easy_better']))
 extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerCompat', expandOptionalRuntimeModules(['compat']))
@@ -350,6 +365,7 @@ extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerEasyMagic', expa
 extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerBetterCombat', expandOptionalRuntimeModules(['better_combat']))
 extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerMalumBetterCombat', expandOptionalRuntimeModules(['malum_better_combat']))
 extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerEpicFight', expandOptionalRuntimeModules(['epic_fight']))
+extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerMalumEpicFight', expandOptionalRuntimeModules(['malum_epic_fight']))
 
 def devRuntimeMods = providers.gradleProperty('devRuntimeMods').orNull
 if (devRuntimeMods != null && !devRuntimeMods.trim().isEmpty()) {

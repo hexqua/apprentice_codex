@@ -80,12 +80,7 @@ public final class ScytheThrowManager {
         if (reboundLevel > 0) {
             CHARGES.remove(player.getUUID());
             player.stopUsingItem();
-            var mode = MalumSpellReaperScytheBridge.hasNarrowEdge(player)
-                    ? ScytheThrowEntity.Mode.NARROW : ScytheThrowEntity.Mode.REBOUND;
-            var config = ApprenticeCodexServerConfig.spellReaperScytheConfig();
-            launch(level, player, stack, player.getInventory().selected, mode == ScytheThrowEntity.Mode.NARROW ? 32 : 16,
-                    mode, MalumSpellReaperScytheBridge.hasMaelstrom(player)
-                            ? config.maelstromManaCost(reboundLevel) : config.reboundManaCost(reboundLevel));
+            launchRebound(player, stack);
             return InteractionResultHolder.consume(stack);
         }
         // client側で不足拒否した使用packetも届き得るため、新しい開始要求は時刻を更新する。
@@ -107,8 +102,37 @@ public final class ScytheThrowManager {
         launch(level, player, stack, charge.slot, Math.min(40, elapsed) * 0.25, ScytheThrowEntity.Mode.NORMAL, cost);
     }
 
+    public static boolean recall(Player player) {
+        var entity = active(player);
+        if (entity == null) return false;
+        entity.recall();
+        return true;
+    }
+
+    public static void launchNormal(Player player, ItemStack stack, double distance) {
+        if (!Double.isFinite(distance)) return;
+        launch(player.level(), player, stack, player.getInventory().selected,
+                Math.clamp(distance, 2.5D, 10.0D), ScytheThrowEntity.Mode.NORMAL,
+                ApprenticeCodexServerConfig.spellReaperScytheConfig().throwManaCost());
+    }
+
+    public static void launchRebound(Player player, ItemStack stack) {
+        int reboundLevel = MalumSpellReaperScytheBridge.reboundLevel(player.level(), stack);
+        if (reboundLevel <= 0) return;
+        var mode = MalumSpellReaperScytheBridge.hasNarrowEdge(player)
+                ? ScytheThrowEntity.Mode.NARROW : ScytheThrowEntity.Mode.REBOUND;
+        var config = ApprenticeCodexServerConfig.spellReaperScytheConfig();
+        launch(player.level(), player, stack, player.getInventory().selected,
+                mode == ScytheThrowEntity.Mode.NARROW ? 32 : 16, mode,
+                MalumSpellReaperScytheBridge.hasMaelstrom(player)
+                        ? config.maelstromManaCost(reboundLevel) : config.reboundManaCost(reboundLevel));
+    }
+
     private static void launch(Level level, Player player, ItemStack stack, int slot, double distance,
                                ScytheThrowEntity.Mode mode, int cost) {
+        if (level.isClientSide || !player.isAlive() || player.isSpectator()
+                || !(stack.getItem() instanceof SpellReaperScythe) || player.getMainHandItem() != stack
+                || player.getInventory().selected != slot || active(player) != null) return;
         if (!canPay(player, cost)) {
             insufficientMana(player);
             return;

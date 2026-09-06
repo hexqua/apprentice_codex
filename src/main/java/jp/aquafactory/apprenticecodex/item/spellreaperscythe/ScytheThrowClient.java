@@ -51,6 +51,7 @@ public final class ScytheThrowClient {
     }
 
     @SubscribeEvent public static void input(InputEvent.InteractionKeyMappingTriggered event) {
+        if (net.neoforged.fml.ModList.get().isLoaded("epicfight")) return;
         // use()内の拒否だけではバニラのC2S使用packet送信を止められない。
         if (event.isUseItem() && requireRelease) {
             event.setCanceled(true);
@@ -59,6 +60,11 @@ public final class ScytheThrowClient {
     }
 
     @SubscribeEvent public static void tick(ClientTickEvent.Pre event) {
+        if (net.neoforged.fml.ModList.get().isLoaded("epicfight")) {
+            requireRelease = false;
+            wasThrown = false;
+            return;
+        }
         var mc = Minecraft.getInstance();
         if (mc.player == null) { requireRelease = false; wasThrown = false; return; }
         boolean thrown = ScytheThrowManager.isThrown(mc.player.getMainHandItem());

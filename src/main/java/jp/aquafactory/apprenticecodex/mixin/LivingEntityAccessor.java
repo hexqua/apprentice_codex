@@ -8,6 +8,9 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(LivingEntity.class)
 public interface LivingEntityAccessor {
+    @Invoker("getJumpPower")
+    float apprenticecodex$getJumpPower();
+
     @Accessor("useItem")
     void apprenticecodex$setUseItem(ItemStack itemStack);
 

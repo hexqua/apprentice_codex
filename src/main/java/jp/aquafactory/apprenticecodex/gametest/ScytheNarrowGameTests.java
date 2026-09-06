@@ -126,7 +126,8 @@ public final class ScytheNarrowGameTests {
         ScytheReboundGameTests.use(h, p);
         h.assertTrue(p.isUsingItem() && ScytheThrowManager.active(p) == null, "Narrow alone must still charge");
         h.runAfterDelay(10, () -> {
-            p.releaseUsingItem();
+            ScytheThrowManager.release(h.getLevel(), p, p.getUseItem());
+            p.stopUsingItem();
             var entity = ScytheThrowManager.active(p);
             h.assertTrue(entity != null && entity.getMode() == ScytheThrowEntity.Mode.NORMAL, "Unenchanted Narrow must use normal mode");
             try {

@@ -42,7 +42,8 @@ public abstract class MalumAscensionParticleMixin {
             return;
         }
 
-        if (player.getAbilities().instabuild) {
+        // Epic Fightではインネイト入力が発動を管理し、アイテムの使用待ち時間を持ち込まない。
+        if (player.getAbilities().instabuild || net.neoforged.fml.ModList.get().isLoaded("epicfight")) {
             return;
         }
 

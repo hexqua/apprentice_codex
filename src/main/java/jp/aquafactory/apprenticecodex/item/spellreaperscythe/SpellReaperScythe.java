@@ -165,6 +165,11 @@ public final class SpellReaperScythe extends SwordItem
             @NotNull InteractionHand hand
     ) {
         var stack = player.getItemInHand(hand);
+        if (net.neoforged.fml.ModList.get().isLoaded("epicfight")) {
+            // ガード入力はEpic Fightに任せ、大鎌固有の使用経路だけを無効化する.
+            // 大鎌固有機能は戦闘モードのインネイトスキル側で処理する.
+            return InteractionResultHolder.pass(stack);
+        }
         if (ScytheThrowManager.isThrown(stack) || (!level.isClientSide && ScytheThrowManager.active(player) != null)) {
             return ScytheThrowManager.use(level, player, hand);
         }
@@ -183,7 +188,9 @@ public final class SpellReaperScythe extends SwordItem
 
     @Override
     public void releaseUsing(@NotNull ItemStack stack, @NotNull Level level, net.minecraft.world.entity.@NotNull LivingEntity entity, int remaining) {
-        if (entity instanceof Player player) ScytheThrowManager.release(level, player, stack);
+        if (!net.neoforged.fml.ModList.get().isLoaded("epicfight") && entity instanceof Player player) {
+            ScytheThrowManager.release(level, player, stack);
+        }
     }
 
     @Override
@@ -194,6 +201,10 @@ public final class SpellReaperScythe extends SwordItem
             @NotNull TooltipFlag flag
     ) {
         super.appendHoverText(stack, context, lines, flag);
+        if (net.neoforged.fml.ModList.get().isLoaded("epicfight")) {
+            appendEpicFightHoverText(stack, lines);
+            return;
+        }
         if (MalumCompatibility.getEnchantmentLevel(stack, MALUM_ASCENSION_ID) == 0) {
             var config = ApprenticeCodexServerConfig.spellReaperScytheConfig();
             int reboundLevel = MalumCompatibility.getEnchantmentLevel(stack, MALUM_REBOUND_ID);
@@ -232,6 +243,35 @@ public final class SpellReaperScythe extends SwordItem
             ).withStyle(ChatFormatting.GRAY));
             break;
         }
+    }
+
+    private static void appendEpicFightHoverText(ItemStack stack, List<Component> lines) {
+        var config = ApprenticeCodexServerConfig.spellReaperScytheConfig();
+        int ascension = MalumCompatibility.getEnchantmentLevel(stack, MALUM_ASCENSION_ID);
+        int rebound = MalumCompatibility.getEnchantmentLevel(stack, MALUM_REBOUND_ID);
+        String prefix = "item.apprenticecodex.spell_reaper_scythe.epicfight.";
+        if (ascension > 0) {
+            var enchantment = EnchantmentHelper.getEnchantmentsForCrafting(stack).keySet().stream()
+                    .filter(holder -> holder.unwrapKey().map(ResourceKey::location).filter(MALUM_ASCENSION_ID::equals).isPresent())
+                    .findFirst().orElseThrow();
+            lines.add(Component.translatable(prefix + "ascension.desc_1", Enchantment.getFullname(enchantment, ascension)).withStyle(ChatFormatting.GRAY));
+            lines.add(Component.translatable(prefix + "ascension.desc_2", manaText(config.ascensionManaCost(ascension))).withStyle(ChatFormatting.GRAY));
+        } else if (rebound > 0) {
+            boolean client = net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT;
+            boolean maelstrom = client && ScytheThrowClient.hasMaelstromForTooltip();
+            boolean narrow = client && ScytheThrowClient.hasNarrowForTooltip();
+            lines.add(Component.translatable(prefix + "rebound.desc_1").withStyle(ChatFormatting.GRAY));
+            lines.add(Component.translatable(prefix + (maelstrom && !narrow ? "rebound.maelstrom_desc_2" : "rebound.desc_2"),
+                    manaText(maelstrom ? config.maelstromManaCost(rebound) : config.reboundManaCost(rebound))).withStyle(ChatFormatting.GRAY));
+        } else {
+            lines.add(Component.translatable(prefix + "throw.desc_1").withStyle(ChatFormatting.GRAY));
+            lines.add(Component.translatable(prefix + "throw.desc_2", manaText(config.throwManaCost()),
+                    manaText(config.throwManaPerTick() * 20L)).withStyle(ChatFormatting.GRAY));
+        }
+    }
+
+    private static Component manaText(long amount) {
+        return Component.literal(Long.toString(amount)).withStyle(ChatFormatting.AQUA);
     }
 
     @Override
