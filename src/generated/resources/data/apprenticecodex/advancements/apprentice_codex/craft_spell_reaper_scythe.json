@@ -1,0 +1,38 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_crystal_bladed_staff",
+  "criteria": {
+    "crafted_spell_reaper_scythe": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:spell_reaper_scythe"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_spell_reaper_scythe.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "components": {
+        "irons_spellbooks:spell_container": {
+          "data": [],
+          "maxSpells": 1,
+          "mustEquip": false,
+          "spellWheel": true
+        }
+      },
+      "count": 1,
+      "id": "apprenticecodex:spell_reaper_scythe"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_spell_reaper_scythe.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_spell_reaper_scythe"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
