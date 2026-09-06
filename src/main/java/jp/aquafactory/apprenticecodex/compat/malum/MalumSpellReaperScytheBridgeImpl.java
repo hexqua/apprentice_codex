@@ -11,6 +11,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScytheClientConfigState;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.Registries;
@@ -117,7 +118,9 @@ final class MalumSpellReaperScytheBridgeImpl {
             return InteractionResult.PASS;
         }
 
-        var config = ApprenticeCodexServerConfig.spellReaperScytheConfig();
+        var config = (level.isClientSide
+                ? SpellReaperScytheClientConfigState.values()
+                : ApprenticeCodexServerConfig.spellReaperScytheConfig());
         var manaCost = config.ascensionManaCost(ascensionLevel);
         var creative = player.getAbilities().instabuild;
         if (level.isClientSide) {

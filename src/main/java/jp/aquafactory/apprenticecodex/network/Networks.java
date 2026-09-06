@@ -31,6 +31,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ManaManeuverGearFallEffectP
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncSpellReaperScytheConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowOverheatPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEquipmentSpellTimingConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncHighTierSwingcastStaffConfigPacket;
@@ -95,7 +96,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "97";
+    private static final String PROTOCOL_VERSION = "98";
 
     private Networks() {
     }
@@ -123,6 +124,11 @@ public final class Networks {
                 SyncFocusStaffbowConfigPacket.TYPE,
                 SyncFocusStaffbowConfigPacket.STREAM_CODEC,
                 SyncFocusStaffbowConfigPacket::handle
+        );
+        registrar.playToClient(
+                SyncSpellReaperScytheConfigPacket.TYPE,
+                SyncSpellReaperScytheConfigPacket.STREAM_CODEC,
+                SyncSpellReaperScytheConfigPacket::handle
         );
         registrar.playToClient(
                 SyncElementalBowConfigPacket.TYPE,

@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.sammy.malum.visual_effects.networked.MalumNetworkedWeaponParticleEffectType.MalumWeaponParticleEffectBuilder;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheParticleCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScytheClientConfigState;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -47,7 +48,9 @@ public abstract class MalumAscensionParticleMixin {
             return;
         }
 
-        var cooldownTicks = ApprenticeCodexServerConfig.spellReaperScytheConfig().ascensionCooldownTicks();
+        var cooldownTicks = (level.isClientSide
+                ? SpellReaperScytheClientConfigState.values()
+                : ApprenticeCodexServerConfig.spellReaperScytheConfig()).ascensionCooldownTicks();
         if (cooldownTicks > 0) {
             // ItemCooldownsはItem単位で管理されるため、全Spell Reaper Scytheで同じ待ち時間を共有する。
             original.call(cooldowns, item, cooldownTicks);

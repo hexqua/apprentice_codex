@@ -33,6 +33,7 @@ import jp.aquafactory.apprenticecodex.event.client.ClientModBusEvents;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeSchoolPowerBonusEvents;
 import jp.aquafactory.apprenticecodex.item.broom.BroomCurioSupport;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScytheConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.network.Networks;
@@ -115,6 +116,7 @@ public class ApprenticeCodex
         FloatmountBroomConfigSyncEvents.register(modEventBus);
         ChargecastCatalystbookConfigSyncEvents.register(modEventBus);
         ElementalBowConfigSyncEvents.register(modEventBus);
+        SpellReaperScytheConfigSyncEvents.register(modEventBus);
         FocusStaffbowConfigSyncEvents.register(modEventBus);
         IsekaiTravelGuidebookConfigSyncEvents.register(modEventBus);
         InstantSearchBrazierConfigSyncEvents.register(modEventBus);

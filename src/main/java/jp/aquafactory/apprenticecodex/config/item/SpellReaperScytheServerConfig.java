@@ -92,6 +92,8 @@ public final class SpellReaperScytheServerConfig {
                          int throwManaCost, int throwManaPerTick,
                          int reboundBaseManaCost, int reboundManaCostReductionPerLevel,
                          int maelstromBaseManaCost, int maelstromManaCostReductionPerLevel) {
+        public static final Values DEFAULT = new Values(200, 40, 10, 100, 3, 100, 20, 250, 30);
+
         public Values(int base, int reduction, int cooldown, int throwCost, int upkeep, int reboundBase, int reboundReduction) {
             this(base, reduction, cooldown, throwCost, upkeep, reboundBase, reboundReduction, 250, 30);
         }

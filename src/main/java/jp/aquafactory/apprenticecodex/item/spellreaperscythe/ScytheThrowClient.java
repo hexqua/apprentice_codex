@@ -3,7 +3,6 @@ package jp.aquafactory.apprenticecodex.item.spellreaperscythe;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
-import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -41,7 +40,7 @@ public final class ScytheThrowClient {
             requireRelease = true;
             return InteractionResultHolder.consume(stack);
         }
-        int cost = ApprenticeCodexServerConfig.spellReaperScytheConfig().throwManaCost();
+        int cost = SpellReaperScytheClientConfigState.values().throwManaCost();
         if (!player.getAbilities().instabuild && ClientMagicData.getPlayerMana() < cost) {
             ScytheThrowManager.insufficientMana(player);
             return InteractionResultHolder.fail(stack);

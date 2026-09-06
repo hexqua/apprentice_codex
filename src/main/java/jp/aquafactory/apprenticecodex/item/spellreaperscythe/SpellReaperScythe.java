@@ -6,7 +6,6 @@ import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
-import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
@@ -206,7 +205,7 @@ public final class SpellReaperScythe extends SwordItem
             return;
         }
         if (MalumCompatibility.getEnchantmentLevel(stack, MALUM_ASCENSION_ID) == 0) {
-            var config = ApprenticeCodexServerConfig.spellReaperScytheConfig();
+            var config = SpellReaperScytheClientConfigState.values();
             int reboundLevel = MalumCompatibility.getEnchantmentLevel(stack, MALUM_REBOUND_ID);
             if (reboundLevel > 0) {
                 boolean maelstrom = net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT
@@ -234,7 +233,7 @@ public final class SpellReaperScythe extends SwordItem
             }
 
             var enchantmentLevel = entry.getIntValue();
-            var manaCost = ApprenticeCodexServerConfig.spellReaperScytheConfig()
+            var manaCost = SpellReaperScytheClientConfigState.values()
                     .ascensionManaCost(enchantmentLevel);
             lines.add(Component.translatable(
                     "item.apprenticecodex.spell_reaper_scythe.malum.ascension_cost",
@@ -246,7 +245,7 @@ public final class SpellReaperScythe extends SwordItem
     }
 
     private static void appendEpicFightHoverText(ItemStack stack, List<Component> lines) {
-        var config = ApprenticeCodexServerConfig.spellReaperScytheConfig();
+        var config = SpellReaperScytheClientConfigState.values();
         int ascension = MalumCompatibility.getEnchantmentLevel(stack, MALUM_ASCENSION_ID);
         int rebound = MalumCompatibility.getEnchantmentLevel(stack, MALUM_REBOUND_ID);
         String prefix = "item.apprenticecodex.spell_reaper_scythe.epicfight.";
