@@ -35,6 +35,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ManaManeuverGearFallEffectP
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncSpellReaperScytheConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowOverheatPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEquipmentSpellTimingConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletNotificationPacket;
