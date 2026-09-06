@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_emberstained_netherite_ingot": {
+      "conditions": {
+        "items": [
+          {
+            "items": "apprenticecodex:emberstained_netherite_ingot"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "apprenticecodex:spell_reaper_scythe"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_emberstained_netherite_ingot"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "apprenticecodex:spell_reaper_scythe"
+    ]
+  }
+}

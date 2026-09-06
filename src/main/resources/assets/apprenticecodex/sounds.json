@@ -419,6 +419,29 @@
       "apprenticecodex:thermal_slice"
     ]
   },
+  "scythe_throw": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.scythe_throw",
+    "sounds": [
+      "apprenticecodex:scythe_throw"
+    ]
+  },
+  "scythe_spin": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.scythe_spin",
+    "sounds": [
+      "apprenticecodex:scythe_spin"
+    ]
+  },
+  "vanilla_scythe_catch": {
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_scythe_catch",
+    "sounds": [
+      {
+        "name": "minecraft:entity.player.attack.sweep",
+        "type": "event"
+      }
+    ]
+  },
 
   "smashcast_scepter_smash_air": {
     "_apprentice_codex_note": "ベースはSoundEvents.MACE_SMASH_AIR",

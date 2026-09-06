@@ -50,7 +50,9 @@
 ./gradlew.bat runGameTestServerCreateSableAeronautics
 ./gradlew.bat runGameTestServerEasyMagic
 ./gradlew.bat runGameTestServerBetterCombat
+./gradlew.bat runGameTestServerMalumBetterCombat
 ./gradlew.bat runGameTestServerEpicFight
+./gradlew.bat runGameTestServerMalumEpicFight
 ```
 - 開発クライアント:
 ```powershell
@@ -65,6 +67,7 @@
 ./gradlew.bat runClientEasyMagic
 ./gradlew.bat runClientBetterCombat
 ./gradlew.bat runClientEpicFight
+./gradlew.bat runClientMalumEpicFight
 ./gradlew.bat runClientEpicFightController
 ./gradlew.bat runClientCompatEasyBetter
 ```
@@ -93,7 +96,9 @@ Get-ChildItem build\libs\*.jar
 - `runGameTestServerCreateSableAeronautics` は Create / Sable / Create Simulated / Create Aeronautics / Create Offroad の導入とサーバー起動確認に使う。
 - `runGameTestServerEasyMagic` は Puzzles Lib / Easy Magic 連携の確認に使う。
 - `runGameTestServerBetterCombat` は Cloth Config / Better Combat 連携の確認に使う。
+- `runGameTestServerMalumBetterCombat` は Lodestone / Malum / Cloth Config / Better Combat の組み合わせ連携確認に使う。
 - `runGameTestServerEpicFight` は Epic Fight 連携の確認に使う。
+- `runGameTestServerMalumEpicFight` / `runClientMalumEpicFight` は Lodestone / Malum / Epic Fight の大鎌インネイト・投擲・Ascension 連携確認に使う。
 - Codex が `runGameTestServer` 系を実行する場合、実行ツールによるプロセス強制終了 timeout は、1.21.1 では初回から最低 120 秒、`1.20.1-main` では最低 300 秒に設定する。
 - 出力待機の yield とプロセス強制終了 timeout を混同しない。実行中として返された場合は wait で完了まで追跡し、yield を失敗や再実行として扱わない。
 - 実行ツール側の timeout で中断した場合は、初回失敗の記録を保持したまま、同じ source で強制終了 timeout を前回の 2 倍以上へ延長して追加実行する。GameTest 自身が報告した test timeout にはこの延長規則を適用しない。
@@ -133,7 +138,9 @@ Get-ChildItem build\libs\*.jar
    - Create Aeronautics / Sable / Create Simulated / Create Offroad: `./gradlew.bat runGameTestServerCreateSableAeronautics`
    - Easy Magic / エンチャントメニュー: `./gradlew.bat runGameTestServerEasyMagic`
    - Better Combat / offhand / weapon_attributes: `./gradlew.bat runGameTestServerBetterCombat`
+   - Malum + Better Combat / 大鎌コンボ切替: `./gradlew.bat runGameTestServerMalumBetterCombat`
    - Epic Fight / mixin / capabilities / item_skins: `./gradlew.bat runGameTestServerEpicFight`
+   - Malum + Epic Fight / 大鎌インネイト・Ascension: `./gradlew.bat runGameTestServerMalumEpicFight`
    - client 側の連携確認: 対応する `runClient...` 構成
    - 組み合わせバランス確認: `./gradlew.bat runClientCompatEasyBetter`
 9. client 専用 UI、renderer、screen、入力操作に影響する変更では必要に応じて `./gradlew.bat runClient` で確認する。

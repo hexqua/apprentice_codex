@@ -671,6 +671,19 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         false)
                 .addCriterion("crafted_spellcharged_greatsword", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SPELLCHARGED_GREATSWORD.getId()))
                 .save(saver, advancementId("craft_spellcharged_greatsword"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(bladed)
+                .display(ItemRegistry.SPELL_REAPER_SCYTHE.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spell_reaper_scythe.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spell_reaper_scythe.description"),
+                        null,
+                        AdvancementType.CHALLENGE,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_spell_reaper_scythe", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SPELL_REAPER_SCYTHE.getId()))
+                .save(saver, advancementId("craft_spell_reaper_scythe"), existingFileHelper);
         
         var bow = Advancement.Builder.advancement()
                 .parent(root)

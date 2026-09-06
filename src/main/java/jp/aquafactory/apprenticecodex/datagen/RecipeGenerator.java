@@ -612,6 +612,17 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(Items.NETHERITE_SWORD), has(Items.NETHERITE_SWORD))
                 .save(recipeOutput);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SPELL_REAPER_SCYTHE.get())
+                .pattern(" MN")
+                .pattern("M W")
+                .pattern("  A")
+                .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                .define('W', ItemTags.PLANKS)
+                .define('N', ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get())
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
+                .unlockedBy(getHasName(ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get()), has(ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get()))
+                .save(recipeOutput);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SPELL_SIDE_EDGE.get())
                 .pattern(" M")
                 .pattern("EC")

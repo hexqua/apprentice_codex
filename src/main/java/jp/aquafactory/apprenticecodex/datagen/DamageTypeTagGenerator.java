@@ -56,10 +56,14 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
 
     @Override
     protected void addTags(@NotNull HolderLookup.Provider provider) {
+        // Malumの大鎌判定に相乗りできるように自前の大鎌系ダメージ(Rebound限定)をMalumに参加させる.
+        tag(TagKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("malum", "is_scythe"))).add(SPELL_REAPER_SCYTHE_REBOUND);
+        tag(TagKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("malum", "triggers_scythe_combo"))).add(SPELL_REAPER_SCYTHE_REBOUND);
+
         // Datapackや他MODが箒固有の疑似i-Frameに関与しないDamageTypeを追加するための拡張口。
         tag(IGNORES_FLOATMOUNT_BROOM_IFRAME);
 
-        // Iron's Jewelryはdirect entityのProjectile継承だけを見るため、実体弾を持たない銃撃を明示する。
+        // Iron's Jewelryはdirect entityのProjectile継承だけを見るため、実体弾を持たない銃撃や非Projectile継承の遠距離を明示する。
         tag(TRIGGERS_IRONS_JEWELRY_PROJECTILE_HIT).add(
                 BREACHING_ENEMY,
                 BULLET_STREAM,
@@ -72,7 +76,12 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 SHOCK,
                 ARCANE_BLAST,
                 CATCH_FLAME,
-                CATCH_FLAME_PENETRATE
+                CATCH_FLAME_PENETRATE,
+                SPELL_REAPER_SCYTHE_REBOUND,
+                SPELL_REAPER_SCYTHE_THROW,
+                SPELL_REAPER_SCYTHE_THROW_MAGIC,
+                SPELL_REAPER_SCYTHE_THROW_CONTINUOUS,
+                SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC
         );
 
         // CODEX_MAGIC: このMODの魔法由来ダメージ全体(Malum互換などで使用)
@@ -139,7 +148,9 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 GRACED_RAIN,
                 MOON_LIGHT,
                 UNITE_LUNA,
-                HEALING_BLOOM
+                HEALING_BLOOM,
+                SPELL_REAPER_SCYTHE_THROW_MAGIC,
+                SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC
         );
 
         // FIRE_DAMAGE: 火炎耐性有効.
@@ -173,7 +184,10 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 BLOOD_BRAND_HIGANBANA_BURST,
                 SHIDEN,
                 CATCH_FLAME_PENETRATE,
-                THERMAL_SLICE
+                THERMAL_SLICE,
+                SPELL_REAPER_SCYTHE_THROW_MAGIC,
+                SPELL_REAPER_SCYTHE_THROW_CONTINUOUS,
+                SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC
         );
 
         // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効) ※召喚武器は遠距離扱い.
@@ -230,7 +244,12 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 SHIDEN,
                 CATCH_FLAME,
                 CATCH_FLAME_PENETRATE,
-                THERMAL_SLICE
+                THERMAL_SLICE,
+                SPELL_REAPER_SCYTHE_REBOUND,
+                SPELL_REAPER_SCYTHE_THROW,
+                SPELL_REAPER_SCYTHE_THROW_MAGIC,
+                SPELL_REAPER_SCYTHE_THROW_CONTINUOUS,
+                SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC
         );
 
         // EXPLOSIONS: 爆発扱いのダメージ.
@@ -260,14 +279,21 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 HAUNTED_BONUS,
                 MYSTIC_SHIELD,
                 ANCHOR_BLINK,
-                HOVERRIDE_BROOM
+                HOVERRIDE_BROOM,
+                SPELL_REAPER_SCYTHE_THROW_MAGIC,
+                SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC
         );
 
         // Malum連携: 魔法ダメージ全体をSoul Shatter判定対象にする.
         tag(MALUM_CAN_SOUL_SHATTER).addTag(CODEX_MAGIC).add(
                 HAUNTED_BONUS,
                 MANA_FORCE_BLADE,
-                HOVERRIDE_BROOM
+                HOVERRIDE_BROOM,
+                SPELL_REAPER_SCYTHE_REBOUND,
+                SPELL_REAPER_SCYTHE_THROW,
+                SPELL_REAPER_SCYTHE_THROW_MAGIC,
+                SPELL_REAPER_SCYTHE_THROW_CONTINUOUS,
+                SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC
         );
 
         // Lodestone連携: magic_proficiency / magic_resistance が参照する c:is_magic へ接続する.

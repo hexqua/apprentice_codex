@@ -1,0 +1,77 @@
+package jp.aquafactory.apprenticecodex.item.spellreaperscythe;
+
+import io.redspace.ironsspellbooks.player.ClientMagicData;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
+
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+public final class ScytheThrowClient {
+    private static boolean requireRelease;
+    private static boolean wasThrown;
+    private ScytheThrowClient() {}
+
+    public static boolean hasMaelstromForTooltip() {
+        return MalumSpellReaperScytheBridge.hasMaelstrom(Minecraft.getInstance().player);
+    }
+
+    public static boolean hasNarrowForTooltip() {
+        var player = Minecraft.getInstance().player;
+        return player != null && MalumSpellReaperScytheBridge.hasNarrowEdge(player);
+    }
+
+    public static InteractionResultHolder<ItemStack> use(Player player, ItemStack stack) {
+        if (requireRelease) return InteractionResultHolder.fail(stack);
+        if (ScytheThrowManager.isThrown(stack)) {
+            requireRelease = true;
+            return InteractionResultHolder.consume(stack);
+        }
+        if (MalumSpellReaperScytheBridge.reboundLevel(player.level(), stack) > 0) {
+            // 即時発射では長押し使用状態を作らない。残マナが古くても要求はserverへ送り、そこで判定する。
+            requireRelease = true;
+            return InteractionResultHolder.consume(stack);
+        }
+        int cost = SpellReaperScytheClientConfigState.values().throwManaCost();
+        if (!player.getAbilities().instabuild && ClientMagicData.getPlayerMana() < cost) {
+            ScytheThrowManager.insufficientMana(player);
+            return InteractionResultHolder.fail(stack);
+        }
+        player.startUsingItem(InteractionHand.MAIN_HAND);
+        return InteractionResultHolder.consume(stack);
+    }
+
+    @SubscribeEvent public static void input(InputEvent.InteractionKeyMappingTriggered event) {
+        if (net.neoforged.fml.ModList.get().isLoaded("epicfight")) return;
+        // use()内の拒否だけではバニラのC2S使用packet送信を止められない。
+        if (event.isUseItem() && requireRelease) {
+            event.setCanceled(true);
+            event.setSwingHand(false);
+        }
+    }
+
+    @SubscribeEvent public static void tick(ClientTickEvent.Pre event) {
+        if (net.neoforged.fml.ModList.get().isLoaded("epicfight")) {
+            requireRelease = false;
+            wasThrown = false;
+            return;
+        }
+        var mc = Minecraft.getInstance();
+        if (mc.player == null) { requireRelease = false; wasThrown = false; return; }
+        boolean thrown = ScytheThrowManager.isThrown(mc.player.getMainHandItem());
+        if (thrown && !wasThrown && net.neoforged.fml.ModList.get().isLoaded("bettercombat")) {
+            jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScytheThrowClientCompat.stopSwing();
+        }
+        if (wasThrown && !thrown && mc.options.keyUse.isDown()) requireRelease = true;
+        if (!mc.options.keyUse.isDown()) requireRelease = false;
+        wasThrown = thrown;
+    }
+}

@@ -8,6 +8,22 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 
 public class ApprenticeRenderTypes extends RenderStateShard {
+    // lightningと同じ合成・地形遮蔽を保ち、同一平面の軌跡レイヤー間の深度競合だけを防ぐ。
+    private static final RenderType SCYTHE_TRAIL = RenderType.create(
+            "apprenticecodex_scythe_trail", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS,
+            1536, false, true, RenderType.CompositeState.builder()
+                    .setShaderState(RENDERTYPE_LIGHTNING_SHADER)
+                    .setWriteMaskState(COLOR_WRITE)
+                    .setDepthTestState(LEQUAL_DEPTH_TEST)
+                    .setCullState(CULL)
+                    .setTransparencyState(LIGHTNING_TRANSPARENCY)
+                    .setOutputState(WEATHER_TARGET)
+                    .createCompositeState(false));
+
+    public static RenderType scytheTrail() {
+        return SCYTHE_TRAIL;
+    }
+
     private static final ResourceLocation BOUND_SPELL_WEAPON_GLINT_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/bound_spell_weapon_glint.png");
     private static final RenderType BOUND_SPELL_WEAPON_GLINT = createBoundSpellWeaponGlint(

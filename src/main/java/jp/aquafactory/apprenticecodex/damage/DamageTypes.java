@@ -67,6 +67,11 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> HAUNTED_BONUS = register("haunted_bonus");
     public static final ResourceKey<DamageType> MANA_FORCE_BLADE = register("mana_force_blade");
     public static final ResourceKey<DamageType> HOVERRIDE_BROOM = register("hoverride_broom");
+    public static final ResourceKey<DamageType> SPELL_REAPER_SCYTHE_REBOUND = register("spell_reaper_scythe_rebound");
+    public static final ResourceKey<DamageType> SPELL_REAPER_SCYTHE_THROW = register("spell_reaper_scythe_throw");
+    public static final ResourceKey<DamageType> SPELL_REAPER_SCYTHE_THROW_MAGIC = register("spell_reaper_scythe_throw_magic");
+    public static final ResourceKey<DamageType> SPELL_REAPER_SCYTHE_THROW_CONTINUOUS = register("spell_reaper_scythe_throw_continuous");
+    public static final ResourceKey<DamageType> SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC = register("spell_reaper_scythe_throw_continuous_magic");
 
     private static ResourceKey<DamageType> register(String name){
         return ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, name));
@@ -138,5 +143,12 @@ public final class DamageTypes {
         context.register(HAUNTED_BONUS, createTemplate(HAUNTED_BONUS));
         context.register(MANA_FORCE_BLADE, createTemplate(MANA_FORCE_BLADE));
         context.register(HOVERRIDE_BROOM, createTemplate(HOVERRIDE_BROOM));
+
+        // スペルリーパーの大鎌のメッセージは全て共通になるように意図的に被らせる.
+        context.register(SPELL_REAPER_SCYTHE_REBOUND, createTemplate(SPELL_REAPER_SCYTHE_THROW));
+        context.register(SPELL_REAPER_SCYTHE_THROW, createTemplate(SPELL_REAPER_SCYTHE_THROW));
+        context.register(SPELL_REAPER_SCYTHE_THROW_MAGIC, createTemplate(SPELL_REAPER_SCYTHE_THROW));
+        context.register(SPELL_REAPER_SCYTHE_THROW_CONTINUOUS, createTemplate(SPELL_REAPER_SCYTHE_THROW));
+        context.register(SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC, createTemplate(SPELL_REAPER_SCYTHE_THROW));
     }
 }
