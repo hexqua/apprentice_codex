@@ -2237,8 +2237,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void spellReaperScytheRightClickWithReboundAloneIsNoOp(GameTestHelper helper) {
-        SpellReaperScytheGameTestScenarios.spellReaperScytheRightClickWithReboundAloneIsNoOp(helper);
+    public static void spellReaperScytheRightClickWithReboundThrowsImmediately(GameTestHelper helper) {
+        SpellReaperScytheGameTestScenarios.spellReaperScytheRightClickWithReboundThrowsImmediately(helper);
     }
 
     @GameTest(template = TEMPLATE)

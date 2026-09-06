@@ -28,6 +28,12 @@ public final class ScytheThrowRenderer extends GeoEntityRenderer<ScytheThrowEnti
     }
 
     @Override
+    protected void applyRotations(ScytheThrowEntity entity, PoseStack pose, float age, float yaw, float partialTick, float scale) {
+        // 非LivingEntityのGeckoLib描画はbody yawを持たないため、同期した発射ヨーを明示する。
+        super.applyRotations(entity, pose, age, entity.isNarrow() ? entity.getThrowYaw() : yaw, partialTick, scale);
+    }
+
+    @Override
     public void render(@NotNull ScytheThrowEntity entity, float yaw, float partialTick, @NotNull PoseStack pose,
                        @NotNull MultiBufferSource buffers, int light) {
         tip = top = bottom = null;

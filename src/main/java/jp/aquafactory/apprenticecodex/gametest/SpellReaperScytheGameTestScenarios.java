@@ -162,20 +162,23 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
         helper.succeed();
     }
 
-    static void spellReaperScytheRightClickWithReboundAloneIsNoOp(GameTestHelper helper) {
+    static void spellReaperScytheRightClickWithReboundThrowsImmediately(GameTestHelper helper) {
         if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
             helper.succeed();
             return;
         }
 
-        var player = prepareUsePlayer(helper, "spell_reaper_rebound_noop");
+        var player = prepareUsePlayer(helper, "spell_reaper_rebound_throw");
+        resolveMana(helper, player).setMana(1000);
         var stack = player.getMainHandItem();
         enchantMalum(helper, stack, MALUM_REBOUND, 1);
         var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
 
-        helper.assertTrue(result.getResult() == InteractionResult.CONSUME && player.isUsingItem(),
-                "Rebound alone should begin the independent throw charge");
-        player.releaseUsingItem();
+        helper.assertTrue(result.getResult() == InteractionResult.CONSUME && !player.isUsingItem(),
+                "Rebound should throw immediately without charging");
+        var thrown = jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowManager.active(player);
+        helper.assertTrue(thrown != null && thrown.isRebound(), "Rebound should create the independent thrown scythe");
+        thrown.recall();
         helper.assertFalse(player.getCooldowns().isOnCooldown(stack.getItem()),
                 "Rebound alone should not start a cooldown");
         helper.assertFalse(hasMalumScytheBoomerang(helper),

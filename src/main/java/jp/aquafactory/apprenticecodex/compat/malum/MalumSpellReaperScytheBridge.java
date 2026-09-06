@@ -26,6 +26,18 @@ public final class MalumSpellReaperScytheBridge {
         return isAvailable() ? MalumSpellReaperScytheBridgeImpl.throwMagicDamage(owner) : 0;
     }
 
+    public static float scytheProficiency(LivingEntity owner) {
+        return isAvailable() ? MalumSpellReaperScytheBridgeImpl.scytheProficiency(owner) : 1;
+    }
+
+    public static int reboundLevel(Level level, ItemStack stack) {
+        return isAvailable() ? MalumSpellReaperScytheBridgeImpl.reboundLevel(level, stack) : 0;
+    }
+
+    public static boolean hasNarrowEdge(LivingEntity owner) {
+        return isAvailable() && MalumSpellReaperScytheBridgeImpl.hasNarrowEdge(owner);
+    }
+
     public static boolean shouldUseNoSweepCombo(LivingEntity attacker) {
         return attacker != null
                 && isAvailable()
