@@ -49,7 +49,10 @@ public final class ScytheReboundGameTests {
     }
 
     static void use(GameTestHelper h, FakePlayer p) {
-        ItemRegistry.SPELL_REAPER_SCYTHE.get().use(h.getLevel(), p, InteractionHand.MAIN_HAND);
+        // Entity・装備派生の共通テスト。Epic Fightの入力契約は専用GameTestで検証する。
+        if (ScytheThrowManager.active(p) == null && MalumSpellReaperScytheBridge.tryTriggerAscension(
+                h.getLevel(), p, InteractionHand.MAIN_HAND, p.getMainHandItem()) != net.minecraft.world.InteractionResult.PASS) return;
+        ScytheThrowManager.use(h.getLevel(), p, InteractionHand.MAIN_HAND);
     }
 
     @GameTest(template = TEMPLATE)

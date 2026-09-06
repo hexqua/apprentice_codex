@@ -37,6 +37,7 @@
     "EntitySharedFlagAccessor",
     "EfisCompatPlayerAnimationEventsMixin",
     "EpicFightGuardSkillMixin",
+    "EpicFightScytheComboAttacksMixin",
     "EpicFightLivingEntityPatchMixin",
     "EpicFightPlayerPatchMixin",
     "ItemNameMixin",

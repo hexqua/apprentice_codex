@@ -79,7 +79,7 @@ public final class ScytheThrowGameTests {
     }
 
     private static void begin(GameTestHelper h, FakePlayer p) {
-        p.getMainHandItem().getItem().use(h.getLevel(), p, InteractionHand.MAIN_HAND);
+        ScytheThrowManager.use(h.getLevel(), p, InteractionHand.MAIN_HAND);
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 100)
@@ -91,7 +91,7 @@ public final class ScytheThrowGameTests {
         var origin = p.getEyePosition();
         begin(h, p);
         h.runAfterDelay(41, () -> {
-            p.releaseUsingItem();
+            ScytheThrowManager.release(h.getLevel(), p, p.getUseItem()); p.stopUsingItem();
             var entity = ScytheThrowManager.active(p);
             h.assertTrue(entity != null, "Long charge must launch");
             for (int i = 0; i < 20; i++) entity.tick();
@@ -112,7 +112,7 @@ public final class ScytheThrowGameTests {
         h.runAfterDelay(10, () -> {
             try (var ignored = jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig.useSpellReaperScytheConfigOverrideForGameTest(
                     new jp.aquafactory.apprenticecodex.config.item.SpellReaperScytheServerConfig.Values(200, 40, 10, 0, 0))) {
-                p.releaseUsingItem();
+                ScytheThrowManager.release(h.getLevel(), p, p.getUseItem()); p.stopUsingItem();
                 var entity = ScytheThrowManager.active(p);
                 h.assertTrue(entity != null, "Zero-cost throw must work without mana");
                 for (int i = 0; i < 10; i++) entity.tick();
@@ -138,7 +138,7 @@ public final class ScytheThrowGameTests {
         h.setBlock(new BlockPos(2, 13, 4), Blocks.STONE);
         begin(h, p);
         h.runAfterDelay(10, () -> {
-            p.releaseUsingItem();
+            ScytheThrowManager.release(h.getLevel(), p, p.getUseItem()); p.stopUsingItem();
             var entity = ScytheThrowManager.active(p);
             h.assertTrue(entity != null, "Wall-directed throw must launch");
             for (int i = 0; i < 5; i++) entity.tick();
@@ -160,11 +160,11 @@ public final class ScytheThrowGameTests {
         var p = player(h, 100);
         p.setItemInHand(InteractionHand.OFF_HAND, p.getMainHandItem().copy());
         // Better Combatは両手武器装備時にgetOffhandItemを空へ置換するため、対象アイテムを直接指定する。
-        h.assertTrue(ItemRegistry.SPELL_REAPER_SCYTHE.get().use(h.getLevel(), p, InteractionHand.OFF_HAND).getResult() == InteractionResult.FAIL,
+        h.assertTrue(ScytheThrowManager.use(h.getLevel(), p, InteractionHand.OFF_HAND).getResult() == InteractionResult.FAIL,
                 "Offhand throw must be rejected");
         begin(h, p);
         h.runAfterDelay(9, () -> {
-            p.releaseUsingItem();
+            ScytheThrowManager.release(h.getLevel(), p, p.getUseItem()); p.stopUsingItem();
             h.assertTrue(ScytheThrowManager.active(p) == null, "Nine ticks must not throw");
             h.assertTrue(MagicData.getPlayerMagicData(p).getMana() == 100, "Short charge must not spend mana");
             h.succeed();
@@ -177,7 +177,7 @@ public final class ScytheThrowGameTests {
         var stack = p.getMainHandItem();
         begin(h, p);
         h.runAfterDelay(10, () -> {
-            p.releaseUsingItem();
+            ScytheThrowManager.release(h.getLevel(), p, p.getUseItem()); p.stopUsingItem();
             var entity = ScytheThrowManager.active(p);
             h.assertTrue(entity != null, "Ten ticks with exact mana must throw");
             h.assertTrue(Math.abs(entity.getY() - (p.getEyeY() - 0.5)) < 0.001,
@@ -205,7 +205,7 @@ public final class ScytheThrowGameTests {
         begin(h, p);
         h.runAfterDelay(10, () -> {
             MagicData.getPlayerMagicData(p).setMana(99);
-            p.releaseUsingItem();
+            ScytheThrowManager.release(h.getLevel(), p, p.getUseItem()); p.stopUsingItem();
             h.assertTrue(ScytheThrowManager.active(p) == null && MagicData.getPlayerMagicData(p).getMana() == 99,
                     "Server must reject a throw after mana is lost during charge");
             h.succeed();
@@ -217,7 +217,7 @@ public final class ScytheThrowGameTests {
         var p = player(h, 109);
         begin(h, p);
         h.runAfterDelay(10, () -> {
-            p.releaseUsingItem();
+            ScytheThrowManager.release(h.getLevel(), p, p.getUseItem()); p.stopUsingItem();
             var entity = ScytheThrowManager.active(p);
             h.assertTrue(entity != null, "Throw must start");
             for (int i = 0; i < 5; i++) entity.tick();

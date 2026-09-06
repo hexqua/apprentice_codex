@@ -147,6 +147,8 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     }
 
     static void spellReaperScytheRightClickWithoutAscensionIsNoOp(GameTestHelper helper) {
+        // Epic Fightの入力・表示契約はScytheEpicFightGameTestsで検証する。
+        if (ModList.get().isLoaded("epicfight")) { helper.succeed(); return; }
         var player = prepareUsePlayer(helper, "spell_reaper_no_ascension");
         var stack = player.getMainHandItem();
         var item = stack.getItem();
@@ -163,6 +165,8 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     }
 
     static void spellReaperScytheRightClickWithReboundThrowsImmediately(GameTestHelper helper) {
+        // Epic Fightの入力・表示契約はScytheEpicFightGameTestsで検証する。
+        if (ModList.get().isLoaded("epicfight")) { helper.succeed(); return; }
         if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
             helper.succeed();
             return;
@@ -187,6 +191,8 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     }
 
     static void spellReaperScytheRightClickTriggersMalumAscension(GameTestHelper helper) {
+        // Epic Fightの入力・表示契約はScytheEpicFightGameTestsで検証する。
+        if (ModList.get().isLoaded("epicfight")) { helper.succeed(); return; }
         if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
             helper.succeed();
             return;
@@ -215,6 +221,8 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     }
 
     static void spellReaperScytheAscensionLevelControlsManaCost(GameTestHelper helper) {
+        // Epic Fightの入力・表示契約はScytheEpicFightGameTestsで検証する。
+        if (ModList.get().isLoaded("epicfight")) { helper.succeed(); return; }
         if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
             helper.succeed();
             return;
@@ -229,6 +237,8 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     }
 
     static void spellReaperScytheAscensionRejectsInsufficientMana(GameTestHelper helper) {
+        // Epic Fightの入力・表示契約はScytheEpicFightGameTestsで検証する。
+        if (ModList.get().isLoaded("epicfight")) { helper.succeed(); return; }
         if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
             helper.succeed();
             return;
@@ -273,6 +283,8 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     }
 
     static void spellReaperScytheAscensionUsesServerConfigAndZeroFloor(GameTestHelper helper) {
+        // Epic Fightの入力・表示契約はScytheEpicFightGameTestsで検証する。
+        if (ModList.get().isLoaded("epicfight")) { helper.succeed(); return; }
         if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
             helper.succeed();
             return;
@@ -304,6 +316,8 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     }
 
     static void spellReaperScytheAscensionCreativeBypassesManaAndCooldown(GameTestHelper helper) {
+        // Epic Fightの入力・表示契約はScytheEpicFightGameTestsで検証する。
+        if (ModList.get().isLoaded("epicfight")) { helper.succeed(); return; }
         if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
             helper.succeed();
             return;
@@ -325,6 +339,8 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     }
 
     static void spellReaperScytheAscensionTooltipShowsTranslatedNameAndMana(GameTestHelper helper) {
+        // Epic Fightの入力・表示契約はScytheEpicFightGameTestsで検証する。
+        if (ModList.get().isLoaded("epicfight")) { helper.succeed(); return; }
         if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
             helper.succeed();
             return;
@@ -361,6 +377,8 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     }
 
     static void spellReaperScytheAscensionWinsOverForcedRebound(GameTestHelper helper) {
+        // Epic Fightの入力・表示契約はScytheEpicFightGameTestsで検証する。
+        if (ModList.get().isLoaded("epicfight")) { helper.succeed(); return; }
         if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
             helper.succeed();
             return;
@@ -380,6 +398,8 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     }
 
     static void spellReaperScytheAscensionUsesMalumCurios(GameTestHelper helper) {
+        // Epic Fightの入力・表示契約はScytheEpicFightGameTestsで検証する。
+        if (ModList.get().isLoaded("epicfight")) { helper.succeed(); return; }
         if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
             helper.succeed();
             return;

@@ -37,6 +37,7 @@ public final class EpicFightCompat {
             registerCompat(CHARGED_TWIN_BLADE_STAFF_COMPAT_CLASS, modEventBus);
             registerCompat(MULTIPURPOSE_STAFFRIFLE_COMPAT_CLASS, modEventBus);
             registerCompat(SMASHCAST_SCEPTER_COMPAT_CLASS, modEventBus);
+            registerCompat("jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSpellReaperScytheCompat", modEventBus);
             registerCompat(SCROLLCASTER_GAUNTLET_COMPAT_CLASS, modEventBus);
             registerCompat(SPELLCHARGED_GREATSWORD_COMPAT_CLASS, modEventBus);
             registerCompat(SPELLGUN_COMPAT_CLASS, modEventBus);

@@ -34,6 +34,17 @@ public final class MalumSpellReaperScytheBridge {
         return isAvailable() ? MalumSpellReaperScytheBridgeImpl.reboundLevel(level, stack) : 0;
     }
 
+    public static int ascensionLevel(Level level, ItemStack stack) {
+        return isAvailable() ? MalumSpellReaperScytheBridgeImpl.ascensionLevel(level, stack) : 0;
+    }
+
+    public static void triggerEpicFightAscension(Player player, ItemStack stack) {
+        if (isAvailable() && !player.level().isClientSide && player.isAlive() && !player.isSpectator()
+                && player.getMainHandItem() == stack) {
+            MalumSpellReaperScytheBridgeImpl.triggerEpicFightAscension(player, stack);
+        }
+    }
+
     public static boolean hasNarrowEdge(LivingEntity owner) {
         return isAvailable() && MalumSpellReaperScytheBridgeImpl.hasNarrowEdge(owner);
     }

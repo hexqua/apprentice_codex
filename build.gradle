@@ -46,6 +46,7 @@ def optionalRuntimeProfileModules = [
         easy_magic          : ['puzzles_lib', 'easy_magic'],
         better_combat       : ['cloth_config', 'better_combat'],
         malum_better_combat : ['lodestone', 'malum', 'cloth_config', 'better_combat'],
+        malum_epic_fight    : ['lodestone', 'malum', 'epic_fight'],
         epic_fight          : ['epic_fight'],
         epic_fight_controller: ['epic_fight', 'yacl', 'controlify'],
         compat_easy_better  : ['create', 'botania', 'lodestone', 'malum', 'puzzles_lib', 'easy_magic', 'cloth_config', 'better_combat'],
@@ -65,6 +66,7 @@ def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
 ]
 
 def optionalRuntimeRequiredModIds = [
+        malum_epic_fight: 'lodestone,malum,epicfight',
         malum_better_combat: 'lodestone,malum,cloth_config,bettercombat',
         compat        : 'create,botania,lodestone,malum',
         easy_magic    : 'puzzleslib,easymagic',
@@ -188,6 +190,13 @@ minecraft {
             environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{client_runtime_mod_classes}"
         }
 
+        clientMalumEpicFight {
+            parent null, 'client'
+            taskName 'runClientMalumEpicFight'
+            lazyToken 'client_runtime_mod_classes', clientRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['malum_epic_fight']))
+            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{client_runtime_mod_classes}"
+        }
+
         clientEpicFightController {
             parent null, 'client'
             taskName 'runClientEpicFightController'
@@ -239,6 +248,14 @@ minecraft {
             taskName 'runGameTestServerEpicFight'
             property requiredOptionalModsProperty, optionalRuntimeRequiredModIds.epic_fight
             lazyToken 'optional_mod_classes', optionalRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['epic_fight']))
+            environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{optional_mod_classes}"
+        }
+
+        gameTestServerMalumEpicFight {
+            parent null, 'gameTestServer'
+            taskName 'runGameTestServerMalumEpicFight'
+            property requiredOptionalModsProperty, optionalRuntimeRequiredModIds.malum_epic_fight
+            lazyToken 'optional_mod_classes', optionalRuntimeModClassesTokenForModules(expandOptionalRuntimeModules(['malum_epic_fight']))
             environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{optional_mod_classes}"
         }
 
