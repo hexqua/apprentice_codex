@@ -21,6 +21,15 @@ public final class ScytheThrowClient {
     private static boolean wasThrown;
     private ScytheThrowClient() {}
 
+    public static boolean hasMaelstromForTooltip() {
+        return MalumSpellReaperScytheBridge.hasMaelstrom(Minecraft.getInstance().player);
+    }
+
+    public static boolean hasNarrowForTooltip() {
+        var player = Minecraft.getInstance().player;
+        return player != null && MalumSpellReaperScytheBridge.hasNarrowEdge(player);
+    }
+
     public static InteractionResultHolder<ItemStack> use(Player player, ItemStack stack) {
         if (requireRelease) return InteractionResultHolder.fail(stack);
         if (ScytheThrowManager.isThrown(stack)) {

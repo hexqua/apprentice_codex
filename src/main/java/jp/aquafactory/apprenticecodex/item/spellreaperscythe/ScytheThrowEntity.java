@@ -43,10 +43,13 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
     private static final EntityDataAccessor<Boolean> HOVERING = SynchedEntityData.defineId(ScytheThrowEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> MODE = SynchedEntityData.defineId(ScytheThrowEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> THROW_YAW = SynchedEntityData.defineId(ScytheThrowEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Boolean> MAELSTROM = SynchedEntityData.defineId(ScytheThrowEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> RETURNING = SynchedEntityData.defineId(ScytheThrowEntity.class, EntityDataSerializers.BOOLEAN);
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private static final RawAnimation THROW = RawAnimation.begin().thenLoop("throw_normal");
     private static final RawAnimation THROW_VERTICAL = RawAnimation.begin().thenLoop("throw_vertical");
     private final Set<UUID> outwardContacts = new HashSet<>();
+    private final Set<UUID> returnContacts = new HashSet<>();
     private Player player;
     private ItemStack original = ItemStack.EMPTY;
     private ItemStack weapon = ItemStack.EMPTY;
@@ -79,6 +82,7 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
         entityData.set(TRAIL_COLOR, school == null ? DEFAULT_TRAIL_COLOR : MagicTools.resolveSchoolTintColor(school));
         this.slot = slot;
         entityData.set(MODE, mode.ordinal());
+        entityData.set(MAELSTROM, mode != Mode.NORMAL && MalumSpellReaperScytheBridge.hasMaelstrom(owner));
         entityData.set(THROW_YAW, owner.getYRot());
         setYRot(owner.getYRot());
         yRotO = getYRot();
@@ -112,7 +116,13 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
         return safe.subtract(from).dot(to.subtract(from)) < 0 ? from : safe;
     }
 
+    public float getPhysicalDamage() { return physical; }
+    public float getMagicDamage() { return magic; }
+    public ItemStack getWeaponSnapshot() { return weapon.copy(); }
+
     public boolean isHovering() { return entityData.get(HOVERING); }
+    public boolean isMaelstrom() { return entityData.get(MAELSTROM); }
+    public boolean isReturning() { return entityData.get(RETURNING); }
     public int getTrailColor() { return entityData.get(TRAIL_COLOR); }
     public Mode getMode() { return Mode.values()[entityData.get(MODE)]; }
     public boolean isRebound() { return getMode() != Mode.NORMAL; }
@@ -133,6 +143,7 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
     @Override public void tick() {
         super.tick();
         if (level().isClientSide) {
+            if (isMaelstrom() && !isNarrow()) MalumSpellReaperScytheBridge.tickMaelstrom(this);
             // 同期済みの停滞状態から各clientで一度だけ開始し、音の停止はEntityの寿命へ追従させる。
             if (isHovering() && !clientSpinStarted) {
                 clientSpinStarted = true;
@@ -143,6 +154,20 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
         if (!(level() instanceof ServerLevel)) return;
         checkOwner();
         if (isRemoved()) return;
+        if (isReturning()) {
+            var end = handPosition(player);
+            var movement = end.subtract(position());
+            var from = position();
+            setPos(movement.lengthSqr() <= 1 ? end : from.add(movement.normalize()));
+            sweep(from, position(), returnContacts, false, true);
+            if (isMaelstrom()) MalumSpellReaperScytheBridge.tickMaelstrom(this);
+            if (movement.lengthSqr() <= 1) {
+                playCatchSound(end);
+                discard();
+            }
+            return;
+        }
+        if (isMaelstrom() && !isNarrow()) MalumSpellReaperScytheBridge.tickMaelstrom(this);
         if (!isHovering()) {
             double t = Math.min(1, ++age / (double) travelTicks);
             var next = start.lerp(destination, 1 - (1 - t) * (1 - t));
@@ -169,6 +194,10 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
 
     public void recall() {
         if (ending || isRemoved() || !(level() instanceof ServerLevel)) return;
+        if (isMaelstrom() && !isNarrow()) {
+            entityData.set(RETURNING, true);
+            return;
+        }
         ending = true;
         try {
             if (player != null && player.isAlive() && player.level() == level()) {
@@ -183,6 +212,12 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
         } finally {
             discard();
         }
+    }
+
+    private void playCatchSound(Vec3 end) {
+        level().playSound(null, end.x, end.y, end.z,
+                jp.aquafactory.apprenticecodex.registry.SoundRegistry.VANILLA_SCYTHE_CATCH.get(),
+                net.minecraft.sounds.SoundSource.PLAYERS, 0.65f, 1f);
     }
 
     public static AABB attackBox(Vec3 position) {
@@ -252,6 +287,7 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
                     new net.minecraft.world.phys.EntityHitResult(raw, origin))) continue;
             // 同tick内の候補全員へ当てず、最初の接触地点から帰還する。無敵時間は帰還条件を変えない。
             if (!returning) setPos(origin);
+            if (!returning && isMaelstrom()) MalumSpellReaperScytheBridge.placeMaelstrom(this, target);
             ScytheThrowDamage.hit(level, this, player, target, weapon, physical, magic, false);
             if (!returning) {
                 recall();
@@ -276,6 +312,8 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
         builder.define(HOVERING, false);
         builder.define(MODE, Mode.NORMAL.ordinal());
         builder.define(THROW_YAW, 0f);
+        builder.define(MAELSTROM, false);
+        builder.define(RETURNING, false);
     }
     // セッション限定。保存済みEntityが復元されてもowner無しとして即時破棄する。
     @Override protected void readAdditionalSaveData(@NotNull CompoundTag tag) {}

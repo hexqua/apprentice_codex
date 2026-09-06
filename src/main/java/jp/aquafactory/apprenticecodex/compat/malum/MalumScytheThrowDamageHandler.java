@@ -17,7 +17,7 @@ public final class MalumScytheThrowDamageHandler {
         if (event.getNewDamage() <= 0 || !(source.getEntity() instanceof LivingEntity owner)) return;
         if (!source.is(DamageTypes.SPELL_REAPER_SCYTHE_THROW)
                 && !source.is(DamageTypes.SPELL_REAPER_SCYTHE_THROW_CONTINUOUS)) return;
-        // is_scytheへの登録はGeas/Cullingまで起動する。共通属性だけを本家と同じPre段階で適用する。
+        // 通常投擲のタグ接続はGeasも起動するため属性を個別適用する。Reboundは本家の属性処理へ委譲する。
         event.setNewDamage(event.getNewDamage() * MalumSpellReaperScytheBridge.scytheProficiency(owner));
     }
 }

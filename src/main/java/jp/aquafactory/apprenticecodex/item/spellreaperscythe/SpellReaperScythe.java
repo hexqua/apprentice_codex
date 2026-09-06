@@ -198,10 +198,15 @@ public final class SpellReaperScythe extends SwordItem
             var config = ApprenticeCodexServerConfig.spellReaperScytheConfig();
             int reboundLevel = MalumCompatibility.getEnchantmentLevel(stack, MALUM_REBOUND_ID);
             if (reboundLevel > 0) {
+                boolean maelstrom = net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT
+                        && ScytheThrowClient.hasMaelstromForTooltip();
+                int cost = maelstrom ? config.maelstromManaCost(reboundLevel) : config.reboundManaCost(reboundLevel);
                 lines.add(Component.translatable("item.apprenticecodex.spell_reaper_scythe.malum.rebound.desc_1",
-                        Component.literal(Integer.toString(config.reboundManaCost(reboundLevel))).withStyle(ChatFormatting.AQUA))
+                        Component.literal(Integer.toString(cost)).withStyle(ChatFormatting.AQUA))
                         .withStyle(ChatFormatting.GRAY));
-                lines.add(Component.translatable("item.apprenticecodex.spell_reaper_scythe.malum.rebound.desc_2").withStyle(ChatFormatting.GRAY));
+                lines.add(Component.translatable(maelstrom && !ScytheThrowClient.hasNarrowForTooltip()
+                        ? "item.apprenticecodex.spell_reaper_scythe.malum.rebound.maelstrom_desc_2"
+                        : "item.apprenticecodex.spell_reaper_scythe.malum.rebound.desc_2").withStyle(ChatFormatting.GRAY));
             } else {
                 lines.add(Component.translatable("item.apprenticecodex.spell_reaper_scythe.throw.desc_1",
                         Component.literal(Integer.toString(config.throwManaCost())).withStyle(ChatFormatting.AQUA))

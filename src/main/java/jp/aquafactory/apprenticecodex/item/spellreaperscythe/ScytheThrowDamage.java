@@ -18,7 +18,8 @@ public final class ScytheThrowDamage {
         target = CombatTools.resolutePartEntity(target);
         if (!(target instanceof LivingEntity living) || !CombatTools.isValidCombatTarget(target, owner)) return;
         var source = CombatTools.getDamageSource(level, projectile, owner, continuous
-                ? DamageTypes.SPELL_REAPER_SCYTHE_THROW_CONTINUOUS : DamageTypes.SPELL_REAPER_SCYTHE_THROW);
+                ? DamageTypes.SPELL_REAPER_SCYTHE_THROW_CONTINUOUS : projectile instanceof ScytheThrowEntity scythe && scythe.isRebound()
+                ? DamageTypes.SPELL_REAPER_SCYTHE_REBOUND : DamageTypes.SPELL_REAPER_SCYTHE_THROW);
         // damage効果だけを評価し、耐久消費・炎上・スイープ等の近接post-attack処理は呼ばない。
         var amount = EnchantmentHelper.modifyDamage(level, weapon, target, source, physical);
         var multiplier = continuous ? 0.1f : 1f;

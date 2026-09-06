@@ -38,6 +38,19 @@ public final class MalumSpellReaperScytheBridge {
         return isAvailable() && MalumSpellReaperScytheBridgeImpl.hasNarrowEdge(owner);
     }
 
+    public static boolean hasMaelstrom(LivingEntity owner) {
+        return owner != null && isAvailable() && MalumScytheMaelstromCompat.hasRing(owner);
+    }
+
+    public static void tickMaelstrom(jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity scythe) {
+        if (isAvailable()) MalumScytheMaelstromCompat.tick(scythe);
+    }
+
+    public static void placeMaelstrom(jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity scythe,
+                                     net.minecraft.world.entity.Entity target) {
+        if (isAvailable()) MalumScytheMaelstromCompat.place(scythe, target);
+    }
+
     public static boolean shouldUseNoSweepCombo(LivingEntity attacker) {
         return attacker != null
                 && isAvailable()

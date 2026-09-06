@@ -19,6 +19,9 @@ public abstract class MalumSoulDataHandlerMixin {
             DamageSource source,
             LivingEntity attacker
     ) {
+        if (source.getDirectEntity() instanceof jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity scythe) {
+            return scythe.getWeaponSnapshot();
+        }
         if (!original.isEmpty()) {
             return original;
         }

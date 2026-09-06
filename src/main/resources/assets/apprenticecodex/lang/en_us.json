@@ -315,6 +315,7 @@
   "item.apprenticecodex.spell_reaper_scythe.throw.desc_1": "Can be thrown at a cost of %s mana.",
   "item.apprenticecodex.spell_reaper_scythe.throw.desc_2": "Hovers at the destination, consuming %s mana per second until you switch items or use it again.",
   "item.apprenticecodex.spell_reaper_scythe.malum.rebound.desc_1": "Can be thrown instantly at a cost of %s mana.",
+  "item.apprenticecodex.spell_reaper_scythe.malum.rebound.maelstrom_desc_2": "Can be thrown farther than usual, then returns without hovering, surrounded by a maelstrom.",
   "item.apprenticecodex.spell_reaper_scythe.malum.rebound.desc_2": "Can be thrown farther than usual, but returns immediately upon reaching its destination instead of hovering.",
   "item.apprenticecodex.spell_reaper_scythe.malum.ascension_cost": "Activating \"%1$s\" consumes %2$s mana in exchange for a very short cooldown.",
   "item.apprenticecodex.spell_side_edge.desc": "Can borrow spellcasting-related main-hand bonuses from the item held in your offhand.",

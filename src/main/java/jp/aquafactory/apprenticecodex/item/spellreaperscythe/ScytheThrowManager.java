@@ -82,8 +82,10 @@ public final class ScytheThrowManager {
             player.stopUsingItem();
             var mode = MalumSpellReaperScytheBridge.hasNarrowEdge(player)
                     ? ScytheThrowEntity.Mode.NARROW : ScytheThrowEntity.Mode.REBOUND;
+            var config = ApprenticeCodexServerConfig.spellReaperScytheConfig();
             launch(level, player, stack, player.getInventory().selected, mode == ScytheThrowEntity.Mode.NARROW ? 32 : 16,
-                    mode, ApprenticeCodexServerConfig.spellReaperScytheConfig().reboundManaCost(reboundLevel));
+                    mode, MalumSpellReaperScytheBridge.hasMaelstrom(player)
+                            ? config.maelstromManaCost(reboundLevel) : config.reboundManaCost(reboundLevel));
             return InteractionResultHolder.consume(stack);
         }
         // client側で不足拒否した使用packetも届き得るため、新しい開始要求は時刻を更新する。

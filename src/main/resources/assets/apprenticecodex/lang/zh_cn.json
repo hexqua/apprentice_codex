@@ -329,6 +329,7 @@
   "item.apprenticecodex.spell_reaper_scythe.throw.desc_1": "消耗 %s 法力即可投掷。",
   "item.apprenticecodex.spell_reaper_scythe.throw.desc_2": "在投掷目标位置悬停，每秒消耗 %s 法力，直到切换物品或再次使用。",
   "item.apprenticecodex.spell_reaper_scythe.malum.rebound.desc_1": "消耗 %s 法力即可立即投掷。",
+  "item.apprenticecodex.spell_reaper_scythe.malum.rebound.maelstrom_desc_2": "投掷距离比通常更远，到达目标位置后不会悬停，而是伴随风暴返回手中。",
   "item.apprenticecodex.spell_reaper_scythe.malum.rebound.desc_2": "投掷距离比通常更远，但到达目标位置后不会悬停，而是立即返回手中。",
   "item.apprenticecodex.spell_reaper_scythe.malum.ascension_cost": "发动“%1$s”时消耗%2$s点法力，作为交换，其冷却时间非常短。",
   "item.apprenticecodex.spell_side_edge.desc": "可获得副手所持物品的与施法相关的主手用加成。",
