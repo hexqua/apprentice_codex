@@ -578,9 +578,11 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.PROTECTION_SPELL_SUPPORTER.get(),
                 ItemRegistry.SPELLCASTER_AMMO_POUCH.get(),
                 ItemRegistry.MAGI_COMPRESSOR_GADGET.get(),
+                ItemRegistry.QUICKCAST_SCROLL_CARTRIDGE.get(),
                 ItemRegistry.SPELLCASTER_QUIVER.get()
         );
         tag(CURIOS_BACK).add(
+                ItemRegistry.QUICKCAST_SCROLL_CARTRIDGE.get(),
                 ItemRegistry.SPELLCASTER_QUIVER.get()
         );
         tag(CURIOS_NECKLACE).add(

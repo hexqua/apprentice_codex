@@ -1,6 +1,9 @@
 {
   "itemGroup.apprenticecodex.main" : "Apprentice's Codex",
 
+  "key.categories.apprenticecodex": "Apprentice's Codex",
+  "key.apprenticecodex.quickcast_cartridge": "高速詠唱の術式カートリッジで詠唱",
+
   "curios.identifier.feet": "足",
   "curios.modifiers.feet": "足に装備した時:",
   "curios.apprenticecodex.modifier.for_quiver": "背中か腰に装備したとき：",
@@ -460,6 +463,10 @@
   "item.apprenticecodex.hoverride_broom.desc_3": "アシストウィングを使用することで箒ごとジャンプができる。",
   "item.apprenticecodex.hoverride_broom.desc_4": "回収すると魔術構造が再形成され、完全に修復される。",
   "item.apprenticecodex.broom.desc_calibration": "術式調整台で装着した魔法は、騎乗中のみ選択できる。",
+  "item.apprenticecodex.endgame_armor.scroll_slot.empty": "スクロールスロット: 空",
+  "item.apprenticecodex.endgame_armor.scroll_slot.spell": "スクロールスロット: %s",
+  "item.apprenticecodex.endgame_armor.scroll_slot.inactive": "保管中のスクロール（休眠中）: %s",
+  "item.apprenticecodex.endgame_armor.scroll_slot.requires": "%sが必要",
 
   "jei.apprenticecodex.arcane_cinder.desc_1": "かまど・溶鉱炉・燻製器の燃料として使用することで加工速度が上昇する。",
   "jei.apprenticecodex.arcane_cinder.desc_2": "それ以外の機材では効果を発揮しない。",
@@ -1607,9 +1614,5 @@
   "subtitle.apprenticecodex.sound.vanilla_feed_ammo": "弾薬を装填する",
   "subtitle.apprenticecodex.sound.vanilla_cast_book": "本を使う",
   "subtitle.apprenticecodex.sound.vanilla_crystallize_mana": "魔力が結晶化する",
-  "subtitle.apprenticecodex.sound.vanilla_scythe_catch": "大鎌が手元に戻る",
-  "item.apprenticecodex.endgame_armor.scroll_slot.empty": "スクロールスロット: 空",
-  "item.apprenticecodex.endgame_armor.scroll_slot.spell": "スクロールスロット: %s",
-  "item.apprenticecodex.endgame_armor.scroll_slot.inactive": "保管中のスクロール（休眠中）: %s",
-  "item.apprenticecodex.endgame_armor.scroll_slot.requires": "%sが必要"
+  "subtitle.apprenticecodex.sound.vanilla_scythe_catch": "大鎌が手元に戻る"
 }

@@ -1593,5 +1593,13 @@
   "ui.apprenticecodex.idol_reconstruction.accelerate_repair_speed": "%1$s的修复速度：%2$d%%",
   "ui.apprenticecodex.idol_reconstruction.remain_repair_time": "修复完成时间：%s",
   "ui.apprenticecodex.idol_reconstruction.no_cool_down": "徽记似乎已经可以再次发挥不死之力。",
-  "ui.apprenticecodex.idol_reconstruction.not_found_emblem": "找不到可以注入法力的徽记……"
+  "ui.apprenticecodex.idol_reconstruction.not_found_emblem": "找不到可以注入法力的徽记……",
+  "item.apprenticecodex.quickcast_scroll_cartridge.desc_1": "按下[%1$s]施放注入的法术。",
+  "item.apprenticecodex.quickcast_scroll_cartridge.desc_2": "即使在冷却中也能强制施法，但法术强度会降低。",
+  "item.apprenticecodex.quickcast_scroll_cartridge.desc_3": "同一时间只能装备一个。",
+  "key.apprenticecodex.quickcast_cartridge": "快捷施法弹匣",
+  "key.categories.apprenticecodex": "Apprentice's Codex",
+  "item.apprenticecodex.quickcast_scroll_cartridge.no_assign": "设置按键后即可随时施放注入的法术。",
+  "item.apprenticecodex.quickcast_scroll_cartridge.additive_slot": "手持此物品并潜行，可切换装备时使用的法术。",
+  "item.apprenticecodex.quickcast_scroll_cartridge": "速咏卷轴弹匣"
 }
