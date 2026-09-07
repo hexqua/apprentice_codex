@@ -376,7 +376,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spell_calibration_bench.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spell_calibration_bench.description"),
                         null,
-                        AdvancementType.GOAL,
+                        AdvancementType.TASK,
                         true,
                         true,
                         false)
@@ -395,6 +395,19 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         false)
                 .addCriterion("extract_spellcaster_gun_scroll", CriteriaTriggers.IMPOSSIBLE.createCriterion(new ImpossibleTrigger.TriggerInstance()))
                 .save(saver, advancementId("extract_spellcaster_gun_scroll"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(bench)
+                .display(ItemRegistry.QUICKCAST_SCROLL_CARTRIDGE.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_quickcast_spell_cartridge.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_quickcast_spell_cartridge.description"),
+                        null,
+                        AdvancementType.GOAL,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_quickcast_spell_cartridge", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.QUICKCAST_SCROLL_CARTRIDGE.getId()))
+                .save(saver, advancementId("craft_quickcast_spell_cartridge"), existingFileHelper);
 
         Advancement.Builder.advancement()
                 .parent(root)
