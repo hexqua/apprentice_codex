@@ -1,0 +1,43 @@
+package jp.aquafactory.apprenticecodex.spell.thermalslice;
+
+import jp.aquafactory.apprenticecodex.effect.ThermalSundered;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.LivingEntity;
+
+public final class ThermalSunderedLogic {
+    private ThermalSunderedLogic() {
+    }
+
+    public static void applyFromThermalSlice(LivingEntity target, int amplifier) {
+        if (CombatTools.isFireResistant(target)) {
+            return;
+        }
+
+        updateEffect(target, ThermalSundered.INITIAL_DURATION_TICKS, amplifier);
+    }
+
+    public static void extendFromSuccessfulFireDamage(LivingEntity target) {
+        var effect = EffectRegistry.THERMAL_SUNDERED.get();
+        var current = target.getEffect(effect);
+        if (current == null) {
+            return;
+        }
+
+        updateEffect(target, ThermalSundered.ON_FIRE_EXTENDED_DURATION_TICKS, current.getAmplifier());
+    }
+
+    private static void updateEffect(LivingEntity target, int minimumDuration, int requestedAmplifier) {
+        var effect = EffectRegistry.THERMAL_SUNDERED.get();
+        var current = target.getEffect(effect);
+        var amplifier = ThermalSundered.clampAmplifier(requestedAmplifier);
+        var duration = minimumDuration;
+        if (current != null) {
+            amplifier = Math.max(amplifier, ThermalSundered.clampAmplifier(current.getAmplifier()));
+            duration = Math.max(duration, current.getDuration());
+        }
+
+        target.addEffect(new MobEffectInstance(effect, duration, amplifier, false, true, true));
+    }
+}

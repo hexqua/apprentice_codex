@@ -66,6 +66,8 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String HIGANBANA_ISOLATED_BATCH = "apprenticecodex.higanbana_isolated";
     private static final String BLOOD_BRAND_ISOLATED_BATCH = "apprenticecodex.blood_brand_isolated";
     private static final String KATANA_AREA_HIT_ISOLATED_BATCH = "apprenticecodex.katana_area_hit_isolated";
+    private static final String FIRE_SPELL_RESISTANCE_ISOLATED_BATCH =
+            "apprenticecodex.fire_spell_resistance_isolated";
     private static final String FUJIN_ISOLATED_BATCH = "apprenticecodex.fujin_isolated";
     private static final String COMBUSTION_JET_ISOLATED_BATCH = "apprenticecodex.combustion_jet_isolated";
     private static final String CATCH_FLAME_ISOLATED_BATCH = "apprenticecodex.catch_flame_isolated";
@@ -186,6 +188,56 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void thermalSliceRejectsWallHitsAndDamagesVisibleTarget(GameTestHelper helper) {
+        KatanaAreaHitGameTestScenarios.thermalSliceRejectsWallHitsAndDamagesVisibleTarget(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void thermalSliceAppliesThermalSunderedAfterDamage(GameTestHelper helper) {
+        ThermalSunderedGameTestScenarios.thermalSliceAppliesThermalSunderedAfterDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void thermalSliceSkipsProtectedAndRejectedTargets(GameTestHelper helper) {
+        ThermalSunderedGameTestScenarios.thermalSliceSkipsProtectedAndRejectedTargets(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void thermalSunderedRefreshesWithoutDowngrading(GameTestHelper helper) {
+        ThermalSunderedGameTestScenarios.thermalSunderedRefreshesWithoutDowngrading(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FIRE_SPELL_RESISTANCE_ISOLATED_BATCH)
+    public static void thermalProcessAndCombustionJetDamageFireResistantTargets(GameTestHelper helper) {
+        FireSpellResistanceGameTestScenarios.thermalProcessAndCombustionJetDamageFireResistantTargets(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = FIRE_SPELL_RESISTANCE_ISOLATED_BATCH)
+    public static void thermalProcessSkipsEffectsForFireResistantTargets(GameTestHelper helper) {
+        FireSpellResistanceGameTestScenarios.thermalProcessSkipsEffectsForFireResistantTargets(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void thermalSliceDashesFixedDistanceAndCanOvershootCloseTarget(GameTestHelper helper) {
+        ThermalSliceMovementGameTestScenarios.thermalSliceDashesFixedDistanceAndCanOvershootCloseTarget(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void thermalSliceStopsAtWallAndSlashesEarly(GameTestHelper helper) {
+        ThermalSliceMovementGameTestScenarios.thermalSliceStopsAtWallAndSlashesEarly(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void thermalSliceKeepsDashDirectionButUsesFinalLookForSlash(GameTestHelper helper) {
+        ThermalSliceMovementGameTestScenarios.thermalSliceKeepsDashDirectionButUsesFinalLookForSlash(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
+    public static void thermalSlicePreservesVerticalMovementAndFallDistance(GameTestHelper helper) {
+        ThermalSliceMovementGameTestScenarios.thermalSlicePreservesVerticalMovementAndFallDistance(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = KATANA_AREA_HIT_ISOLATED_BATCH)
     public static void shidenUsesTallNarrowAttackAreaAndCanBeInterrupted(GameTestHelper helper) {
         KatanaAreaHitGameTestScenarios.shidenUsesTallNarrowAttackAreaAndCanBeInterrupted(helper);
     }
@@ -253,6 +305,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = CATCH_FLAME_ISOLATED_BATCH)
     public static void catchFlameDamagesAndPenetratesBurningTargetIFrames(GameTestHelper helper) {
         CatchFlameGameTestScenarios.catchFlameDamagesAndPenetratesBurningTargetIFrames(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = CATCH_FLAME_ISOLATED_BATCH)
+    public static void catchFlameExtendsThermalSunderedOnlyAfterSuccessfulDamage(GameTestHelper helper) {
+        CatchFlameGameTestScenarios.catchFlameExtendsThermalSunderedOnlyAfterSuccessfulDamage(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = CATCH_FLAME_ISOLATED_BATCH)

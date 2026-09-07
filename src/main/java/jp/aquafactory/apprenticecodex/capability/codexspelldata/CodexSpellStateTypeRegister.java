@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.Remo
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SpectralWingState;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.TamersPocketState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ThermalSliceState;
 
 public final class CodexSpellStateTypeRegister {
     private CodexSpellStateTypeRegister(){}
@@ -44,6 +45,7 @@ public final class CodexSpellStateTypeRegister {
     public static CodexSpellStateType<SearchBeaconState> SEARCH_BEACON_STATE;
     public static CodexSpellStateType<SpectralWingState> SPECTRAL_WING_STATE;
     public static CodexSpellStateType<TamersPocketState> TAMERS_POCKET_STATE;
+    public static CodexSpellStateType<ThermalSliceState> THERMAL_SLICE_STATE;
 
     public static void register() {
         ABSORPTION_AMPLIFY_AMULET_STATE = CodexSpellStates.register("absorption_amplify_amulet", AbsorptionAmplifyAmuletState::new);
@@ -66,5 +68,6 @@ public final class CodexSpellStateTypeRegister {
         SEARCH_BEACON_STATE = CodexSpellStates.register("search_beacon", SearchBeaconState::new);
         SPECTRAL_WING_STATE = CodexSpellStates.register("spectral_wing", SpectralWingState::new);
         TAMERS_POCKET_STATE = CodexSpellStates.register("tamers_pocket", TamersPocketState::new);
+        THERMAL_SLICE_STATE = CodexSpellStates.register("thermal_slice", ThermalSliceState::new);
     }
 }
