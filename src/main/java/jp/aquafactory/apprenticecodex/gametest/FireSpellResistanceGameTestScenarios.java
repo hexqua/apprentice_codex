@@ -8,7 +8,6 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrowerEntity;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -18,7 +17,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
+import net.minecraftforge.common.util.FakePlayer;
 
 import java.util.UUID;
 
@@ -78,7 +77,7 @@ final class FireSpellResistanceGameTestScenarios {
             thrower.applyOrUpdateThermalProcessingForGameTest(immuneTarget);
         }
 
-        var effect = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.THERMAL_PROCESSING.get());
+        var effect = EffectRegistry.THERMAL_PROCESSING.get();
         var normalEffect = normalTarget.getEffect(effect);
         helper.assertTrue(normalEffect != null && normalEffect.getAmplifier() == ThermalProcessing.MAX_AMPLIFIER,
                 "Thermal Process should build Thermal Processing on a normal target");

@@ -3,7 +3,6 @@ package jp.aquafactory.apprenticecodex.spell.thermalslice;
 import jp.aquafactory.apprenticecodex.effect.ThermalSundered;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -20,7 +19,7 @@ public final class ThermalSunderedLogic {
     }
 
     public static void extendFromSuccessfulFireDamage(LivingEntity target) {
-        var effect = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.THERMAL_SUNDERED.get());
+        var effect = EffectRegistry.THERMAL_SUNDERED.get();
         var current = target.getEffect(effect);
         if (current == null) {
             return;
@@ -30,7 +29,7 @@ public final class ThermalSunderedLogic {
     }
 
     private static void updateEffect(LivingEntity target, int minimumDuration, int requestedAmplifier) {
-        var effect = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.THERMAL_SUNDERED.get());
+        var effect = EffectRegistry.THERMAL_SUNDERED.get();
         var current = target.getEffect(effect);
         var amplifier = ThermalSundered.clampAmplifier(requestedAmplifier);
         var duration = minimumDuration;

@@ -10,11 +10,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.event.TickEvent;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ThermalSliceMovementEvent {
     public static final int DASH_DURATION_TICKS = 4;
     public static final double DASH_DISTANCE = 3.5D;
@@ -49,13 +49,13 @@ public final class ThermalSliceMovementEvent {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(PlayerTickEvent.Pre event) {
-        applyDashMovement(event.getEntity());
-    }
-
-    @SubscribeEvent
-    public static void onPlayerTick(PlayerTickEvent.Post event) {
-        finishDashIfNeeded(event.getEntity());
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        // Forge では同じイベントの START / END で移動前後を処理する。
+        if (event.phase == TickEvent.Phase.START) {
+            applyDashMovement(event.player);
+        } else {
+            finishDashIfNeeded(event.player);
+        }
     }
 
     static void applyDashMovement(Player player) {

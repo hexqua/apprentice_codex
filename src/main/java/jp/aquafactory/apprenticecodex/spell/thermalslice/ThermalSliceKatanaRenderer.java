@@ -92,7 +92,7 @@ public class ThermalSliceKatanaRenderer extends GeoEntityRenderer<ThermalSliceKa
             flameCount = Mth.clamp(Mth.ceil(maxTravel / FLAME_SAMPLE_SPACING), 1, MAX_FLAMES_PER_TICK);
         }
 
-        var random = entity.getRandom();
+        var random = entity.level().random;
         for (var i = 0; i < flameCount; ++i) {
             var sweepRatio = (i + random.nextDouble()) / flameCount;
             var sweptRoot = previousPose == null ? rootWorld : previousPose.root().lerp(rootWorld, sweepRatio);
@@ -103,7 +103,7 @@ public class ThermalSliceKatanaRenderer extends GeoEntityRenderer<ThermalSliceKa
     }
 
     private static void spawnFlameParticle(ThermalSliceKatanaEntity entity, Vec3 position) {
-        var random = entity.getRandom();
+        var random = entity.level().random;
         entity.level().addParticle(
                 ParticleHelper.FIRE,
                 true,
@@ -129,7 +129,7 @@ public class ThermalSliceKatanaRenderer extends GeoEntityRenderer<ThermalSliceKa
     @Override
     public void renderRecursively(PoseStack poseStack, ThermalSliceKatanaEntity animatable, GeoBone bone, RenderType renderType,
                                   MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                                  int packedLight, int packedOverlay, int colour) {
+                                  int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
         switch (bone.getName()) {
             case TRAIL_TIP_BONE -> trailTipBonePosition = boneWorldPosition(bone);
             case TRAIL_ROOT_BONE -> trailRootBonePosition = boneWorldPosition(bone);
@@ -142,14 +142,14 @@ public class ThermalSliceKatanaRenderer extends GeoEntityRenderer<ThermalSliceKa
             super.renderRecursively(
                     poseStack, animatable, bone, emissiveRenderType, bufferSource,
                     bufferSource.getBuffer(emissiveRenderType), isReRender, partialTick,
-                    LightTexture.FULL_BRIGHT, packedOverlay, colour
+                    LightTexture.FULL_BRIGHT, packedOverlay, red, green, blue, alpha
             );
             return;
         }
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, colour
+                packedLight, packedOverlay, red, green, blue, alpha
         );
     }
 

@@ -15,8 +15,8 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.TickEvent;
 
 import java.util.UUID;
 
@@ -148,7 +148,7 @@ final class ThermalSliceMovementGameTestScenarios {
 
         helper.assertTrue(ThermalSliceMovementEvent.startDash(owner, weapon.getId()),
                 "Thermal Slice should start while airborne");
-        ThermalSliceMovementEvent.onPlayerTick(new PlayerTickEvent.Pre(owner));
+        ThermalSliceMovementEvent.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.START, owner));
 
         helper.assertTrue(Math.abs(owner.getDeltaMovement().y + 0.25D) <= POSITION_EPSILON,
                 "Thermal Slice should preserve vertical movement");
@@ -161,13 +161,13 @@ final class ThermalSliceMovementGameTestScenarios {
     }
 
     private static void tickDash(FakePlayer player) {
-        ThermalSliceMovementEvent.onPlayerTick(new PlayerTickEvent.Pre(player));
+        ThermalSliceMovementEvent.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.START, player));
         player.move(MoverType.SELF, player.getDeltaMovement());
-        ThermalSliceMovementEvent.onPlayerTick(new PlayerTickEvent.Post(player));
+        ThermalSliceMovementEvent.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
     }
 
     private static ThermalSliceState getState(FakePlayer player) {
-        return Capabilities.getSpellData(player).orElseThrow()
+        return java.util.Objects.requireNonNull(Capabilities.getSpellDataOrNull(player))
                 .get(CodexSpellStateTypeRegister.THERMAL_SLICE_STATE);
     }
 

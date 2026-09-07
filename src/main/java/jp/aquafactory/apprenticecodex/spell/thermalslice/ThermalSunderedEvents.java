@@ -2,19 +2,21 @@ package jp.aquafactory.apprenticecodex.spell.thermalslice;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.world.damagesource.DamageTypes;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ThermalSunderedEvents {
     private ThermalSunderedEvents() {
     }
 
-    @SubscribeEvent
-    public static void onLivingDamage(LivingDamageEvent.Post event) {
+    // Forge の最終ダメージイベントで、先行ハンドラーによる無効化を反映する。
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onLivingDamage(LivingDamageEvent event) {
         if (event.getEntity().level().isClientSide
-                || event.getNewDamage() <= 0.0F
+                || event.getAmount() <= 0.0F
                 || !event.getSource().is(DamageTypes.ON_FIRE)) {
             return;
         }

@@ -375,7 +375,7 @@ public final class EntityRegistry {
             reg("catch_flame_impact", CatchFlameImpactEntity::new, MobCategory.MISC,
                     0.1F, 0.1F, 32, 1, false, FireBehaviors.IMMUNE);
 
-    public static final DeferredHolder<EntityType<?>, EntityType<ThermalSliceKatanaEntity>> THERMAL_SLICE_KATANA =
+    public static final RegistryObject<EntityType<ThermalSliceKatanaEntity>> THERMAL_SLICE_KATANA =
             regWeapon("thermal_slice_katana", ThermalSliceKatanaEntity::new, 1);
 
     public static void register(IEventBus bus) {

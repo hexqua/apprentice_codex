@@ -9,7 +9,6 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.thermalslice.ThermalSlice;
 import jp.aquafactory.apprenticecodex.spell.thermalslice.ThermalSliceKatanaEntity;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -21,7 +20,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.LivingDamageEvent;
 
 import java.util.UUID;
 
@@ -55,7 +56,7 @@ final class ThermalSunderedGameTestScenarios {
                 "Thermal Sundered should display particles and its status icon");
         helper.assertTrue(!(EffectRegistry.THERMAL_SUNDERED.get() instanceof MagicMobEffect),
                 "Thermal Sundered should remain a milk-removable non-magic mob effect");
-        helper.assertTrue(Math.abs(target.getAttributeValue(AttributeRegistry.FIRE_MAGIC_RESIST) - 0.5D)
+        helper.assertTrue(Math.abs(target.getAttributeValue(AttributeRegistry.FIRE_MAGIC_RESIST.get()) - 0.5D)
                         <= ATTRIBUTE_EPSILON,
                 "Amplifier four should reduce Fire Magic Resist by a fixed 0.5");
         helper.assertTrue(target.getRemainingFireTicks() <= 0,
@@ -121,7 +122,7 @@ final class ThermalSunderedGameTestScenarios {
     static void thermalSunderedRefreshesWithoutDowngrading(GameTestHelper helper) {
         var level = helper.getLevel();
         var target = createMob(level, EntityType.ZOMBIE, helper.absoluteVec(new Vec3(4.5D, 2.0D, 4.5D)));
-        var effectHolder = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.THERMAL_SUNDERED.get());
+        var effectHolder = EffectRegistry.THERMAL_SUNDERED.get();
         target.addEffect(new MobEffectInstance(effectHolder, 20, 4, false, true, true));
 
         jp.aquafactory.apprenticecodex.spell.thermalslice.ThermalSunderedLogic
@@ -139,6 +140,31 @@ final class ThermalSunderedGameTestScenarios {
                 "Generic setup damage should be accepted");
         helper.assertTrue(getThermalSundered(target).getDuration() == 20,
                 "Non-on-fire damage should not extend Thermal Sundered");
+
+        // Forge のダメージ確定直前イベントで無効化された場合は延長しない。
+        for (var cancel : new boolean[]{true, false}) {
+            java.util.function.Consumer<LivingDamageEvent> rejectDamage = event -> {
+                if (event.getEntity() == target) {
+                    if (cancel) {
+                        event.setCanceled(true);
+                    } else {
+                        event.setAmount(0.0F);
+                    }
+                }
+            };
+            var healthBeforeRejectedDamage = target.getHealth();
+            MinecraftForge.EVENT_BUS.addListener(rejectDamage);
+            try {
+                target.invulnerableTime = 0;
+                target.hurt(level.damageSources().onFire(), 1.0F);
+            } finally {
+                MinecraftForge.EVENT_BUS.unregister(rejectDamage);
+            }
+            helper.assertTrue(Math.abs(target.getHealth() - healthBeforeRejectedDamage) < HEALTH_EPSILON,
+                    "Cancelled or zero final fire damage should not reduce health");
+            helper.assertTrue(getThermalSundered(target).getDuration() == 20,
+                    "Cancelled or zero final fire damage should not extend Thermal Sundered");
+        }
 
         target.invulnerableTime = 0;
         helper.assertTrue(target.hurt(level.damageSources().onFire(), 1.0F),
@@ -208,7 +234,7 @@ final class ThermalSunderedGameTestScenarios {
     }
 
     private static MobEffectInstance getThermalSundered(LivingEntity target) {
-        var holder = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.THERMAL_SUNDERED.get());
+        var holder = EffectRegistry.THERMAL_SUNDERED.get();
         return target.getEffect(holder);
     }
 

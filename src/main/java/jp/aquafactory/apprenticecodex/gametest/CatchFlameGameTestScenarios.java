@@ -73,7 +73,7 @@ final class CatchFlameGameTestScenarios {
     static void catchFlameExtendsThermalSunderedOnlyAfterSuccessfulDamage(GameTestHelper helper) {
         var caster = createPlayer(helper, "catch_flame_thermal_sundered", new Vec3(1.5D, 2.0D, 1.5D));
         var target = createLiving(helper, EntityType.ZOMBIE, new Vec3(1.5D, 2.0D, 3.0D));
-        var effect = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.THERMAL_SUNDERED.get());
+        var effect = EffectRegistry.THERMAL_SUNDERED.get();
         target.addEffect(new MobEffectInstance(effect, 20, 3, false, true, true));
         aimAt(caster, target.getBoundingBox().getCenter());
         var initialHealth = target.getHealth();

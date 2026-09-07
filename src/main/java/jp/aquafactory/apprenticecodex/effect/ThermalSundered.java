@@ -1,8 +1,6 @@
 package jp.aquafactory.apprenticecodex.effect;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
@@ -13,17 +11,17 @@ public final class ThermalSundered extends MobEffect {
     public static final int ON_FIRE_EXTENDED_DURATION_TICKS = 100;
     public static final int MAX_AMPLIFIER = 4;
     private static final double FIRE_MAGIC_RESIST_REDUCTION_PER_LEVEL = -0.1D;
-    private static final ResourceLocation FIRE_MAGIC_RESIST_MODIFIER_ID =
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "thermal_sundered_fire_magic_resist");
+    // 1.20.1 の属性補正は ResourceLocation ではなく固定 UUID で識別する。
+    private static final String FIRE_MAGIC_RESIST_MODIFIER_ID = "b12dd3ce-f6f9-4c12-995b-041cfcc4d746";
 
     public ThermalSundered() {
         super(MobEffectCategory.HARMFUL, 0xFF8C00);
 
         addAttributeModifier(
-                AttributeRegistry.FIRE_MAGIC_RESIST,
+                AttributeRegistry.FIRE_MAGIC_RESIST.get(),
                 FIRE_MAGIC_RESIST_MODIFIER_ID,
-                AttributeModifier.Operation.ADD_VALUE,
-                amplifier -> FIRE_MAGIC_RESIST_REDUCTION_PER_LEVEL * (clampAmplifier(amplifier) + 1)
+                FIRE_MAGIC_RESIST_REDUCTION_PER_LEVEL,
+                AttributeModifier.Operation.ADDITION
         );
     }
 
@@ -36,7 +34,12 @@ public final class ThermalSundered extends MobEffect {
     }
 
     @Override
-    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
+    public boolean isDurationEffectTick(int duration, int amplifier) {
         return false;
+    }
+
+    @Override
+    public double getAttributeModifierValue(int amplifier, AttributeModifier modifier) {
+        return FIRE_MAGIC_RESIST_REDUCTION_PER_LEVEL * (clampAmplifier(amplifier) + 1);
     }
 }
