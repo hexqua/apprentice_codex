@@ -139,7 +139,7 @@ public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoIte
         normalizeSelection(stack);
     }
 
-    private static SpellData readSpell(ItemStack stack, int slot) {
+    static SpellData readSpell(ItemStack stack, int slot) {
         var scroll = getCalibrationScroll(stack, slot);
         if (!(scroll.getItem() instanceof Scroll)) return SpellData.EMPTY;
         var container = ISpellContainer.get(scroll);
@@ -220,8 +220,10 @@ public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoIte
     public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context,
                                 @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
-        var spell = getSelectedSpellData(stack);
-        if (spell != SpellData.EMPTY) lines.add(spell.getSpell().getDisplayName(null).copy().withStyle(ChatFormatting.AQUA));
+        // Iron's の詳細表示は LocalPlayer を使うため、専用サーバーから client helper を読み込まない。
+        if (net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT) {
+            QuickcastCartridgeClientTooltip.append(stack, lines);
+        }
     }
 
     @Override
