@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_scrollwoven_parchment": {
+      "conditions": {
+        "items": [
+          {
+            "items": "apprenticecodex:scrollwoven_parchment"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "apprenticecodex:quickcast_scroll_cartridge"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_scrollwoven_parchment"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "apprenticecodex:quickcast_scroll_cartridge"
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_spell_calibration_bench",
+  "criteria": {
+    "crafted_quickcast_spell_cartridge": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:quickcast_scroll_cartridge"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_quickcast_spell_cartridge.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:quickcast_scroll_cartridge"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_quickcast_spell_cartridge.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_quickcast_spell_cartridge"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
