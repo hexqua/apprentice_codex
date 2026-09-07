@@ -24,13 +24,13 @@ public class QuickcastScrollCartridgeCurioRenderer implements ICurioRenderer {
     private static final float BACK_OFFSET_X = 0F * PIXEL;
     private static final float BACK_OFFSET_Y = 4F * PIXEL;
     private static final float BACK_OFFSET_Z = 4F * PIXEL;
-    private static final float BACK_ROTATE_DEG_Z = 0F;
+    private static final float BACK_ROTATE_DEG_Z = 40;
     private static final float BELT_OFFSET_X = 0F * PIXEL;
-    private static final float BELT_OFFSET_Y = 5F * PIXEL;
+    private static final float BELT_OFFSET_Y = 10F * PIXEL;
     private static final float BELT_OFFSET_Z = 4F * PIXEL;
-    private static final float BELT_ROTATE_DEG_Z = 90F;
+    private static final float BELT_ROTATE_DEG_Z = 85F;
     private static final float ARMORED_OFFSET_Z = 0.45F * PIXEL;
-    private static final float CARTRIDGE_SCALE = 0.75F;
+    private static final float CARTRIDGE_SCALE = 1F;
 
     private final QuickcastScrollCartridgeRenderer itemRenderer = new QuickcastScrollCartridgeRenderer();
 
