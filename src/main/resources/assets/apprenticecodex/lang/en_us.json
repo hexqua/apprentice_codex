@@ -1600,5 +1600,13 @@
   "ui.apprenticecodex.idol_reconstruction.accelerate_repair_speed": "%1$s reconstruction speed: %2$d%%",
   "ui.apprenticecodex.idol_reconstruction.remain_repair_time": "Time to reconstruction: %s",
   "ui.apprenticecodex.idol_reconstruction.no_cool_down": "The emblem can already exert its undying power.",
-  "ui.apprenticecodex.idol_reconstruction.not_found_emblem": "No emblem can be found to channel mana into..."
+  "ui.apprenticecodex.idol_reconstruction.not_found_emblem": "No emblem can be found to channel mana into...",
+  "item.apprenticecodex.quickcast_scroll_cartridge.desc_1": "Press [%1$s] to cast the imbued spell.",
+  "item.apprenticecodex.quickcast_scroll_cartridge.desc_2": "Can cast even during cooldown, but spell power is reduced.",
+  "item.apprenticecodex.quickcast_scroll_cartridge.desc_3": "Only one can be equipped at a time.",
+  "key.apprenticecodex.quickcast_cartridge": "Quickcast Cartridge",
+  "key.categories.apprenticecodex": "Apprentice's Codex",
+  "item.apprenticecodex.quickcast_scroll_cartridge.no_assign": "Assign a key to cast the imbued spell at any time.",
+  "item.apprenticecodex.quickcast_scroll_cartridge.additive_slot": "Hold this item and sneak to select the spell used while equipped.",
+  "item.apprenticecodex.quickcast_scroll_cartridge": "Quickcast Scroll Cartridge"
 }

@@ -101,7 +101,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "97";
+    private static final String PROTOCOL_VERSION = "98";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -115,6 +115,11 @@ public final class Networks {
     }
 
     public static void register() {
+        CHANNEL.registerMessage(nextPacketId++, jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePacket.class,
+                jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePacket::encode,
+                jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePacket::decode,
+                jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(nextPacketId++, ScytheRecallEffectPacket.class, ScytheRecallEffectPacket::encode,
                 ScytheRecallEffectPacket::decode, ScytheRecallEffectPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(nextPacketId++, SyncSpellReaperScytheConfigPacket.class, SyncSpellReaperScytheConfigPacket::encode,
