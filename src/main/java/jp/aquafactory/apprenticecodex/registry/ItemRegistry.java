@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.curios.manamaneuvergear.ManaManeuverGear;
 import jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm.MonarchBondCharm;
+import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastScrollCartridge;
 import jp.aquafactory.apprenticecodex.item.curios.undyingemblem.UndyingEmblem;
 import jp.aquafactory.apprenticecodex.item.pastelstaff.PastelStaff;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
@@ -353,6 +354,8 @@ public final class ItemRegistry {
             ITEMS.register("spellcaster_ammo_pouch", SpellcasterAmmoPouch::new);
     public static final DeferredHolder<Item, Item> SPELLCASTER_QUIVER =
             ITEMS.register("spellcaster_quiver", SpellcasterQuiver::new);
+    public static final DeferredHolder<Item, Item> QUICKCAST_SCROLL_CARTRIDGE =
+            ITEMS.register("quickcast_scroll_cartridge", QuickcastScrollCartridge::new);
     public static final DeferredHolder<Item, Item> ABSORPTION_AMPLIFY_AMULET =
             ITEMS.register("absorption_amplify_amulet", AbsorptionAmplifyAmulet::new);
     public static final DeferredHolder<Item, Item> AUTOCAST_AMULET =

@@ -20,6 +20,9 @@ public final class SpellSelectionStackResolver {
             return ItemStack.EMPTY;
         }
 
+        if (jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastCartridgeCasting.SLOT.equals(slot)) {
+            return jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastCartridgeCasting.findEquipped(player);
+        }
         if (SpellSelectionManager.MAINHAND.equals(slot)) {
             return player.getMainHandItem();
         }

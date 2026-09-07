@@ -509,6 +509,17 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get()))
                 .save(recipeOutput);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.QUICKCAST_SCROLL_CARTRIDGE.get())
+                .pattern(" MD")
+                .pattern("ASA")
+                .pattern("DM ")
+                .define('S', ItemRegistry.SCROLLWOVEN_PARCHMENT.get())
+                .define('A', ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get())
+                .define('D', ItemRegistry.SPELLSTAINED_DIAMOND.get())
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
+                .unlockedBy(getHasName(ItemRegistry.SCROLLWOVEN_PARCHMENT.get()), has(ItemRegistry.SCROLLWOVEN_PARCHMENT.get()))
+                .save(recipeOutput);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.GRIMOIRE_MANIFEST.get())
                 .pattern(" E ")
                 .pattern("OBO")

@@ -1,7 +1,10 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastScrollCartridge;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -33,6 +36,12 @@ public final class ItemInventoryOverlayRenderer {
     }
 
     private static @Nullable OverlayView resolveOverlay(ItemStack stack) {
+        if (stack.getItem() instanceof QuickcastScrollCartridge) {
+            var spell = QuickcastScrollCartridge.getSelectedSpellData(stack);
+            return spell == SpellData.EMPTY ? null
+                    : new OverlayView(SchoolAffinityRegistry.createIconStack(spell.getSpell().getSchoolType()), null);
+        }
+
         var elementalBowOverlay = ElementalBow.getInventoryOverlayView(stack);
         if (elementalBowOverlay != null) {
             return new OverlayView(

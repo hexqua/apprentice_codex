@@ -1392,6 +1392,8 @@
   "advancements.apprenticecodex.apprentice_codex.craft_zenith_staff.description": "Craft a Zenith Staff.",
   "advancements.apprenticecodex.apprentice_codex.craft_scrollcaster_gauntlet.title": "A Second Spellbook",
   "advancements.apprenticecodex.apprentice_codex.craft_scrollcaster_gauntlet.description": "Craft a Spellcaster Gauntlet.",
+  "advancements.apprenticecodex.apprentice_codex.craft_quickcast_spell_cartridge.title": "Kill the damn dragon!",
+  "advancements.apprenticecodex.apprentice_codex.craft_quickcast_spell_cartridge.description": "Craft a Quickcast Scroll Cartridge",
   "advancements.apprenticecodex.apprentice_codex.craft_spell_calibration_bench.title": "Magic is no use unless you equip it",
   "advancements.apprenticecodex.apprentice_codex.craft_spell_calibration_bench.description": "Craft a Spell Calibration Bench.",
   "advancements.apprenticecodex.apprentice_codex.craft_illuminate_stellar_staff.title": "She illuminates you all with her magic.",
@@ -1600,5 +1602,16 @@
   "ui.apprenticecodex.idol_reconstruction.accelerate_repair_speed": "%1$s reconstruction speed: %2$d%%",
   "ui.apprenticecodex.idol_reconstruction.remain_repair_time": "Time to reconstruction: %s",
   "ui.apprenticecodex.idol_reconstruction.no_cool_down": "The emblem can already exert its undying power.",
-  "ui.apprenticecodex.idol_reconstruction.not_found_emblem": "No emblem can be found to channel mana into..."
+  "ui.apprenticecodex.idol_reconstruction.not_found_emblem": "No emblem can be found to channel mana into...",
+  "item.apprenticecodex.quickcast_scroll_cartridge.tooltip.selected": "Selected Spell (Normal Stats)",
+  "item.apprenticecodex.quickcast_scroll_cartridge.tooltip.others": "Other Loaded Spells",
+  "item.apprenticecodex.quickcast_scroll_cartridge.tooltip.empty": "No scroll loaded.",
+  "item.apprenticecodex.quickcast_scroll_cartridge.desc_1": "Press [%1$s] to cast the imbued spell.",
+  "item.apprenticecodex.quickcast_scroll_cartridge.desc_2": "Can cast even during cooldown, but spell power is reduced.",
+  "item.apprenticecodex.quickcast_scroll_cartridge.desc_3": "Only one can be equipped at a time.",
+  "key.apprenticecodex.quickcast_cartridge": "Quickcast Cartridge",
+  "key.categories.apprenticecodex": "Apprentice's Codex",
+  "item.apprenticecodex.quickcast_scroll_cartridge.no_assign": "Assign a key to cast the imbued spell at any time.",
+  "item.apprenticecodex.quickcast_scroll_cartridge.additive_slot": "Hold this item and sneak to select the spell used while equipped.",
+  "item.apprenticecodex.quickcast_scroll_cartridge": "Quickcast Scroll Cartridge"
 }

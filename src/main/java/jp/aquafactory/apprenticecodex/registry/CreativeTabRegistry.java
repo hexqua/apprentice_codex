@@ -287,6 +287,7 @@ public final class CreativeTabRegistry {
 
         // multi
         output.accept(ItemRegistry.SPELLCASTER_QUIVER.get());
+        output.accept(ItemRegistry.QUICKCAST_SCROLL_CARTRIDGE.get());
     }
 
     private static void addCreateRoundMaterialsToTab(CreativeModeTab.Output output) {

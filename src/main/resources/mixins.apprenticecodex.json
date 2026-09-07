@@ -9,6 +9,9 @@
   "refmap": "mixins.apprenticecodex.refmap.json",
   "plugin": "jp.aquafactory.apprenticecodex.mixin.ApprenticeCodexMixinPlugin",
   "mixins": [
+    "QuickcastCartridgeSpellMixin",
+    "QuickcastCartridgeSelectionMixin",
+    "QuickcastCartridgeUtilsMixin",
     "LivingEntityDamageMemoryAccessor",
     "AbstractSpellManaBypassMixin",
     "AbstractSpellMixin",
