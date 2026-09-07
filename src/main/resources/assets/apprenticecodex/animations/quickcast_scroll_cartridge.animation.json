@@ -7,6 +7,19 @@
 		"cast": {
 			"animation_length": 0.5,
 			"bones": {
+				"core": {
+					"scale": {
+						"0.0": {
+							"vector": [0.8, 1, 0.8]
+						},
+						"0.4": {
+							"vector": [0.8, 1, 0.8]
+						},
+						"0.5": {
+							"vector": [1, 1, 1]
+						}
+					}
+				},
 				"cover": {
 					"rotation": {
 						"0.0": {
