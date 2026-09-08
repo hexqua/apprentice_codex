@@ -9,6 +9,8 @@
   "refmap": "mixins.apprenticecodex.refmap.json",
   "plugin": "jp.aquafactory.apprenticecodex.mixin.ApprenticeCodexMixinPlugin",
   "mixins": [
+    "EvasionSpellSupporterMixin",
+    "HeartstopSpellSupporterMixin",
     "IceTombSpellSupporterMixin",
     "IceTombSupporterMixin",
     "PlayerIceTombDismountMixin",

@@ -32,7 +32,10 @@ public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiIn
             SpellRegistry.PHALANX_CHARGE,
             SpellRegistry.MYSTIC_SHIELD,
             io.redspace.ironsspellbooks.api.registry.SpellRegistry.SHIELD_SPELL,
-            io.redspace.ironsspellbooks.api.registry.SpellRegistry.ICE_TOMB_SPELL
+            io.redspace.ironsspellbooks.api.registry.SpellRegistry.ICE_TOMB_SPELL,
+            io.redspace.ironsspellbooks.api.registry.SpellRegistry.EVASION_SPELL,
+            io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEARTSTOP_SPELL,
+            io.redspace.ironsspellbooks.api.registry.SpellRegistry.ABYSSAL_SHROUD_SPELL
     );
 
     private final String slotIdentifier;
@@ -122,5 +125,15 @@ public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiIn
         }
 
         return Math.max(1, Math.round(manaCost * MANA_COST_DISCOUNT_MULTIPLIER));
+    }
+
+    public static int applyEvasionAmplifierBonus(int amplifier, @Nullable LivingEntity entity) {
+        // Iron's は Amp + 1 回を回避するため、最終回数を倍増してから Amp に戻す。
+        return isEquippedBy(entity) ? 2 * amplifier + 1 : amplifier;
+    }
+
+    public static float applyHeartstopAccumulationDiscount(float addedDamage, @Nullable LivingEntity entity) {
+        // 通常の50%蓄積をさらに半減する。累積値には触れず、過去の被弾を付け替えで再計算しない。
+        return isEquippedBy(entity) ? addedDamage * 0.5f : addedDamage;
     }
 }
