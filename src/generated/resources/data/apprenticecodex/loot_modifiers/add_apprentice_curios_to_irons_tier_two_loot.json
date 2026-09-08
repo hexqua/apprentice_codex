@@ -15,7 +15,7 @@
       ]
     },
     {
-      "base_chance": 0.04615384615384616,
+      "base_chance": 0.1,
       "condition": "apprenticecodex:apprentice_curio_loot_chance"
     }
   ],
