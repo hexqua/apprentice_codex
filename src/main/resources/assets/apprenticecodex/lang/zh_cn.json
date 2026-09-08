@@ -30,6 +30,10 @@
   "item.apprenticecodex.elemental_bow.tooltip.no_selected_spell": "未选择法术",
   "item.apprenticecodex.elemental_bow.tooltip.cooling": "冷却时间：%s",
   "item.apprenticecodex.elemental_bow.tooltip.draw": "所需拉弓时间：%s",
+  "item.apprenticecodex.mana_enveloped_silver_chunk": "蕴魔银块",
+  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_1": "可从地下墓穴的骸骨宝库和城塞的余烬宝库中获得。",
+  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_2": "每个宝库必定产出2至3块。",
+
   "subtitle.apprenticecodex.sound.scythe_throw": "镰刀掷出",
   "subtitle.apprenticecodex.sound.scythe_spin": "镰刀旋转",
   "subtitle.apprenticecodex.sound.vanilla_scythe_catch": "镰刀返回手中",

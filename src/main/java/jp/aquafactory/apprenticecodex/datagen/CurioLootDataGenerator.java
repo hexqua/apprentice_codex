@@ -208,6 +208,15 @@ public final class CurioLootDataGenerator implements DataProvider {
                         List.of(ResourceLocation.withDefaultNamespace("chests/spawn_bonus_chest")),
                         ISEKAI_TRAVEL_GUIDEBOOK_BONUS_CHEST
                 )));
+        // 天井用素材はCuriosの供給設定と独立させ、既存の報酬抽選を消費した後に追加する。
+        // 1.20.1にはバニラのVaultがないため、自然配置されるボス系Vaultだけを対象にする。
+        var silverChunkBonus = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "chests/silver_chunk_special");
+        futures.add(saveLootTable(cachedOutput, silverChunkBonus, createSilverChunkTable()));
+        futures.add(saveLootModifier(cachedOutput,
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "add_silver_chunk_to_special_vault"),
+                createAppendLootModifier(List.of(
+                        ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/catacombs/dead_king_vault"),
+                        ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/citadel/citadel_vault")), silverChunkBonus)));
         futures.add(DataProvider.saveStable(cachedOutput, createGlobalLootModifierList(), lootModifierPathProvider.json(
                 ResourceLocation.fromNamespaceAndPath("forge", "global_loot_modifiers")
         )));
@@ -262,11 +271,38 @@ public final class CurioLootDataGenerator implements DataProvider {
                 "apprenticecodex:add_apprentice_curios_to_nature_fire_loot",
                 "apprenticecodex:add_apprentice_curios_to_dead_king_vault",
                 "apprenticecodex:add_apprentice_curios_to_catacombs_wall",
-                "apprenticecodex:add_isekai_travel_guidebook_to_bonus_chest"
+                "apprenticecodex:add_isekai_travel_guidebook_to_bonus_chest",
+                "apprenticecodex:add_silver_chunk_to_special_vault"
         )) {
             entries.add(id);
         }
         root.add("entries", entries);
+        return root;
+    }
+
+    private static JsonObject createSilverChunkTable() {
+        var root = new JsonObject();
+        var pools = new JsonArray();
+        var pool = new JsonObject();
+        pool.addProperty("rolls", 1);
+        var entries = new JsonArray();
+        var entry = new JsonObject();
+        entry.addProperty("type", "minecraft:item");
+        entry.addProperty("name", ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.getId().toString());
+        var functions = new JsonArray();
+        var function = new JsonObject();
+        function.addProperty("function", "minecraft:set_count");
+        var count = new JsonObject();
+        count.addProperty("type", "minecraft:uniform");
+        count.addProperty("min", 2);
+        count.addProperty("max", 3);
+        function.add("count", count);
+        functions.add(function);
+        entry.add("functions", functions);
+        entries.add(entry);
+        pool.add("entries", entries);
+        pools.add(pool);
+        root.add("pools", pools);
         return root;
     }
 

@@ -1,6 +1,5 @@
 {
   "entries": [
-    "apprenticecodex:add_isekai_travel_guidebook_to_bonus_chest",
     "apprenticecodex:add_apprentice_curios_to_generic_loot",
     "apprenticecodex:add_apprentice_curios_to_good_loot",
     "apprenticecodex:add_apprentice_curios_to_treasure_loot",
@@ -13,7 +12,8 @@
     "apprenticecodex:add_apprentice_curios_to_nature_fire_loot",
     "apprenticecodex:add_apprentice_curios_to_dead_king_vault",
     "apprenticecodex:add_apprentice_curios_to_catacombs_wall",
-    "apprenticecodex:add_isekai_travel_guidebook_to_bonus_chest"
+    "apprenticecodex:add_isekai_travel_guidebook_to_bonus_chest",
+    "apprenticecodex:add_silver_chunk_to_special_vault"
   ],
   "replace": false
 }

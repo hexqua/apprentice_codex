@@ -5,7 +5,7 @@
       "entries": [
         {
           "type": "minecraft:loot_table",
-          "value": "apprenticecodex:magic_items/basic_curios_bonus"
+          "name": "apprenticecodex:magic_items/basic_curios_bonus"
         }
       ],
       "rolls": 1
