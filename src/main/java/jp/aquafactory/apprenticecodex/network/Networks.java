@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.network.packet.SupportedShieldPassagePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearSlidePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearJumpPacket;
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
@@ -98,7 +99,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "95";
+    private static final String PROTOCOL_VERSION = "96";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -112,6 +113,9 @@ public final class Networks {
     }
 
     public static void register() {
+        CHANNEL.registerMessage(nextPacketId++, SupportedShieldPassagePacket.class,
+                SupportedShieldPassagePacket::encode, SupportedShieldPassagePacket::decode, SupportedShieldPassagePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(nextPacketId++, SyncManaManeuverGearSlidePacket.class,
                 SyncManaManeuverGearSlidePacket::encode, SyncManaManeuverGearSlidePacket::decode, SyncManaManeuverGearSlidePacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
