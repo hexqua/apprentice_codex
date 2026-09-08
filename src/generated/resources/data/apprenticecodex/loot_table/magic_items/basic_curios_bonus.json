@@ -4,22 +4,76 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "apprenticecodex:scarlet_thirst"
+          "name": "apprenticecodex:scarlet_thirst",
+          "weight": 2
         },
         {
           "type": "minecraft:item",
-          "name": "apprenticecodex:craftsmans_delight"
+          "name": "apprenticecodex:craftsmans_delight",
+          "weight": 2
         },
         {
           "type": "minecraft:item",
-          "name": "apprenticecodex:protection_spell_supporter"
+          "name": "apprenticecodex:protection_spell_supporter",
+          "weight": 2
         },
         {
           "type": "minecraft:item",
-          "name": "apprenticecodex:enchanted_circlet"
+          "name": "apprenticecodex:enchanted_circlet",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "apprenticecodex:spell_cast_parrying_ring",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "apprenticecodex:autocast_amulet",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "apprenticecodex:satellite_followcast_amulet",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "apprenticecodex:mana_shield_charm",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "apprenticecodex:monarch_bond_charm",
+          "weight": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "apprenticecodex:attackcast_ring",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "apprenticecodex:mana_thruster",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "apprenticecodex:jumpcast_charm",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "apprenticecodex:mana_maneuver_gear",
+          "weight": 1
+        },
+        {
+          "type": "minecraft:item",
+          "name": "apprenticecodex:quickcast_scroll_cartridge",
+          "weight": 1
         }
       ],
-      "rolls": 1.0
+      "rolls": 1
     }
   ]
 }
