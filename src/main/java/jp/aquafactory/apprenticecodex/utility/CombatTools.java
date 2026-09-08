@@ -275,7 +275,7 @@ public final class CombatTools {
                 && source.getCombatOwnerUuid().equals(owner.getUUID());
     }
 
-    private static @Nullable Entity resolveDamageOwner(DamageSource source) {
+    public static @Nullable Entity resolveDamageOwner(DamageSource source) {
         return resolveCombatActor(source.getEntity());
     }
 

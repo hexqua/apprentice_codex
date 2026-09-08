@@ -96,7 +96,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "99";
+    private static final String PROTOCOL_VERSION = "100";
 
     private Networks() {
     }
@@ -107,6 +107,9 @@ public final class Networks {
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar(PROTOCOL_VERSION);
+        registrar.playToClient(jp.aquafactory.apprenticecodex.network.packet.SupportedShieldPassagePacket.TYPE,
+                jp.aquafactory.apprenticecodex.network.packet.SupportedShieldPassagePacket.STREAM_CODEC,
+                jp.aquafactory.apprenticecodex.network.packet.SupportedShieldPassagePacket::handle);
         registrar.playToServer(jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePacket.TYPE,
                 jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePacket.STREAM_CODEC,
                 jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePacket::handle);

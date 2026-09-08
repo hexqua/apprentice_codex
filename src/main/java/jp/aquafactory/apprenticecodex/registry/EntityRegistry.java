@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.registry;
 
+import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.SupportedShieldEntity;
+
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity;
 import jp.aquafactory.apprenticecodex.item.antimanaarrow.AntiManaArrowEntity;
@@ -380,6 +382,11 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<ThermalSliceKatanaEntity>> THERMAL_SLICE_KATANA =
             regWeapon("thermal_slice_katana", ThermalSliceKatanaEntity::new, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<SupportedShieldEntity>> SUPPORTED_SHIELD =
+            ENTITIES.register("supported_shield", () -> EntityType.Builder
+                    .<SupportedShieldEntity>of(SupportedShieldEntity::new, MobCategory.MISC)
+                    .sized(1F, 1F).clientTrackingRange(64).build("apprenticecodex:supported_shield"));
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

@@ -8155,9 +8155,76 @@ public class ApprenticeCodexGameTestScenarios {
         }));
 
         var vulnerableAttack = postLivingAttackEventForGameTest(player, level.damageSources().lava(), 4.0F);
-        helper.assertFalse(vulnerableAttack.isCanceled(), "MirageAvoidance should allow normal damage after tick 20");
+        helper.assertFalse(vulnerableAttack.isCanceled(), "MirageAvoidance should allow normal damage from tick 15");
         var fallAttack = postLivingAttackEventForGameTest(player, level.damageSources().fall(), 4.0F);
         helper.assertFalse(fallAttack.isCanceled(), "MirageAvoidance should allow fall damage after invulnerability ends");
+        helper.succeed();
+    }
+
+    static void mirageAvoidanceSupporterUsesCastTimeEquipmentAndTimingBoundaries(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var spell = SpellRegistry.MIRAGE_AVOIDANCE.get();
+        // 未装着、装着継続、発動後に取り外しの三通りで同じ境界を通す。
+        for (int mode = 0; mode < 3; mode++) {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mirage_supporter_" + mode);
+            boolean supported = mode != 0;
+            equipCurio(player, CuriosSlotConstants.BELT,
+                    supported ? new ItemStack(ItemRegistry.PROTECTION_SPELL_SUPPORTER.get()) : ItemStack.EMPTY);
+            int invulnerableTicks = supported ? 20 : 15;
+            int activeTicks = supported ? 22 : 25;
+            var expectedTooltip = Component.translatable("ui.irons_spellbooks.effect_length",
+                    io.redspace.ironsspellbooks.api.util.Utils.timeFromTicks(invulnerableTicks, 1));
+            helper.assertTrue(spell.getUniqueInfo(1, player).getFirst().equals(expectedTooltip),
+                    "MirageAvoidance tooltip must show the equipped invulnerability duration");
+            var manaEvent = new SpellOnCastEvent(player, spell.getSpellId(), 1, spell.getManaCost(1),
+                    spell.getSchoolType(), CastSource.SPELLBOOK);
+            NeoForge.EVENT_BUS.post(manaEvent);
+            int expectedMana = supported ? Math.max(1, Math.round(spell.getManaCost(1) * 0.5f)) : spell.getManaCost(1);
+            helper.assertTrue(manaEvent.getManaCost() == expectedMana,
+                    "MirageAvoidance mana discount must follow equipped supporter state");
+
+            MirageAvoidanceInput.setPending(player, 1.0F, 0.0F);
+            spell.onCast(level, 1, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
+            var castState = getMirageAvoidanceState(player);
+            helper.assertTrue(castState.invulnerableUntilGameTime == level.getGameTime() + invulnerableTicks
+                            && castState.activeUntilGameTime == level.getGameTime() + activeTicks,
+                    "MirageAvoidance must snapshot both timing windows at cast time");
+            if (mode == 2) {
+                equipCurio(player, CuriosSlotConstants.BELT, ItemStack.EMPTY);
+            }
+
+            // 時刻を状態側で進め、実際のPre/Post処理と保存時刻補正を含めて境界を検証する。
+            for (int elapsed : new int[]{0, 1, 2, 14, 15, 19, 20, 21, 22, 24, 25}) {
+                long start = level.getGameTime() - elapsed;
+                Capabilities.withSpellData(player, data -> data.edit(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE, s -> {
+                    s.startGameTime = start;
+                    s.invulnerableUntilGameTime = start + invulnerableTicks;
+                    s.activeUntilGameTime = start + activeTicks;
+                }));
+                player.setDeltaMovement(0.3D, -0.5D, 0.2D);
+                MirageAvoidanceEvents.onPlayerTick(new PlayerTickEvent.Pre(player));
+                MirageAvoidanceEvents.onPlayerTick(new PlayerTickEvent.Post(player));
+                boolean active = elapsed < activeTicks;
+                helper.assertTrue(MirageAvoidanceEvents.isInputLocked(player) == active,
+                        "MirageAvoidance input lock mismatch at tick " + elapsed + " in mode " + mode);
+                var attack = postLivingAttackEventForGameTest(player, level.damageSources().lava(), 4.0F);
+                helper.assertTrue(attack.isCanceled() == (elapsed < invulnerableTicks),
+                        "MirageAvoidance invulnerability mismatch at tick " + elapsed + " in mode " + mode);
+                if (active) {
+                    var state = getMirageAvoidanceState(player);
+                    helper.assertTrue(state.invulnerableUntilGameTime == start + invulnerableTicks
+                                    && state.activeUntilGameTime == start + activeTicks,
+                            "MirageAvoidance sanitizer must preserve cast timing windows");
+                    var movement = player.getDeltaMovement();
+                    boolean sliding = elapsed >= 2 && elapsed < 20;
+                    helper.assertTrue(sliding ? movement.horizontalDistanceSqr() > 0 : movement.lengthSqr() < 1.0E-6D,
+                            "MirageAvoidance movement phase mismatch at tick " + elapsed);
+                } else {
+                    helper.assertTrue(player.getDeltaMovement().equals(new Vec3(0.3D, -0.5D, 0.2D)),
+                            "MirageAvoidance must release movement after recovery");
+                }
+            }
+        }
         helper.succeed();
     }
 
