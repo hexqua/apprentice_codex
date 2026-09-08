@@ -34,6 +34,8 @@ public final class MirageAvoidanceEvents {
     public static final int FREEZE_TICKS = 2;
     public static final int SLIDE_TICKS = 18;
     public static final int VULNERABLE_RECOVERY_START_TICK = 20;
+    public static final int SUPPORTED_INVULNERABLE_TICKS = VULNERABLE_RECOVERY_START_TICK;
+    public static final int SUPPORTED_EFFECT_DURATION_TICKS = VULNERABLE_RECOVERY_START_TICK + 2;
     public static final double RUN_SPEED_PER_TICK = 0.42D;
     private static final double SLOW_FALL_SPEED = -0.08D;
     private static final double INPUT_EPSILON_SQ = 1.0E-6D;
@@ -85,7 +87,7 @@ public final class MirageAvoidanceEvents {
         }
 
         if (isPre && !level.isClientSide) {
-            spawnTrailParticles(player, elapsedTicks);
+            spawnTrailParticles(player, state, elapsedTicks);
         }
     }
 
@@ -171,7 +173,7 @@ public final class MirageAvoidanceEvents {
         var sanitizedInvulnerableUntilGameTime = PersistentGameTimeSanitizer.repairPersistedFutureUntil(
                 gameTime,
                 state.invulnerableUntilGameTime,
-                INVULNERABLE_TICKS
+                SUPPORTED_INVULNERABLE_TICKS
         );
         if (sanitizedStartGameTime == state.startGameTime
                 && sanitizedActiveUntilGameTime == state.activeUntilGameTime
@@ -311,12 +313,12 @@ public final class MirageAvoidanceEvents {
         }
     }
 
-    private static void spawnTrailParticles(Player player, int elapsedTicks) {
+    private static void spawnTrailParticles(Player player, MirageAvoidanceState state, int elapsedTicks) {
         if (!(player.level() instanceof ServerLevel serverLevel)) {
             return;
         }
 
-        var invulnerable = elapsedTicks < INVULNERABLE_TICKS;
+        var invulnerable = isInvulnerable(player.level(), state);
         var recovery = elapsedTicks >= VULNERABLE_RECOVERY_START_TICK;
         if (recovery && player.tickCount % 2 != 0) {
             return;

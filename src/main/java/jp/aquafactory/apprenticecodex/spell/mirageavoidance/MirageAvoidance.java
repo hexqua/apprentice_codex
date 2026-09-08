@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
 import jp.aquafactory.apprenticecodex.network.packet.HeavenlyFistPulsePacket;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
@@ -49,13 +50,13 @@ public class MirageAvoidance extends AbstractSpell {
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
-                Component.translatable("ui.irons_spellbooks.effect_length", Utils.timeFromTicks(getDuration(), 1))
+                Component.translatable("ui.irons_spellbooks.effect_length", Utils.timeFromTicks(getDuration(ProtectionSpellSupporter.isEquippedBy(caster)), 1))
         );
     }
 
-    private int getDuration() {
+    private int getDuration(boolean supported) {
         // 無敵時間であり、効果時間は別.
-        return MirageAvoidanceEvents.INVULNERABLE_TICKS;
+        return supported ? MirageAvoidanceEvents.SUPPORTED_INVULNERABLE_TICKS : MirageAvoidanceEvents.INVULNERABLE_TICKS;
     }
 
     @Override
@@ -105,11 +106,14 @@ public class MirageAvoidance extends AbstractSpell {
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (!level.isClientSide && entity instanceof Player player) {
             var input = MirageAvoidanceInput.consumePending(player);
+            // 発動時の装備で終了時刻を確定し、途中の付け外しでは効果を再計算しない。
+            var supported = ProtectionSpellSupporter.isEquippedBy(player);
+            var effectDuration = supported ? MirageAvoidanceEvents.SUPPORTED_EFFECT_DURATION_TICKS : MirageAvoidanceEvents.EFFECT_DURATION_TICKS;
             Capabilities.withSpellData(player, data -> {
                 data.edit(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE, state -> {
                     state.startGameTime = level.getGameTime();
-                    state.activeUntilGameTime = level.getGameTime() + MirageAvoidanceEvents.EFFECT_DURATION_TICKS;
-                    state.invulnerableUntilGameTime = level.getGameTime() + getDuration();
+                    state.activeUntilGameTime = level.getGameTime() + effectDuration;
+                    state.invulnerableUntilGameTime = level.getGameTime() + getDuration(supported);
                     state.movementForward = input.forward();
                     state.movementStrafe = input.strafe();
                 });

@@ -31,6 +31,7 @@ public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiIn
             SpellRegistry.FORCE_FIELD,
             SpellRegistry.PHALANX_CHARGE,
             SpellRegistry.MYSTIC_SHIELD,
+            SpellRegistry.MIRAGE_AVOIDANCE,
             io.redspace.ironsspellbooks.api.registry.SpellRegistry.SHIELD_SPELL,
             io.redspace.ironsspellbooks.api.registry.SpellRegistry.ICE_TOMB_SPELL,
             io.redspace.ironsspellbooks.api.registry.SpellRegistry.EVASION_SPELL,

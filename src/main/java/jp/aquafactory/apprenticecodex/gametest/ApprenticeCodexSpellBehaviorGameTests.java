@@ -692,6 +692,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
         ApprenticeCodexGameTestScenarios.mirageAvoidanceUsesFifteenTickInvulnerabilityAndActiveRecastLock(helper);
     }
 
+    @GameTest(template = TEMPLATE, batch = MIRAGE_AVOIDANCE_ISOLATED_BATCH)
+    public static void mirageAvoidanceSupporterUsesCastTimeEquipmentAndTimingBoundaries(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.mirageAvoidanceSupporterUsesCastTimeEquipmentAndTimingBoundaries(helper);
+    }
+
     @GameTest(template = TEMPLATE, batch = MIRAGE_AVOIDANCE_ISOLATED_BATCH, timeoutTicks = 80)
     public static void mirageAvoidanceFreezesThenSlidesAndResetsFallDistance(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.mirageAvoidanceFreezesThenSlidesAndResetsFallDistance(helper);
