@@ -13,7 +13,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
-import net.neoforged.neoforge.registries.DeferredHolder;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
@@ -21,16 +20,18 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiInfoItem {
     private static final float MANA_COST_DISCOUNT_MULTIPLIER = 0.5f;
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.protection_spell_supporter.desc_";
     private static final String SPELL_HINT_KEY = "item.apprenticecodex.common.desc.spell_hint";
     private static final String SPELL_HINT_OPEN_KEY = "item.apprenticecodex.common.desc.spell_hint_open";
-    private static final List<DeferredHolder<AbstractSpell, AbstractSpell>> TARGET_SPELLS = List.of(
+    private static final List<Supplier<AbstractSpell>> TARGET_SPELLS = List.of(
             SpellRegistry.FORCE_FIELD,
             SpellRegistry.PHALANX_CHARGE,
-            SpellRegistry.MYSTIC_SHIELD
+            SpellRegistry.MYSTIC_SHIELD,
+            io.redspace.ironsspellbooks.api.registry.SpellRegistry.SHIELD_SPELL
     );
 
     private final String slotIdentifier;
