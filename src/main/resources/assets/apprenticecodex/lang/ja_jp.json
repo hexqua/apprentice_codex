@@ -68,6 +68,7 @@
   "item.apprenticecodex.spellstained_diamond": "魔術染めのダイヤモンド",
   "item.apprenticecodex.spellstained_arcane_ingot": "魔術染めの秘術のインゴット",
   "item.apprenticecodex.emberstained_netherite_ingot": "残り火染めのネザライトインゴット",
+  "item.apprenticecodex.mana_enveloped_silver_chunk": "マナを纏った銀塊",
   "item.apprenticecodex.anti_mana_arrow": "抗マナの魔矢",
   "item.apprenticecodex.rapid_spellcaster_round": "高速詠唱銃弾",
   "item.apprenticecodex.basic_spellcaster_round": "通常用詠唱銃弾",
@@ -473,6 +474,8 @@
 
   "jei.apprenticecodex.arcane_cinder.desc_1": "かまど・溶鉱炉・燻製器の燃料として使用することで加工速度が上昇する。",
   "jei.apprenticecodex.arcane_cinder.desc_2": "それ以外の機材では効果を発揮しない。",
+  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_1": "宝物庫から入手できる。",
+  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_2": "不吉なものや、カタコンベや城塞で見かける特殊な宝物庫からは多く入手できる。",
   "jei.apprenticecodex.spell_extract_shard.desc_1": "詠唱者の作業台で魔法が注入されているアイテムと組み合わせることでスクロールを取り出すことができる。",
   "jei.apprenticecodex.spell_extract_shard.desc_2": "ただし対象にできるアイテムに制限があり、取り出せたとしても注入されていたアイテムは失われる。",
   "jei.apprenticecodex.spell_extract_shard.desc_3": "最初から魔法が注入されているアイテムはダンジョンなどから入手できるようなものに限られる。",

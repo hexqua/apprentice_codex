@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_mana_enveloped_silver_chunk": {
+      "conditions": {
+        "items": [
+          {
+            "items": "apprenticecodex:mana_enveloped_silver_chunk"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "apprenticecodex:silver_ring_from_mana_enveloped_silver_chunk"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_mana_enveloped_silver_chunk"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "apprenticecodex:silver_ring_from_mana_enveloped_silver_chunk"
+    ]
+  }
+}

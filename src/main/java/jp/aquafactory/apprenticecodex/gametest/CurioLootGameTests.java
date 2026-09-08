@@ -112,6 +112,89 @@ public class CurioLootGameTests {
     }
 
     private static List<ItemStack> roll(GameTestHelper helper, String id) {
+        // 素材の確定報酬とは独立に、従来のCurios追加だけを比較する。
+        return rollAll(helper, id).stream().filter(stack -> !stack.is(ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.get())).toList();
+    }
+
+    @GameTest(template = TEMPLATE, batch = "apprenticecodex.curio_loot")
+    public static void silverChunkVaultRewardsAndRecipe(GameTestHelper helper) throws IOException {
+        ModConfigSpec.BooleanValue enabled = ApprenticeCodexServerConfig.SPEC.getValues().get("Loot.enableApprenticeCurioLoot");
+        ModConfigSpec.DoubleValue multiplier = ApprenticeCodexServerConfig.SPEC.getValues().get("Loot.apprenticeCurioLootChanceMultiplier");
+        boolean previousEnabled = enabled.get();
+        double previousMultiplier = multiplier.get();
+        try {
+            for (boolean enable : List.of(false, true)) {
+                enabled.set(enable);
+                multiplier.set(0.0D);
+                for (var id : List.of("minecraft:chests/trial_chambers/reward",
+                        "minecraft:chests/trial_chambers/reward_ominous",
+                        "irons_spellbooks:chests/catacombs/dead_king_vault",
+                        "irons_spellbooks:chests/citadel/citadel_vault")) {
+                    var all = rollAll(helper, id);
+                    var chunks = all.stream().filter(stack -> stack.is(ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.get())).toList();
+                    helper.assertTrue(chunks.size() == 1, "Vault must append exactly one silver chunk stack: " + id);
+                    int count = chunks.getFirst().getCount();
+                    helper.assertTrue(id.endsWith("/reward") ? count == 1 : count >= 2 && count <= 3,
+                            "Unexpected silver chunk count: " + id);
+                    var table = helper.getLevel().getServer().reloadableRegistries().getLootTable(
+                            ResourceKey.create(Registries.LOOT_TABLE, ResourceLocation.parse(id)));
+                    var params = new LootParams.Builder(helper.getLevel())
+                            .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(helper.absolutePos(BlockPos.ZERO)))
+                            .create(LootContextParamSets.VAULT);
+                    var context = new net.minecraft.world.level.storage.loot.LootContext.Builder(params)
+                            .withOptionalRandomSeed(12345L).create(java.util.Optional.empty());
+                    var original = new java.util.ArrayList<ItemStack>();
+                    table.getRandomItemsRaw(context, original::add);
+                    // rawにはIron's自身のmodifierも含まれないため、元テーブルの報酬は先頭部分と比較する。
+                    helper.assertTrue(all.size() >= original.size() + 1, "Base rewards and chunk bonus must be present");
+                    assertSameLoot(helper, original, all.subList(0, original.size()));
+                }
+            }
+            for (var id : List.of("minecraft:chests/simple_dungeon", "irons_spellbooks:chests/citadel/spawner_reward",
+                    "irons_spellbooks:chests/ice_spider_den/spawner_reward")) {
+                helper.assertTrue(rollAll(helper, id).stream().noneMatch(stack -> stack.is(ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.get())),
+                        "Unrelated loot must not contain silver chunks: " + id);
+            }
+        } finally {
+            enabled.set(previousEnabled);
+            multiplier.set(previousMultiplier);
+        }
+        var resource = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "loot_table/chests/silver_chunk_special.json");
+        try (var reader = helper.getLevel().getServer().getResourceManager().openAsReader(resource)) {
+            var count = JsonParser.parseReader(reader).getAsJsonObject().getAsJsonArray("pools").get(0).getAsJsonObject()
+                    .getAsJsonArray("entries").get(0).getAsJsonObject().getAsJsonArray("functions").get(0).getAsJsonObject().getAsJsonObject("count");
+            helper.assertTrue(count.get("type").getAsString().equals("minecraft:uniform")
+                    && count.get("min").getAsInt() == 2 && count.get("max").getAsInt() == 3, "Special vault counts must be uniformly two or three");
+        }
+        var stacks = new java.util.ArrayList<ItemStack>();
+        for (int i = 0; i < 9; i++) stacks.add(new ItemStack(i == 4
+                ? io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get() : ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.get()));
+        var manager = helper.getLevel().getRecipeManager();
+        var input = net.minecraft.world.item.crafting.CraftingInput.of(3, 3, stacks);
+        var recipe = manager.getRecipeFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING, input, helper.getLevel());
+        helper.assertTrue(recipe.isPresent(), "Silver ring crafting recipe must match");
+        var output = recipe.orElseThrow().value().assemble(input, helper.getLevel().registryAccess());
+        helper.assertTrue(output.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()) && output.getCount() == 1,
+                "Recipe must produce one original silver ring");
+        stacks.set(0, ItemStack.EMPTY);
+        helper.assertTrue(manager.getRecipeFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING,
+                net.minecraft.world.item.crafting.CraftingInput.of(3, 3, stacks), helper.getLevel()).isEmpty(), "Seven chunks must not craft a ring");
+        stacks.set(0, new ItemStack(ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.get()));
+        stacks.set(4, ItemStack.EMPTY);
+        helper.assertTrue(manager.getRecipeFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING,
+                net.minecraft.world.item.crafting.CraftingInput.of(3, 3, stacks), helper.getLevel()).isEmpty(), "Mithril scrap must be required");
+        helper.assertTrue(manager.getRecipeFor(RecipeRegistry.GRIND_RUNNER_RECIPE_TYPE.get(),
+                new SingleRecipeInput(new ItemStack(ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.get())), helper.getLevel()).isEmpty(),
+                "Silver chunks must not have a recycling recipe");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, batch = "apprenticecodex.curio_loot")
+    public static void silverRingStillRecyclesOneScrap(GameTestHelper helper) {
+        assertRecycling(helper, io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get(), 1, false);
+    }
+
+    private static List<ItemStack> rollAll(GameTestHelper helper, String id) {
         var table = helper.getLevel().getServer().reloadableRegistries().getLootTable(
                 ResourceKey.create(Registries.LOOT_TABLE, ResourceLocation.parse(id)));
         var params = new LootParams.Builder(helper.getLevel())

@@ -13,7 +13,9 @@
     "apprenticecodex:add_apprentice_curios_to_mountain_tower",
     "apprenticecodex:add_apprentice_curios_to_nature_fire_loot",
     "apprenticecodex:add_apprentice_curios_to_dead_king_vault",
-    "apprenticecodex:add_apprentice_curios_to_catacombs_wall"
+    "apprenticecodex:add_apprentice_curios_to_catacombs_wall",
+    "apprenticecodex:add_silver_chunk_to_regular_vault",
+    "apprenticecodex:add_silver_chunk_to_special_vault"
   ],
   "replace": false
 }

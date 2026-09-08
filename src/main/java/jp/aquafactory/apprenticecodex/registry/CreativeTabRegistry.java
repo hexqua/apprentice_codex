@@ -79,6 +79,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get());
         output.accept(ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get());
         output.accept(ItemRegistry.SPELLSTAINED_DIAMOND.get());
+        output.accept(ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.get());
 
         output.accept(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get());
         output.accept(ItemRegistry.SPELL_EXTRACT_SHARD.get());

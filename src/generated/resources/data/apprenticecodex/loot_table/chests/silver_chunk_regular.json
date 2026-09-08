@@ -1,0 +1,13 @@
+{
+  "pools": [
+    {
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "apprenticecodex:mana_enveloped_silver_chunk"
+        }
+      ],
+      "rolls": 1
+    }
+  ]
+}

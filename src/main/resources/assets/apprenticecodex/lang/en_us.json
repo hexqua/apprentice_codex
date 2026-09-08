@@ -1,4 +1,8 @@
 {
+  "item.apprenticecodex.mana_enveloped_silver_chunk": "Mana-Enveloped Silver Chunk",
+  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_1": "Obtained from vaults.",
+  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_2": "Ominous vaults and special vaults found in Catacombs and Citadels yield more.",
+
   "subtitle.apprenticecodex.sound.scythe_throw": "Scythe thrown",
   "subtitle.apprenticecodex.sound.scythe_spin": "Scythe spins",
   "subtitle.apprenticecodex.sound.vanilla_scythe_catch": "Scythe returns to hand",

@@ -209,6 +209,25 @@ public final class CurioLootDataGenerator implements DataProvider {
                         // 壁の35%枠では巻物1・ルーン2・アクセサリ1の重みでさらに抽選される。
                         basicCurioEquivalentChance(0.35D / 4.0D)
                 )));
+        // 天井用素材はCuriosの供給設定と独立させ、既存の報酬抽選を消費した後に追加する。
+        for (boolean special : List.of(false, true)) {
+            var suffix = special ? "special" : "regular";
+            var bonus = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "chests/silver_chunk_" + suffix);
+            var targets = special ? List.of(
+                    ResourceLocation.withDefaultNamespace("chests/trial_chambers/reward_ominous"),
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/catacombs/dead_king_vault"),
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/citadel/citadel_vault"))
+                    : List.of(ResourceLocation.withDefaultNamespace("chests/trial_chambers/reward"));
+            futures.add(saveLootTable(cachedOutput, bonus, createSilverChunkTable(special)));
+            var modifier = new JsonObject();
+            modifier.addProperty("type", "irons_spellbooks:append_loot");
+            modifier.addProperty("key", bonus.toString());
+            var conditions = new JsonArray();
+            conditions.add(createLootTableCondition(targets));
+            modifier.add("conditions", conditions);
+            futures.add(saveLootModifier(cachedOutput,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "add_silver_chunk_to_" + suffix + "_vault"), modifier));
+        }
         futures.add(DataProvider.saveStable(cachedOutput, createGlobalLootModifierList(), lootModifierPathProvider.json(
                 ResourceLocation.fromNamespaceAndPath("neoforge", "global_loot_modifiers")
         )));
@@ -265,11 +284,41 @@ public final class CurioLootDataGenerator implements DataProvider {
                 "apprenticecodex:add_apprentice_curios_to_mountain_tower",
                 "apprenticecodex:add_apprentice_curios_to_nature_fire_loot",
                 "apprenticecodex:add_apprentice_curios_to_dead_king_vault",
-                "apprenticecodex:add_apprentice_curios_to_catacombs_wall"
+                "apprenticecodex:add_apprentice_curios_to_catacombs_wall",
+                "apprenticecodex:add_silver_chunk_to_regular_vault",
+                "apprenticecodex:add_silver_chunk_to_special_vault"
         )) {
             entries.add(id);
         }
         root.add("entries", entries);
+        return root;
+    }
+
+    private static JsonObject createSilverChunkTable(boolean special) {
+        var root = new JsonObject();
+        var pools = new JsonArray();
+        var pool = new JsonObject();
+        pool.addProperty("rolls", 1);
+        var entries = new JsonArray();
+        var entry = new JsonObject();
+        entry.addProperty("type", "minecraft:item");
+        entry.addProperty("name", ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.getId().toString());
+        if (special) {
+            var functions = new JsonArray();
+            var function = new JsonObject();
+            function.addProperty("function", "minecraft:set_count");
+            var count = new JsonObject();
+            count.addProperty("type", "minecraft:uniform");
+            count.addProperty("min", 2);
+            count.addProperty("max", 3);
+            function.add("count", count);
+            functions.add(function);
+            entry.add("functions", functions);
+        }
+        entries.add(entry);
+        pool.add("entries", entries);
+        pools.add(pool);
+        root.add("pools", pools);
         return root;
     }
 

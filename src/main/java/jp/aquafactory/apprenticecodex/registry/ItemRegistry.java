@@ -207,6 +207,8 @@ public final class ItemRegistry {
                     .build())));
 
     public static final DeferredHolder<Item, Item> SPELLSTAINED_ARCANE_INGOT = simple("spellstained_arcane_ingot");
+    public static final DeferredHolder<Item, Item> MANA_ENVELOPED_SILVER_CHUNK =
+            ITEMS.register("mana_enveloped_silver_chunk", ManaEnvelopedSilverChunkItem::new);
     public static final DeferredHolder<Item, Item> SPELLSTAINED_DIAMOND = simple("spellstained_diamond");
     public static final DeferredHolder<Item, Item> EMBERSTAINED_NETHERITE_INGOT = simpleFireImmune("emberstained_netherite_ingot");
     public static final DeferredHolder<Item, Item> ARCANE_PROPELLANT_CHARGE =
