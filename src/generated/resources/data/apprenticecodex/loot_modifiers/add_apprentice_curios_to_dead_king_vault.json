@@ -3,12 +3,12 @@
   "conditions": [
     {
       "condition": "neoforge:loot_table_id",
-      "loot_table_id": "irons_spellbooks:chests/catacombs/crypt_loot"
+      "loot_table_id": "irons_spellbooks:chests/catacombs/dead_king_vault"
     },
     {
-      "base_chance": 0.23076923076923078,
+      "base_chance": 0.125,
       "condition": "apprenticecodex:apprentice_curio_loot_chance"
     }
   ],
-  "key": "apprenticecodex:chests/catacombs_crypt_curio_bonus"
+  "key": "apprenticecodex:chests/dead_king_vault_curio_bonus"
 }

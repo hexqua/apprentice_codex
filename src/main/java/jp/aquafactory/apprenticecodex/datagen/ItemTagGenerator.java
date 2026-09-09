@@ -396,7 +396,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ANTI_GRAVITY_WEAVE.get(),
                 ItemRegistry.SCROLLWOVEN_PARCHMENT.get(),
                 ItemRegistry.SOUL_COVERED_PLATE.get(),
-                ItemRegistry.SOUL_AUGMENTED_WEAVE.get()
+                ItemRegistry.SOUL_AUGMENTED_WEAVE.get(),
+                ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.get()
         );
         tag(CURIOS_SPELLBOOK).add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),

@@ -6,22 +6,18 @@
       "terms": [
         {
           "condition": "neoforge:loot_table_id",
-          "loot_table_id": "minecraft:chests/stronghold_library"
+          "loot_table_id": "minecraft:chests/trial_chambers/reward_ominous"
         },
         {
           "condition": "neoforge:loot_table_id",
-          "loot_table_id": "minecraft:chests/end_city_treasure"
+          "loot_table_id": "irons_spellbooks:chests/catacombs/dead_king_vault"
         },
         {
           "condition": "neoforge:loot_table_id",
           "loot_table_id": "irons_spellbooks:chests/citadel/citadel_vault"
         }
       ]
-    },
-    {
-      "base_chance": 0.25,
-      "condition": "apprenticecodex:apprentice_curio_loot_chance"
     }
   ],
-  "key": "apprenticecodex:chests/library_endgame_curio_bonus"
+  "key": "apprenticecodex:chests/silver_chunk_special"
 }

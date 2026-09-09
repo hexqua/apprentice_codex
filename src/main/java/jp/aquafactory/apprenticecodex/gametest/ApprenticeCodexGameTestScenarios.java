@@ -4922,19 +4922,6 @@ public class ApprenticeCodexGameTestScenarios {
             helper.succeed();
         });
     }
-    static void apprenticeCurioBonusLootTableContainsAllThreeItems(GameTestHelper helper) {
-        helper.succeedIf(() -> assertLootTableGeneratesAllItems(
-                helper,
-                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "magic_items/basic_curios_bonus"),
-                createEmptyLootParams(helper),
-                256,
-                List.of(
-                        ItemRegistry.SCARLET_THIRST.get(),
-                        ItemRegistry.CRAFTSMANS_DELIGHT.get(),
-                        ItemRegistry.PROTECTION_SPELL_SUPPORTER.get()
-                )
-        ));
-    }
     static void genericLootIncludesApprenticeCurioBonusDrops(GameTestHelper helper) {
         helper.succeedIf(() -> assertLootTableGeneratesAnyItem(
                 helper,
@@ -4954,20 +4941,6 @@ public class ApprenticeCodexGameTestScenarios {
                 ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/generic_magic_treasure"),
                 createChestLootParams(helper),
                 512,
-                List.of(
-                        ItemRegistry.SCARLET_THIRST.get(),
-                        ItemRegistry.CRAFTSMANS_DELIGHT.get(),
-                        ItemRegistry.PROTECTION_SPELL_SUPPORTER.get()
-                )
-        ));
-    }
-
-    static void ominousVaultLootIncludesApprenticeCurioBonusDrops(GameTestHelper helper) {
-        helper.succeedIf(() -> assertLootTableGeneratesAllItems(
-                helper,
-                ResourceLocation.withDefaultNamespace("chests/trial_chambers/reward_ominous"),
-                createChestLootParams(helper),
-                384,
                 List.of(
                         ItemRegistry.SCARLET_THIRST.get(),
                         ItemRegistry.CRAFTSMANS_DELIGHT.get(),

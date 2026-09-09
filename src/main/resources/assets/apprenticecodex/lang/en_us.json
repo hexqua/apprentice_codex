@@ -1,4 +1,8 @@
 {
+  "item.apprenticecodex.mana_enveloped_silver_chunk": "Mana-Enveloped Silver Chunk",
+  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_1": "Obtained from vaults.",
+  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_2": "Ominous vaults and special vaults found in Catacombs and Citadels yield more.",
+
   "subtitle.apprenticecodex.sound.scythe_throw": "Scythe thrown",
   "subtitle.apprenticecodex.sound.scythe_spin": "Scythe spins",
   "subtitle.apprenticecodex.sound.vanilla_scythe_catch": "Scythe returns to hand",
@@ -14,6 +18,7 @@
   "material.apprenticecodex.emberstained_netherite": "Ember-stained Netherite",
   "material.apprenticecodex.crystalline_arcane": "Crystalline Arcane",
   "material.apprenticecodex.spellstained_diamond": "Spell-stained Diamond",
+  "material.apprenticecodex.mana_enveloped_silver": "Mana-enveloped Silver",
   "material.apprenticecodex.wisdom": "Wisdom",
 
   "attribute.name.apprenticecodex.max_enchantment_table_level": "Max Enchantment Table Level",

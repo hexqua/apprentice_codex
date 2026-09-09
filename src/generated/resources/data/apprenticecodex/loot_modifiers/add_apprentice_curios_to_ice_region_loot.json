@@ -10,10 +10,6 @@
         },
         {
           "condition": "neoforge:loot_table_id",
-          "loot_table_id": "irons_spellbooks:chests/ice_spider_den/dungeon"
-        },
-        {
-          "condition": "neoforge:loot_table_id",
           "loot_table_id": "irons_spellbooks:chests/ice_spider_den/tower"
         },
         {
@@ -23,7 +19,7 @@
       ]
     },
     {
-      "base_chance": 0.057692307692307696,
+      "base_chance": 0.125,
       "condition": "apprenticecodex:apprentice_curio_loot_chance"
     }
   ],

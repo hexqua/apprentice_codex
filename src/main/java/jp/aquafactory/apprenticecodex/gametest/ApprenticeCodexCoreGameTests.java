@@ -348,11 +348,6 @@ public final class ApprenticeCodexCoreGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void apprenticeCurioBonusLootTableContainsAllThreeItems(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.apprenticeCurioBonusLootTableContainsAllThreeItems(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
     public static void genericLootIncludesApprenticeCurioBonusDrops(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.genericLootIncludesApprenticeCurioBonusDrops(helper);
     }
@@ -360,11 +355,6 @@ public final class ApprenticeCodexCoreGameTests {
     @GameTest(template = TEMPLATE)
     public static void ironsStructureLootIncludesApprenticeCurioBonusDrops(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.ironsStructureLootIncludesApprenticeCurioBonusDrops(helper);
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void ominousVaultLootIncludesApprenticeCurioBonusDrops(GameTestHelper helper) {
-        ApprenticeCodexGameTestScenarios.ominousVaultLootIncludesApprenticeCurioBonusDrops(helper);
     }
 
     @GameTest(template = TEMPLATE)

@@ -1,4 +1,8 @@
 {
+  "item.apprenticecodex.mana_enveloped_silver_chunk": "蕴魔银块",
+  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_1": "可从宝库中获得。",
+  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_2": "不祥宝库以及地下墓穴和城塞中的特殊宝库会产出更多。",
+
   "subtitle.apprenticecodex.sound.scythe_throw": "镰刀掷出",
   "subtitle.apprenticecodex.sound.scythe_spin": "镰刀旋转",
   "subtitle.apprenticecodex.sound.vanilla_scythe_catch": "镰刀返回手中",
@@ -14,6 +18,7 @@
   "material.apprenticecodex.emberstained_netherite": "残烬染色下界合金",
   "material.apprenticecodex.crystalline_arcane": "结晶奥术",
   "material.apprenticecodex.spellstained_diamond": "魔术染色的钻石",
+  "material.apprenticecodex.mana_enveloped_silver": "蕴魔银",
   "material.apprenticecodex.wisdom": "智慧",
 
   "attribute.name.apprenticecodex.max_enchantment_table_level": "附魔台最高等级",

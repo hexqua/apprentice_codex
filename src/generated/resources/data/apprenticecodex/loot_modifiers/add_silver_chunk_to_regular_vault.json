@@ -4,11 +4,7 @@
     {
       "condition": "neoforge:loot_table_id",
       "loot_table_id": "minecraft:chests/trial_chambers/reward"
-    },
-    {
-      "base_chance": 0.05172413793103448,
-      "condition": "apprenticecodex:apprentice_curio_loot_chance"
     }
   ],
-  "key": "apprenticecodex:chests/regular_trial_vault_curio_bonus"
+  "key": "apprenticecodex:chests/silver_chunk_regular"
 }

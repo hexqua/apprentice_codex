@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "apprenticecodex:mana_enveloped_silver_chunk"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_scrap"
+    }
+  },
+  "pattern": [
+    "CCC",
+    "CMC",
+    "CCC"
+  ],
+  "result": {
+    "count": 1,
+    "id": "irons_spellbooks:silver_ring"
+  }
+}

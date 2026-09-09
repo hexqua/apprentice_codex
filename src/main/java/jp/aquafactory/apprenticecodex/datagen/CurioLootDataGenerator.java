@@ -15,19 +15,27 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public final class CurioLootDataGenerator implements DataProvider {
-    private static final int IRONS_BASIC_CURIO_COUNT = 13;
-    private static final int APPRENTICE_BASIC_CURIO_COUNT = 3;
-    private static final List<ResourceLocation> APPRENTICE_BASIC_CURIO_ITEM_IDS = List.of(
-            ItemRegistry.SCARLET_THIRST.getId(),
-            ItemRegistry.CRAFTSMANS_DELIGHT.getId(),
-            ItemRegistry.PROTECTION_SPELL_SUPPORTER.getId(),
-            ItemRegistry.ENCHANTED_CIRCLET.getId()
+    // 候補数が増えても総供給量が増えないよう、Iron's の実効確率に固定倍率を掛ける。
+    private static final double IRONS_BASIC_CURIO_CHANCE_RATIO = 0.5D;
+    private static final List<WeightedCurio> BASIC_CURIOS = List.of(
+            new WeightedCurio(ItemRegistry.SCARLET_THIRST.getId(), 2),
+            new WeightedCurio(ItemRegistry.CRAFTSMANS_DELIGHT.getId(), 2),
+            new WeightedCurio(ItemRegistry.PROTECTION_SPELL_SUPPORTER.getId(), 2),
+            new WeightedCurio(ItemRegistry.ENCHANTED_CIRCLET.getId(), 2),
+            new WeightedCurio(ItemRegistry.SPELL_CAST_PARRYING_RING.getId(), 2),
+            new WeightedCurio(ItemRegistry.AUTOCAST_AMULET.getId(), 2),
+            new WeightedCurio(ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.getId(), 2),
+            new WeightedCurio(ItemRegistry.MANA_SHIELD_CHARM.getId(), 2),
+            new WeightedCurio(ItemRegistry.MONARCH_BOND_CHARM.getId(), 2),
+            new WeightedCurio(ItemRegistry.ATTACKCAST_RING.getId(), 1),
+            new WeightedCurio(ItemRegistry.MANA_THRUSTER.getId(), 1),
+            new WeightedCurio(ItemRegistry.JUMPCAST_CHARM.getId(), 1),
+            new WeightedCurio(ItemRegistry.MANA_MANEUVER_GEAR.getId(), 1),
+            new WeightedCurio(ItemRegistry.QUICKCAST_SCROLL_CARTRIDGE.getId(), 1)
     );
 
     private static final ResourceLocation BASIC_CURIOS_BONUS =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "magic_items/basic_curios_bonus");
-    private static final ResourceLocation OMIMOUS_VAULT_CURIOS_BONUS =
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "magic_items/ominous_vault_curios_bonus");
     private static final ResourceLocation APPRENTICE_CURIO_LOOT_CHANCE_CONDITION =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "apprentice_curio_loot_chance");
 
@@ -44,8 +52,6 @@ public final class CurioLootDataGenerator implements DataProvider {
         var futures = new ArrayList<CompletableFuture<?>>();
 
         futures.add(saveLootTable(cachedOutput, BASIC_CURIOS_BONUS, createBasicCuriosBonusTable()));
-        futures.add(saveLootTable(cachedOutput, OMIMOUS_VAULT_CURIOS_BONUS,
-                createItemTable(APPRENTICE_BASIC_CURIO_ITEM_IDS, 1.0D)));
 
         futures.add(saveLootModifier(cachedOutput,
                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "add_apprentice_curios_to_generic_loot"),
@@ -143,7 +149,7 @@ public final class CurioLootDataGenerator implements DataProvider {
                 createAppendLootModifier(
                         List.of(ResourceLocation.withDefaultNamespace("chests/trial_chambers/reward")),
                         createChanceWrappedLootTableId("regular_trial_vault"),
-                        APPRENTICE_BASIC_CURIO_COUNT * (3.0D / 29.0D / IRONS_BASIC_CURIO_COUNT)
+                        basicCurioEquivalentChance(3.0D / 29.0D)
                 )));
         futures.add(saveLootModifier(cachedOutput,
                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "add_apprentice_curios_to_irons_tier_two_loot"),
@@ -158,12 +164,19 @@ public final class CurioLootDataGenerator implements DataProvider {
                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "add_apprentice_curios_to_ice_region_loot"),
                 createAppendLootModifier(List.of(
                                 ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/ice_spider_den/basement"),
-                                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/ice_spider_den/dungeon"),
                                 ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/ice_spider_den/tower"),
                                 ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/impaled_icebreaker/captain_quarters")
                         ),
                         createChanceWrappedLootTableId("ice_region"),
                         basicCurioEquivalentChance(0.25D)
+                )));
+        // 同じ氷地域でも dungeon の一般アクセサリ枠は10%で、他の25%枠とは分ける。
+        futures.add(saveLootModifier(cachedOutput,
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "add_apprentice_curios_to_ice_spider_dungeon"),
+                createAppendLootModifier(
+                        List.of(ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/ice_spider_den/dungeon")),
+                        createChanceWrappedLootTableId("ice_spider_dungeon"),
+                        basicCurioEquivalentChance(0.1D)
                 )));
         futures.add(saveLootModifier(cachedOutput,
                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "add_apprentice_curios_to_mountain_tower"),
@@ -182,26 +195,39 @@ public final class CurioLootDataGenerator implements DataProvider {
                         basicCurioEquivalentChance(0.4D)
                 )));
         futures.add(saveLootModifier(cachedOutput,
-                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "add_apprentice_curios_to_catacombs_crypt"),
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "add_apprentice_curios_to_dead_king_vault"),
                 createAppendLootModifier(
-                        List.of(ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/catacombs/crypt_loot")),
-                        createChanceWrappedLootTableId("catacombs_crypt"),
-                        basicCurioEquivalentChance(1.0D)
+                        List.of(ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/catacombs/dead_king_vault")),
+                        createChanceWrappedLootTableId("dead_king_vault"),
+                        basicCurioEquivalentChance(0.25D)
                 )));
         futures.add(saveLootModifier(cachedOutput,
                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "add_apprentice_curios_to_catacombs_wall"),
                 createAppendLootModifier(
                         List.of(ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/catacombs/wall_loot")),
                         createChanceWrappedLootTableId("catacombs_wall"),
-                        basicCurioEquivalentChance(0.35D)
+                        // 壁の35%枠では巻物1・ルーン2・アクセサリ1の重みでさらに抽選される。
+                        basicCurioEquivalentChance(0.35D / 4.0D)
                 )));
-        futures.add(saveLootModifier(cachedOutput,
-                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "add_apprentice_curios_to_ominous_vault"),
-                createAppendLootModifier(
-                        List.of(ResourceLocation.withDefaultNamespace("chests/trial_chambers/reward_ominous")),
-                        OMIMOUS_VAULT_CURIOS_BONUS,
-                        0.075D
-                )));
+        // 天井用素材はCuriosの供給設定と独立させ、既存の報酬抽選を消費した後に追加する。
+        for (boolean special : List.of(false, true)) {
+            var suffix = special ? "special" : "regular";
+            var bonus = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "chests/silver_chunk_" + suffix);
+            var targets = special ? List.of(
+                    ResourceLocation.withDefaultNamespace("chests/trial_chambers/reward_ominous"),
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/catacombs/dead_king_vault"),
+                    ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "chests/citadel/citadel_vault"))
+                    : List.of(ResourceLocation.withDefaultNamespace("chests/trial_chambers/reward"));
+            futures.add(saveLootTable(cachedOutput, bonus, createSilverChunkTable(special)));
+            var modifier = new JsonObject();
+            modifier.addProperty("type", "irons_spellbooks:append_loot");
+            modifier.addProperty("key", bonus.toString());
+            var conditions = new JsonArray();
+            conditions.add(createLootTableCondition(targets));
+            modifier.add("conditions", conditions);
+            futures.add(saveLootModifier(cachedOutput,
+                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "add_silver_chunk_to_" + suffix + "_vault"), modifier));
+        }
         futures.add(DataProvider.saveStable(cachedOutput, createGlobalLootModifierList(), lootModifierPathProvider.json(
                 ResourceLocation.fromNamespaceAndPath("neoforge", "global_loot_modifiers")
         )));
@@ -215,9 +241,10 @@ public final class CurioLootDataGenerator implements DataProvider {
                 "regular_trial_vault",
                 "irons_tier_two",
                 "ice_region",
+                "ice_spider_dungeon",
                 "mountain_tower",
                 "nature_fire",
-                "catacombs_crypt",
+                "dead_king_vault",
                 "catacombs_wall"
         )) {
             futures.add(saveLootTable(cachedOutput, createChanceWrappedLootTableId(id), createChanceWrappedTable(BASIC_CURIOS_BONUS)));
@@ -253,11 +280,13 @@ public final class CurioLootDataGenerator implements DataProvider {
                 "apprenticecodex:add_apprentice_curios_to_regular_trial_vault",
                 "apprenticecodex:add_apprentice_curios_to_irons_tier_two_loot",
                 "apprenticecodex:add_apprentice_curios_to_ice_region_loot",
+                "apprenticecodex:add_apprentice_curios_to_ice_spider_dungeon",
                 "apprenticecodex:add_apprentice_curios_to_mountain_tower",
                 "apprenticecodex:add_apprentice_curios_to_nature_fire_loot",
-                "apprenticecodex:add_apprentice_curios_to_catacombs_crypt",
+                "apprenticecodex:add_apprentice_curios_to_dead_king_vault",
                 "apprenticecodex:add_apprentice_curios_to_catacombs_wall",
-                "apprenticecodex:add_apprentice_curios_to_ominous_vault"
+                "apprenticecodex:add_silver_chunk_to_regular_vault",
+                "apprenticecodex:add_silver_chunk_to_special_vault"
         )) {
             entries.add(id);
         }
@@ -265,20 +294,45 @@ public final class CurioLootDataGenerator implements DataProvider {
         return root;
     }
 
-    private static JsonObject createBasicCuriosBonusTable() {
-        return createItemTable(APPRENTICE_BASIC_CURIO_ITEM_IDS, 1.0D);
-    }
-
-    private static JsonObject createItemTable(List<ResourceLocation> itemIds, double rolls) {
+    private static JsonObject createSilverChunkTable(boolean special) {
         var root = new JsonObject();
         var pools = new JsonArray();
         var pool = new JsonObject();
-        pool.addProperty("rolls", rolls);
+        pool.addProperty("rolls", 1);
         var entries = new JsonArray();
-        for (var itemId : itemIds) {
+        var entry = new JsonObject();
+        entry.addProperty("type", "minecraft:item");
+        entry.addProperty("name", ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.getId().toString());
+        if (special) {
+            var functions = new JsonArray();
+            var function = new JsonObject();
+            function.addProperty("function", "minecraft:set_count");
+            var count = new JsonObject();
+            count.addProperty("type", "minecraft:uniform");
+            count.addProperty("min", 2);
+            count.addProperty("max", 3);
+            function.add("count", count);
+            functions.add(function);
+            entry.add("functions", functions);
+        }
+        entries.add(entry);
+        pool.add("entries", entries);
+        pools.add(pool);
+        root.add("pools", pools);
+        return root;
+    }
+
+    private static JsonObject createBasicCuriosBonusTable() {
+        var root = new JsonObject();
+        var pools = new JsonArray();
+        var pool = new JsonObject();
+        pool.addProperty("rolls", 1);
+        var entries = new JsonArray();
+        for (var curio : BASIC_CURIOS) {
             var entry = new JsonObject();
             entry.addProperty("type", "minecraft:item");
-            entry.addProperty("name", itemId.toString());
+            entry.addProperty("name", curio.itemId().toString());
+            entry.addProperty("weight", curio.weight());
             entries.add(entry);
         }
         pool.add("entries", entries);
@@ -352,6 +406,9 @@ public final class CurioLootDataGenerator implements DataProvider {
     }
 
     private static double basicCurioEquivalentChance(double chanceToGetAnyIronsBasicCurio) {
-        return chanceToGetAnyIronsBasicCurio * APPRENTICE_BASIC_CURIO_COUNT / IRONS_BASIC_CURIO_COUNT;
+        return chanceToGetAnyIronsBasicCurio * IRONS_BASIC_CURIO_CHANCE_RATIO;
+    }
+
+    private record WeightedCurio(ResourceLocation itemId, int weight) {
     }
 }
