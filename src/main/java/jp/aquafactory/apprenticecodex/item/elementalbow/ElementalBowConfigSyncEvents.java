@@ -47,6 +47,12 @@ public final class ElementalBowConfigSyncEvents {
         }
     }
 
+    @SubscribeEvent
+    public static void onDatapackSync(net.neoforged.neoforge.event.OnDatapackSyncEvent event) {
+        if (event.getPlayer() != null) syncToPlayer(event.getPlayer());
+        else syncToAllPlayers();
+    }
+
     private static void syncToPlayer(ServerPlayer player) {
         Networks.sendToPlayer(player, createPacket());
     }

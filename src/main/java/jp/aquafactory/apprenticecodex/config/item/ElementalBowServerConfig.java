@@ -7,6 +7,17 @@ import java.util.List;
 import java.util.Objects;
 
 public final class ElementalBowServerConfig {
+    private final ModConfigSpec.DoubleValue schoolRuneManaCostMultiplier;
+    private Double schoolRuneManaCostMultiplierOverride;
+
+    public double schoolRuneManaCostMultiplier() {
+        return schoolRuneManaCostMultiplierOverride == null
+                ? schoolRuneManaCostMultiplier.get() : schoolRuneManaCostMultiplierOverride;
+    }
+
+    public void setSchoolRuneManaCostMultiplierForGameTest(Double value) {
+        schoolRuneManaCostMultiplierOverride = value;
+    }
     private final ModConfigSpec.ConfigValue<List<? extends String>> magicArrowCatalystItems;
     private final ModConfigSpec.DoubleValue magicReadyDrawTicksMultiplier;
     private final ModConfigSpec.DoubleValue overheatAdditionalManaLinearMultiplier;
@@ -14,7 +25,6 @@ public final class ElementalBowServerConfig {
     private final ModConfigSpec.DoubleValue overheatDurationMultiplier;
     private final ModConfigSpec.IntValue overheatDurationMinTicks;
     private final ModConfigSpec.IntValue overheatDurationCapTicks;
-    private final ModConfigSpec.DoubleValue powerArrowSpellLevelBonusPerLevel;
 
     private List<String> magicArrowCatalystItemsOverride;
     private Double magicReadyDrawTicksMultiplierOverride;
@@ -23,18 +33,18 @@ public final class ElementalBowServerConfig {
     private Double overheatDurationMultiplierOverride;
     private Integer overheatDurationMinTicksOverride;
     private Integer overheatDurationCapTicksOverride;
-    private Double powerArrowSpellLevelBonusPerLevelOverride;
 
     private ElementalBowServerConfig(
+            ModConfigSpec.DoubleValue schoolRuneManaCostMultiplier,
             ModConfigSpec.ConfigValue<List<? extends String>> magicArrowCatalystItems,
             ModConfigSpec.DoubleValue magicReadyDrawTicksMultiplier,
             ModConfigSpec.DoubleValue overheatAdditionalManaLinearMultiplier,
             ModConfigSpec.DoubleValue overheatAdditionalManaQuadraticMultiplier,
             ModConfigSpec.DoubleValue overheatDurationMultiplier,
             ModConfigSpec.IntValue overheatDurationMinTicks,
-            ModConfigSpec.IntValue overheatDurationCapTicks,
-            ModConfigSpec.DoubleValue powerArrowSpellLevelBonusPerLevel
+            ModConfigSpec.IntValue overheatDurationCapTicks
     ) {
+        this.schoolRuneManaCostMultiplier = schoolRuneManaCostMultiplier;
         this.magicArrowCatalystItems = magicArrowCatalystItems;
         this.magicReadyDrawTicksMultiplier = magicReadyDrawTicksMultiplier;
         this.overheatAdditionalManaLinearMultiplier = overheatAdditionalManaLinearMultiplier;
@@ -42,11 +52,13 @@ public final class ElementalBowServerConfig {
         this.overheatDurationMultiplier = overheatDurationMultiplier;
         this.overheatDurationMinTicks = overheatDurationMinTicks;
         this.overheatDurationCapTicks = overheatDurationCapTicks;
-        this.powerArrowSpellLevelBonusPerLevel = powerArrowSpellLevelBonusPerLevel;
     }
 
     public static ElementalBowServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("ElementalBow");
+        var schoolRuneManaCostMultiplier = builder
+                .comment("Mana cost multiplier for all Elemental Bow spells with a school rune, including overheat costs.")
+                .defineInRange("schoolRuneManaCostMultiplier", 2.0D, 1.0D, 10.0D);
         var magicArrowCatalystItems = builder
                 .comment("Item IDs accepted as Elemental Bow magic mode arrow catalysts. Empty list makes non-Synthesis survival casts unusable.")
                 .defineListAllowEmpty("magicArrowCatalystItems", List.of("minecraft:arrow"), ElementalBowServerConfig::isItemId);
@@ -68,20 +80,17 @@ public final class ElementalBowServerConfig {
         var overheatDurationCapTicks = builder
                 .comment("Maximum Elemental Bow magic shot overheat duration in ticks. 0 disables this cap.")
                 .defineInRange("overheatDurationCapTicks", 0, 0, Integer.MAX_VALUE);
-        var powerArrowSpellLevelBonusPerLevel = builder
-                .comment("Elemental Bow magic shot spell level bonus per Power enchantment level. Fractional totals are rounded down.")
-                .defineInRange("powerArrowSpellLevelBonusPerLevel", 1.0D, 0.0D, 100.0D);
         builder.pop();
 
         return new ElementalBowServerConfig(
+                schoolRuneManaCostMultiplier,
                 magicArrowCatalystItems,
                 magicReadyDrawTicksMultiplier,
                 overheatAdditionalManaLinearMultiplier,
                 overheatAdditionalManaQuadraticMultiplier,
                 overheatDurationMultiplier,
                 overheatDurationMinTicks,
-                overheatDurationCapTicks,
-                powerArrowSpellLevelBonusPerLevel
+                overheatDurationCapTicks
         );
     }
 
@@ -130,20 +139,13 @@ public final class ElementalBowServerConfig {
         return overheatDurationCapTicksOverride == null ? overheatDurationCapTicks.get() : overheatDurationCapTicksOverride;
     }
 
-    public double powerArrowSpellLevelBonusPerLevel() {
-        return powerArrowSpellLevelBonusPerLevelOverride == null
-                ? powerArrowSpellLevelBonusPerLevel.get()
-                : powerArrowSpellLevelBonusPerLevelOverride;
-    }
-
     public void setForGameTest(
             double magicReadyDrawTicksMultiplier,
             double overheatAdditionalManaLinearMultiplier,
             double overheatAdditionalManaQuadraticMultiplier,
             double overheatDurationMultiplier,
             int overheatDurationMinTicks,
-            int overheatDurationCapTicks,
-            double powerArrowSpellLevelBonusPerLevel
+            int overheatDurationCapTicks
     ) {
         this.magicReadyDrawTicksMultiplierOverride = magicReadyDrawTicksMultiplier;
         this.overheatAdditionalManaLinearMultiplierOverride = overheatAdditionalManaLinearMultiplier;
@@ -151,7 +153,6 @@ public final class ElementalBowServerConfig {
         this.overheatDurationMultiplierOverride = overheatDurationMultiplier;
         this.overheatDurationMinTicksOverride = overheatDurationMinTicks;
         this.overheatDurationCapTicksOverride = overheatDurationCapTicks;
-        this.powerArrowSpellLevelBonusPerLevelOverride = powerArrowSpellLevelBonusPerLevel;
     }
 
     public void setMagicArrowCatalystItemsForGameTest(List<String> magicArrowCatalystItems) {

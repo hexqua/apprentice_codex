@@ -810,16 +810,20 @@ final class ItemsServerConfig {
         return elementalBowConfig.overheatDurationMultiplier();
     }
 
+    double elementalBowSchoolRuneManaCostMultiplier() {
+        return elementalBowConfig.schoolRuneManaCostMultiplier();
+    }
+
+    void setElementalBowSchoolRuneManaCostMultiplierForGameTest(Double value) {
+        elementalBowConfig.setSchoolRuneManaCostMultiplierForGameTest(value);
+    }
+
     int elementalBowOverheatDurationMinTicks() {
         return elementalBowConfig.overheatDurationMinTicks();
     }
 
     int elementalBowOverheatDurationCapTicks() {
         return elementalBowConfig.overheatDurationCapTicks();
-    }
-
-    double elementalBowPowerArrowSpellLevelBonusPerLevel() {
-        return elementalBowConfig.powerArrowSpellLevelBonusPerLevel();
     }
 
     SpellStainedRunicTabletServerConfig.Values spellStainedRunicTabletConfig() {
@@ -1028,8 +1032,7 @@ final class ItemsServerConfig {
             double overheatAdditionalManaQuadraticMultiplier,
             double overheatDurationMultiplier,
             int overheatDurationMinTicks,
-            int overheatDurationCapTicks,
-            double powerArrowSpellLevelBonusPerLevel
+            int overheatDurationCapTicks
     ) {
         elementalBowConfig.setForGameTest(
                 magicReadyDrawTicksMultiplier,
@@ -1037,8 +1040,7 @@ final class ItemsServerConfig {
                 overheatAdditionalManaQuadraticMultiplier,
                 overheatDurationMultiplier,
                 overheatDurationMinTicks,
-                overheatDurationCapTicks,
-                powerArrowSpellLevelBonusPerLevel
+                overheatDurationCapTicks
         );
     }
 

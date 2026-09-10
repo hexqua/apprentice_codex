@@ -1,12 +1,11 @@
 package jp.aquafactory.apprenticecodex.item.elementalbow;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
-import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -16,34 +15,25 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.item.enchantment.Enchantments;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ElementalBowModeManager extends SimpleJsonResourceReloadListener {
     public static final String DIRECTORY = "elemental_bow_modes";
-
-    private static final Gson GSON = new GsonBuilder().create();
     private static final ElementalBowModeManager INSTANCE = new ElementalBowModeManager();
-
-    private static volatile List<ResolvedDefinition> resolvedDefinitions = List.of();
-    private static volatile Map<ResourceLocation, ResolvedDefinition> resolvedDefinitionsBySchool = Map.of();
-    private static volatile Set<ResourceLocation> spellIds = Set.of();
+    private static volatile Map<ResourceLocation, ResolvedDefinition> definitions = Map.of();
 
     private ElementalBowModeManager() {
-        super(GSON, DIRECTORY);
+        super(new Gson(), DIRECTORY);
     }
 
     @SubscribeEvent
@@ -52,179 +42,79 @@ public final class ElementalBowModeManager extends SimpleJsonResourceReloadListe
     }
 
     public static List<ResolvedDefinition> getResolvedDefinitions() {
-        return resolvedDefinitions;
+        return List.copyOf(definitions.values());
     }
 
     @Nullable
-    public static ResolvedDefinition getResolvedDefinition(@Nullable ResourceLocation schoolId) {
-        return schoolId == null ? null : resolvedDefinitionsBySchool.get(schoolId);
-    }
-
-    public static int resolvePowerArrowSpellLevelBonus(ItemStack stack) {
-        var powerLevel = getEnchantmentLevel(stack, Enchantments.POWER.location());
-        return (int) Math.floor(powerLevel
-                * ApprenticeCodexServerConfig.elementalBowPowerArrowSpellLevelBonusPerLevel());
+    public static ResolvedDefinition getResolvedDefinition(@Nullable ResourceLocation spellId) {
+        return spellId == null ? null : definitions.get(spellId);
     }
 
     public static boolean isElementalSpell(@Nullable AbstractSpell spell) {
-        return spell != null && spellIds.contains(spell.getSpellResource());
+        return spell != null && spell.isEnabled() && definitions.containsKey(spell.getSpellResource());
+    }
+
+    public static List<ElementalBowModeDefinition> createSnapshot() {
+        return definitions.values().stream().map(d -> new ElementalBowModeDefinition(d.spellId(), d.requiredDrawTicks())).toList();
+    }
+
+    public static void applySnapshot(List<ElementalBowModeDefinition> snapshot) {
+        var resolved = new LinkedHashMap<ResourceLocation, ResolvedDefinition>();
+        for (var definition : snapshot) {
+            var spell = SpellRegistry.getSpell(definition.spell());
+            if (spell != null && spell != SpellRegistry.none() && spell.getCastType() != CastType.CONTINUOUS) {
+                resolved.put(definition.spell(), new ResolvedDefinition(definition.spell(), spell, definition.requiredDrawTicks()));
+            }
+        }
+        definitions = java.util.Collections.unmodifiableMap(resolved);
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> resourceMap, @NotNull ResourceManager resourceManager, @NotNull ProfilerFiller profiler) {
-        var resolvedBySchool = new LinkedHashMap<ResourceLocation, ResolvedDefinition>();
-        var resolvedSpellIds = new java.util.LinkedHashSet<ResourceLocation>();
-
-        resourceMap.entrySet().stream()
+    protected void apply(Map<ResourceLocation, JsonElement> resources, @NotNull ResourceManager manager,
+                         @NotNull ProfilerFiller profiler) {
+        var resolved = new LinkedHashMap<ResourceLocation, ResolvedDefinition>();
+        resources.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey(Comparator.comparing(ResourceLocation::toString)))
-                .forEach(entry -> mergeDefinitions(entry.getKey(), entry.getValue(), resolvedBySchool, resolvedSpellIds));
-
-        resolvedDefinitions = List.copyOf(resolvedBySchool.values());
-        resolvedDefinitionsBySchool = Map.copyOf(resolvedBySchool);
-        spellIds = Set.copyOf(resolvedSpellIds);
+                .forEach(entry -> ElementalBowModeList.CODEC.parse(JsonOps.INSTANCE, entry.getValue())
+                        .resultOrPartial(message -> ApprenticeCodex.LOGGER.error(
+                                "Failed to parse Elemental Bow mode list {}: {}", entry.getKey(), message))
+                        .ifPresent(list -> {
+                            for (var definition : list.values()) {
+                                var spell = SpellRegistry.getSpell(definition.spell());
+                                if (spell == null || spell == SpellRegistry.none()) continue;
+                                // 継続詠唱は弓を放した時点で完結する射撃と両立しないため、サーバーの登録段階で除外する。
+                                if (spell.getCastType() == CastType.CONTINUOUS) {
+                                    ApprenticeCodex.LOGGER.warn(
+                                            "Skipping Elemental Bow mode {} from {}: CONTINUOUS spells are not supported",
+                                            definition.spell(), entry.getKey());
+                                    continue;
+                                }
+                                resolved.put(definition.spell(), new ResolvedDefinition(
+                                        definition.spell(),
+                                        spell, definition.requiredDrawTicks()));
+                            }
+                        }));
+        definitions = java.util.Collections.unmodifiableMap(resolved);
     }
 
-    private static void mergeDefinitions(
-            ResourceLocation resourceId,
-            JsonElement element,
-            Map<ResourceLocation, ResolvedDefinition> resolvedBySchool,
-            Set<ResourceLocation> resolvedSpellIds
-    ) {
-        var parseResult = ElementalBowModeList.CODEC.parse(JsonOps.INSTANCE, element);
-        parseResult.resultOrPartial(message ->
-                        ApprenticeCodex.LOGGER.error("Failed to parse Elemental Bow mode list {}: {}", resourceId, message))
-                .ifPresent(list -> {
-                    for (var definition : list.values()) {
-                        mergeDefinition(resourceId, definition, resolvedBySchool, resolvedSpellIds);
-                    }
-                });
-    }
-
-    private static void mergeDefinition(
-            ResourceLocation resourceId,
-            ElementalBowModeDefinition definition,
-            Map<ResourceLocation, ResolvedDefinition> resolvedBySchool,
-            Set<ResourceLocation> resolvedSpellIds
-    ) {
-        var schoolId = definition.school();
-        if (resolvedBySchool.containsKey(schoolId)) {
-            ApprenticeCodex.LOGGER.warn(
-                    "Elemental Bow mode {} in {} was ignored because school {} is already defined.",
-                    definition.spell(),
-                    resourceId,
-                    schoolId
-            );
-            return;
-        }
-
-        var schoolType = SchoolRegistry.getSchool(schoolId);
-        if (schoolType == null) {
-            ApprenticeCodex.LOGGER.warn("Elemental Bow mode {} in {} was ignored because school {} could not be resolved.", definition.spell(), resourceId, schoolId);
-            return;
-        }
-
-        var spell = SpellRegistry.getSpell(definition.spell());
-        if (spell == null || spell == SpellRegistry.none()) {
-            ApprenticeCodex.LOGGER.warn("Elemental Bow mode {} in {} was ignored because spell {} could not be resolved.", schoolId, resourceId, definition.spell());
-            return;
-        }
-        if (!spell.isEnabled()) {
-            ApprenticeCodex.LOGGER.info(
-                    "Elemental Bow mode {} in {} was ignored because spell {} is disabled.",
-                    schoolId,
-                    resourceId,
-                    definition.spell()
-            );
-            return;
-        }
-
-        var resolvedBonuses = resolveBonuses(resourceId, definition);
-        if (resolvedBonuses == null) {
-            return;
-        }
-
-        var resolvedDefinition = new ResolvedDefinition(
-                schoolId,
-                schoolType,
-                definition.spell(),
-                spell,
-                definition.requiredDrawTicks(),
-                resolvedBonuses
-        );
-        resolvedBySchool.put(schoolId, resolvedDefinition);
-        resolvedSpellIds.add(definition.spell());
-    }
-
-    @Nullable
-    private static List<ResolvedEnchantmentBonus> resolveBonuses(ResourceLocation resourceId, ElementalBowModeDefinition definition) {
-        var resolvedBonuses = new ArrayList<ResolvedEnchantmentBonus>(definition.enchantmentBonuses().size());
-        for (var bonus : definition.enchantmentBonuses()) {
-            resolvedBonuses.add(new ResolvedEnchantmentBonus(
-                    bonus.enchantment(),
-                    bonus.bonusPerLevel(),
-                    bonus.flatBonus()
-            ));
-        }
-        return List.copyOf(resolvedBonuses);
-    }
-
-    public record ResolvedDefinition(
-            ResourceLocation schoolId,
-            SchoolType schoolType,
-            ResourceLocation spellId,
-            AbstractSpell spell,
-            int requiredDrawTicks,
-            List<ResolvedEnchantmentBonus> enchantmentBonuses
-    ) {
-        public ResolvedDefinition {
-            requiredDrawTicks = Math.max(0, requiredDrawTicks);
-            enchantmentBonuses = List.copyOf(enchantmentBonuses);
-        }
-
-        public int resolveSpellLevel(ItemStack stack) {
-            var spellLevel = 1 + ElementalBowModeManager.resolvePowerArrowSpellLevelBonus(stack);
-            // Elemental Bow の属性ショットは preset spell level を tooltip / UI / 実詠唱で共有しているため、
-            // 汎用イベント加算ではなくここで POWER 相当の基礎レベルとして先に合算する。
-            spellLevel += jp.aquafactory.apprenticecodex.enchantment.Enchantments.getLevel(
-                    stack,
-                    jp.aquafactory.apprenticecodex.enchantment.Enchantments.TRANSCENDENCE
-            );
-            for (var bonus : enchantmentBonuses) {
-                var enchantmentLevel = getEnchantmentLevel(stack, bonus.enchantmentId());
-                if (enchantmentLevel <= 0) {
-                    continue;
-                }
-                spellLevel += bonus.flatBonus() + bonus.bonusPerLevel() * enchantmentLevel;
-            }
-            return net.minecraft.util.Mth.clamp(spellLevel, spell.getMinLevel(), spell.getMaxLevel());
+    public record ResolvedDefinition(ResourceLocation spellId, AbstractSpell spell, int requiredDrawTicks) {
+        // Iron's の設定は reload listener より後で確定するため、school を早期に固定しない。
+        public SchoolType schoolType() { return spell.getSchoolType(); }
+        public ResourceLocation schoolId() { return schoolType().getId(); }
+        public int resolveSpellLevel(ItemStack stack, int scrollLevel) {
+            // 表示と射撃で同じ値を使い、汎用イベントによる二重加算を避ける。
+            int bonus = jp.aquafactory.apprenticecodex.enchantment.Enchantments.getLevel(
+                    stack, jp.aquafactory.apprenticecodex.enchantment.Enchantments.TRANSCENDENCE);
+            return net.minecraft.util.Mth.clamp(scrollLevel + bonus, spell.getMinLevel(), spell.getMaxLevel());
         }
 
         public int resolveRequiredDrawTicks() {
-            var multipliedTicks = Math.ceil(requiredDrawTicks
-                    * ApprenticeCodexServerConfig.elementalBowMagicReadyDrawTicksMultiplier());
-            return (int) Math.min(Math.max(0.0D, multipliedTicks), Integer.MAX_VALUE);
+            double ticks = Math.ceil(requiredDrawTicks * ApprenticeCodexServerConfig.elementalBowMagicReadyDrawTicksMultiplier());
+            return (int) Math.min(Math.max(0, ticks), Integer.MAX_VALUE);
         }
 
         public int color() {
-            return SchoolAffinityRegistry.resolveColor(schoolType);
+            return SchoolAffinityRegistry.resolveColor(schoolType());
         }
-    }
-
-    public record ResolvedEnchantmentBonus(
-            ResourceLocation enchantmentId,
-            int bonusPerLevel,
-            int flatBonus
-    ) {
-    }
-
-    private static int getEnchantmentLevel(ItemStack stack, ResourceLocation enchantmentId) {
-        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
-        for (var enchantment : enchantments.keySet()) {
-            var key = enchantment.unwrapKey().orElse(null);
-            if (key != null && enchantmentId.equals(key.location())) {
-                return enchantments.getLevel(enchantment);
-            }
-        }
-        return 0;
     }
 }

@@ -1015,16 +1015,22 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.elementalBowOverheatDurationMultiplier();
     }
 
+    public static double elementalBowSchoolRuneManaCostMultiplier() {
+        return ITEMS_CONFIG.elementalBowSchoolRuneManaCostMultiplier();
+    }
+
+    public static GameTestConfigOverride overrideElementalBowSchoolRuneManaCostMultiplierForGameTest(double value) {
+        var previous = elementalBowSchoolRuneManaCostMultiplier();
+        ITEMS_CONFIG.setElementalBowSchoolRuneManaCostMultiplierForGameTest(value);
+        return () -> ITEMS_CONFIG.setElementalBowSchoolRuneManaCostMultiplierForGameTest(previous);
+    }
+
     public static int elementalBowOverheatDurationMinTicks() {
         return ITEMS_CONFIG.elementalBowOverheatDurationMinTicks();
     }
 
     public static int elementalBowOverheatDurationCapTicks() {
         return ITEMS_CONFIG.elementalBowOverheatDurationCapTicks();
-    }
-
-    public static double elementalBowPowerArrowSpellLevelBonusPerLevel() {
-        return ITEMS_CONFIG.elementalBowPowerArrowSpellLevelBonusPerLevel();
     }
 
     public static SpellStainedRunicTabletServerConfig.Values spellStainedRunicTabletConfig() {
@@ -1098,8 +1104,7 @@ public final class ApprenticeCodexServerConfig {
             double overheatAdditionalManaQuadraticMultiplier,
             double overheatDurationMultiplier,
             int overheatDurationMinTicks,
-            int overheatDurationCapTicks,
-            double powerArrowSpellLevelBonusPerLevel
+            int overheatDurationCapTicks
     ) {
         var previousMagicReadyDrawTicksMultiplier = ITEMS_CONFIG.elementalBowMagicReadyDrawTicksMultiplier();
         var previousOverheatAdditionalManaLinearMultiplier = ITEMS_CONFIG.elementalBowOverheatAdditionalManaLinearMultiplier();
@@ -1107,7 +1112,6 @@ public final class ApprenticeCodexServerConfig {
         var previousOverheatDurationMultiplier = ITEMS_CONFIG.elementalBowOverheatDurationMultiplier();
         var previousOverheatDurationMinTicks = ITEMS_CONFIG.elementalBowOverheatDurationMinTicks();
         var previousOverheatDurationCapTicks = ITEMS_CONFIG.elementalBowOverheatDurationCapTicks();
-        var previousPowerArrowSpellLevelBonusPerLevel = ITEMS_CONFIG.elementalBowPowerArrowSpellLevelBonusPerLevel();
 
         ITEMS_CONFIG.setElementalBowConfigForGameTest(
                 magicReadyDrawTicksMultiplier,
@@ -1115,8 +1119,7 @@ public final class ApprenticeCodexServerConfig {
                 overheatAdditionalManaQuadraticMultiplier,
                 overheatDurationMultiplier,
                 overheatDurationMinTicks,
-                overheatDurationCapTicks,
-                powerArrowSpellLevelBonusPerLevel
+                overheatDurationCapTicks
         );
         return () -> ITEMS_CONFIG.setElementalBowConfigForGameTest(
                 previousMagicReadyDrawTicksMultiplier,
@@ -1124,8 +1127,7 @@ public final class ApprenticeCodexServerConfig {
                 previousOverheatAdditionalManaQuadraticMultiplier,
                 previousOverheatDurationMultiplier,
                 previousOverheatDurationMinTicks,
-                previousOverheatDurationCapTicks,
-                previousPowerArrowSpellLevelBonusPerLevel
+                previousOverheatDurationCapTicks
         );
     }
 
