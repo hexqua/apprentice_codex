@@ -16,6 +16,16 @@ public final class CalibrationAdjustmentEffects {
         return line("add_scroll_slot", count);
     }
 
+    public static List<Component> forceSpellSchool(double manaMultiplier) {
+        return List.of(Component.translatable(KEY_PREFIX + "force_spell_school_1"),
+                Component.translatable(KEY_PREFIX + "force_spell_school_2", percentage(manaMultiplier - 1.0D)));
+    }
+
+    public static List<Component> separateCooldown() {
+        return List.of(Component.translatable(KEY_PREFIX + "separate_cooldown_1"),
+                Component.translatable(KEY_PREFIX + "separate_cooldown_2"));
+    }
+
     public static List<Component> addSpellPower(double amount) {
         return line("add_spell_power", percentage(amount));
     }

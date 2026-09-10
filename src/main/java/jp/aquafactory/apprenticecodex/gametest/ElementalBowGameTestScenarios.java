@@ -204,7 +204,7 @@ final class ElementalBowGameTestScenarios {
                     40
             );
             var schoolTag = player.getPersistentData()
-                    .getCompound("ApprenticeCodexElementalBowSharedOverheat");
+                    .getCompound("ApprenticeCodexElementalBowSharedOverheat").getCompound("Slot0");
             schoolTag.putLong("ExpireGameTime", player.level().getGameTime() + 72000L);
 
             var state = ElementalBowOverheatManager.getState(player);

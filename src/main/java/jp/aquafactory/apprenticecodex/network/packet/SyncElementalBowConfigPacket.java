@@ -14,7 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public record SyncElementalBowConfigPacket(List<ResourceLocation> magicArrowCatalystItemIds, List<ElementalBowModeDefinition> definitions) {
+public record SyncElementalBowConfigPacket(List<ResourceLocation> magicArrowCatalystItemIds, List<ElementalBowModeDefinition> definitions,
+                                          double schoolRuneManaCostMultiplier) {
     public SyncElementalBowConfigPacket {
         magicArrowCatalystItemIds = List.copyOf(magicArrowCatalystItemIds);
         definitions = List.copyOf(definitions);
@@ -23,6 +24,11 @@ public record SyncElementalBowConfigPacket(List<ResourceLocation> magicArrowCata
     public SyncElementalBowConfigPacket(List<ResourceLocation> ids) {
         this(ids, ElementalBowModeManager.createSnapshot());
     }
+
+    public SyncElementalBowConfigPacket(List<ResourceLocation> ids, List<ElementalBowModeDefinition> definitions) {
+        this(ids, definitions, jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig.elementalBowSchoolRuneManaCostMultiplier());
+    }
+
 
     public static void encode(SyncElementalBowConfigPacket packet, FriendlyByteBuf buffer) {
         buffer.writeVarInt(packet.magicArrowCatalystItemIds.size());
@@ -33,6 +39,7 @@ public record SyncElementalBowConfigPacket(List<ResourceLocation> magicArrowCata
             buf.writeResourceLocation(definition.spell());
             buf.writeVarInt(definition.requiredDrawTicks());
         });
+        buffer.writeDouble(packet.schoolRuneManaCostMultiplier);
     }
 
     public static SyncElementalBowConfigPacket decode(FriendlyByteBuf buffer) {
@@ -42,7 +49,7 @@ public record SyncElementalBowConfigPacket(List<ResourceLocation> magicArrowCata
             itemIds.add(buffer.readResourceLocation());
         }
         return new SyncElementalBowConfigPacket(itemIds, buffer.readList(buf ->
-                new ElementalBowModeDefinition(buf.readResourceLocation(), buf.readVarInt())));
+                new ElementalBowModeDefinition(buf.readResourceLocation(), buf.readVarInt())), buffer.readDouble());
     }
 
     public static void handle(
@@ -64,6 +71,7 @@ public record SyncElementalBowConfigPacket(List<ResourceLocation> magicArrowCata
         private static void handle(SyncElementalBowConfigPacket packet) {
             ElementalBowClientConfigState.setMagicArrowCatalystItemIds(packet.magicArrowCatalystItemIds);
             ElementalBowModeManager.applySnapshot(packet.definitions);
+            ElementalBowClientConfigState.setSchoolRuneManaCostMultiplier(packet.schoolRuneManaCostMultiplier);
         }
     }
 }

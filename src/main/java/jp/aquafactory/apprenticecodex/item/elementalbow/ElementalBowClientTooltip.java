@@ -35,8 +35,18 @@ final class ElementalBowClientTooltip {
         lines.add(Component.empty());
         if (selected != null) {
             var data = new SpellData(selected.spell(), selected.spellLevel());
-            // Cartridge と同様に通常の魔法情報を使い、一時的な過熱ペナルティは表示へ反映しない。
-            var details = TooltipsUtils.formatActiveSpellTooltip(stack, data, CastSource.SPELLBOOK, player);
+            // 常設ルーンの系統とマナを一括反映し、一時的な過熱ペナルティは表示へ反映しない。
+            List<net.minecraft.network.chat.MutableComponent> details;
+            try (var ignored = ElementalBowSpellPowerContext.open(player, selected.spell(), stack)) {
+                details = TooltipsUtils.formatActiveSpellTooltip(stack, data, CastSource.SPELLBOOK, player);
+                var mana = TooltipsUtils.getManaCostComponent(selected.spell().getCastType(),
+                        ElementalBowRunes.baseManaCost(stack, player,
+                                selected.spell().getManaCost(selected.spell().getLevelFor(selected.spellLevel(), player))))
+                        .withStyle(ChatFormatting.BLUE);
+                details.replaceAll(line -> line.getContents() instanceof TranslatableContents text
+                        && (text.getKey().equals("tooltip.irons_spellbooks.mana_cost")
+                        || text.getKey().equals("tooltip.irons_spellbooks.mana_cost_per_second")) ? mana : line);
+            }
             if (!details.isEmpty()) {
                 details.removeFirst();
             }
