@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -61,7 +62,7 @@ public final class ElementalBowModeManager extends SimpleJsonResourceReloadListe
         var resolved = new LinkedHashMap<ResourceLocation, ResolvedDefinition>();
         for (var definition : snapshot) {
             var spell = SpellRegistry.getSpell(definition.spell());
-            if (spell != null && spell != SpellRegistry.none()) {
+            if (spell != null && spell != SpellRegistry.none() && spell.getCastType() != CastType.CONTINUOUS) {
                 resolved.put(definition.spell(), new ResolvedDefinition(definition.spell(), spell, definition.requiredDrawTicks()));
             }
         }
@@ -81,6 +82,13 @@ public final class ElementalBowModeManager extends SimpleJsonResourceReloadListe
                             for (var definition : list.values()) {
                                 var spell = SpellRegistry.getSpell(definition.spell());
                                 if (spell == null || spell == SpellRegistry.none()) continue;
+                                // 継続詠唱は弓を放した時点で完結する射撃と両立しないため、サーバーの登録段階で除外する。
+                                if (spell.getCastType() == CastType.CONTINUOUS) {
+                                    ApprenticeCodex.LOGGER.warn(
+                                            "Skipping Elemental Bow mode {} from {}: CONTINUOUS spells are not supported",
+                                            definition.spell(), entry.getKey());
+                                    continue;
+                                }
                                 resolved.put(definition.spell(), new ResolvedDefinition(
                                         definition.spell(),
                                         spell, definition.requiredDrawTicks()));

@@ -54,6 +54,83 @@ public final class ElementalBowRuneGameTests {
     }
 
     @GameTest(template = "gametest/basic_floor")
+    public static void elementalBowInstantCastKeepsRuneAndCooldownScope(GameTestHelper helper) {
+        try (var config = BowGameTestSupport.useElementalBowSpellConfig(helper);
+             var manaConfig = ApprenticeCodexServerConfig.overrideElementalBowSchoolRuneManaCostMultiplierForGameTest(2)) {
+            var player = BowGameTestSupport.createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "bow_instant");
+            var spell = SpellRegistry.getSpell("irons_spellbooks:blood_step");
+            var stack = bow(helper, true, false);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getAttribute(AttributeRegistry.FIRE_SPELL_POWER).setBaseValue(3);
+            player.getAttribute(AttributeRegistry.MAX_MANA).setBaseValue(20000);
+            var magic = MagicData.getPlayerMagicData(player);
+            float basePower = spell.getSpellPower(1, player);
+            int[] casts = {0};
+            java.util.function.Consumer<io.redspace.ironsspellbooks.api.events.SpellOnCastEvent> listener = event -> {
+                if (event.getEntity() != player || !event.getSpellId().equals(spell.getSpellId())) return;
+                casts[0]++;
+                helper.assertTrue(Math.abs(spell.getSpellPower(1, player) - basePower * 3) < .001,
+                        "Instant activation must retain school rune power");
+            };
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(listener);
+            try {
+                for (boolean existingCooldown : new boolean[]{false, true}) {
+                    if (existingCooldown) magic.getPlayerCooldowns().addCooldown(spell, 123);
+                    magic.setMana(10000);
+                    helper.assertTrue(ElementalBowCasting.cast(player, stack, spell, 1), "Instant bow cast must succeed");
+                    helper.assertFalse(magic.isCasting(), "Instant cast must finish before the bow scope closes");
+                    helper.assertTrue(magic.getMana() == 10000 - spell.getManaCost(1) * 2,
+                            "Instant cast must consume rune-adjusted mana exactly once");
+                    helper.assertTrue(magic.getPlayerCooldowns().isOnCooldown(spell) == existingCooldown,
+                            "Instant bow cast must not create a normal cooldown");
+                    if (existingCooldown) helper.assertTrue(
+                            magic.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId()).getCooldownRemaining() == 123,
+                            "Instant bow cast must preserve an existing normal cooldown");
+                    helper.assertFalse(ElementalBowCasting.isActive(player, spell), "Instant scope must be cleared");
+                    helper.assertTrue(spell.getSpellPower(1, player) == basePower, "Rune power must not leak after activation");
+                }
+                helper.assertTrue(casts[0] == 2, "Each instant shot must activate exactly once");
+            } finally {
+                net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(listener);
+            }
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = "gametest/basic_floor")
+    public static void elementalBowReloadRejectsContinuousModes(GameTestHelper helper) throws ReflectiveOperationException {
+        var previous = ElementalBowModeManager.createSnapshot();
+        var instant = ResourceLocation.parse("irons_spellbooks:blood_step");
+        var continuous = ResourceLocation.parse("irons_spellbooks:fire_breath");
+        var longSpell = SpellRegistry.FIRE_ARROW_SPELL.get().getSpellResource();
+        var definitions = java.util.List.of(new ElementalBowModeDefinition(instant, 20),
+                new ElementalBowModeDefinition(continuous, 20), new ElementalBowModeDefinition(longSpell, 20));
+        var constructor = ElementalBowModeManager.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        var apply = ElementalBowModeManager.class.getDeclaredMethod("apply", java.util.Map.class,
+                net.minecraft.server.packs.resources.ResourceManager.class, net.minecraft.util.profiling.ProfilerFiller.class);
+        apply.setAccessible(true);
+        try {
+            var json = ElementalBowModeList.CODEC.encodeStart(com.mojang.serialization.JsonOps.INSTANCE,
+                    new ElementalBowModeList(definitions)).getOrThrow();
+            apply.invoke(constructor.newInstance(), java.util.Map.of(ResourceLocation.parse("apprenticecodex:cast_type_test"), json),
+                    helper.getLevel().getServer().getResourceManager(), net.minecraft.util.profiling.InactiveProfiler.INSTANCE);
+            helper.assertTrue(ElementalBowModeManager.getResolvedDefinition(instant) != null,
+                    "Datapacks must accept INSTANT modes");
+            helper.assertTrue(ElementalBowModeManager.getResolvedDefinition(longSpell) != null,
+                    "Datapacks must retain LONG modes");
+            helper.assertTrue(ElementalBowModeManager.getResolvedDefinition(continuous) == null,
+                    "Datapacks must reject CONTINUOUS modes");
+            ElementalBowModeManager.applySnapshot(definitions);
+            helper.assertTrue(ElementalBowModeManager.getResolvedDefinition(continuous) == null,
+                    "Snapshots must also exclude CONTINUOUS modes");
+        } finally {
+            ElementalBowModeManager.applySnapshot(previous);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = "gametest/basic_floor")
     public static void elementalBowRuneConfigSyncUpdatesExistingJeiRecipe(GameTestHelper helper) {
         double previous = ElementalBowClientConfigState.schoolRuneManaCostMultiplier();
         var buffer = new net.minecraft.network.FriendlyByteBuf(io.netty.buffer.Unpooled.buffer());
