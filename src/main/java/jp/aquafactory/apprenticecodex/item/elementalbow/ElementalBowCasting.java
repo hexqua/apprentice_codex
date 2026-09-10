@@ -4,7 +4,9 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -25,6 +27,7 @@ public final class ElementalBowCasting {
     }
 
     public static boolean cast(Player player, ItemStack stack, AbstractSpell spell, int spellLevel) {
+        if (spell.getCastType() == CastType.CONTINUOUS) return false;
         var previous = ACTIVE.get();
         String slot = player.getUsedItemHand() == InteractionHand.OFF_HAND
                 ? SpellSelectionManager.OFFHAND : SpellSelectionManager.MAINHAND;
@@ -33,8 +36,15 @@ public final class ElementalBowCasting {
             ACTIVE.set(new Context(player, spell, ElementalBowRunes.manaMultiplier(stack, player)));
             if (!spell.attemptInitiateCast(stack, spellLevel, player.level(), player, CastSource.SWORD, true, slot))
                 return false;
-            TriggeredSpellCastHelper.applyLongCastDurationOverride(player, spellLevel, spell,
-                    MagicData.getPlayerMagicData(player), slot, 0);
+            var magicData = MagicData.getPlayerMagicData(player);
+            if (spell.getCastType() == CastType.INSTANT) {
+                // Iron's は INSTANT も次の tick まで保留するため、弓の補正が有効な間に発動と終了を済ませる。
+                // MagicManager の INSTANT 経路と同じく、詠唱 tick コールバックは挟まない。
+                spell.castSpell(player.level(), spellLevel, (ServerPlayer) player, magicData.getCastSource(), true);
+                spell.onServerCastComplete(player.level(), spellLevel, player, magicData, false);
+            } else {
+                TriggeredSpellCastHelper.applyLongCastDurationOverride(player, spellLevel, spell, magicData, slot, 0);
+            }
             return true;
         } finally {
             if (previous == null) ACTIVE.remove();
