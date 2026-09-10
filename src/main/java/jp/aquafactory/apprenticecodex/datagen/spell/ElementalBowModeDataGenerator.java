@@ -5,7 +5,6 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowEnchantmentBonus;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeDefinition;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeList;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager;
@@ -37,22 +36,16 @@ public final class ElementalBowModeDataGenerator extends JsonCodecProvider<Eleme
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "default_modes"),
                         new ElementalBowModeList(List.of(
                                 new ElementalBowModeDefinition(
-                                        SchoolRegistry.FIRE_RESOURCE,
                                         getSpellId(SpellRegistry.FIRE_ARROW_SPELL),
-                                        ElementalBowModeDefinition.DEFAULT_REQUIRED_DRAW_TICKS,
-                                        List.of(new ElementalBowEnchantmentBonus(getEnchantmentId(Enchantments.FLAMING_ARROWS), 0, 2))
+                                        ElementalBowModeDefinition.DEFAULT_REQUIRED_DRAW_TICKS
                                 ),
                                 new ElementalBowModeDefinition(
-                                        SchoolRegistry.ENDER_RESOURCE,
                                         getSpellId(SpellRegistry.MAGIC_ARROW_SPELL),
-                                        ElementalBowModeDefinition.DEFAULT_REQUIRED_DRAW_TICKS,
-                                        List.of()
+                                        ElementalBowModeDefinition.DEFAULT_REQUIRED_DRAW_TICKS
                                 ),
                                 new ElementalBowModeDefinition(
-                                        SchoolRegistry.NATURE_RESOURCE,
                                         getSpellId(SpellRegistry.POISON_ARROW_SPELL),
-                                        ElementalBowModeDefinition.DEFAULT_REQUIRED_DRAW_TICKS,
-                                        List.of()
+                                        ElementalBowModeDefinition.DEFAULT_REQUIRED_DRAW_TICKS
                                 )
                         ))
                 )

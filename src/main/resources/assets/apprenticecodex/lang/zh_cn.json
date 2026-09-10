@@ -3,15 +3,11 @@
   "subtitle.apprenticecodex.sound.scythe_spin": "镰刀旋转",
   "subtitle.apprenticecodex.sound.vanilla_scythe_catch": "镰刀返回手中",
   "itemGroup.apprenticecodex.main": "学徒法典",
-
   "curios.identifier.feet": "脚饰",
   "curios.modifiers.feet": "佩戴脚饰时：",
   "curios.apprenticecodex.modifier.for_quiver": "装备在背部或腰部时：",
-
   "emf.variable.apprenticecodex.is_hoverride_broom_rider": "当前渲染的玩家是否正骑乘浮空行驶扫帚",
-
   "attribute.name.apprenticecodex.max_enchantment_table_level": "附魔台最高等级",
-
   "block.apprenticecodex.mage_light_torch": "魔法师火把",
   "block.apprenticecodex.personal_shelf_chest": "个人交互界面",
   "block.apprenticecodex.rift_hole": "裂隙通道",
@@ -31,7 +27,6 @@
   "block.apprenticecodex.wizardlamp_lantern": "魔法师灯笼",
   "block.apprenticecodex.magnetic_stability_anchor": "磁场稳定锚",
   "block.apprenticecodex.spellcaster_accessory_case": "施法者饰品盒",
-
   "item.apprenticecodex.partially_used_ink": "用过的墨水",
   "item.apprenticecodex.partially_used_ink.named": "用过的%1$s",
   "item.apprenticecodex.partially_used_ink.unknown": "用过的神秘墨水",
@@ -41,7 +36,6 @@
   "item.apprenticecodex.crude_ink": "粗制墨水",
   "item.apprenticecodex.crude_ink.desc": "品质太低，只能用于制作带有普通级法术的法杖。",
   "item.apprenticecodex.crude_ink.single_use": "一次便会全部用完。",
-
   "item.apprenticecodex.bullet_rune": "魔弹符文",
   "item.apprenticecodex.mithril_weave_offcuts": "秘银织物边角料",
   "item.apprenticecodex.arcane_cinder": "奥术余烬",
@@ -220,7 +214,6 @@
   "item.apprenticecodex.soulcollector_robe": "灵魂收集者长袍",
   "item.apprenticecodex.soulcollector_leggings": "灵魂收集者护腿",
   "item.apprenticecodex.soulcollector_boots": "灵魂收集者靴子",
-
   "item.apprenticecodex.spellgun.tooltip.hint": "按住 Shift 或 Alt 查看详情。",
   "item.apprenticecodex.spellgun.tooltip.ability_title": "注入法术效果：",
   "item.apprenticecodex.spellgun.tooltip.ability_swingcast_title": "挥击释放注入法术时的效果：",
@@ -256,7 +249,6 @@
   "item.apprenticecodex.spellgun.tooltip.ammo_none": "- 无",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_below_rare": "稀有及以下品质",
   "item.apprenticecodex.spellgun.tooltip.ammo_condition_above_epic": "史诗以上品质",
-
   "item.apprenticecodex.common.desc.spell_hint": "按住 Shift 或 Alt 显示适用法术",
   "item.apprenticecodex.common.desc.spell_hint_open": "适用法术：",
   "item.apprenticecodex.common.spellgun.desc_1": "主手持有时，按[%1$s]施放法术。",
@@ -441,7 +433,6 @@
   "item.apprenticecodex.chargecast_catalystbook.spell_power": "%d%%",
   "item.apprenticecodex.chargecast_catalystbook.school_rune": "该书已调律至“%s”学派。",
   "item.apprenticecodex.wooden_wand.desc": "按[%1$s]消耗耐久度施放注入的法术。",
-
   "jei.apprenticecodex.alchemy_brewer.no_additive": "无",
   "jei.apprenticecodex.alchemy_brewer.amount": "%1$d mB / %2$d次用量",
   "jei.apprenticecodex.alchemy_brewer.time": "%s秒",
@@ -539,9 +530,9 @@
   "jei.apprenticecodex.circuit_heat_staff.desc_2": "无视冷却施法会大幅增加法力值消耗，若消耗超过当前法力值，法杖会过热并暂时失效。",
   "jei.apprenticecodex.circuit_heat_staff.desc_3": "额外法力值消耗根据无视的冷却时间和连续强制施法次数计算。",
   "jei.apprenticecodex.circuit_heat_staff.desc_4": "将失效的法杖浸入水中或细雪中可加速恢复。",
-  "jei.apprenticecodex.elemental_bow.desc_1": "手持潜行可切换模式，发射多种箭矢。",
-  "jei.apprenticecodex.elemental_bow.desc_2": "也可发射消耗箭矢的法术箭，此类箭矢可无视冷却快速发射，但法力值消耗会持续上升。",
-  "jei.apprenticecodex.elemental_bow.desc_3": "法术箭不受无限附魔影响，需合成附魔才能免箭消耗。",
+  "jei.apprenticecodex.elemental_bow.desc_1": "在法术校准台安装箭矢法术卷轴，手持弓潜行可切换发射模式。拥有3个调整槽和1个初始卷轴槽，每个低级法术槽升级可增加1个卷轴槽。",
+  "jei.apprenticecodex.elemental_bow.desc_2": "法术等级由卷轴等级和超越附魔决定。连续施放会增加法力消耗，过热由同一玩家的所有元素弓共享，与普通施法冷却独立。",
+  "jei.apprenticecodex.elemental_bow.desc_3": "法术射击消耗普通箭矢，不受无限附魔影响，合成附魔可免除箭矢消耗。物理射击不会增加过热。",
   "jei.apprenticecodex.bulwark_greatshield.desc_1": "举盾期间会持续施放注入的法术。",
   "jei.apprenticecodex.bulwark_greatshield.desc_2": "可格挡斧击、音爆等普通盾牌无法格挡的攻击，并免疫一部分格挡后仍会产生的击退。",
   "jei.apprenticecodex.parrycast_buckler.desc_1": "举盾后立即格挡攻击时，可以不消耗法力值施放法术。",
@@ -604,7 +595,6 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.overdrive_engine.hover_2": "提高各类加速的法力消耗",
   "jei.apprenticecodex.spell_calibration_bench.effect.add_rush_style_1": "高速移动时可造成接触伤害",
   "jei.apprenticecodex.spell_calibration_bench.effect.add_rush_style_2": "生效期间持续消耗法力",
-
   "jei.apprenticecodex.spell_calibration_bench.constraint.same_effect": "无法插入多个效果相同的物品。",
   "jei.apprenticecodex.spell_calibration_bench.constraint.school_rune": "只能插入一个学派符文。",
   "jei.apprenticecodex.spell_throwable_cards.desc_1": "为符卡注入法术后投掷，即可根据各符卡类型的行为远程发动法术。",
@@ -613,10 +603,8 @@
   "jei.apprenticecodex.chargecast_catalystbook.desc_1": "刻意咏唱原本无需咏唱的法术，可在提升法术强度后发动。",
   "jei.apprenticecodex.chargecast_catalystbook.desc_2": "需要预先在专用的法术校准台中放入卷轴。",
   "jei.apprenticecodex.spell_throwable_cards.craft_hint": "不消耗卷轴",
-
   "jei.apprenticecodex.archivists_grimoire.upgrade_hint": "槽位数增加9",
   "jei.apprenticecodex.luminous_device.upgrade_hint": "解锁%s",
-
   "enchantment.apprenticecodex.reflux": "回流",
   "enchantment.apprenticecodex.reservoir": "蓄能",
   "enchantment.apprenticecodex.alacrity": "迅捷",
@@ -636,7 +624,6 @@
   "enchantment.apprenticecodex.neutralization": "中和",
   "enchantment.apprenticecodex.compress": "压缩",
   "enchantment.apprenticecodex.release": "释放",
-
   "enchantment.apprenticecodex.reflux.desc": "提升法力值恢复速度。",
   "enchantment.apprenticecodex.reservoir.desc": "提升最大法力值。",
   "enchantment.apprenticecodex.alacrity.desc": "减少法术冷却时间。",
@@ -725,14 +712,12 @@
   "entity.apprenticecodex.combustion_jet_wave": "燃烧热浪",
   "entity.apprenticecodex.blood_brand_kunai": "刻印苦无",
   "entity.apprenticecodex.anti_mana_arrow": "抗法力魔箭",
-
   "entity.minecraft.villager.apprenticecodex.errand_mage": "跑腿法师",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "跑腿法师",
   "entity.minecraft.villager.errand_mage": "跑腿法师",
   "entity.minecraft.zombie_villager.errand_mage": "跑腿法师",
   "entity.apprenticecodex.villager.errand_mage": "跑腿法师",
   "entity.apprenticecodex.zombie_villager.errand_mage": "跑腿法师",
-
   "container.apprenticecodex.personal_shelf": "个人置物架",
   "container.apprenticecodex.apprentice_desk": "学徒书桌",
   "container.apprenticecodex.apprentice_desk.ink_conversion_tooltip": "此墨水可使用%1$d次，但使用一次后便无法再用于制作卷轴。",
@@ -807,7 +792,6 @@
   "config.jade.plugin_apprenticecodex.search_beacon": "搜寻火盆",
   "config.jade.plugin_apprenticecodex.field_overseer": "领域监视者",
   "config.jade.plugin_apprenticecodex.servant_gaze": "侍从凝视",
-
   "jade.apprenticecodex.none": "无",
   "jade.apprenticecodex.item_count": "%1$d个 %2$s",
   "jade.apprenticecodex.arcanum_in_a_jar.item_line": "%1$s：%2$d",
@@ -820,10 +804,8 @@
   "jade.apprenticecodex.remaining_ammo": "剩余弹药：%1$d",
   "jade.apprenticecodex.search_beacon.targets": "目标：%1$s",
   "jade.apprenticecodex.remaining_mana": "魔力：%1$d/%2$d",
-
   "skill.apprenticecodex.wind_leap": "风跃",
   "skill.apprenticecodex.wind_leap.tooltip": "高高跃起以准备强打，并在即将落地时进行殴打。此次跳跃本身不会保护你免受坠落伤害。",
-
   "spell.apprenticecodex.sky_edge": "天穹之刃",
   "spell.apprenticecodex.archer_multiple": "多重魔弓",
   "spell.apprenticecodex.commence_fire": "开火指令",
@@ -908,7 +890,6 @@
   "spell.apprenticecodex.wizardlamp": "巫师灯",
   "spell.apprenticecodex.call_broom": "呼唤扫帚",
   "spell.apprenticecodex.mana_transcription": "魔力转写",
-
   "spell.apprenticecodex.sky_edge.guide": "召唤一把武器朝你的视线方向发射。该法术有蓄力时间，且不造成击退，但可以无视目标的无敌帧。",
   "spell.apprenticecodex.archer_multiple.guide": "召唤一把跟随你的魔法弓，持续攻击你指定的目标或附近的敌人。即使装备高级召唤师护符，也无法阻止该法术进入冷却。",
   "spell.apprenticecodex.commence_fire.guide": "召唤一把跟随你的魔法步枪，再次使用该法术即可释放强力射击。射击虽然不会造成击退，但可以无视目标的受伤无敌时间。",
@@ -993,7 +974,6 @@
   "spell.apprenticecodex.wizardlamp.guide": "召唤并放置一盏照亮周围区域的魔法灯笼。它只能召唤在触手可及之处，但无需支撑即可召唤，维持存在也不需要支撑。",
   "spell.apprenticecodex.call_broom.guide": "激活背负的扫帚，将其召唤出来并立即骑乘。召唤出的扫帚无人骑乘时再次使用可将其安全收回。扫帚会与主人绑定，其他人无法骑乘或回收；离开过远或在损坏状态下下车时会自动收回。",
   "spell.apprenticecodex.mana_transcription.guide": "将自身的魔力与经验注入双手物品，从主手物品中抽取一项附魔，并将其转写到副手中未书写的书与笔上。所需经验会随目标物品的状态变化，转写后会像经过铁砧加工一样改变其性质。若副手持有对应媒介，则会消耗媒介并清除主手物品累积的铁砧使用惩罚。",
-
   "ui.apprenticecodex.headshot_damage_multiplier": "爆头伤害倍率：%d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "潜行伤害倍率：%d%%",
   "ui.apprenticecodex.reflect_damage_multiplier": "反射伤害倍率：%d%%",
@@ -1097,7 +1077,6 @@
   "ui.apprenticecodex.otherworld_lens.canceled_break": "透镜被破坏，无法维持专注！",
   "ui.apprenticecodex.otherworld_lens.canceled_away": "离透镜太远，无法维持专注，透镜随之崩解！",
   "ui.apprenticecodex.otherworld_lens.canceled_other": "透镜因某种外力介入而被破坏！",
-
   "ui.apprenticecodex.spellgun.missing_ammo": "弹药耗尽！(弹药：%1$s)",
   "ui.apprenticecodex.spellgun.not_imbued": "%1$s尚未注入法术！",
   "ui.apprenticecodex.spellgun.invalid_spell": "%1$s与%2$s不兼容！",
@@ -1185,7 +1164,6 @@
   "ui.apprenticecodex.mana_transcription.finished_enchantment": "已转写%1$s！",
   "ui.apprenticecodex.mana_transcription.finished_work_count": "承载铁砧使用惩罚后，%1$s碎裂了！",
   "ui.apprenticecodex.mana_transcription.finished_work_count_creative": "已清除铁砧使用惩罚！",
-
   "ui.apprenticecodex.elemental_bow.mode_switched": "已切换发射模式为 %s",
   "ui.apprenticecodex.elemental_bow.insufficient_arrow": "没有可用作施法媒介的箭矢！",
   "ui.apprenticecodex.elemental_bow.overheat_mana_warning": "过热导致法力值消耗提升至 %s！",
@@ -1228,7 +1206,6 @@
   "ui.apprenticecodex.luminous_device.not_found": "附近没有魔法师召唤的光源！",
   "ui.apprenticecodex.inventory_insert.store": "右键点击以收纳",
   "ui.apprenticecodex.inventory_insert.refill_mana": "右键点击以补充法力",
-
   "ui.apprenticecodex.spell_selector.empty": "无可选法术",
   "ui.apprenticecodex.luminous_device.clean.desc": "清理附近由魔法师召唤的光源",
   "ui.apprenticecodex.spell_calibration_bench.hint_default_spell": "默认注入的法术无法提取",
@@ -1242,7 +1219,6 @@
   "ui.apprenticecodex.spellcaster_workbench.cant_extract_not_target": "无法从该物品中提取法术",
   "ui.apprenticecodex.spellcaster_workbench.cant_extract_locked": "该物品与法术的联系过于强大",
   "ui.apprenticecodex.spellcaster_workbench.cant_extract_extractable": "该物品中的法术可在法术校准台中安全移除",
-
   "effect.apprenticecodex.arcane_charge": "奥术充能",
   "effect.apprenticecodex.casting_mobility": "施法机动",
   "effect.apprenticecodex.intelligence": "智慧",
@@ -1266,7 +1242,6 @@
   "effect.apprenticecodex.blood_engraved": "血之刻印",
   "effect.apprenticecodex.school_affinity": "亲和",
   "effect.apprenticecodex.school_affinity.dynamic": "%s 亲和",
-
   "effect.apprenticecodex.arcane_charge.description": "提升法术威力。",
   "effect.apprenticecodex.casting_mobility.description": "仅抵消持续施法造成的移动减速。",
   "effect.apprenticecodex.intelligence.description": "大幅提升法术威力。",
@@ -1289,7 +1264,6 @@
   "effect.apprenticecodex.gravity_bound.description": "难以滞留空中，也无法自由跳跃。",
   "effect.apprenticecodex.inert_mana_shield.description": "无法展开法力护盾。",
   "effect.apprenticecodex.blood_engraved.description": "被刻入血之魔力的状态。刻下烙印的施术者在场时，生物死亡会引发血之爆发。",
-
   "item.minecraft.potion.effect.intelligence": "智慧药水",
   "item.minecraft.potion.effect.meditation": "冥想药水",
   "item.apprenticecodex.school_affinity.potion": "%s 药水",
@@ -1302,7 +1276,6 @@
   "item.minecraft.tipped_arrow.effect.intelligence": "智慧之箭",
   "item.minecraft.tipped_arrow.effect.meditation": "冥想之箭",
   "item.apprenticecodex.school_affinity.tipped_arrow": "%s 之箭",
-
   "death.attack.apprenticecodex.sky_edge": "%1$s 被 %2$s 撕成了碎片。",
   "death.attack.apprenticecodex.archer_multiple": "%1$s 被 %2$s 的箭雨射成了筛子。",
   "death.attack.apprenticecodex.commence_fire": "%1$s 被 %2$s 一枪击碎了头颅。",
@@ -1356,7 +1329,6 @@
   "death.attack.apprenticecodex.catch_flame": "%1$s 被火焰吞没了",
   "death.attack.apprenticecodex.thermal_slice": "%1$s 未能成为传说",
   "death.attack.apprenticecodex.hoverride_broom": "%1$s与%2$s的不幸共舞",
-
   "advancements.apprenticecodex.apprentice_codex.root.title": "学徒法典",
   "advancements.apprenticecodex.apprentice_codex.root.description": "踏上学徒法师的修行之路。",
   "advancements.apprenticecodex.apprentice_codex.craft_apprentice_desk.title": "99%的灵感，1%的努力",
@@ -1612,5 +1584,16 @@
   "key.categories.apprenticecodex": "Apprentice's Codex",
   "item.apprenticecodex.quickcast_scroll_cartridge.no_assign": "设置按键后即可随时施放注入的法术。",
   "item.apprenticecodex.quickcast_scroll_cartridge.additive_slot": "手持此物品并潜行，可切换装备时使用的法术。",
-  "item.apprenticecodex.quickcast_scroll_cartridge": "速咏卷轴弹匣"
+  "item.apprenticecodex.quickcast_scroll_cartridge": "速咏卷轴弹匣",
+  "item.apprenticecodex.elemental_bow.tooltip.mana": "当前法力消耗：%s",
+  "item.apprenticecodex.elemental_bow.tooltip.draw": "所需拉弓时间：%s 秒",
+  "item.apprenticecodex.elemental_bow.tooltip.cooling": "冷却时间：%s 秒",
+  "item.apprenticecodex.elemental_bow.tooltip.no_selected_spell": "未选择法术",
+  "item.apprenticecodex.elemental_bow.tooltip.scrolls": "已安装卷轴：",
+  "item.apprenticecodex.elemental_bow.tooltip.inactive": "%s：%s（不可用）",
+  "item.apprenticecodex.spellgun.tooltip.ability_hold_long_keep": "- 蓄力完成后可继续保持，延后施放。",
+  "item.apprenticecodex.spellgun.tooltip.ability_set_casttime.elemental_bow": "- 法术施放时间取决于拉弓时间。",
+  "item.apprenticecodex.spellgun.tooltip.restrict_restrict_by_specific.elemental_bow": "- 被定义为箭矢法术的法术",
+  "item.apprenticecodex.spellgun.tooltip.ability_mana_penalty": "- 法力消耗增加至 %s 倍。",
+  "item.apprenticecodex.spellgun.tooltip.ability_attuned_school": "- 受到 %s 学派的加成。"
 }

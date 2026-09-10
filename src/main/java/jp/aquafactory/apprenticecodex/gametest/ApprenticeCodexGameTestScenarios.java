@@ -11755,18 +11755,14 @@ public class ApprenticeCodexGameTestScenarios {
             double overheatAdditionalManaQuadraticMultiplier,
             double overheatDurationMultiplier,
             int overheatDurationMinTicks,
-            int overheatDurationCapTicks,
-            double powerArrowSpellLevelBonusPerLevel
-    ) {
+            int overheatDurationCapTicks) {
         return ApprenticeCodexServerConfig.useElementalBowConfigOverrideForGameTest(
                 magicReadyDrawTicksMultiplier,
                 overheatAdditionalManaLinearMultiplier,
                 overheatAdditionalManaQuadraticMultiplier,
                 overheatDurationMultiplier,
                 overheatDurationMinTicks,
-                overheatDurationCapTicks,
-                powerArrowSpellLevelBonusPerLevel
-        );
+                overheatDurationCapTicks);
     }
 
     static int getFocusStaffbowArrowCount(Player player) {
@@ -12742,23 +12738,43 @@ public class ApprenticeCodexGameTestScenarios {
                 .orElse(null);
     }
 
-    static void setElementalBowShotSelection(ItemStack stack, String shotMode, @Nullable ResourceLocation selectionId) {
-        var tag = stack.getOrCreateTag();
-        tag.putString("ElementalBowShotMode", shotMode);
-        if ("magic".equals(shotMode)) {
-            if (selectionId != null) {
-                tag.putString("ElementalBowMode", selectionId.toString());
-            }
-            tag.remove("ElementalBowAmmoSelection");
-            return;
-        }
+            setElementalBowShotSelection(stack, "arrow", null);
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
 
-        if (selectionId != null) {
-            tag.putString("ElementalBowAmmoSelection", selectionId.toString());
-        } else {
-            tag.remove("ElementalBowAmmoSelection");
-        }
-        tag.remove("ElementalBowMode");
+            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(result.getResult().consumesAction(),
+                    "Elemental Bow arrow-only mode should start drawing with Infinity while normal arrows exist: " + result.getResult());
+
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - 20);
+            helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
+                    "Elemental Bow arrow-only mode should not consume normal arrows while Infinity is enchanted");
+        });
+    }
+    static void elementalBowSpecialModeConsumesLastArrowAndKeepsSelection(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var registryAccess = helper.getLevel().registryAccess();
+            var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_special_arrow_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.enchant(infinity, 1);
+            setElementalBowShotSelection(stack, "special", ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow"));
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW));
+
+            var firstUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(firstUse.getResult().consumesAction(),
+                    "Elemental Bow special mode should start drawing while the selected arrow exists: " + firstUse.getResult());
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - 20);
+            helper.assertTrue(player.getInventory().getItem(1).isEmpty(),
+                    "Elemental Bow special mode should consume the selected arrow even with Infinity");
+
+            var secondUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(secondUse.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                    "Elemental Bow special mode should fail after the selected arrow runs out: " + secondUse.getResult());
+            assertElementalBowSelection(helper, stack, "special", ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow"),
+                    "Elemental Bow special mode should keep the selected arrow after ammo loss");
+        });
     }
 
     static void assertTranslatableKey(GameTestHelper helper, Component component, String expectedKey, String message) {
@@ -13707,7 +13723,7 @@ public class ApprenticeCodexGameTestScenarios {
 
         var rawTemplates = ((StructureTemplatePoolAccessor) pool).apprenticecodex$getRawTemplates();
         var matchingRawEntries = rawTemplates.stream()
-                .filter(pair -> isMatchingSinglePoolElement(pair.getFirst(), expectedStructureId, expectedProcessorId))
+                .filter(pair -> isMatchingSinglePoolElement(pair.get(0), expectedStructureId, expectedProcessorId))
                 .toList();
 
         helper.assertTrue(matchingRawEntries.size() == 1,
@@ -14510,5 +14526,9 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(registry.get(id) == entry.get(),
                     "Missing " + registryName + " registry entry: " + id);
         }
+    }
+
+    static void setElementalBowMode(ItemStack stack, String mode) {
+        BowGameTestSupport.setElementalBowMode(stack, mode);
     }
 }

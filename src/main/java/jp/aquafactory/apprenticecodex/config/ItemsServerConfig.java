@@ -818,10 +818,6 @@ final class ItemsServerConfig {
         return elementalBowConfig.overheatDurationCapTicks();
     }
 
-    double elementalBowPowerArrowSpellLevelBonusPerLevel() {
-        return elementalBowConfig.powerArrowSpellLevelBonusPerLevel();
-    }
-
     SpellStainedRunicTabletServerConfig.Values spellStainedRunicTabletConfig() {
         return spellStainedRunicTabletConfig.values();
     }
@@ -1028,8 +1024,7 @@ final class ItemsServerConfig {
             double overheatAdditionalManaQuadraticMultiplier,
             double overheatDurationMultiplier,
             int overheatDurationMinTicks,
-            int overheatDurationCapTicks,
-            double powerArrowSpellLevelBonusPerLevel
+            int overheatDurationCapTicks
     ) {
         elementalBowConfig.setForGameTest(
                 magicReadyDrawTicksMultiplier,
@@ -1037,8 +1032,7 @@ final class ItemsServerConfig {
                 overheatAdditionalManaQuadraticMultiplier,
                 overheatDurationMultiplier,
                 overheatDurationMinTicks,
-                overheatDurationCapTicks,
-                powerArrowSpellLevelBonusPerLevel
+                overheatDurationCapTicks
         );
     }
 

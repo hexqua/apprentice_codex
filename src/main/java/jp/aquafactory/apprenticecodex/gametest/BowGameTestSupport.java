@@ -128,18 +128,14 @@ final class BowGameTestSupport {
             double overheatAdditionalManaQuadraticMultiplier,
             double overheatDurationMultiplier,
             int overheatDurationMinTicks,
-            int overheatDurationCapTicks,
-            double powerArrowSpellLevelBonusPerLevel
-    ) {
+            int overheatDurationCapTicks) {
         return ApprenticeCodexServerConfig.useElementalBowConfigOverrideForGameTest(
                 magicReadyDrawTicksMultiplier,
                 overheatAdditionalManaLinearMultiplier,
                 overheatAdditionalManaQuadraticMultiplier,
                 overheatDurationMultiplier,
                 overheatDurationMinTicks,
-                overheatDurationCapTicks,
-                powerArrowSpellLevelBonusPerLevel
-        );
+                overheatDurationCapTicks);
     }
 
     static int getFocusStaffbowArrowCount(Player player) {
@@ -185,7 +181,7 @@ final class BowGameTestSupport {
             @Nullable ResourceLocation expectedSelectionId,
             String message
     ) {
-        var tag = stack.getTag();
+        var tag = getCustomDataTag(stack);
         var actualShotMode = tag != null && tag.contains("ElementalBowShotMode")
                 ? tag.getString("ElementalBowShotMode")
                 : null;
@@ -200,7 +196,7 @@ final class BowGameTestSupport {
             }
         }
         helper.assertTrue(
-                Objects.equals(actualShotMode, expectedShotMode) && Objects.equals(actualSelectionId, expectedSelectionId),
+                Objects.equals(actualShotMode, expectedShotMode) && Objects.equals(actualSelectionId, "magic".equals(expectedShotMode) ? elementalBowSlotId(expectedSelectionId) : expectedSelectionId),
                 message + ": expected shotMode=" + expectedShotMode + ", selection=" + expectedSelectionId
                         + " but got shotMode=" + actualShotMode + ", selection=" + actualSelectionId
         );
@@ -213,32 +209,40 @@ final class BowGameTestSupport {
     }
 
     @Nullable
-    static ElementalBow.ModeSelectionView findElementalBowSelectionView(ServerPlayer player, ItemStack stack,
-                                                                                String shotMode, @Nullable ResourceLocation selectionId) {
+    static ElementalBow.ModeSelectionView findElementalBowSelectionView(
+            ServerPlayer player,
+            ItemStack stack,
+            String shotMode,
+            @Nullable ResourceLocation selectionId
+    ) {
         return ElementalBow.getAvailableSelectionViews(player, stack).stream()
                 .filter(view -> shotMode.equals(view.selection().shotMode())
-                        && Objects.equals(selectionId, view.selection().selectionId()))
+                        && Objects.equals("magic".equals(shotMode) ? elementalBowSlotId(selectionId) : selectionId, view.selection().selectionId()))
                 .findFirst()
                 .orElse(null);
     }
 
     static void setElementalBowShotSelection(ItemStack stack, String shotMode, @Nullable ResourceLocation selectionId) {
-        var tag = stack.getOrCreateTag();
-        tag.putString("ElementalBowShotMode", shotMode);
-        if ("magic".equals(shotMode)) {
-            if (selectionId != null) {
-                tag.putString("ElementalBowMode", selectionId.toString());
+        jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowScrollStorage.migrate(stack);
+        if ("magic".equals(shotMode)) prepareElementalBowScrolls(stack);
+        var resolvedSelectionId = "magic".equals(shotMode) ? elementalBowSlotId(selectionId) : selectionId;
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putString("ElementalBowShotMode", shotMode);
+            if ("magic".equals(shotMode)) {
+                if (selectionId != null) {
+                    tag.putString("ElementalBowMode", resolvedSelectionId.toString());
+                }
+                tag.remove("ElementalBowAmmoSelection");
+                return;
             }
-            tag.remove("ElementalBowAmmoSelection");
-            return;
-        }
 
-        if (selectionId != null) {
-            tag.putString("ElementalBowAmmoSelection", selectionId.toString());
-        } else {
-            tag.remove("ElementalBowAmmoSelection");
-        }
-        tag.remove("ElementalBowMode");
+            if (selectionId != null) {
+                tag.putString("ElementalBowAmmoSelection", selectionId.toString());
+            } else {
+                tag.remove("ElementalBowAmmoSelection");
+            }
+            tag.remove("ElementalBowMode");
+        });
     }
 
     static void assertTranslatableKey(GameTestHelper helper, Component component, String expectedKey, String message) {
@@ -368,4 +372,49 @@ final class BowGameTestSupport {
         helper.assertTrue(spellData.isLocked() == expectedLocked,
                 message + " (locked mismatch: " + spellData.isLocked() + ")");
     }
+
+    static void setElementalBowMode(ItemStack stack, String mode) {
+        setElementalBowShotSelection(stack, "magic", ResourceLocation.tryParse(normalizeElementalBowModeId(mode)));
+    }
+
+    static jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig.GameTestConfigOverride useElementalBowSpellConfig(GameTestHelper helper) {
+        var previous = io.redspace.ironsspellbooks.api.config.SpellConfigManager.INSTANCE;
+        io.redspace.ironsspellbooks.api.config.SpellConfigManager.INSTANCE = new io.redspace.ironsspellbooks.api.config.SpellConfigManager();
+        io.redspace.ironsspellbooks.api.config.SpellConfigManager.INSTANCE.handleServerConfigUpdate();
+        io.redspace.ironsspellbooks.api.config.SpellConfigManager.onDatapackSync(
+                new net.minecraftforge.event.OnDatapackSyncEvent(helper.getLevel().getServer().getPlayerList(), null));
+        return () -> io.redspace.ironsspellbooks.api.config.SpellConfigManager.INSTANCE = previous;
+    }
+
+                Objects.equals(actualShotMode, expectedShotMode) && Objects.equals(actualSelectionId, "magic".equals(expectedShotMode) ? elementalBowSlotId(expectedSelectionId) : expectedSelectionId),
+                message + ": expected shotMode=" + expectedShotMode + ", selection=" + expectedSelectionId
+                        + " but got shotMode=" + actualShotMode + ", selection=" + actualSelectionId
+        );
+    }
+
+    static String describeElementalBowSelectionView(ElementalBow.ModeSelectionView view) {
+        return view.selection().selectionId() == null
+                ? view.selection().shotMode()
+                : view.selection().shotMode() + ":" + view.selection().selectionId();
+    }
+
+        if ("magic".equals(shotMode)) prepareElementalBowScrolls(stack);
+        var resolvedSelectionId = "magic".equals(shotMode) ? elementalBowSlotId(selectionId) : selectionId;
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+            tag.putString("ElementalBowShotMode", shotMode);
+            if ("magic".equals(shotMode)) {
+                if (selectionId != null) {
+                    tag.putString("ElementalBowMode", resolvedSelectionId.toString());
+                }
+                tag.remove("ElementalBowAmmoSelection");
+                return;
+            }
+
+            if (selectionId != null) {
+                tag.putString("ElementalBowAmmoSelection", selectionId.toString());
+            } else {
+                tag.remove("ElementalBowAmmoSelection");
+            }
+            tag.remove("ElementalBowMode");
+        }
 }
