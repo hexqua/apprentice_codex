@@ -86,7 +86,8 @@ public final class ElementalBowClientRenderState {
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         if (player != null && isRenderedHeldStack(player, renderingStack, perspective)) {
-            var state = ElementalBowOverheatManager.getState(player);
+            var state = ElementalBowOverheatManager.getState(player, ElementalBow.selectedScrollSlot(renderingStack),
+                    ElementalBowRunes.separatesOverheat(renderingStack));
             if (state.active()) {
                 warningPulse = resolveOverheatWarningPulse(partialTick);
                 alpha = Mth.lerp(warningPulse, OVERHEAT_BASE_ALPHA_MAX, OVERHEAT_BASE_ALPHA_MIN);

@@ -179,7 +179,16 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
     public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack stack) {
         return CalibrationAdjustmentProfile.of(CalibrationAdjustmentRule.repeatable("scroll_slot",
                 candidate -> candidate.is(jp.aquafactory.apprenticecodex.registry.TagRegistry.Items.SCROLLCASTER_GAUNTLET_SLOT_UPGRADES),
-                CalibrationAdjustmentHints.slotUpgrades()).withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(1)));
+                CalibrationAdjustmentHints.slotUpgrades()).withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(1)),
+                CalibrationAdjustmentRule.unique("school_rune",
+                        jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver::isSchoolRune,
+                        CalibrationAdjustmentHints.schoolRunes(), CalibrationAdjustmentHints.schoolRuneConstraint())
+                        .withEffectLines(() -> CalibrationAdjustmentEffects.forceSpellSchool(
+                                ElementalBowRunes.configuredManaMultiplier(true))),
+                CalibrationAdjustmentRule.unique("recovery_rune",
+                        candidate -> candidate.is(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get()),
+                        CalibrationAdjustmentHints.recoveryRune())
+                        .withEffectLines(CalibrationAdjustmentEffects.separateCooldown()));
     }
 
     public static int getEnabledCalibrationScrollSlotCount(ItemStack stack) {
@@ -221,6 +230,10 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
 
     public static ResourceLocation selectionIdForSlot(int slot) {
         return ResourceLocation.fromNamespaceAndPath("apprenticecodex", "scroll/" + slot);
+    }
+
+    public static int selectedScrollSlot(ItemStack stack) {
+        return scrollSlot(normalizeModeState(stack).id());
     }
 
     public static int scrollSlot(@Nullable ResourceLocation id) {
@@ -338,9 +351,18 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
                 .withStyle(ChatFormatting.GRAY));
         ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
         if (!ImbueTooltipHelper.appendHintIfDetailsHidden(lines)) {
-            ImbueTooltipHelper.appendTooltipSection(lines, List.of(
+            var abilities = new ArrayList<>(List.of(
                     ImbueTooltipHelper.translatableGray("item.apprenticecodex.spellgun.tooltip.ability_hold_long_keep"),
-                    ImbueTooltipHelper.translatableGray("item.apprenticecodex.spellgun.tooltip.ability_set_casttime.elemental_bow")),
+                    ImbueTooltipHelper.translatableGray("item.apprenticecodex.spellgun.tooltip.ability_set_casttime.elemental_bow")));
+            var school = ElementalBowRunes.school(stack);
+            if (school != null) {
+                abilities.add(Component.translatable("item.apprenticecodex.spellgun.tooltip.ability_mana_penalty",
+                        Component.literal(Math.round(ElementalBowRunes.configuredManaMultiplier(true) * 100) + "%")
+                                .withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GRAY));
+                abilities.add(Component.translatable("item.apprenticecodex.spellgun.tooltip.ability_attuned_school",
+                        school.getDisplayName().copy()).withStyle(ChatFormatting.GRAY));
+            }
+            ImbueTooltipHelper.appendTooltipSection(lines, abilities,
                     "item.apprenticecodex.spellgun.tooltip.ability_title",
                     "item.apprenticecodex.spellgun.tooltip.ability_none");
             ImbueTooltipHelper.appendTooltipSection(lines, List.of(
@@ -428,12 +450,12 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
 
         var profile = createSpellCastProfile(stack, mode);
 
-        var requiredMana = profile.spell().getManaCost(profile.spellLevel());
+        var requiredMana = ElementalBowRunes.baseManaCost(stack, player, profile.spell().getManaCost(profile.spellLevel()));
         if (!player.getAbilities().instabuild) {
             var magicData = MagicData.getPlayerMagicData(player);
             var extraMana = level.isClientSide
                     ? 0.0F
-                    : getAdditionalManaCost(player, mode, profile);
+                    : getAdditionalManaCost(player, stack, profile);
             var totalRequiredMana = requiredMana + extraMana;
             if (magicData == null || magicData.getMana() + MANA_SAFE_MARGIN < totalRequiredMana) {
                 if (!level.isClientSide) {
@@ -579,8 +601,8 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
             }
 
             var magicData = MagicData.getPlayerMagicData(player);
-            var requiredMana = profile.spell().getManaCost(profile.spellLevel());
-            var extraMana = getAdditionalManaCost(player, mode, profile);
+            var requiredMana = ElementalBowRunes.baseManaCost(stack, player, profile.spell().getManaCost(profile.spellLevel()));
+            var extraMana = getAdditionalManaCost(player, stack, profile);
             var totalRequiredMana = requiredMana + extraMana;
             if (magicData == null || magicData.getMana() + MANA_SAFE_MARGIN < totalRequiredMana) {
                 player.displayClientMessage(
@@ -595,7 +617,7 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
 
         var overheatMana = player.getAbilities().instabuild
                 ? 0.0F
-                : getAdditionalManaCost(player, mode, profile);
+                : getAdditionalManaCost(player, stack, profile);
         if (!castElementalSpell(player, stack, profile)) {
             return;
         }
@@ -604,7 +626,8 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
             consumeAdditionalMana(player, overheatMana);
         }
         ElementalBowOverheatManager.applyOverheatAfterCast(player,
-                WeaponImbueCooldownHelper.getEffectiveSpellCooldownWithoutSwordMultiplier(profile.spell(), player, CastSource.SWORD));
+                WeaponImbueCooldownHelper.getEffectiveSpellCooldownWithoutSwordMultiplier(profile.spell(), player, CastSource.SWORD),
+                scrollSlot(normalizeModeState(stack).id()), ElementalBowRunes.separatesOverheat(stack));
 
         if (!player.getAbilities().instabuild) {
             stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(player.getUsedItemHand()));
@@ -971,14 +994,16 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
         };
     }
 
-    private float getAdditionalManaCost(Player player, ResolvedDefinition mode, SpellCastProfile profile) {
-        return ElementalBowOverheatManager.getAdditionalManaCost(player, profile.spell().getManaCost(profile.spellLevel()));
+    private float getAdditionalManaCost(Player player, ItemStack stack, SpellCastProfile profile) {
+        return (float) (ElementalBowOverheatManager.getAdditionalManaCost(player,
+                profile.spell().getManaCost(profile.spellLevel()), scrollSlot(normalizeModeState(stack).id()),
+                ElementalBowRunes.separatesOverheat(stack)) * ElementalBowRunes.manaMultiplier(stack, player));
     }
 
     private void displayOverheatManaWarning(Player player, ItemStack stack, ResolvedDefinition mode) {
         var profile = createSpellCastProfile(stack, mode);
 
-        var extraMana = getAdditionalManaCost(player, mode, profile);
+        var extraMana = getAdditionalManaCost(player, stack, profile);
         if (extraMana <= MANA_SAFE_MARGIN) {
             return;
         }
@@ -986,7 +1011,8 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
         player.displayClientMessage(
                 Component.translatable(
                                 "ui.apprenticecodex.elemental_bow.overheat_mana_warning",
-                                formatDisplayedOverheatManaCost(profile.spell().getManaCost(profile.spellLevel()) + extraMana)
+                                formatDisplayedOverheatManaCost(ElementalBowRunes.baseManaCost(stack, player,
+                                        profile.spell().getManaCost(profile.spellLevel())) + extraMana)
                         )
                         .withStyle(ChatFormatting.YELLOW),
                 true
@@ -1245,9 +1271,11 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
             var spellIcon = resolvedMode != null ? resolvedMode.spell().getSpellIconResource() : null;
             var levelText = resolvedMode != null ? Integer.toString(resolveSpellLevel(stack, selection.id(), resolvedMode)) : "?";
             var badgeColor = resolvedMode != null ? resolvedMode.color() : 0xFFFFFF;
-            var overheatActive = resolvedMode != null && ElementalBowOverheatManager.getState(player).active();
+            var overheatActive = resolvedMode != null && ElementalBowOverheatManager.getState(player,
+                    scrollSlot(selection.id()), ElementalBowRunes.separatesOverheat(stack)).active();
             var overheatFillRatio = resolvedMode != null
-                    ? ElementalBowOverheatManager.getCooldownOverlayRatio(player)
+                    ? ElementalBowOverheatManager.getCooldownOverlayRatio(player,
+                    scrollSlot(selection.id()), ElementalBowRunes.separatesOverheat(stack))
                     : 0.0F;
             return new ModeSelectionView(
                     selection.toKey(),

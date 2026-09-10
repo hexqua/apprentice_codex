@@ -810,6 +810,14 @@ final class ItemsServerConfig {
         return elementalBowConfig.overheatDurationMultiplier();
     }
 
+    double elementalBowSchoolRuneManaCostMultiplier() {
+        return elementalBowConfig.schoolRuneManaCostMultiplier();
+    }
+
+    void setElementalBowSchoolRuneManaCostMultiplierForGameTest(Double value) {
+        elementalBowConfig.setSchoolRuneManaCostMultiplierForGameTest(value);
+    }
+
     int elementalBowOverheatDurationMinTicks() {
         return elementalBowConfig.overheatDurationMinTicks();
     }

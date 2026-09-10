@@ -1015,6 +1015,16 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.elementalBowOverheatDurationMultiplier();
     }
 
+    public static double elementalBowSchoolRuneManaCostMultiplier() {
+        return ITEMS_CONFIG.elementalBowSchoolRuneManaCostMultiplier();
+    }
+
+    public static GameTestConfigOverride overrideElementalBowSchoolRuneManaCostMultiplierForGameTest(double value) {
+        var previous = elementalBowSchoolRuneManaCostMultiplier();
+        ITEMS_CONFIG.setElementalBowSchoolRuneManaCostMultiplierForGameTest(value);
+        return () -> ITEMS_CONFIG.setElementalBowSchoolRuneManaCostMultiplierForGameTest(previous);
+    }
+
     public static int elementalBowOverheatDurationMinTicks() {
         return ITEMS_CONFIG.elementalBowOverheatDurationMinTicks();
     }

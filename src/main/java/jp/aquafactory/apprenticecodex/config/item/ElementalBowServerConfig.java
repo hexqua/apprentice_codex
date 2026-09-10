@@ -7,6 +7,17 @@ import java.util.List;
 import java.util.Objects;
 
 public final class ElementalBowServerConfig {
+    private final ModConfigSpec.DoubleValue schoolRuneManaCostMultiplier;
+    private Double schoolRuneManaCostMultiplierOverride;
+
+    public double schoolRuneManaCostMultiplier() {
+        return schoolRuneManaCostMultiplierOverride == null
+                ? schoolRuneManaCostMultiplier.get() : schoolRuneManaCostMultiplierOverride;
+    }
+
+    public void setSchoolRuneManaCostMultiplierForGameTest(Double value) {
+        schoolRuneManaCostMultiplierOverride = value;
+    }
     private final ModConfigSpec.ConfigValue<List<? extends String>> magicArrowCatalystItems;
     private final ModConfigSpec.DoubleValue magicReadyDrawTicksMultiplier;
     private final ModConfigSpec.DoubleValue overheatAdditionalManaLinearMultiplier;
@@ -24,6 +35,7 @@ public final class ElementalBowServerConfig {
     private Integer overheatDurationCapTicksOverride;
 
     private ElementalBowServerConfig(
+            ModConfigSpec.DoubleValue schoolRuneManaCostMultiplier,
             ModConfigSpec.ConfigValue<List<? extends String>> magicArrowCatalystItems,
             ModConfigSpec.DoubleValue magicReadyDrawTicksMultiplier,
             ModConfigSpec.DoubleValue overheatAdditionalManaLinearMultiplier,
@@ -32,6 +44,7 @@ public final class ElementalBowServerConfig {
             ModConfigSpec.IntValue overheatDurationMinTicks,
             ModConfigSpec.IntValue overheatDurationCapTicks
     ) {
+        this.schoolRuneManaCostMultiplier = schoolRuneManaCostMultiplier;
         this.magicArrowCatalystItems = magicArrowCatalystItems;
         this.magicReadyDrawTicksMultiplier = magicReadyDrawTicksMultiplier;
         this.overheatAdditionalManaLinearMultiplier = overheatAdditionalManaLinearMultiplier;
@@ -43,6 +56,9 @@ public final class ElementalBowServerConfig {
 
     public static ElementalBowServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("ElementalBow");
+        var schoolRuneManaCostMultiplier = builder
+                .comment("Mana cost multiplier for all Elemental Bow spells with a school rune, including overheat costs.")
+                .defineInRange("schoolRuneManaCostMultiplier", 2.0D, 1.0D, 10.0D);
         var magicArrowCatalystItems = builder
                 .comment("Item IDs accepted as Elemental Bow magic mode arrow catalysts. Empty list makes non-Synthesis survival casts unusable.")
                 .defineListAllowEmpty("magicArrowCatalystItems", List.of("minecraft:arrow"), ElementalBowServerConfig::isItemId);
@@ -67,6 +83,7 @@ public final class ElementalBowServerConfig {
         builder.pop();
 
         return new ElementalBowServerConfig(
+                schoolRuneManaCostMultiplier,
                 magicArrowCatalystItems,
                 magicReadyDrawTicksMultiplier,
                 overheatAdditionalManaLinearMultiplier,

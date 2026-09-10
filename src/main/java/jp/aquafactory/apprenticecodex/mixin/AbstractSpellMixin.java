@@ -79,7 +79,10 @@ public abstract class AbstractSpellMixin {
     )
     private double apprentice_codex$useDivinePossessionSchoolPower(SchoolType schoolType, LivingEntity caster) {
         var spell = (AbstractSpell) (Object) this;
-        var resolvedPower = MagiAgentSuitEffects.resolveSchoolPower(spell, schoolType, caster);
+        var bowSchool = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowSpellPowerContext.school(spell, caster);
+        // ルーンは参照系統だけを強制し、Divine Possession などの共通補正は維持する。
+        var resolvedPower = bowSchool == null ? MagiAgentSuitEffects.resolveSchoolPower(spell, schoolType, caster)
+                : jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPowerHelper.resolveSchoolPower(bowSchool, caster);
         return SpellgunCastContext.resolveSchoolSpellPower(spell, caster, resolvedPower);
     }
 

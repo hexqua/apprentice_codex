@@ -20,13 +20,17 @@ public final class ElementalBowCasting {
         return context != null && context.player() == player && context.spell() == spell;
     }
 
+    public static double manaMultiplier(Player player, AbstractSpell spell) {
+        return isActive(player, spell) ? ACTIVE.get().manaMultiplier() : 1.0D;
+    }
+
     public static boolean cast(Player player, ItemStack stack, AbstractSpell spell, int spellLevel) {
         var previous = ACTIVE.get();
         String slot = player.getUsedItemHand() == InteractionHand.OFF_HAND
                 ? SpellSelectionManager.OFFHAND : SpellSelectionManager.MAINHAND;
         // 通常魔法の cooldown を消す代わりに、弓の同期発動の間だけ判定と登録を除外する。
-        try {
-            ACTIVE.set(new Context(player, spell));
+        try (var ignored = ElementalBowSpellPowerContext.open(player, spell, stack)) {
+            ACTIVE.set(new Context(player, spell, ElementalBowRunes.manaMultiplier(stack, player)));
             if (!spell.attemptInitiateCast(stack, spellLevel, player.level(), player, CastSource.SWORD, true, slot))
                 return false;
             TriggeredSpellCastHelper.applyLongCastDurationOverride(player, spellLevel, spell,
@@ -38,6 +42,6 @@ public final class ElementalBowCasting {
         }
     }
 
-    private record Context(Player player, AbstractSpell spell) {
+    private record Context(Player player, AbstractSpell spell, double manaMultiplier) {
     }
 }
