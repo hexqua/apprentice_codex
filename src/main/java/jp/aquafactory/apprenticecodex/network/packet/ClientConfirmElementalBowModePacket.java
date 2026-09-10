@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public record ClientConfirmElementalBowModePacket(
@@ -24,16 +25,18 @@ public record ClientConfirmElementalBowModePacket(
             StreamCodec.of((buffer, packet) -> encode(packet, buffer), ClientConfirmElementalBowModePacket::decode);
 
     @Override
-    public Type<? extends CustomPacketPayload> type() {
+    public @NotNull Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 
     public static void encode(ClientConfirmElementalBowModePacket packet, FriendlyByteBuf buffer) {
         buffer.writeEnum(packet.hand());
         buffer.writeUtf(packet.shotMode());
-        buffer.writeBoolean(packet.selectionId() != null);
-        if (packet.selectionId() != null) {
-            buffer.writeResourceLocation(packet.selectionId());
+        if ("magic".equals(packet.shotMode())) {
+            buffer.writeVarInt(ElementalBow.scrollSlot(packet.selectionId()));
+        } else {
+            buffer.writeBoolean(packet.selectionId() != null);
+            if (packet.selectionId() != null) buffer.writeResourceLocation(packet.selectionId());
         }
         buffer.writeBoolean(packet.continueUse());
     }
@@ -41,8 +44,9 @@ public record ClientConfirmElementalBowModePacket(
     public static ClientConfirmElementalBowModePacket decode(FriendlyByteBuf buffer) {
         var hand = buffer.readEnum(InteractionHand.class);
         var shotMode = buffer.readUtf();
-        var hasSelectionId = buffer.readBoolean();
-        var selectionId = hasSelectionId ? buffer.readResourceLocation() : null;
+        ResourceLocation selectionId;
+        if ("magic".equals(shotMode)) selectionId = ElementalBow.selectionIdForSlot(buffer.readVarInt());
+        else selectionId = buffer.readBoolean() ? buffer.readResourceLocation() : null;
         var continueUse = buffer.readBoolean();
         return new ClientConfirmElementalBowModePacket(hand, shotMode, selectionId, continueUse);
     }

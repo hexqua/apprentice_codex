@@ -1,8 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.elementalbow;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager;
-import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -72,8 +70,8 @@ public final class ElementalBowClientRenderState {
             return HIDDEN;
         }
 
-        var schoolId = ElementalBow.getConfiguredSchoolId(renderingStack);
-        var mode = ElementalBowModeManager.getResolvedDefinition(schoolId);
+        var profile = ElementalBow.getDisplayedSpellProfile(renderingStack);
+        var mode = profile == null ? null : ElementalBowModeManager.getResolvedDefinition(profile.spell().getSpellResource());
         if (mode == null) {
             return HIDDEN;
         }
@@ -88,7 +86,7 @@ public final class ElementalBowClientRenderState {
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         if (player != null && isRenderedHeldStack(player, renderingStack, perspective)) {
-            var state = ElementalBowOverheatManager.getState(player, schoolId);
+            var state = ElementalBowOverheatManager.getState(player);
             if (state.active()) {
                 warningPulse = resolveOverheatWarningPulse(partialTick);
                 alpha = Mth.lerp(warningPulse, OVERHEAT_BASE_ALPHA_MAX, OVERHEAT_BASE_ALPHA_MIN);

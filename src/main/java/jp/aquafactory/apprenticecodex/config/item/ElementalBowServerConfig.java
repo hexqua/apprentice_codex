@@ -14,7 +14,6 @@ public final class ElementalBowServerConfig {
     private final ModConfigSpec.DoubleValue overheatDurationMultiplier;
     private final ModConfigSpec.IntValue overheatDurationMinTicks;
     private final ModConfigSpec.IntValue overheatDurationCapTicks;
-    private final ModConfigSpec.DoubleValue powerArrowSpellLevelBonusPerLevel;
 
     private List<String> magicArrowCatalystItemsOverride;
     private Double magicReadyDrawTicksMultiplierOverride;
@@ -23,7 +22,6 @@ public final class ElementalBowServerConfig {
     private Double overheatDurationMultiplierOverride;
     private Integer overheatDurationMinTicksOverride;
     private Integer overheatDurationCapTicksOverride;
-    private Double powerArrowSpellLevelBonusPerLevelOverride;
 
     private ElementalBowServerConfig(
             ModConfigSpec.ConfigValue<List<? extends String>> magicArrowCatalystItems,
@@ -32,8 +30,7 @@ public final class ElementalBowServerConfig {
             ModConfigSpec.DoubleValue overheatAdditionalManaQuadraticMultiplier,
             ModConfigSpec.DoubleValue overheatDurationMultiplier,
             ModConfigSpec.IntValue overheatDurationMinTicks,
-            ModConfigSpec.IntValue overheatDurationCapTicks,
-            ModConfigSpec.DoubleValue powerArrowSpellLevelBonusPerLevel
+            ModConfigSpec.IntValue overheatDurationCapTicks
     ) {
         this.magicArrowCatalystItems = magicArrowCatalystItems;
         this.magicReadyDrawTicksMultiplier = magicReadyDrawTicksMultiplier;
@@ -42,7 +39,6 @@ public final class ElementalBowServerConfig {
         this.overheatDurationMultiplier = overheatDurationMultiplier;
         this.overheatDurationMinTicks = overheatDurationMinTicks;
         this.overheatDurationCapTicks = overheatDurationCapTicks;
-        this.powerArrowSpellLevelBonusPerLevel = powerArrowSpellLevelBonusPerLevel;
     }
 
     public static ElementalBowServerConfig define(ModConfigSpec.Builder builder) {
@@ -68,9 +64,6 @@ public final class ElementalBowServerConfig {
         var overheatDurationCapTicks = builder
                 .comment("Maximum Elemental Bow magic shot overheat duration in ticks. 0 disables this cap.")
                 .defineInRange("overheatDurationCapTicks", 0, 0, Integer.MAX_VALUE);
-        var powerArrowSpellLevelBonusPerLevel = builder
-                .comment("Elemental Bow magic shot spell level bonus per Power enchantment level. Fractional totals are rounded down.")
-                .defineInRange("powerArrowSpellLevelBonusPerLevel", 1.0D, 0.0D, 100.0D);
         builder.pop();
 
         return new ElementalBowServerConfig(
@@ -80,8 +73,7 @@ public final class ElementalBowServerConfig {
                 overheatAdditionalManaQuadraticMultiplier,
                 overheatDurationMultiplier,
                 overheatDurationMinTicks,
-                overheatDurationCapTicks,
-                powerArrowSpellLevelBonusPerLevel
+                overheatDurationCapTicks
         );
     }
 
@@ -130,20 +122,13 @@ public final class ElementalBowServerConfig {
         return overheatDurationCapTicksOverride == null ? overheatDurationCapTicks.get() : overheatDurationCapTicksOverride;
     }
 
-    public double powerArrowSpellLevelBonusPerLevel() {
-        return powerArrowSpellLevelBonusPerLevelOverride == null
-                ? powerArrowSpellLevelBonusPerLevel.get()
-                : powerArrowSpellLevelBonusPerLevelOverride;
-    }
-
     public void setForGameTest(
             double magicReadyDrawTicksMultiplier,
             double overheatAdditionalManaLinearMultiplier,
             double overheatAdditionalManaQuadraticMultiplier,
             double overheatDurationMultiplier,
             int overheatDurationMinTicks,
-            int overheatDurationCapTicks,
-            double powerArrowSpellLevelBonusPerLevel
+            int overheatDurationCapTicks
     ) {
         this.magicReadyDrawTicksMultiplierOverride = magicReadyDrawTicksMultiplier;
         this.overheatAdditionalManaLinearMultiplierOverride = overheatAdditionalManaLinearMultiplier;
@@ -151,7 +136,6 @@ public final class ElementalBowServerConfig {
         this.overheatDurationMultiplierOverride = overheatDurationMultiplier;
         this.overheatDurationMinTicksOverride = overheatDurationMinTicks;
         this.overheatDurationCapTicksOverride = overheatDurationCapTicks;
-        this.powerArrowSpellLevelBonusPerLevelOverride = powerArrowSpellLevelBonusPerLevel;
     }
 
     public void setMagicArrowCatalystItemsForGameTest(List<String> magicArrowCatalystItems) {

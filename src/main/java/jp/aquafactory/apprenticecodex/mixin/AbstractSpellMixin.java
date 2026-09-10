@@ -5,6 +5,9 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ICastData;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
+import io.redspace.ironsspellbooks.capabilities.magic.PlayerCooldowns;
+import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastCartridgeCasting;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowCasting;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookStartSoundContext;
@@ -20,14 +23,12 @@ import net.minecraft.core.Holder;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -35,6 +36,25 @@ import java.util.Optional;
 
 @Mixin(value = AbstractSpell.class, remap = false)
 public abstract class AbstractSpellMixin {
+    // 同じ問い合わせへの Redirect が競合しないよう、装備ごとの CD 回避をここでまとめる。
+    // CD 自体を削除せず、通常詠唱や開始失敗時に既存の待ち時間を保持する。
+    @Redirect(method = "canBeCastedBy", at = @At(value = "INVOKE",
+            target = "Lio/redspace/ironsspellbooks/capabilities/magic/PlayerCooldowns;isOnCooldown(Lio/redspace/ironsspellbooks/api/spells/AbstractSpell;)Z"))
+    private boolean apprentice_codex$checkCastingCooldown(PlayerCooldowns cooldowns, AbstractSpell spell, int level,
+                                                         CastSource source, MagicData magic, Player player) {
+        return !QuickcastCartridgeCasting.bypassCooldown(player, spell)
+                && !ElementalBowCasting.isActive(player, spell)
+                && cooldowns.isOnCooldown(spell);
+    }
+
+    @ModifyVariable(method = "castSpell", at = @At("HEAD"), argsOnly = true)
+    private boolean apprentice_codex$skipElementalBowCooldown(boolean triggerCooldown,
+            Level level, int spellLevel, ServerPlayer player, CastSource source, boolean original) {
+        // mixinのキャストによる型変換はIDEが誤検知しやすいため警告抑制.
+        //noinspection ConstantValue
+        return triggerCooldown && !ElementalBowCasting.isActive(player, (AbstractSpell) (Object) this);
+    }
+
     @ModifyArg(
             method = "castSpell",
             at = @At(

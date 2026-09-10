@@ -1,11 +1,8 @@
 package jp.aquafactory.apprenticecodex.item.elementalbow;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
-import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
-import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
@@ -73,9 +70,20 @@ import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
-import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
+import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
+import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
+import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
+import java.util.Optional;
 
-public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContainer, ArcaneAnvilImbueBlockItem,
+public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget, ArcaneAnvilImbueBlockItem,
         IJeiInfoItem, SneakSelectionUiItem, TranscendencePolicy, WisdomPolicy, PlunderTarget {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.elemental_bow.desc_";
 
@@ -147,7 +155,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
         var stack = player.getItemInHand(usedHand);
-        initializeSpellContainer(stack);
+        if (!level.isClientSide) ElementalBowScrollStorage.migrate(stack);
         var selection = normalizeModeState(stack);
         return switch (selection.kind()) {
             case NORMAL -> useNormalArrowMode(level, player, usedHand, stack);
@@ -156,58 +164,92 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         };
     }
 
+    public static HolderLookup.Provider serializationLookup() {
+        return net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer() != null
+                ? net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer().registryAccess()
+                : net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT
+                ? ElementalBowClientTooltip.lookup()
+                : net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
+    }
+
     @Override
-    public void initializeSpellContainer(ItemStack stack) {
-        if (stack == null || stack.isEmpty()) {
-            return;
-        }
+    public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack stack) { return 3; }
 
-        var profile = resolveSpellProfile(stack, resolveConfiguredMagicMode(stack));
-        if (profile == null) {
-            ISpellContainer.remove(stack);
-            return;
-        }
+    @Override
+    public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack stack) {
+        return CalibrationAdjustmentProfile.of(CalibrationAdjustmentRule.repeatable("scroll_slot",
+                candidate -> candidate.is(jp.aquafactory.apprenticecodex.registry.TagRegistry.Items.SCROLLCASTER_GAUNTLET_SLOT_UPGRADES),
+                CalibrationAdjustmentHints.slotUpgrades()).withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(1)));
+    }
 
-        var spellContainer = ISpellContainer.get(stack);
-        if (spellContainer != null) {
-            var spellData = spellContainer.getSpellAtIndex(0);
-            if (spellData != SpellData.EMPTY
-                    && spellData.getSpell() == profile.spell()
-                    && spellData.getLevel() == profile.spellLevel()
-                    && spellData.isLocked()
-                    && spellContainer.getMaxSpellCount() == 1
-                    && !spellContainer.isSpellWheel()) {
-                return;
-            }
-        }
+    public static int getEnabledCalibrationScrollSlotCount(ItemStack stack) {
+        return ElementalBowScrollStorage.enabledSlots(stack, serializationLookup());
+    }
 
-        // モード由来の spell 情報は tooltip と外部参照先で共有したいが、
-        // 通常の spell wheel へは流さない。
-        var mutable = ISpellContainer.create(1, false, false).mutableCopy();
-        mutable.addSpellAtIndex(profile.spell(), profile.spellLevel(), 0, true);
-        ISpellContainer.set(stack, mutable.toImmutable());
+    public static ItemStack getCalibrationScroll(ItemStack stack, int slot, HolderLookup.Provider lookup) {
+        return ElementalBowScrollStorage.get(stack, slot, lookup);
+    }
+
+    public static void setCalibrationScroll(ItemStack stack, int slot, ItemStack scroll, HolderLookup.Provider lookup) {
+        ElementalBowScrollStorage.set(stack, slot, scroll, lookup);
+        normalizeModeState(stack);
+    }
+
+    @Override
+    public boolean hasAnyStoredCalibrationScroll(@NotNull ItemStack stack) {
+        for (int i = 0; i < 4; i++) if (!getCalibrationScroll(stack, i, serializationLookup()).isEmpty()) return true;
+        return false;
+    }
+
+    @Override
+    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(@NotNull ItemStack stack, int slot, @NotNull SpellData data) {
+        return slot >= 0 && slot < getEnabledCalibrationScrollSlotCount(stack)
+                && data != SpellData.EMPTY && isElementalSpell(data.getSpell())
+                ? SpellCalibrationImbueState.ACCEPTED_USABLE : SpellCalibrationImbueState.REJECTED;
+    }
+
+    @Override
+    public void onCalibrationAdjustmentsChanged(@NotNull ItemStack stack, @NotNull HolderLookup.Provider lookup) {
+        ElementalBowScrollStorage.migrate(stack);
+        normalizeModeState(stack);
+    }
+
+    @Override
+    public @NotNull Optional<TooltipComponent> getTooltipImage(@NotNull ItemStack stack) {
+        return createCalibrationAdjustmentTooltip(stack);
+    }
+
+    public static ResourceLocation selectionIdForSlot(int slot) {
+        return ResourceLocation.fromNamespaceAndPath("apprenticecodex", "scroll/" + slot);
+    }
+
+    public static int scrollSlot(@Nullable ResourceLocation id) {
+        if (id == null || !id.getNamespace().equals("apprenticecodex") || !id.getPath().startsWith("scroll/")) return -1;
+        try { return Integer.parseInt(id.getPath().substring(7)); }
+        catch (NumberFormatException ignored) { return -1; }
+    }
+
+    @Nullable
+    private static ResolvedDefinition resolveMode(ItemStack stack, @Nullable ResourceLocation selectionId) {
+        int slot = scrollSlot(selectionId);
+        if (slot < 0 || slot >= getEnabledCalibrationScrollSlotCount(stack)) return null;
+        var data = ElementalBowScrollStorage.readSpell(stack, slot, serializationLookup());
+        return data == SpellData.EMPTY || !data.getSpell().isEnabled() ? null
+                : ElementalBowModeManager.getResolvedDefinition(data.getSpell().getSpellResource());
+    }
+
+    private static int resolveSpellLevel(ItemStack stack, ResourceLocation selectionId, ResolvedDefinition mode) {
+        var data = ElementalBowScrollStorage.readSpell(stack, scrollSlot(selectionId), serializationLookup());
+        return mode.resolveSpellLevel(stack, data.getLevel());
     }
 
     @Override
     public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity, int slotId, boolean isSelected) {
         super.inventoryTick(stack, level, entity, slotId, isSelected);
-        initializeSpellContainer(stack);
-        if (level.isClientSide || !(entity instanceof Player player)) {
-            return;
+        if (!level.isClientSide) {
+            ElementalBowScrollStorage.migrate(stack);
+            normalizeModeState(stack);
         }
-
-        if (!isHeldElementalBow(player.getMainHandItem()) && !isHeldElementalBow(player.getOffhandItem())) {
-            ElementalBowOverheatManager.clearObservedSchools(player);
-            return;
-        }
-
-        // 1プレイヤーにつき1回だけ走らせるという意図でガードはつける.
-        var trackingStack = isHeldElementalBow(player.getMainHandItem()) ? player.getMainHandItem() : player.getOffhandItem();
-        if (stack != trackingStack) {
-            return;
-        }
-
-        ElementalBowOverheatManager.refreshObservedSchoolsWhileHolding(player);
     }
 
     @Override
@@ -240,7 +282,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         if (!(livingEntity instanceof Player player)) {
             return;
         }
-        initializeSpellContainer(stack);
+        if (!level.isClientSide) ElementalBowScrollStorage.migrate(stack);
 
         var selection = normalizeModeState(stack);
         switch (selection.kind()) {
@@ -287,7 +329,6 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     }
 
     public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
-        initializeSpellContainer(stack);
         super.appendHoverText(stack, context, lines, flag);
         lines.add(
                 Component.translatable("item.apprenticecodex.elemental_bow.mode", getModeDisplayName(stack))
@@ -295,19 +336,20 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         );
         lines.add(Component.translatable("item.apprenticecodex.elemental_bow.desc")
                 .withStyle(ChatFormatting.GRAY));
-        if (normalizeModeState(stack).kind() != ShotModeKind.MAGIC) {
-            return;
+        ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
+        if (!ImbueTooltipHelper.appendHintIfDetailsHidden(lines)) {
+            ImbueTooltipHelper.appendTooltipSection(lines, List.of(
+                    ImbueTooltipHelper.translatableGray("item.apprenticecodex.spellgun.tooltip.ability_hold_long_keep"),
+                    ImbueTooltipHelper.translatableGray("item.apprenticecodex.spellgun.tooltip.ability_set_casttime.elemental_bow")),
+                    "item.apprenticecodex.spellgun.tooltip.ability_title",
+                    "item.apprenticecodex.spellgun.tooltip.ability_none");
+            ImbueTooltipHelper.appendTooltipSection(lines, List.of(
+                    ImbueTooltipHelper.translatableGray("item.apprenticecodex.spellgun.tooltip.restrict_restrict_by_specific.elemental_bow")),
+                    "item.apprenticecodex.spellgun.tooltip.restrict_title",
+                    "item.apprenticecodex.spellgun.tooltip.restrict_none");
         }
-
-        if (hasSynthesis(stack)) {
-            lines.add(Component.translatable("item.apprenticecodex.elemental_bow.spell.with_synthesis")
-                    .withStyle(ChatFormatting.AQUA));
-        } else if (hasInfinity(stack)) {
-            lines.add(Component.translatable("item.apprenticecodex.elemental_bow.spell.with_infinity")
-                    .withStyle(ChatFormatting.YELLOW));
-        } else {
-            lines.add(Component.translatable("item.apprenticecodex.elemental_bow.spell.no_enchantment")
-                    .withStyle(ChatFormatting.YELLOW));
+        if (net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT) {
+            ElementalBowClientTooltip.append(stack, lines);
         }
     }
 
@@ -369,7 +411,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             ItemStack stack,
             ModeSelection selection
     ) {
-        var mode = ElementalBowModeManager.getResolvedDefinition(selection.id());
+        var mode = resolveMode(stack, selection.id());
         if (mode == null) {
             clearAllModeTags(stack);
             return InteractionResultHolder.fail(stack);
@@ -551,7 +593,6 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             }
         }
 
-        ElementalBowOverheatManager.clearPendingCooldown(player, mode.schoolId());
         var overheatMana = player.getAbilities().instabuild
                 ? 0.0F
                 : getAdditionalManaCost(player, mode, profile);
@@ -562,11 +603,8 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         if (overheatMana > 0.0F) {
             consumeAdditionalMana(player, overheatMana);
         }
-        ElementalBowOverheatManager.applyOverheatAfterCast(
-                player,
-                mode.schoolId(),
-                ElementalBowOverheatManager.consumePendingCooldown(player, mode.schoolId(), profile.spell().getSpellCooldown())
-        );
+        ElementalBowOverheatManager.applyOverheatAfterCast(player,
+                WeaponImbueCooldownHelper.getEffectiveSpellCooldownWithoutSwordMultiplier(profile.spell(), player, CastSource.SWORD));
 
         if (!player.getAbilities().instabuild) {
             stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(player.getUsedItemHand()));
@@ -590,32 +628,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     }
 
     private boolean castElementalSpell(Player player, ItemStack stack, SpellCastProfile profile) {
-        var slotId = player.getUsedItemHand() == InteractionHand.OFF_HAND
-                ? SpellSelectionManager.OFFHAND
-                : SpellSelectionManager.MAINHAND;
-        var magicData = MagicData.getPlayerMagicData(player);
-        var casted = profile.spell().attemptInitiateCast(
-                stack,
-                profile.spellLevel(),
-                player.level(),
-                player,
-                CastSource.SWORD,
-                true,
-                slotId
-        );
-        if (!casted) {
-            return false;
-        }
-
-        TriggeredSpellCastHelper.applyLongCastDurationOverride(
-                player,
-                profile.spellLevel(),
-                profile.spell(),
-                magicData,
-                slotId,
-                0
-        );
-        return true;
+        return ElementalBowCasting.cast(player, stack, profile.spell(), profile.spellLevel());
     }
 
     private void fireVanillaArrow(Level level, Player player, ItemStack bowStack, ItemStack ammoStack, float power, boolean infiniteAmmo) {
@@ -668,7 +681,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     }
 
     private SpellCastProfile createSpellCastProfile(ItemStack stack, ResolvedDefinition mode) {
-        return new SpellCastProfile(mode.spell(), mode.resolveSpellLevel(stack));
+        return new SpellCastProfile(mode.spell(), resolveSpellLevel(stack, normalizeModeState(stack).id(), mode));
     }
 
     @Nullable
@@ -707,7 +720,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         }
 
         if (selection.kind() == ShotModeKind.MAGIC) {
-            var resolvedMode = ElementalBowModeManager.getResolvedDefinition(selection.id());
+            var resolvedMode = resolveMode(stack, selection.id());
             if (resolvedMode == null) {
                 return null;
             }
@@ -751,7 +764,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         var currentSelection = normalizeModeState(stack);
         var ammoSummary = summarizeAmmoInventory(player);
-        var selections = buildAvailableSelections(currentSelection, ammoSummary);
+        var selections = buildAvailableSelections(stack, currentSelection, ammoSummary);
         var views = new ArrayList<ModeSelectionView>(selections.size());
         for (var selection : selections) {
             views.add(createSelectionView(player, stack, selection, currentSelection, ammoSummary));
@@ -802,7 +815,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
     private static boolean isSelectableMode(Player player, ItemStack stack, ModeSelection requestedSelection) {
         var currentSelection = normalizeModeState(stack);
-        for (var selectable : buildAvailableSelections(currentSelection, summarizeAmmoInventory(player))) {
+        for (var selectable : buildAvailableSelections(stack, currentSelection, summarizeAmmoInventory(player))) {
             if (sameSelection(selectable, requestedSelection)) {
                 return true;
             }
@@ -959,7 +972,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     }
 
     private float getAdditionalManaCost(Player player, ResolvedDefinition mode, SpellCastProfile profile) {
-        return ElementalBowOverheatManager.getAdditionalManaCost(player, mode.schoolId(), profile.spell().getManaCost(profile.spellLevel()));
+        return ElementalBowOverheatManager.getAdditionalManaCost(player, profile.spell().getManaCost(profile.spellLevel()));
     }
 
     private void displayOverheatManaWarning(Player player, ItemStack stack, ResolvedDefinition mode) {
@@ -1048,7 +1061,7 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     private ResolvedDefinition resolveConfiguredMagicMode(ItemStack stack) {
         var selection = normalizeModeState(stack);
         return selection.kind() == ShotModeKind.MAGIC
-                ? ElementalBowModeManager.getResolvedDefinition(selection.id())
+                ? resolveMode(stack, selection.id())
                 : null;
     }
 
@@ -1060,16 +1073,6 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         var storedShotMode = tag.contains(SHOT_MODE_TAG) ? ShotModeKind.fromSerializedName(tag.getString(SHOT_MODE_TAG)) : null;
         if (storedShotMode == null) {
-            if (!tag.contains(MODE_TAG)) {
-                return ModeSelection.normal();
-            }
-
-            var legacyModeId = ResourceLocation.tryParse(tag.getString(MODE_TAG));
-            var resolvedLegacyMode = ElementalBowModeManager.getResolvedDefinition(legacyModeId);
-            if (resolvedLegacyMode != null) {
-                return new ModeSelection(ShotModeKind.MAGIC, resolvedLegacyMode.schoolId());
-            }
-
             clearLegacyMagicMode(stack);
             return ModeSelection.normal();
         }
@@ -1081,9 +1084,9 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
 
         if (storedShotMode == ShotModeKind.MAGIC) {
             var storedModeId = ResourceLocation.tryParse(tag.getString(MODE_TAG));
-            var resolvedMode = ElementalBowModeManager.getResolvedDefinition(storedModeId);
+            var resolvedMode = resolveMode(stack, storedModeId);
             if (resolvedMode != null) {
-                return new ModeSelection(ShotModeKind.MAGIC, resolvedMode.schoolId());
+                return new ModeSelection(ShotModeKind.MAGIC, storedModeId);
             }
 
             clearAllModeTags(stack);
@@ -1110,14 +1113,15 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
         return new ModeSelection(storedShotMode, selectionId);
     }
 
-    private static List<ModeSelection> buildAvailableSelections(ModeSelection currentSelection, AmmoInventorySummary ammoSummary) {
+    private static List<ModeSelection> buildAvailableSelections(ItemStack stack, ModeSelection currentSelection, AmmoInventorySummary ammoSummary) {
         var selections = new ArrayList<ModeSelection>();
         selections.add(ModeSelection.normal());
         selections.add(ModeSelection.arrow());
         selections.addAll(collectSpecialArrowSelections(ammoSummary, currentSelection));
         selections.addAll(collectModArrowSelections(ammoSummary, currentSelection));
-        for (var resolvedDefinition : ElementalBowModeManager.getResolvedDefinitions()) {
-            selections.add(new ModeSelection(ShotModeKind.MAGIC, resolvedDefinition.schoolId()));
+        for (int slot = 0; slot < getEnabledCalibrationScrollSlotCount(stack); slot++) {
+            var id = selectionIdForSlot(slot);
+            if (resolveMode(stack, id) != null) selections.add(new ModeSelection(ShotModeKind.MAGIC, id));
         }
         return selections;
     }
@@ -1237,13 +1241,13 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
     ) {
         var isCurrentSelection = sameSelection(selection, currentSelection);
         if (selection.kind() == ShotModeKind.MAGIC) {
-            var resolvedMode = ElementalBowModeManager.getResolvedDefinition(selection.id());
+            var resolvedMode = resolveMode(stack, selection.id());
             var spellIcon = resolvedMode != null ? resolvedMode.spell().getSpellIconResource() : null;
-            var levelText = resolvedMode != null ? Integer.toString(resolvedMode.resolveSpellLevel(stack)) : "?";
+            var levelText = resolvedMode != null ? Integer.toString(resolveSpellLevel(stack, selection.id(), resolvedMode)) : "?";
             var badgeColor = resolvedMode != null ? resolvedMode.color() : 0xFFFFFF;
-            var overheatActive = resolvedMode != null && ElementalBowOverheatManager.getState(player, resolvedMode.schoolId()).active();
+            var overheatActive = resolvedMode != null && ElementalBowOverheatManager.getState(player).active();
             var overheatFillRatio = resolvedMode != null
-                    ? ElementalBowOverheatManager.getCooldownOverlayRatio(player, resolvedMode.schoolId())
+                    ? ElementalBowOverheatManager.getCooldownOverlayRatio(player)
                     : 0.0F;
             return new ModeSelectionView(
                     selection.toKey(),
@@ -1346,9 +1350,6 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
                 clearStoredValue(stack, AMMO_SELECTION_TAG);
             }
         }
-        if (stack.getItem() instanceof ElementalBow elementalBow) {
-            elementalBow.initializeSpellContainer(stack);
-        }
     }
 
     private static void clearLegacyMagicMode(ItemStack stack) {
@@ -1381,13 +1382,13 @@ public class ElementalBow extends BowItem implements GeoItem, IPresetSpellContai
             return Component.literal("?");
         }
 
-        var resolvedMode = ElementalBowModeManager.getResolvedDefinition(selectionId);
+        var resolvedMode = resolveMode(stack, selectionId);
         if (resolvedMode == null) {
             return Component.literal(selectionId.toString());
         }
 
         var textColor = resolvedMode.color();
-        var spellLevel = resolvedMode.resolveSpellLevel(stack);
+        var spellLevel = resolveSpellLevel(stack, selectionId, resolvedMode);
         return resolvedMode.spell().getDisplayName(null).copy()
                 .withStyle(style -> style.withColor(textColor))
                 .append(Component.literal(" " + spellLevel).withStyle(style -> style.withColor(textColor)));

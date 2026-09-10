@@ -12467,18 +12467,14 @@ public class ApprenticeCodexGameTestScenarios {
             double overheatAdditionalManaQuadraticMultiplier,
             double overheatDurationMultiplier,
             int overheatDurationMinTicks,
-            int overheatDurationCapTicks,
-            double powerArrowSpellLevelBonusPerLevel
-    ) {
+            int overheatDurationCapTicks) {
         return ApprenticeCodexServerConfig.useElementalBowConfigOverrideForGameTest(
                 magicReadyDrawTicksMultiplier,
                 overheatAdditionalManaLinearMultiplier,
                 overheatAdditionalManaQuadraticMultiplier,
                 overheatDurationMultiplier,
                 overheatDurationMinTicks,
-                overheatDurationCapTicks,
-                powerArrowSpellLevelBonusPerLevel
-        );
+                overheatDurationCapTicks);
     }
 
     static int getFocusStaffbowArrowCount(Player player) {
@@ -13999,8 +13995,7 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static void setElementalBowMode(ItemStack stack, String mode) {
-        var normalizedMode = normalizeElementalBowModeId(mode);
-        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putString("ElementalBowMode", normalizedMode));
+        BowGameTestSupport.setElementalBowMode(stack, mode);
     }
 
     static void assertElementalBowSelection(
@@ -14052,23 +14047,7 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static void setElementalBowShotSelection(ItemStack stack, String shotMode, @Nullable ResourceLocation selectionId) {
-        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
-            tag.putString("ElementalBowShotMode", shotMode);
-            if ("magic".equals(shotMode)) {
-                if (selectionId != null) {
-                    tag.putString("ElementalBowMode", selectionId.toString());
-                }
-                tag.remove("ElementalBowAmmoSelection");
-                return;
-            }
-
-            if (selectionId != null) {
-                tag.putString("ElementalBowAmmoSelection", selectionId.toString());
-            } else {
-                tag.remove("ElementalBowAmmoSelection");
-            }
-            tag.remove("ElementalBowMode");
-        });
+        BowGameTestSupport.setElementalBowShotSelection(stack, shotMode, selectionId);
     }
 
     static @Nullable CompoundTag getCustomDataTag(ItemStack stack) {
