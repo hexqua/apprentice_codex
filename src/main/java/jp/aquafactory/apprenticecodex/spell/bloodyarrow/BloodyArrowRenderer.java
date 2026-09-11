@@ -27,6 +27,8 @@ public final class BloodyArrowRenderer extends EntityRenderer<BloodyArrowEntity>
         pose.pushPose();
         pose.mulPose(Axis.YP.rotationDegrees((float) (-Mth.atan2(direction.z, direction.x) * Mth.RAD_TO_DEG + 90)));
         pose.mulPose(Axis.XP.rotationDegrees((float) (Mth.atan2(direction.horizontalDistance(), direction.y) * Mth.RAD_TO_DEG - 90)));
+        // 手元描画の向きを維持し、共有モデルの矢先(-Z)を飛行時だけ反転する。
+        pose.mulPose(Axis.YP.rotationDegrees(180));
         renderModel(pose, buffers);
         pose.popPose();
         super.render(entity, yaw, partialTick, pose, buffers, light);

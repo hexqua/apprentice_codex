@@ -72,8 +72,9 @@ public final class LightningArrowRenderer extends EntityRenderer<LightningArrowE
             pose.translate(offset.x, offset.y, offset.z);
             var direction = flight.direction();
             pose.mulPose(Axis.YP.rotationDegrees((float) (-Mth.atan2(direction.z, direction.x) * Mth.RAD_TO_DEG + 90)));
-            // モデル内のY軸90度回転で矢先は+Zを向くため、上向きの照準には負のX回転を適用する。
+            // 飛行方向を+Z基準で合わせてから、共有モデルの矢先(-Z)を飛行時だけ反転する。
             pose.mulPose(Axis.XP.rotationDegrees((float) (Mth.atan2(direction.horizontalDistance(), direction.y) * Mth.RAD_TO_DEG - 90)));
+            pose.mulPose(Axis.YP.rotationDegrees(180));
             renderModel(pose, buffers);
             pose.popPose();
         }
