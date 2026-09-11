@@ -66,6 +66,7 @@ import jp.aquafactory.apprenticecodex.spell.paletteshift.PaletteShift;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxCharge;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJack;
+import jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrow;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeacon;
 import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
 import jp.aquafactory.apprenticecodex.spell.servantgaze.ServantGaze;
@@ -172,6 +173,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MANA_MENDING = reg("mana_mending", ManaMending::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> WIZARDLAMP = reg("wizardlamp", Wizardlamp::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> IDOL_RECONSTRUCTION = reg("idol_reconstruction", IdolReconstruction::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> SACRED_ARROW = reg("sacred_arrow", SacredArrow::new);
 
     // 氷.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> FROST_RUNE = reg("frost_rune", FrostRune::new);

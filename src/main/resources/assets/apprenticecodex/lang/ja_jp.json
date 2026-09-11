@@ -773,6 +773,7 @@
   "entity.apprenticecodex.lightning_arrow_arrow": "ライトニングアロー",
   "entity.apprenticecodex.bloody_arrow_arrow": "ブラッディーアロー",
   "entity.apprenticecodex.bloody_arrow_orb": "血のオーブ",
+  "entity.apprenticecodex.sacred_arrow_arrow": "セイクリッドアロー",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "使い走り魔術師",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "使い走り魔術師",
@@ -968,6 +969,7 @@
   "spell.apprenticecodex.idol_reconstruction": "偶像修復",
   "spell.apprenticecodex.lightning_arrow": "ライトニングアロー",
   "spell.apprenticecodex.bloody_arrow": "ブラッディーアロー",
+  "spell.apprenticecodex.sacred_arrow": "セイクリッドアロー",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して攻撃を続ける魔法の弓を召喚する。大魔術師のお守りを装備していてもクールダウンの発生は抑制できない。",
@@ -1056,6 +1058,7 @@
   "spell.apprenticecodex.idol_reconstruction.guide": "不死のエンブレム固有の潜在魔法。発動して一時的に効果を失っている不死のエンブレムにマナを注ぎ込んで効果の再活性化を促す。",
   "spell.apprenticecodex.lightning_arrow.guide": "雷の魔力で形成された矢を高速でまっすぐに放つ。矢は電撃の尾を残し、軌道近くの敵を貫通してそれぞれ一度ずつダメージを与える。重力の影響を受けず、地形に当たるか射程に達すると消滅する。",
   "spell.apprenticecodex.bloody_arrow.guide": "血の魔術で作り出した血の矢を放つ。血の魔術による矢は液体の抵抗を受けない。命中した際に傷つけたモブと反応を起こし、周囲に体力を回復する血のオーブを落とす。この魔法によってモブを倒すと通常より多く血のオーブを落とす。血のオーブは術者とその味方しか拾えず、少しすると溶けて消滅してしまう。",
+  "spell.apprenticecodex.sacred_arrow.guide": "聖なる魔力で形成された光の矢を放ち、命中させた対象に徴を刻む。導きの魔弾かこの魔法で付けた徴を認識すると狙いとは無関係に強制的に徴に向かって飛んでいく。この特殊な追尾状態は徴が消えても追尾し続け、地形はすり抜け、徴とは無関係な敵を弱く貫くが、徴そのものを刻む能力は失われる。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -1118,6 +1121,7 @@
   "ui.apprenticecodex.idol_reconstruction.remain_repair_time": "修復完了時間: %s",
   "ui.apprenticecodex.bloody_arrow.orb_count": "オーブの数: %d",
   "ui.apprenticecodex.bloody_arrow.healing_by_orb": "オーブによる回復量: %s",
+  "ui.apprenticecodex.sacred_arrow.chasing_penetrate_damage_multiplier": "貫通時のダメージ倍率: %s%%",
 
   "ui.apprenticecodex.spellgun.missing_ammo": "弾切れだ！(弾:%1$s)",
   "ui.apprenticecodex.spellgun.not_imbued": "%1$sには魔法が注入されていない！",
@@ -1235,6 +1239,7 @@
   "ui.apprenticecodex.mana_transcription.finished_work_count_creative": "金床での使い込み具合を除去した！",
   "ui.apprenticecodex.idol_reconstruction.no_cool_down": "既にエンブレムは不死の力を発揮できるようだ",
   "ui.apprenticecodex.idol_reconstruction.not_found_emblem": "魔力を流し込むエンブレムが見つからない...",
+  "ui.apprenticecodex.sacred_arrow.target_found": "%s を追尾対象として固定...",
 
   "ui.apprenticecodex.swingcast.cannot_swing_cast": "%sは打撃詠唱できない！",
   "ui.apprenticecodex.jumpcast.cannot_long_cast": "%sは跳躍詠唱できない！",
@@ -1335,6 +1340,7 @@
   "effect.apprenticecodex.school_affinity": "親和",
   "effect.apprenticecodex.school_affinity.dynamic": "%sへの親和",
   "effect.apprenticecodex.thermal_sundered": "熱切断",
+  "effect.apprenticecodex.sacred_sign": "聖なる徴",
 
   "effect.apprenticecodex.arcane_charge.description": "魔法の力が上昇する。",
   "effect.apprenticecodex.casting_mobility.description": "継続詠唱に伴う移動速度低下だけを打ち消す。",
@@ -1358,6 +1364,7 @@
   "effect.apprenticecodex.inert_mana_shield.description": "マナ障壁が展開できなくなる。",
   "effect.apprenticecodex.blood_engraved.description": "血の魔力が刻み込まれた状態。刻み込んだ本人がいる状態で死ぬと血の魔力として爆ぜる。",
   "effect.apprenticecodex.thermal_sundered.description": "炎魔法の耐性が下がる。炎上ダメージを受けると延長される。",
+  "effect.apprenticecodex.sacred_sign.description": "近くで発動したセイクリッドアローが自身に飛んでくるようになる。",
 
   "item.minecraft.potion.effect.intelligence": "知性のポーション",
   "item.minecraft.potion.effect.meditation": "瞑想のポーション",
@@ -1427,6 +1434,7 @@
   "death.attack.apprenticecodex.spell_reaper_scythe_throw": "%1$sの命は収穫された",
   "death.attack.apprenticecodex.lightning_arrow": "%1$sは%2$sの電撃の矢に貫かれた",
   "death.attack.apprenticecodex.bloody_arrow": "%1$sは失血死した",
+  "death.attack.apprenticecodex.sacred_arrow": "%1$sは%2$sの裁きから逃れられなかった",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",

@@ -65,6 +65,7 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> THERMAL_SLICE = register("thermal_slice");
     public static final ResourceKey<DamageType> LIGHTNING_ARROW = register("lightning_arrow");
     public static final ResourceKey<DamageType> BLOODY_ARROW = register("bloody_arrow");
+    public static final ResourceKey<DamageType> SACRED_ARROW = register("sacred_arrow");
 
     public static final ResourceKey<DamageType> HAUNTED_BONUS = register("haunted_bonus");
     public static final ResourceKey<DamageType> MANA_FORCE_BLADE = register("mana_force_blade");
@@ -143,6 +144,7 @@ public final class DamageTypes {
         context.register(THERMAL_SLICE, createTemplate(THERMAL_SLICE));
         context.register(LIGHTNING_ARROW, createTemplate(LIGHTNING_ARROW));
         context.register(BLOODY_ARROW, createTemplate(BLOODY_ARROW));
+        context.register(SACRED_ARROW, createTemplate(SACRED_ARROW));
 
         context.register(HAUNTED_BONUS, createTemplate(HAUNTED_BONUS));
         context.register(MANA_FORCE_BLADE, createTemplate(MANA_FORCE_BLADE));
