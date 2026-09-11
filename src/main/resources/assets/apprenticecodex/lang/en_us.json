@@ -1,4 +1,8 @@
 {
+  "entity.apprenticecodex.lightning_arrow_arrow": "Lightning Arrow",
+  "spell.apprenticecodex.lightning_arrow": "Lightning Arrow",
+  "spell.apprenticecodex.lightning_arrow.guide": "Fire an arrow of lightning that travels rapidly in a straight line, leaving an electric trail. It pierces enemies near its path, damaging each once. Unaffected by gravity, the arrow vanishes when it hits terrain or reaches its maximum range.",
+  "death.attack.apprenticecodex.lightning_arrow": "%1$s was pierced by %2$s's lightning arrow.",
   "item.apprenticecodex.elemental_bow.tooltip.draw": "Required draw: %s",
   "item.apprenticecodex.elemental_bow.tooltip.cooling": "Cooling time: %s",
   "item.apprenticecodex.elemental_bow.tooltip.no_selected_spell": "No spell selected",

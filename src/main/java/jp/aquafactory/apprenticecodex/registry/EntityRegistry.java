@@ -388,6 +388,9 @@ public final class EntityRegistry {
                     .<SupportedShieldEntity>of(SupportedShieldEntity::new, MobCategory.MISC)
                     .sized(1F, 1F).clientTrackingRange(64).build("apprenticecodex:supported_shield"));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrowEntity>> LIGHTNING_ARROW =
+            regProjectile("lightning_arrow_arrow", jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrowEntity::new, 128, 1);
+
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);
     }

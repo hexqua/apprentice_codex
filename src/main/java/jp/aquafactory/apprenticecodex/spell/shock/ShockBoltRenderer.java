@@ -158,13 +158,13 @@ public class ShockBoltRenderer extends EntityRenderer<ShockBoltEntity> {
             var visibleFrom = segmentVisibleStart <= 1.0e-5f
                     ? start
                     : start.lerp(end, segmentVisibleStart / segmentLength);
-            drawSegment(entity, poseStack, consumer, cameraPos, visibleFrom, end, width, red, green, blue, alpha,
+            drawSegment(entity.position(), poseStack, consumer, cameraPos, visibleFrom, end, width, red, green, blue, alpha,
                     scrollV + consumed);
             consumed += segmentLength;
         }
     }
 
-    private static void drawSegment(ShockBoltEntity entity, PoseStack poseStack, VertexConsumer consumer, Vec3 cameraPos,
+    public static void drawSegment(Vec3 origin, PoseStack poseStack, VertexConsumer consumer, Vec3 cameraPos,
                                     Vec3 start, Vec3 end, float width, float red, float green, float blue, float alpha,
                                     float scrollV) {
         var segment = end.subtract(start);
@@ -174,7 +174,7 @@ public class ShockBoltRenderer extends EntityRenderer<ShockBoltEntity> {
         }
 
         var direction = segment.normalize();
-        var midpointWorld = entity.position().add(start.add(end).scale(0.5));
+        var midpointWorld = origin.add(start.add(end).scale(0.5));
         var cameraDirection = cameraPos.subtract(midpointWorld);
         if (cameraDirection.lengthSqr() <= 1.0e-6) {
             cameraDirection = new Vec3(0.0, 1.0, 0.0);

@@ -1,4 +1,8 @@
 {
+  "entity.apprenticecodex.lightning_arrow_arrow": "雷电箭",
+  "spell.apprenticecodex.lightning_arrow": "雷电箭",
+  "spell.apprenticecodex.lightning_arrow.guide": "发射一支由雷电凝聚而成的箭矢，以极高的速度沿直线飞行并留下电光轨迹。箭矢会穿透路径附近的敌人，对每个目标造成一次伤害。箭矢不受重力影响，击中地形或到达最大射程后消失。",
+  "death.attack.apprenticecodex.lightning_arrow": "%1$s 被 %2$s 的雷电箭贯穿。",
   "item.apprenticecodex.elemental_bow.tooltip.draw": "所需拉弓时间：%s",
   "item.apprenticecodex.elemental_bow.tooltip.cooling": "冷却时间：%s",
   "item.apprenticecodex.elemental_bow.tooltip.no_selected_spell": "未选择法术",

@@ -1051,7 +1051,7 @@
   "spell.apprenticecodex.catch_flame.guide": "瞬間的に手に火の魔力を練り上げて火を起こす。対象が炎上している場合は無敵時間を無視することができるが、火に耐性を持っている場合は一切効果が無い。サーマルスライスの炎の魔力を流し込まれている対象に当てることでその魔力を維持させることができる。エッセンス燻製器やブロック表面を着火させることもでき、この着火行為は魔法の地形破壊の設定を無視する。",
   "spell.apprenticecodex.thermal_slice.guide": "炎の魔力を宿した魔法の刀を召喚し、前方に駆け抜けてから斬り伏せる。駆け抜ける距離は一定のため、間合いが近すぎると空振りしてしまう。火炎耐性を持たない対象には炎の魔力を流し込み、炎魔法に対する耐性を一定時間低下させる。この魔法では炎上させることはないが、炎上ダメージが流し込まれた炎の魔力の維持に繋げられる。発動が阻止されることはない。",
   "spell.apprenticecodex.idol_reconstruction.guide": "不死のエンブレム固有の潜在魔法。発動して一時的に効果を失っている不死のエンブレムにマナを注ぎ込んで効果の再活性化を促す。",
-  "spell.apprenticecodex.lightning_arrow.guide": "雷の魔力で形成された電撃の矢を放つ。矢は重力の影響を受けず電撃のごとく飛翔し、軌道近くにいたモブにダメージを与える。モブに命中しても貫通するが、地形は貫通できない。",
+  "spell.apprenticecodex.lightning_arrow.guide": "雷の魔力で形成された矢を高速でまっすぐに放つ。矢は電撃の尾を残し、軌道近くの敵を貫通してそれぞれ一度ずつダメージを与える。重力の影響を受けず、地形に当たるか射程に達すると消滅する。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -1419,7 +1419,7 @@
   "death.attack.apprenticecodex.catch_flame": "%1$sは火だるまになった",
   "death.attack.apprenticecodex.thermal_slice": "%1$sは伝説にはなれなかった",
   "death.attack.apprenticecodex.spell_reaper_scythe_throw": "%1$sの命は収穫された",
-  "death.attack.apprenticecodex.lightning_arrow": "%1$sの%2$sの電撃に貫かれた",
+  "death.attack.apprenticecodex.lightning_arrow": "%1$sは%2$sの電撃の矢に貫かれた",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",
