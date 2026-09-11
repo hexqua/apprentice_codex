@@ -771,6 +771,8 @@
   "entity.apprenticecodex.thermal_slice_katana": "サーマルスライサー",
   "entity.apprenticecodex.spell_reaper_scythe_throw": "スペルリーパーの大鎌",
   "entity.apprenticecodex.lightning_arrow_arrow": "ライトニングアロー",
+  "entity.apprenticecodex.bloody_arrow_arrow": "ブラッディーアロー",
+  "entity.apprenticecodex.bloody_arrow_orb": "血のオーブ",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "使い走り魔術師",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "使い走り魔術師",
@@ -965,6 +967,7 @@
   "spell.apprenticecodex.thermal_slice": "サーマルスライス",
   "spell.apprenticecodex.idol_reconstruction": "偶像修復",
   "spell.apprenticecodex.lightning_arrow": "ライトニングアロー",
+  "spell.apprenticecodex.bloody_arrow": "ブラッディーアロー",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して攻撃を続ける魔法の弓を召喚する。大魔術師のお守りを装備していてもクールダウンの発生は抑制できない。",
@@ -1052,6 +1055,7 @@
   "spell.apprenticecodex.thermal_slice.guide": "炎の魔力を宿した魔法の刀を召喚し、前方に駆け抜けてから斬り伏せる。駆け抜ける距離は一定のため、間合いが近すぎると空振りしてしまう。火炎耐性を持たない対象には炎の魔力を流し込み、炎魔法に対する耐性を一定時間低下させる。この魔法では炎上させることはないが、炎上ダメージが流し込まれた炎の魔力の維持に繋げられる。発動が阻止されることはない。",
   "spell.apprenticecodex.idol_reconstruction.guide": "不死のエンブレム固有の潜在魔法。発動して一時的に効果を失っている不死のエンブレムにマナを注ぎ込んで効果の再活性化を促す。",
   "spell.apprenticecodex.lightning_arrow.guide": "雷の魔力で形成された矢を高速でまっすぐに放つ。矢は電撃の尾を残し、軌道近くの敵を貫通してそれぞれ一度ずつダメージを与える。重力の影響を受けず、地形に当たるか射程に達すると消滅する。",
+  "spell.apprenticecodex.bloody_arrow.guide": "血の魔術で作り出した血の矢を放つ。血の魔術による矢は液体の抵抗を受けない。命中した際に傷つけたモブと反応を起こし、周囲に体力を回復する血のオーブを落とす。この魔法によってモブを倒すと通常より多く血のオーブを落とす。血のオーブは術者とその味方しか拾えず、数十秒で溶けて消滅してしまう。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -1112,6 +1116,8 @@
   "ui.apprenticecodex.thermal_slice.reduced_fire_spell_resist": "炎魔法耐性を%d%%低下させる",
   "ui.apprenticecodex.idol_reconstruction.accelerate_repair_speed": "%1$sの修復速度加速率: %2$d%%",
   "ui.apprenticecodex.idol_reconstruction.remain_repair_time": "修復完了時間: %s",
+  "ui.apprenticecodex.bloody_arrow.orb_count": "オーブの数: %d",
+  "ui.apprenticecodex.bloody_arrow.healing_by_orb": "オーブによる回復量: %s",
 
   "ui.apprenticecodex.spellgun.missing_ammo": "弾切れだ！(弾:%1$s)",
   "ui.apprenticecodex.spellgun.not_imbued": "%1$sには魔法が注入されていない！",
@@ -1420,6 +1426,7 @@
   "death.attack.apprenticecodex.thermal_slice": "%1$sは伝説にはなれなかった",
   "death.attack.apprenticecodex.spell_reaper_scythe_throw": "%1$sの命は収穫された",
   "death.attack.apprenticecodex.lightning_arrow": "%1$sは%2$sの電撃の矢に貫かれた",
+  "death.attack.apprenticecodex.bloody_arrow": "%1$sは失血死した",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",

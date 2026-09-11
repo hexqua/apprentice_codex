@@ -51,6 +51,7 @@ public enum DamageMultiplierKey {
     CATCH_FLAME("catchFlame"),
     THERMAL_SLICE("thermalSlice"),
     LIGHTNING_ARROW("lightningArrow"),
+    BLOODY_ARROW("bloodyArrow"),
     ;
 
     private final String configKey;

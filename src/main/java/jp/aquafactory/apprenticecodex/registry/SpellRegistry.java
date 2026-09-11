@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWings;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnet;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurret;
 import jp.aquafactory.apprenticecodex.spell.bloodbrand.BloodBrand;
+import jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodyArrow;
 import jp.aquafactory.apprenticecodex.spell.boundbow.BoundBow;
 import jp.aquafactory.apprenticecodex.spell.boundsword.BoundSword;
 import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemy;
@@ -112,6 +113,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> HIGANBANA = reg("higanbana", Higanbana::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MIST_FORM = reg("mist_form", MistForm::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> BLOOD_BRAND = reg("blood_brand", BloodBrand::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> BLOODY_ARROW = reg("bloody_arrow", BloodyArrow::new);
 
     // エンダー.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ARCANE_BLAST = reg("arcane_blast", ArcaneBlast::new);
