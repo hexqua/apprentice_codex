@@ -20,6 +20,8 @@ import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretEntity;
 import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemyShotgunEntity;
 import jp.aquafactory.apprenticecodex.spell.bloodbrand.BloodBrandKunai;
+import jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodyArrowEntity;
+import jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodyArrowOrbEntity;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunEntity;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleEntity;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
@@ -390,6 +392,13 @@ public final class EntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrowEntity>> LIGHTNING_ARROW =
             regProjectile("lightning_arrow_arrow", jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrowEntity::new, 128, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<BloodyArrowEntity>> BLOODY_ARROW =
+            regProjectile("bloody_arrow_arrow", BloodyArrowEntity::new, 128, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<BloodyArrowOrbEntity>> BLOODY_ARROW_ORB =
+            reg("bloody_arrow_orb", BloodyArrowOrbEntity::new, MobCategory.MISC,
+                    0.25F, 0.25F, 32, 1, true, FireBehaviors.IMMUNE);
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

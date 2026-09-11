@@ -1644,5 +1644,12 @@
   "key.categories.apprenticecodex": "Apprentice's Codex",
   "item.apprenticecodex.quickcast_scroll_cartridge.no_assign": "Assign a key to cast the imbued spell at any time.",
   "item.apprenticecodex.quickcast_scroll_cartridge.additive_slot": "Hold this item and sneak to select the spell used while equipped.",
-  "item.apprenticecodex.quickcast_scroll_cartridge": "Quickcast Scroll Cartridge"
+  "item.apprenticecodex.quickcast_scroll_cartridge": "Quickcast Scroll Cartridge",
+  "entity.apprenticecodex.bloody_arrow_arrow": "Bloody Arrow",
+  "entity.apprenticecodex.bloody_arrow_orb": "Blood Orb",
+  "spell.apprenticecodex.bloody_arrow": "Bloody Arrow",
+  "spell.apprenticecodex.bloody_arrow.guide": "Fires an arrow formed from blood magic, unaffected by liquid resistance. On impact, it reacts with the mob it wounds, scattering blood orbs that restore health. Killing a mob with this spell produces more blood orbs. Only the caster and their allies can collect them, and they dissolve after a short while.",
+  "ui.apprenticecodex.bloody_arrow.orb_count": "Orbs: %d",
+  "ui.apprenticecodex.bloody_arrow.healing_by_orb": "Healing per Orb: %s",
+  "death.attack.apprenticecodex.bloody_arrow": "%1$s bled to death"
 }

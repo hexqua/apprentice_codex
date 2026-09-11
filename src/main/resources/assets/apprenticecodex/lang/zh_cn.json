@@ -1637,5 +1637,12 @@
   "key.categories.apprenticecodex": "Apprentice's Codex",
   "item.apprenticecodex.quickcast_scroll_cartridge.no_assign": "设置按键后即可随时施放注入的法术。",
   "item.apprenticecodex.quickcast_scroll_cartridge.additive_slot": "手持此物品并潜行，可切换装备时使用的法术。",
-  "item.apprenticecodex.quickcast_scroll_cartridge": "速咏卷轴弹匣"
+  "item.apprenticecodex.quickcast_scroll_cartridge": "速咏卷轴弹匣",
+  "entity.apprenticecodex.bloody_arrow_arrow": "鲜血之箭",
+  "entity.apprenticecodex.bloody_arrow_orb": "血之宝珠",
+  "spell.apprenticecodex.bloody_arrow": "鲜血之箭",
+  "spell.apprenticecodex.bloody_arrow.guide": "射出由鲜血魔法凝成的箭矢，不受液体阻力影响。命中时会与受伤的生物产生反应，在周围散落能够恢复生命值的血之宝珠。用此法术击杀生物时，会掉落更多血之宝珠。只有施法者及其盟友可以拾取，宝珠会在片刻后溶解消失。",
+  "ui.apprenticecodex.bloody_arrow.orb_count": "宝珠数量：%d",
+  "ui.apprenticecodex.bloody_arrow.healing_by_orb": "每颗宝珠恢复量：%s",
+  "death.attack.apprenticecodex.bloody_arrow": "%1$s失血而亡"
 }
