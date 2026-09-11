@@ -45,6 +45,7 @@ import jp.aquafactory.apprenticecodex.spell.idolreconstruction.IdolReconstructio
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellar;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
 import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssault;
+import jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrow;
 import jp.aquafactory.apprenticecodex.spell.linearbuild.LinearBuild;
 import jp.aquafactory.apprenticecodex.spell.longstride.LongStride;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
@@ -186,6 +187,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> DUAL_ACROBAT = reg("dual_acrobat", DualAcrobat::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> FIELD_OVERSEER = reg("field_overseer", FieldOverseer::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> SHIDEN = reg("shiden", Shiden::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> LIGHTNING_ARROW = reg("lightning_arrow", LightningArrow::new);
 
     // 自然.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> COMPOUND_PHIAL = reg("compound_phial", CompoundPhial::new);

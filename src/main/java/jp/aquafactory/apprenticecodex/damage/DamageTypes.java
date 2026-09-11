@@ -63,6 +63,7 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> CATCH_FLAME = register("catch_flame");
     public static final ResourceKey<DamageType> CATCH_FLAME_PENETRATE = register("catch_flame_penetrate");
     public static final ResourceKey<DamageType> THERMAL_SLICE = register("thermal_slice");
+    public static final ResourceKey<DamageType> LIGHTNING_ARROW = register("lightning_arrow");
 
     public static final ResourceKey<DamageType> HAUNTED_BONUS = register("haunted_bonus");
     public static final ResourceKey<DamageType> MANA_FORCE_BLADE = register("mana_force_blade");
@@ -139,6 +140,7 @@ public final class DamageTypes {
         context.register(CATCH_FLAME, createTemplate(CATCH_FLAME));
         context.register(CATCH_FLAME_PENETRATE, createTemplate(CATCH_FLAME)); // 共通のメッセージを使うため意図的に被らせてる.
         context.register(THERMAL_SLICE, createTemplate(THERMAL_SLICE));
+        context.register(LIGHTNING_ARROW, createTemplate(LIGHTNING_ARROW));
 
         context.register(HAUNTED_BONUS, createTemplate(HAUNTED_BONUS));
         context.register(MANA_FORCE_BLADE, createTemplate(MANA_FORCE_BLADE));
