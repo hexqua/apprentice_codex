@@ -16,6 +16,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.ChatFormatting;
+import net.minecraft.world.phys.AABB;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import java.util.Comparator;
 
 import java.util.List;
 import java.util.Optional;
@@ -101,7 +108,52 @@ public class SacredArrow extends AbstractSpell {
     }
 
     @Override
+    public void onServerPreCast(Level level, int spellLevel, LivingEntity entity, MagicData magicData) {
+        super.onServerPreCast(level, spellLevel, entity, magicData);
+        if (level instanceof ServerLevel && magicData != null) {
+            magicData.setAdditionalCastData(selectTarget(entity));
+        }
+    }
+
+    private SacredArrowCastData selectTarget(LivingEntity caster) {
+        var origin = caster.position();
+        var target = caster.level().getEntitiesOfClass(LivingEntity.class,
+                        new AABB(origin, origin).inflate(48), candidate ->
+                                SacredArrowEntity.isLiveTarget(candidate, caster)
+                                        && (candidate.hasEffect(EffectRegistry.SACRED_SIGN)
+                                        || candidate.hasEffect(io.redspace.ironsspellbooks.registries.MobEffectRegistry.GUIDING_BOLT)))
+                .stream().min(Comparator.comparingDouble((LivingEntity e) -> e.distanceToSqr(caster))
+                        .thenComparingInt(LivingEntity::getId)).orElse(null);
+        if (target != null && caster instanceof ServerPlayer player) {
+            player.displayClientMessage(Component.translatable("ui.apprenticecodex.sacred_arrow.target_found",
+                    target.getDisplayName()).withStyle(ChatFormatting.GREEN), true);
+        }
+        return new SacredArrowCastData(target == null ? null : target.getUUID());
+    }
+
+    @Override
+    public void onServerCastComplete(Level level, int spellLevel, LivingEntity entity, MagicData magicData, boolean cancelled) {
+        super.onServerCastComplete(level, spellLevel, entity, magicData, cancelled);
+        if (magicData != null && magicData.getAdditionalCastData() instanceof SacredArrowCastData) {
+            magicData.setAdditionalCastData(null);
+        }
+    }
+
+    @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        if (level instanceof ServerLevel server) {
+            // 開始処理を持たない発動だけを補完し、選出済みの「対象なし」は尊重する。
+            var data = playerMagicData != null && playerMagicData.getAdditionalCastData() instanceof SacredArrowCastData stored
+                    ? stored : selectTarget(entity);
+            var target = data.targetId() == null ? null : server.getEntity(data.targetId());
+            var arrow = new SacredArrowEntity(EntityRegistry.SACRED_ARROW.get(), level);
+            arrow.launch(entity, entity.getEyePosition(), entity.getLookAngle(), getDamage(spellLevel, entity),
+                    getPenetrateDamageMultiplier(), getDuration(), SacredArrowEntity.isLiveTarget(target, entity) ? (LivingEntity) target : null);
+            level.addFreshEntity(arrow);
+            if (playerMagicData != null && playerMagicData.getAdditionalCastData() instanceof SacredArrowCastData) {
+                playerMagicData.setAdditionalCastData(null);
+            }
+        }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 }
