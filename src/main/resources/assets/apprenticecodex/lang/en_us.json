@@ -1654,7 +1654,7 @@
   "death.attack.apprenticecodex.bloody_arrow": "%1$s bled to death",
   "entity.apprenticecodex.sacred_arrow_arrow": "Sacred Arrow",
   "spell.apprenticecodex.sacred_arrow": "Sacred Arrow",
-  "spell.apprenticecodex.sacred_arrow.guide": "Fire an arrow of holy light that marks its target. When a mark from Guiding Bolt or this spell is detected, the arrow is forced to pursue the marked target regardless of your aim. This homing state persists even after the mark fades, passes through terrain, and deals reduced piercing damage to other enemies, but cannot apply a mark.",
+  "spell.apprenticecodex.sacred_arrow.guide": "Fire an arrow of holy light that marks its target. Begin casting while facing a target marked by Guiding Bolt or this spell, and the released arrow is forced to pursue that target regardless of where you aim when firing. This homing state persists even after the mark fades, passes through terrain, and deals reduced piercing damage to other enemies, but cannot apply a mark.",
   "ui.apprenticecodex.sacred_arrow.chasing_penetrate_damage_multiplier": "Piercing Damage Multiplier: %s%%",
   "ui.apprenticecodex.sacred_arrow.target_found": "Locked onto %s...",
   "effect.apprenticecodex.sacred_sign": "Sacred Sign",

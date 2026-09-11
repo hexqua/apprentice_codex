@@ -1647,7 +1647,7 @@
   "death.attack.apprenticecodex.bloody_arrow": "%1$s失血而亡",
   "entity.apprenticecodex.sacred_arrow_arrow": "神圣之箭",
   "spell.apprenticecodex.sacred_arrow": "神圣之箭",
-  "spell.apprenticecodex.sacred_arrow.guide": "射出由神圣魔力形成的光之箭，命中后为目标施加印记。发现曳光弹或本法术施加的印记时，无论瞄准何处，箭矢都会强制追踪带有印记的目标。追踪状态不会因印记消失而结束，箭矢可穿过地形，并以较低伤害穿透其他敌人，但不再施加印记。",
+  "spell.apprenticecodex.sacred_arrow.guide": "射出由神圣魔力形成的光之箭，命中后为目标施加印记。面朝被曳光弹或本法术标记的目标开始施法后，无论发射时瞄准何处，箭矢都会强制追踪该目标。追踪状态不会因印记消失而结束，箭矢可穿过地形，并以较低伤害穿透其他敌人，但不再施加印记。",
   "ui.apprenticecodex.sacred_arrow.chasing_penetrate_damage_multiplier": "穿透伤害倍率：%s%%",
   "ui.apprenticecodex.sacred_arrow.target_found": "已锁定追踪目标：%s……",
   "effect.apprenticecodex.sacred_sign": "神圣印记",
