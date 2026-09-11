@@ -1651,5 +1651,13 @@
   "spell.apprenticecodex.bloody_arrow.guide": "Fires an arrow formed from blood magic, unaffected by liquid resistance. On impact, it reacts with the mob it wounds, scattering blood orbs that restore health. Killing a mob with this spell produces more blood orbs. Only the caster and their allies can collect them, and they dissolve after a short while.",
   "ui.apprenticecodex.bloody_arrow.orb_count": "Orbs: %d",
   "ui.apprenticecodex.bloody_arrow.healing_by_orb": "Healing per Orb: %s",
-  "death.attack.apprenticecodex.bloody_arrow": "%1$s bled to death"
+  "death.attack.apprenticecodex.bloody_arrow": "%1$s bled to death",
+  "entity.apprenticecodex.sacred_arrow_arrow": "Sacred Arrow",
+  "spell.apprenticecodex.sacred_arrow": "Sacred Arrow",
+  "spell.apprenticecodex.sacred_arrow.guide": "Fire an arrow of holy light that marks its target. When a mark from Guiding Bolt or this spell is detected, the arrow is forced to pursue the marked target regardless of your aim. This homing state persists even after the mark fades, passes through terrain, and deals reduced piercing damage to other enemies, but cannot apply a mark.",
+  "ui.apprenticecodex.sacred_arrow.chasing_penetrate_damage_multiplier": "Piercing Damage Multiplier: %s%%",
+  "ui.apprenticecodex.sacred_arrow.target_found": "Locked onto %s...",
+  "effect.apprenticecodex.sacred_sign": "Sacred Sign",
+  "effect.apprenticecodex.sacred_sign.description": "Nearby Sacred Arrow casts will home toward you.",
+  "death.attack.apprenticecodex.sacred_arrow": "%1$s could not escape %2$s's judgment"
 }

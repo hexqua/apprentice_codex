@@ -42,6 +42,9 @@ public abstract class ArrowChargeSpellLayerMixin {
         if (spellId.equals(SpellRegistry.BLOODY_ARROW.get().getSpellId())) {
             return BloodyArrowRenderer::renderModel;
         }
+        if (spellId.equals(SpellRegistry.SACRED_ARROW.get().getSpellId())) {
+            return jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowRenderer::renderModel;
+        }
         return null;
     }
 }

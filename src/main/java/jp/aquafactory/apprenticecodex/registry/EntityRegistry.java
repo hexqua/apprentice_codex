@@ -400,6 +400,9 @@ public final class EntityRegistry {
             reg("bloody_arrow_orb", BloodyArrowOrbEntity::new, MobCategory.MISC,
                     0.25F, 0.25F, 32, 1, true, FireBehaviors.IMMUNE);
 
+    public static final DeferredHolder<EntityType<?>, EntityType<jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowEntity>> SACRED_ARROW =
+            regProjectile("sacred_arrow_arrow", jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowEntity::new, 128, 1);
+
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);
     }

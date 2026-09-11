@@ -900,6 +900,8 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.ANTI_MANA_ARROW.get(), AntiManaArrowRenderer::new);
         event.registerEntityRenderer(EntityRegistry.COMBUSTION_JET_WAVE.get(), CombustionJetWaveRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BLOOD_BRAND_KUNAI.get(), BloodBrandKunaiRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.SACRED_ARROW.get(),
+                jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BLOODY_ARROW.get(),
                 jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodyArrowRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BLOODY_ARROW_ORB.get(),

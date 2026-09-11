@@ -1644,5 +1644,13 @@
   "spell.apprenticecodex.bloody_arrow.guide": "射出由鲜血魔法凝成的箭矢，不受液体阻力影响。命中时会与受伤的生物产生反应，在周围散落能够恢复生命值的血之宝珠。用此法术击杀生物时，会掉落更多血之宝珠。只有施法者及其盟友可以拾取，宝珠会在片刻后溶解消失。",
   "ui.apprenticecodex.bloody_arrow.orb_count": "宝珠数量：%d",
   "ui.apprenticecodex.bloody_arrow.healing_by_orb": "每颗宝珠恢复量：%s",
-  "death.attack.apprenticecodex.bloody_arrow": "%1$s失血而亡"
+  "death.attack.apprenticecodex.bloody_arrow": "%1$s失血而亡",
+  "entity.apprenticecodex.sacred_arrow_arrow": "神圣之箭",
+  "spell.apprenticecodex.sacred_arrow": "神圣之箭",
+  "spell.apprenticecodex.sacred_arrow.guide": "射出由神圣魔力形成的光之箭，命中后为目标施加印记。发现曳光弹或本法术施加的印记时，无论瞄准何处，箭矢都会强制追踪带有印记的目标。追踪状态不会因印记消失而结束，箭矢可穿过地形，并以较低伤害穿透其他敌人，但不再施加印记。",
+  "ui.apprenticecodex.sacred_arrow.chasing_penetrate_damage_multiplier": "穿透伤害倍率：%s%%",
+  "ui.apprenticecodex.sacred_arrow.target_found": "已锁定追踪目标：%s……",
+  "effect.apprenticecodex.sacred_sign": "神圣印记",
+  "effect.apprenticecodex.sacred_sign.description": "附近施放的神圣之箭会追踪你。",
+  "death.attack.apprenticecodex.sacred_arrow": "%1$s未能逃脱%2$s的审判"
 }
