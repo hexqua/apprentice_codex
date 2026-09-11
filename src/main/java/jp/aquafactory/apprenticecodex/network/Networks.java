@@ -101,7 +101,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "99";
+    private static final String PROTOCOL_VERSION = "100";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -731,6 +731,11 @@ public final class Networks {
                 GunSpellTracerPacket::decode,
                 GunSpellTracerPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT)
+        );
+        registrar.playToClient(
+                jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket.TYPE,
+                jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket.STREAM_CODEC,
+                jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket::handle
         );
     }
 

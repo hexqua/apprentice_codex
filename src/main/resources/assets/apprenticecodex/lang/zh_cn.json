@@ -1,4 +1,8 @@
 {
+  "death.attack.apprenticecodex.lightning_arrow": "%1$s 被 %2$s 的雷电箭贯穿。",
+  "spell.apprenticecodex.lightning_arrow.guide": "发射一支由雷电凝聚而成的箭矢，以极高的速度沿直线飞行并留下电光轨迹。箭矢会穿透路径附近的敌人，对每个目标造成一次伤害。箭矢不受重力影响，击中地形或到达最大射程后消失。",
+  "spell.apprenticecodex.lightning_arrow": "雷电箭",
+  "entity.apprenticecodex.lightning_arrow_arrow": "雷电箭",
   "jei.apprenticecodex.elemental_bow.desc_4": "法术射击消耗普通箭矢，不受无限附魔影响，合成附魔可免除箭矢消耗。",
   "jei.apprenticecodex.spell_calibration_bench.effect.separate_cooldown_2": "不同物品仍共享冷却",
   "jei.apprenticecodex.spell_calibration_bench.effect.separate_cooldown_1": "按卷轴槽位分别计算冷却",

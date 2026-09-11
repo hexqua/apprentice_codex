@@ -388,6 +388,9 @@ public final class EntityRegistry {
     public static final RegistryObject<EntityType<jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity>> SCYTHE_THROW =
             regProjectile("spell_reaper_scythe_throw", jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity::new, 8, 1);
     
+    public static final RegistryObject<EntityType<jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrowEntity>> LIGHTNING_ARROW =
+            regProjectile("lightning_arrow_arrow", jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrowEntity::new, 128, 1);
+
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);
     }

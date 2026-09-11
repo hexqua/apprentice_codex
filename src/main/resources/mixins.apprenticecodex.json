@@ -76,6 +76,7 @@
     "UtilsMixin"
   ],
   "client": [
+    "LightningArrowChargeSpellLayerMixin",
     "ArcaneAnvilJeiRecipeMixin",
     "BetterCombatItemInHandLayerMixin",
     "BetterCombatItemInHandRendererMixin",

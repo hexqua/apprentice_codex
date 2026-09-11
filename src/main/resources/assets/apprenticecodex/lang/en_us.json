@@ -1,4 +1,8 @@
 {
+  "death.attack.apprenticecodex.lightning_arrow": "%1$s was pierced by %2$s's lightning arrow.",
+  "spell.apprenticecodex.lightning_arrow.guide": "Fire an arrow of lightning that travels rapidly in a straight line, leaving an electric trail. It pierces enemies near its path, damaging each once. Unaffected by gravity, the arrow vanishes when it hits terrain or reaches its maximum range.",
+  "spell.apprenticecodex.lightning_arrow": "Lightning Arrow",
+  "entity.apprenticecodex.lightning_arrow_arrow": "Lightning Arrow",
   "jei.apprenticecodex.elemental_bow.desc_4": "Magic shots consume normal arrows. Infinity does not apply; Synthesis removes the arrow cost.",
   "jei.apprenticecodex.spell_calibration_bench.effect.separate_cooldown_2": "Still shared across items",
   "jei.apprenticecodex.spell_calibration_bench.effect.separate_cooldown_1": "Tracks cooldowns per scroll slot",
