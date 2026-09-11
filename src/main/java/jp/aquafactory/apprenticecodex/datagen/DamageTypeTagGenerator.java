@@ -113,7 +113,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 CATCH_FLAME_PENETRATE,
                 THERMAL_SLICE,
                 LIGHTNING_ARROW,
-                BLOODY_ARROW
+                BLOODY_ARROW,
+                SACRED_ARROW
         );
 
         // IGNORE_ARMOR : 防御力無視、盾無視、ウィッチ抵抗(Malumは無関係)
@@ -223,6 +224,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 THERMAL_SLICE,
                 LIGHTNING_ARROW,
                 BLOODY_ARROW,
+                SACRED_ARROW,
                 SPELL_REAPER_SCYTHE_THROW,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS,
