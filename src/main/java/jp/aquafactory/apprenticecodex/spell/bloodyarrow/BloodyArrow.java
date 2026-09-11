@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -100,6 +101,12 @@ public class BloodyArrow extends AbstractSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        if (!level.isClientSide) {
+            var arrow = new BloodyArrowEntity(EntityRegistry.BLOODY_ARROW.get(), level);
+            arrow.launch(entity, entity.getEyePosition(), entity.getLookAngle(),
+                    getDamage(spellLevel, entity), getOrbCount(spellLevel), getOrbHealing(spellLevel, entity));
+            level.addFreshEntity(arrow);
+        }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 }

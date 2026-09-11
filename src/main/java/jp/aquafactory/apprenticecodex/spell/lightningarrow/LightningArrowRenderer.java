@@ -92,10 +92,14 @@ public final class LightningArrowRenderer extends EntityRenderer<LightningArrowE
     }
 
     public static void renderModel(PoseStack pose, MultiBufferSource buffers) {
+        renderModel(pose, buffers, TEXTURE);
+    }
+
+    public static void renderModel(PoseStack pose, MultiBufferSource buffers, ResourceLocation texture) {
         pose.scale(0.13F, 0.13F, 0.13F);
         pose.mulPose(Axis.YP.rotationDegrees(90));
         pose.translate(-2, 0, 0);
-        var consumer = buffers.getBuffer(RenderHelper.CustomerRenderType.magic(TEXTURE));
+        var consumer = buffers.getBuffer(RenderHelper.CustomerRenderType.magic(texture));
         // MagicArrowと共通の16x5側面を使い、提供画像の色を白の頂点色で維持する。
         for (int face = 0; face < 4; face++) {
             pose.mulPose(Axis.XP.rotationDegrees(90));
