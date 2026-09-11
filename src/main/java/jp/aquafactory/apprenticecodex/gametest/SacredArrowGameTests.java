@@ -37,8 +37,10 @@ public final class SacredArrowGameTests {
             h.assertTrue(((SacredArrowCastData) data.getAdditionalCastData()).targetId().equals(near.getUUID()), "Must select the nearest valid target across both effects, excluding self");
             near.removeEffect(MobEffectRegistry.GUIDING_BOLT);
             near.setPos(near.position().add(50, 0, 0));
+            s.owner.setYRot(90);
+            s.owner.setXRot(90);
             s.spell.onCast(h.getLevel(), 1, s.owner, CastSource.SPELLBOOK, data);
-            h.assertTrue(s.castArrow().isChasing(), "Losing the mark or leaving the search area must not cancel the lock");
+            h.assertTrue(s.castArrow().isChasing(), "Losing the mark, leaving the search area or turning after selection must not cancel the lock");
         }
         h.succeed();
     }
@@ -202,6 +204,52 @@ public final class SacredArrowGameTests {
 
     private static void step(Entity entity) { entity.tickCount++; entity.tick(); }
 
+    @GameTest(template = TEMPLATE, batch = BATCH)
+    public static void captureConeIncludesYawAndPitchBoundaries(GameTestHelper h) {
+        try (var s = new Scene(h)) {
+            var target = s.zombie(8, 0);
+            target.addEffect(new MobEffectInstance(EffectRegistry.SACRED_SIGN, 300));
+            for (boolean vertical : List.of(false, true)) {
+                for (double degrees : new double[]{-60.1, -60, -59.9, 0, 59.9, 60, 60.1, 180}) {
+                    double angle = Math.toRadians(degrees);
+                    var offset = new Vec3(Math.cos(angle), vertical ? Math.sin(angle) : 0,
+                            vertical ? 0 : Math.sin(angle)).scale(8);
+                    target.setPos(s.owner.getEyePosition().add(offset).subtract(0, target.getBbHeight() * 0.5, 0));
+                    var data = (SacredArrowCastData) s.preCast().getAdditionalCastData();
+                    h.assertTrue((data.targetId() != null) == (Math.abs(degrees) <= 60),
+                            "Capture cone boundary mismatch: vertical=" + vertical + ", degrees=" + degrees);
+                }
+            }
+            target.setPos(s.origin.add(8, 0, 0));
+            s.owner.setXRot(90);
+            h.assertTrue(((SacredArrowCastData) s.preCast().getAdditionalCastData()).targetId() == null,
+                    "Looking down must exclude a distant ground-level target");
+            target.setPos(s.owner.getEyePosition().add(0, -8, 0).subtract(0, target.getBbHeight() * 0.5, 0));
+            h.assertTrue(((SacredArrowCastData) s.preCast().getAdditionalCastData()).targetId().equals(target.getUUID()),
+                    "Looking down must include targets below the caster");
+        }
+        h.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, batch = BATCH)
+    public static void captureConeKeepsDistancePriorityAndNormalFallback(GameTestHelper h) {
+        try (var s = new Scene(h)) {
+            var near = s.zombie(3, 3);
+            var center = s.zombie(8, 0);
+            var behind = s.zombie(-2, 0);
+            near.addEffect(new MobEffectInstance(MobEffectRegistry.GUIDING_BOLT, 300));
+            center.addEffect(new MobEffectInstance(EffectRegistry.SACRED_SIGN, 300));
+            behind.addEffect(new MobEffectInstance(EffectRegistry.SACRED_SIGN, 300));
+            h.assertTrue(((SacredArrowCastData) s.preCast().getAdditionalCastData()).targetId().equals(near.getUUID()),
+                    "Distance must win over alignment, while closer targets behind the caster are excluded");
+            near.discard(); center.discard();
+            var data = s.preCast();
+            s.spell.onCast(h.getLevel(), 1, s.owner, CastSource.SWORD, data);
+            h.assertTrue(!s.castArrow().isChasing(), "Only out-of-cone marks must produce a normal arrow");
+        }
+        h.succeed();
+    }
+
     private static final class Scene implements AutoCloseable {
         final GameTestHelper helper;
         final Vec3 origin;
@@ -211,7 +259,7 @@ public final class SacredArrowGameTests {
         Scene(GameTestHelper h) {
             helper = h; origin = h.absoluteVec(new Vec3(2, 30, 2));
             owner = new FakePlayer(h.getLevel(), new GameProfile(UUID.randomUUID(), "sacred_test"));
-            owner.setPos(origin); owner.setNoGravity(true); add(owner);
+            owner.setPos(origin); owner.setYRot(-90); owner.setXRot(0); owner.setNoGravity(true); add(owner);
         }
         void add(Entity e) { entities.add(e); helper.getLevel().addFreshEntity(e); }
         Zombie zombie(double x, double z) {

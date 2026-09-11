@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class SacredArrow extends AbstractSpell {
+    private static final double TARGET_HALF_ANGLE_COS = 0.5;
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sacred_arrow");
 
     private final DefaultConfig config = new DefaultConfig()
@@ -117,9 +118,14 @@ public class SacredArrow extends AbstractSpell {
 
     private SacredArrowCastData selectTarget(LivingEntity caster) {
         var origin = caster.position();
+        var eye = caster.getEyePosition();
+        var look = caster.getLookAngle();
         var target = caster.level().getEntitiesOfClass(LivingEntity.class,
                         new AABB(origin, origin).inflate(48), candidate ->
                                 SacredArrowEntity.isLiveTarget(candidate, caster)
+                                        // FOV設定によらず上下も含む120度の円錐で絞り、優先順位は距離のままにする。
+                                        && look.dot(candidate.getBoundingBox().getCenter().subtract(eye).normalize())
+                                        >= TARGET_HALF_ANGLE_COS - 1.0e-7
                                         && (candidate.hasEffect(EffectRegistry.SACRED_SIGN)
                                         || candidate.hasEffect(io.redspace.ironsspellbooks.registries.MobEffectRegistry.GUIDING_BOLT)))
                 .stream().min(Comparator.comparingDouble((LivingEntity e) -> e.distanceToSqr(caster))
