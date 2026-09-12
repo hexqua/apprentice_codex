@@ -76,7 +76,8 @@ public final class ElementalBowPendingCast {
         return player.isAlive() && !player.isSpectator() && player.isUsingItem()
                 && player.getUsedItemHand() == state.hand && player.getUseItem() == state.stack
                 && player.getItemInHand(state.hand) == state.stack
-                && player.getInventory().selected == state.hotbarSlot
+                // バニラ弓と同様、オフハンド使用中のホットバー変更では詠唱を中断しない。
+                && (state.hand == InteractionHand.OFF_HAND || player.getInventory().selected == state.hotbarSlot)
                 && ItemStack.isSameItemSameComponents(state.stack, state.snapshot)
                 && state.dimension.equals(player.level().dimension().location().toString())
                 && state.spell.isEnabled() && ownsMagic(player, state);

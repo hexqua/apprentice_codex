@@ -95,11 +95,20 @@ public final class ElementalBowLongCastGameTests {
     }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 120)
+    public static void offhandHotbarChangesPreserveTargetAndDrawTime(GameTestHelper helper) {
+        holdsTarget(helper, SpellRegistry.SACRED_ARROW.get(), InteractionHand.OFF_HAND, true);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 120)
     public static void arrowVolleyPreservesPreconditionTarget(GameTestHelper helper) {
         holdsTarget(helper, io.redspace.ironsspellbooks.api.registry.SpellRegistry.ARROW_VOLLEY_SPELL.get(), InteractionHand.MAIN_HAND);
     }
 
     private static void holdsTarget(GameTestHelper h, AbstractSpell spell, InteractionHand hand) {
+        holdsTarget(h, spell, hand, false);
+    }
+
+    private static void holdsTarget(GameTestHelper h, AbstractSpell spell, InteractionHand hand, boolean changeHotbar) {
         var player = player(h, hand, spell);
         var stack = player.getItemInHand(hand);
         var magic = MagicData.getPlayerMagicData(player);
@@ -120,9 +129,14 @@ public final class ElementalBowLongCastGameTests {
         // FakePlayer は world のプレイヤー一覧に入れず、実際の server tick ごとに弓の tick を駆動する。
         for (int i = 1; i < ticks; i++) h.runAfterDelay(i, () -> {
             try (var config = BowGameTestSupport.useElementalBowSpellConfig(h)) {
+                // 引き始めと異なるスロットのまま保持・発射し、詠唱時間や対象がリセットされないことを確認する。
+                if (changeHotbar) player.getInventory().selected = 3 + (int) (h.getLevel().getGameTime() % 2);
                 ElementalBowPendingCast.tick(player);
                 h.assertTrue(magic.isCasting() && magic.getAdditionalCastData() == captured,
                         "Holding must preserve the original cast without automatic completion");
+                h.assertTrue(magic.getCastDurationRemaining() == Math.max(0,
+                                ElementalBow.resolveMagicRequiredDrawTicks(stack) - (h.getLevel().getGameTime() - startedAt)),
+                        "Holding must preserve elapsed draw time across hotbar changes");
                 assertUnspent(h, player, stack);
             }
         });
@@ -150,6 +164,37 @@ public final class ElementalBowLongCastGameTests {
                 target.discard();
             }
         });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void changingUsedBowOrMainhandSlotCancelsWithoutConsumption(GameTestHelper h) {
+        try (var config = BowGameTestSupport.useElementalBowSpellConfig(h)) {
+            for (var hand : InteractionHand.values()) {
+                var player = player(h, hand, SpellRegistry.LUNAR_AIM.get());
+                var stack = player.getItemInHand(hand);
+                try {
+                    begin(h, player, hand);
+                    player.setItemInHand(hand, stack.copy());
+                    ElementalBowPendingCast.tick(player);
+                    assertCleared(h, player);
+                    assertUnspent(h, player, stack);
+                } finally {
+                    ElementalBowPendingCast.cancel(player);
+                }
+            }
+            var player = player(h, InteractionHand.MAIN_HAND, SpellRegistry.LUNAR_AIM.get());
+            var stack = player.getMainHandItem();
+            try {
+                begin(h, player, InteractionHand.MAIN_HAND);
+                player.getInventory().selected = 3;
+                ElementalBowPendingCast.tick(player);
+                assertCleared(h, player);
+                assertUnspent(h, player, stack);
+            } finally {
+                ElementalBowPendingCast.cancel(player);
+            }
+        }
+        h.succeed();
     }
 
     @GameTest(template = TEMPLATE)
