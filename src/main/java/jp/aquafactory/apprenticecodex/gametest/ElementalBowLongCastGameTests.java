@@ -32,6 +32,58 @@ import java.util.function.Consumer;
 public final class ElementalBowLongCastGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
 
+    @GameTest(template = TEMPLATE)
+    public static void newObserversReceiveOnlyCurrentBowCast(GameTestHelper h) {
+        try (var config = BowGameTestSupport.useElementalBowSpellConfig(h)) {
+            var spell = SpellRegistry.LUNAR_AIM.get();
+            var caster = player(h, InteractionHand.MAIN_HAND, spell);
+            var observer = player(h, InteractionHand.MAIN_HAND, spell);
+            var packets = new java.util.ArrayList<jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket>();
+            var connection = new net.minecraft.network.Connection(net.minecraft.network.protocol.PacketFlow.SERVERBOUND);
+            var channel = new io.netty.channel.embedded.EmbeddedChannel(connection);
+            net.neoforged.neoforge.network.registration.NetworkRegistry.configureMockConnection(connection);
+            var previous = observer.connection;
+            new net.minecraft.server.network.ServerGamePacketListenerImpl(h.getLevel().getServer(), connection, observer,
+                    net.minecraft.server.network.CommonListenerCookie.createInitial(observer.getGameProfile(), false)) {
+                @Override public void send(net.minecraft.network.protocol.Packet<?> packet) {
+                    if (packet instanceof net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket payload
+                            && payload.payload() instanceof jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket cast) {
+                        packets.add(cast);
+                    }
+                }
+            };
+            try {
+                begin(h, caster, InteractionHand.MAIN_HAND);
+                var event = new net.neoforged.neoforge.event.entity.player.PlayerEvent.StartTracking(observer, caster);
+                NeoForge.EVENT_BUS.post(event);
+                h.assertTrue(packets.size() == 1 && packets.getFirst().active()
+                                && packets.getFirst().playerId().equals(caster.getUUID())
+                                && packets.getFirst().spellId().equals(spell.getSpellId()),
+                        "A new observer must receive the caster's active bow spell");
+                packets.clear();
+                // 終了を観測できなかった後の再追跡で、過去の弓詠唱を再送しない。
+                ElementalBowPendingCast.cancel(caster);
+                NeoForge.EVENT_BUS.post(event);
+                h.assertTrue(packets.isEmpty(), "Tracking after cancellation must not restore a finished bow cast");
+                begin(h, caster, InteractionHand.MAIN_HAND);
+                caster.stopUsingItem();
+                NeoForge.EVENT_BUS.post(event);
+                h.assertTrue(packets.isEmpty(), "Invalid pending state must not be sent before the next cleanup tick");
+                ElementalBowPendingCast.cancel(caster);
+                var magic = MagicData.getPlayerMagicData(caster);
+                magic.initiateCast(spell, 1, 20, io.redspace.ironsspellbooks.api.spells.CastSource.SPELLBOOK, "mainhand");
+                NeoForge.EVENT_BUS.post(event);
+                h.assertTrue(packets.isEmpty(), "Ordinary casting must not be synchronized as a bow cast");
+                magic.resetCastingState();
+            } finally {
+                ElementalBowPendingCast.cancel(caster);
+                observer.connection = previous;
+                channel.finishAndReleaseAll();
+            }
+        }
+        h.succeed();
+    }
+
     @GameTest(template = TEMPLATE, timeoutTicks = 120)
     public static void lunarAimLocksAtDrawAndHoldsUntilRelease(GameTestHelper helper) {
         holdsTarget(helper, SpellRegistry.LUNAR_AIM.get(), InteractionHand.MAIN_HAND);

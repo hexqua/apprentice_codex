@@ -11,6 +11,8 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
+import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -58,6 +60,18 @@ public final class ElementalBowClientCastState {
         Networks.sendToServer(new ClientElementalBowCancelPacket());
         player.stopUsingItem();
         ClientMagicData.resetClientCastState(player.getUUID());
+    }
+
+    @SubscribeEvent
+    public static void entityLeft(EntityLeaveLevelEvent event) {
+        // 追跡を外れた観測者には終了通知が届かないため、client の離脱時点で破棄する。
+        if (event.getLevel().isClientSide()) ACTIVE.remove(event.getEntity().getUUID());
+    }
+
+    @SubscribeEvent
+    public static void levelUnloaded(LevelEvent.Unload event) {
+        // ディメンション移動では全 entity の離脱イベントが発生するとは限らない。
+        if (event.getLevel().isClientSide()) ACTIVE.clear();
     }
 
     @SubscribeEvent
