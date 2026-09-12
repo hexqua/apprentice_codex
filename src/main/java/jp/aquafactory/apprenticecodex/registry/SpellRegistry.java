@@ -49,6 +49,7 @@ import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssault;
 import jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrow;
 import jp.aquafactory.apprenticecodex.spell.linearbuild.LinearBuild;
 import jp.aquafactory.apprenticecodex.spell.longstride.LongStride;
+import jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAim;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpear;
 import jp.aquafactory.apprenticecodex.spell.manacharge.ManaCharge;
@@ -179,6 +180,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> FROST_RUNE = reg("frost_rune", FrostRune::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> INSCRIBE_ICE = reg("inscribe_ice", InscribeIce::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> TOTEM_OF_PERMAFROST = reg("totem_of_permafrost", TotemOfPermafrost::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> LUNAR_AIM = reg("lunar_aim", LunarAim::new);
 
     // 雷.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> SKY_EDGE = reg("sky_edge", SkyEdge::new);

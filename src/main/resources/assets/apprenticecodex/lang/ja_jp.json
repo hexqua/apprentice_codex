@@ -774,6 +774,7 @@
   "entity.apprenticecodex.bloody_arrow_arrow": "ブラッディーアロー",
   "entity.apprenticecodex.bloody_arrow_orb": "血のオーブ",
   "entity.apprenticecodex.sacred_arrow_arrow": "セイクリッドアロー",
+  "entity.apprenticecodex.lunar_aim_arrow": "月の魔矢",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "使い走り魔術師",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "使い走り魔術師",
@@ -970,6 +971,7 @@
   "spell.apprenticecodex.lightning_arrow": "ライトニングアロー",
   "spell.apprenticecodex.bloody_arrow": "ブラッディーアロー",
   "spell.apprenticecodex.sacred_arrow": "セイクリッドアロー",
+  "spell.apprenticecodex.lunar_aim": "ルナエイム",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して攻撃を続ける魔法の弓を召喚する。大魔術師のお守りを装備していてもクールダウンの発生は抑制できない。",
@@ -1059,6 +1061,7 @@
   "spell.apprenticecodex.lightning_arrow.guide": "雷の魔力で形成された矢を高速でまっすぐに放つ。矢は電撃の尾を残し、軌道近くの敵を貫通してそれぞれ一度ずつダメージを与える。重力の影響を受けず、地形に当たるか射程に達すると消滅する。",
   "spell.apprenticecodex.bloody_arrow.guide": "血の魔術で作り出した血の矢を放つ。血の魔術による矢は液体の抵抗を受けない。命中した際に傷つけたモブと反応を起こし、周囲に体力を回復する血のオーブを落とす。この魔法によってモブを倒すと通常より多く血のオーブを落とす。血のオーブは術者とその味方しか拾えず、少しすると溶けて消滅してしまう。",
   "spell.apprenticecodex.sacred_arrow.guide": "聖なる魔力で形成された光の矢を放ち、命中させた対象に徴を刻む。導きの魔弾かこの魔法で付けた徴の方を向いて構えると、放った時に狙いとは無関係に強制的に徴に向かって飛んでいく。この特殊な追尾状態は徴が消えても追尾し続け、地形はすり抜け、徴とは無関係な敵を弱く貫くが、徴そのものを刻む能力は失われる。",
+  "spell.apprenticecodex.lunar_aim.guide": "氷の魔力で複数の矢を形成して放つ。構えた時に対象を捕捉でき、放った矢は散開した後に捕捉した対象に向かって飛んでいく。着弾時に月の魔法のように炸裂することで周囲の敵を巻き込む。敵の防御力を無視する。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
@@ -1435,6 +1438,7 @@
   "death.attack.apprenticecodex.lightning_arrow": "%1$sは%2$sの電撃の矢に貫かれた",
   "death.attack.apprenticecodex.bloody_arrow": "%1$sは失血死した",
   "death.attack.apprenticecodex.sacred_arrow": "%1$sは%2$sの裁きから逃れられなかった",
+  "death.attack.apprenticecodex.lunar_aim": "%1$sは%2$sの絶技によって仕留められた",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",
