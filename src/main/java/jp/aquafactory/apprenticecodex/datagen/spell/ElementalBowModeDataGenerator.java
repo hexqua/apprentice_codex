@@ -36,6 +36,30 @@ public final class ElementalBowModeDataGenerator extends JsonCodecProvider<Eleme
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "default_modes"),
                         new ElementalBowModeList(List.of(
                                 new ElementalBowModeDefinition(
+                                        getSpellId(SpellRegistry.ARROW_VOLLEY_SPELL),
+                                        ElementalBowModeDefinition.DEFAULT_REQUIRED_DRAW_TICKS
+                                ),
+                                new ElementalBowModeDefinition(
+                                        getSpellId(jp.aquafactory.apprenticecodex.registry.SpellRegistry.LIGHTNING_ARROW),
+                                        ElementalBowModeDefinition.DEFAULT_REQUIRED_DRAW_TICKS
+                                ),
+                                new ElementalBowModeDefinition(
+                                        getSpellId(jp.aquafactory.apprenticecodex.registry.SpellRegistry.BLOODY_ARROW),
+                                        ElementalBowModeDefinition.DEFAULT_REQUIRED_DRAW_TICKS
+                                ),
+                                new ElementalBowModeDefinition(
+                                        getSpellId(jp.aquafactory.apprenticecodex.registry.SpellRegistry.SACRED_ARROW),
+                                        ElementalBowModeDefinition.DEFAULT_REQUIRED_DRAW_TICKS
+                                ),
+                                new ElementalBowModeDefinition(
+                                        getSpellId(jp.aquafactory.apprenticecodex.registry.SpellRegistry.LUNAR_AIM),
+                                        ElementalBowModeDefinition.DEFAULT_REQUIRED_DRAW_TICKS
+                                ),
+                                new ElementalBowModeDefinition(
+                                        getSpellId(jp.aquafactory.apprenticecodex.registry.SpellRegistry.ECHO_ARROW),
+                                        ElementalBowModeDefinition.DEFAULT_REQUIRED_DRAW_TICKS
+                                ),
+                                new ElementalBowModeDefinition(
                                         getSpellId(SpellRegistry.FIRE_ARROW_SPELL),
                                         ElementalBowModeDefinition.DEFAULT_REQUIRED_DRAW_TICKS
                                 ),

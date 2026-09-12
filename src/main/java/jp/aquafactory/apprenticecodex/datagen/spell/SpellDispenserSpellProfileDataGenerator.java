@@ -39,6 +39,26 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
     public static List<SpellDispenserSpellProfileDefinition> createProfileDefinitions() {
         return List.of(
                                 new SpellDispenserSpellProfileDefinition(
+                                        getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.LIGHTNING_ARROW),
+                                        SpellDispenserSpellProfile.OWNER_OPTIONAL
+                                ),
+                                new SpellDispenserSpellProfileDefinition(
+                                        getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.BLOODY_ARROW),
+                                        SpellDispenserSpellProfile.OWNER_OPTIONAL
+                                ),
+                                new SpellDispenserSpellProfileDefinition(
+                                        getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.SACRED_ARROW),
+                                        SpellDispenserSpellProfile.OWNER_OPTIONAL
+                                ),
+                                new SpellDispenserSpellProfileDefinition(
+                                        getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.LUNAR_AIM),
+                                        SpellDispenserSpellProfile.OWNER_OPTIONAL
+                                ),
+                                new SpellDispenserSpellProfileDefinition(
+                                        getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.ECHO_ARROW),
+                                        SpellDispenserSpellProfile.OWNER_OPTIONAL
+                                ),
+                                new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(SpellRegistry.ACUPUNCTURE_SPELL),
                                         SpellDispenserSpellProfile.PROXY_NEUTRAL
                                 ),
