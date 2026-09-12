@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
@@ -28,6 +29,7 @@ public final class EntityTypeTagGenerator extends TagsProvider<EntityType<?>> {
         tag(TagRegistry.EntityTypes.GRAVITY_BOUND_DENYLIST);
         // 通常弾も含め、Iron'sの誘導と専用のモード選択を競合させない。
         tag(io.redspace.ironsspellbooks.util.ModTags.GUIDING_BOLT_IMMUNE)
-                .add(jp.aquafactory.apprenticecodex.registry.EntityRegistry.SACRED_ARROW.getKey());
+                .add(EntityRegistry.SACRED_ARROW.getKey())
+                .add(EntityRegistry.LUNAR_AIM_ARROW.getKey());
     }
 }

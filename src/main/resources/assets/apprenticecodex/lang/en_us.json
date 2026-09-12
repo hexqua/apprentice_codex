@@ -1659,5 +1659,9 @@
   "ui.apprenticecodex.sacred_arrow.target_found": "Locked onto %s...",
   "effect.apprenticecodex.sacred_sign": "Sacred Sign",
   "effect.apprenticecodex.sacred_sign.description": "Nearby Sacred Arrow casts will home toward you.",
-  "death.attack.apprenticecodex.sacred_arrow": "%1$s could not escape %2$s's judgment"
+  "death.attack.apprenticecodex.sacred_arrow": "%1$s could not escape %2$s's judgment",
+  "entity.apprenticecodex.lunar_aim_arrow": "Lunar Magic Arrow",
+  "spell.apprenticecodex.lunar_aim": "Lunar Aim",
+  "spell.apprenticecodex.lunar_aim.guide": "Form and release multiple arrows of ice magic. Acquire a target as you begin casting, and the arrows will spread out before homing in on it. On impact, they burst like lunar magic, catching nearby enemies in the blast. Ignores enemy armor.",
+  "death.attack.apprenticecodex.lunar_aim": "%1$s was brought down by %2$s's masterful technique"
 }

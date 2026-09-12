@@ -1652,5 +1652,9 @@
   "ui.apprenticecodex.sacred_arrow.target_found": "已锁定追踪目标：%s……",
   "effect.apprenticecodex.sacred_sign": "神圣印记",
   "effect.apprenticecodex.sacred_sign.description": "附近施放的神圣之箭会追踪你。",
-  "death.attack.apprenticecodex.sacred_arrow": "%1$s未能逃脱%2$s的审判"
+  "death.attack.apprenticecodex.sacred_arrow": "%1$s未能逃脱%2$s的审判",
+  "entity.apprenticecodex.lunar_aim_arrow": "月之魔矢",
+  "spell.apprenticecodex.lunar_aim": "月之瞄准",
+  "spell.apprenticecodex.lunar_aim.guide": "以寒冰魔力形成多支箭矢并射出。开始施法时可锁定目标，射出的箭矢先向四周散开，再追踪锁定的目标。命中时如月之魔法般炸裂，波及周围的敌人。无视敌人的护甲。",
+  "death.attack.apprenticecodex.lunar_aim": "%1$s被%2$s的绝技击倒了"
 }
