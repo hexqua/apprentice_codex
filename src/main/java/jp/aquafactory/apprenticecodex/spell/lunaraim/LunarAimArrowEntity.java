@@ -131,6 +131,13 @@ public final class LunarAimArrowEntity extends Projectile implements AntiMagicSu
         }
         BlockHitResult cancelledBlockHit = null;
         var hit = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
+        // このoverloadは交点を捨てるため、同じ判定余白で命中部位の交点を復元する。
+        // 親へ解決する前の部位を使い、hookと爆発中心が大型mobの足元へ移らないようにする。
+        if (hit instanceof EntityHitResult entityHit) {
+            var point = entityHit.getEntity().getBoundingBox().inflate((double) 0.3F)
+                    .clip(start, start.add(getDeltaMovement())).orElse(start);
+            hit = new EntityHitResult(entityHit.getEntity(), point);
+        }
         if (hit.getType() != HitResult.Type.MISS) {
             if (EventHooks.onProjectileImpact(this, hit)) {
                 if (hit instanceof BlockHitResult block) cancelledBlockHit = block;
