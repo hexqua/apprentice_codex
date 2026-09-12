@@ -198,6 +198,36 @@ public final class LunarAimGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = BATCH)
+    public static void upperBodyImpactKeepsIntersectionAndBurstCenter(GameTestHelper h) {
+        try (var s = new Scene(h)) {
+            var direct = s.zombie(1.5, 0);
+            // 背の高いmobへの上部命中と、足元・着弾付近の巻き込み範囲を分離する。
+            direct.setBoundingBox(direct.getBoundingBox().expandTowards(0, 5, 0));
+            var upper = s.zombie(1.5, 2);
+            upper.setPos(upper.position().add(0, 5, 0));
+            var lower = s.zombie(1.5, 2);
+            var arrow = s.arrow(null, new Vec3(1, 0, 0));
+            arrow.setPos(s.origin.add(0, 5, 0));
+            var impacts = new ArrayList<Vec3>();
+            java.util.function.Consumer<net.neoforged.neoforge.event.entity.ProjectileImpactEvent> listener = event -> {
+                if (event.getProjectile() == arrow) impacts.add(event.getRayTraceResult().getLocation());
+            };
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(listener);
+            try {
+                step(arrow);
+                var expected = new Vec3(direct.getBoundingBox().minX - (double) 0.3F, s.origin.y + 5, s.origin.z);
+                h.assertTrue(arrow.isBursting() && arrow.position().distanceTo(expected) < 1.0e-6,
+                        "The burst must stay at the upper-body entry point");
+                h.assertTrue(impacts.size() == 1 && impacts.getFirst().distanceTo(expected) < 1.0e-6,
+                        "The impact event must receive the same restored intersection");
+                h.assertTrue(upper.getHealth() == 16 && lower.getHealth() == 20,
+                        "Burst damage must affect neighbors of the impact, not neighbors of the feet");
+            } finally { net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(listener); }
+        }
+        h.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, batch = BATCH)
     public static void homingHitsBystandersBlocksAndCounterspellIsSilent(GameTestHelper h) {
         try (var s = new Scene(h)) {
             var target = s.zombie(12, 0); var bystander = s.zombie(1.5, 0);
@@ -284,6 +314,8 @@ public final class LunarAimGameTests {
             for (var part : dragon.getParts()) part.setPos(s.origin.add(1.5, 0, 0));
             h.assertTrue(s.selected() == dragon, "A visible multipart hitbox must select its parent");
             var arrow = s.arrow(dragon, new Vec3(1, 0, 0)); step(arrow);
+            h.assertTrue(Math.abs(arrow.getY() - (s.origin.y + 0.9)) < 1.0e-6,
+                    "Multipart impacts must preserve the flight height instead of using the part or parent feet");
             // Dragonのbody経由ダメージは4/4+1=2。複数部位への重複適用を検出する。
             h.assertTrue(arrow.isBursting() && Math.abs(dragon.getHealth() - (dragon.getMaxHealth() - 2)) < 0.01,
                     "The burst must damage a multipart parent exactly once: health=" + dragon.getHealth());
