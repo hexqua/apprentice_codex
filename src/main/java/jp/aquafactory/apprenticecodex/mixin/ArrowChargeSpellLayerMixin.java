@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.render.ChargeSpellLayer;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodyArrowRenderer;
 import jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrowRenderer;
+import jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAimArrowRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +37,9 @@ public abstract class ArrowChargeSpellLayerMixin {
 
     @Unique
     private static @Nullable BiConsumer<PoseStack, MultiBufferSource> apprenticecodex$findArrowRenderer(String spellId) {
+        if (spellId.equals(SpellRegistry.LUNAR_AIM.get().getSpellId())) {
+            return LunarAimArrowRenderer::renderCharge;
+        }
         if (spellId.equals(SpellRegistry.LIGHTNING_ARROW.get().getSpellId())) {
             return LightningArrowRenderer::renderModel;
         }

@@ -7,9 +7,17 @@ import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
+import io.redspace.ironsspellbooks.network.casting.SyncTargetingDataPacket;
+import net.neoforged.neoforge.network.PacketDistributor;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import net.minecraft.ChatFormatting;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -55,7 +63,7 @@ public class LunarAim extends AbstractSpell {
         return 2.5f;
     }
 
-    private float getProjectileCount(){
+    private int getProjectileCount(){
         return 4;
     }
 
@@ -95,7 +103,49 @@ public class LunarAim extends AbstractSpell {
     }
 
     @Override
+    public void onServerPreCast(Level level, int spellLevel, LivingEntity entity, MagicData magicData) {
+        super.onServerPreCast(level, spellLevel, entity, magicData);
+        if (level instanceof ServerLevel && magicData != null) magicData.setAdditionalCastData(selectTarget(entity, true));
+    }
+
+    private LunarAimCastData selectTarget(LivingEntity caster, boolean showTargeting) {
+        var target = CombatTools.findLookCombatTarget(caster, 128, 1);
+        if (target != null && caster instanceof ServerPlayer player) {
+            // UtilのLivingEntity用constructorを避け、クリスタルも同じ対象表示データへ載せる。
+            // 開始処理のない即時発動では、表示を解除する詠唱完了通知がないため送らない。
+            if (showTargeting) PacketDistributor.sendToPlayer(player, new SyncTargetingDataPacket(this, List.of(target.getUUID())));
+            player.displayClientMessage(Component.translatable("ui.irons_spellbooks.spell_target_success",
+                    target.getDisplayName().getString(), getDisplayName(player)).withStyle(ChatFormatting.GREEN), true);
+        }
+        return new LunarAimCastData(target == null ? null : target.getUUID(), caster.level().dimension());
+    }
+
+    @Override
+    public void onServerCastComplete(Level level, int spellLevel, LivingEntity entity, MagicData magicData, boolean cancelled) {
+        super.onServerCastComplete(level, spellLevel, entity, magicData, cancelled);
+        clearTarget(magicData);
+    }
+
+    private static void clearTarget(MagicData data) {
+        if (data != null && data.getAdditionalCastData() instanceof LunarAimCastData) data.setAdditionalCastData(null);
+    }
+
+    @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        if (level instanceof ServerLevel server) {
+            // 剣など開始処理を通らない発動のみ補完する。選出済みの対象なしは維持する。
+            var data = playerMagicData != null && playerMagicData.getAdditionalCastData() instanceof LunarAimCastData stored
+                    ? stored : selectTarget(entity, false);
+            var target = data.targetId() != null && data.dimension().equals(level.dimension())
+                    ? server.getEntity(data.targetId()) : null;
+            for (int i = 0; i < getProjectileCount(); i++) {
+                var arrow = new LunarAimArrowEntity(EntityRegistry.LUNAR_AIM_ARROW.get(), level);
+                var direction = Vec3.directionFromRotation(entity.getXRot(), entity.getYRot() - 60 + 40 * i);
+                arrow.launch(entity, entity.getEyePosition(), direction, getDamage(spellLevel, entity), getExplodeSize(), target);
+                server.addFreshEntity(arrow);
+            }
+            clearTarget(playerMagicData);
+        }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 }

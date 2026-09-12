@@ -403,6 +403,9 @@ public final class EntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowEntity>> SACRED_ARROW =
             regProjectile("sacred_arrow_arrow", jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowEntity::new, 128, 1);
 
+    public static final DeferredHolder<EntityType<?>, EntityType<jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAimArrowEntity>> LUNAR_AIM_ARROW =
+            regProjectile("lunar_aim_arrow", jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAimArrowEntity::new, 128, 1);
+
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);
     }
