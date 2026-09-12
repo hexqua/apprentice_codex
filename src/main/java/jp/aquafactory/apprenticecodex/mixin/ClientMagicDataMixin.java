@@ -9,6 +9,12 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(value = ClientMagicData.class, remap = false)
 public abstract class ClientMagicDataMixin {
+    @org.spongepowered.asm.mixin.injection.Inject(method = "handleCastDuration", at = @At("HEAD"), cancellable = true)
+    private static void apprenticecodex$holdElementalBowDuration(org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+        // 満了後も対象表示を残し、終了は server の発動・キャンセル通知に委ねる。
+        if (jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowClientCastState.isLocalActive()) ci.cancel();
+    }
+
     @Redirect(
             method = "resetClientCastState",
             at = @At(

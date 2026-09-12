@@ -27,6 +27,7 @@ public abstract class MagicManagerMixin {
     )
     private boolean apprentice_codex$skipManagedContinuousInMagicManager(MagicData magicData) {
         return magicData.getSyncedData().isCasting()
+                && !jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowPendingCast.shouldBypassMagicManager(magicData)
                 && !FocusStaffbowCastManager.shouldBypassMagicManager(magicData)
                 && !BulwarkGreatshieldRuntime.shouldBypassMagicManager(magicData)
                 && !ReflectcastShieldRuntime.shouldBypassMagicManager(magicData);

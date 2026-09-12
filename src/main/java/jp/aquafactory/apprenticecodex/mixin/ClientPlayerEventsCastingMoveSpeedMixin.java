@@ -16,7 +16,8 @@ public abstract class ClientPlayerEventsCastingMoveSpeedMixin {
 
     @Inject(method = "onCalculatePlayerSpeed", at = @At("HEAD"), cancellable = true)
     private static void apprenticecodex$adjustCastingMoveSpeedPenalty(MovementInputUpdateEvent event, CallbackInfo ci) {
-        if (FocusStaffbow.isBowDrawUse(event.getEntity())) {
+        if (FocusStaffbow.isBowDrawUse(event.getEntity())
+                || jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowClientCastState.isLocalActive()) {
             // CONTINUOUS は Iron's の cast state を維持して tick/HUD/cancel を使う。
             // ただし右クリック中の移動低下だけは弓の引き絞り由来に限定したいので、
             // CASTING_MOVESPEED を参照する client 側補正はここで通さない。

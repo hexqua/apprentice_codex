@@ -1,4 +1,5 @@
 {
+  "jei.apprenticecodex.elemental_bow.desc_5": "需要吟唱的法术会在开始拉弓时吟唱并选择目标。蓄力完成后可继续保持，松开时施放。提前松开、切换物品或打开界面会取消施法，且不消耗资源。",
   "subtitle.apprenticecodex.sound.echo_arrow_volley": "回响核心发射箭矢",
   "subtitle.apprenticecodex.sound.echo_arrow_cast": "回响之箭射出",
   "subtitle.apprenticecodex.sound.echo_arrow_charge": "回响之箭凝聚",

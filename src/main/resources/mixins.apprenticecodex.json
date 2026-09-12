@@ -82,6 +82,7 @@
     "BetterCombatItemInHandLayerMixin",
     "BetterCombatItemInHandRendererMixin",
     "ClientMagicDataMixin",
+    "ElementalBowCastBarOverlayMixin",
     "ClientPlayerEventsCastingMoveSpeedMixin",
     "ClientPlayerRecastsMixin",
     "ClientInputEventsMixin",

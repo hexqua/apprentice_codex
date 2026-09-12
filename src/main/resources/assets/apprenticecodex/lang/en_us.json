@@ -1,4 +1,5 @@
 {
+  "jei.apprenticecodex.elemental_bow.desc_5": "Long-cast spells begin casting and select targets when you draw. Hold after charging, then release to fire. Releasing early, switching items, or opening a screen cancels without consuming resources.",
   "subtitle.apprenticecodex.sound.echo_arrow_volley": "Echo core fires arrows",
   "subtitle.apprenticecodex.sound.echo_arrow_cast": "Echo arrow fires",
   "subtitle.apprenticecodex.sound.echo_arrow_charge": "Echo arrow forms",
