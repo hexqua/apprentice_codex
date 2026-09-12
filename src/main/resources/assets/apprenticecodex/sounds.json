@@ -1,4 +1,31 @@
 {
+  "echo_arrow_charge": {
+    "subtitle": "subtitle.apprenticecodex.sound.echo_arrow_charge",
+    "sounds": [
+      {
+        "name": "minecraft:entity.warden.sonic_charge",
+        "type": "event"
+      }
+    ]
+  },
+  "echo_arrow_cast": {
+    "subtitle": "subtitle.apprenticecodex.sound.echo_arrow_cast",
+    "sounds": [
+      {
+        "name": "irons_spellbooks:spell.eldritch_blast.cast",
+        "type": "event"
+      }
+    ]
+  },
+  "echo_arrow_volley": {
+    "subtitle": "subtitle.apprenticecodex.sound.echo_arrow_volley",
+    "sounds": [
+      {
+        "name": "irons_spellbooks:spell.eldritch_blast.cast",
+        "type": "event"
+      }
+    ]
+  },
   "rifle": {
     "category": "player",
     "subtitle": "subtitle.apprenticecodex.sound.rifle",

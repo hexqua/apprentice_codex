@@ -64,6 +64,14 @@ public abstract class ClientSpellCastHelperMixin {
         }
 
         var spell = SpellRegistry.getSpell(spellId);
+        if (jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowClientCastState.matches(castingEntityId, spellId)) {
+            // server の Player.playSound は本人を除外するため、本人の開始音は client 前処理で再生する。
+            // 他プレイヤーの client 前処理ではローカル再生されず、server 配信との二重再生にはならない。
+            spell.onClientPreCast(player.level(), spellLevel, player, player.getUsedItemHand(), null);
+            if (player == minecraft.player) ClientSpellCastHelper.setSuppressRightClicks(false);
+            ci.cancel();
+            return;
+        }
         var castingSlot = ClientMagicData.getSyncedSpellData(player).getCastingEquipmentSlot();
         // 配置 preview は開始時 target を固定したいので、clientbound の cast start に合わせて初期化する。
         ClientPlacementPreviewManager.beginPreview(spell, player, spellLevel);
@@ -154,6 +162,9 @@ public abstract class ClientSpellCastHelperMixin {
             )
     )
     private static AnimationHolder redirectSpellGunCastFinishAnimation(AbstractSpell spell, UUID castingEntityId, String spellId, boolean cancelled) {
+        if (jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowClientCastState.matches(castingEntityId, spellId)) {
+            return AnimationHolder.pass();
+        }
         var minecraft = Minecraft.getInstance();
         if (minecraft.level == null) {
             return spell.getCastFinishAnimation();

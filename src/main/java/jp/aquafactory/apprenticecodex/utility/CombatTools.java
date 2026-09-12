@@ -21,7 +21,11 @@ import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.entity.PartEntity;
 import net.neoforged.fml.ModList;
@@ -31,6 +35,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public final class CombatTools {
@@ -115,6 +120,47 @@ public final class CombatTools {
 
     public static boolean isValidCombatTarget(Entity target, @Nullable Entity owner) {
         return isValidCombatTarget(target, owner, CombatTargetPolicy.PROTECT_SELF_AND_ALLIES);
+    }
+
+    /** 視線上の戦闘対象を選ぶ。通知や詠唱状態には触れず、クリスタルと大型mobの部位も扱う。 */
+    public static @Nullable Entity findLookCombatTarget(LivingEntity caster, double range, double aimAssist) {
+        if (!Double.isFinite(range) || range <= 0 || !Double.isFinite(aimAssist) || aimAssist < 0) return null;
+        var start = caster.getEyePosition();
+        var end = start.add(caster.getLookAngle().scale(range));
+        var block = caster.level().clip(new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, caster));
+        if (block.getType() != HitResult.Type.MISS) end = block.getLocation();
+        // 広域検索のAABBは接するだけの箱を除外するので、終端候補を落とさない最小の余白を付ける。
+        var search = new AABB(start, end).inflate(aimAssist + 1.0e-7);
+        Entity selected = null;
+        double nearest = start.distanceToSqr(end);
+        for (var raw : caster.level().getEntities(caster, search, candidate ->
+                !candidate.isSpectator() && candidate.isPickable())) {
+            var target = resolutePartEntity(raw);
+            if (!target.isAlive() || target.isRemoved() || !isValidCombatTarget(target, caster)) continue;
+            var actualBox = raw.getBoundingBox();
+            var box = actualBox.inflate(aimAssist);
+            var point = box.contains(start) ? Optional.of(start) : box.clip(start, end);
+            // AABB.clipは終端ちょうどの交点を返さないため、射程境界も明示的に含める。
+            if (point.isEmpty() && end.x >= box.minX && end.x <= box.maxX
+                    && end.y >= box.minY && end.y <= box.maxY && end.z >= box.minZ && end.z <= box.maxZ) {
+                point = Optional.of(end);
+            }
+            if (point.isEmpty()) continue;
+            // 照準補助で膨らんだ箱が壁の手前へはみ出しても、壁裏の対象を捕捉しない。
+            var visiblePoint = new Vec3(Mth.clamp(point.get().x, actualBox.minX, actualBox.maxX),
+                    Mth.clamp(point.get().y, actualBox.minY, actualBox.maxY),
+                    Mth.clamp(point.get().z, actualBox.minZ, actualBox.maxZ));
+            var obstruction = caster.level().clip(new ClipContext(start, visiblePoint,
+                    ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, caster));
+            if (obstruction.getType() != HitResult.Type.MISS
+                    && start.distanceToSqr(obstruction.getLocation()) + 1.0e-7 < start.distanceToSqr(visiblePoint)) continue;
+            var distance = start.distanceToSqr(point.get());
+            if (distance < nearest || (distance == nearest && (selected == null || target.getId() < selected.getId()))) {
+                nearest = distance;
+                selected = target;
+            }
+        }
+        return selected;
     }
 
     public static boolean isValidCombatTarget(Entity target, @Nullable Entity owner, CombatTargetPolicy policy) {

@@ -36,6 +36,15 @@ import java.util.Optional;
 
 @Mixin(value = AbstractSpell.class, remap = false)
 public abstract class AbstractSpellMixin {
+    @Inject(method = "onServerCastComplete", at = @At("HEAD"))
+    private void apprenticecodex$finishElementalBowHold(Level level, int spellLevel, LivingEntity entity,
+                                                       MagicData magicData, boolean cancelled, CallbackInfo ci) {
+        if (entity instanceof ServerPlayer player) {
+            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowPendingCast.onSpellComplete(
+                    player, (AbstractSpell) (Object) this);
+        }
+    }
+
     // 同じ問い合わせへの Redirect が競合しないよう、装備ごとの CD 回避をここでまとめる。
     // CD 自体を削除せず、通常詠唱や開始失敗時に既存の待ち時間を保持する。
     @Redirect(method = "canBeCastedBy", at = @At(value = "INVOKE",

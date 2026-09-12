@@ -51,6 +51,11 @@
     "apprenticecodex:shiden",
     "apprenticecodex:catch_flame",
     "apprenticecodex:catch_flame_penetrate",
-    "apprenticecodex:thermal_slice"
+    "apprenticecodex:thermal_slice",
+    "apprenticecodex:lightning_arrow",
+    "apprenticecodex:bloody_arrow",
+    "apprenticecodex:sacred_arrow",
+    "apprenticecodex:lunar_aim",
+    "apprenticecodex:echo_arrow"
   ]
 }

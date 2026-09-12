@@ -652,6 +652,33 @@
         "owner_required": false
       },
       "spell": "apprenticecodex:wizardlamp"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
+      "spell": "apprenticecodex:lightning_arrow"
+    },
+    {
+      "spell": "apprenticecodex:bloody_arrow"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
+      "spell": "apprenticecodex:sacred_arrow"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
+      "spell": "apprenticecodex:lunar_aim"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
+      "spell": "apprenticecodex:echo_arrow"
     }
   ]
 }

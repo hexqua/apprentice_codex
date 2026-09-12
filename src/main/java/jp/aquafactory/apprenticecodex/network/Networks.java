@@ -96,7 +96,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "101";
+    private static final String PROTOCOL_VERSION = "103";
 
     private Networks() {
     }
@@ -107,6 +107,12 @@ public final class Networks {
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar(PROTOCOL_VERSION);
+        registrar.playToClient(jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket.TYPE,
+                jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket.STREAM_CODEC,
+                jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket::handle);
+        registrar.playToServer(jp.aquafactory.apprenticecodex.network.packet.ClientElementalBowCancelPacket.TYPE,
+                jp.aquafactory.apprenticecodex.network.packet.ClientElementalBowCancelPacket.STREAM_CODEC,
+                jp.aquafactory.apprenticecodex.network.packet.ClientElementalBowCancelPacket::handle);
         registrar.playToClient(jp.aquafactory.apprenticecodex.network.packet.SupportedShieldPassagePacket.TYPE,
                 jp.aquafactory.apprenticecodex.network.packet.SupportedShieldPassagePacket.STREAM_CODEC,
                 jp.aquafactory.apprenticecodex.network.packet.SupportedShieldPassagePacket::handle);
@@ -545,6 +551,11 @@ public final class Networks {
                 GunSpellTracerPacket.TYPE,
                 GunSpellTracerPacket.STREAM_CODEC,
                 GunSpellTracerPacket::handle
+        );
+        registrar.playToClient(
+                jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket.TYPE,
+                jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket.STREAM_CODEC,
+                jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket::handle
         );
     }
 

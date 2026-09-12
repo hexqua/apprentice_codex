@@ -434,6 +434,36 @@
     },
     {
       "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:lightning_arrow"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:bloody_arrow"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:sacred_arrow"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:lunar_aim"
+    },
+    {
+      "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:echo_arrow"
+    },
+    {
+      "profile": {
         "cast_mode": "remote_anchor_owner_magic"
       },
       "spell": "irons_spellbooks:dragon_breath"

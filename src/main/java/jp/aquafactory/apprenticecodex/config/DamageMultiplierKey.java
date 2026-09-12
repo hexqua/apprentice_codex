@@ -50,6 +50,11 @@ public enum DamageMultiplierKey {
     SHIDEN("shiden"),
     CATCH_FLAME("catchFlame"),
     THERMAL_SLICE("thermalSlice"),
+    LIGHTNING_ARROW("lightningArrow"),
+    BLOODY_ARROW("bloodyArrow"),
+    SACRED_ARROW("sacredArrow"),
+    LUNAR_AIM("lunarAim"),
+    ECHO_ARROW("echoArrow"),
     ;
 
     private final String configKey;
