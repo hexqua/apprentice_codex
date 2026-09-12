@@ -162,6 +162,8 @@ public final class BloodyArrowEntity extends Projectile implements AntiMagicSusc
         }
     }
 
+    // 小さい当たり判定に由来する描画距離で、飛行中の矢が近距離から消えるのを防ぐ。
+    @Override public boolean shouldRenderAtSqrDistance(double distanceSqr) { return distanceSqr < 160 * 160; }
     @Override public boolean isPushedByFluid() { return false; }
     @Override public boolean shouldBeSaved() { return false; }
     @Override public void onAntiMagic(MagicData data) { if (!level().isClientSide) discard(); }
