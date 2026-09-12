@@ -6,7 +6,8 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
-import io.redspace.ironsspellbooks.registries.SoundRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
@@ -14,7 +15,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 
@@ -42,8 +42,8 @@ public class EchoArrow extends AbstractSpell {
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(), 2)),
-                Component.translatable("ui.irons_spellbooks.projectile_count", getArrowCount(spellLevel, caster)),
-                Component.translatable("ui.irons_spellbooks.duration", Utils.timeFromTicks(getDuration(spellLevel, caster), 1))
+                Component.translatable("ui.apprenticecodex.echo_arrow.followup_count", getArrowCount(spellLevel, caster)),
+                Component.translatable("ui.apprenticecodex.echo_arrow.duration", Utils.timeFromTicks(getDuration(spellLevel, caster), 2))
         );
     }
 
@@ -53,12 +53,13 @@ public class EchoArrow extends AbstractSpell {
     }
 
     private int getArrowCount(int spellLevel, LivingEntity entity) {
-        return Math.round(getSpellPower(spellLevel, entity) / 100.0f);
+        return Math.max(0, Math.round(getSpellPower(spellLevel, entity) / 100.0f));
     }
 
     private int getDuration(int spellLevel, LivingEntity entity) {
-        // 発射間隔は3tickにつき3発固定のため、本数から時間を逆算する(1～2発分に関しても1セット分の時間を使う)
-        return Mth.ceil(getArrowCount(spellLevel, entity) / 3f) * 3;
+        // 初弾と追撃の飛行時間を除き、着弾から最後の発射までを表示する。
+        int count = getArrowCount(spellLevel, entity);
+        return count == 0 ? 0 : 10 + count - 1;
     }
 
     @Override
@@ -78,13 +79,12 @@ public class EchoArrow extends AbstractSpell {
 
     @Override
     public Optional<SoundEvent> getCastStartSound() {
-        // todo:字幕を差し替える.
-        return Optional.of(net.minecraft.sounds.SoundEvents.WARDEN_SONIC_CHARGE);
+        return Optional.of(SoundRegistry.ECHO_ARROW_CHARGE.get());
     }
 
     @Override
     public Optional<SoundEvent> getCastFinishSound() {
-        return Optional.of(SoundRegistry.ELDRITCH_BLAST.get());
+        return Optional.of(SoundRegistry.ECHO_ARROW_CAST.get());
     }
 
     @Override
@@ -99,6 +99,17 @@ public class EchoArrow extends AbstractSpell {
 
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        if (!level.isClientSide) {
+            var arrow = new EchoArrowEntity(EntityRegistry.ECHO_ARROW.get(), level);
+            var core = new EchoArrowCoreEntity(EntityRegistry.ECHO_ARROW_CORE.get(), level);
+            var origin = entity.getEyePosition();
+            float damage = getDamage();
+            core.configure(entity, origin, damage, getArrowCount(spellLevel, entity), arrow);
+            arrow.launch(entity, origin, entity.getLookAngle(), damage, true, EchoArrowEntity.SPEED, core);
+            if (level.addFreshEntity(core)) {
+                if (!level.addFreshEntity(arrow)) core.discard();
+            }
+        }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 }

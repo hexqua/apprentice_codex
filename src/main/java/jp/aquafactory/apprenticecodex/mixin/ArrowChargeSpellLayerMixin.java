@@ -6,8 +6,10 @@ import io.redspace.ironsspellbooks.player.ClientMagicData;
 import io.redspace.ironsspellbooks.render.ChargeSpellLayer;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodyArrowRenderer;
+import jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowRenderer;
 import jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrowRenderer;
 import jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAimArrowRenderer;
+import jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.Nullable;
@@ -47,7 +49,10 @@ public abstract class ArrowChargeSpellLayerMixin {
             return BloodyArrowRenderer::renderModel;
         }
         if (spellId.equals(SpellRegistry.SACRED_ARROW.get().getSpellId())) {
-            return jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowRenderer::renderModel;
+            return SacredArrowRenderer::renderModel;
+        }
+        if (spellId.equals(SpellRegistry.ECHO_ARROW.get().getSpellId())) {
+            return EchoArrowRenderer::renderModel;
         }
         return null;
     }
