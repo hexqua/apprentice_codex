@@ -221,11 +221,14 @@ public final class EchoArrowGameTests {
             helper.assertTrue(Math.abs(duration - (10 + count - 1) / 20f) < .011,
                     "Tooltip must describe time from impact to the last shot");
             spell.onCast(helper.getLevel(), 1, scene.owner, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(scene.owner));
-            helper.assertTrue(scene.shots.size() == 1 && scene.shots.getFirst().origin.distanceTo(scene.owner.getEyePosition()) < 1e-6,
-                    "Casting must emit exactly one initial arrow at the eye");
+            var origin = scene.owner.getEyePosition().add(scene.owner.getForward()).add(0, -0.4, 0);
+            helper.assertTrue(scene.shots.size() == 1 && scene.shots.getFirst().origin.distanceTo(origin) < 1e-6,
+                    "Casting must emit exactly one initial arrow at the fixed arrow offset");
             var cores = helper.getLevel().getEntitiesOfClass(EchoArrowCoreEntity.class, scene.owner.getBoundingBox().inflate(2));
             helper.assertTrue(cores.size() == 1 && cores.getFirst().totalCount() == count,
                     "The core must snapshot the advertised follow-up count");
+            helper.assertTrue(cores.getFirst().position().distanceTo(origin) < 1e-6,
+                    "The core must share the initial arrow's offset origin");
             cores.forEach(Entity::discard);
         }
         helper.succeed();

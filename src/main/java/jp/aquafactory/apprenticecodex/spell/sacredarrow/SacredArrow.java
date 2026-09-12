@@ -153,7 +153,9 @@ public class SacredArrow extends AbstractSpell {
                     ? stored : selectTarget(entity);
             var target = data.targetId() == null ? null : server.getEntity(data.targetId());
             var arrow = new SacredArrowEntity(EntityRegistry.SACRED_ARROW.get(), level);
-            arrow.launch(entity, entity.getEyePosition(), entity.getLookAngle(), getDamage(spellLevel, entity),
+            // 当たり判定の大きさによらず、Iron'sのMagic/Fire Arrowと同じ発射位置にそろえる。
+            var origin = entity.getEyePosition().add(entity.getForward()).add(0, -0.4, 0);
+            arrow.launch(entity, origin, entity.getLookAngle(), getDamage(spellLevel, entity),
                     getPenetrateDamageMultiplier(), getDuration(), SacredArrowEntity.isLiveTarget(target, entity) ? (LivingEntity) target : null);
             level.addFreshEntity(arrow);
             if (playerMagicData != null && playerMagicData.getAdditionalCastData() instanceof SacredArrowCastData) {

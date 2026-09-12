@@ -253,7 +253,7 @@ public final class LightningArrowGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = BATCH)
-    public static void castingStartsAtEyeAndServerTicksAdvanceTheArrow(GameTestHelper helper) {
+    public static void castingUsesArrowOffsetAndServerTicksAdvanceTheArrow(GameTestHelper helper) {
         var scene = new Scene(helper);
         scene.owner.setPos(helper.absoluteVec(new Vec3(2.5, 20, 2.5)));
         scene.owner.setYRot(0);
@@ -265,7 +265,8 @@ public final class LightningArrowGameTests {
         helper.assertTrue(arrows.size() == 1, "A completed cast must spawn exactly one arrow");
         var arrow = arrows.getFirst();
         scene.entities.add(arrow);
-        helper.assertTrue(arrow.position().distanceTo(eye) < 1.0e-7, "The cast must not skip terrain in front of the eye");
+        helper.assertTrue(arrow.position().distanceTo(eye.add(0, -0.4, 1)) < 1.0e-7,
+                "The cast must start one block forward and 0.4 blocks below the eye");
         helper.runAfterDelay(2, () -> {
             try (scene) {
                 helper.assertTrue(arrow.traveledDistance() >= 5 && arrow.traveledDistance() <= 15,

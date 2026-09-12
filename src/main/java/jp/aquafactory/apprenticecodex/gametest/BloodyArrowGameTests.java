@@ -284,8 +284,8 @@ public final class BloodyArrowGameTests {
             helper.assertTrue(arrows.size() == 1, "Casting must spawn exactly one arrow");
             var arrow = arrows.getFirst();
             scene.entities.add(arrow);
-            helper.assertTrue(arrow.position().distanceTo(scene.owner.getEyePosition()) < 1.0e-6,
-                    "Casting must start at the eye without skipping nearby terrain");
+            helper.assertTrue(arrow.position().distanceTo(scene.owner.getEyePosition().add(1, -0.4, 0)) < 1.0e-6,
+                    "Casting must start one block forward and 0.4 blocks below the eye");
             step(arrow);
             helper.assertTrue(Math.abs(200 - target.getHealth() - damage) < 0.02 && scene.orbs().size() == 8,
                     "Casting must use existing damage and level-dependent count");
