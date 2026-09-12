@@ -32,7 +32,7 @@ public class SacredArrow extends AbstractSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sacred_arrow");
 
     private final DefaultConfig config = new DefaultConfig()
-            .setMinRarity(SpellRarity.UNCOMMON)
+            .setMinRarity(SpellRarity.RARE)
             .setSchoolResource(SchoolRegistry.HOLY_RESOURCE)
             .setMaxLevel(10)
             .setCooldownSeconds(8)
@@ -41,8 +41,8 @@ public class SacredArrow extends AbstractSpell {
     public SacredArrow() {
         baseSpellPower = 800;
         spellPowerPerLevel = 150;
-        baseManaCost = 30;
-        manaCostPerLevel = 5;
+        baseManaCost = 40;
+        manaCostPerLevel = 10;
         castTime = 20;
     }
     @Override

@@ -34,8 +34,8 @@ public class EchoArrow extends AbstractSpell {
     public EchoArrow() {
         baseSpellPower = 1500;
         spellPowerPerLevel = 500;
-        baseManaCost = 90;
-        manaCostPerLevel = 20;
+        baseManaCost = 120;
+        manaCostPerLevel = 30;
         castTime = 30;
     }
     @Override
