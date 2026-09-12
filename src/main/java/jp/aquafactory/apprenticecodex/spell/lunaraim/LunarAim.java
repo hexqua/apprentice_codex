@@ -138,10 +138,12 @@ public class LunarAim extends AbstractSpell {
                     ? stored : selectTarget(entity, false);
             var target = data.targetId() != null && data.dimension().equals(level.dimension())
                     ? server.getEntity(data.targetId()) : null;
+            // 当たり判定の大きさによらず、Iron'sのMagic/Fire Arrowと同じ発射位置にそろえる。
+            var origin = entity.getEyePosition().add(entity.getForward()).add(0, -0.4, 0);
             for (int i = 0; i < getProjectileCount(); i++) {
                 var arrow = new LunarAimArrowEntity(EntityRegistry.LUNAR_AIM_ARROW.get(), level);
                 var direction = Vec3.directionFromRotation(entity.getXRot(), entity.getYRot() - 60 + 40 * i);
-                arrow.launch(entity, entity.getEyePosition(), direction, getDamage(spellLevel, entity), getExplodeSize(), target);
+                arrow.launch(entity, origin, direction, getDamage(spellLevel, entity), getExplodeSize(), target);
                 server.addFreshEntity(arrow);
             }
             clearTarget(playerMagicData);

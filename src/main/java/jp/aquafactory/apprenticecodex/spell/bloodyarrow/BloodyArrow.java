@@ -103,7 +103,9 @@ public class BloodyArrow extends AbstractSpell {
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (!level.isClientSide) {
             var arrow = new BloodyArrowEntity(EntityRegistry.BLOODY_ARROW.get(), level);
-            arrow.launch(entity, entity.getEyePosition(), entity.getLookAngle(),
+            // 当たり判定の大きさによらず、Iron'sのMagic/Fire Arrowと同じ発射位置にそろえる。
+            var origin = entity.getEyePosition().add(entity.getForward()).add(0, -0.4, 0);
+            arrow.launch(entity, origin, entity.getLookAngle(),
                     getDamage(spellLevel, entity), getOrbCount(spellLevel), getOrbHealing(spellLevel, entity));
             level.addFreshEntity(arrow);
         }

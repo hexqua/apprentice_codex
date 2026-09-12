@@ -102,7 +102,8 @@ public class EchoArrow extends AbstractSpell {
         if (!level.isClientSide) {
             var arrow = new EchoArrowEntity(EntityRegistry.ECHO_ARROW.get(), level);
             var core = new EchoArrowCoreEntity(EntityRegistry.ECHO_ARROW_CORE.get(), level);
-            var origin = entity.getEyePosition();
+            // 当たり判定の大きさによらず、Iron'sのMagic/Fire Arrowと同じ発射位置にそろえる。
+            var origin = entity.getEyePosition().add(entity.getForward()).add(0, -0.4, 0);
             float damage = getDamage();
             core.configure(entity, origin, damage, getArrowCount(spellLevel, entity), arrow);
             arrow.launch(entity, origin, entity.getLookAngle(), damage, true, EchoArrowEntity.SPEED, core);

@@ -95,7 +95,9 @@ public class LightningArrow extends AbstractSpell {
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (!level.isClientSide) {
             var arrow = new LightningArrowEntity(EntityRegistry.LIGHTNING_ARROW.get(), level);
-            arrow.launch(entity, entity.getEyePosition(), entity.getLookAngle(),
+            // 当たり判定の大きさによらず、Iron'sのMagic/Fire Arrowと同じ発射位置にそろえる。
+            var origin = entity.getEyePosition().add(entity.getForward()).add(0, -0.4, 0);
+            arrow.launch(entity, origin, entity.getLookAngle(),
                     getRange(spellLevel, entity), getDamage(spellLevel, entity));
             level.addFreshEntity(arrow);
         }
