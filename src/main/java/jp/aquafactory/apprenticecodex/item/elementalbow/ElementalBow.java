@@ -298,13 +298,22 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
         if (!level.isClientSide) ElementalBowScrollStorage.migrate(stack);
 
         var selection = normalizeModeState(stack);
+        if (player instanceof ServerPlayer serverPlayer && ElementalBowPendingCast.isPending(serverPlayer)
+                && selection.kind() != ShotModeKind.MAGIC) {
+            ElementalBowPendingCast.cancel(serverPlayer);
+            return;
+        }
         switch (selection.kind()) {
             case NORMAL -> releaseVanillaShot(stack, level, player, timeLeft);
             case ARROW, SPECIAL, MOD -> releaseTrackedArrowShot(stack, level, player, timeLeft, selection);
             case MAGIC -> {
                 var mode = resolveConfiguredMagicMode(stack);
-                if (mode != null) {
-                    releaseElementalShot(stack, level, player, timeLeft, mode);
+                try {
+                    if (mode != null) {
+                        releaseElementalShot(stack, level, player, timeLeft, mode);
+                    }
+                } finally {
+                    if (player instanceof ServerPlayer serverPlayer) ElementalBowPendingCast.cancel(serverPlayer);
                 }
             }
         }
@@ -478,6 +487,11 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
         if (!level.isClientSide && !player.getAbilities().instabuild) {
             displayOverheatManaWarning(player, stack, mode);
         }
+        if (player instanceof ServerPlayer serverPlayer
+                && profile.spell().getCastType() == io.redspace.ironsspellbooks.api.spells.CastType.LONG) {
+            return ElementalBowPendingCast.begin(serverPlayer, stack, usedHand, profile.spell(), profile.spellLevel(),
+                    mode.resolveRequiredDrawTicks()) ? InteractionResultHolder.consume(stack) : InteractionResultHolder.fail(stack);
+        }
         player.startUsingItem(usedHand);
         return InteractionResultHolder.consume(stack);
     }
@@ -594,6 +608,9 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
 
         var profile = createSpellCastProfile(stack, mode);
 
+        if (profile.spell().getCastType() == io.redspace.ironsspellbooks.api.spells.CastType.LONG
+                && !ElementalBowPendingCast.ready((ServerPlayer) player, stack, drawDuration)) return;
+
         if (!player.getAbilities().instabuild) {
             if (ammoSource == null && !hasSynthesisEnchantment) {
                 player.displayClientMessage(createInsufficientArrowMessage(), true);
@@ -618,7 +635,7 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
         var overheatMana = player.getAbilities().instabuild
                 ? 0.0F
                 : getAdditionalManaCost(player, stack, profile);
-        if (!castElementalSpell(player, stack, profile)) {
+        if (!castElementalSpell(player, stack, profile, drawDuration)) {
             return;
         }
 
@@ -650,7 +667,11 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
         player.awardStat(Stats.ITEM_USED.get(this));
     }
 
-    private boolean castElementalSpell(Player player, ItemStack stack, SpellCastProfile profile) {
+    private boolean castElementalSpell(Player player, ItemStack stack, SpellCastProfile profile, int drawDuration) {
+        if (profile.spell().getCastType() == io.redspace.ironsspellbooks.api.spells.CastType.LONG) {
+            // 使用時間は server の releaseUsing 引数を使い、ArrowLoose による補正も従来どおり反映する。
+            return ElementalBowPendingCast.release((ServerPlayer) player, stack, profile.spell(), profile.spellLevel(), drawDuration);
+        }
         return ElementalBowCasting.cast(player, stack, profile.spell(), profile.spellLevel());
     }
 

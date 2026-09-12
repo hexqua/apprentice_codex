@@ -582,6 +582,7 @@
   "jei.apprenticecodex.elemental_bow.desc_2": "通常の魔法詠唱とは別に魔法のクールダウンを無視して連射できるが、クールダウンを無視した発動のたびに消費マナが増える。",
   "jei.apprenticecodex.elemental_bow.desc_3": "弓のクールダウンの管理は通常の魔法詠唱とは独立しているが、プレイヤー単位で共通のため、弓を持ち替えたり魔法を切り替えてもクールダウンを回避できない。",
   "jei.apprenticecodex.elemental_bow.desc_4": "魔法の発射には通常の矢を消費する。無限は適用されず、合成で矢の消費を無効化できる。",
+  "jei.apprenticecodex.elemental_bow.desc_5": "詠唱時間のある魔法は引き絞り開始時に詠唱と対象選択を行う。準備完了後も保持でき、離すと発動する。早離し・持ち替え・画面を開く操作では消費せずキャンセルする。",
   "jei.apprenticecodex.bulwark_greatshield.desc_1": "盾を構えている間、注入されている魔法を詠唱し続ける。",
   "jei.apprenticecodex.bulwark_greatshield.desc_2": "斧やソニックブームなど通常の盾でブロックできない攻撃もブロックでき、ブロックしても発生するノックバックを一部無効化する。",
   "jei.apprenticecodex.parrycast_buckler.desc_1": "盾を構えた直後にブロックすることでマナを消費せず魔法を詠唱する。",

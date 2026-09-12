@@ -585,6 +585,7 @@
   "jei.apprenticecodex.elemental_bow.desc_2": "独立于普通施法，可无视法术冷却连续射击，但每次无视冷却施放都会增加法力消耗。",
   "jei.apprenticecodex.elemental_bow.desc_3": "弓的冷却独立于普通施法，但由同一玩家共享，因此切换弓或法术无法绕过冷却。",
   "jei.apprenticecodex.elemental_bow.desc_4": "法术射击消耗普通箭矢，不受无限附魔影响，合成附魔可免除箭矢消耗。",
+  "jei.apprenticecodex.elemental_bow.desc_5": "需要吟唱的法术会在开始拉弓时吟唱并选择目标。蓄力完成后可继续保持，松开时施放。提前松开、切换物品或打开界面会取消施法，且不消耗资源。",
   "jei.apprenticecodex.bulwark_greatshield.desc_1": "举盾期间会持续施放注入的法术。",
   "jei.apprenticecodex.bulwark_greatshield.desc_2": "可格挡斧击、音爆等普通盾牌无法格挡的攻击，并免疫一部分格挡后仍会产生的击退。",
   "jei.apprenticecodex.parrycast_buckler.desc_1": "举盾后立即格挡攻击时，可以不消耗法力值施放法术。",

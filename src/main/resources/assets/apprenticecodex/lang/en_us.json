@@ -580,6 +580,7 @@
   "jei.apprenticecodex.elemental_bow.desc_2": "Fires spells repeatedly, bypassing their cooldowns independently of normal spellcasting. Each shot that bypasses a cooldown increases mana cost.",
   "jei.apprenticecodex.elemental_bow.desc_3": "Bow cooldowns are independent of normal spellcasting but shared per player, so switching bows or spells cannot bypass them.",
   "jei.apprenticecodex.elemental_bow.desc_4": "Magic shots consume normal arrows. Infinity does not apply; Synthesis removes the arrow cost.",
+  "jei.apprenticecodex.elemental_bow.desc_5": "Long-cast spells begin casting and select targets when you draw. Hold after charging, then release to fire. Releasing early, switching items, or opening a screen cancels without consuming resources.",
   "jei.apprenticecodex.bulwark_greatshield.desc_1": "Continuously casts the imbued spell while the shield is raised.",
   "jei.apprenticecodex.bulwark_greatshield.desc_2": "Blocks attacks that ordinary shields cannot, such as axe strikes and sonic booms, and negates some knockback that still occurs on block.",
   "jei.apprenticecodex.parrycast_buckler.desc_1": "Blocking immediately after raising the shield casts a spell without consuming mana.",
