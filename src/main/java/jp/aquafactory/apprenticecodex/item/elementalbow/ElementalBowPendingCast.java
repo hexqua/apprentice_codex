@@ -59,6 +59,13 @@ public final class ElementalBowPendingCast {
         return PENDING.containsKey(player);
     }
 
+    public static void syncToObserver(ServerPlayer player, ServerPlayer observer) {
+        var state = PENDING.get(player);
+        if (state != null && valid(player, state)) {
+            Networks.sendToPlayer(observer, new SyncElementalBowCastPacket(player.getUUID(), state.spell.getSpellId(), true));
+        }
+    }
+
     private static boolean ownsMagic(ServerPlayer player, State state) {
         var magic = MagicData.getPlayerMagicData(player);
         return magic.isCasting() && magic.getPlayerCastingItem() == state.stack

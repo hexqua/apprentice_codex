@@ -12,6 +12,14 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 public final class ElementalBowCastEvents {
     private ElementalBowCastEvents() {}
 
+    // 通常詠唱の同期より先に弓の状態を送り、途中から追跡した観測者にもアニメーション抑止を適用する。
+    @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.HIGHEST)
+    public static void startTracking(PlayerEvent.StartTracking event) {
+        if (event.getEntity() instanceof ServerPlayer observer && event.getTarget() instanceof ServerPlayer player) {
+            ElementalBowPendingCast.syncToObserver(player, observer);
+        }
+    }
+
     @SubscribeEvent
     public static void tick(PlayerTickEvent.Post event) {
         if (event.getEntity() instanceof ServerPlayer player) ElementalBowPendingCast.tick(player);
