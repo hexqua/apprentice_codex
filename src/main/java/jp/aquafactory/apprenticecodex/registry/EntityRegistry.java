@@ -393,6 +393,12 @@ public final class EntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrowEntity>> LIGHTNING_ARROW =
             regProjectile("lightning_arrow_arrow", jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrowEntity::new, 128, 1);
 
+    public static final DeferredHolder<EntityType<?>, EntityType<jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowEntity>> ECHO_ARROW =
+            regProjectile("echo_arrow_arrow", jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowEntity::new, 128, 1);
+    public static final DeferredHolder<EntityType<?>, EntityType<jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowCoreEntity>> ECHO_ARROW_CORE =
+            reg("echo_arrow_core", jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowCoreEntity::new,
+                    MobCategory.MISC, 0.4f, 0.4f, 128, 1, false, FireBehaviors.IMMUNE);
+
     public static final DeferredHolder<EntityType<?>, EntityType<BloodyArrowEntity>> BLOODY_ARROW =
             regProjectile("bloody_arrow_arrow", BloodyArrowEntity::new, 128, 1);
 

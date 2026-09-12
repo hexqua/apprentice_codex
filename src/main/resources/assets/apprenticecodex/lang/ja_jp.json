@@ -776,6 +776,7 @@
   "entity.apprenticecodex.sacred_arrow_arrow": "セイクリッドアロー",
   "entity.apprenticecodex.lunar_aim_arrow": "月の魔矢",
   "entity.apprenticecodex.echo_arrow_arrow": "エコーアロー",
+  "entity.apprenticecodex.echo_arrow_core": "残響の核",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "使い走り魔術師",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "使い走り魔術師",
@@ -1128,6 +1129,8 @@
   "ui.apprenticecodex.bloody_arrow.orb_count": "オーブの数: %d",
   "ui.apprenticecodex.bloody_arrow.healing_by_orb": "オーブによる回復量: %s",
   "ui.apprenticecodex.sacred_arrow.chasing_penetrate_damage_multiplier": "貫通時のダメージ倍率: %s%%",
+  "ui.apprenticecodex.echo_arrow.followup_count": "追撃矢の本数: %s",
+  "ui.apprenticecodex.echo_arrow.duration": "着弾後の所要時間: %s",
 
   "ui.apprenticecodex.spellgun.missing_ammo": "弾切れだ！(弾:%1$s)",
   "ui.apprenticecodex.spellgun.not_imbued": "%1$sには魔法が注入されていない！",
@@ -1673,5 +1676,8 @@
   "subtitle.apprenticecodex.sound.vanilla_feed_ammo": "弾薬を装填する",
   "subtitle.apprenticecodex.sound.vanilla_cast_book": "本を使う",
   "subtitle.apprenticecodex.sound.vanilla_crystallize_mana": "魔力が結晶化する",
-  "subtitle.apprenticecodex.sound.vanilla_scythe_catch": "大鎌が手元に戻る"
+  "subtitle.apprenticecodex.sound.vanilla_scythe_catch": "大鎌が手元に戻る",
+  "subtitle.apprenticecodex.sound.echo_arrow_charge": "残響の矢が形成される",
+  "subtitle.apprenticecodex.sound.echo_arrow_cast": "残響の矢が放たれる",
+  "subtitle.apprenticecodex.sound.echo_arrow_volley": "残響の核が矢を放つ"
 }

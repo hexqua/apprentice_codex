@@ -111,6 +111,8 @@ import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsWin
 import jp.aquafactory.apprenticecodex.spell.dualacrobat.DualAcrobatSmgRenderer;
 import jp.aquafactory.apprenticecodex.spell.combustionjet.CombustionJetWaveRenderer;
 import jp.aquafactory.apprenticecodex.spell.bloodbrand.BloodBrandKunaiRenderer;
+import jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowCoreRenderer;
+import jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowRenderer;
 import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingRenderer;
@@ -905,6 +907,8 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.COMBUSTION_JET_WAVE.get(), CombustionJetWaveRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BLOOD_BRAND_KUNAI.get(), BloodBrandKunaiRenderer::new);
         event.registerEntityRenderer(EntityRegistry.SACRED_ARROW.get(), SacredArrowRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.ECHO_ARROW.get(), EchoArrowRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.ECHO_ARROW_CORE.get(), EchoArrowCoreRenderer::new);
         event.registerEntityRenderer(EntityRegistry.LUNAR_AIM_ARROW.get(), LunarAimArrowRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BLOODY_ARROW.get(), BloodyArrowRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BLOODY_ARROW_ORB.get(), BloodyArrowOrbRenderer::new);
