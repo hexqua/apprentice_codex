@@ -54,6 +54,7 @@ public enum DamageMultiplierKey {
     BLOODY_ARROW("bloodyArrow"),
     SACRED_ARROW("sacredArrow"),
     LUNAR_AIM("lunarAim"),
+    ECHO_ARROW("echoArrow"),
     ;
 
     private final String configKey;

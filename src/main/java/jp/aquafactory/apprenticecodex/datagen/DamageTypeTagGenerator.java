@@ -141,7 +141,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 LIGHTNING_ARROW,
                 BLOODY_ARROW,
                 SACRED_ARROW,
-                LUNAR_AIM
+                LUNAR_AIM,
+                ECHO_ARROW
         );
 
         // IGNORE_ARMOR : 防御力無視、盾無視、ウィッチ抵抗(Malumは無関係)
@@ -154,6 +155,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 UNITE_LUNA,
                 LUNAR_AIM,
                 HEALING_BLOOM,
+                ECHO_ARROW,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC
         );
@@ -191,6 +193,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 CATCH_FLAME_PENETRATE,
                 THERMAL_SLICE,
                 LUNAR_AIM,
+                ECHO_ARROW,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC
@@ -255,6 +258,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 BLOODY_ARROW,
                 SACRED_ARROW,
                 LUNAR_AIM,
+                ECHO_ARROW,
                 SPELL_REAPER_SCYTHE_REBOUND,
                 SPELL_REAPER_SCYTHE_THROW,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,
@@ -290,6 +294,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 MYSTIC_SHIELD,
                 ANCHOR_BLINK,
                 LUNAR_AIM,
+                ECHO_ARROW,
                 HOVERRIDE_BROOM,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC

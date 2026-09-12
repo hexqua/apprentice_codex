@@ -27,6 +27,7 @@ import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWings;
 import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossession;
 import jp.aquafactory.apprenticecodex.spell.dualacrobat.DualAcrobat;
 import jp.aquafactory.apprenticecodex.spell.earthforge.EarthForge;
+import jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrow;
 import jp.aquafactory.apprenticecodex.spell.echocast.EchoCast;
 import jp.aquafactory.apprenticecodex.spell.edgedancer.EdgeDancer;
 import jp.aquafactory.apprenticecodex.spell.extract.Extract;
@@ -217,4 +218,5 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ECHO_CAST = reg("echo_cast", EchoCast::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> OTHERWORLD_LENS = reg("otherworld_lens", OtherworldLens::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MANA_TRANSCRIPTION = reg("mana_transcription", ManaTranscription::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> ECHO_ARROW = reg("echo_arrow", EchoArrow::new);
 }
