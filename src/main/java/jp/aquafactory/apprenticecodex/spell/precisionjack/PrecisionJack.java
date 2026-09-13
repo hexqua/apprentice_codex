@@ -136,6 +136,12 @@ public class PrecisionJack extends AbstractSummonWeaponSpell<PrecisionJackKnifeE
     }
 
     @Override
+    protected void prepareWeaponForRelease(Level level, int spellLevel, LivingEntity entity,
+                                           MagicData magicData, @NotNull PrecisionJackKnifeEntity weapon) {
+        weapon.prepare();
+    }
+
+    @Override
     public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull PrecisionJackKnifeEntity weapon) {
         if (cancelled) {
             return CompleteCastTypes.RELEASE_WEAPON;

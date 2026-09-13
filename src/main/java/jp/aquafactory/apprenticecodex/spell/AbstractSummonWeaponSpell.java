@@ -7,9 +7,11 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ICastDataSerializable;
 import net.minecraft.core.HolderLookup;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -48,6 +50,50 @@ public abstract class AbstractSummonWeaponSpell<T extends SummonWeaponEntity> ex
     }
     public abstract void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull T weapon);
     public abstract CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull T weapon);
+
+    // 詠唱tickを経由しない発動でも、攻撃に必須の準備を完了させる。演出の時間は進めない。
+    protected void prepareWeaponForRelease(Level level, int spellLevel, LivingEntity entity,
+                                           MagicData magicData, @NotNull T weapon) {
+    }
+
+    // 呼び出し元で事前条件の判定前からAdditionalCastDataを分離し、終了時に元の参照へ戻す。
+    public final void castInstantWeapon(ServerLevel level, int spellLevel, ServerPlayer player,
+                                        CastSource castSource, MagicData magicData) {
+        if (getCastType() == CastType.CONTINUOUS) {
+            throw new IllegalStateException("Continuous weapons cannot be cast through the instant weapon path");
+        }
+        T weapon = null;
+        boolean completed = false;
+        try {
+            onServerPreCast(level, spellLevel, player, magicData);
+            weapon = getFirearmEntityFromMagicData(magicData, level);
+            if (weapon == null) {
+                throw new IllegalStateException("Instant weapon cast did not create a weapon");
+            }
+            MulticastEchoStaffAttackHandler.trackWeaponAttack(weapon);
+            castSpell(level, spellLevel, player, castSource, false);
+            completeWeaponCast(level, spellLevel, player, magicData, false, weapon);
+            completed = true;
+        } finally {
+            if (!completed) {
+                var abandoned = weapon != null ? weapon : getFirearmEntityFromMagicData(magicData, level);
+                if (abandoned != null) {
+                    abandoned.releaseWeapon();
+                }
+            }
+        }
+    }
+
+    private void completeWeaponCast(Level level, int spellLevel, LivingEntity entity, MagicData magicData,
+                                    boolean cancelled, T weapon) {
+        if (!cancelled) {
+            prepareWeaponForRelease(level, spellLevel, entity, magicData, weapon);
+        }
+        if (onCastCompleteWithWeapon(level, spellLevel, entity, magicData, cancelled, weapon)
+                == CompleteCastTypes.RELEASE_WEAPON) {
+            weapon.releaseWeapon();
+        }
+    }
 
     @Override
     public void onServerPreCast(Level level, int spellLevel, LivingEntity entity, @Nullable MagicData playerMagicData) {
@@ -97,10 +143,7 @@ public abstract class AbstractSummonWeaponSpell<T extends SummonWeaponEntity> ex
     public final void onServerCastComplete(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled) {
         var summon = getFirearmEntityFromMagicData(playerMagicData, level);
         if (summon != null) {
-            var result = onCastCompleteWithWeapon(level, spellLevel, entity, playerMagicData, cancelled, summon);
-            if (result == CompleteCastTypes.RELEASE_WEAPON){
-                summon.releaseWeapon();
-            }
+            completeWeaponCast(level, spellLevel, entity, playerMagicData, cancelled, summon);
         }
 
         super.onServerCastComplete(level, spellLevel, entity, playerMagicData, cancelled);
@@ -165,7 +208,7 @@ public abstract class AbstractSummonWeaponSpell<T extends SummonWeaponEntity> ex
         }
 
         @Override
-        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+        public CompoundTag serializeNBT(HolderLookup.@NotNull Provider provider) {
             var tag = new CompoundTag();
             if (entityId != null) {
                 tag.putUUID("Entity", entityId);
@@ -174,7 +217,7 @@ public abstract class AbstractSummonWeaponSpell<T extends SummonWeaponEntity> ex
         }
 
         @Override
-        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+        public void deserializeNBT(HolderLookup.@NotNull Provider provider, CompoundTag nbt) {
             entityId = nbt.hasUUID("Entity") ? nbt.getUUID("Entity") : null;
         }
     }

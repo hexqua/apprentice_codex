@@ -122,6 +122,12 @@ public class ArtisanSmash extends AbstractSummonWeaponSpell<ArtisanSmashLauncher
     }
 
     @Override
+    protected void prepareWeaponForRelease(Level level, int spellLevel, LivingEntity entity,
+                                           MagicData magicData, @NotNull ArtisanSmashLauncherEntity weapon) {
+        weapon.prepareForFire();
+    }
+
+    @Override
     public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull ArtisanSmashLauncherEntity weapon) {
         if (!cancelled) {
             weapon.setDamage(getDamage(spellLevel, entity));
