@@ -79,7 +79,7 @@ public final class MulticastEchoStaffAttackProfileDataGenerator
                         defaultDefinition(jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE),
                         defaultDefinition(jp.aquafactory.apprenticecodex.registry.SpellRegistry.MOON_LIGHT),
                         defaultDefinition(jp.aquafactory.apprenticecodex.registry.SpellRegistry.SILENT_ASSASSIN),
-                        defaultDefinition(jp.aquafactory.apprenticecodex.registry.SpellRegistry.ARTISAN_SMASH),
+                        directDefinitionWithLifeTime(jp.aquafactory.apprenticecodex.registry.SpellRegistry.ARTISAN_SMASH, 300),
                         defaultDefinition(jp.aquafactory.apprenticecodex.registry.SpellRegistry.PRECISION_JACK),
                         defaultDefinition(jp.aquafactory.apprenticecodex.registry.SpellRegistry.HIGANBANA),
                         defaultDefinition(jp.aquafactory.apprenticecodex.registry.SpellRegistry.LETHAL_ASSAULT),

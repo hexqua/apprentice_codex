@@ -139,7 +139,9 @@
       "spell": "apprenticecodex:silent_assassin"
     },
     {
-      "profile": {},
+      "profile": {
+        "tracking_lifetime_ticks": 300
+      },
       "spell": "apprenticecodex:artisan_smash"
     },
     {
