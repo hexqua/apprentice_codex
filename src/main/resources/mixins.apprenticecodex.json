@@ -10,6 +10,7 @@
     "LivingEntitySacredSignMixin",
     "EvasionSpellSupporterMixin",
     "HeartstopSpellSupporterMixin",
+    "ElementalBowDamageInterruptionMixin",
     "IceTombSpellSupporterMixin",
     "IceTombSupporterMixin",
     "PlayerIceTombDismountMixin",

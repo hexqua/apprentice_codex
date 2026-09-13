@@ -1,4 +1,5 @@
 {
+  "jei.apprenticecodex.elemental_bow.desc_6": "Casting spells with the bow is not treated as normal spellcasting: taking damage does not interrupt drawing, but the Ring of Spell Cast Parrying does not work, even immediately after you start drawing.",
   "jei.apprenticecodex.elemental_bow.desc_5": "Long-cast spells begin casting and select targets when you draw. Hold after charging, then release to fire. Releasing early, switching items, or opening a screen cancels without consuming resources.",
   "subtitle.apprenticecodex.sound.echo_arrow_volley": "Echo core fires arrows",
   "subtitle.apprenticecodex.sound.echo_arrow_cast": "Echo arrow fires",
