@@ -9,12 +9,14 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -126,6 +128,54 @@ final class SpellCastParryingRingGameTestScenarios {
             var event = postAttack(player, helper.getLevel().damageSources().mobAttack(attacker));
 
             helper.assertTrue(event.isCanceled(), "Spell Cast Parrying Ring should block FocusStaffbow INSTANT pending casts");
+        });
+    }
+
+    static void spellCastParryingRingFocusStaffbowLongPendingBlocks(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createRingTestPlayer(helper, "spell_cast_parry_focus_long");
+            equipRing(player);
+            startFocusStaffbowPending(player, CastType.LONG, 0L);
+            var attacker = createAttacker(helper, player, 0.0D, 0.0D, 3.0D, "spell_cast_parry_focus_long_attacker");
+            helper.assertTrue(postAttack(player, helper.getLevel().damageSources().mobAttack(attacker)).isCanceled(),
+                    "Spell Cast Parrying Ring should block FocusStaffbow LONG pending casts");
+        });
+    }
+
+    static void spellCastParryingRingChargecastRespectsWindowAndCancellation(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            try (var ignored = ApprenticeCodexServerConfig.useSpellCastParryingRingParryWindowTicksOverrideForGameTest(4)) {
+                for (var hand : InteractionHand.values()) {
+                    var player = createRingTestPlayer(helper, "spell_cast_parry_book_" + hand.name());
+                    // Iron's の毒被弾時刻は初期値0なので、生成直後の tick を通常被弾として扱わない。
+                    player.tickCount = 10;
+                    equipRing(player);
+                    var book = ItemRegistry.CHARGECAST_CATALYSTBOOK.get().getDefaultInstance();
+                    var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+                    ChargecastCatalystbook.setCalibrationScroll(book, 0,
+                            ApprenticeCodexGameTestScenarios.createSpellScroll(spell));
+                    player.setItemInHand(hand, book);
+                    var magicData = MagicData.getPlayerMagicData(player);
+                    magicData.setMana(1000.0F);
+                    book.getItem().use(helper.getLevel(), player, hand);
+                    helper.assertTrue(magicData.isCasting() && magicData.getCastType() == CastType.INSTANT,
+                            "Book use should start a timed INSTANT cast");
+                    helper.assertTrue(magicData.getCastDuration() > 5, "Chargecast should outlast the parry window");
+                    var attacker = createAttacker(helper, player, 0.0D, 0.0D, 3.0D, "spell_cast_parry_book_attacker_" + hand.name());
+                    var source = helper.getLevel().damageSources().mobAttack(attacker);
+                    helper.assertTrue(postAttack(player, source).isCanceled(), "Chargecast should parry at cast start");
+                    // 実際の残り時間更新を使い、境界内の被弾では LOWEST の詠唱中断が起きないことも確認する。
+                    for (var tick = 0; tick < 4; ++tick) {
+                        magicData.handleCastDuration();
+                    }
+                    helper.assertTrue(postAttack(player, source).isCanceled(), "Chargecast should parry at the window boundary");
+                    helper.assertTrue(magicData.isCasting(), "Parried damage should preserve chargecast");
+                    magicData.handleCastDuration();
+                    helper.assertFalse(postAttack(player, source).isCanceled(), "Chargecast should not parry after the window");
+                    helper.assertFalse(magicData.isCasting(), "Unblocked damage should cancel chargecast");
+                    helper.assertFalse(postAttack(player, source).isCanceled(), "Canceled chargecast should not parry");
+                }
+            }
         });
     }
 

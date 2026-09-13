@@ -581,6 +581,7 @@
   "jei.apprenticecodex.elemental_bow.desc_3": "Bow cooldowns are independent of normal spellcasting but shared per player, so switching bows or spells cannot bypass them.",
   "jei.apprenticecodex.elemental_bow.desc_4": "Magic shots consume normal arrows. Infinity does not apply; Synthesis removes the arrow cost.",
   "jei.apprenticecodex.elemental_bow.desc_5": "Long-cast spells begin casting and select targets when you draw. Hold after charging, then release to fire. Releasing early, switching items, or opening a screen cancels without consuming resources.",
+  "jei.apprenticecodex.elemental_bow.desc_6": "Casting spells with the bow is not treated as normal spellcasting: taking damage does not interrupt drawing, but the Ring of Spell Cast Parrying does not work, even immediately after you start drawing.",
   "jei.apprenticecodex.bulwark_greatshield.desc_1": "Continuously casts the imbued spell while the shield is raised.",
   "jei.apprenticecodex.bulwark_greatshield.desc_2": "Blocks attacks that ordinary shields cannot, such as axe strikes and sonic booms, and negates some knockback that still occurs on block.",
   "jei.apprenticecodex.parrycast_buckler.desc_1": "Blocking immediately after raising the shield casts a spell without consuming mana.",
