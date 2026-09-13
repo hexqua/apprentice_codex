@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBlad
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.curios.manamaneuvergear.ManaManeuverGear;
+import jp.aquafactory.apprenticecodex.item.curios.manasoultransducer.ManaSoulTransducer;
 import jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm.MonarchBondCharm;
 import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastScrollCartridge;
 import jp.aquafactory.apprenticecodex.item.curios.undyingemblem.UndyingEmblem;
@@ -386,6 +387,8 @@ public final class ItemRegistry {
             ITEMS.register("monarch_bond_charm", MonarchBondCharm::new);
     public static final DeferredHolder<Item, Item> UNDYING_EMBLEM =
             ITEMS.register("undying_emblem", UndyingEmblem::new);
+    public static final DeferredHolder<Item, Item> MANA_SOUL_TRANSDUCER =
+            ITEMS.register("mana_soul_transducer", ManaSoulTransducer::new);
     public static final DeferredHolder<Item, Item> ENDER_GRIMOIRE =
             ITEMS.register("ender_grimoire", EnderGrimoire::new);
     public static final DeferredHolder<Item, Item> ARCHIVISTS_GRIMOIRE =
