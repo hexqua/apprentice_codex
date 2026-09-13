@@ -128,6 +128,13 @@ public class ArtisanSmashLauncherEntity extends SummonWeaponEntity {
             return;
         }
 
+        prepareForFire();
+    }
+
+    public void prepareForFire() {
+        if (!(getOwner() instanceof LivingEntity owner)) {
+            return;
+        }
         followTargetPosition(getStandbyPosition());
         setYRot(owner.getYRot());
         setXRot(Mth.clamp(owner.getXRot() - AIM_PITCH_UP_DEGREES, -90.0f, 90.0f));

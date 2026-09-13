@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.spell.IMulticastUnsupportedSpell;
 import jp.aquafactory.apprenticecodex.spell.ICastHighlightSpell;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
@@ -37,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity> implements ICastHighlightSpell {
+public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity> implements ICastHighlightSpell, IMulticastUnsupportedSpell {
     private static final double RAYCAST_WIDTH = 1.0;
     private static final double TARGET_STOP_DISTANCE = 1.0;
     private static final double MIN_LEAP_DISTANCE = 0.25;
