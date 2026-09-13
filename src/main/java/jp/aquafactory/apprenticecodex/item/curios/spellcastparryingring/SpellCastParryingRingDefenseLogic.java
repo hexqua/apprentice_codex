@@ -7,6 +7,8 @@ import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowPendingCast;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -32,6 +34,10 @@ final class SpellCastParryingRingDefenseLogic {
     }
 
     private static boolean isWithinTimedCastWindow(LivingEntity defender, int windowTicks) {
+        // エレメンタルボウの引き絞りは防御に転用させない.
+        if (defender instanceof ServerPlayer player && ElementalBowPendingCast.isManagedCast(player)) {
+            return false;
+        }
         var magicData = MagicData.getPlayerMagicData(defender);
         if (magicData == null || !magicData.isCasting()) {
             return false;

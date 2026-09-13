@@ -59,6 +59,11 @@ public final class ElementalBowPendingCast {
         return PENDING.containsKey(player);
     }
 
+    public static boolean isManagedCast(ServerPlayer player) {
+        var state = PENDING.get(player);
+        return state != null && valid(player, state);
+    }
+
     public static void syncToObserver(ServerPlayer player, ServerPlayer observer) {
         var state = PENDING.get(player);
         if (state != null && valid(player, state)) {
