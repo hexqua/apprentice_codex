@@ -80,6 +80,7 @@ import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArms;
 import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHole;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdge;
+import jp.aquafactory.apprenticecodex.spell.soulconversion.SoulConversion;
 import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWing;
 import jp.aquafactory.apprenticecodex.spell.tamerspocket.TamersPocket;
 import jp.aquafactory.apprenticecodex.spell.terraresonance.TerraResonance;
@@ -209,6 +210,8 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> EXTRACT = reg("extract", Extract::new);
     public static final RegistryObject<AbstractSpell> HEAVENLY_FIST = reg("heavenly_fist", HeavenlyFist::new);
     public static final RegistryObject<AbstractSpell> TERRA_RESONANCE = reg("terra_resonance", TerraResonance::new);
+
+    public static final RegistryObject<AbstractSpell> SOUL_CONVERSION = reg("soul_conversion", SoulConversion::new);
 
     // エルドリッチ.
     public static final RegistryObject<AbstractSpell> PALETTE_SHIFT = reg("palette_shift", PaletteShift::new);

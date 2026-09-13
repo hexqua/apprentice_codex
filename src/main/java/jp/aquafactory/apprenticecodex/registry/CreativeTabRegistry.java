@@ -284,6 +284,9 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.MANA_SHIELD_CHARM.get());
         output.accept(ItemRegistry.MONARCH_BOND_CHARM.get());
         output.accept(ItemRegistry.UNDYING_EMBLEM.get());
+        if (isInstalledMalum()) {
+            output.accept(ItemRegistry.MANA_SOUL_TRANSDUCER.get());
+        }
 
         // multi
         output.accept(ItemRegistry.SPELLCASTER_QUIVER.get());
