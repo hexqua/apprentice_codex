@@ -38,6 +38,8 @@ public final class MulticastEchoStaffAttackHandler {
 
     private static final ThreadLocal<CastContext> ACTIVE_CAST = new ThreadLocal<>();
     private static final ConcurrentMap<UUID, TrackedProjectile> TRACKED_PROJECTILES = new ConcurrentHashMap<>();
+    private static final Map<Entity, TrackedProjectile> TRACKED_WEAPON_ATTACKS =
+            Collections.synchronizedMap(new WeakHashMap<>());
     private static final Map<DamageSource, PendingPostHitIframe> PENDING_POST_HIT_IFRAMES =
             Collections.synchronizedMap(new WeakHashMap<>());
 
@@ -62,6 +64,53 @@ public final class MulticastEchoStaffAttackHandler {
                 ACTIVE_CAST.set(previousContext);
             }
         }
+    }
+
+    // Projectile以外は明示登録する。術者が同じだけの通常攻撃を追加詠唱に巻き込まない。
+    public static void trackWeaponAttack(Entity entity) {
+        var context = ACTIVE_CAST.get();
+        if (context == null || !(entity.level() instanceof ServerLevel level)
+                || context.profile().trackingLifetimeTicks() <= 0) {
+            return;
+        }
+        TRACKED_WEAPON_ATTACKS.put(entity, new TrackedProjectile(context.casterId(), context.spellId(),
+                level.dimension(), context.profile(), level.getGameTime() + context.profile().trackingLifetimeTicks()));
+    }
+
+    public static void runWeaponTick(Entity weapon, Runnable action) {
+        var tracked = getTrackedWeaponAttack(weapon);
+        if (tracked == null) {
+            action.run();
+            return;
+        }
+        var previousContext = ACTIVE_CAST.get();
+        ACTIVE_CAST.set(new CastContext(tracked.casterId(), tracked.spellId(), tracked.profile()));
+        try {
+            action.run();
+        } finally {
+            if (previousContext == null) {
+                ACTIVE_CAST.remove();
+            } else {
+                ACTIVE_CAST.set(previousContext);
+            }
+            if (weapon.isRemoved()) {
+                TRACKED_WEAPON_ATTACKS.remove(weapon);
+            }
+        }
+    }
+
+    private static @Nullable TrackedProjectile getTrackedWeaponAttack(Entity entity) {
+        var tracked = TRACKED_WEAPON_ATTACKS.get(entity);
+        if (tracked == null) {
+            return null;
+        }
+        if (entity.isRemoved() || !(entity.level() instanceof ServerLevel level)
+                || !tracked.dimension().equals(level.dimension())
+                || tracked.expireGameTime() <= level.getGameTime()) {
+            TRACKED_WEAPON_ATTACKS.remove(entity);
+            return null;
+        }
+        return ApprenticeCodexServerConfig.multicastEchoStaffAttackProfilesEnabled() ? tracked : null;
     }
 
     public static CombatDamageAdjustment adjustCombatDamage(Entity target, float baseAmount, DamageSource source) {
@@ -178,6 +227,12 @@ public final class MulticastEchoStaffAttackHandler {
         }
 
         var tracked = TRACKED_PROJECTILES.get(directEntity.getUUID());
+        if (tracked == null) {
+            var weaponAttack = getTrackedWeaponAttack(directEntity);
+            if (weaponAttack != null && weaponAttack.profile().directDamageTracking()) {
+                tracked = weaponAttack;
+            }
+        }
         if (tracked == null
                 || (spellId != null && !tracked.spellId().equals(spellId))
                 || !isSourceFromCaster(source, tracked.casterId())) {

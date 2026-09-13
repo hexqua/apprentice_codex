@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -141,6 +142,16 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
     }
 
     @Override
+    protected void prepareWeaponForRelease(Level level, int spellLevel, LivingEntity entity,
+                                           MagicData magicData, @NotNull MoonLightKatanaEntity weapon) {
+        // 即時詠唱ではEntity.tickより先に斬るため、上下の照準も発動時に確定する。
+        weapon.followTargetPosition(weapon.getStandbyPosition());
+        weapon.setYRot(entity.getYRot());
+        weapon.setXRot(entity.getXRot());
+        weapon.hasImpulse = true;
+    }
+
+    @Override
     public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull MoonLightKatanaEntity weapon) {
         weapon.setChargingEffectActive(false);
         weapon.setFullyChargedEffect(false);
@@ -176,5 +187,6 @@ public class MoonLight extends AbstractSummonWeaponSpell<MoonLightKatanaEntity> 
         cutArea.setXRot(caster.getXRot());
         cutArea.setup((float) getDistance(spellLevel), damage);
         level.addFreshEntity(cutArea);
+        MulticastEchoStaffAttackHandler.trackWeaponAttack(cutArea);
     }
 }

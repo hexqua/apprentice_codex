@@ -129,6 +129,13 @@ public class BreachingEnemyShotgunEntity extends SummonWeaponEntity {
             return;
         }
 
+        prepareForFire();
+    }
+
+    public void prepareForFire() {
+        if (!(getOwner() instanceof LivingEntity owner)) {
+            return;
+        }
         var locatePosition = getStandbyPosition();
         followTargetPosition(locatePosition);
 

@@ -221,7 +221,7 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
         }
 
         @Override
-        public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+        public CompoundTag serializeNBT(HolderLookup.@NotNull Provider provider) {
             var tag = super.serializeNBT(provider);
             tag.putInt("CurrentLockOnId", currentLockOnId);
             tag.putInt("CurrentLockOnTick", currentLockOnTick);
@@ -230,7 +230,7 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
         }
 
         @Override
-        public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+        public void deserializeNBT(HolderLookup.@NotNull Provider provider, CompoundTag nbt) {
             super.deserializeNBT(provider, nbt);
             currentLockOnId = nbt.getInt("CurrentLockOnId");
             currentLockOnTick = nbt.getInt("CurrentLockOnTick");

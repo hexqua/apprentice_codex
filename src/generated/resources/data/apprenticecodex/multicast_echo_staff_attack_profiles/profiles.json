@@ -120,6 +120,44 @@
     },
     {
       "profile": {},
+      "spell": "apprenticecodex:shiden"
+    },
+    {
+      "profile": {},
+      "spell": "apprenticecodex:breaching_enemy"
+    },
+    {
+      "profile": {},
+      "spell": "apprenticecodex:slash_blade"
+    },
+    {
+      "profile": {},
+      "spell": "apprenticecodex:moon_light"
+    },
+    {
+      "profile": {},
+      "spell": "apprenticecodex:silent_assassin"
+    },
+    {
+      "profile": {
+        "tracking_lifetime_ticks": 300
+      },
+      "spell": "apprenticecodex:artisan_smash"
+    },
+    {
+      "profile": {},
+      "spell": "apprenticecodex:precision_jack"
+    },
+    {
+      "profile": {},
+      "spell": "apprenticecodex:higanbana"
+    },
+    {
+      "profile": {},
+      "spell": "apprenticecodex:lethal_assault"
+    },
+    {
+      "profile": {},
       "spell": "apprenticecodex:mana_slash"
     },
     {

@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.entity;
 
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
 import jp.aquafactory.apprenticecodex.utility.CombatOwnerResolver;
 import jp.aquafactory.apprenticecodex.utility.CombatOwnerUuidHolder;
 import net.minecraft.nbt.CompoundTag;
@@ -61,7 +62,7 @@ public abstract class SummonWeaponEntity extends Entity implements TraceableEnti
         }
 
         if (level instanceof ServerLevel server) {
-            tickOnServer(server);
+            MulticastEchoStaffAttackHandler.runWeaponTick(this, () -> tickOnServer(server));
         }
     }
 
