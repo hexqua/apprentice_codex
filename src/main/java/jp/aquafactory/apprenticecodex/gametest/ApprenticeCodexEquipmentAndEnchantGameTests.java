@@ -1440,6 +1440,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellCastParryingRingFocusStaffbowLongPendingBlocks(GameTestHelper helper) {
+        SpellCastParryingRingGameTestScenarios.spellCastParryingRingFocusStaffbowLongPendingBlocks(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = SPELL_CAST_PARRYING_RING_CONFIG_BATCH)
+    public static void spellCastParryingRingChargecastRespectsWindowAndCancellation(GameTestHelper helper) {
+        SpellCastParryingRingGameTestScenarios.spellCastParryingRingChargecastRespectsWindowAndCancellation(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellCastParryingRingFocusStaffbowContinuousPendingDoesNotBlock(GameTestHelper helper) {
         SpellCastParryingRingGameTestScenarios.spellCastParryingRingFocusStaffbowContinuousPendingDoesNotBlock(helper);
     }
