@@ -78,9 +78,9 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
                 SpellRegistry.HIGANBANA.get(), SpellRegistry.LETHAL_ASSAULT.get());
         try (var config = ApprenticeCodexServerConfig.useMulticastEchoStaffAttackConfigOverrideForGameTest(true, 1.0D)) {
             for (var spell : spells) {
-                helper.assertTrue(MulticastEchoStaffAttackProfileManager.getProfile(spell).orElseThrow()
-                                .equals(MulticastEchoStaffAttackProfile.DEFAULT),
-                        "Supported weapon must have the default attack profile: " + spell.getSpellId());
+                // 追跡期間は弾の寿命に合わせて調整するため固定せず、補正は下の実ダメージで検証する。
+                helper.assertTrue(MulticastEchoStaffAttackProfileManager.getProfile(spell).isPresent(),
+                        "Supported weapon must have an attack profile: " + spell.getSpellId());
                 var ids = new HashSet<UUID>();
                 float normalDamage = 0;
                 for (int cast = 0; cast < 3; cast++) {
