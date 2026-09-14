@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumStaffChargeBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowPendingCast;
@@ -30,7 +31,8 @@ final class SpellCastParryingRingDefenseLogic {
 
         var windowTicks = ApprenticeCodexServerConfig.spellCastParryingRingParryWindowTicks();
         return isWithinTimedCastWindow(defender, windowTicks)
-                || isWithinFocusStaffbowPendingWindow(defender, windowTicks);
+                || isWithinFocusStaffbowPendingWindow(defender, windowTicks)
+                || MalumStaffChargeBridge.isWithinStaffChargeWindow(defender, windowTicks);
     }
 
     private static boolean isWithinTimedCastWindow(LivingEntity defender, int windowTicks) {

@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.compat.malum;
 
 import com.sammy.malum.common.data.attachment.StaffAbilityData;
+import com.sammy.malum.common.item.curiosities.weapons.staff.AbstractStaffItem;
 import com.sammy.malum.registry.common.MalumAttachmentTypes;
 import com.sammy.malum.registry.common.MalumAttributes;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -15,6 +16,15 @@ final class MalumStaffChargeBridgeImpl {
     private static final ResourceLocation RECOVERY = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "mana_soul_transducer_recovery");
 
     private MalumStaffChargeBridgeImpl() {}
+
+    static boolean isWithinStaffChargeWindow(LivingEntity entity, int windowTicks) {
+        if (!entity.isUsingItem() || !(entity.getUseItem().getItem() instanceof AbstractStaffItem)) return false;
+        var duration = entity.getAttribute(MalumAttributes.CHARGE_DURATION);
+        if (duration == null || !(duration.getValue() > 0D)) return false;
+        // 満充填後の保持も開始からの時間で判定する。発射数取得は一部の杖で残弾を消費するため呼ばない.
+        int elapsed = entity.getTicksUsingItem();
+        return elapsed >= 0 && elapsed <= windowTicks;
+    }
 
     static boolean needsRecovery(LivingEntity entity) {
         return entity.hasData(MalumAttachmentTypes.STAFF_ABILITIES)
