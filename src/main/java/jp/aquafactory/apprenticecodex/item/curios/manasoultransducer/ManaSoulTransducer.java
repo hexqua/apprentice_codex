@@ -21,10 +21,6 @@ public class ManaSoulTransducer extends Item implements ICurioItem{
     }
 
     @Override
-    public void curioTick(SlotContext slotContext, ItemStack stack) {
-    }
-
-    @Override
     public List<Component> getSlotsTooltip(List<Component> tooltips, TooltipContext context, ItemStack stack) {
         var result = new java.util.ArrayList<>(tooltips);
         result.add(Component.empty());
@@ -39,6 +35,7 @@ public class ManaSoulTransducer extends Item implements ICurioItem{
         result.add(Component.literal(" ")
                 .append(Component.translatable(getDescriptionId() + ".desc_3"))
                 .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+        ManaSoulTransducerTooltip.appendStatus(result, getDescriptionId());
         return result;
     }
 

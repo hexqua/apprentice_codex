@@ -68,6 +68,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncMageLightConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaShieldCharmConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncUndyingEmblemConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaSoulTransducerConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncUndyingEmblemStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterActivePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterConfigPacket;

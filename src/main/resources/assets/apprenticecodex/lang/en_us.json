@@ -1671,5 +1671,20 @@
   "entity.apprenticecodex.lunar_aim_arrow": "Lunar Magic Arrow",
   "spell.apprenticecodex.lunar_aim": "Lunar Aim",
   "spell.apprenticecodex.lunar_aim.guide": "Form and release multiple arrows of ice magic. Acquire a target as you begin casting, and the arrows will spread out before homing in on it. On impact, they burst like lunar magic, catching nearby enemies in the blast. Ignores enemy armor.",
-  "death.attack.apprenticecodex.lunar_aim": "%1$s was brought down by %2$s's masterful technique"
+  "death.attack.apprenticecodex.lunar_aim": "%1$s was brought down by %2$s's masterful technique",
+  "item.apprenticecodex.mana_soul_transducer": "Mana-Soul Transducer",
+  "item.apprenticecodex.mana_soul_transducer.desc_1": "Partially applies Iron's Spells 'n Spellbooks bonuses to Malum staves.",
+  "item.apprenticecodex.mana_soul_transducer.desc_2": "Cast time reduction affects staff charge time, and cooldown reduction affects charge recovery speed.",
+  "item.apprenticecodex.mana_soul_transducer.desc_3": "Cast Soul Conversion to instantly restore staff charges.",
+  "item.apprenticecodex.mana_soul_transducer.legacy.desc_1": "Consumes %s mana when firing a Malum staff to avoid consuming a charge.",
+  "item.apprenticecodex.mana_soul_transducer.legacy.desc_2": "When holding a staff on cooldown, consumes mana if available to clear its cooldown.",
+  "item.apprenticecodex.mana_soul_transducer.legacy.desc_3": "Also partially applies Iron's Spells 'n Spellbooks cast time reduction to Malum staff charge time.",
+  "item.apprenticecodex.mana_soul_transducer.status.duration": "Current charge time modifier: %s%%",
+  "item.apprenticecodex.mana_soul_transducer.status.recovery": "Current charge recovery speed modifier: %s%%",
+  "spell.apprenticecodex.soul_conversion": "Soul Conversion",
+  "spell.apprenticecodex.soul_conversion.guide": "An innate spell exclusive to the Mana-Soul Transducer. Converts pure mana into energy for soul magic staves, instantly restoring their energy to full.",
+  "ui.apprenticecodex.soul_conversion.not_found_transducer": "No transducer can be found to act as a catalyst for your mana...",
+  "ui.apprenticecodex.soul_conversion.already_fully_charged": "Staff charges are already full.",
+  "ui.apprenticecodex.soul_conversion.not_installed_malum": "This spell requires Malum to be installed!",
+  "ui.apprenticecodex.soul_conversion.disabled": "Soul Conversion is disabled in this world."
 }
