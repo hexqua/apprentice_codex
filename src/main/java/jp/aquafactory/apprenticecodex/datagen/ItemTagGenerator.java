@@ -152,11 +152,13 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var malumReplenishingEnchantableTag = tag(MALUM_REPLENISHING_ENCHANTABLE);
         tag(MALUM_HIDDEN_UNTIL_VOID).add(
                 ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get(),
-                ItemRegistry.SOUL_AUGMENTED_WEAVE.get()
+                ItemRegistry.SOUL_AUGMENTED_WEAVE.get(),
+                ItemRegistry.MANA_SOUL_TRANSDUCER.get()
         );
         tag(MALUM_HIDDEN_UNTIL_BLACK_CRYSTAL).add(
                 ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get(),
-                ItemRegistry.SOUL_AUGMENTED_WEAVE.get()
+                ItemRegistry.SOUL_AUGMENTED_WEAVE.get(),
+                ItemRegistry.MANA_SOUL_TRANSDUCER.get()
         );
         var tomagicReversalWeaponTag = tag(TOMAGIC_REVERSAL_WEAPON);
         var transcendenceEnchantableTag = tag(TRANSCENDENCE_ENCHANTABLE);

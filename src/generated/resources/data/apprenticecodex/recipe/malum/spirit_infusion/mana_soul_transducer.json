@@ -1,0 +1,46 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "malum"
+    }
+  ],
+  "type": "malum:spirit_infusion",
+  "extraInputs": [
+    {
+      "item": "malum:fused_consciousness"
+    },
+    {
+      "count": 8,
+      "item": "malum:mnemonic_fragment"
+    },
+    {
+      "count": 4,
+      "item": "malum:malignant_pewter_plating"
+    }
+  ],
+  "input": {
+    "item": "malum:runic_brooch"
+  },
+  "result": {
+    "id": "apprenticecodex:mana_soul_transducer"
+  },
+  "spirits": [
+    {
+      "type": "malum:aerial",
+      "count": 16
+    },
+    {
+      "type": "malum:aqueous",
+      "count": 16
+    },
+    {
+      "type": "malum:arcane",
+      "count": 64
+    },
+    {
+      "type": "malum:eldritch",
+      "count": 64
+    }
+  ]
+}

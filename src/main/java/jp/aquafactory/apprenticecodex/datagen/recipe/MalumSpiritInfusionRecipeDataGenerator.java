@@ -93,6 +93,21 @@ public final class MalumSpiritInfusionRecipeDataGenerator implements DataProvide
                                 malumSpirit("arcane", 64),
                                 malumSpirit("eldritch", 32)
                         )
+                ),
+                spiritInfusionRecipe("mana_soul_transducer",
+                        ResourceLocation.fromNamespaceAndPath("malum", "runic_brooch"),
+                        ItemRegistry.MANA_SOUL_TRANSDUCER.getId(),
+                        List.of(
+                                new RecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "fused_consciousness"), 1),
+                                new RecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "mnemonic_fragment"), 8),
+                                new RecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "malignant_pewter_plating"), 4)
+                        ),
+                        List.of(
+                                malumSpirit("aerial", 16),
+                                malumSpirit("aqueous", 16),
+                                malumSpirit("arcane", 64),
+                                malumSpirit("eldritch", 64)
+                        )
                 )
         );
         return CompletableFuture.allOf(recipes.stream().map(recipe -> DataProvider.saveStable(
