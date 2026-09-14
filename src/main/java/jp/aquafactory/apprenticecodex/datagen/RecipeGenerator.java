@@ -1424,6 +1424,7 @@ public final class RecipeGenerator extends RecipeProvider {
         );
     }
 
+    // Malumを必須依存にせず、Spirit Altarのレシピを出力する。
     private void saveMalumSpiritInfusionRecipes(@NotNull Consumer<FinishedRecipe> recipeWriter) {
         // Malum の装備IDは optional dependency のため、ResourceLocation で参照して datagen を単独実行可能にする.
         var spirits = List.of(
