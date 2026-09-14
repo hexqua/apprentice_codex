@@ -179,6 +179,14 @@ public class CombustionJetWaveEntity extends Projectile
         var source = CombatOwnerResolver.createDamageSourcePreservingCurrentOwner(
                 level(), this, getOwner(), combatOwnerUuid, DamageTypes.COMBUSTION_JET
         );
+
+        // 一撃で倒した際に「炎上中に倒した」とするため、先に炎上付与を試みる.
+        if (target instanceof LivingEntity livingTarget) {
+            if (livingTarget.getRemainingFireTicks() < burnDuration) {
+                livingTarget.setRemainingFireTicks(burnDuration);
+            }
+        }
+
         CombatTools.applyDamage(
                 target,
                 damage,
@@ -187,16 +195,12 @@ public class CombustionJetWaveEntity extends Projectile
                 CombatTools.KnockbackTypes.NO_KNOCKBACK
         );
 
-        if (!(target instanceof LivingEntity livingTarget)) {
-            return;
-        }
-        var horizontalDirection = new Vec3(forward.x, 0.0D, forward.z);
-        if (horizontalDirection.lengthSqr() > COLLISION_EPSILON) {
-            horizontalDirection = horizontalDirection.normalize();
-            livingTarget.knockback(KNOCKBACK_STRENGTH, -horizontalDirection.x, -horizontalDirection.z);
-        }
-        if (livingTarget.getRemainingFireTicks() < burnDuration) {
-            livingTarget.setRemainingFireTicks(burnDuration);
+        if (target instanceof LivingEntity livingTarget) {
+            var horizontalDirection = new Vec3(forward.x, 0.0D, forward.z);
+            if (horizontalDirection.lengthSqr() > COLLISION_EPSILON) {
+                horizontalDirection = horizontalDirection.normalize();
+                livingTarget.knockback(KNOCKBACK_STRENGTH, -horizontalDirection.x, -horizontalDirection.z);
+            }
         }
     }
 
