@@ -1432,6 +1432,15 @@ public final class RecipeGenerator extends RecipeProvider {
                 new MalumSpiritCost("wicked", 16)
         );
 
+        saveMalumSpiritInfusionRecipe(recipeWriter,
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "malum/spirit_infusion/mana_soul_transducer"),
+                ResourceLocation.fromNamespaceAndPath("malum", "runic_brooch"),
+                itemId(ItemRegistry.MANA_SOUL_TRANSDUCER.get()),
+                List.of(new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "fused_consciousness"), 1),
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "mnemonic_fragment"), 8),
+                        new MalumRecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "malignant_pewter_plating"), 4)),
+                List.of(new MalumSpiritCost("aerial", 16), new MalumSpiritCost("aqueous", 16),
+                        new MalumSpiritCost("arcane", 64), new MalumSpiritCost("eldritch", 64)));
         saveMalumSpiritInfusionRecipe(
                 recipeWriter,
                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "malum/spirit_infusion/soulcollector_hat"),
