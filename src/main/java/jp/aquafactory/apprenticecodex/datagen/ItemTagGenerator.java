@@ -152,11 +152,13 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var malumReplenishingEnchantableTag = tag(MALUM_REPLENISHING_ENCHANTABLE);
         tag(MALUM_HIDDEN_UNTIL_VOID).add(
                 ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get(),
-                ItemRegistry.SOUL_AUGMENTED_WEAVE.get()
+                ItemRegistry.SOUL_AUGMENTED_WEAVE.get(),
+                ItemRegistry.MANA_SOUL_TRANSDUCER.get()
         );
         tag(MALUM_HIDDEN_UNTIL_BLACK_CRYSTAL).add(
                 ItemRegistry.MALIGNANT_SPELLCASTER_GUN.get(),
-                ItemRegistry.SOUL_AUGMENTED_WEAVE.get()
+                ItemRegistry.SOUL_AUGMENTED_WEAVE.get(),
+                ItemRegistry.MANA_SOUL_TRANSDUCER.get()
         );
         var tomagicReversalWeaponTag = tag(TOMAGIC_REVERSAL_WEAPON);
         var transcendenceEnchantableTag = tag(TRANSCENDENCE_ENCHANTABLE);
@@ -380,6 +382,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.MANA_SHIELD_CHARM.get(),
                 ItemRegistry.MONARCH_BOND_CHARM.get(),
                 ItemRegistry.UNDYING_EMBLEM.get(),
+                ItemRegistry.MANA_SOUL_TRANSDUCER.get(),
                 ItemRegistry.ASHEN_CIRCLET.get(),
                 ItemRegistry.ENCHANTED_CIRCLET.get(),
                 ItemRegistry.ARCANE_CINDER.get(),
@@ -598,7 +601,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(CURIOS_CHARM).add(
                 ItemRegistry.MANA_SHIELD_CHARM.get(),
                 ItemRegistry.MONARCH_BOND_CHARM.get(),
-                ItemRegistry.UNDYING_EMBLEM.get()
+                ItemRegistry.UNDYING_EMBLEM.get(),
+                ItemRegistry.MANA_SOUL_TRANSDUCER.get()
         );
         tag(CURIOS_FEET).add(
                 ItemRegistry.MANA_THRUSTER.get(),

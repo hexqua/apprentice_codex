@@ -80,6 +80,7 @@ import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArms;
 import jp.aquafactory.apprenticecodex.spell.remoteeye.RemoteEye;
 import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHole;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdge;
+import jp.aquafactory.apprenticecodex.spell.soulconversion.SoulConversion;
 import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWing;
 import jp.aquafactory.apprenticecodex.spell.tamerspocket.TamersPocket;
 import jp.aquafactory.apprenticecodex.spell.terraresonance.TerraResonance;
@@ -219,4 +220,5 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> OTHERWORLD_LENS = reg("otherworld_lens", OtherworldLens::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MANA_TRANSCRIPTION = reg("mana_transcription", ManaTranscription::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ECHO_ARROW = reg("echo_arrow", EchoArrow::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> SOUL_CONVERSION = reg("soul_conversion", SoulConversion::new);
 }

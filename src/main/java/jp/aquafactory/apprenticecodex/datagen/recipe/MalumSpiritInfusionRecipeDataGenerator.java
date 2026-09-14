@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-/** Malum を必須依存にせず、Soulcollector 一式の魂の注入レシピだけを出力する。 */
+/** Malum を必須依存にせず、Spirit Altarのレシピだけを出力する。 */
 public final class MalumSpiritInfusionRecipeDataGenerator implements DataProvider {
     private static final String MALUM_MOD_ID = "malum";
     private static final String RECIPE_TYPE = MALUM_MOD_ID + ":spirit_infusion";
@@ -92,6 +92,21 @@ public final class MalumSpiritInfusionRecipeDataGenerator implements DataProvide
                                 malumSpirit("wicked", 16),
                                 malumSpirit("arcane", 64),
                                 malumSpirit("eldritch", 32)
+                        )
+                ),
+                spiritInfusionRecipe("mana_soul_transducer",
+                        ResourceLocation.fromNamespaceAndPath("malum", "runic_brooch"),
+                        ItemRegistry.MANA_SOUL_TRANSDUCER.getId(),
+                        List.of(
+                                new RecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "fused_consciousness"), 1),
+                                new RecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "mnemonic_fragment"), 8),
+                                new RecipeItem(ResourceLocation.fromNamespaceAndPath("malum", "malignant_pewter_plating"), 4)
+                        ),
+                        List.of(
+                                malumSpirit("aerial", 16),
+                                malumSpirit("aqueous", 16),
+                                malumSpirit("arcane", 64),
+                                malumSpirit("eldritch", 64)
                         )
                 )
         );
