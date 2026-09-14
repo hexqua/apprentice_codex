@@ -431,6 +431,7 @@
   "item.apprenticecodex.jumpcast_charm.desc": "在空中按下[%s]时，释放注入的法术。",
   "item.apprenticecodex.spell_cast_parrying_ring.desc_1": "仅在开始施法后的短暂瞬间，可格挡来自正面的攻击。",
   "item.apprenticecodex.spell_cast_parrying_ring.desc_2": "无需施法时间或需要持续施法的法术不适用。",
+  "item.apprenticecodex.spell_cast_parrying_ring.malum.staff": "为 Malum 添加的法杖蓄力时也可格挡。",
   "item.apprenticecodex.attackcast_ring.desc": "每次完整挥击时释放注入的法术。",
   "item.apprenticecodex.swingcast.common.desc": "该法杖每次完整挥击时释放注入的法术。",
   "item.apprenticecodex.freecast.common.desc": "该物品每次完整挥击时释放所选法术。",

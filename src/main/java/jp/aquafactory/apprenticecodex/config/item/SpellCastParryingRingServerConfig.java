@@ -13,7 +13,7 @@ public final class SpellCastParryingRingServerConfig {
     public static SpellCastParryingRingServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("SpellCastParryingRing");
         var parryWindowTicks = builder
-                .comment("Ticks after spell-cast start where Spell Cast Parrying Ring can block frontal damage.")
+                .comment("Ticks after spell-cast or Malum staff charge start where Spell Cast Parrying Ring can block frontal damage.")
                 .defineInRange("spellCastParryingRingParryWindowTicks", 10, 0, Integer.MAX_VALUE);
         builder.pop();
 

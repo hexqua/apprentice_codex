@@ -15,6 +15,10 @@ public final class MalumStaffChargeBridge {
         return isAvailable() && MalumStaffChargeBridgeImpl.needsRecovery(entity);
     }
 
+    public static boolean isWithinStaffChargeWindow(LivingEntity entity, int windowTicks) {
+        return isAvailable() && MalumStaffChargeBridgeImpl.isWithinStaffChargeWindow(entity, windowTicks);
+    }
+
     public static void recoverFully(ServerPlayer player) {
         if (isAvailable()) MalumStaffChargeBridgeImpl.recoverFully(player);
     }
