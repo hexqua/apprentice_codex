@@ -1264,6 +1264,7 @@
   "ui.apprenticecodex.sacred_arrow.target_found": "%s を追尾対象として固定...",
   "ui.apprenticecodex.soul_conversion.not_found_transducer": "魔力の触媒となるトランスデューサーが見つからない...",
   "ui.apprenticecodex.soul_conversion.already_fully_charged": "既に杖のチャージは最大だ",
+  "ui.apprenticecodex.soul_conversion.disabled": "このワールドではソウル転化が無効になっている。",
   "ui.apprenticecodex.soul_conversion.not_installed_malum": "この魔法はMalumが導入されていないと使用できない！",
 
   "ui.apprenticecodex.swingcast.cannot_swing_cast": "%sは打撃詠唱できない！",

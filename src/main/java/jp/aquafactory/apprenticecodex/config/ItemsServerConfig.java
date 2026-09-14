@@ -22,6 +22,7 @@ import jp.aquafactory.apprenticecodex.config.item.ManaManeuverGearServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ParrycastBucklerServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaShieldCharmServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.UndyingEmblemServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ManaSoulTransducerServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaThrusterServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MulticastEchoStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MultipurposeStaffrifleServerConfig;
@@ -61,6 +62,7 @@ final class ItemsServerConfig {
     private final MagiCompressorGadgetServerConfig magiCompressorGadgetConfig;
     private final ManaShieldCharmServerConfig manaShieldCharmConfig;
     private final UndyingEmblemServerConfig undyingEmblemConfig;
+    final ManaSoulTransducerServerConfig manaSoulTransducerConfig;
     private final ManaThrusterServerConfig manaThrusterConfig;
     private final ManaManeuverGearServerConfig manaManeuverGearConfig;
     private final FloatmountBroomServerConfig floatmountBroomConfig;
@@ -102,6 +104,7 @@ final class ItemsServerConfig {
             MagiCompressorGadgetServerConfig magiCompressorGadgetConfig,
             ManaShieldCharmServerConfig manaShieldCharmConfig,
             UndyingEmblemServerConfig undyingEmblemConfig,
+            ManaSoulTransducerServerConfig manaSoulTransducerConfig,
             ManaThrusterServerConfig manaThrusterConfig,
             ManaManeuverGearServerConfig manaManeuverGearConfig,
             FloatmountBroomServerConfig floatmountBroomConfig,
@@ -142,6 +145,7 @@ final class ItemsServerConfig {
         this.magiCompressorGadgetConfig = magiCompressorGadgetConfig;
         this.manaShieldCharmConfig = manaShieldCharmConfig;
         this.undyingEmblemConfig = undyingEmblemConfig;
+        this.manaSoulTransducerConfig = manaSoulTransducerConfig;
         this.manaThrusterConfig = manaThrusterConfig;
         this.manaManeuverGearConfig = manaManeuverGearConfig;
         this.floatmountBroomConfig = floatmountBroomConfig;
@@ -185,6 +189,7 @@ final class ItemsServerConfig {
         var magiCompressorGadgetConfig = MagiCompressorGadgetServerConfig.define(builder);
         var manaShieldCharmConfig = ManaShieldCharmServerConfig.define(builder);
         var undyingEmblemConfig = UndyingEmblemServerConfig.define(builder);
+        var manaSoulTransducerConfig = ManaSoulTransducerServerConfig.define(builder);
         var manaThrusterConfig = ManaThrusterServerConfig.define(builder);
         var manaManeuverGearConfig = ManaManeuverGearServerConfig.define(builder);
         var floatmountBroomConfig = FloatmountBroomServerConfig.define(builder);
@@ -227,6 +232,7 @@ final class ItemsServerConfig {
                 magiCompressorGadgetConfig,
                 manaShieldCharmConfig,
                 undyingEmblemConfig,
+                manaSoulTransducerConfig,
                 manaThrusterConfig,
                 manaManeuverGearConfig,
                 floatmountBroomConfig,

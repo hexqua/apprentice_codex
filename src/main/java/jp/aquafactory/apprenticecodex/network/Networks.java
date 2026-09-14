@@ -69,6 +69,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncMageLightConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaShieldCharmConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncUndyingEmblemConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaSoulTransducerConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncUndyingEmblemStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterActivePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterConfigPacket;
@@ -96,7 +97,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "103";
+    private static final String PROTOCOL_VERSION = "104";
 
     private Networks() {
     }
@@ -306,6 +307,11 @@ public final class Networks {
                 SyncManaShieldCharmConfigPacket.TYPE,
                 SyncManaShieldCharmConfigPacket.STREAM_CODEC,
                 SyncManaShieldCharmConfigPacket::handle
+        );
+        registrar.playToClient(
+                SyncManaSoulTransducerConfigPacket.TYPE,
+                SyncManaSoulTransducerConfigPacket.STREAM_CODEC,
+                SyncManaSoulTransducerConfigPacket::handle
         );
         registrar.playToClient(
                 SyncUndyingEmblemConfigPacket.TYPE,

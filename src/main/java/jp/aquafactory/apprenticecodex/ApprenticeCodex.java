@@ -123,6 +123,7 @@ public class ApprenticeCodex
         ManaForceBladeConfigSyncEvents.register(modEventBus);
         ManaShieldCharmConfigSyncEvents.register(modEventBus);
         UndyingEmblemConfigSyncEvents.register(modEventBus);
+        jp.aquafactory.apprenticecodex.event.ManaSoulTransducerConfigSyncEvents.register(modEventBus);
         ManaThrusterConfigSyncEvents.register(modEventBus);
         ZenithStaffConfigSyncEvents.register(modEventBus);
         ElementMaidenRobeSchoolPowerBonusEvents.register(modEventBus);
