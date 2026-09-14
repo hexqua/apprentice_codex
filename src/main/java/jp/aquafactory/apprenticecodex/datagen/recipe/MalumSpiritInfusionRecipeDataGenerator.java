@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-/** Malum を必須依存にせず、Soulcollector 一式の魂の注入レシピだけを出力する。 */
+/** Malum を必須依存にせず、Spirit Altarのレシピだけを出力する。 */
 public final class MalumSpiritInfusionRecipeDataGenerator implements DataProvider {
     private static final String MALUM_MOD_ID = "malum";
     private static final String RECIPE_TYPE = MALUM_MOD_ID + ":spirit_infusion";
