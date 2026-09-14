@@ -410,6 +410,7 @@
   "item.apprenticecodex.jumpcast_charm.desc": "Press [%s] while airborne casts the imbued spell.",
   "item.apprenticecodex.spell_cast_parrying_ring.desc_1": "For a brief moment right after casting begins, you can parry attacks from the front.",
   "item.apprenticecodex.spell_cast_parrying_ring.desc_2": "Spells with no cast time or spells that require continuous casting are excluded.",
+  "item.apprenticecodex.spell_cast_parrying_ring.malum.staff": "You can also parry while charging staves added by Malum.",
   "item.apprenticecodex.attackcast_ring.desc": "Casts the imbued spell with each full swing.",
   "item.apprenticecodex.magi_compressor_gadget.desc_1": "Consumes mana to store a small amount of compressed air.",
   "item.apprenticecodex.magi_compressor_gadget.desc_2": "Can also supply equipment that requires compressed air.",

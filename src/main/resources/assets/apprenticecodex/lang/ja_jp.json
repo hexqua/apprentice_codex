@@ -413,6 +413,7 @@
   "item.apprenticecodex.jumpcast_charm.desc": "空中で[%s]を押すと注入した魔法を発動する。",
   "item.apprenticecodex.spell_cast_parrying_ring.desc_1": "詠唱開始直後の一瞬のみ、正面からの攻撃を弾く事ができる。",
   "item.apprenticecodex.spell_cast_parrying_ring.desc_2": "詠唱が不要だったり詠唱し続ける必要がある魔法は対象外。",
+  "item.apprenticecodex.spell_cast_parrying_ring.malum.staff": "Malumで追加される杖のチャージでも弾く事ができる。",
   "item.apprenticecodex.attackcast_ring.desc": "攻撃時に注入した魔法を発動する。",
   "item.apprenticecodex.magi_compressor_gadget.desc_1": "マナを消費して少量の圧縮空気を保持できる。",
   "item.apprenticecodex.magi_compressor_gadget.desc_2": "圧縮空気を必要とする機材への供給も可能。",
