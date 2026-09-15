@@ -49,6 +49,7 @@ public record ClientQuickcastCartridgePacket(ResourceLocation expectedSpell, Blo
             return QuickcastCartridgeCasting.initiate(player);
         } finally {
             BlockTargetingHelper.clearPendingServerTarget(player);
+            MirageAvoidanceInput.clearPending(player);
         }
     }
 }

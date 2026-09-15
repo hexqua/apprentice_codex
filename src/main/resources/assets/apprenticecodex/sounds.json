@@ -891,5 +891,14 @@
       "minecraft:block/amethyst/break3",
       "minecraft:block/amethyst/break4"
     ]
+  },
+  "vanilla_collect_mana": {
+    "_apprentice_codex_note": "ベースはSoundEvents.ENCHANTMENT_TABLE_USE",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_collect_mana",
+    "sounds": [
+      "minecraft:block/enchantment_table/enchant1",
+      "minecraft:block/enchantment_table/enchant2",
+      "minecraft:block/enchantment_table/enchant3"
+    ]
   }
 }

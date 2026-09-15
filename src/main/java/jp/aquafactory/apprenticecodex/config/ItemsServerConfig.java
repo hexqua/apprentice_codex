@@ -46,6 +46,7 @@ import net.minecraftforge.common.ForgeConfigSpec;
 import java.util.List;
 
 final class ItemsServerConfig {
+    final jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig quickcastCartridgeConfig;
     private final ArcaneCinderServerConfig arcaneCinderConfig;
     private final AbsorptionAmplifyAmuletServerConfig absorptionAmplifyAmuletConfig;
     private final ScarletThirstServerConfig scarletThirstConfig;
@@ -125,7 +126,8 @@ final class ItemsServerConfig {
             SatelliteFollowcastAmuletServerConfig satelliteFollowcastAmuletConfig,
             RemoteOwnerCastServerConfig remoteOwnerCastConfig,
             LuminousDeviceServerConfig luminousDeviceConfig,
-            InstantSearchBrazierServerConfig instantSearchBrazierConfig
+            InstantSearchBrazierServerConfig instantSearchBrazierConfig,
+            jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig quickcastCartridgeConfig
     ) {
         this.arcaneCinderConfig = arcaneCinderConfig;
         this.absorptionAmplifyAmuletConfig = absorptionAmplifyAmuletConfig;
@@ -166,6 +168,7 @@ final class ItemsServerConfig {
         this.remoteOwnerCastConfig = remoteOwnerCastConfig;
         this.luminousDeviceConfig = luminousDeviceConfig;
         this.instantSearchBrazierConfig = instantSearchBrazierConfig;
+        this.quickcastCartridgeConfig = quickcastCartridgeConfig;
     }
 
     static ItemsServerConfig define(ForgeConfigSpec.Builder builder) {
@@ -209,6 +212,7 @@ final class ItemsServerConfig {
         var remoteOwnerCastConfig = RemoteOwnerCastServerConfig.define(builder);
         var luminousDeviceConfig = LuminousDeviceServerConfig.define(builder);
         var instantSearchBrazierConfig = InstantSearchBrazierServerConfig.define(builder);
+        var quickcastCartridgeConfig = jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig.define(builder);
         builder.pop();
 
         return new ItemsServerConfig(
@@ -250,7 +254,8 @@ final class ItemsServerConfig {
                 satelliteFollowcastAmuletConfig,
                 remoteOwnerCastConfig,
                 luminousDeviceConfig,
-                instantSearchBrazierConfig
+                instantSearchBrazierConfig,
+                quickcastCartridgeConfig
         );
     }
 

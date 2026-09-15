@@ -66,6 +66,10 @@ public final class ApprenticeCodexServerConfig {
     private ApprenticeCodexServerConfig() {
     }
 
+    public static jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig quickcastCartridge() {
+        return ITEMS_CONFIG.quickcastCartridgeConfig;
+    }
+
     @SubscribeEvent
     public static void onConfigLoading(ModConfigEvent.Loading event) {
         if (event.getConfig().getType() != ModConfig.Type.SERVER

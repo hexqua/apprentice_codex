@@ -19,6 +19,7 @@
     "EntitySupportedShieldCollisionMixin",
     "QuickcastCartridgeSpellMixin",
     "QuickcastCartridgeSelectionMixin",
+    "QuickcastCartridgeSyncedSelectionMixin",
     "QuickcastCartridgeUtilsMixin",
     "LivingEntityDamageMemoryAccessor",
     "AbstractSpellManaBypassMixin",

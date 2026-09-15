@@ -111,6 +111,9 @@ public abstract class AbstractSpellMixin {
             MagicData magicData
     ) {
         try (var ignored = SpellgunCastContext.openActivation(caster, spell, magicData)) {
+            if (caster instanceof ServerPlayer player) {
+                QuickcastCartridgeCasting.beforeEffect(player, spell, castSource, magicData);
+            }
             spell.onCast(level, spellLevel, caster, castSource, magicData);
         }
     }

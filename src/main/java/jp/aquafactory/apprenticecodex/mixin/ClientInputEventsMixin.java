@@ -7,6 +7,8 @@ import io.redspace.ironsspellbooks.player.ClientInputEvents;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.event.client.ClientBlockTargetSyncService;
+import jp.aquafactory.apprenticecodex.event.client.QuickcastCartridgeClientEvents;
+import jp.aquafactory.apprenticecodex.event.client.QuickcastCartridgeClientState;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientCastState;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
@@ -35,6 +37,10 @@ public abstract class ClientInputEventsMixin {
                     || apprentice_codex$shouldBlockMirageAvoidanceEffectInput()) {
                 return;
             }
+            if (QuickcastCartridgeClientEvents.sendSelectedCast(-1)) {
+                return;
+            }
+            QuickcastCartridgeClientState.interrupt();
             apprentice_codex$rememberMirageAvoidanceDirection();
             if (apprentice_codex$trySendSelectedMirageAvoidanceCast()
                     || apprentice_codex$trySendSelectedSpellCast()) {
@@ -59,6 +65,11 @@ public abstract class ClientInputEventsMixin {
                     || apprentice_codex$shouldBlockMirageAvoidanceEffectInput()) {
                 return;
             }
+            if (QuickcastCartridgeClientEvents.sendSelectedCast(
+                    ((QuickCastPacketAccessor) quickCastPacket).apprenticecodex$getSlot())) {
+                return;
+            }
+            QuickcastCartridgeClientState.interrupt();
             apprentice_codex$rememberMirageAvoidanceDirection();
             if (apprentice_codex$trySendMirageAvoidanceQuickCast(quickCastPacket)
                     || apprentice_codex$trySendTargetedQuickCast(quickCastPacket)) {
