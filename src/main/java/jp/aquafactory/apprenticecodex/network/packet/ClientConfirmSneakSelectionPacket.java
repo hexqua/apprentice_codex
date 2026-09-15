@@ -3,6 +3,8 @@ package jp.aquafactory.apprenticecodex.network.packet;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.ImmediateSneakSelectionUiItem;
+import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastCartridgeCharge;
+import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastScrollCartridge;
 import jp.aquafactory.apprenticecodex.utility.HandStackResolver;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -12,6 +14,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
 
 public record ClientConfirmSneakSelectionPacket(
         InteractionHand hand,
@@ -23,7 +26,7 @@ public record ClientConfirmSneakSelectionPacket(
             StreamCodec.of((buffer, packet) -> encode(packet, buffer), ClientConfirmSneakSelectionPacket::decode);
 
     @Override
-    public Type<? extends CustomPacketPayload> type() {
+    public @NotNull Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 
@@ -64,6 +67,9 @@ public record ClientConfirmSneakSelectionPacket(
                 return;
             }
             item.setSneakSelectionIndex(stack, packet.selectedIndex());
+            if (item instanceof QuickcastScrollCartridge) {
+                QuickcastCartridgeCharge.selectionChanged(player);
+            }
         });
     }
 }

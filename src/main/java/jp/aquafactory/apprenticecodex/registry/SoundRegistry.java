@@ -116,6 +116,7 @@ public final class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_CRITICAL_SHOT = reg("vanilla_critical_shot");
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_USE_DESK = reg("vanilla_use_desk");
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_INSCRIBE_MANA = reg("vanilla_inscribe_mana");
+    public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_COLLECT_MANA = reg("vanilla_collect_mana");
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_DEMICREATOR_BREAK = reg("vanilla_demicreator_break");
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_FEATHER_HIT = reg("vanilla_feather_hit");
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_FEATHER_SHOOT = reg("vanilla_feather_shoot");

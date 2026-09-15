@@ -64,6 +64,10 @@ public final class ApprenticeCodexServerConfig {
     private ApprenticeCodexServerConfig() {
     }
 
+    public static jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig quickcastCartridge() {
+        return ITEMS_CONFIG.quickcastCartridgeConfig;
+    }
+
     public static void register(IEventBus modEventBus) {
         modEventBus.addListener(ApprenticeCodexServerConfig::onConfigLoading);
     }

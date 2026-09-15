@@ -1,29 +1,9 @@
 package jp.aquafactory.apprenticecodex.capability.codexspelldata;
 
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.AssistWingsState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.AbsorptionAmplifyAmuletState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.AutoMagnetState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.BoundBowState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.BoundSwordState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.CompanionTrunkState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.DemicreatorWingsState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.EdgeDancerState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FeatherRushState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowCastState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowLoanState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ForceFieldState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.HealingBloomState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.MantisLeapState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.MirageAvoidanceState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.RemoteEyeState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.UndyingEmblemState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SearchBeaconState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SpectralWingState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.TamersPocketState;
-import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ThermalSliceState;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.*;
 
 public final class CodexSpellStateTypeRegister {
+    public static CodexSpellStateType<jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.QuickcastCartridgeChargeState> QUICKCAST_CARTRIDGE_CHARGE_STATE;
     private CodexSpellStateTypeRegister(){}
 
     public static CodexSpellStateType<AbsorptionAmplifyAmuletState> ABSORPTION_AMPLIFY_AMULET_STATE;
@@ -50,6 +30,7 @@ public final class CodexSpellStateTypeRegister {
     public static CodexSpellStateType<ThermalSliceState> THERMAL_SLICE_STATE;
 
     public static void register() {
+        QUICKCAST_CARTRIDGE_CHARGE_STATE = CodexSpellStates.register("quickcast_cartridge_charge", QuickcastCartridgeChargeState::new);
         ABSORPTION_AMPLIFY_AMULET_STATE = CodexSpellStates.register("absorption_amplify_amulet", AbsorptionAmplifyAmuletState::new);
         ASSIST_WINGS_STATE = CodexSpellStates.register("assist_wings", AssistWingsState::new);
         AUTO_MAGNET_STATE = CodexSpellStates.register("auto_magnet", AutoMagnetState::new);

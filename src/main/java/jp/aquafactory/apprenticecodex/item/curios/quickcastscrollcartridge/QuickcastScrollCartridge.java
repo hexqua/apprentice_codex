@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge;
 
+import jp.aquafactory.apprenticecodex.event.client.QuickcastCartridgeClientEvents;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.item.*;
 import io.redspace.ironsspellbooks.api.spells.*;
@@ -11,6 +12,8 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.*;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -60,12 +63,13 @@ public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoIte
         // item.modifiers.anyは1.20.1にはないため、1.21.1でもオリジナルのキーを定義して使う.
         result.add(Component.translatable("curios.apprenticecodex.modifier.for_quiver").withStyle(ChatFormatting.GOLD));
 
-        // キー設定はクライアントだけで参照し、専用サーバーでは未割り当ての説明を使う。
-        var keyDescription = net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT
-                ? jp.aquafactory.apprenticecodex.event.client.QuickcastCartridgeClientEvents.getCastKeyDescription()
-                : Component.translatable(getDescriptionId() + ".no_assign");
-        result.add(keyDescription.copy().withStyle(ChatFormatting.YELLOW));
-        for (int i = 2; i <= 3; i++) {
+        result.add(Component.translatable(getDescriptionId() + ".desc_1").withStyle(ChatFormatting.YELLOW));
+        // 専用キーは任意の発動経路なので、クライアントで割り当て済みの場合だけ補足する。
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            QuickcastCartridgeClientEvents.getCastKeyDescription()
+                    .ifPresent(description -> result.add(description.copy().withStyle(ChatFormatting.YELLOW)));
+        }
+        for (int i = 2; i <= 4; i++) {
             result.add(Component.translatable(getDescriptionId() + ".desc_" + i).withStyle(ChatFormatting.YELLOW));
         }
         if (getEnabledCalibrationScrollSlotCount(stack) >= 2) {

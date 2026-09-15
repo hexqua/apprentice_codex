@@ -1,92 +1,6 @@
 package jp.aquafactory.apprenticecodex.network;
 
-import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
-import jp.aquafactory.apprenticecodex.network.packet.AlchemyBrewerWaterSupplyEffectPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientAnchorBlinkPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientBlockTargetCastPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientChangeArchivistsGrimoireRowPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientConfigureSpellcasterAccessoryCaseMenuPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmElementalBowModePacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmLuminousDeviceSelectionPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmSneakSelectionPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientEpicFightAttackcastRingTargetsPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientManaManeuverGearJumpPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientOpenSpellcasterAccessoryCasePacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientOpenStorageStabilizerEnderChestPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientBroomInputPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientBroomDismountInputPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleCastPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientSpellgunCastPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientSwingMagicAttackPacket;
-import jp.aquafactory.apprenticecodex.network.packet.DeepSensorObservationsPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPacket;
-import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
-import jp.aquafactory.apprenticecodex.network.packet.HeavenlyFistPulsePacket;
-import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
-import jp.aquafactory.apprenticecodex.network.packet.ManaManeuverGearFallEffectPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncSpellReaperScytheConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowOverheatPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncEquipmentSpellTimingConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncHighTierSwingcastStaffConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletNotificationPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletProfileSpellIdsPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncApprenticeDeskConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncArcanumInAJarConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncAssistWingsJumpPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearJumpPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearSlidePacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncBoundBowStatePacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncBoundSwordStatePacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffOverheatPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncIronSwingcastStaffConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncSoulstainedSteelSwingcastStaffConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncSpellgunConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncEnderGrimoireSpellbookPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncEdgeDancerStatePacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowCastStatePacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncChargecastCatalystbookConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowLoanPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncFocusStaffbowPresentationPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncFloatmountBroomConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomAssistWingsJumpPacket;
-import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomReleaseResultPacket;
-import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomImpulseEffectPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncIsekaiTravelGuidebookConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncInstantSearchBrazierConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncLuminousDeviceConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncLinearBuildConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncMageLightConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncManaShieldCharmConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncUndyingEmblemConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncManaSoulTransducerConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncUndyingEmblemStatePacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterActivePacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncMirageAvoidanceStatePacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatStatePacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncRemoteEyeStatePacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncReflectcastShieldEffectPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncScarletThirstHealthPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncSchoolAffinityAssignmentsPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncSatelliteFollowcastAmuletStatePacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncSmashcastScepterReadyStatePacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncTamersPocketCountPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncZenithStaffConfigPacket;
-import jp.aquafactory.apprenticecodex.network.packet.TerraResonanceHighlightsPacket;
-import jp.aquafactory.apprenticecodex.network.packet.TerraResonancePulsePacket;
-import jp.aquafactory.apprenticecodex.network.packet.TotemOfPermafrostPulsePacket;
+import jp.aquafactory.apprenticecodex.network.packet.*;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -97,7 +11,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "104";
+    private static final String PROTOCOL_VERSION = "105";
 
     private Networks() {
     }
@@ -108,6 +22,14 @@ public final class Networks {
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar(PROTOCOL_VERSION);
+        registrar.playToClient(
+                SyncQuickcastCartridgePacket.TYPE,
+                SyncQuickcastCartridgePacket.STREAM_CODEC,
+                SyncQuickcastCartridgePacket::handle);
+        registrar.playToServer(
+                ClientInterruptCartridgeReloadPacket.TYPE,
+                ClientInterruptCartridgeReloadPacket.STREAM_CODEC,
+                ClientInterruptCartridgeReloadPacket::handle);
         registrar.playToClient(jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket.TYPE,
                 jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket.STREAM_CODEC,
                 jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket::handle);

@@ -756,6 +756,9 @@ public final class ClientModBusEvents {
     }
 
     private static void registerGuiLayers(RegisterGuiLayersEvent event) {
+        event.registerBelow(VanillaGuiLayers.AIR_LEVEL,
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "quickcast_cartridge"),
+                QuickcastCartridgeHud.INSTANCE);
         event.registerBelow(
                 VanillaGuiLayers.AIR_LEVEL,
                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "broom_durability"),
