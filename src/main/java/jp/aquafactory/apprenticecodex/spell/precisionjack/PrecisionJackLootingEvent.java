@@ -81,7 +81,10 @@ public final class PrecisionJackLootingEvent {
         var lootParamsBuilder = new LootParams.Builder(serverLevel)
                 .withParameter(LootContextParams.THIS_ENTITY, target)
                 .withParameter(LootContextParams.ORIGIN, target.position())
-                .withParameter(LootContextParams.DAMAGE_SOURCE, source);
+                .withParameter(LootContextParams.DAMAGE_SOURCE, source)
+                // 追加抽選でも通常の死亡ドロップと同じ攻撃者条件・エンチャント補正を評価する。
+                .withOptionalParameter(LootContextParams.ATTACKING_ENTITY, source.getEntity())
+                .withOptionalParameter(LootContextParams.DIRECT_ATTACKING_ENTITY, source.getDirectEntity());
 
         if (event.isRecentlyHit() && target.getKillCredit() instanceof Player player) {
             lootParamsBuilder = lootParamsBuilder

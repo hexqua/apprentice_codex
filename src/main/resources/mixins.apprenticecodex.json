@@ -41,6 +41,8 @@
     "EasyMagicModEnchantmentMenuMixin",
     "EnchantmentMenuMixin",
     "EnchantmentHelperMixin",
+    "EnchantedCountIncreasePlunderMixin",
+    "EnchantedChancePlunderMixin",
     "FluidStackMixin",
     "EntitySharedFlagAccessor",
     "EfisCompatPlayerAnimationEventsMixin",
