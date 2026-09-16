@@ -31,6 +31,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceWithEnchantedBonusCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.common.NeoForge;
@@ -166,7 +167,7 @@ public final class PlunderLootGameTests {
         var skeleton = new SummonedSkeleton(level, false);
         var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
         for (var summon : new Mob[]{zombie, skeleton}) {
-            summon.setPos(helper.absoluteVec(new net.minecraft.world.phys.Vec3(0, 2, 2)));
+            summon.setPos(helper.absoluteVec(new Vec3(0, 2, 2)));
             summon.setNoAi(true);
             level.addFreshEntity(summon);
             SummonManager.setOwner(summon, player);

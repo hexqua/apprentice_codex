@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -42,6 +43,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 public final class AlchemyBrewerBlockEntity extends BlockEntity {
     public static final int TANK_CAPACITY_MB = 1000;
@@ -229,7 +231,7 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
         var nextPotion = candidate == null ? null : candidate.result;
         var nextAmount = candidate == null ? 0 : candidate.amountMb;
         var nextTotalTicks = candidate == null ? 0 : candidate.totalTicks;
-        if (java.util.Objects.equals(previewPotion, nextPotion)
+        if (Objects.equals(previewPotion, nextPotion)
                 && previewAmountMb == nextAmount
                 && previewTotalTicks == nextTotalTicks) return;
         previewPotion = nextPotion;
@@ -493,7 +495,7 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
         if (level instanceof ServerLevel serverLevel) serverLevel.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
     }
 
-    private static <T> int registryId(net.minecraft.core.Registry<T> registry, @Nullable ResourceLocation id) {
+    private static <T> int registryId(Registry<T> registry, @Nullable ResourceLocation id) {
         if (id == null) return -1;
         var value = registry.get(id);
         return value == null ? -1 : registry.getId(value);

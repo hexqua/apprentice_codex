@@ -13,6 +13,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 
 import static jp.aquafactory.apprenticecodex.gametest.BowGameTestSupport.createEquipmentTestPlayer;
@@ -102,7 +103,7 @@ final class SummonWeaponAnimationGameTestScenarios {
         });
     }
 
-    private static void applyCastTimeReduction(GameTestHelper helper, net.minecraft.world.entity.LivingEntity player) {
+    private static void applyCastTimeReduction(GameTestHelper helper, LivingEntity player) {
         var castTimeReductionAttribute = player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION);
         helper.assertTrue(castTimeReductionAttribute != null,
                 "Summon weapon animation test could not resolve cast-time reduction attribute");

@@ -23,6 +23,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 public class SpellcastersFlask extends AbstractPotionFlaskItem {
     private static final float BASE_DRINK_DURATION_TICKS = 32.0F;
     private static final float GUZZLE_REDUCTION_PER_LEVEL = 0.1F;
@@ -136,7 +138,7 @@ public class SpellcastersFlask extends AbstractPotionFlaskItem {
         ).withStyle(ChatFormatting.YELLOW), true);
     }
 
-    private java.util.List<MobEffectInstance> extractStoredEffects(ItemStack flaskStack) {
+    private List<MobEffectInstance> extractStoredEffects(ItemStack flaskStack) {
         return extractEffectsFromItem(getStoredItem(flaskStack));
     }
 

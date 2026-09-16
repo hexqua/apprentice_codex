@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
@@ -10,7 +11,10 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
+import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
+import io.redspace.ironsspellbooks.item.Scroll;
+import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHint;
@@ -46,8 +50,11 @@ import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
+import jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator;
 import jp.aquafactory.apprenticecodex.utility.SpellSelectionStackResolver;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -61,12 +68,17 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -85,7 +97,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             var stack = createInitializedPresetStack(item);
             var spellContainer = ISpellContainer.get(stack);
 
-            helper.assertFalse(item instanceof io.redspace.ironsspellbooks.item.UniqueItem,
+            helper.assertFalse(item instanceof UniqueItem,
                     "Photon Siphon should not block external imbue as a UniqueItem");
             helper.assertTrue(spellContainer != null, "Photon Siphon default spell container is null");
             assertSpellData(helper, spellContainer, 0, SpellRegistry.MANA_CHARGE.get(), 1, true,
@@ -230,9 +242,9 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             var mithrilItem = (MithrilFreecastStaff) mithrilFreecastStaff.getItem();
             helper.assertTrue(mithrilItem.getDefaultAttributeModifiers(mithrilFreecastStaff).modifiers().stream()
                             .anyMatch(entry -> entry.attribute().equals(
-                                            io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER)
+                                            AttributeRegistry.SPELL_POWER)
                                     && entry.modifier().operation()
-                                    == net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                                    == AttributeModifier.Operation.ADD_MULTIPLIED_BASE
                                     && Math.abs(entry.modifier().amount() - 0.10D) < 0.000001D),
                     "Uncalibrated Mithril Freecast Staff should grant +10% generic spell power");
             SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
@@ -242,15 +254,15 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             );
             var tunedMithrilModifiers = mithrilItem.getDefaultAttributeModifiers(mithrilFreecastStaff);
             helper.assertTrue(tunedMithrilModifiers.modifiers().stream().anyMatch(entry ->
-                            entry.attribute().equals(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER)
+                            entry.attribute().equals(AttributeRegistry.SPELL_POWER)
                                     && entry.modifier().operation()
-                                    == net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                                    == AttributeModifier.Operation.ADD_MULTIPLIED_BASE
                                     && Math.abs(entry.modifier().amount() - 0.05D) < 0.000001D),
                     "Fire-tuned Mithril Freecast Staff should retain +5% generic spell power");
             helper.assertTrue(tunedMithrilModifiers.modifiers().stream().anyMatch(entry ->
-                            entry.attribute().equals(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER)
+                            entry.attribute().equals(AttributeRegistry.FIRE_SPELL_POWER)
                                     && entry.modifier().operation()
-                                    == net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                                    == AttributeModifier.Operation.ADD_MULTIPLIED_BASE
                                     && Math.abs(entry.modifier().amount() - 0.15D) < 0.000001D),
                     "Fire-tuned Mithril Freecast Staff should grant +15% fire spell power");
 
@@ -454,13 +466,13 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     helper.assertTrue(
                             rule.conflicts(representative, representative)
                                     == (rule.duplicatePolicy()
-                                    != jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule.DuplicatePolicy.REPEATABLE),
+                                    != CalibrationAdjustmentRule.DuplicatePolicy.REPEATABLE),
                             "Calibration duplicate policy should match its conflict rule: " + rule.displayId()
                     );
                     helper.assertTrue(
                             rule.constraintDisplay().translationKey().isEmpty()
                                     == (rule.duplicatePolicy()
-                                    == jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule.DuplicatePolicy.REPEATABLE),
+                                    == CalibrationAdjustmentRule.DuplicatePolicy.REPEATABLE),
                             "Only repeatable calibration rules should omit constraint text: " + rule.displayId()
                     );
                 }
@@ -580,7 +592,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     "Parrycast Buckler should accept Wisdom Shard with Silver Ring");
 
             var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-            var sharpness = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SHARPNESS);
+            var sharpness = enchantmentLookup.getOrThrow(Enchantments.SHARPNESS);
             var sharpnessBook = createEnchantedBook(sharpness, 1);
             sharpnessBook.set(DataComponents.CUSTOM_NAME, Component.literal("Stored calibration component"));
             sharpnessBook.setCount(4);
@@ -705,7 +717,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             var manaItem = (ArmorItem) manaLeggings.getItem();
             var baseMana = modifierTotal(
                     manaItem.getDefaultAttributeModifiers(manaLeggings),
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA,
+                    AttributeRegistry.MAX_MANA,
                     AttributeModifier.Operation.ADD_VALUE
             );
             for (var slot = 0; slot < EndgameArmorCalibration.SLOT_COUNT; ++slot) {
@@ -715,7 +727,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             }
             var tunedMana = modifierTotal(
                     manaItem.getDefaultAttributeModifiers(manaLeggings),
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA,
+                    AttributeRegistry.MAX_MANA,
                     AttributeModifier.Operation.ADD_VALUE
             );
             helper.assertTrue(Math.abs(tunedMana - baseMana - EndgameArmorCalibration.MAX_MANA_PER_RUNE * 3.0D) < 1.0e-9D,
@@ -731,7 +743,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     "Protective Rune should be unique within one armor piece");
             helper.assertTrue(Math.abs(modifierTotal(
                             ((ArmorItem) protectionCoat.getItem()).getDefaultAttributeModifiers(protectionCoat),
-                            io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_RESIST,
+                            AttributeRegistry.SPELL_RESIST,
                             AttributeModifier.Operation.ADD_MULTIPLIED_BASE
                     ) - EndgameArmorCalibration.SPELL_RESIST_PER_RUNE) < 1.0e-9D,
                     "Protective Rune should add 5% generic spell resistance");
@@ -807,7 +819,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                 ));
             }
             var knockbackEvent = new ExplosionKnockbackEvent(
-                    helper.getLevel(), null, player, new net.minecraft.world.phys.Vec3(1.0D, 0.0D, 0.0D)
+                    helper.getLevel(), null, player, new Vec3(1.0D, 0.0D, 0.0D)
             );
             EndgameArmorExplosionKnockbackEvent.onExplosionKnockback(knockbackEvent);
             helper.assertTrue(Math.abs(knockbackEvent.getKnockbackVelocity().x - 1.20D) < 1.0e-9D,
@@ -868,7 +880,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                 player.setItemSlot(EquipmentSlot.HEAD, gogglesHood);
                 helper.assertTrue((boolean) invokeCreateGameTestHook(
                                 "isWearingGoggles",
-                                new Class<?>[]{net.minecraft.world.entity.player.Player.class},
+                                new Class<?>[]{Player.class},
                                 player
                         ),
                         "Create should recognize a calibrated endgame helmet as worn goggles");
@@ -1003,8 +1015,8 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
     }
 
     private static double modifierTotal(
-            net.minecraft.world.item.component.ItemAttributeModifiers modifiers,
-            net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute> attribute,
+            ItemAttributeModifiers modifiers,
+            Holder<Attribute> attribute,
             AttributeModifier.Operation operation
     ) {
         return modifiers.modifiers().stream()
@@ -1016,8 +1028,8 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
 
     private static void assertOptionalAttributeModifier(
             GameTestHelper helper,
-            net.minecraft.world.item.component.ItemAttributeModifiers modifiers,
-            net.minecraft.resources.ResourceLocation attributeId,
+            ItemAttributeModifiers modifiers,
+            ResourceLocation attributeId,
             double expectedAmount,
             AttributeModifier.Operation operation
     ) {
@@ -1058,7 +1070,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             var lookupProvider = helper.getLevel().registryAccess();
             var enchantments = lookupProvider.lookupOrThrow(Registries.ENCHANTMENT);
             var storedBook = createEnchantedBook(
-                    enchantments.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.SHARPNESS),
+                    enchantments.getOrThrow(Enchantments.SHARPNESS),
                     1
             );
             storedBook.set(DataComponents.CUSTOM_NAME, Component.literal("Tooltip component book"));
@@ -1094,7 +1106,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertTrue(populatedItems.get(2).is(slotUpgrade.getItem()),
                     "Calibration tooltip should preserve adjustment slot order");
             helper.assertTrue(populatedItems.stream()
-                            .noneMatch(stack -> stack.getItem() instanceof io.redspace.ironsspellbooks.item.Scroll),
+                            .noneMatch(stack -> stack.getItem() instanceof Scroll),
                     "Calibration tooltip should not include Scrollcaster Gauntlet scroll slots");
         });
     }
@@ -1352,7 +1364,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             ItemStack targetStack,
             String rootName,
             ItemStack adjustment,
-            net.minecraft.core.HolderLookup.Provider lookupProvider,
+            HolderLookup.Provider lookupProvider,
             boolean addPreservedSibling
     ) {
         CustomData.update(DataComponents.CUSTOM_DATA, targetStack, root -> {
@@ -1414,7 +1426,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
     private static void putLegacySpellGun(
             ItemStack targetStack,
             ItemStack adjustment,
-            net.minecraft.core.HolderLookup.Provider lookupProvider,
+            HolderLookup.Provider lookupProvider,
             boolean idOnly
     ) {
         CustomData.update(DataComponents.CUSTOM_DATA, targetStack, root -> {
@@ -1722,7 +1734,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertFalse(stack.getItem() instanceof RestrictedSpellImbuableItem,
                     "Mithril Freecast Staff should not expose the restricted imbue API");
             helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
+                    SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
                     "Mithril Freecast Staff should reject Arcane Anvil spell imbuing"
             );
         });
@@ -1818,9 +1830,9 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             ArchivistsGrimoire.setUpgradeCount(grimoire, 1);
             new ArchivistsGrimoire.ScrollInventory(grimoire, helper.getLevel().registryAccess())
                     .setStackInSlot(0, createSpellScroll(SpellRegistry.BOUND_BOW.get()));
-            equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT, grimoire);
+            equipCurio(player, Curios.SPELLBOOK_SLOT, grimoire);
             magicData.getSyncedData().setSpellSelection(new SpellSelection(
-                    io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
+                    Curios.SPELLBOOK_SLOT,
                     0
             ));
             magicData.getPlayerCooldowns().removeCooldown(SpellRegistry.BOUND_BOW.get().getSpellId());

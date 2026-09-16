@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.bloodyarrow;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
@@ -50,7 +51,7 @@ public final class BloodOrbPlacement {
         var end = start.add(0, -depth, 0);
         if (!level.hasChunkAt(BlockPos.containing(start)) || !level.hasChunkAt(BlockPos.containing(end))) return null;
         var hit = level.clip(new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, context));
-        if (hit.getType() != HitResult.Type.BLOCK || hit.getDirection() != net.minecraft.core.Direction.UP) return null;
+        if (hit.getType() != HitResult.Type.BLOCK || hit.getDirection() != Direction.UP) return null;
         var feet = hit.getLocation().add(0, 0.01, 0);
         var space = new AABB(feet.x - 0.3, feet.y, feet.z - 0.3, feet.x + 0.3, feet.y + 1.8, feet.z + 0.3);
         // 人が立てる空間と液体の有無を基準にし、オーブの小さい当たり箱だけで判断しない。

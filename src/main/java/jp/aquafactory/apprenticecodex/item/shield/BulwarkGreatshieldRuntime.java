@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import net.neoforged.neoforge.network.PacketDistributor;
 import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
@@ -52,7 +53,7 @@ public final class BulwarkGreatshieldRuntime {
         USE_STATES.put(player.getUUID(), new UseState(true, null));
 
         var spellData = BulwarkGreatshield.resolveCastSpell(player, stack);
-        if (spellData == null || spellData == io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY
+        if (spellData == null || spellData == SpellData.EMPTY
                 || spellData.getSpell().getCastType() != CastType.CONTINUOUS) {
             return;
         }

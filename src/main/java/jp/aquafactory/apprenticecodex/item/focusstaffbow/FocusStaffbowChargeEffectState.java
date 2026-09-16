@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.focusstaffbow;
 
+import net.minecraft.util.Mth;
+
 public record FocusStaffbowChargeEffectState(
         boolean visible,
         String spellId,
@@ -23,7 +25,7 @@ public record FocusStaffbowChargeEffectState(
                 startedGameTime,
                 Math.max(0L, elapsedTicks),
                 Math.max(1.0D, chargeMultiplier),
-                net.minecraft.util.Mth.clamp(longRampProgress, 0.0F, 1.0F)
+                Mth.clamp(longRampProgress, 0.0F, 1.0F)
         );
     }
 }

@@ -12,7 +12,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -177,7 +179,7 @@ public final class InstantSearchBrazierGameTestScenarios {
         );
         helper.assertTrue(beacon != null, "Instant Search Brazier test should summon a Search Beacon");
 
-        beacon.remove(net.minecraft.world.entity.Entity.RemovalReason.UNLOADED_TO_CHUNK);
+        beacon.remove(Entity.RemovalReason.UNLOADED_TO_CHUNK);
         helper.assertTrue(countBraziersInInventory(player) == 1,
                 "Unloading a Search Beacon should return its brazier to the online owner");
         helper.assertTrue(!SearchBeaconRefundManager.hasPending(player),
@@ -219,7 +221,7 @@ public final class InstantSearchBrazierGameTestScenarios {
         helper.succeed();
     }
 
-    private static int countBraziersInInventory(net.minecraft.server.level.ServerPlayer player) {
+    private static int countBraziersInInventory(ServerPlayer player) {
         return player.getInventory().items.stream()
                 .filter(stack -> stack.is(ItemRegistry.INSTANT_SEARCH_BRAZIER.get()))
                 .mapToInt(ItemStack::getCount)

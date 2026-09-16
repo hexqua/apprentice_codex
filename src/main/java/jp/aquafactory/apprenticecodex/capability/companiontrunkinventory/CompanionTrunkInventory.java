@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,7 +29,7 @@ public class CompanionTrunkInventory {
 
     public void clearItems() {
         for (var i = 0; i < handler.getSlots(); ++i) {
-            handler.setStackInSlot(i, net.minecraft.world.item.ItemStack.EMPTY);
+            handler.setStackInSlot(i, ItemStack.EMPTY);
         }
     }
 

@@ -347,10 +347,10 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
                 result.outputStacks(),
                 result.processedCount()
         ));
-        return processingResult.map(jp.aquafactory.apprenticecodex.utility.ItemStackProcessingResult::processedCount).orElse(0);
+        return processingResult.map(ItemStackProcessingResult::processedCount).orElse(0);
     }
 
-    private Optional<jp.aquafactory.apprenticecodex.utility.ItemStackProcessingResult> tryBuildProcessingResult(
+    private Optional<ItemStackProcessingResult> tryBuildProcessingResult(
             ServerLevel level,
             ItemStack inputStack,
             int maxProcessCount
@@ -376,7 +376,7 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
             return Optional.empty();
         }
 
-        return Optional.of(new jp.aquafactory.apprenticecodex.utility.ItemStackProcessingResult(
+        return Optional.of(new ItemStackProcessingResult(
                 processCount,
                 splitOutputStacks(outputPerInput, outputCount)
         ));

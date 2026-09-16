@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntletFreecastContext;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -23,7 +24,7 @@ public final class MagiAgentSuitCooldownEvent {
     public static void onSpellCooldownAdded(SpellCooldownAddedEvent.Pre event) {
         if (!(event.getEntity() instanceof ServerPlayer player)
                 || !MagiAgentSuitEffects.isTargetSpell(event.getSpell())
-                || !MagiAgentSuitEffects.isWearingSuitPiece(player, net.minecraft.world.item.ArmorItem.Type.BOOTS)
+                || !MagiAgentSuitEffects.isWearingSuitPiece(player, ArmorItem.Type.BOOTS)
                 || event.getEffectiveCooldown() <= 0) {
             return;
         }

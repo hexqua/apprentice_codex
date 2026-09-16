@@ -1,12 +1,16 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import io.redspace.ironsspellbooks.api.events.CounterSpellEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.item.antimanaarrow.AntiManaArrowEntity;
 import jp.aquafactory.apprenticecodex.item.curios.manashieldcharm.ManaShieldCharm;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -17,6 +21,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.damagesource.CombatRules;
+import net.neoforged.neoforge.common.NeoForge;
 
 final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private ManaShieldCharmGameTestScenarios() {
@@ -309,7 +314,7 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
             );
             var armoredEvent = postLivingAttackEventForGameTest(armored, normalSource, 8.0F);
             var unarmoredEvent = postLivingAttackEventForGameTest(unarmored, normalSource, 8.0F);
-            var bypassSource = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(helper.getLevel(), bypassArmor, DamageTypes.UNITE_LUNA);
+            var bypassSource = CombatTools.getDamageSource(helper.getLevel(), bypassArmor, DamageTypes.UNITE_LUNA);
             var bypassEvent = postLivingAttackEventForGameTest(bypassArmor, bypassSource, 2.0F);
             helper.assertTrue(armoredEvent.isCanceled() && unarmoredEvent.isCanceled() && bypassEvent.isCanceled(),
                     "Mana Shield Charm Shell test should cancel all intercepted LivingAttackEvent instances");
@@ -390,7 +395,7 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
 
             var armoredEvent = postLivingAttackEventForGameTest(
                     armored, helper.getLevel().damageSources().lava(), 2.0F);
-            var bypassSource = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(
+            var bypassSource = CombatTools.getDamageSource(
                     helper.getLevel(), bypassArmor, DamageTypes.UNITE_LUNA);
             var bypassEvent = postLivingAttackEventForGameTest(bypassArmor, bypassSource, 2.0F);
 
@@ -478,7 +483,7 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
             voidMana.setMana(100.0F);
             bypassPlayer.invulnerableTime = 0;
             voidPlayer.invulnerableTime = 0;
-            var bypassSource = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(
+            var bypassSource = CombatTools.getDamageSource(
                     helper.getLevel(), bypassPlayer, DamageTypes.UNITE_LUNA);
 
             var bypassEvent = postLivingAttackEventForGameTest(bypassPlayer, bypassSource, 2.0F);
@@ -534,7 +539,7 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
                 helper.assertTrue(magicData != null, "Synchronization zero-cost test could not resolve player mana data");
                 magicData.setMana(10.0F);
                 player.invulnerableTime = 0;
-                var source = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(
+                var source = CombatTools.getDamageSource(
                         helper.getLevel(), player, DamageTypes.UNITE_LUNA);
 
                 var event = postLivingAttackEventForGameTest(player, source, 2.0F);
@@ -566,7 +571,7 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
             state.cooldownActive = true;
             player.invulnerableTime = 0;
             var initialHealth = player.getHealth();
-            var source = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(helper.getLevel(), player, DamageTypes.UNITE_LUNA);
+            var source = CombatTools.getDamageSource(helper.getLevel(), player, DamageTypes.UNITE_LUNA);
 
             var event = postLivingAttackEventForGameTest(player, source, 2.0F);
 
@@ -708,8 +713,8 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
                 helper.assertTrue(magicData != null, "Neutralization zero-recovery test could not resolve player mana data");
                 magicData.setMana(10.0F);
                 player.invulnerableTime = 0;
-                var event = new io.redspace.ironsspellbooks.api.events.CounterSpellEvent(player, player);
-                net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(event);
+                var event = new CounterSpellEvent(player, player);
+                NeoForge.EVENT_BUS.post(event);
 
                 helper.assertTrue(event.isCanceled(),
                         "Neutralization should cancel Counterspell when its configured mana cost is zero");
@@ -807,7 +812,7 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
                 helper.assertTrue(magicData != null, "Anti Mana Arrow test could not resolve player mana data");
                 magicData.setMana(100.0F);
                 player.invulnerableTime = 0;
-                var arrow = new jp.aquafactory.apprenticecodex.item.antimanaarrow.AntiManaArrowEntity(
+                var arrow = new AntiManaArrowEntity(
                         helper.getLevel(), player, new ItemStack(ItemRegistry.ANTI_MANA_ARROW.get()), new ItemStack(Items.BOW));
                 var event = postLivingAttackEventForGameTest(
                         player, helper.getLevel().damageSources().arrow(arrow, player), 2.0F);
@@ -815,7 +820,7 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
                 helper.assertTrue(event.isCanceled(), "Neutralization should cancel Anti Mana Arrow damage");
                 helper.assertTrue(Math.abs(magicData.getMana() - 50.0F) < 1.0e-4F,
                         "Neutralization should spend the configured fixed Anti Mana Arrow cost");
-                helper.assertFalse(player.hasEffect(jp.aquafactory.apprenticecodex.registry.EffectRegistry.INERT_MANA_SHIELD),
+                helper.assertFalse(player.hasEffect(EffectRegistry.INERT_MANA_SHIELD),
                         "Successful Anti Mana resistance should not apply Inert Mana Shield");
                 helper.succeed();
             }
@@ -830,7 +835,7 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
             helper.assertTrue(magicData != null, "Anti Mana Arrow inert test could not resolve player mana data");
             magicData.setMana(100.0F);
             player.invulnerableTime = 0;
-            var arrow = new jp.aquafactory.apprenticecodex.item.antimanaarrow.AntiManaArrowEntity(
+            var arrow = new AntiManaArrowEntity(
                     helper.getLevel(), player, new ItemStack(ItemRegistry.ANTI_MANA_ARROW.get()), new ItemStack(Items.BOW));
             var event = postLivingAttackEventForGameTest(
                     player, helper.getLevel().damageSources().arrow(arrow, player), 2.0F);
@@ -838,7 +843,7 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
             helper.assertTrue(event.isCanceled(), "The current Anti Mana Arrow hit should still use the active barrier");
             helper.assertTrue(Math.abs(magicData.getMana() - 50.0F) < 1.0e-4F,
                     "The current Anti Mana Arrow hit should keep normal barrier mana consumption");
-            var inert = player.getEffect(jp.aquafactory.apprenticecodex.registry.EffectRegistry.INERT_MANA_SHIELD);
+            var inert = player.getEffect(EffectRegistry.INERT_MANA_SHIELD);
             helper.assertTrue(inert != null && inert.getDuration() == 600,
                     "Anti Mana Arrow should apply Inert Mana Shield for 30 seconds");
             helper.assertTrue(inert != null && inert.getCures().isEmpty(),
@@ -861,15 +866,15 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
                 helper.assertTrue(magicData != null, "Counterspell resistance test could not resolve player mana data");
 
                 magicData.setMana(99.0F);
-                var insufficient = new io.redspace.ironsspellbooks.api.events.CounterSpellEvent(player, player);
-                net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(insufficient);
+                var insufficient = new CounterSpellEvent(player, player);
+                NeoForge.EVENT_BUS.post(insufficient);
                 helper.assertFalse(insufficient.isCanceled(), "Counterspell resistance should fail below its full cost");
                 helper.assertTrue(Math.abs(magicData.getMana() - 99.0F) < 1.0e-4F,
                         "Failed Counterspell resistance should not spend mana");
 
                 magicData.setMana(100.0F);
-                var sufficient = new io.redspace.ironsspellbooks.api.events.CounterSpellEvent(player, player);
-                net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(sufficient);
+                var sufficient = new CounterSpellEvent(player, player);
+                NeoForge.EVENT_BUS.post(sufficient);
                 helper.assertTrue(sufficient.isCanceled(), "Counterspell resistance should activate at its full cost");
                 helper.assertTrue(Math.abs(magicData.getMana()) < 1.0e-4F,
                         "Counterspell resistance should spend exactly its configured cost");

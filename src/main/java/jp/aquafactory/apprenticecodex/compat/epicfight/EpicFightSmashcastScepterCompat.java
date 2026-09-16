@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.compat.epicfight;
 
+import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterAttackEvent;
@@ -204,7 +205,7 @@ public final class EpicFightSmashcastScepterCompat {
                 player.getX(),
                 player.getY(),
                 player.getZ(),
-                io.redspace.ironsspellbooks.registries.SoundRegistry.GUST_CAST.get(),
+                SoundRegistry.GUST_CAST.get(),
                 SoundSource.PLAYERS,
                 0.8F,
                 1.05F

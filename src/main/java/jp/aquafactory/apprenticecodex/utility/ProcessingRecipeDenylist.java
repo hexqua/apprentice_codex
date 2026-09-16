@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.utility;
 
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.AbstractCookingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
@@ -22,13 +23,13 @@ public final class ProcessingRecipeDenylist {
 
     private static boolean isAllowed(ResourceLocation recipeId, Recipe<?> recipe) {
         var recipeType = recipe.getType();
-        if (recipeType == jp.aquafactory.apprenticecodex.registry.RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get()) {
+        if (recipeType == RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get()) {
             return !ApprenticeCodexServerConfig.isSpellcasterWorkbenchRecipeDenied(recipeId);
         }
-        if (recipeType == jp.aquafactory.apprenticecodex.registry.RecipeRegistry.ESSENCE_SMOKER_RECIPE_TYPE.get()) {
+        if (recipeType == RecipeRegistry.ESSENCE_SMOKER_RECIPE_TYPE.get()) {
             return !ApprenticeCodexServerConfig.isEssenceSmokerRecipeDenied(recipeId);
         }
-        if (recipeType == jp.aquafactory.apprenticecodex.registry.RecipeRegistry.GRIND_RUNNER_RECIPE_TYPE.get()) {
+        if (recipeType == RecipeRegistry.GRIND_RUNNER_RECIPE_TYPE.get()) {
             return !ApprenticeCodexServerConfig.isGrindRunnerRecipeDenied(recipeId);
         }
         return true;

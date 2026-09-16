@@ -1,18 +1,21 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
 import io.redspace.ironsspellbooks.player.ClientMagicData;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowClientCastState;
 import jp.aquafactory.apprenticecodex.item.shield.ShieldCastUseContext;
 import net.minecraft.client.player.LocalPlayer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = ClientMagicData.class, remap = false)
 public abstract class ClientMagicDataMixin {
-    @org.spongepowered.asm.mixin.injection.Inject(method = "handleCastDuration", at = @At("HEAD"), cancellable = true)
-    private static void apprenticecodex$holdElementalBowDuration(org.spongepowered.asm.mixin.injection.callback.CallbackInfo ci) {
+    @Inject(method = "handleCastDuration", at = @At("HEAD"), cancellable = true)
+    private static void apprenticecodex$holdElementalBowDuration(CallbackInfo ci) {
         // 満了後も対象表示を残し、終了は server の発動・キャンセル通知に委ねる。
-        if (jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowClientCastState.isLocalActive()) ci.cancel();
+        if (ElementalBowClientCastState.isLocalActive()) ci.cancel();
     }
 
     @Redirect(

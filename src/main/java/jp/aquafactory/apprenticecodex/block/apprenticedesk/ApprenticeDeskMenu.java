@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.util.ModTags;
@@ -268,7 +269,7 @@ public class ApprenticeDeskMenu extends AbstractContainerMenu {
                 .thenComparing(spell -> spell.getDisplayName(null).getString()));
     }
 
-    private Set<io.redspace.ironsspellbooks.api.spells.SchoolType> getFocusSchools() {
+    private Set<SchoolType> getFocusSchools() {
         var focusStack = focusSlot.getItem();
         if (focusStack.is(ModTags.SCHOOL_FOCUS)) {
             return new HashSet<>(SchoolRegistry.getSchoolsFromFocus(focusStack));

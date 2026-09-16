@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.wizardlamp;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
@@ -59,7 +60,7 @@ public class WizardlampLanternBlock extends Block implements EntityBlock, Simple
     }
 
     @Override
-    public @NotNull BlockState updateShape(@NotNull BlockState state, @NotNull net.minecraft.core.Direction direction,
+    public @NotNull BlockState updateShape(@NotNull BlockState state, @NotNull Direction direction,
                                            @NotNull BlockState neighborState, @NotNull LevelAccessor level,
                                            @NotNull BlockPos pos, @NotNull BlockPos neighborPos) {
         if (state.getValue(WATERLOGGED)) {

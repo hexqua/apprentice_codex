@@ -20,6 +20,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 final class CraftsmansDelightGracedRainGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private static final int STARTING_AGE = -1000;
@@ -90,7 +91,7 @@ final class CraftsmansDelightGracedRainGameTestScenarios extends ApprenticeCodex
             var cow = spawnAgeableTarget(helper, EntityType.COW, 0);
             cow.setHealth(cow.getMaxHealth() - 4.0F);
             var healEvent = new AtomicReference<SpellHealEvent>();
-            java.util.function.Consumer<SpellHealEvent> healListener = event -> {
+            Consumer<SpellHealEvent> healListener = event -> {
                 if (event.getEntity() == owner && event.getTargetEntity() == cow) {
                     healEvent.set(event);
                 }

@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.spellgun;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
@@ -312,7 +313,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     }
 
     public final boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel) {
-        if (spell == null || spell == io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()) {
+        if (spell == null || spell == SpellRegistry.none()) {
             return false;
         }
         if (SpellGunSpellListManager.isDenylisted(spell)) {

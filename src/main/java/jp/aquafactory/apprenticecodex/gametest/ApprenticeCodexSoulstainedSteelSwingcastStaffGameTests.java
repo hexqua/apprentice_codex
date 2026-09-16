@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
 import io.netty.buffer.Unpooled;
@@ -16,10 +17,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -88,7 +91,7 @@ public final class ApprenticeCodexSoulstainedSteelSwingcastStaffGameTests {
             helper.assertTrue(Math.abs(4.0D + attackSpeed - 1.6D) < 1.0e-6D,
                     "Soulstained Steel Swingcast Staff displayed attack speed should be 1.6");
 
-            var tooltip = new ArrayList<net.minecraft.network.chat.Component>();
+            var tooltip = new ArrayList<Component>();
             item.appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltip, TooltipFlag.Default.NORMAL);
             helper.assertTrue(tooltip.size() == 3,
                     "Soulstained Steel Swingcast Staff should append one ability line after the common weapon help");
@@ -177,7 +180,7 @@ public final class ApprenticeCodexSoulstainedSteelSwingcastStaffGameTests {
         helper.succeedIf(() -> {
             var staff = new ItemStack(ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get());
             var amplifier = new ItemStack(ItemRegistry.SOULSTAINED_STEEL_SPELL_AMPLIFIER.get());
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var spell = SpellRegistry.MAGIC_MISSILE_SPELL.get();
             ISpellContainer.createImbuedContainer(spell, 1, amplifier);
 
             var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
@@ -210,7 +213,7 @@ public final class ApprenticeCodexSoulstainedSteelSwingcastStaffGameTests {
             magicData.getPlayerCooldowns().removeCooldown(spell.getSpellId());
             player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.SHIELD));
             var deferredResult = staff.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(deferredResult.getResult() == net.minecraft.world.InteractionResult.PASS,
+            helper.assertTrue(deferredResult.getResult() == InteractionResult.PASS,
                     "Soulstained Steel Swingcast Staff should defer to a priority offhand item but got "
                             + deferredResult.getResult());
             helper.assertFalse(magicData.isCasting(),

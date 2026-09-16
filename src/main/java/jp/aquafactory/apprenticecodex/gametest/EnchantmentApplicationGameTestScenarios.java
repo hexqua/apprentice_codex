@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
@@ -16,6 +17,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -121,16 +124,16 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
     }
 
     private static void assertEnchantableTagIds(GameTestHelper helper) {
-        for (var entry : java.util.List.of(
-                java.util.Map.entry(Enchantments.ALACRITY_ENCHANTABLE, Enchantments.ALACRITY),
-                java.util.Map.entry(Enchantments.REFLUX_ENCHANTABLE, Enchantments.REFLUX),
-                java.util.Map.entry(Enchantments.RESERVOIR_ENCHANTABLE, Enchantments.RESERVOIR),
-                java.util.Map.entry(Enchantments.SURGE_ENCHANTABLE, Enchantments.SURGE),
-                java.util.Map.entry(Enchantments.ATTUNEMENT_ENCHANTABLE, Enchantments.ATTUNEMENT),
-                java.util.Map.entry(Enchantments.TENSE_ENCHANTABLE, Enchantments.TENSE),
-                java.util.Map.entry(Enchantments.TRANSCENDENCE_ENCHANTABLE, Enchantments.TRANSCENDENCE),
-                java.util.Map.entry(Enchantments.WISDOM_ENCHANTABLE, Enchantments.WISDOM),
-                java.util.Map.entry(Enchantments.PLUNDER_ENCHANTABLE, Enchantments.PLUNDER)
+        for (var entry : List.of(
+                Map.entry(Enchantments.ALACRITY_ENCHANTABLE, Enchantments.ALACRITY),
+                Map.entry(Enchantments.REFLUX_ENCHANTABLE, Enchantments.REFLUX),
+                Map.entry(Enchantments.RESERVOIR_ENCHANTABLE, Enchantments.RESERVOIR),
+                Map.entry(Enchantments.SURGE_ENCHANTABLE, Enchantments.SURGE),
+                Map.entry(Enchantments.ATTUNEMENT_ENCHANTABLE, Enchantments.ATTUNEMENT),
+                Map.entry(Enchantments.TENSE_ENCHANTABLE, Enchantments.TENSE),
+                Map.entry(Enchantments.TRANSCENDENCE_ENCHANTABLE, Enchantments.TRANSCENDENCE),
+                Map.entry(Enchantments.WISDOM_ENCHANTABLE, Enchantments.WISDOM),
+                Map.entry(Enchantments.PLUNDER_ENCHANTABLE, Enchantments.PLUNDER)
         )) {
             assertEnchantableTagId(helper, entry.getKey(), entry.getValue());
         }
@@ -211,11 +214,11 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
     }
 
     private static void assertStaffEnchantmentSurfaces(GameTestHelper helper) {
-        for (var entry : java.util.List.of(
-                java.util.Map.entry("Pastel Staff", new ItemStack(ItemRegistry.PASTEL_STAFF.get())),
-                java.util.Map.entry("Multicast Echo Staff", new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get())),
-                java.util.Map.entry("Zenith Staff", new ItemStack(ItemRegistry.ZENITH_STAFF.get())),
-                java.util.Map.entry("Circuit Heat Staff", new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get()))
+        for (var entry : List.of(
+                Map.entry("Pastel Staff", new ItemStack(ItemRegistry.PASTEL_STAFF.get())),
+                Map.entry("Multicast Echo Staff", new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get())),
+                Map.entry("Zenith Staff", new ItemStack(ItemRegistry.ZENITH_STAFF.get())),
+                Map.entry("Circuit Heat Staff", new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get()))
         )) {
             var stack = entry.getValue();
             assertVanillaEnchantment(helper, stack, "fortune", false, entry.getKey());
@@ -300,7 +303,7 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
 
     private static void assertDirectAttributePolicy(
             GameTestHelper helper,
-            net.minecraft.world.item.Item item,
+            Item item,
             Set<AttributeEnchantmentType> expected
     ) {
         helper.assertTrue(item instanceof AttributeEnchantmentPolicy,
@@ -349,7 +352,7 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
     private static void assertPolicyDrivenApplicationSurface(
             GameTestHelper helper,
             ItemStack stack,
-            net.minecraft.core.Holder<Enchantment> enchantment,
+            Holder<Enchantment> enchantment,
             boolean policyAllowsDirectApplication
     ) {
         var enchantmentKey = enchantment.unwrapKey().orElseThrow();
@@ -379,7 +382,7 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
     private static void assertApplicationSurface(
             GameTestHelper helper,
             ItemStack stack,
-            net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment> enchantment
+            Holder<Enchantment> enchantment
     ) {
         var item = stack.getItem();
         var enchantmentId = enchantment.unwrapKey().orElseThrow().location();

@@ -5,6 +5,8 @@ import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.CollisionGetter;
 import net.minecraft.world.level.Level;
@@ -57,7 +59,7 @@ public final class MistFormEvents {
             return;
         }
 
-        if (!(event.getSource().getEntity() instanceof net.minecraft.world.entity.LivingEntity attacker)) {
+        if (!(event.getSource().getEntity() instanceof LivingEntity attacker)) {
             return;
         }
         if (attacker == event.getEntity() || !attacker.hasEffect(EffectRegistry.MIST_FORM)) {
@@ -142,12 +144,12 @@ public final class MistFormEvents {
     private static boolean isTouchingFluid(Player player) {
         var level = player.level();
         var box = player.getBoundingBox().deflate(1.0E-4D);
-        var minX = net.minecraft.util.Mth.floor(box.minX);
-        var maxX = net.minecraft.util.Mth.floor(box.maxX);
-        var minY = net.minecraft.util.Mth.floor(box.minY);
-        var maxY = net.minecraft.util.Mth.floor(box.maxY);
-        var minZ = net.minecraft.util.Mth.floor(box.minZ);
-        var maxZ = net.minecraft.util.Mth.floor(box.maxZ);
+        var minX = Mth.floor(box.minX);
+        var maxX = Mth.floor(box.maxX);
+        var minY = Mth.floor(box.minY);
+        var maxY = Mth.floor(box.maxY);
+        var minZ = Mth.floor(box.minZ);
+        var maxZ = Mth.floor(box.maxZ);
 
         var mutablePos = new BlockPos.MutableBlockPos();
         for (var y = minY; y <= maxY; ++y) {
@@ -173,12 +175,12 @@ public final class MistFormEvents {
     @Nullable
     private static FluidSupport findFluidSupport(Level level, Player player) {
         var box = player.getBoundingBox();
-        var minX = net.minecraft.util.Mth.floor(box.minX + 0.05D);
-        var maxX = net.minecraft.util.Mth.floor(box.maxX - 0.05D);
-        var minZ = net.minecraft.util.Mth.floor(box.minZ + 0.05D);
-        var maxZ = net.minecraft.util.Mth.floor(box.maxZ - 0.05D);
-        var minY = net.minecraft.util.Mth.floor(box.minY - FLUID_SCAN_BELOW);
-        var maxY = net.minecraft.util.Mth.floor(box.minY + FLUID_SCAN_ABOVE);
+        var minX = Mth.floor(box.minX + 0.05D);
+        var maxX = Mth.floor(box.maxX - 0.05D);
+        var minZ = Mth.floor(box.minZ + 0.05D);
+        var maxZ = Mth.floor(box.maxZ - 0.05D);
+        var minY = Mth.floor(box.minY - FLUID_SCAN_BELOW);
+        var maxY = Mth.floor(box.minY + FLUID_SCAN_ABOVE);
 
         FluidSupport best = null;
         var mutablePos = new BlockPos.MutableBlockPos();

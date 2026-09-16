@@ -20,6 +20,7 @@ import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.CombatRules;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -519,9 +520,9 @@ final class ManaShieldCharmLogic {
             return damage;
         }
 
-        if (player.hasEffect(net.minecraft.world.effect.MobEffects.DAMAGE_RESISTANCE)
+        if (player.hasEffect(MobEffects.DAMAGE_RESISTANCE)
                 && !source.is(DamageTypeTags.BYPASSES_RESISTANCE)) {
-            var resistanceInstance = player.getEffect(net.minecraft.world.effect.MobEffects.DAMAGE_RESISTANCE);
+            var resistanceInstance = player.getEffect(MobEffects.DAMAGE_RESISTANCE);
             if (resistanceInstance == null) {
                 return damage;
             }

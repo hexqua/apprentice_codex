@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
@@ -30,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public final class SchoolAffinityRegistry {
     private static final List<ResourceLocation> BUILTIN_IRONS_SCHOOL_IDS = List.of(
@@ -144,7 +147,7 @@ public final class SchoolAffinityRegistry {
             }
             bindings.put(catalystId, entry.getValue().slotIndex());
         }
-        return java.util.Collections.unmodifiableMap(bindings);
+        return Collections.unmodifiableMap(bindings);
     }
 
     public static synchronized void invalidateBindings() {
@@ -194,7 +197,7 @@ public final class SchoolAffinityRegistry {
         for (var schoolType : ASSIGNED_SCHOOLS) {
             assignments.add(schoolType != null ? schoolType.getId() : null);
         }
-        return java.util.Collections.unmodifiableList(assignments);
+        return Collections.unmodifiableList(assignments);
     }
 
     public static synchronized void applySyncedAssignments(
@@ -207,7 +210,7 @@ public final class SchoolAffinityRegistry {
             SYNCED_SCHOOL_IDS[slotIndex] = schoolIdsBySlot.get(slotIndex);
         }
 
-        syncedCatalystSlotsByItemId = java.util.Collections.unmodifiableMap(new LinkedHashMap<>(catalystSlotsByItemId));
+        syncedCatalystSlotsByItemId = Collections.unmodifiableMap(new LinkedHashMap<>(catalystSlotsByItemId));
         hasSyncedAssignments = true;
         invalidateBindings();
     }
@@ -265,7 +268,7 @@ public final class SchoolAffinityRegistry {
             bindSchoolToSlot(slotIndex, schoolType, supportedDefinitionsByCatalyst);
         }
 
-        var extraSchools = java.util.stream.StreamSupport.stream(SchoolRegistry.REGISTRY.spliterator(), false)
+        var extraSchools = StreamSupport.stream(SchoolRegistry.REGISTRY.spliterator(), false)
                 .filter(school -> !BUILTIN_IRONS_SCHOOL_IDS.contains(school.getId()))
                 .filter(school -> MagicTools.resolveSchoolPowerAttribute(school) != null)
                 .sorted(Comparator.comparing(SchoolAffinityRegistry::getExtraSchoolSortKey))
@@ -275,7 +278,7 @@ public final class SchoolAffinityRegistry {
         if (selectedExtraSchools.size() < extraSchools.size() && !warnedExtraSchoolCount) {
             var selectedSchoolIds = selectedExtraSchools.stream()
                     .map(SchoolType::getId)
-                    .collect(java.util.stream.Collectors.toSet());
+                    .collect(Collectors.toSet());
             ApprenticeCodex.LOGGER.warn(
                     "School Affinity has {} extra schools loaded, but only {} extra slots are available. Some schools are unsupported: {}",
                     extraSchools.size(),
@@ -506,7 +509,7 @@ public final class SchoolAffinityRegistry {
     }
 
     private static List<Item> resolveFocusItems(SchoolType schoolType) {
-        return java.util.stream.StreamSupport.stream(BuiltInRegistries.ITEM.spliterator(), false)
+        return StreamSupport.stream(BuiltInRegistries.ITEM.spliterator(), false)
                 .filter(item -> new ItemStack(item).is(schoolType.getFocus()))
                 .sorted(Comparator.comparing(SchoolAffinityRegistry::getItemSortKey))
                 .toList();

@@ -10,6 +10,8 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.Demi
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Abilities;
 import org.jetbrains.annotations.Nullable;
 
@@ -80,7 +82,7 @@ public final class DemicreatorWingsManager {
         }
 
         if (state.active && player.isAlive()) {
-            player.playNotifySound(net.minecraft.sounds.SoundEvents.ITEM_BREAK, net.minecraft.sounds.SoundSource.PLAYERS, 0.8f, 1.0f);
+            player.playNotifySound(SoundEvents.ITEM_BREAK, SoundSource.PLAYERS, 0.8f, 1.0f);
         }
 
         spellData.edit(CodexSpellStateTypeRegister.DEMICREATOR_WINGS_STATE, DemicreatorWingsState::reset);

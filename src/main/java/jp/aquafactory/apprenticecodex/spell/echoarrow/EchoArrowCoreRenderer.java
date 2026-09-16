@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.entity.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
@@ -20,6 +21,7 @@ import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.*;
 
@@ -102,7 +104,7 @@ public final class EchoArrowCoreRenderer extends EntityRenderer<EchoArrowCoreEnt
         if (start < 0 || time < start || direction.lengthSqr() < 1e-8) return;
         long last = Math.min((count + 2L) / 3 - 1, (long) Math.floor((time - start) / 3));
         pose.pushPose();
-        pose.mulPose(new Quaternionf().rotationTo(new org.joml.Vector3f(0, 0, 1), direction.toVector3f()));
+        pose.mulPose(new Quaternionf().rotationTo(new Vector3f(0, 0, 1), direction.toVector3f()));
         var consumer = buffers.getBuffer(RenderType.lightning());
         for (long shot = Math.max(0, last - 2); shot <= last; shot++) {
             long born = start + shot * 3;
@@ -179,6 +181,6 @@ public final class EchoArrowCoreRenderer extends EntityRenderer<EchoArrowCoreEnt
 
     @Override
     public @NotNull ResourceLocation getTextureLocation(@NotNull EchoArrowCoreEntity entity) {
-        return net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS;
+        return InventoryMenu.BLOCK_ATLAS;
     }
 }

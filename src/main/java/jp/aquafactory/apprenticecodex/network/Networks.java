@@ -30,21 +30,21 @@ public final class Networks {
                 ClientInterruptCartridgeReloadPacket.TYPE,
                 ClientInterruptCartridgeReloadPacket.STREAM_CODEC,
                 ClientInterruptCartridgeReloadPacket::handle);
-        registrar.playToClient(jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket.TYPE,
-                jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket.STREAM_CODEC,
-                jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket::handle);
-        registrar.playToServer(jp.aquafactory.apprenticecodex.network.packet.ClientElementalBowCancelPacket.TYPE,
-                jp.aquafactory.apprenticecodex.network.packet.ClientElementalBowCancelPacket.STREAM_CODEC,
-                jp.aquafactory.apprenticecodex.network.packet.ClientElementalBowCancelPacket::handle);
-        registrar.playToClient(jp.aquafactory.apprenticecodex.network.packet.SupportedShieldPassagePacket.TYPE,
-                jp.aquafactory.apprenticecodex.network.packet.SupportedShieldPassagePacket.STREAM_CODEC,
-                jp.aquafactory.apprenticecodex.network.packet.SupportedShieldPassagePacket::handle);
-        registrar.playToServer(jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePacket.TYPE,
-                jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePacket.STREAM_CODEC,
-                jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePacket::handle);
-        registrar.playToClient(jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket.TYPE,
-                jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket.STREAM_CODEC,
-                jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket::handle);
+        registrar.playToClient(SyncElementalBowCastPacket.TYPE,
+                SyncElementalBowCastPacket.STREAM_CODEC,
+                SyncElementalBowCastPacket::handle);
+        registrar.playToServer(ClientElementalBowCancelPacket.TYPE,
+                ClientElementalBowCancelPacket.STREAM_CODEC,
+                ClientElementalBowCancelPacket::handle);
+        registrar.playToClient(SupportedShieldPassagePacket.TYPE,
+                SupportedShieldPassagePacket.STREAM_CODEC,
+                SupportedShieldPassagePacket::handle);
+        registrar.playToServer(ClientQuickcastCartridgePacket.TYPE,
+                ClientQuickcastCartridgePacket.STREAM_CODEC,
+                ClientQuickcastCartridgePacket::handle);
+        registrar.playToClient(ScytheRecallEffectPacket.TYPE,
+                ScytheRecallEffectPacket.STREAM_CODEC,
+                ScytheRecallEffectPacket::handle);
         registrar.playToServer(
                 ClientBlockTargetCastPacket.TYPE,
                 ClientBlockTargetCastPacket.STREAM_CODEC,
@@ -481,9 +481,9 @@ public final class Networks {
                 GunSpellTracerPacket::handle
         );
         registrar.playToClient(
-                jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket.TYPE,
-                jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket.STREAM_CODEC,
-                jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket::handle
+                LightningArrowImpactPacket.TYPE,
+                LightningArrowImpactPacket.STREAM_CODEC,
+                LightningArrowImpactPacket::handle
         );
     }
 

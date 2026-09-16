@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
+import net.minecraft.world.item.ItemStack;
 
 public final class BetterCombatOffhandSpellSelectionRescueCompat {
     private BetterCombatOffhandSpellSelectionRescueCompat() {
@@ -62,7 +63,7 @@ public final class BetterCombatOffhandSpellSelectionRescueCompat {
         event.addSelectionOption(spellData, SpellSelectionManager.OFFHAND, 0);
     }
 
-    private static SpellData resolveFixedOffhandSpell(net.minecraft.world.item.ItemStack offhandStack) {
+    private static SpellData resolveFixedOffhandSpell(ItemStack offhandStack) {
         if (!ISpellContainer.isSpellContainer(offhandStack)) {
             return SpellData.EMPTY;
         }

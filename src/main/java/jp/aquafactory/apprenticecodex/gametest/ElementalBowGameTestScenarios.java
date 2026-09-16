@@ -2,15 +2,20 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.MagicHelper;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.item.elementalbow.*;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
+import jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -20,9 +25,11 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.GameType;
@@ -30,6 +37,8 @@ import net.minecraft.world.level.GameType;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.StreamSupport;
 
 import static jp.aquafactory.apprenticecodex.gametest.BowGameTestSupport.*;
 final class ElementalBowGameTestScenarios {
@@ -56,8 +65,8 @@ final class ElementalBowGameTestScenarios {
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.enchant(infinity, 1);
             prepareElementalBowScrolls(stack);
-            var healingArrow = PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, net.minecraft.world.item.alchemy.Potions.HEALING.value());
-            var regenerationArrow = PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, net.minecraft.world.item.alchemy.Potions.REGENERATION.value());
+            var healingArrow = PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, Potions.HEALING.value());
+            var regenerationArrow = PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, Potions.REGENERATION.value());
             var healingId = BuiltInRegistries.POTION.getKey(PotionContentsHelper.getPotion(healingArrow));
             var regenerationId = BuiltInRegistries.POTION.getKey(PotionContentsHelper.getPotion(regenerationArrow));
             helper.assertTrue(healingId != null && regenerationId != null,
@@ -69,7 +78,7 @@ final class ElementalBowGameTestScenarios {
             if (regenerationId != null) {
                 availablePotionIds.add(regenerationId);
             }
-            var expectedPotionOrder = java.util.stream.StreamSupport.stream(BuiltInRegistries.POTION.spliterator(), false)
+            var expectedPotionOrder = StreamSupport.stream(BuiltInRegistries.POTION.spliterator(), false)
                     .map(BuiltInRegistries.POTION::getKey)
                     .filter(id -> id != null && availablePotionIds.contains(id))
                     .toList();
@@ -112,7 +121,7 @@ final class ElementalBowGameTestScenarios {
             if (fireView != null) {
                 helper.assertTrue(fireView.iconKind() == ElementalBow.SelectionIconKind.SPELL,
                         "Elemental Bow magic selection should render as a spell icon");
-                helper.assertTrue(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get().getSpellIconResource().equals(fireView.spellIcon()),
+                helper.assertTrue(SpellRegistry.FIRE_ARROW_SPELL.get().getSpellIconResource().equals(fireView.spellIcon()),
                         "Elemental Bow Fire magic selection should use the Fire Arrow spell icon");
             }
         });
@@ -147,7 +156,7 @@ final class ElementalBowGameTestScenarios {
                             "Elemental Bow spectral selection should render the spectral arrow icon");
                 }
 
-                var healingArrow = PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, net.minecraft.world.item.alchemy.Potions.HEALING.value());
+                var healingArrow = PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, Potions.HEALING.value());
                 var healingId = BuiltInRegistries.POTION.getKey(PotionContentsHelper.getPotion(healingArrow));
                 helper.assertTrue(healingId != null,
                         "Elemental Bow overlay test could not resolve the healing arrow potion id");
@@ -159,7 +168,7 @@ final class ElementalBowGameTestScenarios {
                     if (tippedOverlay != null) {
                         helper.assertTrue(tippedOverlay.iconStack().is(Items.TIPPED_ARROW),
                                 "Elemental Bow tipped arrow selection should render a tipped arrow icon");
-                        helper.assertTrue(PotionContentsHelper.getPotion(tippedOverlay.iconStack()) == net.minecraft.world.item.alchemy.Potions.HEALING.value(),
+                        helper.assertTrue(PotionContentsHelper.getPotion(tippedOverlay.iconStack()) == Potions.HEALING.value(),
                                 "Elemental Bow tipped arrow overlay should keep the selected potion");
                     }
                 }
@@ -270,7 +279,7 @@ final class ElementalBowGameTestScenarios {
             magicData.setMana(0.0F);
 
             var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+            helper.assertTrue(result.getResult() == InteractionResult.FAIL,
                     "Elemental Bow should fail to start drawing when mana is insufficient: " + result.getResult());
             helper.assertFalse(player.isUsingItem(), "Elemental Bow should not enter use state without enough mana");
         });
@@ -331,8 +340,8 @@ final class ElementalBowGameTestScenarios {
             ElementalBowScrollStorage.migrate(stack);
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
 
-            var selectionManager = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player);
-            var mainhandSelections = selectionManager.getSpellsForSlot(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND);
+            var selectionManager = new SpellSelectionManager(player);
+            var mainhandSelections = selectionManager.getSpellsForSlot(SpellSelectionManager.MAINHAND);
             helper.assertTrue(mainhandSelections.isEmpty(),
                     "Elemental Bow should not add its derived spell to the mainhand spell wheel: " + mainhandSelections);
             helper.assertTrue(selectionManager.getSelection() == null,
@@ -344,10 +353,10 @@ final class ElementalBowGameTestScenarios {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             setElementalBowMode(stack, SchoolRegistry.FIRE_RESOURCE.toString());
-            var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
+            var scrollStack = createSpellScroll(SpellRegistry.MAGIC_MISSILE_SPELL.get());
 
             helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
+                    SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
                     "Elemental Bow should reject Arcane Anvil spell imbuing regardless of scroll spell"
             );
         });
@@ -356,7 +365,7 @@ final class ElementalBowGameTestScenarios {
     static void elementalBowManaErrorUsesIronsSpellbooksTranslationKey(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var message = ElementalBow.createInsufficientManaMessage(
-                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                    SpellRegistry.FIRE_ARROW_SPELL.get(),
                     null
             );
             assertTranslatableKey(
@@ -483,7 +492,7 @@ final class ElementalBowGameTestScenarios {
             player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW));
 
             var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+            helper.assertTrue(result.getResult() == InteractionResult.FAIL,
                     "Elemental Bow arrow-only mode should fail when only special arrows are available: " + result.getResult());
             helper.assertFalse(player.isUsingItem(), "Elemental Bow arrow-only mode should not enter use state without normal arrows");
             helper.assertTrue(player.getInventory().getItem(1).getCount() == 1,
@@ -519,7 +528,7 @@ final class ElementalBowGameTestScenarios {
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
 
             var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+            helper.assertTrue(result.getResult() == InteractionResult.FAIL,
                     "Elemental Bow magic mode should fail to start without ammo even with Infinity: " + result.getResult());
             helper.assertFalse(player.isUsingItem(), "Elemental Bow magic mode should not enter use state without ammo");
         });
@@ -698,11 +707,11 @@ final class ElementalBowGameTestScenarios {
             try (var ignored = useElementalBowSpellConfig(helper)) {
                 var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_cooldown_reduction");
                 var spell = SpellRegistry.FIRE_ARROW_SPELL.get();
-                var attribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION);
+                var attribute = player.getAttribute(AttributeRegistry.COOLDOWN_REDUCTION);
                 attribute.addPermanentModifier(new AttributeModifier(ResourceLocation.fromNamespaceAndPath("apprenticecodex", "bow_cdr"),
                         0.35D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
                 int actual = ElementalBowOverheatManager.resolveCooldownTicks(spell, player);
-                int expected = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, CastSource.SPELLBOOK);
+                int expected = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, CastSource.SPELLBOOK);
                 helper.assertTrue(actual == expected && actual < spell.getSpellCooldown(), "Cooling must keep player CDR and exclude weapon multiplier");
             }
         });
@@ -723,7 +732,7 @@ final class ElementalBowGameTestScenarios {
                 stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - 20);
                 player.stopUsingItem();
                 helper.assertFalse(magic.getPlayerCooldowns().isOnCooldown(spell), "Bow must not register a normal cooldown");
-                io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, CastSource.SPELLBOOK);
+                MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, CastSource.SPELLBOOK);
                 var before = magic.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId()).getCooldownRemaining();
                 helper.assertTrue(before > 0 && magic.getPlayerCooldowns().isOnCooldown(spell), "The independent normal cooldown must be active");
                 stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
@@ -752,7 +761,7 @@ final class ElementalBowGameTestScenarios {
             helper.assertTrue(fireProfile != null, "Elemental Bow overheat mana test should resolve the active Fire profile");
             var fireArrow = fireProfile != null
                     ? fireProfile.spell()
-                    : io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
+                    : SpellRegistry.FIRE_ARROW_SPELL.get();
             var baseMana = fireProfile != null ? fireProfile.spell().getManaCost(fireProfile.spellLevel()) : fireArrow.getManaCost(1);
 
             magicData.setMana(300.0F);
@@ -803,7 +812,7 @@ final class ElementalBowGameTestScenarios {
     }
     static void elementalBowOverheatRefreshesDurationAfterRepeatedCast(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_heat_refresh");
-        var first = new java.util.concurrent.atomic.AtomicLong();
+        var first = new AtomicLong();
         helper.runAtTickTime(1, () -> {
             ElementalBowOverheatManager.applyOverheatAfterCast(player, 100);
             first.set(ElementalBowOverheatManager.getState(player).expireGameTime());

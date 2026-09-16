@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.spellchargedgreatsword;
 
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -13,6 +14,7 @@ import jp.aquafactory.apprenticecodex.utility.PersistentGameTimeSanitizer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -31,6 +33,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tier;
@@ -41,6 +44,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.AABB;
@@ -94,12 +98,12 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcharged_greatsword_sweeping_edge_bonus");
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK =
-            new ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD);
+            new ItemStack(Items.DIAMOND_SWORD);
     private static final String MALUM_NAMESPACE = "malum";
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
     private static final TagKey<Item> MALUM_SOUL_SHATTER_CAPABLE_WEAPON = TagKey.create(
-            net.minecraft.core.registries.Registries.ITEM,
+            Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_shatter_capable_weapon")
     );
     private static final Set<ResourceLocation> EXTRA_ENCHANTMENTS = Set.of(
@@ -220,7 +224,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     }
 
     public static double computeChargeGainTicks(AbstractSpell spell, int spellLevel) {
-        if (spell == null || spell == io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()) {
+        if (spell == null || spell == SpellRegistry.none()) {
             return 0.0D;
         }
 
@@ -387,7 +391,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     }
 
     private static int getStoredSweepingEdgeLevel(ItemStack stack) {
-        var enchantments = stack.getOrDefault(DataComponents.ENCHANTMENTS, net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
+        var enchantments = stack.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
         for (var entry : enchantments.entrySet()) {
             if (entry.getKey().is(Enchantments.SWEEPING_EDGE)) {
                 return entry.getIntValue();

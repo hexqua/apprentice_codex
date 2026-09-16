@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
@@ -23,6 +25,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LadderBlock;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import top.theillusivec4.curios.api.CuriosApi;
+import top.theillusivec4.curios.api.SlotResult;
 
 import java.util.function.Consumer;
 
@@ -173,7 +177,7 @@ final class JumpcastCharmGameTestScenarios extends ApprenticeCodexGameTestScenar
                     1,
                     activeSpell.getEffectiveCastTime(1, player),
                     CastSource.SPELLBOOK,
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+                    SpellSelectionManager.MAINHAND
             );
             magicData.setPlayerCastingItem(new ItemStack(Items.STICK));
 
@@ -239,7 +243,7 @@ final class JumpcastCharmGameTestScenarios extends ApprenticeCodexGameTestScenar
     private static FakePlayer createJumpcastPlayer(
             GameTestHelper helper,
             String profileName,
-            io.redspace.ironsspellbooks.api.spells.AbstractSpell spell,
+            AbstractSpell spell,
             int spellLevel
     ) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), profileName);
@@ -253,9 +257,9 @@ final class JumpcastCharmGameTestScenarios extends ApprenticeCodexGameTestScenar
     }
 
     private static ItemStack getEquippedJumpcastCharm(FakePlayer player) {
-        return top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+        return CuriosApi.getCuriosInventory(player)
                 .flatMap(inventory -> inventory.findFirstCurio(stack -> stack.getItem() instanceof JumpcastCharm))
-                .map(top.theillusivec4.curios.api.SlotResult::stack)
+                .map(SlotResult::stack)
                 .orElse(ItemStack.EMPTY);
     }
 

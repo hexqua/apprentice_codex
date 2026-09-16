@@ -15,10 +15,12 @@ import jp.aquafactory.apprenticecodex.renderer.item.ChargedTwinBladeStaffRendere
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -44,6 +46,7 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -196,7 +199,7 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     }
 
     @Override
-    public boolean canAttackBlock(@NotNull BlockState state, @NotNull Level level, @NotNull net.minecraft.core.BlockPos pos, Player player) {
+    public boolean canAttackBlock(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, Player player) {
         return !player.isCreative();
     }
 
@@ -416,7 +419,7 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     }
 
     private static void syncMana(Player player, MagicData magicData) {
-        if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+        if (player instanceof ServerPlayer serverPlayer) {
             PacketDistributor.sendToPlayer(serverPlayer, new SyncManaPacket(magicData));
         }
     }
@@ -461,15 +464,15 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     }
 
     private static int getRiptideLevel(ItemStack stack) {
-        return getEnchantmentLevel(stack, net.minecraft.world.item.enchantment.Enchantments.RIPTIDE);
+        return getEnchantmentLevel(stack, Enchantments.RIPTIDE);
     }
 
     private static int getLoyaltyLevel(ItemStack stack) {
-        return getEnchantmentLevel(stack, net.minecraft.world.item.enchantment.Enchantments.LOYALTY);
+        return getEnchantmentLevel(stack, Enchantments.LOYALTY);
     }
 
     private static boolean hasChanneling(ItemStack stack) {
-        return getEnchantmentLevel(stack, net.minecraft.world.item.enchantment.Enchantments.CHANNELING) > 0;
+        return getEnchantmentLevel(stack, Enchantments.CHANNELING) > 0;
     }
 
     private static int getEnchantmentLevel(ItemStack stack, ResourceKey<Enchantment> enchantmentKey) {

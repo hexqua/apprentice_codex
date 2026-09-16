@@ -2,6 +2,9 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.MagicHelper;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
@@ -9,12 +12,15 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffCastEvent;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffCoolingHandler;
+import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager;
+import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -59,7 +65,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
             assertModifierAmount(
                     helper,
                     modifiers,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.value(),
+                    AttributeRegistry.SPELL_POWER.value(),
                     EquipmentSlotGroup.MAINHAND,
                     0.10D,
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
@@ -68,7 +74,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
             assertModifierAmount(
                     helper,
                     modifiers,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.value(),
+                    AttributeRegistry.FIRE_SPELL_POWER.value(),
                     EquipmentSlotGroup.MAINHAND,
                     0.05D,
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
@@ -77,7 +83,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
             assertModifierAmount(
                     helper,
                     modifiers,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.LIGHTNING_SPELL_POWER.value(),
+                    AttributeRegistry.LIGHTNING_SPELL_POWER.value(),
                     EquipmentSlotGroup.MAINHAND,
                     0.05D,
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
@@ -146,25 +152,25 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
             var baseManaCost = 100;
             var step = 1;
 
-            var referenceAdditionalMana = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+            var referenceAdditionalMana = CircuitHeatStaffOverheatManager
                     .getAdditionalManaCost(baseManaCost, step, 20 * 10);
             helper.assertTrue(referenceAdditionalMana == 20,
                     "Circuit Heat Staff skipped 10 seconds should keep the old step-1 extra mana: "
                             + referenceAdditionalMana);
 
-            var shortAdditionalMana = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+            var shortAdditionalMana = CircuitHeatStaffOverheatManager
                     .getAdditionalManaCost(baseManaCost, step, 20 * 5);
             helper.assertTrue(shortAdditionalMana == 10,
                     "Circuit Heat Staff skipped 5 seconds should halve the step-1 extra mana: "
                             + shortAdditionalMana);
 
-            var longAdditionalMana = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+            var longAdditionalMana = CircuitHeatStaffOverheatManager
                     .getAdditionalManaCost(baseManaCost, step, 20 * 40);
             helper.assertTrue(longAdditionalMana == 80,
                     "Circuit Heat Staff skipped 40 seconds should quadruple the step-1 extra mana: "
                             + longAdditionalMana);
 
-            var noSkippedCooldownAdditionalMana = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+            var noSkippedCooldownAdditionalMana = CircuitHeatStaffOverheatManager
                     .getAdditionalManaCost(baseManaCost, step, 0);
             helper.assertTrue(noSkippedCooldownAdditionalMana == 0,
                     "Circuit Heat Staff should not add mana when no cooldown is skipped: "
@@ -190,7 +196,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
                     true,
                     true
             )) {
-                var additionalMana = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+                var additionalMana = CircuitHeatStaffOverheatManager
                         .getAdditionalManaCost(100, 2, 50);
                 helper.assertTrue(additionalMana == 100,
                         "Circuit Heat Staff extra mana should use server config multipliers: " + additionalMana);
@@ -202,7 +208,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_overheat_duration_test");
             var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGIC_SPEAR.get();
+            var spell = SpellRegistry.MAGIC_SPEAR.get();
             var magicData = MagicData.getPlayerMagicData(player);
             helper.assertTrue(magicData != null, "Circuit Heat Staff overheat duration test could not resolve player mana data");
 
@@ -268,7 +274,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
                 context.magicData().setMana(baseManaCost);
 
                 var result = context.staffStack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
-                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.CONSUME,
+                helper.assertTrue(result.getResult() == InteractionResult.CONSUME,
                         "Circuit Heat Staff min overheat config test should cast but got " + result.getResult());
                 context.magicData().setPlayerCastingItem(context.staffStack());
                 postCircuitHeatStaffSpellOnCastEvent(context, baseManaCost);
@@ -310,7 +316,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
                 context.magicData().setMana(baseManaCost);
 
                 var result = context.staffStack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
-                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.CONSUME,
+                helper.assertTrue(result.getResult() == InteractionResult.CONSUME,
                         "Circuit Heat Staff cap overheat config test should cast but got " + result.getResult());
                 context.magicData().setPlayerCastingItem(context.staffStack());
                 postCircuitHeatStaffSpellOnCastEvent(context, baseManaCost);
@@ -329,10 +335,10 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_base_mana_gate_test");
             var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-            var amplifierItem = (jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
             amplifierItem.initializeSpellContainer(amplifierStack);
-            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
+            var spell = SpellRegistry.MANA_SLASH.get();
             setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
 
             player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
@@ -342,19 +348,19 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
             var baseManaCost = spell.getManaCost(1);
             magicData.setMana(baseManaCost - 1.0F);
 
-            var selection = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player).getSelection();
+            var selection = new SpellSelectionManager(player).getSelection();
             helper.assertTrue(selection != null && selection.spellData.getSpell() == spell,
                     "Circuit Heat Staff mana gate test could not resolve the selected spell: " + selection);
-            io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, selection.getCastSource());
+            MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, selection.getCastSource());
 
             var result = staffStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+            helper.assertTrue(result.getResult() == InteractionResult.FAIL,
                     "Circuit Heat Staff should fail forced casts when base mana is insufficient but got " + result.getResult());
             helper.assertTrue(Math.abs(magicData.getMana() - (baseManaCost - 1.0F)) < 1.0e-4F,
                     "Circuit Heat Staff base mana failure should not mutate mana: " + magicData.getMana());
             helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
                     "Circuit Heat Staff should restore the original cooldown after base mana failure");
-            helper.assertFalse(jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+            helper.assertFalse(CircuitHeatStaffOverheatManager
                             .getState(player, spell.getSpellId()).active(),
                     "Circuit Heat Staff should not store bypass overheat state after base mana failure");
             helper.assertFalse(CircuitHeatStaff.isStaffOverheated(staffStack, helper.getLevel()),
@@ -388,7 +394,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
                 context.magicData().setMana(context.spell().getManaCost(1) * 10.0F);
 
                 var result = context.staffStack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
-                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                helper.assertTrue(result.getResult() == InteractionResult.FAIL,
                         "Circuit Heat Staff should fail cooldown bypass above server limit but got " + result.getResult());
                 helper.assertTrue(context.magicData().getPlayerCooldowns().isOnCooldown(context.spell()),
                         "Circuit Heat Staff should keep cooldown when server limit blocks bypass");
@@ -425,7 +431,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
                 context.magicData().setMana(spell.getManaCost(1) * 10.0F);
 
                 var result = context.staffStack().getItem().use(helper.getLevel(), context.player(), InteractionHand.MAIN_HAND);
-                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                helper.assertTrue(result.getResult() == InteractionResult.FAIL,
                         "Circuit Heat Staff should fail cooldown bypass for denied spells but got " + result.getResult());
                 helper.assertTrue(context.magicData().getPlayerCooldowns().isOnCooldown(spell),
                         "Circuit Heat Staff should keep cooldown when spell denylist blocks bypass");
@@ -439,7 +445,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_continuous_mana_test");
             var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.FORCE_FIELD.get();
+            var spell = SpellRegistry.FORCE_FIELD.get();
             var magicData = MagicData.getPlayerMagicData(player);
             helper.assertTrue(magicData != null, "Circuit Heat Staff continuous mana test could not resolve player mana data");
 
@@ -450,13 +456,13 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
                     1,
                     spell.getCastTime(1),
                     CastSource.SPELLBOOK,
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+                    SpellSelectionManager.MAINHAND
             );
             magicData.setPlayerCastingItem(staffStack);
 
             var baseManaCost = spell.getManaCost(1);
             var plannedManaCost = baseManaCost
-                    + jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+                    + CircuitHeatStaffOverheatManager
                     .getAdditionalManaCost(baseManaCost, 1, 20 * 10);
             CircuitHeatStaffCastEvent.reserveOverheatCast(
                     player,
@@ -525,10 +531,10 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "circuit_heat_staff_recast_neutral_test");
             var staffStack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-            var amplifierItem = (jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
+            var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
             amplifierItem.initializeSpellContainer(amplifierStack);
-            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get();
+            var spell = SpellRegistry.MANA_SLASH.get();
             setSingleUnlockedSpell(helper, amplifierStack, spell, 1);
 
             player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
@@ -537,17 +543,17 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
             helper.assertTrue(magicData != null, "Circuit Heat Staff recast test could not resolve player mana data");
             magicData.setMana(0.0F);
 
-            jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager.applyAfterBypass(
+            CircuitHeatStaffOverheatManager.applyAfterBypass(
                     player,
                     spell.getSpellId(),
                     200
             );
-            jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager.applyAfterBypass(
+            CircuitHeatStaffOverheatManager.applyAfterBypass(
                     player,
                     spell.getSpellId(),
                     200
             );
-            var stateBefore = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+            var stateBefore = CircuitHeatStaffOverheatManager
                     .getState(player, spell.getSpellId());
             helper.assertTrue(stateBefore.active() && stateBefore.chainDepth() == 2,
                     "Circuit Heat Staff recast setup should start from bypass chain depth 2 but got " + stateBefore);
@@ -570,10 +576,10 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
                     "Circuit Heat Staff recast setup should start from item overheat cooldown");
 
             var result = staffStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.CONSUME,
+            helper.assertTrue(result.getResult() == InteractionResult.CONSUME,
                     "Circuit Heat Staff recast should start through the recast-neutral path during item overheat but got "
                             + result.getResult());
-            var stateAfterUse = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+            var stateAfterUse = CircuitHeatStaffOverheatManager
                     .getState(player, spell.getSpellId());
             helper.assertTrue(stateAfterUse.active()
                             && stateAfterUse.chainDepth() == stateBefore.chainDepth()
@@ -588,7 +594,7 @@ final class CircuitHeatStaffGameTestScenarios extends ApprenticeCodexGameTestSce
                     "Circuit Heat Staff recast resolution should keep Iron's no-mana recast behavior: " + magicData.getMana());
             helper.assertTrue(CircuitHeatStaff.getStaffOverheatRemainingTicks(staffStack, helper.getLevel()) == staffOverheatBefore,
                     "Circuit Heat Staff recast should ignore existing item overheat without clearing or refreshing it");
-            var stateAfterCast = jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager
+            var stateAfterCast = CircuitHeatStaffOverheatManager
                     .getState(player, spell.getSpellId());
             helper.assertTrue(stateAfterCast.active()
                             && stateAfterCast.chainDepth() == stateBefore.chainDepth()

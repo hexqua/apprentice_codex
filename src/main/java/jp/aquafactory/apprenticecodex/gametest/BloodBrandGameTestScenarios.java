@@ -31,6 +31,7 @@ import net.neoforged.neoforge.event.tick.EntityTickEvent;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 final class BloodBrandGameTestScenarios {
     private static final float VALUE_EPSILON = 1.0E-3F;
@@ -117,7 +118,7 @@ final class BloodBrandGameTestScenarios {
         var nearbyHealth = nearby.getHealth();
         var ownerHealth = owner.getHealth();
         var healEvent = new AtomicReference<SpellHealEvent>();
-        java.util.function.Consumer<SpellHealEvent> healListener = event -> {
+        Consumer<SpellHealEvent> healListener = event -> {
             if (event.getEntity() == owner && event.getTargetEntity() == owner) {
                 healEvent.set(event);
             }

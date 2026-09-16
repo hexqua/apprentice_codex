@@ -35,11 +35,13 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
@@ -65,6 +67,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.function.Predicate;
 
 public class ParrycastBuckler extends AbstractImbueShieldItem
         implements GeoItem, IJeiInfoItem, SpellCalibrationAdjustmentTarget, AttributeEnchantmentPolicy {
@@ -95,7 +98,7 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
     private static final Map<ItemStack, ClientAnimationState> CLIENT_ANIMATION_STATES = new WeakHashMap<>();
     private static final Map<LivingEntity, EnumMap<InteractionHand, ClientAnimationState>> CLIENT_ANIMATION_OWNERS = new WeakHashMap<>();
     private static long nextClientAnimationInstanceId = Long.MIN_VALUE;
-    private static final ItemStack SHIELD_ENCHANTMENT_PROBE = new ItemStack(net.minecraft.world.item.Items.SHIELD);
+    private static final ItemStack SHIELD_ENCHANTMENT_PROBE = new ItemStack(Items.SHIELD);
     private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
             AttributeEnchantmentType.ALACRITY,
             AttributeEnchantmentType.TENSE
@@ -307,7 +310,7 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
         );
         var result = ItemAttributeModifiers.builder();
         for (var entry : merged.entries()) {
-            result.add(entry.getKey(), entry.getValue(), net.minecraft.world.entity.EquipmentSlotGroup.OFFHAND);
+            result.add(entry.getKey(), entry.getValue(), EquipmentSlotGroup.OFFHAND);
         }
         return result.build();
     }
@@ -470,7 +473,7 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
 
     public static boolean hasSilverRing(ItemStack stack) { return hasAdjustment(stack, MithrilFreecastStaff::isSilverRing); }
     public static boolean hasWisdomShard(ItemStack stack) { return hasAdjustment(stack, s -> s.is(ItemRegistry.WISDOM_SHARD.get())); }
-    private static boolean hasAdjustment(ItemStack stack, java.util.function.Predicate<ItemStack> predicate) {
+    private static boolean hasAdjustment(ItemStack stack, Predicate<ItemStack> predicate) {
         for (int i = 0; i < CALIBRATION_ADJUSTMENT_SLOT_COUNT; i++) if (predicate.test(readCalibrationAdjustment(stack, i))) return true;
         return false;
     }

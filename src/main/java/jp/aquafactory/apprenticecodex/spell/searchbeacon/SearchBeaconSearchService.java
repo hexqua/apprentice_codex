@@ -9,6 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.chunk.ChunkGeneratorStructureState;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureCheckResult;
@@ -323,7 +324,7 @@ public final class SearchBeaconSearchService {
 
     private static final class RandomSpreadSearchTask extends AbstractPlacementSearchTask {
         private final RandomSpreadStructurePlacement placement;
-        private final net.minecraft.world.level.chunk.ChunkGeneratorStructureState generatorState;
+        private final ChunkGeneratorStructureState generatorState;
         private final long levelSeed;
         private final int spacing;
         private final int minChunkX;
@@ -476,7 +477,7 @@ public final class SearchBeaconSearchService {
 
     private static final class FallbackSearchTask extends AbstractPlacementSearchTask {
         private final StructurePlacement placement;
-        private final net.minecraft.world.level.chunk.ChunkGeneratorStructureState generatorState;
+        private final ChunkGeneratorStructureState generatorState;
         private final int originChunkX;
         private final int originChunkZ;
         private final int minChunkX;

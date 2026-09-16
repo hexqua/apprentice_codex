@@ -26,6 +26,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -120,7 +121,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
     }
 
     @Override
-    public boolean canBeInterrupted(@Nullable net.minecraft.world.entity.player.Player player) {
+    public boolean canBeInterrupted(@Nullable Player player) {
         return canBeInterruptedWithMagiAgentSuit(this, player, super.canBeInterrupted(player));
     }
 

@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.remoteownercast;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
@@ -105,7 +106,7 @@ public final class RemoteOwnerCastRules {
 
     private static boolean isEmptySpell(@Nullable AbstractSpell spell) {
         return spell == null
-                || spell == io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()
+                || spell == SpellRegistry.none()
                 || spell.getSpellResource() == null;
     }
 

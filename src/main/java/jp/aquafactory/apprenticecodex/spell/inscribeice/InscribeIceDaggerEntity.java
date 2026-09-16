@@ -20,6 +20,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerEntity;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -364,7 +365,7 @@ public class InscribeIceDaggerEntity extends Projectile implements AntiMagicSusc
         }
     }
 
-    private void spawnImpactRhombusParticle(net.minecraft.util.RandomSource random, Vec3 forward, Vec3 right, Vec3 up) {
+    private void spawnImpactRhombusParticle(RandomSource random, Vec3 forward, Vec3 right, Vec3 up) {
         var velocity = forward.scale(0.03D + random.nextDouble() * 0.05D)
                 .add(right.scale((random.nextDouble() - 0.5D) * 0.12D))
                 .add(up.scale((random.nextDouble() - 0.5D) * 0.12D));
@@ -387,7 +388,7 @@ public class InscribeIceDaggerEntity extends Projectile implements AntiMagicSusc
         );
     }
 
-    private void spawnImpactSparkParticle(net.minecraft.util.RandomSource random, Vec3 forward, Vec3 right, Vec3 up) {
+    private void spawnImpactSparkParticle(RandomSource random, Vec3 forward, Vec3 right, Vec3 up) {
         var velocity = forward.scale(0.06D + random.nextDouble() * 0.12D)
                 .add(right.scale((random.nextDouble() - 0.5D) * 0.18D))
                 .add(up.scale((random.nextDouble() - 0.5D) * 0.18D));

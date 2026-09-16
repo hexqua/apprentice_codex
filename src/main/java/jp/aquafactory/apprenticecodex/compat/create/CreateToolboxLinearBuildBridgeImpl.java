@@ -7,6 +7,8 @@ import jp.aquafactory.apprenticecodex.spell.linearbuild.LinearBuildItemSources;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import java.util.ArrayList;
@@ -103,20 +105,20 @@ final class CreateToolboxLinearBuildBridgeImpl {
             return null;
         }
         return level.getCapability(
-                net.neoforged.neoforge.capabilities.Capabilities.ItemHandler.BLOCK,
+                Capabilities.ItemHandler.BLOCK,
                 pos,
                 null
         );
     }
 
-    private static Optional<net.minecraft.world.level.Level> resolveToolboxLevel(ToolboxBlockEntity toolbox) {
+    private static Optional<Level> resolveToolboxLevel(ToolboxBlockEntity toolbox) {
         if (toolbox == null) {
             return Optional.empty();
         }
 
         try {
             var result = ((Object) toolbox).getClass().getMethod("getLevel").invoke(toolbox);
-            return result instanceof net.minecraft.world.level.Level level ? Optional.of(level) : Optional.empty();
+            return result instanceof Level level ? Optional.of(level) : Optional.empty();
         } catch (ReflectiveOperationException ignored) {
             return Optional.empty();
         }

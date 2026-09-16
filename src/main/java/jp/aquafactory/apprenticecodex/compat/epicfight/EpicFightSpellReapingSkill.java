@@ -4,11 +4,15 @@ import com.google.common.collect.MapMaker;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowManager;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScythe;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import yesman.epicfight.api.event.EntityEventListener;
+import yesman.epicfight.api.event.EpicFightEventHooks;
 import yesman.epicfight.client.input.EpicFightKeyMappings;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.network.server.SPSkillFeedback;
@@ -17,7 +21,9 @@ import yesman.epicfight.skill.SkillContainer;
 import yesman.epicfight.skill.modules.ChargeableSkill;
 import yesman.epicfight.skill.weaponinnate.WeaponInnateSkill;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
+import yesman.epicfight.world.capabilities.item.CapabilityItem;
 
+import java.util.List;
 import java.util.Map;
 
 public final class EpicFightSpellReapingSkill extends WeaponInnateSkill implements ChargeableSkill {
@@ -33,9 +39,9 @@ public final class EpicFightSpellReapingSkill extends WeaponInnateSkill implemen
     }
 
     @Override
-    public void onInitiate(SkillContainer container, yesman.epicfight.api.event.EntityEventListener listener) {
+    public void onInitiate(SkillContainer container, EntityEventListener listener) {
         super.onInitiate(container, listener);
-        listener.registerEvent(yesman.epicfight.api.event.EpicFightEventHooks.Animation.START_ACTION, event -> {
+        listener.registerEvent(EpicFightEventHooks.Animation.START_ACTION, event -> {
             if (container.getExecutor().isHoldingSkill(this)
                     && !event.getAnimation().equals(Animations.STEEL_WHIRLWIND_CHARGING)) abort(container.getExecutor());
         }, this);
@@ -74,11 +80,11 @@ public final class EpicFightSpellReapingSkill extends WeaponInnateSkill implemen
     }
 
     @Override
-    public java.util.List<net.minecraft.network.chat.Component> getTooltipOnItem(
-            ItemStack stack, yesman.epicfight.world.capabilities.item.CapabilityItem cap, PlayerPatch<?> patch) {
-        return java.util.List.of(
-                net.minecraft.network.chat.Component.translatable(getTranslationKey()).withStyle(net.minecraft.ChatFormatting.WHITE),
-                net.minecraft.network.chat.Component.translatable(getTranslationKey() + ".tooltip").withStyle(net.minecraft.ChatFormatting.DARK_GRAY));
+    public List<Component> getTooltipOnItem(
+            ItemStack stack, CapabilityItem cap, PlayerPatch<?> patch) {
+        return List.of(
+                Component.translatable(getTranslationKey()).withStyle(ChatFormatting.WHITE),
+                Component.translatable(getTranslationKey() + ".tooltip").withStyle(ChatFormatting.DARK_GRAY));
     }
 
     @Override

@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
@@ -87,8 +88,8 @@ public class MulticastEchoStaff extends StaffItem implements GeoItem, IPresetSpe
 
     @Override
     public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
-        if (enchantment.is(net.minecraft.world.item.enchantment.Enchantments.FORTUNE)
-                || enchantment.is(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH)) {
+        if (enchantment.is(Enchantments.FORTUNE)
+                || enchantment.is(Enchantments.SILK_TOUCH)) {
             return false;
         }
         if (super.supportsEnchantment(stack, enchantment)) {

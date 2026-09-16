@@ -1,7 +1,11 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import com.sammy.malum.common.data.attachment.StaffAbilityData;
+import com.sammy.malum.registry.common.MalumAttachmentTypes;
+import com.sammy.malum.registry.common.MalumAttributes;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumStaffChargeBridge;
@@ -13,10 +17,15 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import top.theillusivec4.curios.api.CuriosApi;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -85,17 +94,17 @@ public final class ManaSoulTransducerGameTests {
         helper.succeed();
     }
 
-    private static net.neoforged.neoforge.common.util.FakePlayer player(GameTestHelper helper, String name) {
+    private static FakePlayer player(GameTestHelper helper, String name) {
         var player = ApprenticeCodexGameTestScenarios.createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), name);
         player.setGameMode(GameType.SURVIVAL);
-        player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA).setBaseValue(2000);
+        player.getAttribute(AttributeRegistry.MAX_MANA).setBaseValue(2000);
         ApprenticeCodexGameTestScenarios.equipCurio(player, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MANA_SOUL_TRANSDUCER.get()));
         return player;
     }
 
-    private static void unequip(net.minecraft.server.level.ServerPlayer player) {
+    private static void unequip(ServerPlayer player) {
         // setEquippedCurioは空スタックを装備できないため、解除は実スロットへ直接反映する。
-        top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player).orElseThrow()
+        CuriosApi.getCuriosInventory(player).orElseThrow()
                 .getCurios().get(CuriosSlotConstants.CHARM).getStacks().setStackInSlot(0, ItemStack.EMPTY);
     }
 
@@ -107,20 +116,20 @@ public final class ManaSoulTransducerGameTests {
     private static final class MalumCases {
         static void attributes(GameTestHelper helper) {
             var player = player(helper, "transducer_attributes");
-            var duration = player.getAttribute(com.sammy.malum.registry.common.MalumAttributes.CHARGE_DURATION);
-            var recovery = player.getAttribute(com.sammy.malum.registry.common.MalumAttributes.CHARGE_RECOVERY_RATE);
+            var duration = player.getAttribute(MalumAttributes.CHARGE_DURATION);
+            var recovery = player.getAttribute(MalumAttributes.CHARGE_RECOVERY_RATE);
             duration.setBaseValue(1);
             recovery.setBaseValue(1);
-            var id = net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "transducer_test_existing");
-            duration.addTransientModifier(new net.minecraft.world.entity.ai.attributes.AttributeModifier(id, -0.5, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
-            recovery.addTransientModifier(new net.minecraft.world.entity.ai.attributes.AttributeModifier(id, 0.5, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
-            player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION).setBaseValue(1.5);
-            player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION).setBaseValue(1.5);
+            var id = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "transducer_test_existing");
+            duration.addTransientModifier(new AttributeModifier(id, -0.5, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+            recovery.addTransientModifier(new AttributeModifier(id, 0.5, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+            player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION).setBaseValue(1.5);
+            player.getAttribute(AttributeRegistry.COOLDOWN_REDUCTION).setBaseValue(1.5);
             ManaSoulTransducerEvents.updateAttributes(player);
             ManaSoulTransducerEvents.updateAttributes(player);
             close(helper, duration.getValue(), 0.3, "Existing Malum duration must be multiplied once");
             close(helper, recovery.getValue(), 1.9, "Existing Malum recovery must receive additive bonus once");
-            player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION).setBaseValue(0.5);
+            player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION).setBaseValue(0.5);
             ManaSoulTransducerEvents.updateAttributes(player);
             close(helper, duration.getValue(), 0.5, "Reduced Iron attribute must remove the bonus without penalty");
             unequip(player);
@@ -130,9 +139,9 @@ public final class ManaSoulTransducerGameTests {
 
         static void cast(GameTestHelper helper) {
             var player = player(helper, "transducer_cast");
-            var type = com.sammy.malum.registry.common.MalumAttachmentTypes.STAFF_ABILITIES;
+            var type = MalumAttachmentTypes.STAFF_ABILITIES;
             // 手持ち容量ゼロでも、以前の高容量の杖が残した消費量を全て回復する。
-            player.setData(type, new com.sammy.malum.common.data.attachment.StaffAbilityData(18, 70));
+            player.setData(type, new StaffAbilityData(18, 70));
             var magic = MagicData.getPlayerMagicData(player);
             magic.setMana(1000);
             var spell = SpellRegistry.SOUL_CONVERSION.get();
@@ -146,11 +155,11 @@ public final class ManaSoulTransducerGameTests {
 
         static void abort(GameTestHelper helper) {
             var player = player(helper, "transducer_abort");
-            var type = com.sammy.malum.registry.common.MalumAttachmentTypes.STAFF_ABILITIES;
+            var type = MalumAttachmentTypes.STAFF_ABILITIES;
             var spell = SpellRegistry.SOUL_CONVERSION.get();
             var magic = MagicData.getPlayerMagicData(player);
             magic.setMana(1000);
-            player.setData(type, new com.sammy.malum.common.data.attachment.StaffAbilityData(1, 0));
+            player.setData(type, new StaffAbilityData(1, 0));
             helper.assertTrue(spell.checkPreCastConditions(player.level(), 1, player, magic), "Partial debt should permit casting");
             helper.assertTrue(spell.attemptInitiateCast(ItemStack.EMPTY, 1, player.level(), player, CastSource.SPELLBOOK,
                     true, ManaSoulTransducerEvents.SPELL_SELECTION_SLOT), "Equipped player must be able to initiate LONG casting");
@@ -160,7 +169,7 @@ public final class ManaSoulTransducerGameTests {
             spell.castSpell(player.level(), 1, player, CastSource.SPELLBOOK, true);
             close(helper, magic.getMana(), 1000, "Natural recovery before payment must not consume mana");
             helper.assertFalse(magic.getPlayerCooldowns().isOnCooldown(spell), "Cancelled recovery must not start cooldown");
-            player.setData(type, new com.sammy.malum.common.data.attachment.StaffAbilityData(3, 50));
+            player.setData(type, new StaffAbilityData(3, 50));
             unequip(player);
             spell.castSpell(player.level(), 1, player, CastSource.SPELLBOOK, true);
             close(helper, magic.getMana(), 1000, "Equipment loss before payment must not consume mana");

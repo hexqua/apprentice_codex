@@ -5,6 +5,7 @@ import com.simibubi.create.api.behaviour.interaction.MovingInteractionBehaviour;
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
 import com.simibubi.create.api.contraption.storage.item.MountedItemStorageType;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
+import net.minecraft.world.level.block.Block;
 
 public final class SpellDispenserCreateCompat {
     private SpellDispenserCreateCompat() {
@@ -17,7 +18,7 @@ public final class SpellDispenserCreateCompat {
         registerSpellDispenser(BlockRegistry.CREATIVE_SPELL_DISPENSER.get());
     }
 
-    private static void registerSpellDispenser(net.minecraft.world.level.block.Block block) {
+    private static void registerSpellDispenser(Block block) {
         // Compat内冗長ではない型キャストの可能性があるため抑制.
         //noinspection RedundantCast
         MountedItemStorageType.REGISTRY.register(block, (MountedItemStorageType<?>) AllMountedStorageTypes.SIMPLE.get());

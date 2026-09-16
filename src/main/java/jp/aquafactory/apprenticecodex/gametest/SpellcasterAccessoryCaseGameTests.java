@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterA
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -17,13 +18,16 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -33,6 +37,7 @@ import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import top.theillusivec4.curios.api.CuriosApi;
+import top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler;
 import top.theillusivec4.curios.common.event.CuriosEventHandler;
 import top.theillusivec4.curios.common.inventory.CurioSlot;
 
@@ -70,7 +75,7 @@ public final class SpellcasterAccessoryCaseGameTests {
         var clickedFloor = helper.absolutePos(new BlockPos(1, 1, 1));
         var placedPos = clickedFloor.above();
         var hit = new BlockHitResult(
-                Vec3.atCenterOf(clickedFloor), net.minecraft.core.Direction.UP, clickedFloor, false
+                Vec3.atCenterOf(clickedFloor), Direction.UP, clickedFloor, false
         );
         var result = ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get().useOn(
                 new UseOnContext(player, InteractionHand.MAIN_HAND, hit)
@@ -107,13 +112,13 @@ public final class SpellcasterAccessoryCaseGameTests {
 
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get()));
         var blockedTarget = helper.absolutePos(new BlockPos(2, 2, 1));
-        helper.getLevel().setBlockAndUpdate(blockedTarget, net.minecraft.world.level.block.Blocks.STONE.defaultBlockState());
+        helper.getLevel().setBlockAndUpdate(blockedTarget, Blocks.STONE.defaultBlockState());
         var blockedFloor = blockedTarget.below();
         var failed = ItemRegistry.SPELLCASTER_ACCESSORY_CASE.get().useOn(new UseOnContext(
                 player,
                 InteractionHand.MAIN_HAND,
                 new BlockHitResult(
-                        Vec3.atCenterOf(blockedFloor), net.minecraft.core.Direction.UP, blockedFloor, false
+                        Vec3.atCenterOf(blockedFloor), Direction.UP, blockedFloor, false
                 )
         ));
         helper.assertFalse(failed.consumesAction(), "Blocked sneak placement should fail");
@@ -145,7 +150,7 @@ public final class SpellcasterAccessoryCaseGameTests {
         helper.assertTrue(firstMenu.stillValid(player),
                 "Placed accessory case menu should remain valid within container range");
 
-        var hit = new BlockHitResult(Vec3.atCenterOf(pos), net.minecraft.core.Direction.UP, pos, false);
+        var hit = new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false);
         var interactionResult = helper.getLevel().getBlockState(pos)
                 .useWithoutItem(helper.getLevel(), player, hit);
         helper.assertTrue(interactionResult.consumesAction(),
@@ -804,12 +809,12 @@ public final class SpellcasterAccessoryCaseGameTests {
     }
 
     private static void expandCuriosBeyondDefaultColumnLimit(
-            net.minecraft.world.entity.LivingEntity wearer
+            LivingEntity wearer
     ) {
         var curios = CuriosApi.getCuriosInventory(wearer)
                 .orElseThrow(() -> new IllegalStateException("Missing Curios inventory for oversized-panel test"));
         var currentVisibleSlots = curios.getCurios().values().stream()
-                .filter(top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler::isVisible)
+                .filter(ICurioStacksHandler::isVisible)
                 .mapToInt(handler -> handler.getStacks().getSlots())
                 .sum();
         var firstUnsupportedSlotCount =
@@ -823,7 +828,7 @@ public final class SpellcasterAccessoryCaseGameTests {
         );
     }
 
-    private static void fillAccessoryCase(ItemStack caseStack, net.minecraft.world.entity.LivingEntity wearer) {
+    private static void fillAccessoryCase(ItemStack caseStack, LivingEntity wearer) {
         var inventory = new SpellcasterAccessoryCase.CaseInventory(caseStack, wearer);
         for (var slot = 0; slot < SpellcasterAccessoryCase.SLOT_COUNT; ++slot) {
             var remainder = inventory.insertItem(slot, new ItemStack(ItemRegistry.ATTACKCAST_RING.get()), false);
@@ -833,7 +838,7 @@ public final class SpellcasterAccessoryCaseGameTests {
         }
     }
 
-    private static boolean playerInventoryContains(Inventory inventory, net.minecraft.world.item.Item item) {
+    private static boolean playerInventoryContains(Inventory inventory, Item item) {
         for (var slot = 0; slot < Inventory.INVENTORY_SIZE; ++slot) {
             if (inventory.getItem(slot).is(item)) {
                 return true;

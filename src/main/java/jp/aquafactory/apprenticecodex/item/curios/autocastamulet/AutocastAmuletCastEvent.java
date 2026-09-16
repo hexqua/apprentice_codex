@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletNotificationPacket;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -156,7 +157,7 @@ public final class AutocastAmuletCastEvent {
             ServerPlayer player,
             CastSource castSource,
             MagicData magicData,
-            net.minecraft.world.item.ItemStack castingItem
+            ItemStack castingItem
     ) {
         var cooldownTicks = WeaponImbueCooldownHelper.getEffectiveSpellCooldownWithoutSwordMultiplier(
                 spell,

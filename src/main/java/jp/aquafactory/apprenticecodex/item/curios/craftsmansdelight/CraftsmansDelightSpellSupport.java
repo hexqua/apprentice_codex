@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight;
 
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import jp.aquafactory.apprenticecodex.spell.ICraftsmansDelightAffectedSpell;
 
@@ -27,7 +28,7 @@ public final class CraftsmansDelightSpellSupport {
             return true;
         }
 
-        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(spellId);
+        var spell = SpellRegistry.getSpell(spellId);
         return spell instanceof ICraftsmansDelightAffectedSpell affectedSpell
                 && affectedSpell.isCraftsmansDelightManaCostDiscountEnabled();
     }
@@ -40,7 +41,7 @@ public final class CraftsmansDelightSpellSupport {
 
     public static List<AbstractSpell> getExternalTargetSpells() {
         return EXTERNAL_MANA_COST_TARGETS.stream()
-                .map(io.redspace.ironsspellbooks.api.registry.SpellRegistry::getSpell)
+                .map(SpellRegistry::getSpell)
                 .toList();
     }
 }

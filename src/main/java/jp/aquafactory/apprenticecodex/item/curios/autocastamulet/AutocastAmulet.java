@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.curios.autocastamulet;
 
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
@@ -138,7 +139,7 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
 
     public boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel) {
         return spell != null
-                && spell != io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()
+                && spell != SpellRegistry.none()
                 && (spell.getCastType() == CastType.INSTANT || spell.getCastType() == CastType.LONG)
                 && spell.getRecastCount(spellLevel, null) <= 0;
     }
@@ -149,7 +150,7 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
 
     public boolean canAutoCastSpell(ItemStack stack, @Nullable AbstractSpell spell, int spellLevel) {
         return spell != null
-                && spell != io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()
+                && spell != SpellRegistry.none()
                 && getSupportedCastTypes(stack).contains(SpellGunCastType.from(spell.getCastType()))
                 && spell.getRecastCount(spellLevel, null) <= 0;
     }
@@ -537,10 +538,10 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
 
     private static @NotNull ItemStack decodeStoredCalibrationItem(@NotNull CompoundTag tag) {
         if (tag.contains(SPELL_ID_TAG, Tag.TAG_STRING)) {
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(
+            var spell = SpellRegistry.getSpell(
                     ResourceLocation.parse(tag.getString(SPELL_ID_TAG))
             );
-            if (spell == null || spell == io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()) {
+            if (spell == null || spell == SpellRegistry.none()) {
                 return ItemStack.EMPTY;
             }
             return createScroll(new SpellData(spell, Math.max(1, tag.getInt(SPELL_LEVEL_TAG))));

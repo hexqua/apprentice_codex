@@ -7,11 +7,16 @@ import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSpellReapingSkil
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowManager;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import yesman.epicfight.api.event.EpicFightEventHooks;
+import yesman.epicfight.api.event.IdentifierProvider;
+import yesman.epicfight.registry.entries.EpicFightSkills;
 import yesman.epicfight.skill.Skill;
 import yesman.epicfight.skill.SkillContainer;
 import yesman.epicfight.skill.SkillSlots;
@@ -22,7 +27,7 @@ import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 final class ScytheEpicFightTestHelper {
     private record Context(FakePlayer player, ServerPlayerPatch patch, SkillContainer container, EpicFightSpellReapingSkill skill) {
         void start() { patch.startSkillHolding(skill); }
-        void release() { container.requestCasting(patch, new net.minecraft.nbt.CompoundTag()); }
+        void release() { container.requestCasting(patch, new CompoundTag()); }
         void clean() { skill.abort(patch); var entity = ScytheThrowManager.active(player); if (entity != null) entity.discard(); }
     }
 
@@ -122,23 +127,23 @@ final class ScytheEpicFightTestHelper {
             ScytheThrowManager.launchNormal(c.player, c.player.getMainHandItem(), 10);
             var thrown = ScytheThrowManager.active(c.player);
             var combo = c.patch.getSkill(SkillSlots.COMBO_ATTACKS);
-            combo.setSkill(yesman.epicfight.registry.entries.EpicFightSkills.COMBO_ATTACKS.get());
+            combo.setSkill(EpicFightSkills.COMBO_ATTACKS.get());
             // 標準はResource.NONE。プレイヤー限定の消費イベントでスタミナ設定時の拒否経路も通す。
-            c.patch.getEventListener().registerEvent(yesman.epicfight.api.event.EpicFightEventHooks.Player.CONSUME_SKILL,
+            c.patch.getEventListener().registerEvent(EpicFightEventHooks.Player.CONSUME_SKILL,
                     event -> {
                         if (event.getSkill() == combo.getSkill()) {
                             event.setResourceType(Skill.Resource.STAMINA);
                             event.setAmount(5.0F);
                         }
-                    }, yesman.epicfight.api.event.IdentifierProvider.constant(
-                            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("apprenticecodex", "scythe_attack_test")));
+                    }, IdentifierProvider.constant(
+                            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "scythe_attack_test")));
             c.player.setOnGround(false);
             c.player.setDeltaMovement(0, 0.5, 0);
             c.patch.setStamina(0);
-            combo.getSkill().executeOnServer(combo, new net.minecraft.nbt.CompoundTag());
+            combo.getSkill().executeOnServer(combo, new CompoundTag());
             h.assertFalse(thrown.isRemoved(), "Rejected air attack must not recall the scythe");
             c.patch.setStamina(c.patch.getMaxStamina());
-            combo.getSkill().executeOnServer(combo, new net.minecraft.nbt.CompoundTag());
+            combo.getSkill().executeOnServer(combo, new CompoundTag());
             h.assertTrue(thrown.isRemoved(), "Accepted air attack must recall before the motion starts");
         } finally { c.clean(); }
         h.succeed();

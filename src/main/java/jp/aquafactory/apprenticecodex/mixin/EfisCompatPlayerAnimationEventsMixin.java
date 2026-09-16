@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.mixin;
 
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
+import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.Unique;
@@ -29,7 +30,7 @@ public abstract class EfisCompatPlayerAnimationEventsMixin {
     }
 
     @Unique
-    private static boolean apprenticecodex$isStunned(net.minecraft.world.entity.player.Player player) {
+    private static boolean apprenticecodex$isStunned(Player player) {
         return EpicFightCapabilities.getUnparameterizedEntityPatch(player, ServerPlayerPatch.class)
                 .map(ServerPlayerPatch::isStunned)
                 .orElse(false);

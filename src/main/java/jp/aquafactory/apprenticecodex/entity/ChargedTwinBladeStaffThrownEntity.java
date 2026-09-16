@@ -19,6 +19,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
@@ -31,6 +32,7 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -192,7 +194,7 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         }
     }
 
-    private void finishImpact(Vec3 impactPosition, Vec3 impactForward, net.minecraft.sounds.SoundEvent impactSound) {
+    private void finishImpact(Vec3 impactPosition, Vec3 impactForward, SoundEvent impactSound) {
         var impactRotation = calculateImpactRotation(impactForward);
         setPos(impactPosition.x, impactPosition.y, impactPosition.z);
         setDeltaMovement(Vec3.ZERO);
@@ -469,7 +471,7 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
 
     private static boolean hasChanneling(ItemStack stack) {
         for (var entry : EnchantmentHelper.getEnchantmentsForCrafting(stack).entrySet()) {
-            if (entry.getKey().is(net.minecraft.world.item.enchantment.Enchantments.CHANNELING)) {
+            if (entry.getKey().is(Enchantments.CHANNELING)) {
                 return entry.getIntValue() > 0;
             }
         }

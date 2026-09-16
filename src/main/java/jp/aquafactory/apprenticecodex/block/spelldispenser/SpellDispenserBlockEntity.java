@@ -8,11 +8,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -363,7 +365,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity
                 continue;
             }
 
-            net.minecraft.world.Containers.dropItemStack(level, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), stack.copy());
+            Containers.dropItemStack(level, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), stack.copy());
             inventory.setStackInSlot(slot, ItemStack.EMPTY);
         }
     }
@@ -516,7 +518,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity
         if (tag == null) {
             return null;
         }
-        if (!tag.hasUUID(OWNER_UUID_TAG) || !tag.contains(OWNER_NAME_TAG, net.minecraft.nbt.Tag.TAG_STRING)) {
+        if (!tag.hasUUID(OWNER_UUID_TAG) || !tag.contains(OWNER_NAME_TAG, Tag.TAG_STRING)) {
             return null;
         }
         return normalizeOwnerProfile(new GameProfile(tag.getUUID(OWNER_UUID_TAG), tag.getString(OWNER_NAME_TAG)));
@@ -541,7 +543,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity
     }
 
     public static int readCurrentMana(@Nullable CompoundTag tag) {
-        if (tag == null || !tag.contains(CURRENT_MANA_TAG, net.minecraft.nbt.Tag.TAG_INT)) {
+        if (tag == null || !tag.contains(CURRENT_MANA_TAG, Tag.TAG_INT)) {
             return SpellDispenserManaHelper.MAX_MANA;
         }
         return SpellDispenserManaHelper.clampMana(tag.getInt(CURRENT_MANA_TAG));
@@ -559,7 +561,7 @@ public final class SpellDispenserBlockEntity extends BlockEntity
     }
 
     public static @NotNull FluidStack readManaPotionFluid(@Nullable CompoundTag tag, HolderLookup.Provider registries) {
-        if (tag == null || !tag.contains(MANA_POTION_FLUID_TAG, net.minecraft.nbt.Tag.TAG_COMPOUND)) {
+        if (tag == null || !tag.contains(MANA_POTION_FLUID_TAG, Tag.TAG_COMPOUND)) {
             return FluidStack.EMPTY;
         }
 

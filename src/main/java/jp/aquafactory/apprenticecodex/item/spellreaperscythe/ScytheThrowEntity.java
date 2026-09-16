@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.spellreaperscythe;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.nbt.CompoundTag;
@@ -11,6 +12,8 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
@@ -19,8 +22,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoEntity;
@@ -206,8 +211,8 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
                 PacketDistributor.sendToPlayersTrackingEntityAndSelf(this,
                         new ScytheRecallEffectPacket(position(), end, getTrailColor(), isNarrow(), getThrowYaw()));
                 level().playSound(null, end.x, end.y, end.z,
-                        jp.aquafactory.apprenticecodex.registry.SoundRegistry.VANILLA_SCYTHE_CATCH.get(),
-                        net.minecraft.sounds.SoundSource.PLAYERS, 0.65f, 1f);
+                        SoundRegistry.VANILLA_SCYTHE_CATCH.get(),
+                        SoundSource.PLAYERS, 0.65f, 1f);
             }
         } finally {
             discard();
@@ -216,8 +221,8 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
 
     private void playCatchSound(Vec3 end) {
         level().playSound(null, end.x, end.y, end.z,
-                jp.aquafactory.apprenticecodex.registry.SoundRegistry.VANILLA_SCYTHE_CATCH.get(),
-                net.minecraft.sounds.SoundSource.PLAYERS, 0.65f, 1f);
+                SoundRegistry.VANILLA_SCYTHE_CATCH.get(),
+                SoundSource.PLAYERS, 0.65f, 1f);
     }
 
     public static AABB attackBox(Vec3 position) {
@@ -252,8 +257,8 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
                 if (hit.getType() != HitResult.Type.MISS) continue;
             }
             contacts.add(target.getUUID());
-            if (net.neoforged.neoforge.event.EventHooks.onProjectileImpact(this,
-                    new net.minecraft.world.phys.EntityHitResult(raw, to))) continue;
+            if (EventHooks.onProjectileImpact(this,
+                    new EntityHitResult(raw, to))) continue;
             ScytheThrowDamage.hit(level, this, player, target, weapon, physical, magic, continuous);
         }
     }
@@ -262,7 +267,7 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
         var level = (ServerLevel) level();
         var box = narrowBox(from, getThrowYaw());
         var movement = to.subtract(from);
-        record Contact(net.minecraft.world.entity.Entity raw, double time) {}
+        record Contact(Entity raw, double time) {}
         var hits = new ArrayList<Contact>();
         for (var raw : level.getEntities(this, RaycastTools.movingHorizontalBoxBounds(box, movement),
                 e -> CombatTools.isValidCombatTarget(e, player))) {
@@ -283,8 +288,8 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
                         .getType() != HitResult.Type.MISS) continue;
             }
             contacts.add(target.getUUID());
-            if (net.neoforged.neoforge.event.EventHooks.onProjectileImpact(this,
-                    new net.minecraft.world.phys.EntityHitResult(raw, origin))) continue;
+            if (EventHooks.onProjectileImpact(this,
+                    new EntityHitResult(raw, origin))) continue;
             // 同tick内の候補全員へ当てず、最初の接触地点から帰還する。無敵時間は帰還条件を変えない。
             if (!returning) setPos(origin);
             if (!returning && isMaelstrom()) MalumSpellReaperScytheBridge.placeMaelstrom(this, target);

@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -28,6 +29,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -368,11 +370,11 @@ public class MagicSpearMissileEntity extends Projectile implements GeoEntity, An
 
         var start = position();
         var end = start.add(movement);
-        var blockHit = level().clip(new net.minecraft.world.level.ClipContext(
+        var blockHit = level().clip(new ClipContext(
                 start,
                 end,
-                net.minecraft.world.level.ClipContext.Block.COLLIDER,
-                net.minecraft.world.level.ClipContext.Fluid.NONE,
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE,
                 this
         ));
         var entitySearchEnd = blockHit.getType() == HitResult.Type.BLOCK ? blockHit.getLocation() : end;
@@ -558,7 +560,7 @@ public class MagicSpearMissileEntity extends Projectile implements GeoEntity, An
         return createBurnerParticle(ParticleRegistry.ADDITIVE_SPARK.get(), size);
     }
 
-    private static AdditiveGlowParticleOptions createBurnerParticle(net.minecraft.core.particles.ParticleType<AdditiveGlowParticleOptions> type,
+    private static AdditiveGlowParticleOptions createBurnerParticle(ParticleType<AdditiveGlowParticleOptions> type,
                                                                     float size) {
         return new AdditiveGlowParticleOptions(
                 type,

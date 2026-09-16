@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.mixin;
 
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.jei.ArcaneAnvilJeiRecipe;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
@@ -63,7 +64,7 @@ public abstract class ArcaneAnvilJeiRecipeMixin {
                 ISpellContainer.createScrollContainer(spell, level, scrollStack);
                 rightInputs.add(scrollStack);
 
-                outputs.add(spellImbueItem.createArcaneAnvilImbueResult(new ItemStack(leftItem), new io.redspace.ironsspellbooks.api.spells.SpellData(spell, level)));
+                outputs.add(spellImbueItem.createArcaneAnvilImbueResult(new ItemStack(leftItem), new SpellData(spell, level)));
             }
         }
 

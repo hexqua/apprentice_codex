@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.focusstaffbow;
 
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
@@ -12,6 +13,7 @@ import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
@@ -34,6 +36,7 @@ import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -389,7 +392,7 @@ public final class FocusStaffbow extends CastingItem
         if (cooldown != null && cooldown.getCooldownRemaining() > 0.0F) {
             return false;
         }
-        if (spell.getCastType() == io.redspace.ironsspellbooks.api.spells.CastType.CONTINUOUS
+        if (spell.getCastType() == CastType.CONTINUOUS
                 && !FocusStaffbowClientConfigState.continuousFocusedCastEnabled()) {
             return false;
         }
@@ -412,7 +415,7 @@ public final class FocusStaffbow extends CastingItem
     private static ItemAttributeModifiers buildMainhandModifiers() {
         var builder = ItemAttributeModifiers.builder();
         builder.add(
-                net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE,
+                Attributes.ATTACK_DAMAGE,
                 new AttributeModifier(
                         Item.BASE_ATTACK_DAMAGE_ID,
                         ATTACK_DAMAGE_BONUS,
@@ -421,7 +424,7 @@ public final class FocusStaffbow extends CastingItem
                 EquipmentSlotGroup.MAINHAND
         );
         builder.add(
-                net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED,
+                Attributes.ATTACK_SPEED,
                 new AttributeModifier(
                         Item.BASE_ATTACK_SPEED_ID,
                         ATTACK_SPEED_BONUS,
@@ -459,7 +462,7 @@ public final class FocusStaffbow extends CastingItem
                                 @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         if (!FocusStaffbowClientConfigState.arrowCatalystRequired()) {
             lines.add(Component.translatable(getDescriptionId() + ".require_arrow.disabled").withStyle(ChatFormatting.GRAY));
-        } else if (getEnchantmentLevel(stack, jp.aquafactory.apprenticecodex.enchantment.Enchantments.SYNTHESIS.location()) > 0) {
+        } else if (getEnchantmentLevel(stack, Enchantments.SYNTHESIS.location()) > 0) {
             lines.add(Component.translatable(getDescriptionId() + ".require_arrow.with_synthesis").withStyle(ChatFormatting.GRAY));
         } else {
             lines.add(Component.translatable(getDescriptionId() + ".require_arrow").withStyle(ChatFormatting.GRAY));

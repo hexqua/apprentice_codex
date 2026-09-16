@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.circuitheatstaff;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import net.minecraft.world.InteractionResult;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -21,7 +22,7 @@ public final class CircuitHeatStaffRightClickItemEvent {
         // 1.21.1 の ISS は CASTING_IMPLEMENT を RightClickItem で処理するため、
         // Circuit Heat Staff の cooldown bypass は Iron's より先に独自 use() を通す。
         var result = stack.getItem().use(event.getLevel(), event.getEntity(), event.getHand());
-        if (result.getResult() == net.minecraft.world.InteractionResult.PASS) {
+        if (result.getResult() == InteractionResult.PASS) {
             return;
         }
 

@@ -18,6 +18,7 @@ import jp.aquafactory.apprenticecodex.effect.NotchedFrozenEffect;
 import jp.aquafactory.apprenticecodex.effect.PaletteReception;
 import jp.aquafactory.apprenticecodex.effect.PenetratedArmor;
 import jp.aquafactory.apprenticecodex.effect.PhalanxStance;
+import jp.aquafactory.apprenticecodex.effect.SacredSign;
 import jp.aquafactory.apprenticecodex.effect.SenseSensor;
 import jp.aquafactory.apprenticecodex.effect.SpectralWingEffect;
 import jp.aquafactory.apprenticecodex.effect.ThermalProcessing;
@@ -78,7 +79,7 @@ public final class EffectRegistry {
             EFFECTS.register("blood_engraved", BloodEngravedEffect::new);
 
     public static final DeferredHolder<MobEffect, MobEffect> SACRED_SIGN =
-            EFFECTS.register("sacred_sign", jp.aquafactory.apprenticecodex.effect.SacredSign::new);
+            EFFECTS.register("sacred_sign", SacredSign::new);
 
     public static void register(IEventBus eventBus) {
         EFFECTS.register(eventBus);

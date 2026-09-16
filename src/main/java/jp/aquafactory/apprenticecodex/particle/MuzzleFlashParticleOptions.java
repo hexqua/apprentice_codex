@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.particle;
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
@@ -12,7 +13,7 @@ import net.minecraft.network.codec.StreamCodec;
 public record MuzzleFlashParticleOptions(float size) implements ParticleOptions {
     public static final MapCodec<MuzzleFlashParticleOptions> MAP_CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(
-                    com.mojang.serialization.Codec.floatRange(0.0f, 10.0f)
+                    Codec.floatRange(0.0f, 10.0f)
                             .fieldOf("size")
                             .forGetter(MuzzleFlashParticleOptions::size)
             ).apply(instance, MuzzleFlashParticleOptions::new)

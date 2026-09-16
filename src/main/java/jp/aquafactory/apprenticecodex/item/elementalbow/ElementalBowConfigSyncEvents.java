@@ -13,6 +13,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
@@ -48,7 +49,7 @@ public final class ElementalBowConfigSyncEvents {
     }
 
     @SubscribeEvent
-    public static void onDatapackSync(net.neoforged.neoforge.event.OnDatapackSyncEvent event) {
+    public static void onDatapackSync(OnDatapackSyncEvent event) {
         if (event.getPlayer() != null) syncToPlayer(event.getPlayer());
         else syncToAllPlayers();
     }

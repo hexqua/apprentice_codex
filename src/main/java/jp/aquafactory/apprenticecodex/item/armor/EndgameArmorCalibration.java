@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHint;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
@@ -14,6 +15,7 @@ import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -33,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /** エンドゲーム防具で共有する調整候補と、その効果の適用を一か所に保つ。 */
@@ -82,7 +85,7 @@ public final class EndgameArmorCalibration {
                     CalibrationAdjustmentHints.schoolRunes(),
                     CalibrationAdjustmentHints.schoolRuneConstraint()
             ).withEffectLines(() -> CalibrationAdjustmentEffects.addSpellPower(
-                    jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig
+                    ApprenticeCodexServerConfig
                             .magiAgentSuitSchoolSpellPowerBonus()
             )));
         }
@@ -346,7 +349,7 @@ public final class EndgameArmorCalibration {
         return containsAdjustment(armorStack, stack -> stack.is(ItemRegistry.SCROLLWOVEN_PARCHMENT.get()));
     }
 
-    private static boolean containsAdjustment(ItemStack armorStack, java.util.function.Predicate<ItemStack> matcher) {
+    private static boolean containsAdjustment(ItemStack armorStack, Predicate<ItemStack> matcher) {
         if (!(armorStack.getItem() instanceof SpellCalibrationAdjustmentTarget target)) {
             return false;
         }
@@ -402,7 +405,7 @@ public final class EndgameArmorCalibration {
 
     private static void add(
             ItemAttributeModifiers.Builder builder,
-            net.minecraft.core.Holder<Attribute> attribute,
+            Holder<Attribute> attribute,
             double amount,
             AttributeModifier.Operation operation,
             EquipmentSlotGroup slotGroup,

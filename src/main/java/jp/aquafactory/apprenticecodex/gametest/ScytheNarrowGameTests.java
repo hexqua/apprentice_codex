@@ -1,9 +1,11 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import io.netty.buffer.Unpooled;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowManager;
+import jp.aquafactory.apprenticecodex.mixin.LivingEntityDamageMemoryAccessor;
 import jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
@@ -11,16 +13,22 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.monster.Husk;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.event.entity.ProjectileImpactEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import top.theillusivec4.curios.api.CuriosApi;
+
+import java.util.function.Consumer;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -99,7 +107,7 @@ public final class ScytheNarrowGameTests {
         // 遠い敵を先に登録し、Entity列挙順に依存せず手前で折り返すことを確認する。
         var far = h.spawn(EntityType.HUSK, new BlockPos(2, 20, 6));
         var near = h.spawn(EntityType.HUSK, new BlockPos(2, 20, 5));
-        for (var target : new net.minecraft.world.entity.monster.Husk[]{far, near}) {
+        for (var target : new Husk[]{far, near}) {
             target.setNoAi(true); target.setNoGravity(true);
             target.getAttribute(Attributes.ARMOR).setBaseValue(0);
             target.getAttribute(Attributes.MAX_HEALTH).setBaseValue(100);
@@ -142,7 +150,7 @@ public final class ScytheNarrowGameTests {
     @GameTest(template = TEMPLATE)
     public static void narrowRecallPacketPreservesPose(GameTestHelper h) {
         var packet = new ScytheRecallEffectPacket(Vec3.ZERO, new Vec3(0, 32, 0), 0x123456, true, 45);
-        var buffer = new net.minecraft.network.RegistryFriendlyByteBuf(io.netty.buffer.Unpooled.buffer(), h.getLevel().registryAccess());
+        var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), h.getLevel().registryAccess());
         try {
             ScytheRecallEffectPacket.STREAM_CODEC.encode(buffer, packet);
             h.assertTrue(ScytheRecallEffectPacket.STREAM_CODEC.decode(buffer).equals(packet), "Recall packet must preserve vertical mode and yaw");
@@ -160,10 +168,10 @@ public final class ScytheNarrowGameTests {
         var target = h.spawn(EntityType.HUSK, new BlockPos(2, 20, 5));
         target.setNoAi(true); target.setNoGravity(true);
         target.getAttribute(Attributes.ARMOR).setBaseValue(0);
-        java.util.function.Consumer<net.neoforged.neoforge.event.entity.ProjectileImpactEvent> listener = event -> {
+        Consumer<ProjectileImpactEvent> listener = event -> {
             if (event.getProjectile() instanceof ScytheThrowEntity scythe && scythe.getOwner() == p) event.setCanceled(true);
         };
-        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(listener);
+        NeoForge.EVENT_BUS.addListener(listener);
         try {
             ScytheReboundGameTests.use(h, p);
             var entity = ScytheThrowManager.active(p);
@@ -172,9 +180,9 @@ public final class ScytheNarrowGameTests {
                 h.assertFalse(entity.isRemoved(), "Canceled impact must not trigger Narrow recall");
                 h.assertTrue(target.getHealth() == target.getMaxHealth(), "Canceled impact must not deal damage");
             } finally { entity.discard(); }
-        } finally { net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(listener); }
+        } finally { NeoForge.EVENT_BUS.unregister(listener); }
         target.invulnerableTime = 20;
-        ((jp.aquafactory.apprenticecodex.mixin.LivingEntityDamageMemoryAccessor) target).apprenticecodex$setLastHurt(100);
+        ((LivingEntityDamageMemoryAccessor) target).apprenticecodex$setLastHurt(100);
         ScytheReboundGameTests.use(h, p);
         var entity = ScytheThrowManager.active(p);
         try {

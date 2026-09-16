@@ -9,6 +9,8 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.recipe.alchemybrewer.AlchemyBrewerRecipe;
 import jp.aquafactory.apprenticecodex.recipe.alchemybrewer.AlchemyBrewerModifierRecipe;
+import jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe;
+import jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
@@ -22,6 +24,7 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.recipe.vanilla.IJeiBrewingRecipe;
+import mezz.jei.api.recipe.vanilla.IVanillaRecipeFactory;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
@@ -42,6 +45,7 @@ import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -96,11 +100,11 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
     @Override
     public void registerVanillaCategoryExtensions(IVanillaCategoryExtensionRegistration registration) {
         registration.getSmithingCategory().addExtension(
-                jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe.class,
+                SpellbookCarryoverSmithingRecipe.class,
                 new SpellbookCarryoverSmithingJeiExtension()
         );
         registration.getSmithingCategory().addExtension(
-                jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe.class,
+                AlchemistsFlaskSmithingRecipe.class,
                 new AlchemistsFlaskSmithingJeiExtension()
         );
     }
@@ -294,13 +298,13 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         registration.addRecipes(
                 ApprenticeCodexJeiRecipeTypes.GRIND_RUNNER,
                 recipeManager.getAllRecipesFor(RecipeRegistry.GRIND_RUNNER_RECIPE_TYPE.get()).stream()
-                        .map(net.minecraft.world.item.crafting.RecipeHolder::value)
+                        .map(RecipeHolder::value)
                         .toList()
         );
         registration.addRecipes(
                 ApprenticeCodexJeiRecipeTypes.ESSENCE_SMOKER,
                 recipeManager.getAllRecipesFor(RecipeRegistry.ESSENCE_SMOKER_RECIPE_TYPE.get()).stream()
-                        .map(net.minecraft.world.item.crafting.RecipeHolder::value)
+                        .map(RecipeHolder::value)
                         .toList()
         );
         registration.addRecipes(
@@ -313,9 +317,9 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         );
         registration.addRecipes(
                 RecipeTypes.SMITHING,
-                recipeManager.getAllRecipesFor(net.minecraft.world.item.crafting.RecipeType.SMITHING).stream()
-                        .filter(recipe -> recipe.value() instanceof jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe
-                                || recipe.value() instanceof jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe)
+                recipeManager.getAllRecipesFor(RecipeType.SMITHING).stream()
+                        .filter(recipe -> recipe.value() instanceof SpellbookCarryoverSmithingRecipe
+                                || recipe.value() instanceof AlchemistsFlaskSmithingRecipe)
                         .toList()
         );
     }
@@ -663,7 +667,7 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
 
     private static void addBrewingRecipe(
             List<IJeiBrewingRecipe> recipes,
-            mezz.jei.api.recipe.vanilla.IVanillaRecipeFactory vanillaRecipeFactory,
+            IVanillaRecipeFactory vanillaRecipeFactory,
             Item catalyst,
             ItemStack input,
             ItemStack output,

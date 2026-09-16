@@ -1,9 +1,12 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastResult;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -47,11 +50,14 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -71,7 +77,7 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
             helper.assertTrue(spellContainer != null, "Copper Swingcast Staff spell container is null");
 
             var spellData = spellContainer.getSpellAtIndex(0);
-            helper.assertTrue(spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
+            helper.assertTrue(spellData != SpellData.EMPTY,
                     "Copper Swingcast Staff has no preset spell");
             helper.assertTrue(spellData.getSpell() == io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(),
                     "Copper Swingcast Staff preset spell mismatch: " + spellData.getSpell().getSpellResource());
@@ -119,7 +125,7 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
                     "Crystal Bladed Staff miss swing should cast Mana Slash but got " + magicData.getCastingSpellId());
             helper.assertTrue(ItemStack.isSameItemSameComponents(magicData.getPlayerCastingItem(), stack),
                     "Crystal Bladed Staff miss swing should cast with the staff stack");
-            helper.assertTrue(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND.equals(magicData.getCastingEquipmentSlot()),
+            helper.assertTrue(SpellSelectionManager.MAINHAND.equals(magicData.getCastingEquipmentSlot()),
                     "Crystal Bladed Staff miss swing should mark the mainhand casting slot");
             helper.succeed();
         });
@@ -253,7 +259,7 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
             helper.assertTrue(mainSpell.getSpellId().equals(magicData.getCastingSpellId()),
                     "Crystal Bladed Staff mainhand pending trigger should cast first but got "
                             + magicData.getCastingSpellId());
-            helper.assertTrue(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND.equals(
+            helper.assertTrue(SpellSelectionManager.MAINHAND.equals(
                             magicData.getCastingEquipmentSlot()),
                     "Crystal Bladed Staff mainhand pending trigger should mark the mainhand casting slot");
             helper.succeed();
@@ -283,7 +289,7 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
             helper.assertTrue(SpellRegistry.MANA_SLASH.get().getSpellId().equals(magicData.getCastingSpellId()),
                     "Mainhand hit should not suppress offhand Crystal Bladed Staff miss cast but got "
                             + magicData.getCastingSpellId());
-            helper.assertTrue(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND.equals(
+            helper.assertTrue(SpellSelectionManager.OFFHAND.equals(
                             magicData.getCastingEquipmentSlot()),
                     "Offhand Crystal Bladed Staff miss cast should mark the offhand casting slot");
             helper.succeed();
@@ -848,7 +854,7 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
         });
     }
 
-    private static void tickUntilAttackIsFullyCharged(net.neoforged.neoforge.common.util.FakePlayer player) {
+    private static void tickUntilAttackIsFullyCharged(FakePlayer player) {
         for (var tick = 0;
              tick < 40 && !AbstractRightClickMagicWeaponItem.isFullyChargedAttack(player);
              tick++) {
@@ -1109,7 +1115,7 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
 
     private static ItemStack createImbuedSwingcastStack(
             AbstractSwingcastStaffItem item,
-            io.redspace.ironsspellbooks.api.spells.AbstractSpell spell
+            AbstractSpell spell
     ) {
         var stack = new ItemStack(item);
         var mutable = ISpellContainer.create(1, true, false).mutableCopy();
@@ -1131,7 +1137,7 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
 
     private static void assertTooltipKeyAt(
             GameTestHelper helper,
-            java.util.List<Component> lines,
+            List<Component> lines,
             int index,
             String expectedKey,
             String message
@@ -1158,11 +1164,11 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
         var args = contents.getArgs();
         helper.assertTrue(
                 args.length == 1 && expectedArgument.equals(args[0]),
-                message + " (expected=" + expectedArgument + ", actual=" + java.util.Arrays.toString(args) + ")"
+                message + " (expected=" + expectedArgument + ", actual=" + Arrays.toString(args) + ")"
         );
     }
 
-    private static boolean containsTooltipKey(java.util.List<Component> lines, String expectedKey) {
+    private static boolean containsTooltipKey(List<Component> lines, String expectedKey) {
         return lines.stream().anyMatch(line ->
                 line.getContents() instanceof TranslatableContents contents
                         && expectedKey.equals(contents.getKey())
@@ -1170,7 +1176,7 @@ final class SwingcastStaffGameTestScenarios extends ApprenticeCodexGameTestScena
     }
 
     private static ItemStack createLegacyCrystalBladedStaffContainer(
-            io.redspace.ironsspellbooks.api.spells.AbstractSpell spell,
+            AbstractSpell spell,
             int spellLevel,
             boolean locked
     ) {

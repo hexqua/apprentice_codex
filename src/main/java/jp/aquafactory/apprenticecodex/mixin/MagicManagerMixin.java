@@ -2,11 +2,13 @@ package jp.aquafactory.apprenticecodex.mixin;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowPendingCast;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookCastEvents;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshieldRuntime;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime;
@@ -27,7 +29,7 @@ public abstract class MagicManagerMixin {
     )
     private boolean apprentice_codex$skipManagedContinuousInMagicManager(MagicData magicData) {
         return magicData.getSyncedData().isCasting()
-                && !jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowPendingCast.shouldBypassMagicManager(magicData)
+                && !ElementalBowPendingCast.shouldBypassMagicManager(magicData)
                 && !FocusStaffbowCastManager.shouldBypassMagicManager(magicData)
                 && !BulwarkGreatshieldRuntime.shouldBypassMagicManager(magicData)
                 && !ReflectcastShieldRuntime.shouldBypassMagicManager(magicData);
@@ -65,7 +67,7 @@ public abstract class MagicManagerMixin {
             AbstractSpell spell,
             Level level,
             int spellLevel,
-            net.minecraft.world.entity.LivingEntity caster,
+            LivingEntity caster,
             MagicData magicData
     ) {
         ChargecastCatalystbookCastEvents.tickSpellUnlessChargecast(

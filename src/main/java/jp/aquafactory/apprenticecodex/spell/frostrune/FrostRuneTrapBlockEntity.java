@@ -15,6 +15,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -311,7 +312,7 @@ public class FrostRuneTrapBlockEntity extends BlockEntity implements GeoBlockEnt
             if (damaged && target instanceof LivingEntity livingTarget) {
                 livingTarget.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, SLOW_DURATION_TICKS, SLOW_AMPLIFIER, false, true, true));
                 livingTarget.addEffect(new MobEffectInstance(
-                        net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.FROST_TRAPPED.get()),
+                        BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.FROST_TRAPPED.get()),
                         FROST_TRAPPED_DURATION_TICKS,
                         0,
                         false,

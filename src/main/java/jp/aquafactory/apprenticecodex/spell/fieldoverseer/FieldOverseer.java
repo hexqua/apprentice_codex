@@ -27,6 +27,7 @@ import jp.aquafactory.apprenticecodex.spell.PlacementHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -246,8 +247,8 @@ public class FieldOverseer extends AbstractSpell implements IClientBlockTargetin
         }
         var targetData = new BlockTargetData();
         var hitPos = castData.position.below();
-        targetData.setTarget(hitPos, net.minecraft.core.Direction.UP, castData.position.getCenter(),
-                castData.position, net.minecraft.core.Direction.DOWN);
+        targetData.setTarget(hitPos, Direction.UP, castData.position.getCenter(),
+                castData.position, Direction.DOWN);
         return PlacementHelper.resolve(level, targetData, FieldOverseerStaffEntity::makePlacementAabb);
     }
 

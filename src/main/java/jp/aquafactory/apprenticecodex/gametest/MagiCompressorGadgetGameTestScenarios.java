@@ -11,8 +11,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -213,7 +215,7 @@ final class MagiCompressorGadgetGameTestScenarios extends ApprenticeCodexGameTes
             helper.assertFalse(stack.getItem().isBookEnchantable(stack, book),
                     "Magi-Compressor Gadget should reject enchanted books");
 
-            var capacity = enchantmentLookup.get(net.minecraft.resources.ResourceKey.create(
+            var capacity = enchantmentLookup.get(ResourceKey.create(
                     Registries.ENCHANTMENT,
                     ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "capacity")
             )).orElse(null);
@@ -235,11 +237,11 @@ final class MagiCompressorGadgetGameTestScenarios extends ApprenticeCodexGameTes
         return player;
     }
 
-    private static List<ItemStack> getCreateBacktanksWithAir(net.minecraft.world.entity.LivingEntity entity) {
+    private static List<ItemStack> getCreateBacktanksWithAir(LivingEntity entity) {
         try {
             var backtankUtilClass = Class.forName(CREATE_BACKTANK_UTIL_CLASS);
             var result = backtankUtilClass
-                    .getMethod("getAllWithAir", net.minecraft.world.entity.LivingEntity.class)
+                    .getMethod("getAllWithAir", LivingEntity.class)
                     .invoke(null, entity);
             if (!(result instanceof List<?> rawStacks)) {
                 return List.of();

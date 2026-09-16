@@ -16,6 +16,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.common.inventory.CurioSlot;
 
@@ -88,7 +89,7 @@ public final class SpellcasterAccessoryCaseScreen extends AbstractContainerScree
 
             var tooltip = new ArrayList<>(curioSlot.getSlotExtension().getSlotTooltip(
                     curioSlot.getSlotContext(),
-                    net.minecraft.world.item.TooltipFlag.NORMAL
+                    TooltipFlag.NORMAL
             ));
             if (tooltip.isEmpty()) {
                 tooltip.add(Component.literal(curioSlot.getSlotName()));

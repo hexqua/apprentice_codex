@@ -13,6 +13,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class SyncFocusStaffbowConfigPacket implements CustomPacketPayload {
@@ -60,7 +61,7 @@ public final class SyncFocusStaffbowConfigPacket implements CustomPacketPayload 
         var continuousFocusedCastEnabled = buffer.readBoolean();
         var arrowCatalystRequired = buffer.readBoolean();
         var arrowCatalystItemCount = buffer.readVarInt();
-        var arrowCatalystItemIds = new java.util.ArrayList<ResourceLocation>(arrowCatalystItemCount);
+        var arrowCatalystItemIds = new ArrayList<ResourceLocation>(arrowCatalystItemCount);
         for (var index = 0; index < arrowCatalystItemCount; ++index) {
             arrowCatalystItemIds.add(buffer.readResourceLocation());
         }

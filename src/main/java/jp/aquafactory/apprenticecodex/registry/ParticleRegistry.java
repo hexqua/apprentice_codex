@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.registry;
 
+import com.mojang.serialization.MapCodec;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.particle.ImpactTremorBlockParticleOptions;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticleOptions;
@@ -23,7 +24,7 @@ public final class ParticleRegistry {
     public static final DeferredHolder<ParticleType<?>, ParticleType<AdditiveGlowParticleOptions>> ADDITIVE_CIRCLE =
             PARTICLES.register("additive_circle", () -> new ParticleType<>(false) {
                 @Override
-                public com.mojang.serialization.@NotNull MapCodec<AdditiveGlowParticleOptions> codec() {
+                public @NotNull MapCodec<AdditiveGlowParticleOptions> codec() {
                     return AdditiveGlowParticleOptions.mapCodec(this);
                 }
 
@@ -36,7 +37,7 @@ public final class ParticleRegistry {
     public static final DeferredHolder<ParticleType<?>, ParticleType<AdditiveGlowParticleOptions>> ADDITIVE_RHOMBUS =
             PARTICLES.register("additive_rhombus", () -> new ParticleType<>(false) {
                 @Override
-                public com.mojang.serialization.@NotNull MapCodec<AdditiveGlowParticleOptions> codec() {
+                public @NotNull MapCodec<AdditiveGlowParticleOptions> codec() {
                     return AdditiveGlowParticleOptions.mapCodec(this);
                 }
 
@@ -49,7 +50,7 @@ public final class ParticleRegistry {
     public static final DeferredHolder<ParticleType<?>, ParticleType<AdditiveGlowParticleOptions>> ADDITIVE_SPARK =
             PARTICLES.register("additive_spark", () -> new ParticleType<>(false) {
                 @Override
-                public com.mojang.serialization.@NotNull MapCodec<AdditiveGlowParticleOptions> codec() {
+                public @NotNull MapCodec<AdditiveGlowParticleOptions> codec() {
                     return AdditiveGlowParticleOptions.mapCodec(this);
                 }
 
@@ -62,7 +63,7 @@ public final class ParticleRegistry {
     public static final DeferredHolder<ParticleType<?>, ParticleType<MuzzleFlashParticleOptions>> MUZZLE_FLASH =
             PARTICLES.register("muzzle_flash", () -> new ParticleType<>(false) {
                 @Override
-                public com.mojang.serialization.@NotNull MapCodec<MuzzleFlashParticleOptions> codec() {
+                public @NotNull MapCodec<MuzzleFlashParticleOptions> codec() {
                     return MuzzleFlashParticleOptions.MAP_CODEC;
                 }
 
@@ -75,7 +76,7 @@ public final class ParticleRegistry {
     public static final DeferredHolder<ParticleType<?>, ParticleType<ImpactTremorBlockParticleOptions>> IMPACT_TREMOR_BLOCK =
             PARTICLES.register("impact_tremor_block", () -> new ParticleType<>(true) {
                 @Override
-                public com.mojang.serialization.@NotNull MapCodec<ImpactTremorBlockParticleOptions> codec() {
+                public @NotNull MapCodec<ImpactTremorBlockParticleOptions> codec() {
                     return ImpactTremorBlockParticleOptions.mapCodec(this);
                 }
 
@@ -88,7 +89,7 @@ public final class ParticleRegistry {
     public static final DeferredHolder<ParticleType<?>, ParticleType<SmashcastDustPillarParticleOptions>> SMASHCAST_DUST_PILLAR =
             PARTICLES.register("smashcast_dust_pillar", () -> new ParticleType<>(true) {
                 @Override
-                public com.mojang.serialization.@NotNull MapCodec<SmashcastDustPillarParticleOptions> codec() {
+                public @NotNull MapCodec<SmashcastDustPillarParticleOptions> codec() {
                     return SmashcastDustPillarParticleOptions.mapCodec(this);
                 }
 

@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
+import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import io.redspace.ironsspellbooks.util.ParticleHelper;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
@@ -189,7 +190,7 @@ public final class SacredArrowEntity extends Projectile implements AntiMagicSusc
     private void impact(Vec3 point) {
         MagicManager.spawnParticles(level(), ParticleHelper.WISP, point.x, point.y, point.z, 25, 0, 0, 0, .18, true);
         level().playSound(null, point.x, point.y, point.z,
-                io.redspace.ironsspellbooks.registries.SoundRegistry.GUIDING_BOLT_IMPACT.value(), SoundSource.NEUTRAL, 2, 0.9f + random.nextFloat() * .4f);
+                SoundRegistry.GUIDING_BOLT_IMPACT.value(), SoundSource.NEUTRAL, 2, 0.9f + random.nextFloat() * .4f);
     }
 
     @Override protected boolean canHitEntity(@NotNull Entity entity) {

@@ -48,7 +48,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 public abstract class AbstractPotionFlaskItem extends Item {
@@ -439,8 +441,8 @@ public abstract class AbstractPotionFlaskItem extends Item {
         thrownPotion.set(
                 DataComponents.POTION_CONTENTS,
                 new PotionContents(
-                        java.util.Optional.of(Potions.WATER),
-                        java.util.Optional.of(getStoredItemTintColor(normalizedStoredItem) & 0x00FFFFFF),
+                        Optional.of(Potions.WATER),
+                        Optional.of(getStoredItemTintColor(normalizedStoredItem) & 0x00FFFFFF),
                         scaledEffects
                 )
         );
@@ -1120,7 +1122,7 @@ public abstract class AbstractPotionFlaskItem extends Item {
         return tag.contains(STORAGE_TAG, Tag.TAG_COMPOUND) ? tag.getCompound(STORAGE_TAG) : null;
     }
 
-    private static void updateStorageTag(ItemStack flaskStack, java.util.function.Consumer<CompoundTag> updater) {
+    private static void updateStorageTag(ItemStack flaskStack, Consumer<CompoundTag> updater) {
         CustomData.update(DataComponents.CUSTOM_DATA, flaskStack, tag -> {
             var storageTag = tag.contains(STORAGE_TAG, Tag.TAG_COMPOUND)
                     ? tag.getCompound(STORAGE_TAG).copy()

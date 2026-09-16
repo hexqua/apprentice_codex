@@ -6,10 +6,12 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -20,8 +22,10 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -144,8 +148,8 @@ public final class ScytheThrowManager {
         mark(stack, entity.getUUID());
         pay(player, cost);
         level.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-                jp.aquafactory.apprenticecodex.registry.SoundRegistry.SCYTHE_THROW.get(),
-                net.minecraft.sounds.SoundSource.PLAYERS, 0.8f, 1f);
+                SoundRegistry.SCYTHE_THROW.get(),
+                SoundSource.PLAYERS, 0.8f, 1f);
     }
 
     public static boolean canPay(Player player, int cost) {
@@ -158,7 +162,7 @@ public final class ScytheThrowManager {
         if (cost == 0 || player.getAbilities().instabuild) return;
         var data = MagicData.getPlayerMagicData(player);
         data.setMana(Math.max(0, data.getMana() - cost));
-        if (player instanceof ServerPlayer server && !(server instanceof net.neoforged.neoforge.common.util.FakePlayer)) {
+        if (player instanceof ServerPlayer server && !(server instanceof FakePlayer)) {
             PacketDistributor.sendToPlayer(server, new SyncManaPacket(data));
         }
     }
@@ -214,7 +218,7 @@ public final class ScytheThrowManager {
     @SubscribeEvent public static void logout(PlayerEvent.PlayerLoggedOutEvent event) { abort(event.getEntity()); }
     @SubscribeEvent public static void dimension(PlayerEvent.PlayerChangedDimensionEvent event) { abort(event.getEntity()); }
     @SubscribeEvent public static void clone(PlayerEvent.Clone event) { abort(event.getOriginal()); }
-    @SubscribeEvent public static void stopped(net.neoforged.neoforge.event.server.ServerStoppedEvent event) {
+    @SubscribeEvent public static void stopped(ServerStoppedEvent event) {
         ACTIVE.clear();
         CHARGES.clear();
     }

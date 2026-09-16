@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.elementalbow;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
@@ -17,10 +18,13 @@ import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQ
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverBowAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager.ResolvedDefinition;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
+import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -49,8 +53,11 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -165,11 +172,11 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
     }
 
     public static HolderLookup.Provider serializationLookup() {
-        return net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer() != null
-                ? net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer().registryAccess()
-                : net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT
+        return ServerLifecycleHooks.getCurrentServer() != null
+                ? ServerLifecycleHooks.getCurrentServer().registryAccess()
+                : FMLEnvironment.dist == Dist.CLIENT
                 ? ElementalBowClientTooltip.lookup()
-                : net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
+                : RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     }
 
     @Override
@@ -178,10 +185,10 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
     @Override
     public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack stack) {
         return CalibrationAdjustmentProfile.of(CalibrationAdjustmentRule.repeatable("scroll_slot",
-                candidate -> candidate.is(jp.aquafactory.apprenticecodex.registry.TagRegistry.Items.SCROLLCASTER_GAUNTLET_SLOT_UPGRADES),
+                candidate -> candidate.is(TagRegistry.Items.SCROLLCASTER_GAUNTLET_SLOT_UPGRADES),
                 CalibrationAdjustmentHints.slotUpgrades()).withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(1)),
                 CalibrationAdjustmentRule.unique("school_rune",
-                        jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver::isSchoolRune,
+                        ScrollcasterSchoolRuneResolver::isSchoolRune,
                         CalibrationAdjustmentHints.schoolRunes(), CalibrationAdjustmentHints.schoolRuneConstraint())
                         .withEffectLines(() -> CalibrationAdjustmentEffects.forceSpellSchool(
                                 ElementalBowRunes.configuredManaMultiplier(true))),
@@ -379,7 +386,7 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
                     "item.apprenticecodex.spellgun.tooltip.restrict_title",
                     "item.apprenticecodex.spellgun.tooltip.restrict_none");
         }
-        if (net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT) {
+        if (FMLEnvironment.dist == Dist.CLIENT) {
             ElementalBowClientTooltip.append(stack, lines);
         }
     }
@@ -488,7 +495,7 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
             displayOverheatManaWarning(player, stack, mode);
         }
         if (player instanceof ServerPlayer serverPlayer
-                && profile.spell().getCastType() == io.redspace.ironsspellbooks.api.spells.CastType.LONG) {
+                && profile.spell().getCastType() == CastType.LONG) {
             return ElementalBowPendingCast.begin(serverPlayer, stack, usedHand, profile.spell(), profile.spellLevel(),
                     mode.resolveRequiredDrawTicks()) ? InteractionResultHolder.consume(stack) : InteractionResultHolder.fail(stack);
         }
@@ -608,7 +615,7 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
 
         var profile = createSpellCastProfile(stack, mode);
 
-        if (profile.spell().getCastType() == io.redspace.ironsspellbooks.api.spells.CastType.LONG
+        if (profile.spell().getCastType() == CastType.LONG
                 && !ElementalBowPendingCast.ready((ServerPlayer) player, stack, drawDuration)) return;
 
         if (!player.getAbilities().instabuild) {
@@ -668,7 +675,7 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
     }
 
     private boolean castElementalSpell(Player player, ItemStack stack, SpellCastProfile profile, int drawDuration) {
-        if (profile.spell().getCastType() == io.redspace.ironsspellbooks.api.spells.CastType.LONG) {
+        if (profile.spell().getCastType() == CastType.LONG) {
             // 使用時間は server の releaseUsing 引数を使い、ArrowLoose による補正も従来どおり反映する。
             return ElementalBowPendingCast.release((ServerPlayer) player, stack, profile.spell(), profile.spellLevel(), drawDuration);
         }

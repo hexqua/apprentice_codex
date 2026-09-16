@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.item.spellchargedgreatsword.SpellchargedGr
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -91,7 +92,7 @@ public final class MagicItemAttributeEvent {
         );
     }
 
-    private static void replaceModifiers(ItemAttributeModifierEvent event, net.minecraft.world.item.component.ItemAttributeModifiers modifiers) {
+    private static void replaceModifiers(ItemAttributeModifierEvent event, ItemAttributeModifiers modifiers) {
         event.clearModifiers();
         for (var entry : modifiers.modifiers()) {
             event.addModifier(entry.attribute(), entry.modifier(), entry.slot());

@@ -2,9 +2,12 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
+import io.redspace.ironsspellbooks.compat.Curios;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -23,7 +26,9 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import top.theillusivec4.curios.api.CuriosApi;
 
+import java.util.List;
 import java.util.UUID;
 
 @GameTestHolder(ApprenticeCodex.MODID)
@@ -197,7 +202,7 @@ public final class ApprenticeCodexServantGazeGameTests {
         // 構造端では従者の杖が未追跡の隣 chunk へ出るため、召喚位置も構造内に収まる中央へ置く。
         var position = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(2, 2, 2)));
         player.setPos(position.x, position.y, position.z);
-        var manaRegen = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN);
+        var manaRegen = player.getAttribute(AttributeRegistry.MANA_REGEN);
         if (manaRegen != null) manaRegen.setBaseValue(0.0D);
         helper.getLevel().addFreshEntity(player);
         return player;
@@ -215,17 +220,17 @@ public final class ApprenticeCodexServantGazeGameTests {
         return zombie;
     }
 
-    private static java.util.List<ServantGazeStaffEntity> findStaffs(GameTestHelper helper, FakePlayer player) {
+    private static List<ServantGazeStaffEntity> findStaffs(GameTestHelper helper, FakePlayer player) {
         return helper.getLevel().getEntitiesOfClass(ServantGazeStaffEntity.class,
                 new AABB(player.position(), player.position()).inflate(32.0),
                 staff -> staff.getOwner() != null && player.getUUID().equals(staff.getOwner().getUUID()));
     }
 
     private static void equipGreaterConjurersTalisman(FakePlayer player) {
-        var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+        var curiosInventory = CuriosApi.getCuriosInventory(player)
                 .orElseThrow(() -> new IllegalStateException("Missing curios inventory for Servant Gaze talisman test"));
-        curiosInventory.setEquippedCurio(io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, 0,
-                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.GREATER_CONJURERS_TALISMAN.get()));
+        curiosInventory.setEquippedCurio(Curios.NECKLACE_SLOT, 0,
+                new ItemStack(ItemRegistry.GREATER_CONJURERS_TALISMAN.get()));
     }
 
     private static ServantGaze servantGaze() {

@@ -7,11 +7,13 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
+import java.util.List;
+
 public final class ApprenticeCodexCommonConfig {
     public static final ModConfigSpec SPEC;
 
-    private static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> SCHOOL_AFFINITY_PRIORITY;
-    private static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> SCHOOL_AFFINITY_DENY;
+    private static final ModConfigSpec.ConfigValue<List<? extends String>> SCHOOL_AFFINITY_PRIORITY;
+    private static final ModConfigSpec.ConfigValue<List<? extends String>> SCHOOL_AFFINITY_DENY;
     private static final ModConfigSpec.BooleanValue ENABLE_IRONS_SPELLBOOKS_SCHOOL_SPELL_CACHE_HOTFIX;
 
     static {
@@ -21,9 +23,9 @@ public final class ApprenticeCodexCommonConfig {
                         "If non-empty files exist under \"data/" + ApprenticeCodex.MODID + "/school_affinity_policies/*.json\", those files take precedence."
                 )
                 .push("SchoolAffinity");
-        SCHOOL_AFFINITY_PRIORITY = builder.defineListAllowEmpty("schoolAffinityPriority", java.util.List.of(),
+        SCHOOL_AFFINITY_PRIORITY = builder.defineListAllowEmpty("schoolAffinityPriority", List.of(),
                 value -> value instanceof String text && !text.isBlank());
-        SCHOOL_AFFINITY_DENY = builder.defineListAllowEmpty("schoolAffinityDeny", java.util.List.of(),
+        SCHOOL_AFFINITY_DENY = builder.defineListAllowEmpty("schoolAffinityDeny", List.of(),
                 value -> value instanceof String text && !text.isBlank());
         builder.pop();
         builder.comment("For those who know.")
@@ -42,13 +44,13 @@ public final class ApprenticeCodexCommonConfig {
         modEventBus.addListener(ApprenticeCodexCommonConfig::onConfigReloading);
     }
 
-    public static java.util.List<String> schoolAffinityPriority() {
+    public static List<String> schoolAffinityPriority() {
         return SCHOOL_AFFINITY_PRIORITY.get().stream()
                 .map(String::valueOf)
                 .toList();
     }
 
-    public static java.util.List<String> schoolAffinityDeny() {
+    public static List<String> schoolAffinityDeny() {
         return SCHOOL_AFFINITY_DENY.get().stream()
                 .map(String::valueOf)
                 .toList();

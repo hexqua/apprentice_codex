@@ -23,6 +23,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -178,7 +180,7 @@ public class SupportedIceTombGameTests extends ApprenticeCodexGameTestScenarios 
         helper.getLevel().addFreshEntity(blocked);
         for (int x = 0; x <= 4; x++) {
             for (int y = 9; y <= 14; y++) {
-                helper.setBlock(new BlockPos(x, y, 3), net.minecraft.world.level.block.Blocks.STONE);
+                helper.setBlock(new BlockPos(x, y, 3), Blocks.STONE);
             }
         }
         var scoreboard = helper.getLevel().getScoreboard();
@@ -210,7 +212,7 @@ public class SupportedIceTombGameTests extends ApprenticeCodexGameTestScenarios 
     }
 
     private static IceTombEntity cast(GameTestHelper helper, ServerPlayer player, int level) {
-        player.setPos(helper.absoluteVec(new net.minecraft.world.phys.Vec3(2, 10, 2)));
+        player.setPos(helper.absoluteVec(new Vec3(2, 10, 2)));
         SpellRegistry.ICE_TOMB_SPELL.get().onCast(helper.getLevel(), level, player,
                 CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
         helper.assertTrue(player.getVehicle() instanceof IceTombEntity, "Ice Tomb must mount caster");

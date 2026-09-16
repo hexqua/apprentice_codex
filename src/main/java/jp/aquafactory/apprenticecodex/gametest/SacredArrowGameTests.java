@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
+import io.redspace.ironsspellbooks.util.ModTags;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.*;
 import jp.aquafactory.apprenticecodex.spell.sacredarrow.*;
@@ -192,7 +193,7 @@ public final class SacredArrowGameTests {
                     arrow.discard();
                 }
             } finally { h.getLevel().setBlockAndUpdate(block, previous); }
-            h.assertTrue(EntityRegistry.SACRED_ARROW.get().is(io.redspace.ironsspellbooks.util.ModTags.GUIDING_BOLT_IMMUNE), "Both arrow modes must be immune to Guided steering");
+            h.assertTrue(EntityRegistry.SACRED_ARROW.get().is(ModTags.GUIDING_BOLT_IMMUNE), "Both arrow modes must be immune to Guided steering");
             target.addEffect(new MobEffectInstance(EffectRegistry.SACRED_SIGN, 300));
             h.assertTrue(target.isCurrentlyGlowing(), "Sacred Sign must enable glowing");
             target.addEffect(new MobEffectInstance(MobEffects.GLOWING, 300));

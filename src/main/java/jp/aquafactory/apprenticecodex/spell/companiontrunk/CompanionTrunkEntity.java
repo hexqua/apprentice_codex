@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.companiontrunk;
 
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
+import jp.aquafactory.apprenticecodex.capability.companiontrunkinventory.CompanionTrunkInventory;
 import jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm.MonarchBondHealingTarget;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
@@ -24,6 +25,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.Container;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -600,7 +602,7 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
         return chestState.canSurvive(level, pos);
     }
 
-    private net.minecraft.world.level.block.state.BlockState buildDeathChestState(ServerLevel level, BlockPos pos) {
+    private BlockState buildDeathChestState(ServerLevel level, BlockPos pos) {
         var state = Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, getDirection().getOpposite());
         if (state.hasProperty(BlockStateProperties.WATERLOGGED)) {
             state = state.setValue(BlockStateProperties.WATERLOGGED, level.getFluidState(pos).is(FluidTags.WATER));
@@ -659,7 +661,7 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
         return storage == null ? null : storage.getHandler();
     }
 
-    private @Nullable jp.aquafactory.apprenticecodex.capability.companiontrunkinventory.CompanionTrunkInventory getStorage() {
+    private @Nullable CompanionTrunkInventory getStorage() {
         var owner = getOwner();
         return owner == null ? null : Capabilities.getCompanionTrunkInventoryOrNull(owner);
     }
@@ -707,10 +709,10 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
     public boolean hurt(@NotNull DamageSource source, float amount) {
         if (isOwnerDamageSource(source)
                 || source.is(DamageTypeTags.IS_FIRE)
-                || source.is(net.minecraft.world.damagesource.DamageTypes.IN_WALL)
-                || source.is(net.minecraft.world.damagesource.DamageTypes.DROWN)
-                || source.is(net.minecraft.world.damagesource.DamageTypes.FALL)
-                || source.is(net.minecraft.world.damagesource.DamageTypes.FELL_OUT_OF_WORLD)) {
+                || source.is(DamageTypes.IN_WALL)
+                || source.is(DamageTypes.DROWN)
+                || source.is(DamageTypes.FALL)
+                || source.is(DamageTypes.FELL_OUT_OF_WORLD)) {
             return false;
         }
         return super.hurt(source, amount);
@@ -794,7 +796,7 @@ public class CompanionTrunkEntity extends PathfinderMob implements GeoEntity, Co
 
     @Override
     public int getContainerSize() {
-        return jp.aquafactory.apprenticecodex.capability.companiontrunkinventory.CompanionTrunkInventory.SIZE;
+        return CompanionTrunkInventory.SIZE;
     }
 
     @Override

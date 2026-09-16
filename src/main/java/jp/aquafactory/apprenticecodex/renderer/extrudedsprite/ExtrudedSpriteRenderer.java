@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 public final class ExtrudedSpriteRenderer {
     public static void render(PoseStack poseStack, MultiBufferSource buffer, int packedLight, ResourceLocation texture) {
@@ -111,7 +112,7 @@ public final class ExtrudedSpriteRenderer {
         var alphaByte = toColorByte(alpha);
         for (var q : mesh.quads) {
             for (var i = 0; i < 4; ++i) {
-                var transformedNormal = new org.joml.Vector3f(q.nx, q.ny, q.nz)
+                var transformedNormal = new Vector3f(q.nx, q.ny, q.nz)
                         .mul(normalMatrix)
                         .normalize();
                 vc.addVertex(poseMatrix, q.x[i], q.y[i], q.z[i])

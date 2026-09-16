@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmLuminousDevice
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
@@ -18,6 +19,7 @@ import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class LuminousDeviceSelectionClientController {
@@ -127,7 +129,7 @@ public final class LuminousDeviceSelectionClientController {
         );
     }
 
-    private static void openSelection(net.minecraft.world.entity.player.Player player, InteractionHand hand) {
+    private static void openSelection(Player player, InteractionHand hand) {
         var views = LuminousDevice.getSelectionViews(player.getItemInHand(hand));
         if (views.isEmpty()) {
             return;
@@ -166,7 +168,7 @@ public final class LuminousDeviceSelectionClientController {
         );
     }
 
-    private static void refreshActiveState(net.minecraft.world.entity.player.Player player) {
+    private static void refreshActiveState(Player player) {
         if (activeState == null) {
             return;
         }
@@ -184,7 +186,7 @@ public final class LuminousDeviceSelectionClientController {
         activeState = new ActiveSelectionState(activeState.hand(), refreshedViews, selectedIndex);
     }
 
-    private static void confirmSelection(net.minecraft.world.entity.player.Player player) {
+    private static void confirmSelection(Player player) {
         if (activeState == null) {
             return;
         }
@@ -217,7 +219,7 @@ public final class LuminousDeviceSelectionClientController {
     }
 
     @Nullable
-    private static InteractionHand resolveSelectionHand(net.minecraft.world.entity.player.Player player) {
+    private static InteractionHand resolveSelectionHand(Player player) {
         if (player.getMainHandItem().getItem() instanceof LuminousDevice) {
             return InteractionHand.MAIN_HAND;
         }
@@ -231,7 +233,7 @@ public final class LuminousDeviceSelectionClientController {
     }
 
     private static boolean isValidHeldDevice(
-            net.minecraft.world.entity.player.Player player,
+            Player player,
             InteractionHand hand
     ) {
         return player.getItemInHand(hand).getItem() instanceof LuminousDevice;
@@ -255,7 +257,7 @@ public final class LuminousDeviceSelectionClientController {
             if (view.mode() == selectedView.mode()
                     && switch (view.mode()) {
                         case CLEAN -> true;
-                        case SPELL -> java.util.Objects.equals(view.spellId(), selectedView.spellId());
+                        case SPELL -> Objects.equals(view.spellId(), selectedView.spellId());
                         case PLACE -> ItemStack.isSameItemSameComponents(view.iconStack(), selectedView.iconStack());
                     }) {
                 return i;

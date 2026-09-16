@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
@@ -302,7 +303,7 @@ public abstract class AbstractSwingMagicItem extends AbstractRightClickMagicWeap
                     spellLevel,
                     player.level(),
                     player,
-                    io.redspace.ironsspellbooks.api.spells.CastSource.SWORD,
+                    CastSource.SWORD,
                     true,
                     slotId
             );

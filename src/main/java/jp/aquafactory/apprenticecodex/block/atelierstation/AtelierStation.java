@@ -23,6 +23,8 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings("deprecation")
 public final class AtelierStation extends BaseEntityBlock {
     public static final MapCodec<AtelierStation> CODEC = simpleCodec(AtelierStation::new);
-    public static final net.minecraft.world.level.block.state.properties.DirectionProperty FACING =
+    public static final DirectionProperty FACING =
             HorizontalDirectionalBlock.FACING;
 
     private static final VoxelShape SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 10.0D, 16.0D);
@@ -129,7 +131,7 @@ public final class AtelierStation extends BaseEntityBlock {
 
     @Override
     protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
-                                                        @NotNull Player player, @NotNull net.minecraft.world.phys.BlockHitResult hitResult) {
+                                                        @NotNull Player player, @NotNull BlockHitResult hitResult) {
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }

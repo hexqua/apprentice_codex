@@ -1,8 +1,10 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
@@ -22,6 +24,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -86,7 +89,7 @@ final class AttributeEnchantmentEffectGameTestScenarios extends ApprenticeCodexG
 
     static void attributeEnchantmentsMergeWithExistingAttributes(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var wearer = helper.spawn(net.minecraft.world.entity.EntityType.PIG, new BlockPos(0, 2, 0));
+            var wearer = helper.spawn(EntityType.PIG, new BlockPos(0, 2, 0));
             var cases = createCases(helper);
             var schoolPowerAttributes = resolveSchoolPowerAttributes();
             var coveredTypes = EnumSet.noneOf(AttributeEnchantmentType.class);
@@ -142,7 +145,7 @@ final class AttributeEnchantmentEffectGameTestScenarios extends ApprenticeCodexG
 
     private static void assertEffectsForTarget(GameTestHelper helper, TargetKind targetKind) {
         helper.succeedIf(() -> {
-            var wearer = helper.spawn(net.minecraft.world.entity.EntityType.PIG, new BlockPos(0, 2, 0));
+            var wearer = helper.spawn(EntityType.PIG, new BlockPos(0, 2, 0));
             var schoolPowerAttributes = resolveSchoolPowerAttributes();
             var targetCases = createCases(helper).stream()
                     .filter(equipmentCase -> equipmentCase.target().kind() == targetKind)
@@ -325,14 +328,14 @@ final class AttributeEnchantmentEffectGameTestScenarios extends ApprenticeCodexG
             ScrollcasterGauntlet.setCalibrationScroll(
                     stack,
                     0,
-                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())
+                    createSpellScroll(SpellRegistry.MAGIC_MISSILE_SPELL.get())
             );
             ScrollcasterGauntlet.setSelectedScrollIndex(stack, 0);
         }
         if (equipmentCase.enchantments().contains(AttributeEnchantmentType.ATTUNEMENT)
                 && MagicTools.getImbuedSpellSchool(stack) == null) {
             ISpellContainer.createImbuedContainer(
-                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(),
+                    SpellRegistry.BALL_LIGHTNING_SPELL.get(),
                     1,
                     stack
             );
@@ -442,7 +445,7 @@ final class AttributeEnchantmentEffectGameTestScenarios extends ApprenticeCodexG
             ItemStack stack,
             EquipmentSlot slot
     ) {
-        var builder = com.google.common.collect.ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
+        var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
         for (var entry : stack.getAttributeModifiers().modifiers()) {
             if (entry.slot().test(slot)) {
                 builder.put(entry.attribute(), entry.modifier());

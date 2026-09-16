@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
@@ -54,7 +55,7 @@ public final class ReflectcastShieldRuntime {
         }
 
         var spellData = ReflectcastShield.resolveCastSpell(player, stack);
-        if (spellData == null || spellData == io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY) {
+        if (spellData == null || spellData == SpellData.EMPTY) {
             return false;
         }
         var shield = (ReflectcastShield) stack.getItem();
@@ -290,7 +291,7 @@ public final class ReflectcastShieldRuntime {
             return;
         }
         var imbuedSpell = spellContainer.getSpellAtIndex(0);
-        if (imbuedSpell == io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY
+        if (imbuedSpell == SpellData.EMPTY
                 || imbuedSpell.getSpell() == null) {
             return;
         }

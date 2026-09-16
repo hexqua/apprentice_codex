@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.spell.ClientPlacementPreviewData;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetCaptureSpell;
 import jp.aquafactory.apprenticecodex.spell.IClientPlacementPreviewSpell;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
@@ -151,7 +152,7 @@ public final class ClientPlacementPreviewManager {
     private record PendingTarget(ResourceLocation spellId, BlockTargetData targetData, long expireGameTime) {
     }
 
-    public record ActivePreview(ResourceLocation spellId, jp.aquafactory.apprenticecodex.spell.ClientPlacementPreviewData previewData,
+    public record ActivePreview(ResourceLocation spellId, ClientPlacementPreviewData previewData,
                                 int color) {
     }
 }

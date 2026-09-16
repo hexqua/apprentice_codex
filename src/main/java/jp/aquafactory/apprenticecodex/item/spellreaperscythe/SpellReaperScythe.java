@@ -20,6 +20,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Item;
@@ -28,9 +29,13 @@ import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Tiers;
+import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.ItemAbility;
 import org.jetbrains.annotations.NotNull;
@@ -164,7 +169,7 @@ public final class SpellReaperScythe extends SwordItem
             @NotNull InteractionHand hand
     ) {
         var stack = player.getItemInHand(hand);
-        if (net.neoforged.fml.ModList.get().isLoaded("epicfight")) {
+        if (ModList.get().isLoaded("epicfight")) {
             // ガード入力はEpic Fightに任せ、大鎌固有の使用経路だけを無効化する.
             // 大鎌固有機能は戦闘モードのインネイトスキル側で処理する.
             return InteractionResultHolder.pass(stack);
@@ -180,14 +185,14 @@ public final class SpellReaperScythe extends SwordItem
     }
 
     @Override
-    public int getUseDuration(@NotNull ItemStack stack, net.minecraft.world.entity.@NotNull LivingEntity entity) { return 72000; }
+    public int getUseDuration(@NotNull ItemStack stack, @NotNull LivingEntity entity) { return 72000; }
 
     @Override
-    public net.minecraft.world.item.@NotNull UseAnim getUseAnimation(@NotNull ItemStack stack) { return net.minecraft.world.item.UseAnim.BOW; }
+    public @NotNull UseAnim getUseAnimation(@NotNull ItemStack stack) { return UseAnim.BOW; }
 
     @Override
-    public void releaseUsing(@NotNull ItemStack stack, @NotNull Level level, net.minecraft.world.entity.@NotNull LivingEntity entity, int remaining) {
-        if (!net.neoforged.fml.ModList.get().isLoaded("epicfight") && entity instanceof Player player) {
+    public void releaseUsing(@NotNull ItemStack stack, @NotNull Level level, @NotNull LivingEntity entity, int remaining) {
+        if (!ModList.get().isLoaded("epicfight") && entity instanceof Player player) {
             ScytheThrowManager.release(level, player, stack);
         }
     }
@@ -200,7 +205,7 @@ public final class SpellReaperScythe extends SwordItem
             @NotNull TooltipFlag flag
     ) {
         super.appendHoverText(stack, context, lines, flag);
-        if (net.neoforged.fml.ModList.get().isLoaded("epicfight")) {
+        if (ModList.get().isLoaded("epicfight")) {
             appendEpicFightHoverText(stack, lines);
             return;
         }
@@ -208,7 +213,7 @@ public final class SpellReaperScythe extends SwordItem
             var config = SpellReaperScytheClientConfigState.values();
             int reboundLevel = MalumCompatibility.getEnchantmentLevel(stack, MALUM_REBOUND_ID);
             if (reboundLevel > 0) {
-                boolean maelstrom = net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT
+                boolean maelstrom = FMLEnvironment.dist == Dist.CLIENT
                         && ScytheThrowClient.hasMaelstromForTooltip();
                 int cost = maelstrom ? config.maelstromManaCost(reboundLevel) : config.reboundManaCost(reboundLevel);
                 lines.add(Component.translatable("item.apprenticecodex.spell_reaper_scythe.malum.rebound.desc_1",
@@ -256,7 +261,7 @@ public final class SpellReaperScythe extends SwordItem
             lines.add(Component.translatable(prefix + "ascension.desc_1", Enchantment.getFullname(enchantment, ascension)).withStyle(ChatFormatting.GRAY));
             lines.add(Component.translatable(prefix + "ascension.desc_2", manaText(config.ascensionManaCost(ascension))).withStyle(ChatFormatting.GRAY));
         } else if (rebound > 0) {
-            boolean client = net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT;
+            boolean client = FMLEnvironment.dist == Dist.CLIENT;
             boolean maelstrom = client && ScytheThrowClient.hasMaelstromForTooltip();
             boolean narrow = client && ScytheThrowClient.hasNarrowForTooltip();
             lines.add(Component.translatable(prefix + "rebound.desc_1").withStyle(ChatFormatting.GRAY));

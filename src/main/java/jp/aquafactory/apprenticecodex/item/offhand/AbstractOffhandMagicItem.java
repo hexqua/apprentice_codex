@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 
@@ -46,7 +47,7 @@ public abstract class AbstractOffhandMagicItem extends Item
     private final ItemAttributeModifiers baseOffhandModifiers;
 
     @Override
-    public java.util.Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
         return ALL_ATTRIBUTE_ENCHANTMENTS;
     }
 

@@ -12,10 +12,12 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
 
@@ -24,10 +26,10 @@ public class MagicSpearMissileRenderer extends GeoEntityRenderer<MagicSpearMissi
     private static final String CHAMBER_CORE_BONE = "chamber_core";
     private static final String REAR_CORE_BONE = "rear_core";
     private static final int FULL_BRIGHT_LIGHT = 0x00F000F0;
-    private static final net.minecraft.resources.ResourceLocation MISSILE_TEXTURE =
-            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/magic_spear_missile.png");
-    private static final net.minecraft.resources.ResourceLocation BURST_TEXTURE =
-            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/unite_luna_moon.png");
+    private static final ResourceLocation MISSILE_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/magic_spear_missile.png");
+    private static final ResourceLocation BURST_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/unite_luna_moon.png");
 
     private final RenderType emissiveRenderType =
             ApprenticeRenderTypes.entityAdditiveGlowNoCull("magic_spear_missile_core_additive", MISSILE_TEXTURE);
@@ -165,7 +167,7 @@ public class MagicSpearMissileRenderer extends GeoEntityRenderer<MagicSpearMissi
                                   float x, float y, float z, float u, float v,
                                   float normalX, float normalY, float normalZ,
                                   float red, float green, float blue, float alpha) {
-        var transformedNormal = normalMatrix.transform(new org.joml.Vector3f(normalX, normalY, normalZ));
+        var transformedNormal = normalMatrix.transform(new Vector3f(normalX, normalY, normalZ));
         buffer.addVertex(poseMatrix, x, y, z)
                 .setColor(red, green, blue, alpha)
                 .setUv(u, v)

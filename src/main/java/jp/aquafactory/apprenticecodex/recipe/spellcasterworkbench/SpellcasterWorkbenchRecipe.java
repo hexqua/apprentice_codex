@@ -2,11 +2,13 @@ package jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench;
 
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceUpgrade;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
@@ -27,7 +29,7 @@ public final class SpellcasterWorkbenchRecipe implements Recipe<SpellcasterWorkb
     private final List<ItemStack> results;
     private final int priority;
     private final @Nullable LuminousDeviceUpgrade luminousDeviceUpgrade;
-    private final @Nullable net.minecraft.resources.ResourceLocation requiredSpell;
+    private final @Nullable ResourceLocation requiredSpell;
     private final int minimumSpellLevel;
 
     public SpellcasterWorkbenchRecipe(
@@ -43,7 +45,7 @@ public final class SpellcasterWorkbenchRecipe implements Recipe<SpellcasterWorkb
             List<ItemStack> results,
             int priority,
             @Nullable LuminousDeviceUpgrade luminousDeviceUpgrade,
-            @Nullable net.minecraft.resources.ResourceLocation requiredSpell,
+            @Nullable ResourceLocation requiredSpell,
             int minimumSpellLevel
     ) {
         this.ingredients = sanitizeIngredients(ingredients);
@@ -135,7 +137,7 @@ public final class SpellcasterWorkbenchRecipe implements Recipe<SpellcasterWorkb
         return luminousDeviceUpgrade;
     }
 
-    public @Nullable net.minecraft.resources.ResourceLocation getRequiredSpell() {
+    public @Nullable ResourceLocation getRequiredSpell() {
         return requiredSpell;
     }
 
@@ -156,7 +158,7 @@ public final class SpellcasterWorkbenchRecipe implements Recipe<SpellcasterWorkb
             return !LuminousDevice.hasUpgrade(stack, luminousDeviceUpgrade);
         }
         if (requiredSpell != null
-                && stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get())) {
+                && stack.is(ItemRegistry.SCROLL.get())) {
             return isRequiredSpellScroll(stack);
         }
         return true;
@@ -226,7 +228,7 @@ public final class SpellcasterWorkbenchRecipe implements Recipe<SpellcasterWorkb
 
     private boolean isRequiredSpellScroll(ItemStack stack) {
         if (requiredSpell == null
-                || !stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get())
+                || !stack.is(ItemRegistry.SCROLL.get())
                 || !ISpellContainer.isSpellContainer(stack)) {
             return false;
         }

@@ -1,9 +1,11 @@
 package jp.aquafactory.apprenticecodex.item.spellreaperscythe;
 
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import jp.aquafactory.apprenticecodex.model.SpellReaperScytheModel;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import org.jetbrains.annotations.NotNull;
+import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -74,8 +76,8 @@ public final class ScytheThrowRenderer extends GeoEntityRenderer<ScytheThrowEnti
     }
 
     @Override
-    public void renderRecursively(PoseStack pose, ScytheThrowEntity entity, software.bernie.geckolib.cache.object.GeoBone bone,
-                                  RenderType renderType, MultiBufferSource buffers, com.mojang.blaze3d.vertex.VertexConsumer buffer,
+    public void renderRecursively(PoseStack pose, ScytheThrowEntity entity, GeoBone bone,
+                                  RenderType renderType, MultiBufferSource buffers, VertexConsumer buffer,
                                   boolean reRender, float partialTick, int light, int overlay, int color) {
         boolean anchor = bone.getName().equals("anchor_tip") || bone.getName().equals("anchor_top") || bone.getName().equals("anchor_bottom");
         if (anchor) bone.setTrackingMatrices(true);
@@ -93,7 +95,7 @@ public final class ScytheThrowRenderer extends GeoEntityRenderer<ScytheThrowEnti
     }
 
     private static void drawSegment(ScytheThrowEntity entity, PoseStack pose,
-                                    com.mojang.blaze3d.vertex.VertexConsumer buffer, Vec3 center,
+                                    VertexConsumer buffer, Vec3 center,
                                     double time, double lifetime, int arm, Sample from, Sample to) {
         float fadeA = (float) Math.max(0, 1 - (time - from.time) / lifetime);
         float fadeB = (float) Math.max(0, 1 - (time - to.time) / lifetime);

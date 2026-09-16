@@ -10,16 +10,19 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SculkSensorBlock;
 import net.minecraft.world.level.block.state.properties.SculkSensorPhase;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.common.util.FakePlayerFactory;
@@ -100,7 +103,7 @@ public final class DeepSensorGameTests {
                     new BlockPos(i, 0, 0),
                     i,
                     i,
-                    UUID.nameUUIDFromBytes(("deep-sensor-" + i).getBytes(java.nio.charset.StandardCharsets.UTF_8)),
+                    UUID.nameUUIDFromBytes(("deep-sensor-" + i).getBytes(StandardCharsets.UTF_8)),
                     null,
                     STEP_EVENT
             );
@@ -217,7 +220,7 @@ public final class DeepSensorGameTests {
         );
     }
 
-    private static net.neoforged.neoforge.common.util.FakePlayer createTestPlayer(
+    private static FakePlayer createTestPlayer(
             GameTestHelper helper,
             String profileName
     ) {
@@ -232,7 +235,7 @@ public final class DeepSensorGameTests {
         return player;
     }
 
-    private static void addSenseSensorEffect(net.minecraft.world.entity.LivingEntity entity) {
+    private static void addSenseSensorEffect(LivingEntity entity) {
         var senseSensor = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.SENSE_SENSOR.get());
         entity.addEffect(new MobEffectInstance(senseSensor, 40, 0));
     }
@@ -251,7 +254,7 @@ public final class DeepSensorGameTests {
         );
         SenseSensorVibrationEvent.onVanillaGameEvent(event);
         var eventId = gameEvent.unwrapKey()
-                .map(net.minecraft.resources.ResourceKey::location)
+                .map(ResourceKey::location)
                 .orElseGet(() -> BuiltInRegistries.GAME_EVENT.getKey(gameEvent.value()));
         helper.assertTrue(
                 event.isCanceled() == expectedCanceled,
@@ -278,7 +281,7 @@ public final class DeepSensorGameTests {
                 helper.assertTrue(
                         isActive == expectedActive,
                         "Sculk Sensor response mismatch for " + gameEvent.unwrapKey()
-                                .map(net.minecraft.resources.ResourceKey::location)
+                                .map(ResourceKey::location)
                                 .orElseGet(() -> BuiltInRegistries.GAME_EVENT.getKey(gameEvent.value()))
                                 + ": expected active=" + expectedActive
                 );

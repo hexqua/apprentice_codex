@@ -1,10 +1,12 @@
 package jp.aquafactory.apprenticecodex.recipe.smithing;
 
+import io.redspace.ironsspellbooks.item.consumables.SimpleElixir;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -146,7 +148,7 @@ public final class AlchemistsFlaskSmithingRecipe implements SmithingRecipe {
             return converted;
         }
 
-        if (storedItem.getItem() instanceof io.redspace.ironsspellbooks.item.consumables.SimpleElixir) {
+        if (storedItem.getItem() instanceof SimpleElixir) {
             var converted = storedItem.copy();
             converted.setCount(1);
             return converted;
@@ -202,7 +204,7 @@ public final class AlchemistsFlaskSmithingRecipe implements SmithingRecipe {
      * 変換元フラスコの component を優先しつつ、結果アイテム固有の初期 component だけ補う。
      */
     private static void backfillMissingDefaultComponents(ItemStack resultStack, ItemStack defaultResultStack) {
-        var builder = net.minecraft.core.component.DataComponentPatch.builder();
+        var builder = DataComponentPatch.builder();
         boolean hasPatch = false;
 
         for (var component : defaultResultStack.getComponents()) {

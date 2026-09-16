@@ -24,6 +24,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.item.ItemStack;
@@ -31,13 +32,16 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LayeredCauldronBlock;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.minecraft.world.phys.shapes.CollisionContext;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -381,7 +385,7 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
         helper.setBlock(cauldronPos, io.redspace.ironsspellbooks.registries.BlockRegistry.ALCHEMIST_CAULDRON.get());
         var cauldron = (AlchemistCauldronTile) helper.getBlockEntity(cauldronPos);
         cauldron.fluidInventory.fill(
-                new net.neoforged.neoforge.fluids.FluidStack(net.minecraft.world.level.material.Fluids.WATER, 900),
+                new FluidStack(Fluids.WATER, 900),
                 IFluidHandler.FluidAction.EXECUTE
         );
 
@@ -568,7 +572,7 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
         var brewerPos = new BlockPos(1, 1, 1);
         var stonePos = new BlockPos(2, 1, 1);
         placeAlchemyBrewer(helper, brewerPos, "minecraft:swiftness", 250);
-        helper.setBlock(stonePos, net.minecraft.world.level.block.Blocks.STONE);
+        helper.setBlock(stonePos, Blocks.STONE);
         var player = createPlayer(helper, "alchemy_brewer_flask_priority", stonePos);
         var flask = AbstractPotionFlaskItem.copyWithAddedDoses(
                 new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get()),
@@ -640,13 +644,13 @@ public final class ApprenticeCodexAlchemyBrewerGameTests {
 
     private static MenuTrackingFakePlayer createPlayer(GameTestHelper helper, String name, BlockPos localPos) {
         var player = new MenuTrackingFakePlayer(helper, name);
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var position = helper.absoluteVec(Vec3.atCenterOf(localPos));
         player.setPos(position.x, position.y, position.z);
         return player;
     }
 
-    private static net.minecraft.world.InteractionResult useBrewer(
+    private static InteractionResult useBrewer(
             GameTestHelper helper,
             FakePlayer player,
             BlockPos localPos

@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.thermalslice.ThermalSlice;
 import jp.aquafactory.apprenticecodex.spell.thermalslice.ThermalSliceKatanaEntity;
+import jp.aquafactory.apprenticecodex.spell.thermalslice.ThermalSunderedLogic;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -24,6 +25,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 
 final class ThermalSunderedGameTestScenarios {
     private static final double ATTRIBUTE_EPSILON = 1.0E-6D;
@@ -124,7 +126,7 @@ final class ThermalSunderedGameTestScenarios {
         var effectHolder = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.THERMAL_SUNDERED.get());
         target.addEffect(new MobEffectInstance(effectHolder, 20, 4, false, true, true));
 
-        jp.aquafactory.apprenticecodex.spell.thermalslice.ThermalSunderedLogic
+        ThermalSunderedLogic
                 .applyFromThermalSlice(target, 0);
         var refreshed = getThermalSundered(target);
         helper.assertTrue(refreshed != null
@@ -165,7 +167,7 @@ final class ThermalSunderedGameTestScenarios {
             String ownerName,
             Vec3 ownerPosition,
             EntityType<T> targetType,
-            java.util.function.Consumer<T> setup
+            Consumer<T> setup
     ) {
         var owner = createPlayer(helper, ownerName, ownerPosition);
         owner.setYRot(0.0F);

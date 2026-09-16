@@ -1,12 +1,14 @@
 package jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver;
 
 import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ProjectileWeaponItem;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import org.jetbrains.annotations.Nullable;
@@ -152,7 +154,7 @@ public final class SpellcasterQuiverBowAmmoResolver {
 
     private static int getEnchantmentLevel(
             ItemStack stack,
-            net.minecraft.resources.ResourceKey<net.minecraft.world.item.enchantment.Enchantment> enchantmentKey
+            ResourceKey<Enchantment> enchantmentKey
     ) {
         var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
         if (enchantments.isEmpty()) {

@@ -15,8 +15,10 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -119,7 +121,7 @@ public final class UndyingEmblemGameTests {
         helper.succeed();
     }
 
-    private static net.neoforged.neoforge.common.util.FakePlayer createEquippedPlayer(
+    private static FakePlayer createEquippedPlayer(
             GameTestHelper helper,
             String profileName
     ) {
@@ -138,7 +140,7 @@ public final class UndyingEmblemGameTests {
 
     private static void assertEffect(
             GameTestHelper helper,
-            @Nullable net.minecraft.world.effect.MobEffectInstance effect,
+            @Nullable MobEffectInstance effect,
             int duration,
             int amplifier,
             String name

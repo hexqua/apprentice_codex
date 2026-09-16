@@ -12,6 +12,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -319,8 +320,8 @@ public class FujinSlashProjectileEntity extends Projectile
         loadCombatOwnerUuid(tag);
 
         victimUuids.clear();
-        var victims = tag.getList("Victims", net.minecraft.nbt.Tag.TAG_INT_ARRAY);
-        for (net.minecraft.nbt.Tag victim : victims) {
+        var victims = tag.getList("Victims", Tag.TAG_INT_ARRAY);
+        for (Tag victim : victims) {
             victimUuids.add(NbtUtils.loadUUID(victim));
         }
     }
