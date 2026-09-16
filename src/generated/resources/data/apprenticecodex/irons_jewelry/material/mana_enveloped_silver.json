@@ -4,6 +4,9 @@
       "amount": 0.1,
       "attribute": "irons_spellbooks:max_mana",
       "operation": "add_multiplied_total"
+    },
+    "irons_jewelry:negative_effect": {
+      "effect": "irons_spellbooks:blight"
     }
   },
   "descriptionId": "material.apprenticecodex.mana_enveloped_silver",
