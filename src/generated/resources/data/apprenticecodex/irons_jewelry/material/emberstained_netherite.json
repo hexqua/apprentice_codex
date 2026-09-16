@@ -1,0 +1,29 @@
+{
+  "bonusParameters": {
+    "irons_jewelry:action": {
+      "action": {
+        "type": "apprenticecodex:advance_spell_cooldowns",
+        "ticks": {
+          "base": 10.0,
+          "max": 20.0,
+          "scalar": 5.0
+        }
+      },
+      "targetSelf": true
+    },
+    "irons_jewelry:attribute": {
+      "amount": 0.1,
+      "attribute": "irons_spellbooks:spell_resist",
+      "operation": "add_multiplied_total"
+    },
+    "irons_jewelry:negative_effect": {
+      "effect": "apprenticecodex:thermal_sundered"
+    }
+  },
+  "descriptionId": "material.apprenticecodex.emberstained_netherite",
+  "ingredient": {
+    "item": "apprenticecodex:emberstained_netherite_ingot"
+  },
+  "paletteLocation": "apprenticecodex:palettes/emberstained_netherite",
+  "quality": 2.75
+}

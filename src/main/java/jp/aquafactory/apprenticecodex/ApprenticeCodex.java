@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexClientConfig;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
+import jp.aquafactory.apprenticecodex.compat.gems.GemsCompat;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.compat.emf.EmfCompat;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
@@ -94,6 +95,7 @@ public class ApprenticeCodex
         MenuRegistry.register(modEventBus);
         CreativeTabRegistry.register(modEventBus);
         CreateCompat.register(modEventBus);
+        GemsCompat.register(modEventBus);
         SableCompat.register(modEventBus);
         EpicFightCompat.register(modEventBus);
         MalumSpellReaperScytheBridge.register(modEventBus);

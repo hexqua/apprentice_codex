@@ -114,6 +114,8 @@ Get-ChildItem build\libs\*.jar
 - optional MOD の runtime 切替は Gradle の実行構成または `-PdevRuntimeMods=...` で行う。`build.gradle` の `runtimeOnly` / `localRuntime` コメントアウト解除運用は使わない。
 - 通常確認で `clean` は付けない。必要時のみ `./gradlew.bat clean build` を使う。
 - `runData` の出力先は `src/generated/resources` であり、`src/generated/resources/.cache` に記録された生成物だけが再生成・差分管理される前提で扱う。
+- 1.21.1 の `runData` は素材定義を上流の型・Codecで生成するため Iron's Gems 'n Jewelry / Atlas API を読み込む。素材と所属タグは `datagen/gems/GemsMaterials.java` で編集し、生成JSONは直接編集しない。今後のIron's Gems向け生成処理も `datagen/gems` に配置する。
+- 素材の効果は型付きビルダーへ指定し、アクションと品質係数は上流の `IAction` / `QualityScalar` を使用する。Jewelry 2.0.2 の `empty` パラメーターは上流のMap CodecがVoid値を読み込めないため、省略へ正規化する。
 - `src/generated/resources/.cache` は Git 管理外のため、branch 切替・`cherry-pick`・手動コピーで持ち込んだ古い JSON は `runData` だけでは削除されない場合がある。
 
 ### クライアント検証の分担

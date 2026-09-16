@@ -17,6 +17,11 @@
   "material.apprenticecodex.mana_enveloped_silver": "マナを纏った銀",
   "material.apprenticecodex.wisdom": "叡智",
 
+  "action.apprenticecodex.advance_spell_cooldowns.name": "魔法クールダウン進行",
+  "action.apprenticecodex.advance_spell_cooldowns.description": "魔法のクールダウンを %s 秒進行させる",
+  "action.apprenticecodex.advance_spell_cooldowns.self": "自身の現在の全魔法クールダウンを%s秒進める",
+  "action.apprenticecodex.advance_spell_cooldowns.entity": "対象プレイヤーの現在の全魔法クールダウンを%s秒進める",
+
   "attribute.name.apprenticecodex.max_enchantment_table_level": "最大エンチャントテーブルレベル",
 
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",

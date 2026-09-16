@@ -1,0 +1,34 @@
+{
+  "bonusParameters": {
+    "irons_jewelry:action": {
+      "action": {
+        "type": "irons_jewelry:apply_effect",
+        "amplifier": {
+          "base": 0.0,
+          "max": 2.0,
+          "scalar": 0.5
+        },
+        "duration": {
+          "base": 100.0,
+          "scalar": 0.0
+        },
+        "effect": "apprenticecodex:arcane_charge"
+      },
+      "targetSelf": true
+    },
+    "irons_jewelry:attribute": {
+      "amount": 0.1,
+      "attribute": "irons_spellbooks:max_mana",
+      "operation": "add_multiplied_total"
+    },
+    "irons_jewelry:negative_effect": {
+      "effect": "irons_spellbooks:blight"
+    }
+  },
+  "descriptionId": "material.apprenticecodex.mana_enveloped_silver",
+  "ingredient": {
+    "item": "apprenticecodex:mana_enveloped_silver_chunk"
+  },
+  "paletteLocation": "apprenticecodex:palettes/mana_enveloped_silver",
+  "quality": 3.0
+}
