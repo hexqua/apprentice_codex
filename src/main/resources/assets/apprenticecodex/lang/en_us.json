@@ -1,5 +1,6 @@
 {
   "action.apprenticecodex.advance_spell_cooldowns.name": "Spell Cooldown Advancement",
+  "action.apprenticecodex.advance_spell_cooldowns.description": "Advance spell cooldowns by %s seconds",
   "action.apprenticecodex.advance_spell_cooldowns.self": "Advance all your active spell cooldowns by %s seconds",
   "action.apprenticecodex.advance_spell_cooldowns.entity": "Advance all the target player's active spell cooldowns by %s seconds",
 

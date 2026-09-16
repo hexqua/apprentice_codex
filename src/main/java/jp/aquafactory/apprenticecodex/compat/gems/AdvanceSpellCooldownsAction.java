@@ -43,17 +43,21 @@ public record AdvanceSpellCooldownsAction(QualityScalar ticks) implements IActio
 
     @Override
     public Component formatTooltip(BonusInstance bonusInstance, boolean applyToSelf) {
-        // 1tick = 0.05秒を保持し、秒未満の効果が0秒と表示されないようにする。
-        String seconds = BigDecimal.valueOf(sampledTicks(bonusInstance.quality()))
-                .divide(BigDecimal.valueOf(20)).stripTrailingZeros().toPlainString();
-        var amount = Component.literal(seconds).withStyle(ChatFormatting.GREEN);
+        var amount = Component.literal(sampledSeconds(bonusInstance.quality())).withStyle(ChatFormatting.GREEN);
         return Component.translatable("action.apprenticecodex.advance_spell_cooldowns."
                 + (applyToSelf ? "self" : "entity"), amount);
     }
 
+    private String sampledSeconds(double quality) {
+        // 1tick = 0.05秒を保持し、秒未満の効果が0秒と表示されないようにする。
+        return BigDecimal.valueOf(sampledTicks(quality))
+                .divide(BigDecimal.valueOf(20)).stripTrailingZeros().toPlainString();
+    }
+
     @Override
     public Component simpleDescription(MutableComponent actionName) {
-        return actionName;
+        // 上流の素材説明と同様に、完成品の品質ではなく品質1の基準値を表示する。
+        return Component.translatable("action.apprenticecodex.advance_spell_cooldowns.description", sampledSeconds(1));
     }
 
     @Override
