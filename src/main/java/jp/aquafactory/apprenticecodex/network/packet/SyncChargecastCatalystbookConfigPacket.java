@@ -13,6 +13,8 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
+import java.util.ArrayList;
+
 public record SyncChargecastCatalystbookConfigPacket(
         ChargecastCatalystbookServerConfig.Values values
 ) implements CustomPacketPayload {
@@ -45,7 +47,7 @@ public record SyncChargecastCatalystbookConfigPacket(
         var spellPowerMultiplier = buffer.readDouble();
         var silverRingCastTimeBonusFactor = buffer.readDouble();
         var spellDenylistSize = buffer.readVarInt();
-        var spellDenylist = new java.util.ArrayList<ResourceLocation>(spellDenylistSize);
+        var spellDenylist = new ArrayList<ResourceLocation>(spellDenylistSize);
         for (var index = 0; index < spellDenylistSize; ++index) {
             spellDenylist.add(buffer.readResourceLocation());
         }

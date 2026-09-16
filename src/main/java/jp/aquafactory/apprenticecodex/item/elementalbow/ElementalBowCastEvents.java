@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.elementalbow;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
@@ -13,7 +14,7 @@ public final class ElementalBowCastEvents {
     private ElementalBowCastEvents() {}
 
     // 通常詠唱の同期より先に弓の状態を送り、途中から追跡した観測者にもアニメーション抑止を適用する。
-    @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void startTracking(PlayerEvent.StartTracking event) {
         if (event.getEntity() instanceof ServerPlayer observer && event.getTarget() instanceof ServerPlayer player) {
             ElementalBowPendingCast.syncToObserver(player, observer);

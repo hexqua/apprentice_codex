@@ -1,15 +1,25 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.MagicHelper;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
+import io.redspace.ironsspellbooks.compat.Curios;
+import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
+import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSwingMagicCompat;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffAttackContextManager;
 import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRing;
 import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRingAttackTrigger;
 import jp.aquafactory.apprenticecodex.item.swingstaff.AbstractSwingcastStaffItem;
+import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHoleBlockSafety;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
+import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -19,6 +29,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.List;
 
@@ -110,12 +123,12 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
         equipRing(player, 0, createRingStack(helper, ringSpell));
         var magicData = requireMagicData(helper, player);
         magicData.setMana(1000.0F);
-        magicData.setSyncedData(new io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData(player));
+        magicData.setSyncedData(new SyncedSpellData(player));
         magicData.initiateCast(
                 activeSpell,
                 1,
                 60,
-                io.redspace.ironsspellbooks.api.spells.CastSource.SPELLBOOK,
+                CastSource.SPELLBOOK,
                 "gametest"
         );
         var manaBefore = magicData.getMana();
@@ -191,8 +204,8 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
     }
 
     static void attackcastRingEpicFightAttackPhaseUsesEquippedRing(GameTestHelper helper) {
-        if (!net.neoforged.fml.ModList.get().isLoaded(
-                jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat.MOD_ID)) {
+        if (!ModList.get().isLoaded(
+                EpicFightCompat.MOD_ID)) {
             helper.succeed();
             return;
         }
@@ -204,7 +217,7 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
         magicData.setMana(1000.0F);
 
         helper.assertTrue(
-                jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSwingMagicCompat
+                EpicFightSwingMagicCompat
                         .triggerSwingMagicFromAttackPhase(player, InteractionHand.MAIN_HAND, -1, 0),
                 "Epic Fight attack phase should trigger an equipped Attackcast Ring"
         );
@@ -214,8 +227,8 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
     }
 
     static void attackcastRingEpicFightStaffrifleDoesNotFallback(GameTestHelper helper) {
-        if (!net.neoforged.fml.ModList.get().isLoaded(
-                jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat.MOD_ID)) {
+        if (!ModList.get().isLoaded(
+                EpicFightCompat.MOD_ID)) {
             helper.succeed();
             return;
         }
@@ -232,7 +245,7 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
         magicData.setMana(1000.0F);
 
         helper.assertTrue(
-                !jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSwingMagicCompat
+                !EpicFightSwingMagicCompat
                         .triggerSwingMagicFromAttackPhase(player, InteractionHand.MAIN_HAND, -1, 1),
                 "Epic Fight Staffrifle failure should not fall back to Attackcast Ring"
         );
@@ -242,8 +255,8 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
     }
 
     static void attackcastRingEpicFightUsesSyncedBlockTarget(GameTestHelper helper) {
-        if (!net.neoforged.fml.ModList.get().isLoaded(
-                jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat.MOD_ID)) {
+        if (!ModList.get().isLoaded(
+                EpicFightCompat.MOD_ID)) {
             helper.succeed();
             return;
         }
@@ -254,7 +267,7 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
         var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.RIFT_HOLE.get();
         equipRing(player, 0, createRingStack(helper, spell));
         var magicData = requireMagicData(helper, player);
-        var maxMana = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA);
+        var maxMana = player.getAttribute(AttributeRegistry.MAX_MANA);
         helper.assertTrue(maxMana != null, "Epic Fight Attackcast Ring test should resolve max mana");
         maxMana.setBaseValue(1000.0D);
         magicData.setMana(1000.0F);
@@ -273,27 +286,27 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
         );
 
         helper.assertTrue(
-                jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper
+                BlockTargetingHelper
                         .validateTarget(helper.getLevel(), player, 16.0D, targetData)
                         .isPresent(),
                 "Epic Fight Attackcast Ring test target should pass server validation"
         );
         helper.assertTrue(
-                jp.aquafactory.apprenticecodex.spell.rifthole.RiftHoleBlockSafety
+                RiftHoleBlockSafety
                         .canReplace(helper.getLevel(), absoluteTargetPos),
                 "Epic Fight Attackcast Ring test target should be replaceable by Rift Hole"
         );
         helper.assertTrue(
-                jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSwingMagicCompat
+                EpicFightSwingMagicCompat
                         .queueAttackcastRingTargets(player, List.of(targetData)),
                 "Epic Fight should queue the Attackcast Ring block target"
         );
         helper.assertTrue(
-                jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSwingMagicCompat
+                EpicFightSwingMagicCompat
                         .triggerSwingMagicFromAttackPhase(player, InteractionHand.MAIN_HAND, -1, 2),
                 "Epic Fight Attackcast Ring should cast with its synced block target"
         );
-        helper.assertBlockPresent(jp.aquafactory.apprenticecodex.registry.BlockRegistry.RIFT_HOLE.get(), targetPos);
+        helper.assertBlockPresent(BlockRegistry.RIFT_HOLE.get(), targetPos);
         helper.succeed();
     }
 
@@ -335,10 +348,10 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
         equipRing(player, 0, createRingStack(helper, ringSpell));
         var magicData = requireMagicData(helper, player);
         magicData.setMana(1000.0F);
-        io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(
+        MagicHelper.MAGIC_MANAGER.addCooldown(
                 player,
                 staffSpell,
-                io.redspace.ironsspellbooks.api.spells.CastSource.SWORD
+                CastSource.SWORD
         );
 
         helper.assertTrue(
@@ -359,12 +372,12 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
         equipRing(player, 0, createRingStack(helper, ringSpell));
         var magicData = requireMagicData(helper, player);
         magicData.setMana(1000.0F);
-        magicData.setSyncedData(new io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData(player));
+        magicData.setSyncedData(new SyncedSpellData(player));
         magicData.initiateCast(
                 activeSpell,
                 1,
                 60,
-                io.redspace.ironsspellbooks.api.spells.CastSource.SPELLBOOK,
+                CastSource.SPELLBOOK,
                 "gametest"
         );
         var manaBefore = magicData.getMana();
@@ -407,13 +420,13 @@ final class AttackcastRingGameTestScenarios extends ApprenticeCodexGameTestScena
         return stack;
     }
 
-    private static void equipRing(net.neoforged.neoforge.common.util.FakePlayer player, int index, ItemStack stack) {
-        var curios = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+    private static void equipRing(FakePlayer player, int index, ItemStack stack) {
+        var curios = CuriosApi.getCuriosInventory(player)
                 .orElseThrow(() -> new IllegalStateException("Attackcast Ring test could not resolve Curios inventory"));
-        curios.setEquippedCurio(io.redspace.ironsspellbooks.compat.Curios.RING_SLOT, index, stack);
+        curios.setEquippedCurio(Curios.RING_SLOT, index, stack);
     }
 
-    private static MagicData requireMagicData(GameTestHelper helper, net.neoforged.neoforge.common.util.FakePlayer player) {
+    private static MagicData requireMagicData(GameTestHelper helper, FakePlayer player) {
         var magicData = MagicData.getPlayerMagicData(player);
         helper.assertTrue(magicData != null, "Attackcast Ring test could not resolve player magic data");
         return magicData;

@@ -3,6 +3,8 @@ package jp.aquafactory.apprenticecodex.compat.malum;
 import com.sammy.malum.common.entity.scythe.LocalizedMaelstromEntity;
 import com.sammy.malum.visual_effects.WeaponParticleEffects;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
@@ -22,7 +24,7 @@ final class MalumScytheMaelstromClient {
         var view = reference == null ? null : reference.get();
         if (view == null) {
             view = new LocalizedMaelstromEntity(scythe.level());
-            view.setItem(new net.minecraft.world.item.ItemStack(jp.aquafactory.apprenticecodex.registry.ItemRegistry.SPELL_REAPER_SCYTHE.get()));
+            view.setItem(new ItemStack(ItemRegistry.SPELL_REAPER_SCYTHE.get()));
             VIEWS.put(scythe, new WeakReference<>(view));
         }
         view.setPos(scythe.position());

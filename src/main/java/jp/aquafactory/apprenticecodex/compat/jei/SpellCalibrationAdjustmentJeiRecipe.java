@@ -6,13 +6,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 public record SpellCalibrationAdjustmentJeiRecipe(
         ResourceLocation id,
         ItemStack target,
         List<ItemStack> adjustments,
         List<ItemStack> results,
-        java.util.function.Supplier<List<Component>> effectLinesSupplier,
+        Supplier<List<Component>> effectLinesSupplier,
         CalibrationConstraintDisplay constraintDisplay
 ) {
     public SpellCalibrationAdjustmentJeiRecipe {

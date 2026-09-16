@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.elementalbow;
 
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
@@ -26,7 +27,7 @@ public final class ElementalBowRunes {
         if (!(bow.getItem() instanceof ElementalBow)) return false;
         for (int slot = 0; slot < 3; slot++) {
             if (CalibrationAdjustmentStorage.get(bow, slot, 3, ElementalBow.serializationLookup())
-                    .is(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get())) return true;
+                    .is(ItemRegistry.COOLDOWN_RUNE.get())) return true;
         }
         return false;
     }

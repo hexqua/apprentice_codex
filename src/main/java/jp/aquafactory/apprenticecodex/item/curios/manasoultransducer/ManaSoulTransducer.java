@@ -10,6 +10,7 @@ import net.minecraft.world.item.Rarity;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ManaSoulTransducer extends Item implements ICurioItem{
@@ -22,7 +23,7 @@ public class ManaSoulTransducer extends Item implements ICurioItem{
 
     @Override
     public List<Component> getSlotsTooltip(List<Component> tooltips, TooltipContext context, ItemStack stack) {
-        var result = new java.util.ArrayList<>(tooltips);
+        var result = new ArrayList<>(tooltips);
         result.add(Component.empty());
         result.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
         // desc_1～3は1.20.1ではlegacy.desc_1～3にする.

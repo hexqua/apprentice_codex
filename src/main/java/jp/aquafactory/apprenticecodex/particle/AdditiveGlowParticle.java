@@ -7,6 +7,7 @@ import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import org.jetbrains.annotations.NotNull;
 
 public class AdditiveGlowParticle extends TextureSheetParticle {
@@ -99,7 +100,7 @@ public class AdditiveGlowParticle extends TextureSheetParticle {
         bCol = AdditiveParticleUtil.mixFromWhite(targetBlue, age, whitenTicks);
     }
 
-    private static int resolveLifetime(net.minecraft.util.RandomSource random, AdditiveGlowParticleOptions options,
+    private static int resolveLifetime(RandomSource random, AdditiveGlowParticleOptions options,
                                        int presetMinLifetime, int presetLifetimeVariance) {
         if (options.lifetime() >= 0) {
             var variance = Math.max(0, options.lifetimeVariance());
@@ -109,7 +110,7 @@ public class AdditiveGlowParticle extends TextureSheetParticle {
         return presetMinLifetime + random.nextInt(presetLifetimeVariance + 1);
     }
 
-    private static float pickRange(net.minecraft.util.RandomSource random,
+    private static float pickRange(RandomSource random,
                                    float minOverride, float maxOverride,
                                    float presetMin, float presetMax) {
         var min = minOverride >= 0.0F ? minOverride : presetMin;

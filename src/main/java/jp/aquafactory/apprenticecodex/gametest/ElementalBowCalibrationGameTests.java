@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrati
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeList;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatManager;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatSyncEvents;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowScrollStorage;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
@@ -18,9 +19,11 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -72,7 +75,7 @@ public final class ElementalBowCalibrationGameTests {
         helper.assertTrue(ElementalBow.getEnabledCalibrationScrollSlotCount(bow) == 1, "A new bow must have one scroll slot");
         var restrictions = menu.getImbueRestrictionTooltipLines();
         helper.assertTrue(restrictions.size() == 1
-                        && restrictions.getFirst().getContents() instanceof net.minecraft.network.chat.contents.TranslatableContents text
+                        && restrictions.getFirst().getContents() instanceof TranslatableContents text
                         && text.getKey().equals("item.apprenticecodex.spellgun.tooltip.restrict_restrict_by_specific.elemental_bow"),
                 "The bench must expose the arrow-spell restriction for its yellow slots and hover tooltip");
         helper.assertTrue(menu.getSlot(4).mayPlace(scroll), "The initial scroll slot must accept an arrow spell");
@@ -137,12 +140,12 @@ public final class ElementalBowCalibrationGameTests {
         helper.assertTrue(ElementalBowOverheatManager.getState(restored).equals(expected),
                 "Legacy cleanup must preserve shared heat");
         var clone = BowGameTestSupport.createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_clone");
-        jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatSyncEvents.onPlayerClone(
-                new net.neoforged.neoforge.event.entity.player.PlayerEvent.Clone(clone, restored, false));
+        ElementalBowOverheatSyncEvents.onPlayerClone(
+                new PlayerEvent.Clone(clone, restored, false));
         helper.assertTrue(ElementalBowOverheatManager.getState(clone).equals(expected),
                 "Non-death clones must preserve shared heat");
-        jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowOverheatSyncEvents.onPlayerClone(
-                new net.neoforged.neoforge.event.entity.player.PlayerEvent.Clone(clone, restored, true));
+        ElementalBowOverheatSyncEvents.onPlayerClone(
+                new PlayerEvent.Clone(clone, restored, true));
         helper.assertFalse(ElementalBowOverheatManager.getState(clone).active(), "Death must reset shared heat");
         helper.succeed();
     }

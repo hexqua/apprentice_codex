@@ -13,6 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
@@ -60,7 +61,7 @@ public class FrostRuneTrapBlockEntityRenderer extends GeoBlockRenderer<FrostRune
             currentModel.setCustomAnimations(animatable, instanceId, animationState);
         }
 
-        this.modelRenderTranslations = new org.joml.Matrix4f(poseStack.last().pose());
+        this.modelRenderTranslations = new Matrix4f(poseStack.last().pose());
         updateAnimatedTextureFrame(animatable);
         for (var group : model.topLevelBones()) {
             renderRecursively(

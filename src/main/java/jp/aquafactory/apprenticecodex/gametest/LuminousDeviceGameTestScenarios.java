@@ -5,8 +5,12 @@ import com.sammy.malum.registry.common.item.MalumDataComponents;
 import com.sammy.malum.common.item.ether.EtherItem;
 import io.netty.buffer.Unpooled;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.item.UniqueItem;
+import io.redspace.ironsspellbooks.registries.PotionRegistry;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
 import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
@@ -19,6 +23,8 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmLuminousDevice
 import jp.aquafactory.apprenticecodex.network.packet.SyncLuminousDeviceConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMageLightConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
+import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
+import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipeInput;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -26,6 +32,7 @@ import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLightCastProfile;
+import jp.aquafactory.apprenticecodex.spell.wizardlamp.Wizardlamp;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.RightClickSpellResolver;
@@ -34,10 +41,12 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -50,8 +59,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
@@ -62,6 +74,8 @@ import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import net.minecraft.core.registries.BuiltInRegistries;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -71,13 +85,13 @@ final class LuminousDeviceGameTestScenarios {
 
     static void luminousDeviceWorkbenchUpgradesAreIndependentAndPreserveState(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var recipeId = net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(
-                    jp.aquafactory.apprenticecodex.ApprenticeCodex.MODID,
+            var recipeId = ResourceLocation.fromNamespaceAndPath(
+                    ApprenticeCodex.MODID,
                     "spellcaster_workbench/luminous_device_mage_light_upgrade"
             );
             var recipe = helper.getLevel().getRecipeManager().byKey(recipeId)
                     .filter(candidate -> candidate.value().getType() == RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get())
-                    .map(candidate -> (jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe) candidate.value())
+                    .map(candidate -> (SpellcasterWorkbenchRecipe) candidate.value())
                     .orElseThrow();
             helper.assertTrue(
                     LuminousDevice.hasUpgrade(
@@ -94,7 +108,7 @@ final class LuminousDeviceGameTestScenarios {
 
             var scroll = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
             ISpellContainer.createScrollContainer(SpellRegistry.MAGE_LIGHT.get(), 2, scroll);
-            var inputs = new jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipeInput(
+            var inputs = new SpellcasterWorkbenchRecipeInput(
                     deviceStack,
                     scroll,
                     new ItemStack(Items.SPYGLASS)
@@ -111,7 +125,7 @@ final class LuminousDeviceGameTestScenarios {
                             && LuminousDevice.getStoredMana(result) == 777,
                     "Workbench upgrade should preserve storage and mana NBT");
 
-            var upgradedInputs = new jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipeInput(
+            var upgradedInputs = new SpellcasterWorkbenchRecipeInput(
                     result,
                     scroll,
                     new ItemStack(Items.SPYGLASS)
@@ -266,7 +280,7 @@ final class LuminousDeviceGameTestScenarios {
                 );
                 var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
                 var manaPotion = createInstantManaPotion(
-                        io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(),
+                        PotionRegistry.INSTANT_MANA_ONE.get(),
                         Items.POTION
                 );
 
@@ -284,7 +298,7 @@ final class LuminousDeviceGameTestScenarios {
                         2
                 );
                 var glowEnergy = helper.getLevel().registryAccess()
-                        .lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
+                        .lookupOrThrow(Registries.ENCHANTMENT)
                         .getOrThrow(Enchantments.GLOW_ENERGY);
                 flask.enchant(glowEnergy, 2);
                 var flaskResult = rightClickDevice(deviceStack, flask, player);
@@ -319,7 +333,7 @@ final class LuminousDeviceGameTestScenarios {
                 );
                 var deviceStack = new ItemStack(ItemRegistry.LUMINOUS_DEVICE.get());
                 var manaPotion = createInstantManaPotion(
-                        io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(),
+                        PotionRegistry.INSTANT_MANA_ONE.get(),
                         Items.POTION
                 );
                 var alchemistsFlask = AbstractPotionFlaskItem.copyWithAddedDose(
@@ -328,14 +342,14 @@ final class LuminousDeviceGameTestScenarios {
                 );
                 var rejectedStacks = List.of(
                         createInstantManaPotion(
-                                io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(),
+                                PotionRegistry.INSTANT_MANA_ONE.get(),
                                 Items.SPLASH_POTION
                         ),
                         createInstantManaPotion(
-                                io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(),
+                                PotionRegistry.INSTANT_MANA_ONE.get(),
                                 Items.LINGERING_POTION
                         ),
-                        PotionContentsHelper.createPotionStack(Items.POTION, net.minecraft.world.item.alchemy.Potions.HEALING.value()),
+                        PotionContentsHelper.createPotionStack(Items.POTION, Potions.HEALING.value()),
                         alchemistsFlask
                 );
 
@@ -359,7 +373,7 @@ final class LuminousDeviceGameTestScenarios {
                     LuminousDevice.addToDevice(deviceStack, new ItemStack(Items.TORCH, 3));
                 }
                 LuminousDevice.setStoredMana(deviceStack, 67);
-                var lines = new java.util.ArrayList<net.minecraft.network.chat.Component>();
+                var lines = new ArrayList<Component>();
                 deviceStack.getItem().appendHoverText(
                         deviceStack,
                         Item.TooltipContext.of(helper.getLevel()),
@@ -373,18 +387,18 @@ final class LuminousDeviceGameTestScenarios {
                 helper.assertTrue(lines.get(3).getString().contains("67")
                                 && lines.get(3).getString().contains("345"),
                         "Tooltip should display stored and maximum mana without decimals");
-                var manaContents = (net.minecraft.network.chat.contents.TranslatableContents) lines.get(3).getContents();
+                var manaContents = (TranslatableContents) lines.get(3).getContents();
                 var args = manaContents.getArgs();
                 helper.assertTrue(args.length == 2
-                                && args[0] instanceof net.minecraft.network.chat.Component currentMana
-                                && args[1] instanceof net.minecraft.network.chat.Component maxMana
+                                && args[0] instanceof Component currentMana
+                                && args[1] instanceof Component maxMana
                                 && currentMana.getStyle().getColor() != null
                                 && maxMana.getStyle().getColor() != null
                                 && currentMana.getStyle().getColor().getValue() == ChatFormatting.AQUA.getColor()
                                 && maxMana.getStyle().getColor().getValue() == ChatFormatting.AQUA.getColor(),
                         "Both mana values should always use cyan formatting");
                 helper.assertTrue(lines.get(5).getContents()
-                                instanceof net.minecraft.network.chat.contents.TranslatableContents modeContents
+                                instanceof TranslatableContents modeContents
                                 && "item.apprenticecodex.luminous_device.mode".equals(modeContents.getKey()),
                         "The selected placement mode should be displayed on the final tooltip line");
             } finally {
@@ -659,7 +673,7 @@ final class LuminousDeviceGameTestScenarios {
             helper.assertTrue(emptyViews.isEmpty(),
                     "An unupgraded empty Luminous Device should not expose locked functions");
 
-            var emptyLines = new java.util.ArrayList<net.minecraft.network.chat.Component>();
+            var emptyLines = new ArrayList<Component>();
             deviceStack.getItem().appendHoverText(
                     deviceStack,
                     Item.TooltipContext.of(helper.getLevel()),
@@ -668,10 +682,10 @@ final class LuminousDeviceGameTestScenarios {
             );
             helper.assertTrue(emptyLines.size() == 5,
                     "Empty placement mode should show all upgrades and omit the mode tooltip line");
-            var lockedUpgradeContents = (net.minecraft.network.chat.contents.TranslatableContents)
+            var lockedUpgradeContents = (TranslatableContents)
                     emptyLines.get(4).getContents();
-            helper.assertTrue(java.util.Arrays.stream(lockedUpgradeContents.getArgs()).allMatch(argument ->
-                            argument instanceof net.minecraft.network.chat.Component component
+            helper.assertTrue(Arrays.stream(lockedUpgradeContents.getArgs()).allMatch(argument ->
+                            argument instanceof Component component
                                     && component.getStyle().getColor() != null
                                     && component.getStyle().getColor().getValue() == ChatFormatting.DARK_GRAY.getColor()),
                     "Locked upgrades should all be dark gray");
@@ -686,17 +700,17 @@ final class LuminousDeviceGameTestScenarios {
                             && upgradedViews.get(1).spellId().equals(SpellRegistry.MAGE_LIGHT.get().getSpellResource())
                             && upgradedViews.get(2).spellId().equals(SpellRegistry.WIZARDLAMP.get().getSpellResource()),
                     "An upgraded empty Luminous Device should expose all unlocked functions");
-            var upgradedLines = new java.util.ArrayList<net.minecraft.network.chat.Component>();
+            var upgradedLines = new ArrayList<Component>();
             deviceStack.getItem().appendHoverText(
                     deviceStack,
                     Item.TooltipContext.of(helper.getLevel()),
                     upgradedLines,
                     TooltipFlag.NORMAL
             );
-            var unlockedUpgradeContents = (net.minecraft.network.chat.contents.TranslatableContents)
+            var unlockedUpgradeContents = (TranslatableContents)
                     upgradedLines.get(4).getContents();
-            helper.assertTrue(java.util.Arrays.stream(unlockedUpgradeContents.getArgs()).allMatch(argument ->
-                            argument instanceof net.minecraft.network.chat.Component component
+            helper.assertTrue(Arrays.stream(unlockedUpgradeContents.getArgs()).allMatch(argument ->
+                            argument instanceof Component component
                                     && component.getStyle().getColor() != null
                                     && component.getStyle().getColor().getValue() == ChatFormatting.GREEN.getColor()),
                     "Unlocked upgrades should all be green");
@@ -727,19 +741,19 @@ final class LuminousDeviceGameTestScenarios {
                         "Only the clean entry should be current while cleaning");
 
                 var cleanName = deviceStack.getItem().getName(deviceStack);
-                var cleanNameContents = (net.minecraft.network.chat.contents.TranslatableContents)
+                var cleanNameContents = (TranslatableContents)
                         cleanName.getContents();
                 helper.assertTrue("item.apprenticecodex.luminous_device.with_select"
                                 .equals(cleanNameContents.getKey())
                                 && cleanNameContents.getArgs().length == 2
-                                && cleanNameContents.getArgs()[1] instanceof net.minecraft.network.chat.Component modeName
+                                && cleanNameContents.getArgs()[1] instanceof Component modeName
                                 && modeName.getContents()
-                                instanceof net.minecraft.network.chat.contents.TranslatableContents modeNameContents
+                                instanceof TranslatableContents modeNameContents
                                 && "item.apprenticecodex.luminous_device.mode.clean"
                                 .equals(modeNameContents.getKey()),
                         "Clean mode should use the clean label in the item display name");
 
-                var cleanLines = new java.util.ArrayList<net.minecraft.network.chat.Component>();
+                var cleanLines = new ArrayList<Component>();
                 deviceStack.getItem().appendHoverText(
                         deviceStack,
                         Item.TooltipContext.of(helper.getLevel()),
@@ -748,10 +762,10 @@ final class LuminousDeviceGameTestScenarios {
                 );
                 helper.assertTrue(cleanLines.size() == 6,
                         "Clean mode should append its mode tooltip line");
-                var modeContents = (net.minecraft.network.chat.contents.TranslatableContents)
+                var modeContents = (TranslatableContents)
                         cleanLines.get(5).getContents();
-                var cleanSize = (net.minecraft.network.chat.Component) modeContents.getArgs()[1];
-                var cleanSizeContents = (net.minecraft.network.chat.contents.TranslatableContents)
+                var cleanSize = (Component) modeContents.getArgs()[1];
+                var cleanSizeContents = (TranslatableContents)
                         cleanSize.getContents();
                 helper.assertTrue(cleanSizeContents.getArgs().length == 3
                                 && Integer.valueOf(5).equals(cleanSizeContents.getArgs()[0])
@@ -774,26 +788,26 @@ final class LuminousDeviceGameTestScenarios {
                         "Spell mode should retain but deactivate the selected item");
 
                 var spellName = deviceStack.getItem().getName(deviceStack);
-                var spellNameContents = (net.minecraft.network.chat.contents.TranslatableContents)
+                var spellNameContents = (TranslatableContents)
                         spellName.getContents();
-                var itemNameSpell = (net.minecraft.network.chat.Component) spellNameContents.getArgs()[1];
+                var itemNameSpell = (Component) spellNameContents.getArgs()[1];
                 helper.assertTrue(itemNameSpell.getString().equals(mageLight.getDisplayName(null).getString())
                                 && itemNameSpell.getStyle().getColor() == null,
                         "Spell mode item name should omit school color and level");
 
-                var spellLines = new java.util.ArrayList<net.minecraft.network.chat.Component>();
+                var spellLines = new ArrayList<Component>();
                 deviceStack.getItem().appendHoverText(
                         deviceStack,
                         Item.TooltipContext.of(helper.getLevel()),
                         spellLines,
                         TooltipFlag.NORMAL
                 );
-                var spellModeContents = (net.minecraft.network.chat.contents.TranslatableContents)
+                var spellModeContents = (TranslatableContents)
                         spellLines.get(5).getContents();
-                var spellModeName = (net.minecraft.network.chat.Component) spellModeContents.getArgs()[0];
-                var tooltipSpell = (net.minecraft.network.chat.Component) spellModeContents.getArgs()[1];
+                var spellModeName = (Component) spellModeContents.getArgs()[0];
+                var tooltipSpell = (Component) spellModeContents.getArgs()[1];
                 helper.assertTrue(spellModeName.getContents()
-                                instanceof net.minecraft.network.chat.contents.TranslatableContents spellModeNameContents
+                                instanceof TranslatableContents spellModeNameContents
                                 && "item.apprenticecodex.luminous_device.mode.spell"
                                 .equals(spellModeNameContents.getKey()),
                         "Spell tooltip should use the shared spell mode translation");
@@ -840,7 +854,7 @@ final class LuminousDeviceGameTestScenarios {
             var magicData = MagicData.getPlayerMagicData(player);
             magicData.setMana(0.0F);
 
-            helper.assertTrue(deviceStack.getItem() instanceof io.redspace.ironsspellbooks.item.UniqueItem,
+            helper.assertTrue(deviceStack.getItem() instanceof UniqueItem,
                     "Luminous Device should block external spell imbuement as a UniqueItem");
             helper.assertFalse(ISpellContainer.isSpellContainer(deviceStack),
                     "Luminous Device should not expose its fixed spells through a SpellContainer");
@@ -895,7 +909,7 @@ final class LuminousDeviceGameTestScenarios {
             var wizardlampPos = helper.absolutePos(new BlockPos(4, 2, 1));
             helper.setBlock(new BlockPos(4, 2, 1), Blocks.AIR);
             var wizardlampTarget = setPendingTarget(player, wizardlamp, wizardlampPos);
-            helper.assertTrue(jp.aquafactory.apprenticecodex.spell.wizardlamp.Wizardlamp.resolveClientPlacePos(
+            helper.assertTrue(Wizardlamp.resolveClientPlacePos(
                             helper.getLevel(),
                             player,
                             wizardlampTarget,
@@ -1008,7 +1022,7 @@ final class LuminousDeviceGameTestScenarios {
                         "A targeted clean attempt with no lights should still consume the action and apply cooldown");
 
                 player.getCooldowns().removeCooldown(ItemRegistry.LUMINOUS_DEVICE.get());
-                player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.ADVENTURE);
+                player.gameMode.changeGameModeForPlayer(GameType.ADVENTURE);
                 var protectedCenter = new BlockPos(8, 1, 6);
                 helper.setBlock(protectedCenter, BlockRegistry.MAGE_LIGHT_TORCH.get());
                 var manaBeforeProtectedClean = LuminousDevice.getStoredMana(deviceStack);
@@ -1238,7 +1252,7 @@ final class LuminousDeviceGameTestScenarios {
         });
     }
 
-    private static net.minecraft.world.item.Item requireItem(
+    private static Item requireItem(
             GameTestHelper helper,
             String namespace,
             String path
@@ -1257,7 +1271,7 @@ final class LuminousDeviceGameTestScenarios {
     }
 
     private static ItemStack etherWithColors(
-            net.minecraft.world.item.Item ether,
+            Item ether,
             int count,
             int firstColor,
             int secondColor
@@ -1289,7 +1303,7 @@ final class LuminousDeviceGameTestScenarios {
 
     private static BlockTargetData setPendingTarget(
             FakePlayer player,
-            io.redspace.ironsspellbooks.api.spells.AbstractSpell spell,
+            AbstractSpell spell,
             BlockPos placePos
     ) {
         var targetData = new BlockTargetData();
@@ -1323,7 +1337,7 @@ final class LuminousDeviceGameTestScenarios {
     }
 
     private static ItemStack createInstantManaPotion(
-            net.minecraft.world.item.alchemy.Potion potion,
+            Potion potion,
             Item potionItem
     ) {
         return PotionContentsHelper.createPotionStack(potionItem, potion);
@@ -1332,6 +1346,6 @@ final class LuminousDeviceGameTestScenarios {
     private record RefillInteractionResult(boolean handled, ItemStack remainingStack) {
     }
 
-    private record PlacementCase(net.minecraft.world.item.Item item, Block block, BlockPos targetPos) {
+    private record PlacementCase(Item item, Block block, BlockPos targetPos) {
     }
 }

@@ -13,14 +13,16 @@ import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import org.joml.Vector3f;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class LunarAimTargetRenderEvent {
     private LunarAimTargetRenderEvent() {}
 
     @SubscribeEvent
-    public static void onRenderLevelStage(net.neoforged.neoforge.client.event.RenderLevelStageEvent event) {
-        if (event.getStage() != net.neoforged.neoforge.client.event.RenderLevelStageEvent.Stage.AFTER_ENTITIES) return;
+    public static void onRenderLevelStage(RenderLevelStageEvent event) {
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_ENTITIES) return;
         var minecraft = Minecraft.getInstance();
         if (minecraft.level == null || minecraft.player == null || !ClientMagicData.isCasting()) return;
         var spell = SpellRegistry.LUNAR_AIM.get();
@@ -32,7 +34,7 @@ public final class LunarAimTargetRenderEvent {
         var buffers = minecraft.renderBuffers().bufferSource();
         var pose = event.getPoseStack();
         var camera = event.getCamera().getPosition();
-        var color = new org.joml.Vector3f(spell.getTargetingColor()).mul(0.4f);
+        var color = new Vector3f(spell.getTargetingColor()).mul(0.4f);
         boolean rendered = false;
         for (var entity : minecraft.level.entitiesForRendering()) {
             if (!(entity instanceof EndCrystal crystal) || !crystal.isAlive() || !targeting.isTargeted(crystal.getUUID())) continue;

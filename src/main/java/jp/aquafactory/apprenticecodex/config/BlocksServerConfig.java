@@ -1,10 +1,14 @@
 package jp.aquafactory.apprenticecodex.config;
 
+import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import jp.aquafactory.apprenticecodex.config.block.ApprenticeDeskServerConfig;
 import jp.aquafactory.apprenticecodex.config.block.AlchemyBrewerServerConfig;
 import jp.aquafactory.apprenticecodex.config.block.ArcanumInAJarServerConfig;
 import jp.aquafactory.apprenticecodex.config.block.SpellDispenserServerConfig;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.ModConfigSpec;
+
+import java.util.List;
 
 final class BlocksServerConfig {
     private final ApprenticeDeskServerConfig apprenticeDeskConfig;
@@ -56,11 +60,11 @@ final class BlocksServerConfig {
         return apprenticeDeskConfig.disableNonJobSiteFeatures();
     }
 
-    java.util.List<String> apprenticeDeskSpellCraftBlacklist() {
+    List<String> apprenticeDeskSpellCraftBlacklist() {
         return apprenticeDeskConfig.spellCraftBlacklist();
     }
 
-    int apprenticeDeskInkMaxUses(io.redspace.ironsspellbooks.api.spells.SpellRarity rarity) {
+    int apprenticeDeskInkMaxUses(SpellRarity rarity) {
         return apprenticeDeskConfig.inkMaxUses(rarity);
     }
 
@@ -114,7 +118,7 @@ final class BlocksServerConfig {
         return spellDispenserConfig.enable();
     }
 
-    boolean spellDispenserIsSpellAllowedByServerAllowlist(net.minecraft.resources.ResourceLocation spellId) {
+    boolean spellDispenserIsSpellAllowedByServerAllowlist(ResourceLocation spellId) {
         return spellDispenserConfig.isSpellAllowedByServerAllowlist(spellId);
     }
 
@@ -130,7 +134,7 @@ final class BlocksServerConfig {
         return spellDispenserConfig.creativeCooldownMultiplier();
     }
 
-    java.util.List<String> spellDispenserSpellAllowlist() {
+    List<String> spellDispenserSpellAllowlist() {
         return spellDispenserConfig.spellAllowlist();
     }
 
@@ -141,7 +145,7 @@ final class BlocksServerConfig {
     void setSpellDispenserConfigForGameTest(
             boolean enable,
             boolean enableSpellAllowlist,
-            java.util.List<String> spellAllowlist,
+            List<String> spellAllowlist,
             double cooldownMultiplier
     ) {
         spellDispenserConfig.setForGameTest(enable, enableSpellAllowlist, spellAllowlist, cooldownMultiplier);

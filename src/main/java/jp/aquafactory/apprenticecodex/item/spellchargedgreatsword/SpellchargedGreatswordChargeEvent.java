@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.spellchargedgreatsword;
 
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
@@ -40,7 +41,7 @@ public final class SpellchargedGreatswordChargeEvent {
             return;
         }
 
-        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(event.getSpellId());
+        var spell = SpellRegistry.getSpell(event.getSpellId());
         var magicData = MagicData.getPlayerMagicData(player);
         var recordResult = shouldRecordCast(player, magicData, spell, event.getSpellLevel(), event.getCastSource());
         if (recordResult == CastRecordResult.IGNORE) {
@@ -104,7 +105,7 @@ public final class SpellchargedGreatswordChargeEvent {
             int spellLevel,
             CastSource castSource
     ) {
-        if (spell == null || spell == io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()) {
+        if (spell == null || spell == SpellRegistry.none()) {
             return CastRecordResult.IGNORE;
         }
 

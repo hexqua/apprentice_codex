@@ -4,7 +4,9 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -62,8 +64,8 @@ public final class SpellSideEdgeOffhandAttributeBridge {
         }
 
         return buildBridgeModifiers(
-                resolveRuntimeModifiers(offhandStack, net.minecraft.world.entity.EquipmentSlot.MAINHAND),
-                resolveRuntimeModifiers(offhandStack, net.minecraft.world.entity.EquipmentSlot.OFFHAND)
+                resolveRuntimeModifiers(offhandStack, EquipmentSlot.MAINHAND),
+                resolveRuntimeModifiers(offhandStack, EquipmentSlot.OFFHAND)
         );
     }
 
@@ -152,7 +154,7 @@ public final class SpellSideEdgeOffhandAttributeBridge {
 
     private static Multimap<Holder<Attribute>, AttributeModifier> resolveRuntimeModifiers(
             ItemStack stack,
-            net.minecraft.world.entity.EquipmentSlot slot
+            EquipmentSlot slot
     ) {
         var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
         // 1.21.1のAttributeエンチャントはDataComponent本体ではなく、この列挙時に合成される。
@@ -245,7 +247,7 @@ public final class SpellSideEdgeOffhandAttributeBridge {
         }
     }
 
-    private static void removeModifier(AttributeInstance attributeInstance, net.minecraft.resources.ResourceLocation modifierId) {
+    private static void removeModifier(AttributeInstance attributeInstance, ResourceLocation modifierId) {
         attributeInstance.removeModifier(modifierId);
     }
 
@@ -285,8 +287,8 @@ public final class SpellSideEdgeOffhandAttributeBridge {
         private ResourceLocationHelper() {
         }
 
-        private static net.minecraft.resources.ResourceLocation fromStableId(String value) {
-            return net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(
+        private static ResourceLocation fromStableId(String value) {
+            return ResourceLocation.fromNamespaceAndPath(
                     "apprenticecodex",
                     normalizeToken(value)
             );

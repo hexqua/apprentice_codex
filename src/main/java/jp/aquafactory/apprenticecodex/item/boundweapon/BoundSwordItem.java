@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.boundweapon;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.spell.boundsword.BoundSwordClientTooltip;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
@@ -13,6 +14,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tiers;
@@ -34,7 +36,7 @@ import java.util.UUID;
 public class BoundSwordItem extends SwordItem {
     public static final int DURABILITY = 1561;
     public static final double ATTACK_SPEED_MODIFIER_AMOUNT = -2.0D;
-    private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(net.minecraft.world.item.Items.GOLDEN_SWORD);
+    private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.GOLDEN_SWORD);
     public static final String INSTANCE_ID_TAG = "apprenticecodex:bound_sword_instance_id";
     public static final String DISPLAY_DAMAGE_TAG = "apprenticecodex:bound_sword_display_damage";
     public static final String EQUIPMENT_SLOT_TAG = "apprenticecodex:bound_sword_equipment_slot";
@@ -53,7 +55,7 @@ public class BoundSwordItem extends SwordItem {
     }
 
     public static ItemStack create(UUID instanceId, float displayDamage, EquipmentSlot equipmentSlot) {
-        var stack = new ItemStack(jp.aquafactory.apprenticecodex.registry.ItemRegistry.BOUND_SWORD.get());
+        var stack = new ItemStack(ItemRegistry.BOUND_SWORD.get());
         CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
             tag.putUUID(INSTANCE_ID_TAG, instanceId);
             tag.putFloat(DISPLAY_DAMAGE_TAG, displayDamage);

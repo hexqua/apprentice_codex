@@ -2,11 +2,13 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellReaperScytheServerConfig;
 import jp.aquafactory.apprenticecodex.gametest.malum.MalumScytheGameTestHelper;
+import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowManager;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.ChatFormatting;
@@ -19,6 +21,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.EntityType;
@@ -180,7 +183,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
 
         helper.assertTrue(result.getResult() == InteractionResult.CONSUME && !player.isUsingItem(),
                 "Rebound should throw immediately without charging");
-        var thrown = jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowManager.active(player);
+        var thrown = ScytheThrowManager.active(player);
         helper.assertTrue(thrown != null && thrown.isRebound(), "Rebound should create the independent thrown scythe");
         thrown.recall();
         helper.assertFalse(player.getCooldowns().isOnCooldown(stack.getItem()),
@@ -651,7 +654,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     private static Object getBetterCombatAttackHand(FakePlayer player, int comboCount)
             throws ReflectiveOperationException {
         var playerAttackHelper = Class.forName("net.bettercombat.logic.PlayerAttackHelper");
-        return playerAttackHelper.getMethod("getCurrentAttack", net.minecraft.world.entity.player.Player.class, int.class)
+        return playerAttackHelper.getMethod("getCurrentAttack", Player.class, int.class)
                 .invoke(null, player, comboCount);
     }
 
@@ -689,7 +692,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
         player.setYRot(0.0F);
         player.setXRot(0.0F);
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SPELL_REAPER_SCYTHE.get()));
-        var maxMana = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA);
+        var maxMana = player.getAttribute(AttributeRegistry.MAX_MANA);
         helper.assertTrue(maxMana != null, "Spell Reaper Scythe Ascension test requires MAX_MANA");
         maxMana.setBaseValue(1000.0D);
     }
@@ -762,7 +765,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
                 "Ascension cooldown should end after " + expectedTicks + " ticks");
     }
 
-    private static boolean isAscensionEffect(net.minecraft.world.effect.MobEffectInstance effect) {
+    private static boolean isAscensionEffect(MobEffectInstance effect) {
         return MALUM_ASCENSION_EFFECT.equals(BuiltInRegistries.MOB_EFFECT.getKey(effect.getEffect().value()));
     }
 

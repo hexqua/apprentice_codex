@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.curios.spellcastparryingring;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.spell.forcefield.ForceFieldDefenseEvent;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.neoforged.bus.api.EventPriority;
@@ -47,7 +48,7 @@ public final class SpellCastParryingRingDefenseEvent {
                 .orElse(false);
     }
 
-    private static void discardDirectProjectile(@Nullable net.minecraft.world.entity.Entity directEntity) {
+    private static void discardDirectProjectile(@Nullable Entity directEntity) {
         if (directEntity instanceof Projectile projectile && !projectile.isRemoved()) {
             projectile.discard();
         }

@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -234,7 +235,7 @@ public final class AtelierStationBlockEntityRenderer implements BlockEntityRende
     }
 
     private static int getRenderSeed(ItemStack stack, int salt) {
-        return (net.minecraft.world.item.Item.getId(stack.getItem()) * 37)
+        return (Item.getId(stack.getItem()) * 37)
                 + (stack.getDamageValue() * 17)
                 + (salt * 31);
     }

@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.curios.autocastamulet;
 
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
@@ -135,7 +136,7 @@ public final class AutocastAmuletAutoCastEvent {
             if (!spell.checkPreCastConditions(player.level(), spellLevel, player, magicData)) {
                 magicData.resetAdditionalCastData();
                 // 条件不成立を毎 tick 再試行しないため、クリエイティブでも意図的に待機時間を設ける。
-                io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, CastSource.SWORD);
+                MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, CastSource.SWORD);
                 scheduleRetry(slotResult.stack(), player.tickCount, index);
                 return SequenceResult.BLOCKED;
             }

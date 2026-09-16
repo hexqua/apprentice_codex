@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -18,6 +19,8 @@ import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -44,7 +47,7 @@ public final class StorageStabilizerGameTests {
         player.getInventory().setItem(SOURCE_SLOT, stabilizer);
         player.getEnderChestInventory().setItem(0, new ItemStack(Items.DIAMOND));
 
-        var enderChestSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.SUMMON_ENDER_CHEST_SPELL.get();
+        var enderChestSpell = SpellRegistry.SUMMON_ENDER_CHEST_SPELL.get();
         var magicData = MagicData.getPlayerMagicData(player);
         var manaCost = StorageStabilizer.getEnderChestManaCost();
         magicData.setMana(manaCost + 10.0F);
@@ -79,8 +82,8 @@ public final class StorageStabilizerGameTests {
                     UUID.randomUUID(),
                     "storage_stabilizer_inventory_ender_chest_test"
             ));
-            gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
-            var absolutePos = helper.absoluteVec(net.minecraft.world.phys.Vec3.atBottomCenterOf(pos));
+            gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
+            var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
             setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         }
 

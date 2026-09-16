@@ -31,6 +31,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
@@ -179,7 +180,7 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
                 GENERIC_RESIST_MODIFIER_ID,
                 ApprenticeCodexServerConfig.bulwarkGreatshieldGenericSpellResist(),
                 AttributeModifier.Operation.ADD_MULTIPLIED_BASE
-        ), net.minecraft.world.entity.EquipmentSlotGroup.OFFHAND);
+        ), EquipmentSlotGroup.OFFHAND);
         var schoolRuneCounts = new LinkedHashMap<SchoolType, Integer>();
         for (var school : getResolvedCalibrationSchools(stack)) {
             schoolRuneCounts.merge(school, 1, Integer::sum);
@@ -193,13 +194,13 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
                         SCHOOL_RESIST_MODIFIER_ID,
                         schoolSpellResist * entry.getValue(),
                         AttributeModifier.Operation.ADD_MULTIPLIED_BASE
-                ), net.minecraft.world.entity.EquipmentSlotGroup.OFFHAND);
+                ), EquipmentSlotGroup.OFFHAND);
             }
         }
         AttributeEnchantmentResolver.addModifiers(
                 builder,
                 stack,
-                net.minecraft.world.entity.EquipmentSlotGroup.OFFHAND,
+                EquipmentSlotGroup.OFFHAND,
                 "bulwark_greatshield_offhand_enchant"
         );
         return builder.build();

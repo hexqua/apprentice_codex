@@ -13,6 +13,7 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class UndyingEmblem extends Item implements ICurioItem{
@@ -25,7 +26,7 @@ public class UndyingEmblem extends Item implements ICurioItem{
 
     @Override
     public List<Component> getSlotsTooltip(List<Component> tooltips, TooltipContext context, ItemStack stack) {
-        var result = new java.util.ArrayList<>(tooltips);
+        var result = new ArrayList<>(tooltips);
         result.add(Component.empty());
         result.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
         result.add(Component.literal(" ")

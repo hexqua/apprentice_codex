@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.config.block;
 
+import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.List;
@@ -94,7 +95,7 @@ public final class ApprenticeDeskServerConfig {
                 .toList();
     }
 
-    public int inkMaxUses(io.redspace.ironsspellbooks.api.spells.SpellRarity rarity) {
+    public int inkMaxUses(SpellRarity rarity) {
         return switch (rarity) {
             case COMMON -> commonInkMaxUses.get();
             case UNCOMMON -> uncommonInkMaxUses.get();

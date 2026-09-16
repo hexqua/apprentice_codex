@@ -16,6 +16,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerEntity;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
@@ -576,7 +577,7 @@ public class UniteLunaMoonEntity extends Projectile implements AntiMagicSuscepti
         }
     }
 
-    private Vec3 createBurstShellOffset(net.minecraft.util.RandomSource random) {
+    private Vec3 createBurstShellOffset(RandomSource random) {
         var halfExtent = getBurstCubeSize() * 0.5f;
         var shellExtent = halfExtent * Mth.lerp(random.nextFloat(), 0.82f, 1.0f);
         var face = random.nextInt(6);

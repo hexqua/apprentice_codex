@@ -11,6 +11,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public final class MistFormServerConfig {
     private final ModConfigSpec.ConfigValue<List<? extends String>> passableBlockDenylist;
@@ -70,7 +71,7 @@ public final class MistFormServerConfig {
                 .filter(entry -> !entry.startsWith("#"))
                 .map(ResourceLocation::tryParse)
                 .filter(Objects::nonNull)
-                .collect(java.util.stream.Collectors.toUnmodifiableSet());
+                .collect(Collectors.toUnmodifiableSet());
         cachedDeniedTags = entries.stream()
                 .filter(entry -> entry.startsWith("#"))
                 .map(entry -> ResourceLocation.tryParse(entry.substring(1)))

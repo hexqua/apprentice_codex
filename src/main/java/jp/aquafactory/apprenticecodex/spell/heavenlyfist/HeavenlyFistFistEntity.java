@@ -20,6 +20,7 @@ import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -42,6 +43,7 @@ import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
+import java.util.LinkedHashSet;
 import java.util.UUID;
 
 public class HeavenlyFistFistEntity extends Entity implements GeoEntity, TraceableEntity {
@@ -194,7 +196,7 @@ public class HeavenlyFistFistEntity extends Entity implements GeoEntity, Traceab
             return;
         }
 
-        var blocks = new java.util.LinkedHashSet<BlockPos>();
+        var blocks = new LinkedHashSet<BlockPos>();
         for (var i = 0; i < TREMOR_BLOCK_LIMIT * 2 && blocks.size() < TREMOR_BLOCK_LIMIT; i++) {
             var angle = level.random.nextDouble() * Math.PI * 2.0D;
             var distance = TREMOR_RADIUS * Math.sqrt(level.random.nextDouble());
@@ -286,7 +288,7 @@ public class HeavenlyFistFistEntity extends Entity implements GeoEntity, Traceab
 
     public float getCoreRedProgress(float partialTick) {
         var age = tickCount + partialTick;
-        return net.minecraft.util.Mth.clamp((age - 15.0F) / 10.0F, 0.0F, 1.0F);
+        return Mth.clamp((age - 15.0F) / 10.0F, 0.0F, 1.0F);
     }
 
     @Override

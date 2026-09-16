@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.block.arcanuminajar;
 
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.block.ArcanumInAJarServerConfig;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
@@ -415,7 +416,7 @@ public class ArcanumInAJarBlockEntity extends BlockEntity {
         return new RemovalDropCounts(effectiveStoredParameterCount, effectiveRemainingOperationCount);
     }
 
-    private static jp.aquafactory.apprenticecodex.config.block.ArcanumInAJarServerConfig.ItemSettings itemSettings() {
+    private static ArcanumInAJarServerConfig.ItemSettings itemSettings() {
         return ApprenticeCodexServerConfig.arcanumInAJarItemSettings();
     }
 

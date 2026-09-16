@@ -384,7 +384,7 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem
     }
 
     protected static SwingcastStaffTier createTier(
-            net.minecraft.world.item.Rarity rarity,
+            Rarity rarity,
             int enchantmentValue,
             double displayedAttackDamage,
             double displayedAttackSpeed,

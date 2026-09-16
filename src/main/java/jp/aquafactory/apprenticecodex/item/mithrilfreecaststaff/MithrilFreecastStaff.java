@@ -12,6 +12,7 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
@@ -36,6 +37,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -147,7 +149,7 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
     public @NotNull ItemAttributeModifiers getDefaultAttributeModifiers(@NotNull ItemStack stack) {
         var builder = ItemAttributeModifiers.builder();
         builder.add(
-                net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE,
+                Attributes.ATTACK_DAMAGE,
                 new AttributeModifier(
                         Item.BASE_ATTACK_DAMAGE_ID,
                         DISPLAYED_ATTACK_DAMAGE - 1.0D,
@@ -156,7 +158,7 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
                 EquipmentSlotGroup.MAINHAND
         );
         builder.add(
-                net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED,
+                Attributes.ATTACK_SPEED,
                 new AttributeModifier(
                         Item.BASE_ATTACK_SPEED_ID,
                         DISPLAYED_ATTACK_SPEED - 4.0D,
@@ -461,7 +463,7 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     public static boolean isSilverRing(@NotNull ItemStack stack) {
-        return !stack.isEmpty() && stack.getItem() == io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get();
+        return !stack.isEmpty() && stack.getItem() == ItemRegistry.SILVER_RING.get();
     }
 
     public static boolean hasSilverRingAdjustment(@NotNull ItemStack staffStack) {

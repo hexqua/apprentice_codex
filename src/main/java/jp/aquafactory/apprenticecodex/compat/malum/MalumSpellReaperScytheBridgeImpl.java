@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.compat.malum;
 import com.sammy.malum.common.item.IMalumEventResponder;
 import com.sammy.malum.common.item.curiosities.weapons.scythe.MalumScytheItem;
 import com.sammy.malum.core.handlers.enchantment.AscensionHandler;
+import com.sammy.malum.registry.common.MalumAttributes;
 import com.sammy.malum.registry.common.MalumDamageTypes;
 import com.sammy.malum.registry.common.MalumParticleEffectTypes;
 import com.sammy.malum.registry.common.MalumSoundEvents;
@@ -12,10 +13,12 @@ import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScytheClientConfigState;
+import jp.aquafactory.apprenticecodex.mixin.LivingEntityAccessor;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -26,10 +29,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.CommonHooks;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import team.lodestar.lodestone.handlers.ItemEventHandler;
 import team.lodestar.lodestone.helpers.SoundHelper;
+import team.lodestar.lodestone.registry.common.LodestoneAttributes;
 
 import java.util.List;
 
@@ -43,12 +50,12 @@ final class MalumSpellReaperScytheBridgeImpl {
 
     static float throwMagicDamage(LivingEntity owner) {
         // 投擲時に保存し、後の持ち替えや手持ち弱体化でHauntedを失わない。
-        var attribute = owner.getAttribute(team.lodestar.lodestone.registry.common.LodestoneAttributes.MAGIC_DAMAGE);
+        var attribute = owner.getAttribute(LodestoneAttributes.MAGIC_DAMAGE);
         return attribute == null ? 0 : (float) Math.max(0, attribute.getValue());
     }
 
     static float scytheProficiency(LivingEntity owner) {
-        var attribute = owner.getAttribute(com.sammy.malum.registry.common.MalumAttributes.SCYTHE_PROFICIENCY);
+        var attribute = owner.getAttribute(MalumAttributes.SCYTHE_PROFICIENCY);
         return attribute == null ? 1 : (float) attribute.getValue();
     }
 
@@ -65,8 +72,8 @@ final class MalumSpellReaperScytheBridgeImpl {
         // 攻撃・マナ・装備効果は従来経路へ委譲し、跳躍のみserverから同期する。
         if (tryTriggerAscension(player.level(), player, InteractionHand.MAIN_HAND, stack) != InteractionResult.SUCCESS) return;
         var motion = player.getDeltaMovement();
-        motion = new net.minecraft.world.phys.Vec3(motion.x,
-                ((jp.aquafactory.apprenticecodex.mixin.LivingEntityAccessor) player).apprenticecodex$getJumpPower() * 2.0D, motion.z);
+        motion = new Vec3(motion.x,
+                ((LivingEntityAccessor) player).apprenticecodex$getJumpPower() * 2.0D, motion.z);
         if (player.isSprinting()) {
             float yaw = player.getYRot() * ((float) Math.PI / 180F);
             double impulse = hasNarrowEdge(player) ? -0.4D : 0.75D;
@@ -75,9 +82,9 @@ final class MalumSpellReaperScytheBridgeImpl {
         player.setDeltaMovement(motion);
         player.hasImpulse = true;
         player.hurtMarked = true;
-        net.neoforged.neoforge.common.CommonHooks.onLivingJump(player);
-        if (player instanceof ServerPlayer server && !(player instanceof net.neoforged.neoforge.common.util.FakePlayer)) {
-            server.connection.send(new net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket(player));
+        CommonHooks.onLivingJump(player);
+        if (player instanceof ServerPlayer server && !(player instanceof FakePlayer)) {
+            server.connection.send(new ClientboundSetEntityMotionPacket(player));
         }
     }
 
@@ -153,7 +160,7 @@ final class MalumSpellReaperScytheBridgeImpl {
         if (!creative && manaCost > 0) {
             magicData.setMana(Math.max(0.0F, magicData.getMana() - manaCost));
             if (player instanceof ServerPlayer serverPlayer
-                    && !(serverPlayer instanceof net.neoforged.neoforge.common.util.FakePlayer)) {
+                    && !(serverPlayer instanceof FakePlayer)) {
                 // AscensionはIron'sの通常詠唱経路を通らないため、追加消費後のHUDを明示的に同期する。
                 PacketDistributor.sendToPlayer(serverPlayer, new SyncManaPacket(magicData));
             }

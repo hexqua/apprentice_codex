@@ -36,6 +36,7 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 public class SpellcasterAmmoPouch extends Item implements ICurioItem, InventoryInsertTarget {
     private static final float EQUIPPED_EMPTY_CASING_RETURN_CHANCE = 0.9F;
@@ -387,7 +388,7 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem, InventoryI
         }
     }
 
-    private static boolean withAccessiblePouch(Player player, java.util.function.Predicate<ItemStack> action) {
+    private static boolean withAccessiblePouch(Player player, Predicate<ItemStack> action) {
         for (var pouchStack : getEquippedPouches(player)) {
             if (action.test(pouchStack)) {
                 return true;

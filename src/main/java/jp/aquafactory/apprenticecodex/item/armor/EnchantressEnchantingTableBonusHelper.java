@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.EnchantmentMenu;
 import net.minecraft.world.level.Level;
@@ -41,7 +42,7 @@ public final class EnchantressEnchantingTableBonusHelper {
             // この Attribute はプレイヤー本体へ登録せず、装備が持つ修飾子を直接合算して付呪台処理へ流す。
             for (var entry : stack.getAttributeModifiers().modifiers()) {
                 if (!entry.slot().test(slot)
-                        || entry.modifier().operation() != net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE) {
+                        || entry.modifier().operation() != AttributeModifier.Operation.ADD_VALUE) {
                     continue;
                 }
 

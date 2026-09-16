@@ -5,12 +5,16 @@ import io.netty.channel.embedded.EmbeddedChannel;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
+import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.entity.spells.spectral_hammer.SpectralHammer;
 import io.redspace.ironsspellbooks.spells.nature.TouchDigSpell;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
+import jp.aquafactory.apprenticecodex.effect.LongStrideMobility;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntletCastEvent;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
@@ -32,6 +36,7 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -46,18 +51,23 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.AmethystClusterBlock;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -67,6 +77,7 @@ import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.network.registration.NetworkRegistry;
 import net.neoforged.fml.ModList;
+import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.List;
 import java.util.UUID;
@@ -92,7 +103,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             var movementSpeed = player.getAttribute(Attributes.MOVEMENT_SPEED);
             helper.assertTrue(movementSpeed != null, "LongStride base bonus test could not resolve movement speed attribute");
 
-            player.addEffect(new net.minecraft.world.effect.MobEffectInstance(EffectRegistry.LONG_STRIDE_MOBILITY, 200, 0));
+            player.addEffect(new MobEffectInstance(EffectRegistry.LONG_STRIDE_MOBILITY, 200, 0));
             helper.assertTrue(movementSpeed != null, "LongStride base bonus test lost movement speed attribute after addEffect");
 
             var actualAmount = movementSpeed.getModifiers().stream()
@@ -153,7 +164,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
                 if (surfacingPlayer.onGround()) {
                     break;
                 }
-                surfacingPlayer.move(net.minecraft.world.entity.MoverType.SELF,
+                surfacingPlayer.move(MoverType.SELF,
                         surfacingPlayer.getDeltaMovement());
             }
 
@@ -206,7 +217,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
                     "long_stride_flowing_walk_test");
             var flowingPos = flowingWalker.blockPosition().below();
             placeAbsoluteFluidTestBasin(helper.getLevel(), flowingPos,
-                    Blocks.WATER.defaultBlockState().setValue(net.minecraft.world.level.block.LiquidBlock.LEVEL, 1));
+                    Blocks.WATER.defaultBlockState().setValue(LiquidBlock.LEVEL, 1));
             flowingWalker.addEffect(new MobEffectInstance(EffectRegistry.LONG_STRIDE_MOBILITY, 200, 0));
             flowingWalker.setDeltaMovement(0.08D, -0.2D, 0.0D);
             LongStrideFluidMovement.apply(flowingWalker);
@@ -222,7 +233,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
                     "long_stride_shallow_flowing_walk_test");
             var shallowPos = shallowWalker.blockPosition();
             placeAbsoluteFluidTestBasin(helper.getLevel(), shallowPos,
-                    Blocks.WATER.defaultBlockState().setValue(net.minecraft.world.level.block.LiquidBlock.LEVEL, 7));
+                    Blocks.WATER.defaultBlockState().setValue(LiquidBlock.LEVEL, 7));
             shallowWalker.addEffect(new MobEffectInstance(EffectRegistry.LONG_STRIDE_MOBILITY, 200, 0));
             shallowWalker.setOnGround(false);
             shallowWalker.setDeltaMovement(0.08D, 0.0D, 0.0D);
@@ -232,7 +243,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
                 if (shallowWalker.onGround()) {
                     break;
                 }
-                shallowWalker.move(net.minecraft.world.entity.MoverType.SELF,
+                shallowWalker.move(MoverType.SELF,
                         shallowWalker.getDeltaMovement());
             }
 
@@ -270,7 +281,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             helper.getLevel().setBlock(
                     waterloggedPlayer.blockPosition(),
                     Blocks.OAK_SLAB.defaultBlockState()
-                            .setValue(net.minecraft.world.level.block.SlabBlock.WATERLOGGED, true),
+                            .setValue(SlabBlock.WATERLOGGED, true),
                     3
             );
             waterloggedPlayer.addEffect(new MobEffectInstance(EffectRegistry.LONG_STRIDE_MOBILITY, 200, 0));
@@ -297,7 +308,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             var lavaPlayer = createEquipmentTestPlayer(helper, new BlockPos(4, 3, 0),
                     "long_stride_lava_damage_test");
             lavaPlayer.addEffect(new MobEffectInstance(EffectRegistry.LONG_STRIDE_MOBILITY, 200, 0));
-            helper.assertFalse(lavaPlayer.hasEffect(net.minecraft.world.effect.MobEffects.FIRE_RESISTANCE),
+            helper.assertFalse(lavaPlayer.hasEffect(MobEffects.FIRE_RESISTANCE),
                     "LongStride should not grant Fire Resistance");
             helper.assertFalse(lavaPlayer.fireImmune(),
                     "LongStride should not make the player immune to fire damage");
@@ -307,12 +318,12 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "dynamic_casting_movespeed_rebalance_test");
             var effectHolder = EffectRegistry.LONG_STRIDE_MOBILITY;
-            var effect = (jp.aquafactory.apprenticecodex.effect.LongStrideMobility) EffectRegistry.LONG_STRIDE_MOBILITY.value();
-            var castingMoveSpeed = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CASTING_MOVESPEED);
+            var effect = (LongStrideMobility) EffectRegistry.LONG_STRIDE_MOBILITY.value();
+            var castingMoveSpeed = player.getAttribute(AttributeRegistry.CASTING_MOVESPEED);
             helper.assertTrue(castingMoveSpeed != null,
                     "Dynamic casting mobility test could not resolve the CASTING_MOVESPEED attribute");
 
-            player.addEffect(new net.minecraft.world.effect.MobEffectInstance(effectHolder, 200, 0));
+            player.addEffect(new MobEffectInstance(effectHolder, 200, 0));
             helper.assertTrue(castingMoveSpeed != null, "Dynamic casting mobility test lost CASTING_MOVESPEED after addEffect");
             assertCastingMoveSpeedModifierAmount(
                     helper,
@@ -359,7 +370,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             helper.assertTrue(foodProperties != null && foodProperties.canAlwaysEat(),
                     "Comfort Berries should remain edible even when full");
 
-            var matchingEffects = foodProperties == null ? List.<net.minecraft.world.food.FoodProperties.PossibleEffect>of()
+            var matchingEffects = foodProperties == null ? List.<FoodProperties.PossibleEffect>of()
                     : foodProperties.effects().stream()
                     .filter(effectPair -> effectPair.effect().getEffect() == EffectRegistry.MANA_REGENERATION)
                     .toList();
@@ -390,7 +401,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             helper.assertTrue(foodProperties != null && foodProperties.canAlwaysEat(),
                     "Comfort Sandwich should remain edible even when full");
 
-            var matchingEffects = foodProperties == null ? List.<net.minecraft.world.food.FoodProperties.PossibleEffect>of()
+            var matchingEffects = foodProperties == null ? List.<FoodProperties.PossibleEffect>of()
                     : foodProperties.effects().stream()
                     .filter(effectPair -> effectPair.effect().getEffect() == EffectRegistry.MANA_REGENERATION)
                     .toList();
@@ -412,20 +423,20 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
     static void manaRegenerationEffectAppliesExpectedFinalManaRegenMultiplier(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "mana_regeneration_test"));
-            var manaRegenAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN);
+            var manaRegenAttribute = player.getAttribute(AttributeRegistry.MANA_REGEN);
             helper.assertTrue(manaRegenAttribute != null, "Player is missing the mana regen attribute");
 
             var baseValue = manaRegenAttribute == null ? Double.NaN : manaRegenAttribute.getValue();
             helper.assertTrue(!Double.isNaN(baseValue) && baseValue > 0.0D,
                     "Mana regen base value must be positive for regression testing: " + baseValue);
 
-            player.addEffect(new net.minecraft.world.effect.MobEffectInstance(EffectRegistry.MANA_REGENERATION, 20 * 30, 0));
+            player.addEffect(new MobEffectInstance(EffectRegistry.MANA_REGENERATION, 20 * 30, 0));
             var levelOneValue = manaRegenAttribute == null ? Double.NaN : manaRegenAttribute.getValue();
             helper.assertTrue(Math.abs(levelOneValue - (baseValue * 1.25D)) < 1.0e-9D,
                     "Mana Regeneration Lv1 regression: expected " + (baseValue * 1.25D) + " but got " + levelOneValue);
 
             player.removeEffect(EffectRegistry.MANA_REGENERATION);
-            player.addEffect(new net.minecraft.world.effect.MobEffectInstance(EffectRegistry.MANA_REGENERATION, 20 * 30, 1));
+            player.addEffect(new MobEffectInstance(EffectRegistry.MANA_REGENERATION, 20 * 30, 1));
             var levelTwoValue = manaRegenAttribute == null ? Double.NaN : manaRegenAttribute.getValue();
             helper.assertTrue(Math.abs(levelTwoValue - (baseValue * 1.50D)) < 1.0e-9D,
                     "Mana Regeneration Lv2 regression: expected " + (baseValue * 1.50D) + " but got " + levelTwoValue);
@@ -528,7 +539,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
                     player,
                     CastSource.SWORD
             );
-            helper.assertTrue(expectedCooldown < io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
+            helper.assertTrue(expectedCooldown < MagicManager.getEffectiveSpellCooldown(
                             spell,
                             player,
                             CastSource.SWORD
@@ -536,7 +547,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
                     "CraftsmansDelight Scrollcaster Gauntlet cooldown should be reduced from the normal sword cooldown");
 
             var craftsmansFirstEvent = new SpellCooldownAddedEvent.Pre(
-                    io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(spell, player, CastSource.SWORD),
+                    MagicManager.getEffectiveSpellCooldown(spell, player, CastSource.SWORD),
                     spell,
                     player,
                     CastSource.SWORD
@@ -548,7 +559,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
                             + craftsmansFirstEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
 
             var scrollcasterFirstEvent = new SpellCooldownAddedEvent.Pre(
-                    io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(spell, player, CastSource.SWORD),
+                    MagicManager.getEffectiveSpellCooldown(spell, player, CastSource.SWORD),
                     spell,
                     player,
                     CastSource.SWORD
@@ -566,7 +577,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
                     "magi_agent_boots_cooldown_test");
             var spell = SpellRegistry.COMMENCE_FIRE.get();
-            var baseCooldown = io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
+            var baseCooldown = MagicManager.getEffectiveSpellCooldown(
                     spell,
                     player,
                     CastSource.SPELLBOOK
@@ -602,7 +613,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
 
             var spell = SpellRegistry.THERMAL_PROCESS.get();
-            var baseCooldown = io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
+            var baseCooldown = MagicManager.getEffectiveSpellCooldown(
                     spell,
                     player,
                     CastSource.SPELLBOOK
@@ -699,7 +710,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             player.setItemSlot(EquipmentSlot.FEET, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()));
 
             var spell = SpellRegistry.COMMENCE_FIRE.get();
-            var baseCooldown = io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
+            var baseCooldown = MagicManager.getEffectiveSpellCooldown(
                     spell,
                     player,
                     CastSource.SPELLBOOK
@@ -1394,7 +1405,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             helper.assertTrue(Math.abs(player.getAttributeValue(Attributes.ARMOR_TOUGHNESS)) < 1.0E-6D,
                     "Penetrated Armor toughness reduction should not depend on amplifier");
 
-            var source = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(
+            var source = CombatTools.getDamageSource(
                     helper.getLevel(),
                     player,
                     DamageTypes.WORLD_FLATTER
@@ -1497,9 +1508,9 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
     }
 
     private static void equipRingCurio(ServerPlayer player, ItemStack ringStack) {
-        var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+        var curiosInventory = CuriosApi.getCuriosInventory(player)
                 .orElseThrow(() -> new IllegalStateException("Missing curios inventory for curio equip test"));
-        curiosInventory.setEquippedCurio(io.redspace.ironsspellbooks.compat.Curios.RING_SLOT, 0, ringStack);
+        curiosInventory.setEquippedCurio(Curios.RING_SLOT, 0, ringStack);
     }
 
 }

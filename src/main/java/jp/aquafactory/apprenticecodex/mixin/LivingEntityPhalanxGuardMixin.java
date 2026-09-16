@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.mixin;
 
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -34,7 +35,7 @@ public abstract class LivingEntityPhalanxGuardMixin {
             return;
         }
 
-        if (!player.hasEffect(net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.PHALANX_STANCE.get()))) {
+        if (!player.hasEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(EffectRegistry.PHALANX_STANCE.get()))) {
             return;
         }
 

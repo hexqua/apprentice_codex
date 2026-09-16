@@ -19,10 +19,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LadderBlock;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
 import java.util.UUID;
 
@@ -341,7 +343,7 @@ final class ManaManeuverGearGameTestScenarios extends ApprenticeCodexGameTestSce
         });
     }
 
-    private static net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent postFallDamage(
+    private static LivingIncomingDamageEvent postFallDamage(
             GameTestHelper helper,
             FakePlayer player,
             float damage,
@@ -371,7 +373,7 @@ final class ManaManeuverGearGameTestScenarios extends ApprenticeCodexGameTestSce
                 return true;
             }
         };
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 2, 0)));
         player.setPos(absolutePos.x + 0.2D, absolutePos.y, absolutePos.z);
         equipCurio(player, CuriosSlotConstants.FEET, new ItemStack(ItemRegistry.MANA_MANEUVER_GEAR.get()));

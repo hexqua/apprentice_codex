@@ -21,6 +21,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -297,7 +298,7 @@ public final class LightningArrowGameTests {
     private static final class Scene implements AutoCloseable {
         private final GameTestHelper helper;
         private final List<Entity> entities = new ArrayList<>();
-        private final Map<BlockPos, net.minecraft.world.level.block.state.BlockState> barriers = new LinkedHashMap<>();
+        private final Map<BlockPos, BlockState> barriers = new LinkedHashMap<>();
         private final FakePlayer owner;
 
         private Scene(GameTestHelper helper) {

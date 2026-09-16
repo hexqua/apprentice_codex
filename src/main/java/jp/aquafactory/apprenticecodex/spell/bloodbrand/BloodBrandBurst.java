@@ -1,12 +1,14 @@
 package jp.aquafactory.apprenticecodex.spell.bloodbrand;
 
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.core.particles.ColorParticleOption;
 import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
@@ -18,6 +20,7 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
 import java.util.HashSet;
+import java.util.UUID;
 
 public final class BloodBrandBurst {
     private static final float HIGANBANA_MULTIPLIER = 1.5F;
@@ -42,7 +45,7 @@ public final class BloodBrandBurst {
                 ? DamageTypes.BLOOD_BRAND_HIGANBANA_BURST
                 : DamageTypes.BLOOD_BRAND_BURST;
         var damageSource = CombatTools.getDamageSource(level, origin, caster, damageType);
-        var damagedTargets = new HashSet<java.util.UUID>();
+        var damagedTargets = new HashSet<UUID>();
         var healRate = higanbanaEnhanced ? 1.0F : 0.5F;
         var totalHealing = 0.0F;
 
@@ -81,7 +84,7 @@ public final class BloodBrandBurst {
         AudioTools.playSoundFromPosition(
                 level,
                 center,
-                io.redspace.ironsspellbooks.registries.SoundRegistry.BLOOD_EXPLOSION.get(),
+                SoundRegistry.BLOOD_EXPLOSION.get(),
                 SoundSource.PLAYERS,
                 1.0F,
                 1.0F,
@@ -115,7 +118,7 @@ public final class BloodBrandBurst {
         spawnParticleCloud(level, center, range, DARK_BLOOD_EFFECT, EFFECT_COUNT);
     }
 
-    private static <T extends net.minecraft.core.particles.ParticleOptions> void spawnParticleCloud(
+    private static <T extends ParticleOptions> void spawnParticleCloud(
             ServerLevel level, Vec3 center, double range, T particle, int count
     ) {
         for (var i = 0; i < count; ++i) {

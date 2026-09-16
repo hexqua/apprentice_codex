@@ -11,14 +11,18 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.BlockHitResult;
@@ -215,7 +219,7 @@ final class MagneticStabilityAnchorGameTestScenarios {
         });
     }
 
-    private static ItemEntity spawnNoGravityItem(net.minecraft.server.level.ServerLevel level, Vec3 position) {
+    private static ItemEntity spawnNoGravityItem(ServerLevel level, Vec3 position) {
         var item = new ItemEntity(level, position.x, position.y, position.z, new ItemStack(Items.IRON_INGOT));
         item.setNoGravity(true);
         item.setDeltaMovement(Vec3.ZERO);
@@ -223,9 +227,9 @@ final class MagneticStabilityAnchorGameTestScenarios {
         return item;
     }
 
-    private static void assertPlainDrop(GameTestHelper helper, net.minecraft.world.level.block.state.BlockState state,
-                                        net.minecraft.world.level.block.entity.BlockEntity blockEntity,
-                                        net.minecraft.world.entity.player.Player player, ItemStack tool) {
+    private static void assertPlainDrop(GameTestHelper helper, BlockState state,
+                                        BlockEntity blockEntity,
+                                        Player player, ItemStack tool) {
         var drops = Block.getDrops(state, helper.getLevel(), blockEntity.getBlockPos(), blockEntity, player, tool);
         var expected = new ItemStack(ItemRegistry.MAGNETIC_STABILITY_ANCHOR.get());
         helper.assertTrue(drops.size() == 1 && drops.getFirst().getCount() == 1

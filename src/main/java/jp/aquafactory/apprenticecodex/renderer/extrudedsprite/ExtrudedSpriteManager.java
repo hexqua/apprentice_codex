@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,7 +20,7 @@ public final class ExtrudedSpriteManager {
                 return ExtrudedSpriteMesher.bake(img, THICKNESS);
             } catch (Exception e) {
                 ApprenticeCodex.LOGGER.error("Failed to load texture: {}", key, e);
-                return new ExtrudedSpriteMesh(java.util.List.of());
+                return new ExtrudedSpriteMesh(List.of());
             }
         });
     }

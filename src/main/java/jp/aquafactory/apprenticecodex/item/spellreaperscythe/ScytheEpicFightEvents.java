@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.spellreaperscythe;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSpellReaperScytheCompat;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -17,7 +18,7 @@ public final class ScytheEpicFightEvents {
             EpicFightSpellReaperScytheCompat.tick(player);
         }
     }
-    private static void clear(net.minecraft.world.entity.player.Player player) {
+    private static void clear(Player player) {
         if (ModList.get().isLoaded("epicfight") && player instanceof ServerPlayer server) {
             EpicFightSpellReaperScytheCompat.clear(server);
         }

@@ -20,10 +20,11 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 public final class BetterCombatOffhandAttributeRescueCompat {
     private static final String RESCUE_ID_PREFIX = "bettercombat_offhand_rescue";
-    private static final Map<java.util.UUID, Multimap<Holder<Attribute>, AttributeModifier>> APPLIED_MODIFIERS = new HashMap<>();
+    private static final Map<UUID, Multimap<Holder<Attribute>, AttributeModifier>> APPLIED_MODIFIERS = new HashMap<>();
 
     private BetterCombatOffhandAttributeRescueCompat() {
     }

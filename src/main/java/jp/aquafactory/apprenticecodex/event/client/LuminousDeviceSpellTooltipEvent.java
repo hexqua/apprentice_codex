@@ -1,6 +1,9 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.util.TooltipsUtils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
@@ -17,6 +20,8 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 
+import java.util.List;
+
 @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class LuminousDeviceSpellTooltipEvent {
     private LuminousDeviceSpellTooltipEvent() {
@@ -32,7 +37,7 @@ public final class LuminousDeviceSpellTooltipEvent {
         }
 
         var spellData = LuminousDevice.getSelectedSpellData(stack);
-        if (spellData == io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY || spellData.getSpell() == null) {
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
             return;
         }
 
@@ -59,7 +64,7 @@ public final class LuminousDeviceSpellTooltipEvent {
                 var insertIndex = Math.min(2, spellLines.size());
                 spellLines.add(insertIndex, Component.translatable(
                         "item.apprenticecodex.luminous_device.spell.max_range",
-                        io.redspace.ironsspellbooks.api.util.Utils.stringTruncation(profile.effectiveRange(), 1)
+                        Utils.stringTruncation(profile.effectiveRange(), 1)
                 ).withStyle(TooltipsUtils.getStyleFor(player, spell)));
                 spellLines.add(insertIndex + 1, Component.translatable(
                         "item.apprenticecodex.luminous_device.spell.range_mana"
@@ -80,9 +85,9 @@ public final class LuminousDeviceSpellTooltipEvent {
         event.getToolTip().addAll(spellLines);
     }
 
-    private static void replaceManaLine(java.util.List<? extends Component> lines, int minimum, int maximum) {
+    private static void replaceManaLine(List<? extends Component> lines, int minimum, int maximum) {
         @SuppressWarnings("unchecked")
-        var mutableLines = (java.util.List<Component>) lines;
+        var mutableLines = (List<Component>) lines;
         var manaIndex = TooltipsUtils.indexOfComponent(mutableLines, "tooltip.irons_spellbooks.mana_cost");
         var rangeLine = Component.translatable(
                 "item.apprenticecodex.luminous_device.spell.mana_range",
@@ -96,16 +101,16 @@ public final class LuminousDeviceSpellTooltipEvent {
         }
     }
 
-    private static void ensureManaLine(java.util.List<? extends Component> lines, int manaCost) {
+    private static void ensureManaLine(List<? extends Component> lines, int manaCost) {
         if (manaCost <= 0) {
             return;
         }
         @SuppressWarnings("unchecked")
-        var mutableLines = (java.util.List<Component>) lines;
+        var mutableLines = (List<Component>) lines;
         if (TooltipsUtils.indexOfComponent(mutableLines, "tooltip.irons_spellbooks.mana_cost") < 0) {
             mutableLines.add(
                     TooltipsUtils.getManaCostComponent(
-                            io.redspace.ironsspellbooks.api.spells.CastType.INSTANT,
+                            CastType.INSTANT,
                             manaCost
                     ).withStyle(ChatFormatting.BLUE)
             );

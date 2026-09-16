@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.config.ServerConfigs;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceSpellLevelEvent;
@@ -21,6 +22,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -29,6 +31,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
@@ -36,6 +39,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
 
 import java.util.ArrayList;
+import java.util.List;
 
 final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private BulwarkGreatshieldGameTestScenarios() {
@@ -236,7 +240,7 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
 
     private static void assertImbueShieldEnchantmentEffects(
             GameTestHelper helper,
-            net.minecraft.server.level.ServerPlayer player,
+            ServerPlayer player,
             ItemStack stack,
             String itemName
     ) {
@@ -269,7 +273,7 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
                 itemName + " Wisdom should increase block experience from 5 to 6");
     }
 
-    private static void assertTooltipKeyAt(GameTestHelper helper, java.util.List<Component> lines, int index,
+    private static void assertTooltipKeyAt(GameTestHelper helper, List<Component> lines, int index,
                                            String expectedKey) {
         helper.assertTrue(lines.size() > index, "Bulwark tooltip line is missing at index " + index);
         var contents = lines.get(index).getContents();
@@ -559,7 +563,7 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
         var bulwarkPlayer = BowGameTestSupport.createEquipmentTestPlayer(
                 helper, new BlockPos(0, 2, 0), "bulwark_creative_continuous_finish_test"
         );
-        bulwarkPlayer.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+        bulwarkPlayer.gameMode.changeGameModeForPlayer(GameType.CREATIVE);
         helper.assertTrue(bulwarkPlayer.isCreative(), "Bulwark creative cooldown test requires creative mode");
         var bulwarkStack = createContinuousCastShieldStack(ItemRegistry.BULWARK_GREATSHIELD.get());
         bulwarkPlayer.setItemInHand(InteractionHand.OFF_HAND, bulwarkStack);
@@ -574,14 +578,14 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
                 "Bulwark creative finish test should start from an active cast");
         helper.assertFalse(bulwarkMagicData.getPlayerCooldowns().isOnCooldown(spell),
                 "Bulwark creative finish test should not begin with a cooldown");
-        var originalCreativeCooldown = io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.get();
+        var originalCreativeCooldown = ServerConfigs.CREATIVE_COOLDOWN.get();
         try {
-            io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(false);
-            io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
+            ServerConfigs.CREATIVE_COOLDOWN.set(false);
+            ServerConfigs.CREATIVE_COOLDOWN.clearCache();
             BulwarkGreatshieldRuntime.finishUse(bulwarkPlayer);
         } finally {
-            io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(originalCreativeCooldown);
-            io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
+            ServerConfigs.CREATIVE_COOLDOWN.set(originalCreativeCooldown);
+            ServerConfigs.CREATIVE_COOLDOWN.clearCache();
         }
         helper.assertFalse(bulwarkMagicData.getPlayerCooldowns().isOnCooldown(spell),
                 "Bulwark creative finish should respect disabled creative cooldowns");
@@ -589,7 +593,7 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
         var reflectcastPlayer = BowGameTestSupport.createEquipmentTestPlayer(
                 helper, new BlockPos(2, 2, 0), "reflectcast_creative_continuous_finish_test"
         );
-        reflectcastPlayer.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+        reflectcastPlayer.gameMode.changeGameModeForPlayer(GameType.CREATIVE);
         helper.assertTrue(reflectcastPlayer.isCreative(), "Reflectcast creative cooldown test requires creative mode");
         var reflectcastStack = createContinuousCastShieldStack(ItemRegistry.REFLECTCAST_SHIELD.get());
         SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
@@ -608,19 +612,19 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
         helper.assertFalse(reflectcastMagicData.getPlayerCooldowns().isOnCooldown(spell),
                 "Reflectcast creative finish test should not begin with a cooldown");
         try {
-            io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(false);
-            io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
+            ServerConfigs.CREATIVE_COOLDOWN.set(false);
+            ServerConfigs.CREATIVE_COOLDOWN.clearCache();
             ReflectcastShieldRuntime.finishUse(reflectcastPlayer);
         } finally {
-            io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(originalCreativeCooldown);
-            io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.clearCache();
+            ServerConfigs.CREATIVE_COOLDOWN.set(originalCreativeCooldown);
+            ServerConfigs.CREATIVE_COOLDOWN.clearCache();
         }
         helper.assertFalse(reflectcastMagicData.getPlayerCooldowns().isOnCooldown(spell),
                 "Reflectcast creative finish should respect disabled creative cooldowns");
         helper.succeed();
     }
 
-    private static ItemStack createContinuousCastShieldStack(net.minecraft.world.item.Item shieldItem) {
+    private static ItemStack createContinuousCastShieldStack(Item shieldItem) {
         var stack = new ItemStack(shieldItem);
         var spellContainer = ISpellContainer.create(1, false, false).mutableCopy();
         spellContainer.addSpellAtIndex(SpellRegistry.FIRE_BREATH_SPELL.get(), 1, 0, false);

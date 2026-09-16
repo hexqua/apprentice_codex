@@ -18,6 +18,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -82,7 +83,7 @@ public class ArtisanSmash extends AbstractSummonWeaponSpell<ArtisanSmashLauncher
     }
 
     @Override
-    public boolean canBeInterrupted(@Nullable net.minecraft.world.entity.player.Player player) {
+    public boolean canBeInterrupted(@Nullable Player player) {
         return canBeInterruptedWithMagiAgentSuit(this, player, super.canBeInterrupted(player));
     }
 

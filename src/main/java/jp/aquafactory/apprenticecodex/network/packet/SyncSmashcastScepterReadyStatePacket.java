@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterClientRenderState;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.FriendlyByteBuf;
@@ -13,7 +14,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class SyncSmashcastScepterReadyStatePacket implements CustomPacketPayload {
     public static final Type<SyncSmashcastScepterReadyStatePacket> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(jp.aquafactory.apprenticecodex.ApprenticeCodex.MODID, "sync_smashcast_scepter_ready_state"));
+            new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_smashcast_scepter_ready_state"));
     public static final StreamCodec<RegistryFriendlyByteBuf, SyncSmashcastScepterReadyStatePacket> STREAM_CODEC =
             StreamCodec.of((buffer, packet) -> encode(packet, buffer), SyncSmashcastScepterReadyStatePacket::decode);
 

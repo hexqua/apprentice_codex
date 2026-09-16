@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.multipurposestaffrifle;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
@@ -35,7 +36,7 @@ public final class MultipurposeStaffrifleCastEvent {
             return;
         }
 
-        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(event.getSpellId());
+        var spell = SpellRegistry.getSpell(event.getSpellId());
         if (!MultipurposeStaffrifleCastContext.isActiveFor(player.getUUID(), castingItem, spell)) {
             return;
         }

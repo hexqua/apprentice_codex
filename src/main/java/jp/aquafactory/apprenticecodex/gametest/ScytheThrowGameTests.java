@@ -1,19 +1,27 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import io.netty.buffer.Unpooled;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellReaperScytheServerConfig;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.*;
 import jp.aquafactory.apprenticecodex.mixin.LivingEntityDamageMemoryAccessor;
+import jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
@@ -21,6 +29,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.projectile.Snowball;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -45,21 +54,21 @@ public final class ScytheThrowGameTests {
         var plain = new ScytheThrowEntity(EntityRegistry.SCYTHE_THROW.get(), h.getLevel());
         plain.prepare(p, stack, 0, 2.5);
         h.assertTrue(plain.getTrailColor() == ScytheThrowEntity.DEFAULT_TRAIL_COLOR, "Unimbued scythe must use the fallback color");
-        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIREBOLT_SPELL.get();
-        var container = io.redspace.ironsspellbooks.api.spells.ISpellContainer.create(1, true, false).mutableCopy();
+        var spell = SpellRegistry.FIREBOLT_SPELL.get();
+        var container = ISpellContainer.create(1, true, false).mutableCopy();
         h.assertTrue(container.addSpell(spell, 1, true), "Test spell must fit the scythe");
-        io.redspace.ironsspellbooks.api.spells.ISpellContainer.set(stack, container.toImmutable());
+        ISpellContainer.set(stack, container.toImmutable());
         var thrown = new ScytheThrowEntity(EntityRegistry.SCYTHE_THROW.get(), h.getLevel());
         thrown.prepare(p, stack, 0, 2.5);
-        int expected = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolTintColor(spell.getSchoolType());
-        io.redspace.ironsspellbooks.api.spells.ISpellContainer.set(stack,
-                io.redspace.ironsspellbooks.api.spells.ISpellContainer.create(1, true, false));
+        int expected = MagicTools.resolveSchoolTintColor(spell.getSchoolType());
+        ISpellContainer.set(stack,
+                ISpellContainer.create(1, true, false));
         p.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         h.assertTrue(thrown.getTrailColor() == expected, "Thrown color must retain the launch spell after the original item changes");
-        var packet = new jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket(Vec3.ZERO, new Vec3(3, 4, 5), thrown.getTrailColor());
-        var buffer = new net.minecraft.network.RegistryFriendlyByteBuf(io.netty.buffer.Unpooled.buffer(), h.getLevel().registryAccess());
+        var packet = new ScytheRecallEffectPacket(Vec3.ZERO, new Vec3(3, 4, 5), thrown.getTrailColor());
+        var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), h.getLevel().registryAccess());
         try {
-            var codec = jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket.STREAM_CODEC;
+            var codec = ScytheRecallEffectPacket.STREAM_CODEC;
             codec.encode(buffer, packet);
             h.assertTrue(codec.decode(buffer).equals(packet), "Recall packet must preserve endpoints and school color");
         } finally { buffer.release(); }
@@ -110,8 +119,8 @@ public final class ScytheThrowGameTests {
         var p = player(h, 0);
         begin(h, p);
         h.runAfterDelay(10, () -> {
-            try (var ignored = jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig.useSpellReaperScytheConfigOverrideForGameTest(
-                    new jp.aquafactory.apprenticecodex.config.item.SpellReaperScytheServerConfig.Values(200, 40, 10, 0, 0))) {
+            try (var ignored = ApprenticeCodexServerConfig.useSpellReaperScytheConfigOverrideForGameTest(
+                    new SpellReaperScytheServerConfig.Values(200, 40, 10, 0, 0))) {
                 ScytheThrowManager.release(h.getLevel(), p, p.getUseItem()); p.stopUsingItem();
                 var entity = ScytheThrowManager.active(p);
                 h.assertTrue(entity != null, "Zero-cost throw must work without mana");
@@ -251,7 +260,7 @@ public final class ScytheThrowGameTests {
         target.setHealth(200);
         p.getAttribute(AttributeRegistry.SPELL_POWER).setBaseValue(50);
         target.getAttribute(AttributeRegistry.SPELL_RESIST).setBaseValue(50);
-        var source = h.getLevel().damageSources().thrown(new net.minecraft.world.entity.projectile.Snowball(h.getLevel(), p), p);
+        var source = h.getLevel().damageSources().thrown(new Snowball(h.getLevel(), p), p);
         CombatTools.applyUnscaledDamage(target, 10, source, CombatTools.KnockbackTypes.NO_KNOCKBACK);
         h.assertTrue(Math.abs(target.getHealth() - 190) < 0.01, "Unscaled damage must ignore Iron's power and resistance");
         target.invulnerableTime = 0;

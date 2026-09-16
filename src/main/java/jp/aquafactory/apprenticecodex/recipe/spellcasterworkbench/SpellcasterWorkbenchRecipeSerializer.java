@@ -14,6 +14,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public final class SpellcasterWorkbenchRecipeSerializer implements RecipeSerializer<SpellcasterWorkbenchRecipe> {
@@ -127,8 +128,8 @@ public final class SpellcasterWorkbenchRecipeSerializer implements RecipeSeriali
     };
 
     private static SpellcasterWorkbenchRecipe createRecipe(
-            java.util.List<SpellcasterWorkbenchRecipe.SizedIngredient> ingredients,
-            java.util.List<ItemStack> results,
+            List<SpellcasterWorkbenchRecipe.SizedIngredient> ingredients,
+            List<ItemStack> results,
             int priority,
             Optional<Operation> operation
     ) {

@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 public class ReflectcastShield extends AbstractImbueShieldItem
         implements GeoItem, SpellCalibrationAdjustmentTarget {
@@ -277,7 +278,7 @@ public class ReflectcastShield extends AbstractImbueShieldItem
         return CastSource.SWORD;
     }
 
-    private static boolean hasAdjustment(ItemStack stack, java.util.function.Predicate<ItemStack> predicate) {
+    private static boolean hasAdjustment(ItemStack stack, Predicate<ItemStack> predicate) {
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; slot++) {
             if (predicate.test(readCalibrationAdjustment(stack, slot))) {
                 return true;

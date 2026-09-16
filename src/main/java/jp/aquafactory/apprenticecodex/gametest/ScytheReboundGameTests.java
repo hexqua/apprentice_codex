@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -15,15 +16,19 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -37,7 +42,7 @@ public final class ScytheReboundGameTests {
         p.setPos(h.absoluteVec(new Vec3(2.5, 20, 2.5)));
         p.setYRot(0); p.setXRot(-90);
         p.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(10);
-        p.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA).setBaseValue(10000);
+        p.getAttribute(AttributeRegistry.MAX_MANA).setBaseValue(10000);
         p.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SPELL_REAPER_SCYTHE.get()));
         MagicData.getPlayerMagicData(p).setMana(mana);
         return p;
@@ -51,7 +56,7 @@ public final class ScytheReboundGameTests {
     static void use(GameTestHelper h, FakePlayer p) {
         // Entity・装備派生の共通テスト。Epic Fightの入力契約は専用GameTestで検証する。
         if (ScytheThrowManager.active(p) == null && MalumSpellReaperScytheBridge.tryTriggerAscension(
-                h.getLevel(), p, InteractionHand.MAIN_HAND, p.getMainHandItem()) != net.minecraft.world.InteractionResult.PASS) return;
+                h.getLevel(), p, InteractionHand.MAIN_HAND, p.getMainHandItem()) != InteractionResult.PASS) return;
         ScytheThrowManager.use(h.getLevel(), p, InteractionHand.MAIN_HAND);
     }
 
@@ -166,15 +171,15 @@ public final class ScytheReboundGameTests {
         if (!MalumSpellReaperScytheBridge.isAvailable()) { h.succeed(); return; }
         var p = player(h, 100);
         enchant(h, p.getMainHandItem(), "rebound", 1);
-        java.util.function.Consumer<net.neoforged.neoforge.event.entity.EntityJoinLevelEvent> listener = event -> {
+        Consumer<EntityJoinLevelEvent> listener = event -> {
             if (event.getEntity() instanceof ScytheThrowEntity scythe && scythe.getOwner() == p) event.setCanceled(true);
         };
-        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(listener);
+        NeoForge.EVENT_BUS.addListener(listener);
         try {
             use(h, p);
             h.assertTrue(ScytheThrowManager.active(p) == null && !ScytheThrowManager.isThrown(p.getMainHandItem())
                     && MagicData.getPlayerMagicData(p).getMana() == 100, "Rejected spawn must not spend mana or leave throw state");
-        } finally { net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(listener); }
+        } finally { NeoForge.EVENT_BUS.unregister(listener); }
         h.succeed();
     }
 }

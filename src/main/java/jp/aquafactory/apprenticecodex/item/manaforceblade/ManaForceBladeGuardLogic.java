@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -200,9 +201,9 @@ public final class ManaForceBladeGuardLogic {
         return true;
     }
 
-    private static net.minecraft.nbt.CompoundTag getCustomDataTag(ItemStack stack) {
+    private static CompoundTag getCustomDataTag(ItemStack stack) {
         var customData = stack.get(DataComponents.CUSTOM_DATA);
-        return customData == null ? new net.minecraft.nbt.CompoundTag() : customData.copyTag();
+        return customData == null ? new CompoundTag() : customData.copyTag();
     }
 
     private static Vec3 resolveGuardOrigin(DamageSource source, ServerPlayer player) {

@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -14,7 +15,10 @@ import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUtils;
 import net.minecraft.world.item.Items;
@@ -22,6 +26,7 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
@@ -43,12 +48,14 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
+
 @SuppressWarnings("deprecation")
 public final class AlchemyBrewer extends BaseEntityBlock {
     public static final MapCodec<AlchemyBrewer> CODEC = simpleCodec(AlchemyBrewer::new);
-    public static final net.minecraft.world.level.block.state.properties.DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
     private static final VoxelShape COLLISION_SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 10.0D, 16.0D);
-    private static final java.util.Map<Direction, VoxelShape> OUTLINE_SHAPES = java.util.Map.of(
+    private static final Map<Direction, VoxelShape> OUTLINE_SHAPES = Map.of(
             Direction.NORTH, createOutlineShape(Direction.NORTH),
             Direction.EAST, createOutlineShape(Direction.EAST),
             Direction.SOUTH, createOutlineShape(Direction.SOUTH),
@@ -188,12 +195,12 @@ public final class AlchemyBrewer extends BaseEntityBlock {
                                                                    @NotNull Player player, @NotNull BlockHitResult hitResult) {
         if (level.isClientSide) return InteractionResult.SUCCESS;
         if (level.getBlockEntity(pos) instanceof AlchemyBrewerBlockEntity brewer && player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(new net.minecraft.world.MenuProvider() {
-                @Override public @NotNull net.minecraft.network.chat.Component getDisplayName() {
-                    return net.minecraft.network.chat.Component.translatable("container.apprenticecodex.alchemy_brewer");
+            serverPlayer.openMenu(new MenuProvider() {
+                @Override public @NotNull Component getDisplayName() {
+                    return Component.translatable("container.apprenticecodex.alchemy_brewer");
                 }
-                @Override public @NotNull net.minecraft.world.inventory.AbstractContainerMenu createMenu(int id,
-                        @NotNull net.minecraft.world.entity.player.Inventory inventory, @NotNull Player menuPlayer) {
+                @Override public @NotNull AbstractContainerMenu createMenu(int id,
+                        @NotNull Inventory inventory, @NotNull Player menuPlayer) {
                     return new AlchemyBrewerMenu(id, inventory, brewer);
                 }
             }, buffer -> buffer.writeBlockPos(pos));

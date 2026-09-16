@@ -13,6 +13,7 @@ import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.item.Scroll;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
@@ -708,7 +709,7 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     public static boolean isRecoveryRune(@NotNull ItemStack stack) {
-        return !stack.isEmpty() && stack.getItem() == io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get();
+        return !stack.isEmpty() && stack.getItem() == ItemRegistry.COOLDOWN_RUNE.get();
     }
 
     public static boolean isSilverRing(@NotNull ItemStack stack) {

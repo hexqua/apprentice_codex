@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.compat.create;
 
+import com.mojang.authlib.GameProfile;
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
 import com.simibubi.create.api.contraption.storage.item.MountedItemStorage;
 import com.simibubi.create.api.contraption.dispenser.MountedDispenseBehavior;
@@ -483,7 +484,7 @@ public final class SpellDispenserMovementBehaviour implements MovementBehaviour 
         return SpellDispenserVariant.fromState(context.state);
     }
 
-    private static @Nullable com.mojang.authlib.GameProfile resolveOwnerProfile(MovementContext context) {
+    private static @Nullable GameProfile resolveOwnerProfile(MovementContext context) {
         return getVariant(context).storesOwnerProfile()
                 ? SpellDispenserBlockEntity.readOwnerProfile(context.blockEntityData)
                 : null;

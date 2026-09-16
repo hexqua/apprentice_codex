@@ -10,6 +10,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 public class InscribeIceDaggerThrowJob {
     private static final int MAX_RELEASE_TICKS = 3;
@@ -154,7 +155,7 @@ public class InscribeIceDaggerThrowJob {
         for (var i = 0; i < projectileCount; ++i) {
             indices.add(i);
         }
-        Collections.shuffle(indices, new java.util.Random(random.nextLong()));
+        Collections.shuffle(indices, new Random(random.nextLong()));
 
         var buckets = new ArrayList<List<Integer>>(bucketCount);
         for (var i = 0; i < bucketCount; ++i) {

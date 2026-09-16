@@ -11,7 +11,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public final class SpellDispenserInteractionBehaviour extends MovingInteractionBehaviour {
@@ -50,7 +53,7 @@ public final class SpellDispenserInteractionBehaviour extends MovingInteractionB
             }
 
             @Override
-            public net.minecraft.world.inventory.AbstractContainerMenu createMenu(int containerId, net.minecraft.world.entity.player.@NotNull Inventory inventory, @NotNull Player menuPlayer) {
+            public AbstractContainerMenu createMenu(int containerId, @NotNull Inventory inventory, @NotNull Player menuPlayer) {
                 return SpellDispenserMenu.createMounted(
                         containerId,
                         inventory,
@@ -74,8 +77,8 @@ public final class SpellDispenserInteractionBehaviour extends MovingInteractionB
             buffer.writeVarInt(SpellDispenserBlockEntity.readCurrentMana(blockInfo.nbt()));
             buffer.writeBoolean(variant.isCreative());
             for (var slot = 0; slot < SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT; ++slot) {
-                var stack = slot < mountedInventory.getSlots() ? mountedInventory.getStackInSlot(slot).copy() : net.minecraft.world.item.ItemStack.EMPTY;
-                net.minecraft.world.item.ItemStack.STREAM_CODEC.encode(buffer, stack);
+                var stack = slot < mountedInventory.getSlots() ? mountedInventory.getStackInSlot(slot).copy() : ItemStack.EMPTY;
+                ItemStack.STREAM_CODEC.encode(buffer, stack);
             }
         });
         return true;

@@ -827,7 +827,7 @@ public final class HoverrideBroomEntity extends AbstractBroomEntity {
             if (lastAccelerationSoundGameTime == Long.MIN_VALUE
                     || now - lastAccelerationSoundGameTime >= ACCELERATION_SOUND_INTERVAL_TICKS) {
                 level().playSound(null, getX(), getY(), getZ(),
-                        SoundRegistry.BROOM_ACCELERATE.get(), net.minecraft.sounds.SoundSource.PLAYERS, 0.7F, 1.0F);
+                        SoundRegistry.BROOM_ACCELERATE.get(), SoundSource.PLAYERS, 0.7F, 1.0F);
                 lastAccelerationSoundGameTime = now;
             }
         }

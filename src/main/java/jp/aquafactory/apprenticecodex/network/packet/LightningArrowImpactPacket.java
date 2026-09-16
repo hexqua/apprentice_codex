@@ -1,6 +1,10 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
+import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.spell.shock.ShockImpactParticles;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -36,11 +40,11 @@ public record LightningArrowImpactPacket(Vec3 position, Vec3 incoming, boolean b
     @OnlyIn(Dist.CLIENT)
     private static final class ClientHandler {
         private static void handle(LightningArrowImpactPacket packet) {
-            var level = net.minecraft.client.Minecraft.getInstance().level;
+            var level = Minecraft.getInstance().level;
             if (level == null) return;
             if (!packet.blockHit()) {
-                jp.aquafactory.apprenticecodex.spell.shock.ShockImpactParticles.spawn(level, packet.position(),
-                        packet.incoming(), jp.aquafactory.apprenticecodex.spell.shock.ShockImpactParticles.Palette.SHOCK);
+                ShockImpactParticles.spawn(level, packet.position(),
+                        packet.incoming(), ShockImpactParticles.Palette.SHOCK);
             } else {
                 var position = packet.position().subtract(packet.incoming().scale(0.03));
                 for (int i = 0; i < 3; i++) {
@@ -48,8 +52,8 @@ public record LightningArrowImpactPacket(Vec3 position, Vec3 incoming, boolean b
                             (level.random.nextDouble() - 0.5) * 0.05,
                             (level.random.nextDouble() - 0.5) * 0.05,
                             (level.random.nextDouble() - 0.5) * 0.05);
-                    var options = new jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions(
-                            jp.aquafactory.apprenticecodex.registry.ParticleRegistry.ADDITIVE_SPARK.get(),
+                    var options = new AdditiveGlowParticleOptions(
+                            ParticleRegistry.ADDITIVE_SPARK.get(),
                             0.07F, 0.42F, 0.86F, 1.0F, 2, 5, 1, 0.9F, 1.15F, 0.86F,
                             1.0F, 0.02F, 0.4F, 0.52F, true);
                     level.addParticle(options, position.x, position.y, position.z, velocity.x, velocity.y, velocity.z);

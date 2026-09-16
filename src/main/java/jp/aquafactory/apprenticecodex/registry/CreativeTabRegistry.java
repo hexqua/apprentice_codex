@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.registry;
 
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -19,6 +20,7 @@ import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -325,13 +327,13 @@ public final class CreativeTabRegistry {
     public static List<AbstractSpell> getCreativeTabSpells() {
         var schoolOrder = new LinkedHashMap<ResourceLocation, Integer>();
         var orderIndex = 0;
-        for (var schoolType : io.redspace.ironsspellbooks.api.registry.SchoolRegistry.REGISTRY) {
+        for (var schoolType : SchoolRegistry.REGISTRY) {
             schoolOrder.putIfAbsent(schoolType.getId(), orderIndex++);
         }
 
         return io.redspace.ironsspellbooks.api.registry.SpellRegistry.getEnabledSpells().stream()
                 .filter(CreativeTabRegistry::isApprenticeSpell)
-                .sorted(java.util.Comparator.comparingInt(spell -> resolveSchoolOrderIndex(spell, schoolOrder)))
+                .sorted(Comparator.comparingInt(spell -> resolveSchoolOrderIndex(spell, schoolOrder)))
                 .toList();
     }
 

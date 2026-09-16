@@ -48,6 +48,7 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -62,6 +63,7 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
@@ -160,8 +162,8 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
 
     @Override
     public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
-        if (enchantment.is(net.minecraft.world.item.enchantment.Enchantments.FORTUNE)
-                || enchantment.is(net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH)) {
+        if (enchantment.is(Enchantments.FORTUNE)
+                || enchantment.is(Enchantments.SILK_TOUCH)) {
             return false;
         }
         var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
@@ -470,7 +472,7 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
         return manaCost * (20 / MagicManager.CONTINUOUS_CAST_TICK_INTERVAL) + "/s";
     }
 
-    private static void restoreCooldown(java.util.Map<String, CooldownInstance> cooldowns, String spellId, CooldownInstance cooldown) {
+    private static void restoreCooldown(Map<String, CooldownInstance> cooldowns, String spellId, CooldownInstance cooldown) {
         cooldowns.put(spellId, cooldown);
     }
 

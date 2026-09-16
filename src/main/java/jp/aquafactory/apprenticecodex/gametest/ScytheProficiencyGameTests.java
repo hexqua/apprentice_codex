@@ -17,6 +17,8 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
+import java.util.List;
+
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
 public final class ScytheProficiencyGameTests {
@@ -44,7 +46,7 @@ public final class ScytheProficiencyGameTests {
                     "Proficiency must scale only physical damage once: actual=" + (90 - target.getHealth()) + ", expected=" + expected);
         }
         var registry = h.getLevel().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-        for (var type : java.util.List.of(DamageTypes.SPELL_REAPER_SCYTHE_THROW, DamageTypes.SPELL_REAPER_SCYTHE_THROW_CONTINUOUS,
+        for (var type : List.of(DamageTypes.SPELL_REAPER_SCYTHE_THROW, DamageTypes.SPELL_REAPER_SCYTHE_THROW_CONTINUOUS,
                 DamageTypes.SPELL_REAPER_SCYTHE_THROW_MAGIC, DamageTypes.SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC)) {
             var holder = registry.getHolderOrThrow(type);
             for (var tag : new String[]{"is_scythe", "triggers_scythe_combo"}) {

@@ -151,7 +151,7 @@ public class DemicreatorWings extends AbstractSpell {
     }
 
     @Override
-    public void onRecastFinished(net.minecraft.server.level.ServerPlayer serverPlayer, RecastInstance recastInstance,
+    public void onRecastFinished(ServerPlayer serverPlayer, RecastInstance recastInstance,
                                  RecastResult recastResult, ICastDataSerializable castDataSerializable) {
         DemicreatorWingsManager.deactivate(serverPlayer, false);
         super.onRecastFinished(serverPlayer, recastInstance, recastResult, castDataSerializable);

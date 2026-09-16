@@ -10,6 +10,7 @@ import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -67,7 +68,7 @@ public final class UndyingEmblemEvents {
         );
     }
 
-    private static boolean isOnCooldown(net.minecraft.world.entity.player.Player player) {
+    private static boolean isOnCooldown(Player player) {
         return player.level().isClientSide
                 ? UndyingEmblemClientState.getRemainingCooldownTicks() > 0
                 : UndyingEmblemRuntime.isOnCooldown(player);

@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
@@ -11,6 +12,7 @@ import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQ
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverPickupEvent;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -22,6 +24,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
@@ -184,7 +187,7 @@ final class SpellcasterQuiverGameTestScenarios {
                         helper.getLevel(),
                         player,
                         bowStack.getUseDuration(player)
-                                - jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow.READY_DRAW_TICKS
+                                - ElementalBow.READY_DRAW_TICKS
                 );
                 player.stopUsingItem();
 
@@ -294,7 +297,7 @@ final class SpellcasterQuiverGameTestScenarios {
     static void vanillaBowInfinityFallsBackToNormalArrowBeforeQuiverSpecialArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var registryAccess = helper.getLevel().registryAccess();
-            var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
+            var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.INFINITY);
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "vanilla_bow_infinity_quiver_test");
             var bowStack = new ItemStack(Items.BOW);
             bowStack.enchant(infinity, 1);
@@ -338,7 +341,7 @@ final class SpellcasterQuiverGameTestScenarios {
     static void elementalBowVanillaModeInfinityFallsBackToNormalArrowBeforeQuiverSpecialArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var registryAccess = helper.getLevel().registryAccess();
-            var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
+            var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.INFINITY);
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_infinity_quiver_test");
             var bowStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             bowStack.enchant(infinity, 1);
@@ -405,7 +408,7 @@ final class SpellcasterQuiverGameTestScenarios {
             var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
             amplifierItem.initializeSpellContainer(amplifierStack);
-            setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(), 1);
+            setSingleUnlockedSpell(helper, amplifierStack, SpellRegistry.MANA_SLASH.get(), 1);
 
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
             player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);

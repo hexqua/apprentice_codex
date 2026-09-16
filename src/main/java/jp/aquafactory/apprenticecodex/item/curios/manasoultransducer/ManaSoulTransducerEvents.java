@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.curios.manasoultransducer;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
@@ -63,7 +64,7 @@ public final class ManaSoulTransducerEvents {
                 && (event.getFrom().is(ItemRegistry.MANA_SOUL_TRANSDUCER.get()) || event.getTo().is(ItemRegistry.MANA_SOUL_TRANSDUCER.get()))) {
             updateAttributes(player);
             PacketDistributor.sendToPlayer(player, new EquipmentChangedPacket());
-            var data = io.redspace.ironsspellbooks.api.magic.MagicData.getPlayerMagicData(player);
+            var data = MagicData.getPlayerMagicData(player);
             if (!isEquipped(player) && data.isCasting()
                     && data.getCastingSpellId().equals(SpellRegistry.SOUL_CONVERSION.get().getSpellId())) {
                 Utils.serverSideCancelCast(player, false);

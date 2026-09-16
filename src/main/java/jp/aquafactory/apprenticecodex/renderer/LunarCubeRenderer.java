@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 public final class LunarCubeRenderer {
     private LunarCubeRenderer() {}
@@ -81,7 +82,7 @@ public final class LunarCubeRenderer {
                                   float x, float y, float z, float u, float v,
                                   float normalX, float normalY, float normalZ,
                                   float red, float green, float blue, float alpha) {
-        var transformedNormal = normalMatrix.transform(new org.joml.Vector3f(normalX, normalY, normalZ));
+        var transformedNormal = normalMatrix.transform(new Vector3f(normalX, normalY, normalZ));
         buffer.addVertex(poseMatrix, x, y, z)
                 .setColor(red, green, blue, alpha)
                 .setUv(u, v)

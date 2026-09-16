@@ -11,6 +11,8 @@ import net.minecraft.world.item.LingeringPotionItem;
 import net.minecraft.world.item.SplashPotionItem;
 import net.minecraft.world.item.alchemy.Potion;
 
+import java.util.List;
+
 public class SchoolAffinityPotion extends Potion {
     private final int slotIndex;
     private final SchoolAffinityPotionVariant variant;
@@ -32,9 +34,9 @@ public class SchoolAffinityPotion extends Potion {
     }
 
     @Override
-    public java.util.List<MobEffectInstance> getEffects() {
+    public List<MobEffectInstance> getEffects() {
         // 動的エフェクトは定義生成時点では未登録のため、参照 Holder は利用時に引き直す.
-        return java.util.List.of(new MobEffectInstance(
+        return List.of(new MobEffectInstance(
                 BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect),
                 variant.durationTicks(),
                 variant.amplifier()

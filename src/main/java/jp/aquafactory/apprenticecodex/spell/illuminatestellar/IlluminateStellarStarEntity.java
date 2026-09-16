@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
+import jp.aquafactory.apprenticecodex.particle.StellarTrailParticles;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -19,6 +20,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerEntity;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -525,7 +527,7 @@ public class IlluminateStellarStarEntity extends Projectile implements AntiMagic
         }
     }
 
-    private void spawnRhombusParticle(net.minecraft.util.RandomSource random) {
+    private void spawnRhombusParticle(RandomSource random) {
         var offset = new Vec3(
                 (random.nextDouble() - 0.5) * 0.08,
                 (random.nextDouble() - 0.5) * 0.08,
@@ -552,11 +554,11 @@ public class IlluminateStellarStarEntity extends Projectile implements AntiMagic
         );
     }
 
-    private void spawnSparkParticle(net.minecraft.util.RandomSource random) {
+    private void spawnSparkParticle(RandomSource random) {
         spawnSparkParticle(random, position(), 0.05, 0.12f);
     }
 
-    private void spawnInterpolatedLaunchSparkParticles(net.minecraft.util.RandomSource random) {
+    private void spawnInterpolatedLaunchSparkParticles(RandomSource random) {
         var current = position();
         var previous = clientLastSparkTrailPosition;
         clientLastSparkTrailPosition = current;
@@ -584,11 +586,11 @@ public class IlluminateStellarStarEntity extends Projectile implements AntiMagic
         }
     }
 
-    private void spawnSparkParticle(net.minecraft.util.RandomSource random, Vec3 center, double offsetScale, float size) {
-        jp.aquafactory.apprenticecodex.particle.StellarTrailParticles.spawn(this, random, center, offsetScale, size);
+    private void spawnSparkParticle(RandomSource random, Vec3 center, double offsetScale, float size) {
+        StellarTrailParticles.spawn(this, random, center, offsetScale, size);
     }
 
-    private void spawnImpactRhombusParticle(net.minecraft.util.RandomSource random, Vec3 forward, Vec3 right, Vec3 up) {
+    private void spawnImpactRhombusParticle(RandomSource random, Vec3 forward, Vec3 right, Vec3 up) {
         var offset = randomOffset(random, 0.1);
         var velocity = forward.scale(0.04 + random.nextDouble() * 0.08)
                 .add(right.scale((random.nextDouble() - 0.5) * 0.12))
@@ -610,7 +612,7 @@ public class IlluminateStellarStarEntity extends Projectile implements AntiMagic
         );
     }
 
-    private void spawnImpactSparkParticle(net.minecraft.util.RandomSource random, Vec3 forward, Vec3 right, Vec3 up) {
+    private void spawnImpactSparkParticle(RandomSource random, Vec3 forward, Vec3 right, Vec3 up) {
         var offset = randomOffset(random, 0.08);
         var velocity = forward.scale(0.08 + random.nextDouble() * 0.16)
                 .add(right.scale((random.nextDouble() - 0.5) * 0.18))
@@ -661,7 +663,7 @@ public class IlluminateStellarStarEntity extends Projectile implements AntiMagic
         discard();
     }
 
-    private static Vec3 randomOffset(net.minecraft.util.RandomSource random, double scale) {
+    private static Vec3 randomOffset(RandomSource random, double scale) {
         return new Vec3(
                 (random.nextDouble() - 0.5) * scale,
                 (random.nextDouble() - 0.5) * scale,

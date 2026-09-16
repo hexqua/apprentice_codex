@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.compat.jade;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntity;
 import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import snownee.jade.api.Accessor;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.fluid.JadeFluidObject;
@@ -54,7 +55,7 @@ public enum AtelierStationJadeFluidStorageProvider implements IServerExtensionPr
     }
 
     @Override
-    public net.minecraft.resources.ResourceLocation getUid() {
+    public ResourceLocation getUid() {
         return ApprenticeCodexJadePlugin.ATELIER_STATION_FLUID_UID;
     }
 

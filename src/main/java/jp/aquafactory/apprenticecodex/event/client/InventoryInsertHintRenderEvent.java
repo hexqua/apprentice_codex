@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
@@ -97,7 +98,7 @@ public final class InventoryInsertHintRenderEvent {
     private static InventoryInsertTarget.InsertHint resolveHint(
             Slot slot,
             ItemStack incomingStack,
-            net.minecraft.world.entity.player.Player player
+            Player player
     ) {
         var storageStack = slot.getItem();
         if (!(storageStack.getItem() instanceof InventoryInsertTarget target)

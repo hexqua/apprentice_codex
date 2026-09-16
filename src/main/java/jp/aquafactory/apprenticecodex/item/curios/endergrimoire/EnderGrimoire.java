@@ -11,6 +11,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
+import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import io.redspace.ironsspellbooks.util.MinecraftInstanceHelper;
 import io.redspace.ironsspellbooks.util.TooltipsUtils;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
@@ -146,7 +147,7 @@ public class EnderGrimoire extends Item implements ICurioItem, ISpellbook, IPres
     @NotNull
     @Override
     public ICurio.SoundInfo getEquipSound(SlotContext slotContext, ItemStack stack) {
-        return new ICurio.SoundInfo(io.redspace.ironsspellbooks.registries.SoundRegistry.EQUIP_SPELL_BOOK.get(), 1.0f, 1.0f);
+        return new ICurio.SoundInfo(SoundRegistry.EQUIP_SPELL_BOOK.get(), 1.0f, 1.0f);
     }
 
     @Override

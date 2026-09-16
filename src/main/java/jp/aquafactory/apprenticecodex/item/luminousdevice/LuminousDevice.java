@@ -30,6 +30,7 @@ import jp.aquafactory.apprenticecodex.utility.CompactCountFormatter;
 import jp.aquafactory.apprenticecodex.utility.ManaPotionRecoveryHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
@@ -72,10 +73,12 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBypassSpellItem, UniqueItem, GeoItem, InventoryInsertTarget {
-    private static final net.minecraft.core.HolderLookup.Provider SERIALIZATION_LOOKUP =
+    private static final HolderLookup.Provider SERIALIZATION_LOOKUP =
             RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     private static final String STORAGE_TAG = "LuminousDevice";
     private static final String CONTENTS_TAG = "Contents";
@@ -946,7 +949,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
                 null,
                 null,
                 stack.getHoverName(),
-                CompactCountFormatter.format(count).toLowerCase(java.util.Locale.ROOT),
+                CompactCountFormatter.format(count).toLowerCase(Locale.ROOT),
                 count > 0 ? SELECTION_COUNT_COLOR : EMPTY_SELECTION_COUNT_COLOR,
                 currentSelection
         );
@@ -1289,7 +1292,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
                 : null;
     }
 
-    private static void updateStorageTag(ItemStack deviceStack, java.util.function.Consumer<CompoundTag> updater) {
+    private static void updateStorageTag(ItemStack deviceStack, Consumer<CompoundTag> updater) {
         CustomData.update(DataComponents.CUSTOM_DATA, deviceStack, rootTag -> {
             var storageTag = rootTag.contains(STORAGE_TAG, Tag.TAG_COMPOUND)
                     ? rootTag.getCompound(STORAGE_TAG)

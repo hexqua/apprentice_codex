@@ -1,10 +1,12 @@
 package jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet;
 
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.compat.Curios;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
@@ -224,7 +226,7 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
 
     public static boolean isSilverRing(@NotNull ItemStack stack) {
         return !stack.isEmpty()
-                && stack.getItem() == io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get();
+                && stack.getItem() == ItemRegistry.SILVER_RING.get();
     }
 
     public static boolean hasSilverRingAdjustment(@NotNull ItemStack amuletStack) {
@@ -377,7 +379,7 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
                     amuletStack,
                     slot,
                     CALIBRATION_ADJUSTMENT_SLOT_COUNT,
-                    new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
+                    new ItemStack(ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get())
             );
             --missingUpgradeCount;
         }
@@ -471,10 +473,10 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
 
     private static @NotNull ItemStack decodeStoredCalibrationItem(@NotNull CompoundTag tag) {
         if (tag.contains(SPELL_ID_TAG, Tag.TAG_STRING)) {
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(
+            var spell = SpellRegistry.getSpell(
                     ResourceLocation.parse(tag.getString(SPELL_ID_TAG))
             );
-            if (spell == null || spell == io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()) {
+            if (spell == null || spell == SpellRegistry.none()) {
                 return ItemStack.EMPTY;
             }
             return createScroll(new SpellData(spell, Math.max(1, tag.getInt(SPELL_LEVEL_TAG))));
@@ -521,7 +523,7 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
             return ItemStack.EMPTY;
         }
 
-        var scrollStack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+        var scrollStack = new ItemStack(ItemRegistry.SCROLL.get());
         ISpellContainer.createScrollContainer(spellData.getSpell(), spellData.getLevel(), scrollStack);
         return scrollStack;
     }

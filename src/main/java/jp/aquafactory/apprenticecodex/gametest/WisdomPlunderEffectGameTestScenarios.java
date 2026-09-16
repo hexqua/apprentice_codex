@@ -9,12 +9,14 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
 
@@ -105,7 +107,7 @@ final class WisdomPlunderEffectGameTestScenarios extends ApprenticeCodexGameTest
     private static ItemStack enchantedStack(
             GameTestHelper helper,
             Item item,
-            net.minecraft.resources.ResourceKey<net.minecraft.world.item.enchantment.Enchantment> enchantmentKey,
+            ResourceKey<Enchantment> enchantmentKey,
             int level
     ) {
         var stack = new ItemStack(item);

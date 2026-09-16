@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.events.ModifySpellLevelEvent;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceResolver;
@@ -35,8 +36,8 @@ final class TranscendenceGameTestScenarios {
 
     static void resolverUsesMaximumMatchingEventLevel(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
-            var heal = io.redspace.ironsspellbooks.api.registry.SpellRegistry.HEAL_SPELL.get();
+            var magicMissile = SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var heal = SpellRegistry.HEAL_SPELL.get();
             var levelOne = createStack(ItemRegistry.MANA_FORCE_BLADE.get(), 1, magicMissile);
             var levelThreeWithTwoSpells = createStack(ItemRegistry.MANA_FORCE_BLADE.get(), 3, magicMissile, heal);
             var differentSpell = createStack(ItemRegistry.MANA_FORCE_BLADE.get(), 2, heal);
@@ -70,7 +71,7 @@ final class TranscendenceGameTestScenarios {
 
     static void eventCollectsHeldArmorAndAllCuriosSlots(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var spell = SpellRegistry.MAGIC_MISSILE_SPELL.get();
             var player = new FakePlayer(
                     helper.getLevel(),
                     new GameProfile(UUID.randomUUID(), "transcendence_equipment_test")
@@ -120,7 +121,7 @@ final class TranscendenceGameTestScenarios {
             var gauntlet = ItemRegistry.SCROLLCASTER_GAUNTLET.get();
             var elementalBow = ItemRegistry.ELEMENTAL_BOW.get();
 
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var spell = SpellRegistry.MAGIC_MISSILE_SPELL.get();
             var player = new FakePlayer(
                     helper.getLevel(),
                     new GameProfile(UUID.randomUUID(), "transcendence_special_item_test")

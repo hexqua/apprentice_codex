@@ -183,7 +183,7 @@ public final class SmashcastScepterAttackEvent {
         }
     }
 
-    private static ServerPlayer resolveDirectPlayerAttack(net.minecraft.world.damagesource.DamageSource source) {
+    private static ServerPlayer resolveDirectPlayerAttack(DamageSource source) {
         if (!(source.getDirectEntity() instanceof ServerPlayer player)) {
             return null;
         }

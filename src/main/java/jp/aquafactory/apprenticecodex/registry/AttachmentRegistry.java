@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData;
 import jp.aquafactory.apprenticecodex.capability.endergrimoire.EnderGrimoireSpellbookData;
 import jp.aquafactory.apprenticecodex.capability.personalinventory.PersonalInventory;
 import jp.aquafactory.apprenticecodex.spell.bloodbrand.BloodBrandState;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.attachment.AttachmentType;
@@ -24,14 +25,14 @@ public final class AttachmentRegistry {
             ATTACHMENT_TYPES.register("personal_inventory", () -> AttachmentType.builder(PersonalInventory::new)
                     .serialize(new IAttachmentSerializer<CompoundTag, PersonalInventory>() {
                         @Override
-                        public @NotNull PersonalInventory read(@NotNull IAttachmentHolder holder, @NotNull CompoundTag tag, net.minecraft.core.HolderLookup.@NotNull Provider provider) {
+                        public @NotNull PersonalInventory read(@NotNull IAttachmentHolder holder, @NotNull CompoundTag tag, HolderLookup.@NotNull Provider provider) {
                             var value = new PersonalInventory();
                             value.deserializeNBT(provider, tag);
                             return value;
                         }
 
                         @Override
-                        public CompoundTag write(@NotNull PersonalInventory attachment, net.minecraft.core.HolderLookup.@NotNull Provider provider) {
+                        public CompoundTag write(@NotNull PersonalInventory attachment, HolderLookup.@NotNull Provider provider) {
                             return attachment.serializeNBT(provider);
                         }
                     })
@@ -42,14 +43,14 @@ public final class AttachmentRegistry {
             ATTACHMENT_TYPES.register("spell_data", () -> AttachmentType.builder(CodexSpellData::new)
                     .serialize(new IAttachmentSerializer<CompoundTag, CodexSpellData>() {
                         @Override
-                        public @NotNull CodexSpellData read(@NotNull IAttachmentHolder holder, @NotNull CompoundTag tag, net.minecraft.core.HolderLookup.@NotNull Provider provider) {
+                        public @NotNull CodexSpellData read(@NotNull IAttachmentHolder holder, @NotNull CompoundTag tag, HolderLookup.@NotNull Provider provider) {
                             var value = new CodexSpellData();
                             value.loadAll(tag);
                             return value;
                         }
 
                         @Override
-                        public CompoundTag write(@NotNull CodexSpellData attachment, net.minecraft.core.HolderLookup.@NotNull Provider provider) {
+                        public CompoundTag write(@NotNull CodexSpellData attachment, HolderLookup.@NotNull Provider provider) {
                             return attachment.saveAll();
                         }
                     })
@@ -60,14 +61,14 @@ public final class AttachmentRegistry {
             ATTACHMENT_TYPES.register("companion_trunk_inventory", () -> AttachmentType.builder(CompanionTrunkInventory::new)
                     .serialize(new IAttachmentSerializer<CompoundTag, CompanionTrunkInventory>() {
                         @Override
-                        public @NotNull CompanionTrunkInventory read(@NotNull IAttachmentHolder holder, @NotNull CompoundTag tag, net.minecraft.core.HolderLookup.@NotNull Provider provider) {
+                        public @NotNull CompanionTrunkInventory read(@NotNull IAttachmentHolder holder, @NotNull CompoundTag tag, HolderLookup.@NotNull Provider provider) {
                             var value = new CompanionTrunkInventory();
                             value.deserializeNBT(provider, tag);
                             return value;
                         }
 
                         @Override
-                        public CompoundTag write(@NotNull CompanionTrunkInventory attachment, net.minecraft.core.HolderLookup.@NotNull Provider provider) {
+                        public CompoundTag write(@NotNull CompanionTrunkInventory attachment, HolderLookup.@NotNull Provider provider) {
                             return attachment.serializeNBT(provider);
                         }
                     })
@@ -78,14 +79,14 @@ public final class AttachmentRegistry {
             ATTACHMENT_TYPES.register("ender_grimoire_spellbook", () -> AttachmentType.builder(EnderGrimoireSpellbookData::new)
                     .serialize(new IAttachmentSerializer<CompoundTag, EnderGrimoireSpellbookData>() {
                         @Override
-                        public @NotNull EnderGrimoireSpellbookData read(@NotNull IAttachmentHolder holder, @NotNull CompoundTag tag, net.minecraft.core.HolderLookup.@NotNull Provider provider) {
+                        public @NotNull EnderGrimoireSpellbookData read(@NotNull IAttachmentHolder holder, @NotNull CompoundTag tag, HolderLookup.@NotNull Provider provider) {
                             var value = new EnderGrimoireSpellbookData();
                             value.load(tag);
                             return value;
                         }
 
                         @Override
-                        public CompoundTag write(@NotNull EnderGrimoireSpellbookData attachment, net.minecraft.core.HolderLookup.@NotNull Provider provider) {
+                        public CompoundTag write(@NotNull EnderGrimoireSpellbookData attachment, HolderLookup.@NotNull Provider provider) {
                             return attachment.save();
                         }
                     })
@@ -96,12 +97,12 @@ public final class AttachmentRegistry {
             ATTACHMENT_TYPES.register("blood_brand_state", () -> AttachmentType.builder(BloodBrandState::empty)
                     .serialize(new IAttachmentSerializer<CompoundTag, BloodBrandState>() {
                         @Override
-                        public @NotNull BloodBrandState read(@NotNull IAttachmentHolder holder, @NotNull CompoundTag tag, net.minecraft.core.HolderLookup.@NotNull Provider provider) {
+                        public @NotNull BloodBrandState read(@NotNull IAttachmentHolder holder, @NotNull CompoundTag tag, HolderLookup.@NotNull Provider provider) {
                             return BloodBrandState.load(tag);
                         }
 
                         @Override
-                        public CompoundTag write(@NotNull BloodBrandState attachment, net.minecraft.core.HolderLookup.@NotNull Provider provider) {
+                        public CompoundTag write(@NotNull BloodBrandState attachment, HolderLookup.@NotNull Provider provider) {
                             return attachment.save();
                         }
                     })

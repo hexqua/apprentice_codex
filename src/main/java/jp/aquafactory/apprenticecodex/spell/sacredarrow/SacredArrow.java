@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -127,7 +128,7 @@ public class SacredArrow extends AbstractSpell {
                                         && look.dot(candidate.getBoundingBox().getCenter().subtract(eye).normalize())
                                         >= TARGET_HALF_ANGLE_COS - 1.0e-7
                                         && (candidate.hasEffect(EffectRegistry.SACRED_SIGN)
-                                        || candidate.hasEffect(io.redspace.ironsspellbooks.registries.MobEffectRegistry.GUIDING_BOLT)))
+                                        || candidate.hasEffect(MobEffectRegistry.GUIDING_BOLT)))
                 .stream().min(Comparator.comparingDouble((LivingEntity e) -> e.distanceToSqr(caster))
                         .thenComparingInt(LivingEntity::getId)).orElse(null);
         if (target != null && caster instanceof ServerPlayer player) {

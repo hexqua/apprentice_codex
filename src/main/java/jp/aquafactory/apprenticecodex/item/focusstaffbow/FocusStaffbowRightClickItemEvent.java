@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.focusstaffbow;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -27,7 +28,7 @@ public final class FocusStaffbowRightClickItemEvent {
         // 1.21.1 の ISS は CASTING_IMPLEMENT を RightClickItem で先に処理するため、
         // FocusStaffbow の独自 use() をここで先に通して通常詠唱へのフォールバックを防ぐ。
         var result = stack.getItem().use(player.level(), player, event.getHand());
-        if (result.getResult() == net.minecraft.world.InteractionResult.PASS) {
+        if (result.getResult() == InteractionResult.PASS) {
             return;
         }
 

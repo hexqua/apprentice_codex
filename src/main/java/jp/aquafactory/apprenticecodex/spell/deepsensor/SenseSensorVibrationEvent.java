@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -209,7 +210,7 @@ public final class SenseSensorVibrationEvent {
         private void record(BlockPos position, float distance, Holder<GameEvent> gameEvent,
                             @Nullable Entity sourceEntity, @Nullable Entity projectileOwner) {
             var eventId = gameEvent.unwrapKey()
-                    .map(net.minecraft.resources.ResourceKey::location)
+                    .map(ResourceKey::location)
                     .orElseGet(() -> BuiltInRegistries.GAME_EVENT.getKey(gameEvent.value()));
             observations.record(
                     position,

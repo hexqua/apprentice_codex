@@ -3,13 +3,20 @@ package jp.aquafactory.apprenticecodex.gametest;
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectile;
+import io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmuletCastEvent;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -25,11 +32,13 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.List;
 import java.util.Map;
@@ -96,7 +105,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         var triggerSpell = SpellRegistry.MAGE_LIGHT.get();
         magicData.getSyncedData().learnSpell(followcastSpell, false);
         magicData.getSyncedData().learnSpell(triggerSpell, false);
-        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, createAmuletStack(followcastSpell));
+        equipCurio(player, Curios.NECKLACE_SLOT, createAmuletStack(followcastSpell));
 
         var ignoredConfig = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(
                 true,
@@ -107,7 +116,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         helper.runAtTickTime(8, () -> {
             try {
                 var projectiles = level.getEntitiesOfClass(
-                        io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile.class,
+                        MagicMissileProjectile.class,
                         new AABB(player.position(), player.position()).inflate(16.0D)
                 );
                 helper.assertTrue(projectiles.isEmpty(),
@@ -131,7 +140,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         }
         helper.assertTrue(SatelliteFollowcastAmulet.getEnabledSpellSlotCount(stack) == SatelliteFollowcastAmulet.MAX_SPELL_SLOTS,
                 "Satellite Followcast Amulet calibration upgrades should enable four spell slots.");
-        helper.assertFalse(stack.getItem() instanceof jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem,
+        helper.assertFalse(stack.getItem() instanceof SpellSlotUpgradeableItem,
                 "Satellite Followcast Amulet should not be upgraded by Arcane Anvil slot upgrades anymore.");
 
         var legacyStack = new ItemStack(amulet);
@@ -166,10 +175,10 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         var followSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
         magicData.getSyncedData().learnSpell(triggerSpell, false);
         magicData.getSyncedData().learnSpell(followSpell, false);
-        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, createAmuletStack(followSpell));
+        equipCurio(player, Curios.NECKLACE_SLOT, createAmuletStack(followSpell));
 
         var originalManaCost = triggerSpell.getManaCost(1);
-        var followManaCost = SpellDispenserManaHelper.getSpellManaCost(new io.redspace.ironsspellbooks.api.spells.SpellData(followSpell, 1));
+        var followManaCost = SpellDispenserManaHelper.getSpellManaCost(new SpellData(followSpell, 1));
         var initialMana = originalManaCost + followManaCost - 1;
         magicData.setMana(initialMana);
 
@@ -192,10 +201,10 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         var followSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
         magicData.getSyncedData().learnSpell(triggerSpell, false);
         magicData.getSyncedData().learnSpell(followSpell, false);
-        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, createAmuletStack(followSpell));
+        equipCurio(player, Curios.NECKLACE_SLOT, createAmuletStack(followSpell));
 
         var originalManaCost = triggerSpell.getManaCost(1);
-        var followManaCost = SpellDispenserManaHelper.getSpellManaCost(new io.redspace.ironsspellbooks.api.spells.SpellData(followSpell, 1));
+        var followManaCost = SpellDispenserManaHelper.getSpellManaCost(new SpellData(followSpell, 1));
         magicData.setMana(originalManaCost + followManaCost);
 
         SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, triggerSpell, originalManaCost));
@@ -218,14 +227,14 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         var fallbackSpell = SpellRegistry.THERMAL_PROCESS.get();
         var triggerSpell = SpellRegistry.MAGE_LIGHT.get();
         magicData.setMana(triggerSpell.getManaCost(1) + SpellDispenserManaHelper.getSpellManaCost(
-                new io.redspace.ironsspellbooks.api.spells.SpellData(fallbackSpell, 1)
+                new SpellData(fallbackSpell, 1)
         ));
         magicData.getSyncedData().learnSpell(triggerSpell, false);
         magicData.getSyncedData().learnSpell(unaffordableSpell, false);
         magicData.getSyncedData().learnSpell(fallbackSpell, false);
 
         var amuletStack = createAmuletStack(unaffordableSpell, fallbackSpell);
-        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, amuletStack);
+        equipCurio(player, Curios.NECKLACE_SLOT, amuletStack);
 
         SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, triggerSpell));
 
@@ -233,7 +242,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
                 SatelliteFollowcastAmuletCastEvent.hasActiveContinuousFollowcastForGameTest(
                         level,
                         player,
-                        io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT,
+                        Curios.NECKLACE_SLOT,
                         0,
                         1
                 ),
@@ -255,7 +264,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         var followSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get();
         magicData.getSyncedData().learnSpell(triggerSpell, false);
         magicData.getSyncedData().learnSpell(followSpell, false);
-        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, createAmuletStack(followSpell));
+        equipCurio(player, Curios.NECKLACE_SLOT, createAmuletStack(followSpell));
 
         magicData.getSyncedData();
         magicData.initiateCast(
@@ -293,8 +302,8 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         var followSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get();
         magicData.getSyncedData().learnSpell(triggerSpell, false);
         magicData.getSyncedData().learnSpell(followSpell, false);
-        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, createAmuletStack(followSpell));
-        io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, followSpell, CastSource.SWORD);
+        equipCurio(player, Curios.NECKLACE_SLOT, createAmuletStack(followSpell));
+        MagicHelper.MAGIC_MANAGER.addCooldown(player, followSpell, CastSource.SWORD);
 
         magicData.initiateCast(
                 triggerSpell,
@@ -328,7 +337,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         var amuletStack = createAmuletStack(fireBreath, mageLight);
         magicData.getSyncedData().learnSpell(fireBreath, false);
         magicData.getSyncedData().learnSpell(mageLight, false);
-        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, amuletStack);
+        equipCurio(player, Curios.NECKLACE_SLOT, amuletStack);
 
         helper.runAtTickTime(1, () -> {
             SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, mageLight));
@@ -336,7 +345,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
                     SatelliteFollowcastAmuletCastEvent.hasActiveContinuousFollowcastForGameTest(
                             level,
                             player,
-                            io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT,
+                            Curios.NECKLACE_SLOT,
                             0,
                             0
                     ),
@@ -373,7 +382,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
                 SatelliteFollowcastAmuletCastEvent.hasActiveContinuousFollowcastForGameTest(
                         level,
                         player,
-                        io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT,
+                        Curios.NECKLACE_SLOT,
                         0,
                         0
                 ),
@@ -393,14 +402,14 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         var triggerSpell = SpellRegistry.MAGE_LIGHT.get();
         magicData.getSyncedData().learnSpell(fireBreath, false);
         magicData.getSyncedData().learnSpell(triggerSpell, false);
-        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, createAmuletStack(fireBreath));
+        equipCurio(player, Curios.NECKLACE_SLOT, createAmuletStack(fireBreath));
 
         SatelliteFollowcastAmuletCastEvent.onSpellCast(createSpellOnCastEvent(player, triggerSpell));
         helper.assertTrue(
                 SatelliteFollowcastAmuletCastEvent.hasActiveContinuousFollowcastForGameTest(
                         level,
                         player,
-                        io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT,
+                        Curios.NECKLACE_SLOT,
                         0,
                         0
                 ),
@@ -413,7 +422,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
                 SatelliteFollowcastAmuletCastEvent.hasActiveContinuousFollowcastForGameTest(
                         level,
                         player,
-                        io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT,
+                        Curios.NECKLACE_SLOT,
                         0,
                         0
                 ),
@@ -434,7 +443,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         var triggerSpell = SpellRegistry.MAGE_LIGHT.get();
         magicData.getSyncedData().learnSpell(precisionJack, false);
         magicData.getSyncedData().learnSpell(triggerSpell, false);
-        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, createAmuletStack(precisionJack));
+        equipCurio(player, Curios.NECKLACE_SLOT, createAmuletStack(precisionJack));
 
         var profile = RemoteOwnerCastProfile.REMOTE_PLAYER_GEOMETRY.withCastMode(RemoteOwnerCastMode.REMOTE_ANCHOR_OWNER_MAGIC);
         helper.runAtTickTime(1, () -> {
@@ -475,7 +484,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         var triggerSpell = SpellRegistry.MAGE_LIGHT.get();
         magicData.getSyncedData().learnSpell(thermalProcess, false);
         magicData.getSyncedData().learnSpell(triggerSpell, false);
-        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, createAmuletStack(thermalProcess));
+        equipCurio(player, Curios.NECKLACE_SLOT, createAmuletStack(thermalProcess));
 
         var profile = RemoteOwnerCastProfile.REMOTE_PLAYER_GEOMETRY.withCastMode(RemoteOwnerCastMode.REMOTE_ANCHOR_OWNER_MAGIC);
         helper.runAtTickTime(1, () -> {
@@ -506,7 +515,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
                 SatelliteFollowcastAmuletCastEvent.hasActiveContinuousFollowcastForGameTest(
                         level,
                         player,
-                        io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT,
+                        Curios.NECKLACE_SLOT,
                         0,
                         0
                 ),
@@ -526,7 +535,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         var triggerSpell = SpellRegistry.MAGE_LIGHT.get();
         magicData.getSyncedData().learnSpell(thermalProcess, false);
         magicData.getSyncedData().learnSpell(triggerSpell, false);
-        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, createAmuletStack(thermalProcess));
+        equipCurio(player, Curios.NECKLACE_SLOT, createAmuletStack(thermalProcess));
 
         var profile = RemoteOwnerCastProfile.REMOTE_PLAYER_GEOMETRY.withCastMode(RemoteOwnerCastMode.REMOTE_ANCHOR_OWNER_MAGIC);
         helper.runAtTickTime(1, () -> {
@@ -553,7 +562,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
                     SatelliteFollowcastAmuletCastEvent.hasActiveContinuousFollowcastForGameTest(
                             level,
                             player,
-                            io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT,
+                            Curios.NECKLACE_SLOT,
                             0,
                             0
                     ),
@@ -563,23 +572,23 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         });
     }
 
-    private static SpellOnCastEvent createSpellOnCastEvent(FakePlayer player, io.redspace.ironsspellbooks.api.spells.AbstractSpell spell) {
+    private static SpellOnCastEvent createSpellOnCastEvent(FakePlayer player, AbstractSpell spell) {
         return createSpellOnCastEvent(player, spell, spell.getManaCost(1));
     }
 
     private static SpellOnCastEvent createSpellOnCastEvent(
             FakePlayer player,
-            io.redspace.ironsspellbooks.api.spells.AbstractSpell spell,
+            AbstractSpell spell,
             int manaCost
     ) {
         return new SpellOnCastEvent(player, spell.getSpellId(), 1, manaCost, spell.getSchoolType(), CastSource.SPELLBOOK);
     }
 
-    private static ItemStack createAmuletStack(io.redspace.ironsspellbooks.api.spells.AbstractSpell spell) {
-        return createAmuletStack(new io.redspace.ironsspellbooks.api.spells.AbstractSpell[]{spell});
+    private static ItemStack createAmuletStack(AbstractSpell spell) {
+        return createAmuletStack(new AbstractSpell[]{spell});
     }
 
-    private static ItemStack createAmuletStack(io.redspace.ironsspellbooks.api.spells.AbstractSpell... spells) {
+    private static ItemStack createAmuletStack(AbstractSpell... spells) {
         var amulet = (SatelliteFollowcastAmulet) ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get();
         var amuletStack = new ItemStack(amulet);
         for (var slot = 1; slot < spells.length && slot <= SatelliteFollowcastAmulet.CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
@@ -592,7 +601,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         var needsSilverRing = false;
         for (var slot = 0; slot < spells.length && slot < SatelliteFollowcastAmulet.getStoredSpellSlotCount(); ++slot) {
             var spell = spells[slot];
-            if (spell.getCastType() != io.redspace.ironsspellbooks.api.spells.CastType.INSTANT) {
+            if (spell.getCastType() != CastType.INSTANT) {
                 needsSilverRing = true;
             }
             SatelliteFollowcastAmulet.setCalibrationScroll(amuletStack, slot, createSpellScroll(spell));
@@ -613,7 +622,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         return amuletStack;
     }
 
-    private static ItemStack createSpellScroll(io.redspace.ironsspellbooks.api.spells.AbstractSpell spell) {
+    private static ItemStack createSpellScroll(AbstractSpell spell) {
         var scrollStack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
         ISpellContainer.createScrollContainer(spell, 1, scrollStack);
         return scrollStack;
@@ -623,22 +632,22 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
             GameTestHelper helper,
             ItemStack stack,
             int slot,
-            io.redspace.ironsspellbooks.api.spells.AbstractSpell expectedSpell,
+            AbstractSpell expectedSpell,
             int expectedLevel,
             String message
     ) {
         var spellData = SatelliteFollowcastAmulet.getSpellDataAt(stack, slot);
-        helper.assertTrue(spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY
+        helper.assertTrue(spellData != SpellData.EMPTY
                         && spellData.getSpell() == expectedSpell
                         && spellData.getLevel() == expectedLevel,
-                message + ": got " + (spellData == io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY
+                message + ": got " + (spellData == SpellData.EMPTY
                         ? "empty"
                         : spellData.getSpell().getSpellResource()));
     }
 
     private static FakePlayer createTrackedEquipmentTestPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         helper.getLevel().addFreshEntity(player);
@@ -646,7 +655,7 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
     }
 
     private static void equipCurio(FakePlayer player, String slotId, ItemStack stack) {
-        var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+        var curiosInventory = CuriosApi.getCuriosInventory(player)
                 .orElseThrow(() -> new IllegalStateException("Missing curios inventory for Satellite Followcast Amulet test"));
         curiosInventory.setEquippedCurio(slotId, 0, stack);
     }

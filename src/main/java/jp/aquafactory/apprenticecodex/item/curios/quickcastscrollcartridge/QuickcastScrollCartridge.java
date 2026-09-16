@@ -225,7 +225,7 @@ public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoIte
                                 @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
         // Iron's の詳細表示は LocalPlayer を使うため、専用サーバーから client helper を読み込まない。
-        if (net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT) {
+        if (FMLEnvironment.dist == Dist.CLIENT) {
             QuickcastCartridgeClientTooltip.append(stack, lines);
         }
     }

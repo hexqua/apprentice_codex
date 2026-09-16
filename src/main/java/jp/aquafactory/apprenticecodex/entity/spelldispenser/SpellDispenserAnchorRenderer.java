@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.entity.spelldispenser;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
@@ -27,7 +28,7 @@ public final class SpellDispenserAnchorRenderer extends EntityRenderer<SpellDisp
     @Override
     public boolean shouldRender(
             @NotNull SpellDispenserAnchorEntity livingEntity,
-            @NotNull net.minecraft.client.renderer.culling.Frustum camera,
+            @NotNull Frustum camera,
             double camX,
             double camY,
             double camZ

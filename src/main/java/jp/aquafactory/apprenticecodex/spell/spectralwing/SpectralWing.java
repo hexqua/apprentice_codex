@@ -17,8 +17,10 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
@@ -161,12 +163,12 @@ public class SpectralWing extends AbstractSpell {
     }
 
     public static boolean hasWingConflict(Player player) {
-        return player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.CHEST).is(Items.ELYTRA)
+        return player.getItemBySlot(EquipmentSlot.CHEST).is(Items.ELYTRA)
                 || player.hasEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(MobEffectRegistry.ANGEL_WINGS.get()));
     }
 
     public static void notifyConflict(Player player) {
-        if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+        if (player instanceof ServerPlayer serverPlayer) {
             serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
                     Component.translatable("ui.apprenticecodex.spectral_wing.conflict").withStyle(ChatFormatting.RED)
             ));
@@ -174,7 +176,7 @@ public class SpectralWing extends AbstractSpell {
     }
 
     public static void notifyUnderwater(Player player) {
-        if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+        if (player instanceof ServerPlayer serverPlayer) {
             serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
                     Component.translatable("ui.apprenticecodex.spectral_wing.underwater").withStyle(ChatFormatting.RED)
             ));

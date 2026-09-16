@@ -3,7 +3,9 @@ package jp.aquafactory.apprenticecodex.gametest;
 import io.redspace.ironsspellbooks.api.events.SpellHealEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.capabilities.magic.SummonManager;
 import io.redspace.ironsspellbooks.damage.SpellDamageSource;
@@ -29,6 +31,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.damagesource.DamageContainer;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import top.theillusivec4.curios.api.CuriosApi;
 
 
 final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestScenarios {
@@ -94,7 +97,7 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
             var wearer = createWearer(helper, "monarch_bond_greater_heal");
             var first = createManagedSummon(helper, wearer, new BlockPos(2, 2, 0), 3.0F);
             var second = createManagedSummon(helper, wearer, new BlockPos(4, 2, 0), 9.0F);
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
+            var spell = SpellRegistry.GREATER_HEAL_SPELL.get();
 
             NeoForge.EVENT_BUS.post(new SpellOnCastEvent(
                     wearer,
@@ -118,7 +121,7 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
             wearer.setHealth(wearer.getMaxHealth());
             var summon = createManagedSummon(helper, wearer, new BlockPos(2, 2, 0), 5.0F);
             var victim = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(4, 2, 0));
-            var evocationSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get();
+            var evocationSpell = SpellRegistry.MAGIC_ARROW_SPELL.get();
             var source = SpellDamageSource.source(wearer, evocationSpell).setLifestealPercent(0.5F);
 
             MonarchBondHealingEvents.onSpellLifesteal(
@@ -248,7 +251,7 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
         if (equipCharm) {
             equipCurio(owner, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MONARCH_BOND_CHARM.get()));
         }
-        var manaRegen = owner.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN);
+        var manaRegen = owner.getAttribute(AttributeRegistry.MANA_REGEN);
         if (manaRegen != null) {
             manaRegen.setBaseValue(0.0D);
         }
@@ -311,7 +314,7 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
     }
 
     private static void tickCharmAtRestockInterval(FakePlayer wearer) {
-        var slotResult = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(wearer)
+        var slotResult = CuriosApi.getCuriosInventory(wearer)
                 .flatMap(inventory -> inventory.findFirstCurio(ItemRegistry.MONARCH_BOND_CHARM.get()))
                 .orElseThrow(() -> new IllegalStateException("Missing equipped Monarch Bond Charm for GameTest"));
         wearer.tickCount = 20;

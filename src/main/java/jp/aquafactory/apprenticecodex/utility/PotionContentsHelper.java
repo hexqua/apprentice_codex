@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public final class PotionContentsHelper {
     private PotionContentsHelper() {
@@ -45,9 +46,9 @@ public final class PotionContentsHelper {
         return PotionContents.createItemStack(item, wrap(potion));
     }
 
-    private static java.util.Optional<Holder<Potion>> getPotionHolder(@Nullable ItemStack stack) {
+    private static Optional<Holder<Potion>> getPotionHolder(@Nullable ItemStack stack) {
         if (stack == null || stack.isEmpty()) {
-            return java.util.Optional.empty();
+            return Optional.empty();
         }
 
         return stack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY).potion();

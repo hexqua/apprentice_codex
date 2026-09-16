@@ -9,10 +9,12 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
+import net.minecraft.util.Mth;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -21,6 +23,7 @@ import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -66,7 +69,7 @@ public final class ElementalBowModeManager extends SimpleJsonResourceReloadListe
                 resolved.put(definition.spell(), new ResolvedDefinition(definition.spell(), spell, definition.requiredDrawTicks()));
             }
         }
-        definitions = java.util.Collections.unmodifiableMap(resolved);
+        definitions = Collections.unmodifiableMap(resolved);
     }
 
     @Override
@@ -94,7 +97,7 @@ public final class ElementalBowModeManager extends SimpleJsonResourceReloadListe
                                         spell, definition.requiredDrawTicks()));
                             }
                         }));
-        definitions = java.util.Collections.unmodifiableMap(resolved);
+        definitions = Collections.unmodifiableMap(resolved);
     }
 
     public record ResolvedDefinition(ResourceLocation spellId, AbstractSpell spell, int requiredDrawTicks) {
@@ -103,9 +106,9 @@ public final class ElementalBowModeManager extends SimpleJsonResourceReloadListe
         public ResourceLocation schoolId() { return schoolType().getId(); }
         public int resolveSpellLevel(ItemStack stack, int scrollLevel) {
             // 表示と射撃で同じ値を使い、汎用イベントによる二重加算を避ける。
-            int bonus = jp.aquafactory.apprenticecodex.enchantment.Enchantments.getLevel(
-                    stack, jp.aquafactory.apprenticecodex.enchantment.Enchantments.TRANSCENDENCE);
-            return net.minecraft.util.Mth.clamp(scrollLevel + bonus, spell.getMinLevel(), spell.getMaxLevel());
+            int bonus = Enchantments.getLevel(
+                    stack, Enchantments.TRANSCENDENCE);
+            return Mth.clamp(scrollLevel + bonus, spell.getMinLevel(), spell.getMaxLevel());
         }
 
         public int resolveRequiredDrawTicks() {

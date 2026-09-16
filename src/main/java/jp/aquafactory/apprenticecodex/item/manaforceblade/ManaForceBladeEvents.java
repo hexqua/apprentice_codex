@@ -11,8 +11,10 @@ import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -180,7 +182,7 @@ public final class ManaForceBladeEvents {
         )).withStyle(ChatFormatting.DARK_GREEN);
     }
 
-    private static void replaceAttackManaCostTooltip(List<Component> tooltip, LivingEntity entity, net.minecraft.world.item.ItemStack stack) {
+    private static void replaceAttackManaCostTooltip(List<Component> tooltip, LivingEntity entity, ItemStack stack) {
         var manaCost = ManaForceBlade.resolveBladeAttackManaCost(
                 entity,
                 stack,
@@ -197,7 +199,7 @@ public final class ManaForceBladeEvents {
             if (manaCost <= 0.0F) {
                 tooltip.remove(i);
             } else {
-                tooltip.set(i, Component.translatable(IMBUE_HELP_KEY, net.minecraft.util.Mth.ceil(manaCost))
+                tooltip.set(i, Component.translatable(IMBUE_HELP_KEY, Mth.ceil(manaCost))
                         .withStyle(ChatFormatting.AQUA));
             }
             return;

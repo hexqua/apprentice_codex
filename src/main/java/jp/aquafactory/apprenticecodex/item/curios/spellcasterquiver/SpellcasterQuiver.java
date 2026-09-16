@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.Spellcast
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
@@ -45,7 +46,7 @@ import java.util.function.Predicate;
 public class SpellcasterQuiver extends Item implements ICurioItem, InventoryInsertTarget {
     private static final int MAX_STORED_ITEMS = 512;
     private static final int BAR_COLOR = 0xA8792A;
-    private static final net.minecraft.core.HolderLookup.Provider SERIALIZATION_LOOKUP =
+    private static final HolderLookup.Provider SERIALIZATION_LOOKUP =
             RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     private static final String STORAGE_TAG = "SpellcasterQuiver";
     private static final String CONTENTS_TAG = "Contents";

@@ -691,7 +691,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 net.minecraft.world.item.Items.SPECTRAL_ARROW,
                 net.minecraft.world.item.Items.TIPPED_ARROW
         );
-        tag(net.minecraft.tags.ItemTags.ARROWS).add(ItemRegistry.ANTI_MANA_ARROW.get());
+        tag(ItemTags.ARROWS).add(ItemRegistry.ANTI_MANA_ARROW.get());
         tag(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE).add(
                 ItemRegistry.ENCHANTED_CIRCLET.get(),
                 ItemRegistry.ENCHANTRESS_ROBE.get(),

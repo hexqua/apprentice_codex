@@ -22,6 +22,7 @@ import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtension
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public final class AlchemyBrewerScreen extends AbstractContainerScreen<AlchemyBrewerMenu> {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/gui/alchemy_brewer.png");
@@ -100,7 +101,7 @@ public final class AlchemyBrewerScreen extends AbstractContainerScreen<AlchemyBr
         if (isHovering(BUTTON_X, BUTTON_Y, BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY)) {
             boolean enabled = brewer.isAutoBrewing();
             var key = "container.apprenticecodex.alchemy_brewer.auto_brew_button." + (enabled ? "enabled" : "disabled");
-            gui.renderTooltip(font, java.util.List.of(
+            gui.renderTooltip(font, List.of(
                     Component.translatable(key).getVisualOrderText(),
                     Component.translatable(key + ".hint").withStyle(ChatFormatting.GRAY).getVisualOrderText()), mouseX, mouseY);
             return;

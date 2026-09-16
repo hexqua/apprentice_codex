@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.sammy.malum.core.handlers.SoulDataHandler;
+import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -19,7 +20,7 @@ public abstract class MalumSoulDataHandlerMixin {
             DamageSource source,
             LivingEntity attacker
     ) {
-        if (source.getDirectEntity() instanceof jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity scythe) {
+        if (source.getDirectEntity() instanceof ScytheThrowEntity scythe) {
             return scythe.getWeaponSnapshot();
         }
         if (!original.isEmpty()) {

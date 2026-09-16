@@ -15,6 +15,7 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.Locale;
 import java.util.Set;
 
 public final class OffhandMagicModifierHelper {
@@ -145,7 +146,7 @@ public final class OffhandMagicModifierHelper {
     }
 
     private static String normalizeKeyToken(String token) {
-        return token.toLowerCase(java.util.Locale.ROOT)
+        return token.toLowerCase(Locale.ROOT)
                 .replace(':', '_')
                 .replace('/', '_')
                 .replace('.', '_')

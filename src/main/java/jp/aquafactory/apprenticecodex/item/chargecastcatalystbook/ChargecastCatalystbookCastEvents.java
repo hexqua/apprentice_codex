@@ -7,10 +7,12 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.datagen.DamageTypeTagGenerator;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -40,7 +42,7 @@ public final class ChargecastCatalystbookCastEvents {
         if (magicData.getCastDurationRemaining() <= 0
                 || event.getSource().is(DamageTypeTagGenerator.LONG_CAST_IGNORE)
                 || magicData.popMarkedPoison()
-                || io.redspace.ironsspellbooks.registries.ItemRegistry.CONCENTRATION_AMULET.get().isEquippedBy(player)) {
+                || ItemRegistry.CONCENTRATION_AMULET.get().isEquippedBy(player)) {
             return;
         }
         Utils.serverSideCancelCast(player);
@@ -118,7 +120,7 @@ public final class ChargecastCatalystbookCastEvents {
             AbstractSpell spell,
             Level level,
             int spellLevel,
-            net.minecraft.world.entity.LivingEntity caster,
+            LivingEntity caster,
             MagicData magicData
     ) {
         // 追加した待機時間中に INSTANT 魔法固有の tick 処理を走らせると、本来一度だけの効果が先行する。

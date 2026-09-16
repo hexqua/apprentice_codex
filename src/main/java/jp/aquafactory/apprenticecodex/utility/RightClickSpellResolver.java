@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceConfigState;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
+import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -186,7 +187,7 @@ public final class RightClickSpellResolver {
             return resolved;
         }
 
-        var mageLight = (jp.aquafactory.apprenticecodex.spell.magelight.MageLight)
+        var mageLight = (MageLight)
                 jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGE_LIGHT.get();
         var range = mageLight.createCastProfile(
                 resolved.get().spellLevel(),

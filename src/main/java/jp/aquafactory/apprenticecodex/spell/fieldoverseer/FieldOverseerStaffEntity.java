@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.entity.mobs.IMagicSummon;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.particle.ZapParticleOption;
+import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import io.redspace.ironsspellbooks.util.ParticleHelper;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
@@ -353,7 +354,7 @@ public class FieldOverseerStaffEntity extends PathfinderMob implements GeoEntity
         MagicManager.spawnParticles(level, ParticleHelper.FIERY_SPARKS, impact.x, impact.y, impact.z,
                 5, 0.2F, 0.2F, 0.2F, 0.125D, true);
         level.playSound(null, impact.x, impact.y, impact.z,
-                io.redspace.ironsspellbooks.registries.SoundRegistry.SMALL_LIGHTNING_STRIKE.get(),
+                SoundRegistry.SMALL_LIGHTNING_STRIKE.get(),
                 SoundSource.PLAYERS, 2.0F, 0.8F + level.random.nextFloat() * 0.5F);
     }
 

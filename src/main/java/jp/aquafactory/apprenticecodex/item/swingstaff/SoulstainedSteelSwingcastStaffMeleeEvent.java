@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.swingstaff;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumMnemonicBladeBridge;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
@@ -22,7 +23,7 @@ public final class SoulstainedSteelSwingcastStaffMeleeEvent {
         }
 
         var source = event.getSource();
-        if (!source.is(net.minecraft.world.damagesource.DamageTypes.PLAYER_ATTACK)
+        if (!source.is(DamageTypes.PLAYER_ATTACK)
                 && !"player".equals(source.getMsgId())) {
             return;
         }

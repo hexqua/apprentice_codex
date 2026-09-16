@@ -42,11 +42,13 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -455,11 +457,11 @@ public final class MultipurposeStaffrifle extends Item
         }
     }
 
-    private static Vec3 createMuzzleParticleOffset(net.minecraft.util.RandomSource random, Vec3 look, double radius) {
+    private static Vec3 createMuzzleParticleOffset(RandomSource random, Vec3 look, double radius) {
         return look.scale(random.nextDouble() * 0.08D).add(createRandomSpread(random, radius));
     }
 
-    private static Vec3 createRandomSpread(net.minecraft.util.RandomSource random, double radius) {
+    private static Vec3 createRandomSpread(RandomSource random, double radius) {
         return new Vec3(
                 (random.nextDouble() - 0.5D) * radius,
                 (random.nextDouble() - 0.5D) * radius,
@@ -576,7 +578,7 @@ public final class MultipurposeStaffrifle extends Item
             return baseMainhandModifiers;
         }
 
-        var base = ImmutableMultimap.<Holder<net.minecraft.world.entity.ai.attributes.Attribute>, AttributeModifier>builder();
+        var base = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
         for (var entry : baseMainhandModifiers.modifiers()) {
             base.put(entry.attribute(), entry.modifier());
         }

@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.compat.malum;
 
+import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -53,12 +55,12 @@ public final class MalumSpellReaperScytheBridge {
         return owner != null && isAvailable() && MalumScytheMaelstromCompat.hasRing(owner);
     }
 
-    public static void tickMaelstrom(jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity scythe) {
+    public static void tickMaelstrom(ScytheThrowEntity scythe) {
         if (isAvailable()) MalumScytheMaelstromCompat.tick(scythe);
     }
 
-    public static void placeMaelstrom(jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity scythe,
-                                     net.minecraft.world.entity.Entity target) {
+    public static void placeMaelstrom(ScytheThrowEntity scythe,
+                                      Entity target) {
         if (isAvailable()) MalumScytheMaelstromCompat.place(scythe, target);
     }
 

@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceConfigState;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -33,9 +34,9 @@ public record SyncLuminousDeviceConfigPacket(
         this(
                 maxStoredItems,
                 maxStoredMana,
-                jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig.DEFAULT_UPGRADED_MAX_STORED_MANA,
+                LuminousDeviceServerConfig.DEFAULT_UPGRADED_MAX_STORED_MANA,
                 cleanRadius,
-                jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig.DEFAULT_MAGE_LIGHT_EXTENDED_RANGE
+                LuminousDeviceServerConfig.DEFAULT_MAGE_LIGHT_EXTENDED_RANGE
         );
     }
 
@@ -48,7 +49,7 @@ public record SyncLuminousDeviceConfigPacket(
         this(
                 maxStoredItems,
                 maxStoredMana,
-                jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig.DEFAULT_UPGRADED_MAX_STORED_MANA,
+                LuminousDeviceServerConfig.DEFAULT_UPGRADED_MAX_STORED_MANA,
                 cleanRadius,
                 mageLightExtendedRange
         );

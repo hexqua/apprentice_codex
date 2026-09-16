@@ -7,6 +7,7 @@ import com.sammy.malum.registry.common.MalumAttachmentTypes;
 import com.sammy.malum.registry.common.MalumAttributes;
 import com.sammy.malum.registry.common.item.MalumItems;
 import com.sammy.malum.registry.common.magic.MalumGeasEffectTypes;
+import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -26,6 +27,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.damagesource.DamageContainer;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import team.lodestar.lodestone.registry.common.LodestoneAttributes;
 
 import java.util.List;
 import java.util.UUID;
@@ -135,13 +137,13 @@ final class SpellCastParryingRingMalumScenarios {
         // FakePlayer の通常tickに依存せず、使用処理が必要とする属性を明示する。
         player.getAttribute(MalumAttributes.CHARGE_CAPACITY).setBaseValue(2);
         player.getAttribute(MalumAttributes.CHARGE_DURATION).setBaseValue(1);
-        player.getAttribute(team.lodestar.lodestone.registry.common.LodestoneAttributes.MAGIC_DAMAGE).setBaseValue(5);
+        player.getAttribute(LodestoneAttributes.MAGIC_DAMAGE).setBaseValue(5);
         if (ring) equip(player);
         return player;
     }
 
     private static void equip(FakePlayer player) {
-        BowGameTestSupport.equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.RING_SLOT,
+        BowGameTestSupport.equipCurio(player, Curios.RING_SLOT,
                 new ItemStack(ItemRegistry.SPELL_CAST_PARRYING_RING.get()));
     }
 

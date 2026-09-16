@@ -23,6 +23,7 @@ import jp.aquafactory.apprenticecodex.event.IronSwingcastStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.InstantSearchBrazierConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ManaForceBladeConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ManaShieldCharmConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.ManaSoulTransducerConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ManaThrusterConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.SoulstainedSteelSwingcastStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.SpellgunConfigSyncEvents;
@@ -123,7 +124,7 @@ public class ApprenticeCodex
         ManaForceBladeConfigSyncEvents.register(modEventBus);
         ManaShieldCharmConfigSyncEvents.register(modEventBus);
         UndyingEmblemConfigSyncEvents.register(modEventBus);
-        jp.aquafactory.apprenticecodex.event.ManaSoulTransducerConfigSyncEvents.register(modEventBus);
+        ManaSoulTransducerConfigSyncEvents.register(modEventBus);
         ManaThrusterConfigSyncEvents.register(modEventBus);
         ZenithStaffConfigSyncEvents.register(modEventBus);
         ElementMaidenRobeSchoolPowerBonusEvents.register(modEventBus);

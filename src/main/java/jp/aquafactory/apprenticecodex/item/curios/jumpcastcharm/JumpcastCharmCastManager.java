@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.curios.jumpcastcharm;
 
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
@@ -178,7 +179,7 @@ public final class JumpcastCharmCastManager {
     private static void completeInstantCastImmediately(
             ServerPlayer player,
             int spellLevel,
-            io.redspace.ironsspellbooks.api.spells.AbstractSpell spell,
+            AbstractSpell spell,
             MagicData magicData
     ) {
         // MagicManager の次 tick を待たず、空中ジャンプ入力のサーバー処理内で INSTANT を発動し切る。

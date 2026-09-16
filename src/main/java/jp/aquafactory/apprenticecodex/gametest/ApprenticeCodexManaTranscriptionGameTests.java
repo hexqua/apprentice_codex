@@ -22,6 +22,7 @@ import net.minecraft.world.item.component.WritableBookContent;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.GameType;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.fml.ModList;
@@ -328,7 +329,7 @@ public final class ApprenticeCodexManaTranscriptionGameTests {
         return (ManaTranscription) SpellRegistry.MANA_TRANSCRIPTION.get();
     }
 
-    private static net.neoforged.neoforge.common.util.FakePlayer createPlayer(GameTestHelper helper, String name) {
+    private static FakePlayer createPlayer(GameTestHelper helper, String name) {
         return ApprenticeCodexGameTestScenarios.createTrackedEquipmentTestPlayer(
                 helper, new BlockPos(0, 2, 0), name
         );

@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.entity.spells.blood_slash.BloodSlashProjectile;
@@ -24,12 +25,15 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.projectile.Arrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Item;
@@ -37,11 +41,13 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.GameType;
 import net.neoforged.neoforge.common.damagesource.DamageContainer;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.living.LivingShieldBlockEvent;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 final class ParrycastBucklerGameTestScenarios {
@@ -110,7 +116,7 @@ final class ParrycastBucklerGameTestScenarios {
                     "Parrycast should reject School Runes");
             CustomData.update(DataComponents.CUSTOM_DATA, stack, root -> {
                 var calibration = new CompoundTag();
-                var legacyAdjustments = new net.minecraft.nbt.ListTag();
+                var legacyAdjustments = new ListTag();
                 var legacyItems = new ItemStack[]{
                         new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()),
                         new ItemStack(ItemRegistry.WISDOM_SHARD.get()),
@@ -131,7 +137,7 @@ final class ParrycastBucklerGameTestScenarios {
             helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.getCalibrationAdjustment(stack, 2).is(fireRune.getItem()),
                     "Legacy School Rune should remain readable for removal");
             helper.assertTrue(stack.getAttributeModifiers().modifiers().stream()
-                            .noneMatch(entry -> entry.slot().equals(net.minecraft.world.entity.EquipmentSlotGroup.OFFHAND)
+                            .noneMatch(entry -> entry.slot().equals(EquipmentSlotGroup.OFFHAND)
                                     && entry.attribute().equals(AttributeRegistry.FIRE_SPELL_POWER)),
                     "Legacy School Rune should not grant school spell power");
             helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
@@ -343,7 +349,7 @@ final class ParrycastBucklerGameTestScenarios {
     private static FakePlayer createDamageableTestPlayer(GameTestHelper helper, BlockPos position, String name) {
         var player = new DamageableFakePlayer(
                 helper.getLevel(), new GameProfile(UUID.randomUUID(), name));
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         // FakePlayer 固有の無敵と生成直後の保護を外し、実際の盾・ダメージ処理を検証する。
         try {
             var spawnProtection = ServerPlayer.class.getDeclaredField("spawnInvulnerableTime");
@@ -358,7 +364,7 @@ final class ParrycastBucklerGameTestScenarios {
     }
 
     private static final class DamageableFakePlayer extends FakePlayer {
-        private DamageableFakePlayer(net.minecraft.server.level.ServerLevel level, GameProfile profile) {
+        private DamageableFakePlayer(ServerLevel level, GameProfile profile) {
             super(level, profile);
         }
 
@@ -373,11 +379,11 @@ final class ParrycastBucklerGameTestScenarios {
             ItemStack buckler,
             MagicData magicData,
             AbstractSpell selectedSpell,
-            io.redspace.ironsspellbooks.api.spells.CastSource castSource
+            CastSource castSource
     ) {
     }
 
-    private static void assertFirstRestrictionKey(GameTestHelper helper, java.util.List<net.minecraft.network.chat.Component> lines,
+    private static void assertFirstRestrictionKey(GameTestHelper helper, List<Component> lines,
                                                   String expectedKey) {
         helper.assertFalse(lines.isEmpty(), "Parrycast restriction tooltip should not be empty");
         var contents = lines.get(0).getContents();
@@ -385,7 +391,7 @@ final class ParrycastBucklerGameTestScenarios {
                 "Unexpected Parrycast restriction tooltip: " + lines.get(0));
     }
 
-    private static void assertTooltipKeyAt(GameTestHelper helper, java.util.List<Component> lines, int index,
+    private static void assertTooltipKeyAt(GameTestHelper helper, List<Component> lines, int index,
                                            String expectedKey) {
         helper.assertTrue(lines.size() > index, "Parrycast tooltip line is missing at index " + index);
         var contents = lines.get(index).getContents();

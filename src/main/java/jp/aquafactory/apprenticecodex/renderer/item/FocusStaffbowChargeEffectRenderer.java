@@ -287,7 +287,7 @@ final class FocusStaffbowChargeEffectRenderer {
                                float u, float v, float red, float green, float blue, float alpha,
                                float normalX, float normalY, float normalZ) {
         // 加算合成では alpha だけでなく RGB も落とすと、白飛びを抑えながら密度を調整できる。
-        var transformedNormal = normalMatrix.transform(new org.joml.Vector3f(normalX, normalY, normalZ));
+        var transformedNormal = normalMatrix.transform(new Vector3f(normalX, normalY, normalZ));
         buffer.addVertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
                 .setColor(red * alpha, green * alpha, blue * alpha, alpha)
                 .setUv(u, v)

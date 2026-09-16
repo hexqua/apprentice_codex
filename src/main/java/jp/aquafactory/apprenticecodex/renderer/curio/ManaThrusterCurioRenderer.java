@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.renderer.extrudedsprite.ExtrudedSpriteRenderer;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.resources.ResourceLocation;
@@ -60,7 +61,7 @@ public class ManaThrusterCurioRenderer implements ICurioRenderer {
     }
 
     private static void renderWing(PoseStack poseStack, MultiBufferSource buffer, int light,
-                                   net.minecraft.client.model.geom.ModelPart leg, float sideSign) {
+                                   ModelPart leg, float sideSign) {
         poseStack.pushPose();
         leg.translateAndRotate(poseStack);
         poseStack.translate(sideSign * LOCAL_OFFSET_X_PIXELS * PIXEL, LOCAL_OFFSET_Y, LOCAL_OFFSET_Z);

@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
@@ -44,7 +45,7 @@ public final class RevolvercastStaffRenderer extends GeoItemRenderer<Revolvercas
     }
 
     @Override
-    public RenderType getRenderType(RevolvercastStaff animatable, net.minecraft.resources.ResourceLocation texture,
+    public RenderType getRenderType(RevolvercastStaff animatable, ResourceLocation texture,
                                     MultiBufferSource bufferSource, float partialTick) {
         return RenderType.entityCutoutNoCull(getTextureLocation(animatable));
     }

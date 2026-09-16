@@ -88,7 +88,7 @@ public final class ErrandMageTradeManager extends SimpleJsonResourceReloadListen
                 if (secondaryCostStack.isEmpty()) {
                     return null;
                 }
-                secondaryCost = java.util.Optional.of(ErrandMageTradeHelper.createPaymentStack(
+                secondaryCost = Optional.of(ErrandMageTradeHelper.createPaymentStack(
                         secondaryCostDefinition,
                         secondaryCostStack
                 ));

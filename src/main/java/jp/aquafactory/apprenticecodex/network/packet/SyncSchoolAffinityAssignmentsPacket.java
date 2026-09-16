@@ -13,6 +13,8 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,8 +33,8 @@ public class SyncSchoolAffinityAssignmentsPacket implements CustomPacketPayload 
     ) {
         // List.copyOf が null 要素を拒否するという確定的な Java API の不整合のため、置き換えられない.
         //noinspection Java9CollectionFactory
-        this.schoolIdsBySlot = java.util.Collections.unmodifiableList(new ArrayList<>(schoolIdsBySlot));
-        this.catalystSlotsByItemId = java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(catalystSlotsByItemId));
+        this.schoolIdsBySlot = Collections.unmodifiableList(new ArrayList<>(schoolIdsBySlot));
+        this.catalystSlotsByItemId = Collections.unmodifiableMap(new LinkedHashMap<>(catalystSlotsByItemId));
     }
 
     @Override
@@ -64,7 +66,7 @@ public class SyncSchoolAffinityAssignmentsPacket implements CustomPacketPayload 
         }
 
         var catalystBindingCount = buffer.readVarInt();
-        var catalystSlotsByItemId = new java.util.LinkedHashMap<ResourceLocation, Integer>(catalystBindingCount);
+        var catalystSlotsByItemId = new LinkedHashMap<ResourceLocation, Integer>(catalystBindingCount);
         for (int i = 0; i < catalystBindingCount; i++) {
             catalystSlotsByItemId.put(buffer.readResourceLocation(), buffer.readVarInt());
         }

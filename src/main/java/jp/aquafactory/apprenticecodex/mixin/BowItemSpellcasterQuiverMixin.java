@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverBowAmmoResolver;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
@@ -13,6 +14,7 @@ import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
@@ -112,7 +114,7 @@ public abstract class BowItemSpellcasterQuiverMixin {
     }
 
     @Unique
-    private static int apprentice_codex$getEnchantmentLevel(ItemStack stack, net.minecraft.resources.ResourceKey<net.minecraft.world.item.enchantment.Enchantment> enchantmentKey) {
+    private static int apprentice_codex$getEnchantmentLevel(ItemStack stack, ResourceKey<Enchantment> enchantmentKey) {
         var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
         if (enchantments.isEmpty()) {
             return 0;

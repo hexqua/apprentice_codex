@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.capability.codexspelldata;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.*;
 
 public final class CodexSpellStateTypeRegister {
-    public static CodexSpellStateType<jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.QuickcastCartridgeChargeState> QUICKCAST_CARTRIDGE_CHARGE_STATE;
+    public static CodexSpellStateType<QuickcastCartridgeChargeState> QUICKCAST_CARTRIDGE_CHARGE_STATE;
     private CodexSpellStateTypeRegister(){}
 
     public static CodexSpellStateType<AbsorptionAmplifyAmuletState> ABSORPTION_AMPLIFY_AMULET_STATE;

@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import jp.aquafactory.apprenticecodex.spell.shock.ShockBoltRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -22,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 public final class LightningArrowRenderer extends EntityRenderer<LightningArrowEntity> {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
             ApprenticeCodex.MODID, "textures/entity/lightning_arrow_arrow.png");
-    private static final net.minecraft.client.renderer.RenderType TRAIL = ApprenticeRenderTypes.entityAdditiveGlowNoCull(
+    private static final RenderType TRAIL = ApprenticeRenderTypes.entityAdditiveGlowNoCull(
             "shock_bolt_additive", ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/shock_bolt.png"));
 
     public LightningArrowRenderer(EntityRendererProvider.Context context) {

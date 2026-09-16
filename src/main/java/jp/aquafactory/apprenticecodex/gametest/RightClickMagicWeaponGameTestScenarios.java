@@ -11,6 +11,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -156,7 +157,7 @@ final class RightClickMagicWeaponGameTestScenarios extends ApprenticeCodexGameTe
         magicData.setMana(100.0F);
 
         var result = mainhandStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-        helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.PASS,
+        helper.assertTrue(result.getResult() == InteractionResult.PASS,
                 "Right click magic weapon should pass to supported offhand use item " + offhandStack
                         + " but got " + result.getResult());
         helper.assertFalse(magicData.isCasting(),

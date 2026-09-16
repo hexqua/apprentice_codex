@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.armor;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.core.Holder;
@@ -26,7 +27,7 @@ public final class ChromaticMagiaDressStats {
     private static final float TOUGHNESS = 1.0F;
     private static final float KNOCKBACK_RESISTANCE = 0.0F;
     private static final Supplier<Ingredient> REPAIR_INGREDIENT =
-            () -> Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get());
+            () -> Ingredient.of(ItemRegistry.MITHRIL_SCRAP.get());
 
     private static final Map<ArmorItem.Type, Integer> DEFENSE = Map.of(
             ArmorItem.Type.HELMET, 2,

@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.compat.malum;
 
 import com.sammy.malum.common.entity.scythe.LocalizedMaelstromEntity;
 import com.sammy.malum.registry.common.MalumDamageTypes;
+import com.sammy.malum.registry.common.entity.MalumEntities;
 import com.sammy.malum.registry.common.item.MalumItems;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
@@ -28,7 +29,7 @@ public final class MalumScytheMaelstromCompat {
                 || !(scythe.getOwner() instanceof LivingEntity owner)) return;
         // 本家handleMaelstromは専用Entity型の移動とreturnTimerまで変更するため、ダメージ部分だけを接続する。
         // 周期・倍率・無敵時間解除・damage typeはMalum 1.8.2と同じ。対象選別は独自投擲に揃える。
-        var bounds = com.sammy.malum.registry.common.entity.MalumEntities.SCYTHE_BOOMERANG.get()
+        var bounds = MalumEntities.SCYTHE_BOOMERANG.get()
                 .getDimensions().makeBoundingBox(scythe.position()).inflate(2);
         for (var target : level.getEntities(scythe, bounds,
                 entity -> CombatTools.isValidCombatTarget(entity, owner))) {

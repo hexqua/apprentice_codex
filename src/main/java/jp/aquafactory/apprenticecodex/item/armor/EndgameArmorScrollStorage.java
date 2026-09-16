@@ -4,6 +4,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
@@ -64,7 +65,7 @@ final class EndgameArmorScrollStorage {
                 root.remove(ROOT_TAG);
                 return;
             }
-            var stored = new net.minecraft.nbt.CompoundTag();
+            var stored = new CompoundTag();
             stored.put(ITEM_TAG, normalized.saveOptional(lookupProvider));
             root.put(ROOT_TAG, stored);
         });

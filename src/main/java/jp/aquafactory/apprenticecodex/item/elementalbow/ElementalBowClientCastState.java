@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientElementalBowCancelPacket;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
@@ -47,7 +48,7 @@ public final class ElementalBowClientCastState {
         return player != null && matches(player.getUUID(), ClientMagicData.getCastingSpellId());
     }
 
-    @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.HIGHEST)
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void openScreen(ScreenEvent.Opening event) {
         var player = Minecraft.getInstance().player;
         if (player == null || event.getNewScreen() == null) return;

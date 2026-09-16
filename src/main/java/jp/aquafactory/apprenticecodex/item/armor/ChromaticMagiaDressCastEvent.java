@@ -19,6 +19,7 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -243,7 +244,7 @@ public final class ChromaticMagiaDressCastEvent {
                 && magicData.getCastingSpellId().equals(spell.getSpellId())
                 && magicData.getCastingSpellLevel() == spellLevel
                 && magicData.getCastSource() == castSource
-                && java.util.Objects.equals(magicData.getCastingEquipmentSlot(), castingSlot);
+                && Objects.equals(magicData.getCastingEquipmentSlot(), castingSlot);
     }
 
     private static boolean isActiveContinuousCast(MagicData magicData) {

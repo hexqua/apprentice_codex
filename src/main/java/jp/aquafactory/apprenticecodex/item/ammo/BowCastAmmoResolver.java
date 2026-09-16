@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.ammo;
 
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverBowAmmoResolver;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -173,7 +174,7 @@ public final class BowCastAmmoResolver {
     }
 
     private static boolean hasSynthesis(ItemStack stack) {
-        return getEnchantmentLevel(stack, jp.aquafactory.apprenticecodex.enchantment.Enchantments.SYNTHESIS.location()) > 0;
+        return getEnchantmentLevel(stack, Enchantments.SYNTHESIS.location()) > 0;
     }
 
     private static boolean isArrowCatalyst(ItemStack stack, List<ResourceLocation> arrowCatalystItemIds) {

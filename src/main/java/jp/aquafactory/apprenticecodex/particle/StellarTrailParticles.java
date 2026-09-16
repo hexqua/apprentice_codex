@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.particle;
 
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
 public final class StellarTrailParticles {
@@ -22,7 +24,7 @@ public final class StellarTrailParticles {
     private static final float SPARK_FADE_IN_END = 0.06f;
     private static final float SPARK_FADE_OUT_START = 0.72f;
     private static final float SPARK_END_SCALE_MULTIPLIER = 0.72f;
-    public static void spawn(net.minecraft.world.entity.Entity entity, net.minecraft.util.RandomSource random, Vec3 center, double offsetScale, float size) {
+    public static void spawn(Entity entity, RandomSource random, Vec3 center, double offsetScale, float size) {
         // SPARK は preset 既定だと「小さい・短い・最後に強く縮む」が重なって RHOMBUS に埋もれやすい。
         // Illuminate 用だけ寿命と縮小率を override して、細いまま残る軌跡に寄せる。
         var offset = new Vec3(

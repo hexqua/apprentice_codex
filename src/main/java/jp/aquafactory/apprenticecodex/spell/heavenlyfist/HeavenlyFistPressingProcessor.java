@@ -7,11 +7,13 @@ import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.ItemStackProcessingResult;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
@@ -233,7 +235,7 @@ final class HeavenlyFistPressingProcessor {
         }
 
         try {
-            var method = recipe.getClass().getMethod("rollResults", net.minecraft.util.RandomSource.class);
+            var method = recipe.getClass().getMethod("rollResults", RandomSource.class);
             var rolled = copyItemStacks(method.invoke(recipe, level.random));
             return rolled == null ? Optional.empty() : Optional.of(rolled);
         } catch (NoSuchMethodException ignored) {
@@ -254,7 +256,7 @@ final class HeavenlyFistPressingProcessor {
         }
 
         try {
-            var method = output.getClass().getMethod("rollOutput", net.minecraft.util.RandomSource.class);
+            var method = output.getClass().getMethod("rollOutput", RandomSource.class);
             return copyItemStack(method.invoke(output, level.random));
         } catch (NoSuchMethodException ignored) {
             // no-op
@@ -357,7 +359,7 @@ final class HeavenlyFistPressingProcessor {
         var particleCount = Mth.clamp(4 + processCount * 2, 6, 24);
         AudioTools.playSoundFromPosition(level, sourcePosition, SoundRegistry.WHEEL_PROCESS.get(), SoundSource.NEUTRAL, 0.6F, 1.0F, 0.15F);
         level.sendParticles(
-                net.minecraft.core.particles.ParticleTypes.CRIT,
+                ParticleTypes.CRIT,
                 sourcePosition.x,
                 sourcePosition.y + 0.1D,
                 sourcePosition.z,

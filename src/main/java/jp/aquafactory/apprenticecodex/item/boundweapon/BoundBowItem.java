@@ -8,11 +8,14 @@ import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQ
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.spell.boundbow.BoundBowClientTooltip;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.server.level.ServerLevel;
@@ -200,12 +203,12 @@ public class BoundBowItem extends BowItem {
     }
 
     @Override
-    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull net.minecraft.core.Holder<Enchantment> enchantment) {
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         return Items.BOW.supportsEnchantment(new ItemStack(Items.BOW), enchantment);
     }
 
     @Override
-    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull net.minecraft.core.Holder<Enchantment> enchantment) {
+    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         return Items.BOW.isPrimaryItemFor(new ItemStack(Items.BOW), enchantment) || supportsEnchantment(stack, enchantment);
     }
 
@@ -264,16 +267,16 @@ public class BoundBowItem extends BowItem {
         }
 
         magicData.setMana(Math.max(0.0F, magicData.getMana() - manaCost));
-        if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+        if (player instanceof ServerPlayer serverPlayer) {
             PacketDistributor.sendToPlayer(serverPlayer, new SyncManaPacket(magicData));
         }
     }
 
-    private static boolean hasEnchantment(ItemStack stack, net.minecraft.resources.ResourceKey<Enchantment> enchantmentKey) {
+    private static boolean hasEnchantment(ItemStack stack, ResourceKey<Enchantment> enchantmentKey) {
         return getEnchantmentLevel(stack, enchantmentKey) > 0;
     }
 
-    private static int getEnchantmentLevel(ItemStack stack, net.minecraft.resources.ResourceKey<Enchantment> enchantmentKey) {
+    private static int getEnchantmentLevel(ItemStack stack, ResourceKey<Enchantment> enchantmentKey) {
         var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(stack);
         if (enchantments.isEmpty()) {
             return 0;

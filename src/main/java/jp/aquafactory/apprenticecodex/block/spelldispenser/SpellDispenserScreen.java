@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.block.spelldispenser;
 
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.util.TooltipsUtils;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -161,7 +162,7 @@ public final class SpellDispenserScreen extends AbstractContainerScreen<SpellDis
             return new SpellPresentation(HIDDEN_SPELL_LABEL, SpellRegistry.none().getSpellIconResource(), true, tooltip);
         }
 
-        var hasSpell = validation.spellData() != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY;
+        var hasSpell = validation.spellData() != SpellData.EMPTY;
         var label = hasSpell
                 ? validation.spellData().getSpell().getDisplayName(player)
                 : menu.getSpellSource().getHoverName();

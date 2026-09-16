@@ -6,10 +6,12 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.LivingEntity;
@@ -74,7 +76,7 @@ public final class SpellcasterAccessoryCase extends BlockItem {
     }
 
     @Override
-    public @NotNull net.minecraft.world.InteractionResult useOn(@NotNull UseOnContext context) {
+    public @NotNull InteractionResult useOn(@NotNull UseOnContext context) {
         var player = context.getPlayer();
         if (player == null || player.isSecondaryUseActive()) {
             return super.useOn(context);
@@ -84,7 +86,7 @@ public final class SpellcasterAccessoryCase extends BlockItem {
                 ? player.getInventory().selected
                 : Inventory.SLOT_OFFHAND;
         openMenu(player, sourceSlot, context.getItemInHand());
-        return net.minecraft.world.InteractionResult.sidedSuccess(context.getLevel().isClientSide);
+        return InteractionResult.sidedSuccess(context.getLevel().isClientSide);
     }
 
     @Override
@@ -182,7 +184,7 @@ public final class SpellcasterAccessoryCase extends BlockItem {
     ) {
         var inventoryTag = new CompoundTag();
         inventoryTag.putInt("Size", SLOT_COUNT);
-        var items = new net.minecraft.nbt.ListTag();
+        var items = new ListTag();
         for (var slot = 0; slot < inventory.getSlots(); ++slot) {
             var stack = inventory.getStackInSlot(slot);
             if (stack.isEmpty()) {

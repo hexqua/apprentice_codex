@@ -17,6 +17,7 @@ import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AbsorptionAmplifyAmulet extends Item implements ICurioItem {
@@ -44,7 +45,7 @@ public class AbsorptionAmplifyAmulet extends Item implements ICurioItem {
 
     @Override
     public List<Component> getSlotsTooltip(List<Component> tooltips, Item.TooltipContext context, ItemStack stack) {
-        var result = new java.util.ArrayList<>(tooltips);
+        var result = new ArrayList<>(tooltips);
         if (slotIdentifier != null) {
             result.add(Component.empty());
             result.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));

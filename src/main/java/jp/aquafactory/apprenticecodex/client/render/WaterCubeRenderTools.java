@@ -18,6 +18,7 @@ import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtension
 import net.neoforged.neoforge.fluids.FluidStack;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 public final class WaterCubeRenderTools {
     public static final RenderType RENDER_TYPE = RenderType.entityTranslucent(InventoryMenu.BLOCK_ATLAS);
@@ -120,7 +121,7 @@ public final class WaterCubeRenderTools {
 
     private static void vertex(VertexConsumer buffer, Matrix4f poseMatrix, Matrix3f normalMatrix, Vec3 position,
                                float u, float v, Vec3 normal, float alpha) {
-        var transformedNormal = new org.joml.Vector3f((float) normal.x, (float) normal.y, (float) normal.z)
+        var transformedNormal = new Vector3f((float) normal.x, (float) normal.y, (float) normal.z)
                 .mul(normalMatrix)
                 .normalize();
         buffer.addVertex(poseMatrix, (float) position.x, (float) position.y, (float) position.z)
