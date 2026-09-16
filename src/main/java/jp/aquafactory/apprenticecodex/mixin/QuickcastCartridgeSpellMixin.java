@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.mixin;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.*;
 import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastCartridgeCasting;
+import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastCartridgeCharge;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -15,6 +16,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(value = AbstractSpell.class, remap = false)
 public abstract class QuickcastCartridgeSpellMixin {
+    @Inject(method = "attemptInitiateCast", at = @At("RETURN"))
+    private void clearConfirmationOnAcceptedCast(ItemStack stack, int spellLevel, Level level, Player player,
+                                                CastSource source, boolean cooldown, String slot,
+                                                CallbackInfoReturnable<Boolean> cir) {
+        if (Boolean.TRUE.equals(cir.getReturnValue()) && player instanceof ServerPlayer serverPlayer) {
+            QuickcastCartridgeCharge.clearConfirmation(serverPlayer);
+        }
+    }
+
     @Inject(method = "attemptInitiateCast", at = @At("HEAD"))
     private void checkPreviousCartridgeCast(ItemStack stack, int spellLevel, Level level, Player player,
                                             CastSource source, boolean cooldown, String slot,
@@ -23,7 +33,7 @@ public abstract class QuickcastCartridgeSpellMixin {
     }
 
     @Inject(method = "onServerCastComplete", at = @At("RETURN"))
-    private void clearCartridgePower(Level level, int spellLevel, LivingEntity entity, MagicData magic,
+    private void clearCartridgeReservation(Level level, int spellLevel, LivingEntity entity, MagicData magic,
                                      boolean cancelled, CallbackInfo ci) {
         if (entity instanceof ServerPlayer player) QuickcastCartridgeCasting.validate(player);
     }

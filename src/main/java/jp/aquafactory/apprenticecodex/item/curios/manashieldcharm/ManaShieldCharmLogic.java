@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastCartridgeCharge;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -546,6 +547,8 @@ final class ManaShieldCharmLogic {
 
         player.getCombatTracker().recordDamage(source, healthDamage);
         player.setHealth(player.getHealth() - healthDamage);
+        // Shellの残ダメージはLivingDamageEvent.Postを通らないため、最終ダメージ確定後に通知する。
+        QuickcastCartridgeCharge.interruptReload(player);
         player.gameEvent(GameEvent.ENTITY_DAMAGE);
         var invulnerableTimeTicks = invulnerableTimeTicks();
         if (invulnerableTimeTicks > 0) {
