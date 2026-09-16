@@ -1,0 +1,15 @@
+{
+  "bonusParameters": {
+    "irons_jewelry:attribute": {
+      "amount": 0.1,
+      "attribute": "irons_spellbooks:max_mana",
+      "operation": "add_multiplied_total"
+    }
+  },
+  "descriptionId": "material.apprenticecodex.wisdom",
+  "ingredient": {
+    "item": "apprenticecodex:wisdom_shard"
+  },
+  "paletteLocation": "apprenticecodex:palettes/wisdom",
+  "quality": 2.5
+}

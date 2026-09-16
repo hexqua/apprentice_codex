@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.datagen.gems.GemsMaterialDataProvider;
 import jp.aquafactory.apprenticecodex.datagen.recipe.EssenceSmokerRecipeDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.recipe.GrindRunnerRecipeDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.recipe.MalumSpiritRepairRecipeDataGenerator;
@@ -42,6 +43,7 @@ public final class DataGenerator {
         var blockTagGenerator = new BlockTagGenerator(output, lookupProvider, existing);
 
         generator.addProvider(event.includeServer(), datapackProvider);
+        generator.addProvider(event.includeServer(), new GemsMaterialDataProvider(output, datapackProvider.getRegistryProvider()));
         generator.addProvider(event.includeServer(), blockTagGenerator);
         generator.addProvider(event.includeServer(), new EntityTypeTagGenerator(output, lookupProvider, existing));
         generator.addProvider(event.includeServer(), new ItemTagGenerator(output, lookupProvider, blockTagGenerator.contentsGetter(), existing));

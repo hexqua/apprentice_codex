@@ -1,0 +1,15 @@
+{
+  "bonusParameters": {
+    "irons_jewelry:attribute": {
+      "amount": 0.1,
+      "attribute": "irons_spellbooks:spell_resist",
+      "operation": "add_multiplied_total"
+    }
+  },
+  "descriptionId": "material.apprenticecodex.emberstained_netherite",
+  "ingredient": {
+    "item": "apprenticecodex:emberstained_netherite_ingot"
+  },
+  "paletteLocation": "apprenticecodex:palettes/emberstained_netherite",
+  "quality": 2.75
+}

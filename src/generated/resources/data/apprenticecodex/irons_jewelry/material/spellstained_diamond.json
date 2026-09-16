@@ -1,0 +1,15 @@
+{
+  "bonusParameters": {
+    "irons_jewelry:attribute": {
+      "amount": 0.15,
+      "attribute": "irons_spellbooks:mana_regen",
+      "operation": "add_multiplied_total"
+    }
+  },
+  "descriptionId": "material.apprenticecodex.spellstained_diamond",
+  "ingredient": {
+    "item": "apprenticecodex:spellstained_diamond"
+  },
+  "paletteLocation": "apprenticecodex:palettes/spellstained_diamond",
+  "quality": 2.25
+}

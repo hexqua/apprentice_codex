@@ -1,0 +1,15 @@
+{
+  "bonusParameters": {
+    "irons_jewelry:attribute": {
+      "amount": 0.1,
+      "attribute": "irons_spellbooks:max_mana",
+      "operation": "add_multiplied_total"
+    }
+  },
+  "descriptionId": "material.apprenticecodex.mana_enveloped_silver",
+  "ingredient": {
+    "item": "apprenticecodex:mana_enveloped_silver_chunk"
+  },
+  "paletteLocation": "apprenticecodex:palettes/mana_enveloped_silver",
+  "quality": 3.0
+}

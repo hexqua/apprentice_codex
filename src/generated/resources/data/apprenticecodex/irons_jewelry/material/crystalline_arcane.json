@@ -1,0 +1,15 @@
+{
+  "bonusParameters": {
+    "irons_jewelry:attribute": {
+      "amount": 0.03,
+      "attribute": "irons_spellbooks:spell_power",
+      "operation": "add_multiplied_total"
+    }
+  },
+  "descriptionId": "material.apprenticecodex.crystalline_arcane",
+  "ingredient": {
+    "item": "apprenticecodex:crystalline_arcane_shard"
+  },
+  "paletteLocation": "apprenticecodex:palettes/crystalline_arcane",
+  "quality": 0.5
+}

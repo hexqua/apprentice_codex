@@ -367,6 +367,9 @@ extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerMalumBetterComba
 extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerEpicFight', expandOptionalRuntimeModules(['epic_fight']))
 extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerMalumEpicFight', expandOptionalRuntimeModules(['malum_epic_fight']))
 
+// 素材の生成に上流の型とCodecを使うため、datagenだけにもJewelryを読み込む。
+extendRunJavaClasspathWithOptionalRuntimeModules('data', expandOptionalRuntimeModules(['irons_jewelry']))
+
 def devRuntimeMods = providers.gradleProperty('devRuntimeMods').orNull
 if (devRuntimeMods != null && !devRuntimeMods.trim().isEmpty()) {
     def devRuntimeModules = expandOptionalRuntimeModules(devRuntimeMods.split(',').collect { it.trim() }.findAll { !it.isEmpty() })
@@ -450,7 +453,7 @@ dependencies {
     add(optionalRuntimeModuleConfigurations.malum, "maven.modrinth:malum:BIbVs1fo")
 
     // Iron's Gems 'n Jewelry / Atlas API.
-    // projectile判定を拡張するoptional互換Mixinのコンパイル用。ランタイムはcompat profileから読み込む。
+    // optional互換Mixinと素材datagenのコンパイル用。ランタイムはcompat profileとdataから読み込む。
     compileOnly "io.redspace:atlas_api:${atlas_api_version}"
     compileOnly "io.redspace:irons_jewelry:${irons_jewelry_version}"
     add(optionalRuntimeModuleConfigurations.atlas_api, "io.redspace:atlas_api:${atlas_api_version}")
