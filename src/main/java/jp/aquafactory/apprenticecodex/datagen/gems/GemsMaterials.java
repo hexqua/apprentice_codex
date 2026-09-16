@@ -30,6 +30,14 @@ public final class GemsMaterials {
                 material("crystalline_arcane", 0.5)
                         .ingredient(Ingredient.of(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get()))
                         .attribute(AttributeRegistry.SPELL_POWER, 0.03, operation)
+                        .action(new CreateItemsAction(
+                                Optional.of(new QualityScalar(0.05, 0.025, 0.01, Optional.of(0.2))),
+                                ItemRegistry.CRYSTALLINE_ARCANE_SHARD,
+                                Optional.of(SoundRegistry.VANILLA_CRYSTALLIZE_MANA),
+                                new QualityScalar(1),
+                                new QualityScalar(1)),
+                                false
+                        )
                         .negativeEffect(MobEffects.WEAKNESS)
                         .tag(JewelryModTags.GEM).build(),
                 material("emberstained_netherite", 2.75)
@@ -40,6 +48,8 @@ public final class GemsMaterials {
                 material("mana_enveloped_silver", 3)
                         .ingredient(Ingredient.of(ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.get()))
                         .attribute(AttributeRegistry.MAX_MANA, 0.1, operation)
+                        .action(new ApplyEffectAction(new QualityScalar(100),
+                                new QualityScalar(0, 0.5, 0, Optional.of(2d)), EffectRegistry.ARCANE_CHARGE), true)
                         .negativeEffect(MobEffectRegistry.BLIGHT)
                         .tag(JewelryModTags.METAL).build(),
                 material("spellstained_arcane", 1.75)
@@ -52,11 +62,15 @@ public final class GemsMaterials {
                 material("spellstained_diamond", 2.25)
                         .ingredient(Ingredient.of(ItemRegistry.SPELLSTAINED_DIAMOND.get()))
                         .attribute(AttributeRegistry.MANA_REGEN, 0.15, operation)
+                        .action(new ApplyEffectAction(new QualityScalar(100),
+                                new QualityScalar(0, 1, 0, Optional.of(2d)), EffectRegistry.MANA_REGENERATION), true)
                         .negativeEffect(MobEffectRegistry.SOUL_BURN)
                         .tag(JewelryModTags.GEM).build(),
                 material("wisdom", 2.5)
                         .ingredient(Ingredient.of(ItemRegistry.WISDOM_SHARD.get()))
                         .attribute(AttributeRegistry.MAX_MANA, 0.1, operation)
+                        .action(new ApplyEffectAction(new QualityScalar(100),
+                                new QualityScalar(0, 1, 0, Optional.of(2d)), EffectRegistry.INTELLIGENCE), true)
                         .negativeEffect(MobEffectRegistry.BLIGHT)
                         .tag(JewelryModTags.GEM).build()
         );

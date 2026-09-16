@@ -1,5 +1,27 @@
 {
   "bonusParameters": {
+    "irons_jewelry:action": {
+      "action": {
+        "type": "irons_jewelry:create_items",
+        "chance": {
+          "base": 0.05,
+          "max": 0.2,
+          "min": 0.01,
+          "scalar": 0.025
+        },
+        "item": "apprenticecodex:crystalline_arcane_shard",
+        "maxCount": {
+          "base": 1.0,
+          "scalar": 0.0
+        },
+        "minCount": {
+          "base": 1.0,
+          "scalar": 0.0
+        },
+        "sound": "apprenticecodex:vanilla_crystallize_mana"
+      },
+      "targetSelf": false
+    },
     "irons_jewelry:attribute": {
       "amount": 0.03,
       "attribute": "irons_spellbooks:spell_power",
