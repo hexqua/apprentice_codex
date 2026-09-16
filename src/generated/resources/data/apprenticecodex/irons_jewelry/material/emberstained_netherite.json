@@ -1,5 +1,16 @@
 {
   "bonusParameters": {
+    "irons_jewelry:action": {
+      "action": {
+        "type": "apprenticecodex:advance_spell_cooldowns",
+        "ticks": {
+          "base": 10.0,
+          "max": 20.0,
+          "scalar": 5.0
+        }
+      },
+      "targetSelf": true
+    },
     "irons_jewelry:attribute": {
       "amount": 0.1,
       "attribute": "irons_spellbooks:spell_resist",

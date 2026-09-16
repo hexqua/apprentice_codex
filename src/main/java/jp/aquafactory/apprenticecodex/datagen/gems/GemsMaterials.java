@@ -7,6 +7,7 @@ import io.redspace.ironsjewelry.utils.JewelryModTags;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.gems.AdvanceSpellCooldownsAction;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -43,6 +44,7 @@ public final class GemsMaterials {
                 material("emberstained_netherite", 2.75)
                         .ingredient(Ingredient.of(ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get()))
                         .attribute(AttributeRegistry.SPELL_RESIST, 0.1, operation)
+                        .action(new AdvanceSpellCooldownsAction(new QualityScalar(10, 5, 0, Optional.of(20d))), true)
                         .negativeEffect(EffectRegistry.THERMAL_SUNDERED)
                         .tag(JewelryModTags.METAL).build(),
                 material("mana_enveloped_silver", 3)

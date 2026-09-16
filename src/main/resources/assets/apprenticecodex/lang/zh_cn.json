@@ -1,4 +1,8 @@
 {
+  "action.apprenticecodex.advance_spell_cooldowns.name": "法术冷却推进",
+  "action.apprenticecodex.advance_spell_cooldowns.self": "使自身所有正在冷却的法术的冷却时间推进%s秒",
+  "action.apprenticecodex.advance_spell_cooldowns.entity": "使目标玩家所有正在冷却的法术的冷却时间推进%s秒",
+
   "entity.apprenticecodex.echo_arrow_arrow": "回响之箭",
   "entity.apprenticecodex.echo_arrow_core": "回响核心",
   "spell.apprenticecodex.echo_arrow": "回响之箭",

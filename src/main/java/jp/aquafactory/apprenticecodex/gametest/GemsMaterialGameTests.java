@@ -14,6 +14,30 @@ public final class GemsMaterialGameTests {
     }
 
     @GameTest(template = "gametest/basic_floor")
+    public static void gemsCooldownActionScalesAndExpiresSpells(GameTestHelper helper) {
+        if (ModList.get().isLoaded("irons_jewelry")) {
+            GemsCooldownActionGameTestScenarios.verifyScalingAndExpiry(helper);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = "gametest/basic_floor")
+    public static void gemsCooldownActionRespectsTargetsAndNoOps(GameTestHelper helper) {
+        if (ModList.get().isLoaded("irons_jewelry")) {
+            GemsCooldownActionGameTestScenarios.verifyTargetsAndNoOps(helper);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = "gametest/basic_floor")
+    public static void gemsCooldownActionUsesMaterialAndAttackTrigger(GameTestHelper helper) {
+        if (ModList.get().isLoaded("irons_jewelry")) {
+            GemsCooldownActionGameTestScenarios.verifyAttackTrigger(helper);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = "gametest/basic_floor")
     public static void generatedJewelryMaterialsRetainTheirDefinitions(GameTestHelper helper) {
         // optional MODなしの通常GameTestでは、外部型を含むシナリオをロードしない。
         if (ModList.get().isLoaded("irons_jewelry")) {

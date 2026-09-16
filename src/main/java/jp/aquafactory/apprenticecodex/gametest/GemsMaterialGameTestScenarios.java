@@ -17,6 +17,7 @@ import io.redspace.ironsjewelry.registry.IronsJewelryRegistries;
 import io.redspace.ironsjewelry.registry.ParameterTypeRegistry;
 import io.redspace.ironsjewelry.utils.JewelryModTags;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.gems.AdvanceSpellCooldownsAction;
 import jp.aquafactory.apprenticecodex.datagen.gems.GemsMaterial;
 import jp.aquafactory.apprenticecodex.datagen.gems.GemsMaterialDataProvider;
 import jp.aquafactory.apprenticecodex.datagen.gems.GemsMaterials;
@@ -74,6 +75,8 @@ final class GemsMaterialGameTestScenarios {
         var magic = access.lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(DamageTypes.MAGIC);
         var blocks = access.lookupOrThrow(Registries.BLOCK);
         List<IAction> actions = List.of(
+                new AdvanceSpellCooldownsAction(new QualityScalar(10, 5, 0, Optional.of(20d))),
+                new AdvanceSpellCooldownsAction(new QualityScalar(40)),
                 new KnockbackAction(new QualityScalar(-2, -1)),
                 new IgniteAction(new QualityScalar(40)),
                 new ApplyEffectAction(new QualityScalar(100), scaled, MobEffects.REGENERATION),
