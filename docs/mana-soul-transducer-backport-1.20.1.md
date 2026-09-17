@@ -66,3 +66,9 @@ Malum 1.6.7の `AbstractStaffItem` へMixinで介入する。Itemの共有フィ
 - レシピはForge条件とMalum 1.6.7の`extra_items`・`output`形式でdatagenする。
 - 既存杖のエンチャント適用と修理素材は変更しない。
 - クライアントの画面・演出は手動確認対象。自動検証では専用サーバーの起動・ゲームロジックを確認する。
+
+## 後続PRとの統合
+
+- #930: 1.6.7の3種類の杖（Mnemonic Hex Staff、Erosion Scepter、Staff of the Auric Flame）で、使用開始からの詠唱弾き受付時間を共有する。満充填後の保持も同じ時間で判定する。1.8.2の即時発射属性・Geasによる自動発射は移植しない。
+- #930の説明追加は、1.6.7の`HiddenTagHandler.tagsToHide()`で杖の開示状態を確認する。
+- #937: EchoCast・PaletteShift・SoulConversionは研究画面から除外する。Mixin注入は任意とし、EchoCastとPaletteShiftの使用条件は変更しない。SoulConversionは引き続き常時無効。

@@ -90,6 +90,7 @@
     "ClientPlayerRecastsMixin",
     "ClientInputEventsMixin",
     "ClientSpellCastHelperMixin",
+    "EldritchResearchScreenMixin",
     "EpicFightPatchedItemInHandLayerMixin",
     "KeyboardHandlerMixin",
     "LocalPlayerSpellcasterQuiverMixin",
