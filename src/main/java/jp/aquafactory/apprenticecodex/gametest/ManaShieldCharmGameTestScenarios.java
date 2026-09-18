@@ -212,10 +212,10 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
                     "Mana Shield Charm partial reduction should apply the one-hit low mana rescue consistently for the unarmored player"
                             + " expectedMana=" + expectedRemainingMana
                             + " actualMana=" + unarmoredMana.getMana());
-            helper.assertTrue(armoredEvent.isCanceled(),
-                    "Mana Shield Charm partial reduction should cancel the original armored LivingAttackEvent");
-            helper.assertTrue(unarmoredEvent.isCanceled(),
-                    "Mana Shield Charm partial reduction should cancel the original unarmored LivingAttackEvent");
+            helper.assertFalse(armoredEvent.isCanceled() || unarmoredEvent.isCanceled(),
+                    "Partial absorption must continue both original damage events");
+            helper.assertTrue(armoredEvent.getAmount() == 1.0F && unarmoredEvent.getAmount() == 1.0F,
+                    "Partial absorption must pass only the remaining damage to later handlers");
             helper.assertTrue(getManaShieldCharmState(armored).cooldownActive == (expectedRemainingMana <= 0.0F),
                     "Mana Shield Charm armored partial reduction cooldown should match the rescued remaining mana expectation");
             helper.assertTrue(getManaShieldCharmState(unarmored).cooldownActive == (expectedRemainingMana <= 0.0F),
@@ -316,8 +316,9 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
             var unarmoredEvent = postLivingAttackEventForGameTest(unarmored, normalSource, 8.0F);
             var bypassSource = CombatTools.getDamageSource(helper.getLevel(), bypassArmor, DamageTypes.UNITE_LUNA);
             var bypassEvent = postLivingAttackEventForGameTest(bypassArmor, bypassSource, 2.0F);
-            helper.assertTrue(armoredEvent.isCanceled() && unarmoredEvent.isCanceled() && bypassEvent.isCanceled(),
-                    "Mana Shield Charm Shell test should cancel all intercepted LivingAttackEvent instances");
+            helper.assertFalse(armoredEvent.isCanceled() || unarmoredEvent.isCanceled(),
+                    "Shell must continue the original event when damage penetrates");
+            helper.assertTrue(bypassEvent.isCanceled(), "Shell must cancel fully absorbed armor-bypass damage");
             var expectedArmoredMana = armoredAvailableMana
                     - 50.0F
                     - 25.0F * countWholeDamageStepsForGameTest(fullyReduced);
@@ -399,8 +400,10 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
                     helper.getLevel(), bypassArmor, DamageTypes.UNITE_LUNA);
             var bypassEvent = postLivingAttackEventForGameTest(bypassArmor, bypassSource, 2.0F);
 
-            helper.assertTrue(armoredEvent.isCanceled(),
-                    "Shell should apply armor mitigation when mana exactly pays its activation cost");
+            helper.assertFalse(armoredEvent.isCanceled(),
+                    "Shell must continue the event when only its activation cost is available");
+            helper.assertTrue(armoredEvent.getAmount() == 2.0F,
+                    "Shell must pass the original damage when mana absorbs none of the hit");
             helper.assertTrue(armoredChestplate.getDamageValue() == 1,
                     "Shell should damage armor after activating at its exact mana cost");
             helper.assertTrue(Math.abs(armoredMana.getMana()) < 1.0e-4F,
@@ -753,8 +756,8 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
 
                 var event = postLivingAttackEventForGameTest(player, source, 5.0F);
 
-                helper.assertTrue(event.isCanceled(),
-                        "Shell durability config test should still intercept normal damage");
+                helper.assertFalse(event.isCanceled(),
+                        "Shell durability config test should continue penetrated damage");
                 helper.assertTrue(chestplate.getDamageValue() == 3,
                         "Shell should damage armor by ceil(raw damage / 4 * configured multiplier)");
             }

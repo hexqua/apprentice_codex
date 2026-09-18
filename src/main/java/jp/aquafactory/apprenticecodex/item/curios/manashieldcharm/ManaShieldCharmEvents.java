@@ -16,6 +16,15 @@ public final class ManaShieldCharmEvents {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onIncomingImmunity(LivingIncomingDamageEvent event) {
+        if (!event.getEntity().level().isClientSide && event.getEntity() instanceof ServerPlayer player) {
+            ManaDefenseImmunityResolver.cancelIfImmune(event, player);
+        }
+    }
+
+    // Malumの魔法化はNORMALでhurtを再発生させる。変換前にはマナを使わず、
+    // キャンセルされずに残った攻撃だけを処理して端数貫通時の二重消費を防ぐ。
+    @SubscribeEvent(priority = EventPriority.LOW)
     public static void onLivingAttack(LivingIncomingDamageEvent event) {
         if (event.getEntity().level().isClientSide) {
             return;
