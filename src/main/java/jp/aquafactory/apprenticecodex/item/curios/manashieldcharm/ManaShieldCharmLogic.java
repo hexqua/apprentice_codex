@@ -6,8 +6,7 @@ import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
-import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastCartridgeCharge;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -18,6 +17,7 @@ import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.CombatRules;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -26,8 +26,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
@@ -79,7 +78,7 @@ final class ManaShieldCharmLogic {
         refreshCooldownIfRecovered(player);
 
         var state = getState(player);
-        if (state == null || state.manualReentryGuard) {
+        if (state == null) {
             return;
         }
         if (state.cooldownActive || player.hasEffect(EffectRegistry.INERT_MANA_SHIELD.get())) {
@@ -112,13 +111,11 @@ final class ManaShieldCharmLogic {
         if (magicData.getMana() > resolution.remainingMana() + 1.0e-4F) {
             applyManaResult(player, magicData, resolution.remainingMana());
         }
-        if (resolution.negatedDamage() <= 0.0F) {
-            return;
-        }
-
-        event.setCanceled(true);
         if (resolution.shellArmorDurabilityDamage() > 0) {
             damageArmorPiecesForShell(player, resolution.shellArmorDurabilityDamage());
+        }
+        if (resolution.negatedDamage() <= 0.0F) {
+            return;
         }
 
         switch (resolution.mitigationResult()) {
@@ -132,14 +129,8 @@ final class ManaShieldCharmLogic {
             }
             case PARTIALLY_NEGATED_FAILED -> {
                 ForceFieldDefenseEvent.spawnManaShieldWallEffect(player, event.getSource(), true);
-                // Forge 1.20.1 では LivingAttackEvent が防御計算前なので、cancel 後に残ダメージだけ hurt し直して
-                // 防具・エンチャント・吸収・ノックバックの通常経路へ戻す。1.21.1 側へはそのまま運ばず再確認すること。
-                withState(player, current -> current.manualReentryGuard = true);
-                try {
-                    applyResidualDamage(player, event.getSource(), resolution.remainingDamage(), resolution.residualDamageProfile());
-                } finally {
-                    withState(player, current -> current.manualReentryGuard = false);
-                }
+                // 元のイベントを継続し、防具損傷・SoulWard・トーテム・死亡処理を通常経路へ任せる。
+                event.setAmount(resolution.remainingDamage());
             }
         }
     }
@@ -158,7 +149,6 @@ final class ManaShieldCharmLogic {
         refreshCooldownIfRecovered(player);
         var state = getState(player);
         if (state == null
-                || state.manualReentryGuard
                 || state.cooldownActive
                 || player.hasEffect(EffectRegistry.INERT_MANA_SHIELD.get())
                 || !shouldIgnoreDuringVanillaStyleIFrame(player, event)) {
@@ -199,7 +189,7 @@ final class ManaShieldCharmLogic {
         }
         refreshCooldownIfRecovered(player);
         var state = getState(player);
-        if (state == null || state.cooldownActive || state.manualReentryGuard) {
+        if (state == null || state.cooldownActive) {
             return;
         }
         var charmStack = getEquippedCharm(player);
@@ -242,7 +232,6 @@ final class ManaShieldCharmLogic {
                 barrierResolution.negatedDamage(),
                 barrierResolution.remainingDamage(),
                 barrierResolution.hitManaBudget().remainingMana(),
-                ResidualDamageProfile.VANILLA,
                 0
         );
     }
@@ -260,7 +249,6 @@ final class ManaShieldCharmLogic {
                     0.0F,
                     incomingDamage,
                     remainingManaAfterActivation,
-                    ResidualDamageProfile.VANILLA,
                     0
             );
         }
@@ -275,7 +263,6 @@ final class ManaShieldCharmLogic {
                     barrierResolution.negatedDamage(),
                     barrierResolution.remainingDamage(),
                     barrierResolution.hitManaBudget().remainingMana(),
-                    ResidualDamageProfile.VANILLA,
                     0
             );
         }
@@ -288,11 +275,15 @@ final class ManaShieldCharmLogic {
                 HitManaBudget.forIncomingHit(remainingManaAfterActivation),
                 manaPerDamage()
         );
+        // 防具軽減後の残存割合だけを元の被ダメージへ戻す。吸収できなければ元の全量を通す。
+        // 軽減だけで0になった場合は全吸収として扱い、0除算を避ける。
+        var remainingDamage = reducedDamage > 0.0F
+                ? incomingDamage * Math.clamp(barrierResolution.remainingDamage() / reducedDamage, 0.0F, 1.0F)
+                : 0.0F;
         return new DamageResolution(
-                mitigatedDamage + barrierResolution.negatedDamage(),
-                barrierResolution.remainingDamage(),
+                Math.max(incomingDamage - remainingDamage, 0.0F),
+                remainingDamage,
                 barrierResolution.hitManaBudget().remainingMana(),
-                ResidualDamageProfile.SHELL,
                 mitigatedDamage > 1.0e-4F ? shellArmorDurabilityDamage(incomingDamage) : 0
         );
     }
@@ -313,7 +304,6 @@ final class ManaShieldCharmLogic {
                 barrierResolution.negatedDamage(),
                 barrierResolution.remainingDamage(),
                 barrierResolution.hitManaBudget().remainingMana(),
-                ResidualDamageProfile.VANILLA,
                 0
         );
     }
@@ -486,69 +476,6 @@ final class ManaShieldCharmLogic {
         }
     }
 
-    private static void applyResidualDamage(
-            ServerPlayer player,
-            DamageSource source,
-            float damage,
-            ResidualDamageProfile profile
-    ) {
-        if (damage <= 0.0F) {
-            return;
-        }
-
-        switch (profile) {
-            case VANILLA -> player.hurt(source, damage);
-            case SHELL -> hurtWithShellResidualProfile(player, source, damage);
-        }
-    }
-
-    private static void hurtWithShellResidualProfile(ServerPlayer player, DamageSource source, float damage) {
-        damage = applyResistanceReduction(player, source, damage);
-        applyDirectResidualDamage(player, source, damage);
-    }
-
-    private static float applyResistanceReduction(ServerPlayer player, DamageSource source, float damage) {
-        if (source.is(DamageTypeTags.BYPASSES_EFFECTS)) {
-            return damage;
-        }
-
-        if (player.hasEffect(net.minecraft.world.effect.MobEffects.DAMAGE_RESISTANCE)
-                && !source.is(DamageTypeTags.BYPASSES_RESISTANCE)) {
-            var resistanceInstance = player.getEffect(net.minecraft.world.effect.MobEffects.DAMAGE_RESISTANCE);
-            if (resistanceInstance == null) {
-                return damage;
-            }
-
-            var resistanceLevel = (resistanceInstance.getAmplifier() + 1) * 5;
-            var remainingRatio = 25 - resistanceLevel;
-            return Math.max(damage * remainingRatio / 25.0F, 0.0F);
-        }
-
-        return damage;
-    }
-
-    private static void applyDirectResidualDamage(ServerPlayer player, DamageSource source, float damage) {
-        if (damage <= 0.0F) {
-            return;
-        }
-
-        var healthDamage = Math.max(damage - player.getAbsorptionAmount(), 0.0F);
-        player.setAbsorptionAmount(player.getAbsorptionAmount() - (damage - healthDamage));
-        if (healthDamage <= 0.0F) {
-            return;
-        }
-
-        player.getCombatTracker().recordDamage(source, healthDamage);
-        player.setHealth(player.getHealth() - healthDamage);
-        // Shellの残ダメージはLivingDamageEvent.Postを通らないため、最終ダメージ確定後に通知する。
-        QuickcastCartridgeCharge.interruptReload(player);
-        player.gameEvent(GameEvent.ENTITY_DAMAGE);
-        var invulnerableTimeTicks = invulnerableTimeTicks();
-        if (invulnerableTimeTicks > 0) {
-            player.invulnerableTime = Math.max(player.invulnerableTime, invulnerableTimeTicks);
-        }
-    }
-
     private static ArmorStats resolveArmorStats(ServerPlayer player) {
         var playerArmor = (float) player.getArmorValue();
         var playerToughness = (float) player.getAttributeValue(Attributes.ARMOR_TOUGHNESS);
@@ -629,11 +556,6 @@ final class ManaShieldCharmLogic {
         PARTIALLY_NEGATED_FAILED
     }
 
-    private enum ResidualDamageProfile {
-        VANILLA,
-        SHELL
-    }
-
     private enum EnchantmentMode {
         NONE,
         SHELL,
@@ -660,7 +582,6 @@ final class ManaShieldCharmLogic {
             float negatedDamage,
             float remainingDamage,
             float remainingMana,
-            ResidualDamageProfile residualDamageProfile,
             int shellArmorDurabilityDamage
     ) {
         private MitigationResult mitigationResult() {
