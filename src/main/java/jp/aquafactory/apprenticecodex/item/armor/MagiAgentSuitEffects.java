@@ -117,7 +117,9 @@ public final class MagiAgentSuitEffects {
         if (!isTargetSpell(spell) || !isWearingSuitPiece(entity, ArmorItem.Type.BOOTS)) {
             return effectiveCastTime;
         }
-        return 0;
+
+        // 0tickにするとレティクル表示が消えるため、最小でも1tickの詠唱時間にする.
+        return 1;
     }
 
     public static boolean shouldCancelCastingMovePenalty(
