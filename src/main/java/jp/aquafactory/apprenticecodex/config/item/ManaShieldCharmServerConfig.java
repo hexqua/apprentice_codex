@@ -48,7 +48,7 @@ public final class ManaShieldCharmServerConfig {
         builder.push("ManaShieldCharm");
 
         var manaPerDamage = builder
-                .comment("Mana spent per whole damage point absorbed by Mana Shield Charm. 0 makes absorbed whole-damage steps free and can make the charm effectively invulnerable against many damage sources; use only when that is intended.")
+                .comment("Mana spent per damage point absorbed by Mana Shield Charm. A fractional point costs the same as a whole point. 0 makes absorption free and can make the charm effectively invulnerable against many damage sources; use only when that is intended.")
                 .defineInRange("manaPerDamage", 25.0D, 0.0D, 10000.0D);
         var recoveryThresholdMana = builder
                 .comment("Mana required to reactivate Mana Shield Charm after depletion. 0 disables depletion cooldown.")

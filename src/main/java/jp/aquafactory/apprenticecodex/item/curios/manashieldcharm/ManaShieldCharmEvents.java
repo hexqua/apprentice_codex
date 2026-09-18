@@ -22,9 +22,9 @@ public final class ManaShieldCharmEvents {
         }
     }
 
-    // Malumの魔法化はNORMALでhurtを再発生させる。変換前にはマナを使わず、
-    // キャンセルされずに残った攻撃だけを処理して端数貫通時の二重消費を防ぐ。
-    @SubscribeEvent(priority = EventPriority.LOW)
+    // Iron'sの被弾による詠唱中断(NORMAL)より前に、完全吸収した攻撃をキャンセルする。
+    // 端数も吸収するため、Malumの魔法化へ貫通分を渡す時点では吸収用のマナは残らない。
+    @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onLivingAttack(LivingIncomingDamageEvent event) {
         if (event.getEntity().level().isClientSide) {
             return;

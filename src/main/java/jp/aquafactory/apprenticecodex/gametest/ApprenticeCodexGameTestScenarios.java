@@ -12638,38 +12638,9 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static float resolveExpectedBarrierManaAfterHitForGameTest(float incomingDamage, float availableMana) {
-        var remainingDamage = incomingDamage;
-        var remainingMana = availableMana;
-        var manaPerDamage = ApprenticeCodexServerConfig.manaShieldCharmManaPerDamage();
-
-        if (manaPerDamage <= 0.0F) {
-            return remainingMana;
-        }
-
-        while (remainingDamage >= 1.0F) {
-            if (remainingMana >= manaPerDamage) {
-                remainingDamage -= 1.0F;
-                remainingMana -= manaPerDamage;
-                continue;
-            }
-            if (remainingMana > 0.0F) {
-                remainingDamage -= 1.0F;
-                remainingMana = 0.0F;
-            }
-            break;
-        }
-
-        return Math.max(remainingMana, 0.0F);
-    }
-
-    static int countWholeDamageStepsForGameTest(float damage) {
-        var remainingDamage = damage;
-        var count = 0;
-        while (remainingDamage >= 1.0F) {
-            remainingDamage -= 1.0F;
-            ++count;
-        }
-        return count;
+        var cost = (float) Math.ceil(Math.max(incomingDamage, 0.0F))
+                * ApprenticeCodexServerConfig.manaShieldCharmManaPerDamage();
+        return Math.max(availableMana - cost, 0.0F);
     }
 
     static void assertClose(

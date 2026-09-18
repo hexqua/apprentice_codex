@@ -306,12 +306,12 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
             var unarmoredEvent = postLivingAttackEventForGameTest(unarmored, normalSource, 8.0F);
             var bypassSource = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(helper.getLevel(), bypassArmor, DamageTypes.UNITE_LUNA);
             var bypassEvent = postLivingAttackEventForGameTest(bypassArmor, bypassSource, 2.0F);
-            helper.assertFalse(armoredEvent.isCanceled() || unarmoredEvent.isCanceled(),
-                    "Shell must continue the original event when damage penetrates");
+            helper.assertTrue(armoredEvent.isCanceled() && !unarmoredEvent.isCanceled(),
+                    "Shell must cancel fully absorbed damage and forward insufficiently absorbed damage");
             helper.assertTrue(bypassEvent.isCanceled(), "Shell must cancel fully absorbed armor-bypass damage");
             var expectedArmoredMana = armoredAvailableMana
                     - 50.0F
-                    - 25.0F * countWholeDamageStepsForGameTest(fullyReduced);
+                    - 25.0F * (int) Math.ceil(fullyReduced);
             helper.assertTrue(Math.abs(armoredMana.getMana() - expectedArmoredMana) < 1.0e-4F,
                     "Shell should apply armor, toughness, and protection before charging barrier mana"
                             + " reducedDamage=" + fullyReduced
@@ -424,10 +424,10 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
             var event = postLivingAttackEventForGameTest(
                     player, helper.getLevel().damageSources().lava(), 0.5F);
 
-            helper.assertFalse(event.isCanceled(),
-                    "Shell should not cancel fractional damage when no armor or barrier step reduces it");
-            helper.assertTrue(Math.abs(magicData.getMana() - 50.0F) < 1.0e-4F,
-                    "Shell should charge its fixed activation cost even for fractional damage");
+            helper.assertTrue(event.isCanceled(),
+                    "Shell must fully absorb fractional damage");
+            helper.assertTrue(Math.abs(magicData.getMana() - 25.0F) < 1.0e-4F,
+                    "Shell must charge activation plus one full mana step for fractional damage");
             helper.succeed();
         });
     }

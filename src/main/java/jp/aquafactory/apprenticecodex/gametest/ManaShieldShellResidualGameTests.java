@@ -6,6 +6,9 @@ import com.sammy.malum.registry.common.MalumAttributes;
 import com.sammy.malum.registry.common.magic.MalumGeasEffectTypes;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
@@ -38,6 +41,60 @@ import java.util.function.Consumer;
 @PrefixGameTestTemplate(false)
 public class ManaShieldShellResidualGameTests extends ApprenticeCodexGameTestScenarios {
     private static final String TEMPLATE = "gametest/basic_floor";
+
+    @GameTest(template = TEMPLATE)
+    public static void fractionalAbsorptionProtectsLongCasting(GameTestHelper helper) {
+        verifyCasting(helper, false);
+        helper.succeed();
+    }
+
+    private static void verifyCasting(GameTestHelper helper, boolean malum) {
+        var spell = SpellRegistry.FIREBALL_SPELL.get();
+        helper.assertTrue(spell.getCastType() == CastType.LONG, "Test spell must use LONG casting");
+        for (boolean shell : new boolean[]{false, true}) {
+            for (float mana : new float[]{0, 50, 75, 800}) {
+                var player = player(helper, "shield_cast");
+                // 生成直後(tickCount <= 1)はIron'sの未設定の毒時刻と一致し、被弾中断が抑止される。
+                player.tickCount = 100;
+                if (shell) {
+                    equipShell(player);
+                } else {
+                    CuriosApi.getCuriosInventory(player).orElseThrow().setEquippedCurio(
+                            CuriosSlotConstants.CHARM, 0, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
+                }
+                if (malum) MalumScenario.addConversion(player);
+                var magic = MagicData.getPlayerMagicData(player);
+                magic.setMana(mana);
+                magic.initiateCast(spell, 1, 40, CastSource.SPELLBOOK, "mainhand");
+                helper.assertTrue(magic.isCasting() && spell.canBeInterrupted(player),
+                        "Test must begin with an interruptible active cast");
+                int[] downstream = {0};
+                Consumer<LivingIncomingDamageEvent> listener = event -> {
+                    if (event.getEntity() == player) downstream[0]++;
+                };
+                NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, LivingIncomingDamageEvent.class, listener);
+                float health = player.getHealth();
+                try {
+                    // 難易度補正のない詠唱中断対象のダメージで、端数の吸収を比較する。
+                    player.hurt(player.damageSources().lava(), 0.5F);
+                } finally {
+                    NeoForge.EVENT_BUS.unregister(listener);
+                }
+                boolean absorbed = mana > (shell ? 50 : 0);
+                helper.assertTrue(magic.isCasting() == absorbed,
+                        "Only full absorption must protect LONG casting: shell=" + shell + ", mana=" + mana
+                                + ", downstream=" + downstream[0] + ", health=" + player.getHealth()
+                                + ", previousHealth=" + health + ", duration=" + magic.getCastDurationRemaining()
+                                + ", spell=" + magic.getCastingSpell().getSpell().getSpellId()
+                                + ", interruptible=" + magic.getCastingSpell().getSpell().canBeInterrupted(player));
+                helper.assertTrue(absorbed ? downstream[0] == 0 && player.getHealth() == health
+                                : downstream[0] > 0 && player.getHealth() < health,
+                        "Fully absorbed fractional hits must not reach downstream damage handlers");
+                helper.assertTrue(magic.getMana() == Math.max(0, mana - (shell ? 75 : 25)),
+                        "A fractional hit must charge one whole absorption step plus activation when applicable");
+            }
+        }
+    }
 
     @GameTest(template = TEMPLATE)
     public static void shellForwardsTyrosScaleDamageAndZeroAbsorptionEndpoints(GameTestHelper helper) {
@@ -152,12 +209,17 @@ public class ManaShieldShellResidualGameTests extends ApprenticeCodexGameTestSce
     public static void shellResidualPreservesMalumMagicConversionAndSoulWard(GameTestHelper helper) {
         if (ModList.get().isLoaded("malum")) {
             MalumScenario.verify(helper);
+            verifyCasting(helper, true);
         }
         helper.succeed();
     }
 
     // optional MODの型は、導入確認後に呼ぶクラスに隔離する。
     private static final class MalumScenario {
+        private static void addConversion(ServerPlayer player) {
+            GeasEffectHandler.addGeasEffect(player, MalumGeasEffectTypes.PACT_OF_THE_ARCANAPHAGE.get());
+        }
+
         private static void verify(GameTestHelper helper) {
             var player = player(helper, "shell_ward");
             helper.assertTrue(GeasEffectHandler.addGeasEffect(player,
@@ -174,17 +236,17 @@ public class ManaShieldShellResidualGameTests extends ApprenticeCodexGameTestSce
                     "Soul Ward must process Shell residual through Arcanaphage conversion");
             helper.assertTrue(player.isAlive(), "Soul Ward must protect against otherwise lethal Shell residual");
 
-            // マナが残る端数貫通では、変換前後の二重発動を枯渇クールダウンで隠せない。
+            // 端数まで吸収できる攻撃は魔法化より前に止め、マナと防具の二重消費を防ぐ。
             var fractional = player(helper, "shell_ward_fraction");
             helper.assertTrue(GeasEffectHandler.addGeasEffect(fractional,
                     MalumGeasEffectTypes.PACT_OF_THE_ARCANAPHAGE.get()), "Arcanaphage pact must equip");
             equipShell(fractional);
             MagicData.getPlayerMagicData(fractional).setMana(800);
             fractional.hurt(fractional.damageSources().lava(), 12);
-            helper.assertTrue(MagicData.getPlayerMagicData(fractional).getMana() == 525,
-                    "Magic conversion must charge Shell only once: 50 activation plus nine 25-mana steps");
-            helper.assertTrue(fractional.getItemBySlot(EquipmentSlot.CHEST).getDamageValue() == 4,
-                    "Magic conversion must not duplicate Shell armor wear on fractional penetration");
+            helper.assertTrue(MagicData.getPlayerMagicData(fractional).getMana() == 500,
+                    "Shell must charge activation plus ten steps including the final fractional point");
+            helper.assertTrue(fractional.getItemBySlot(EquipmentSlot.CHEST).getDamageValue() == 3,
+                    "Full absorption must apply only initial Shell armor wear");
         }
     }
 

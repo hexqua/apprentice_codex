@@ -244,7 +244,9 @@ final class ManaShieldCharmLogic {
     ) {
         var activationManaCost = shellActivationManaCost();
         var remainingManaAfterActivation = Math.max(currentMana - activationManaCost, 0.0F);
-        if (currentMana < activationManaCost) {
+        // 発動費用0の設定でも、吸収用マナがなければ防具を損傷させない。
+        // 魔法化等で再発生した貫通ダメージに、空の障壁が再度反応するのを防ぐ。
+        if (currentMana < activationManaCost || (currentMana <= 0.0F && manaPerDamage() > 0.0F)) {
             return new DamageResolution(
                     0.0F,
                     incomingDamage,
@@ -402,28 +404,25 @@ final class ManaShieldCharmLogic {
         var overdraftAvailable = hitManaBudget.overdraftAvailable();
 
         if (manaPerDamage <= 0.0F) {
-            while (remainingDamage >= DAMAGE_STEP) {
-                remainingDamage -= DAMAGE_STEP;
-                negatedDamage += DAMAGE_STEP;
-            }
-
             return new BarrierResolution(
-                    negatedDamage,
-                    Math.max(remainingDamage, 0.0F),
+                    Math.max(incomingDamage, 0.0F),
+                    0.0F,
                     new HitManaBudget(remainingMana, overdraftAvailable)
             );
         }
 
-        while (remainingDamage >= DAMAGE_STEP) {
+        // 端数も1点分のマナを要求するが、実際に打ち消す量は残ダメージを超えない。
+        while (remainingDamage > 0.0F) {
+            var damageStep = Math.min(remainingDamage, DAMAGE_STEP);
             if (remainingMana >= manaPerDamage) {
-                remainingDamage -= DAMAGE_STEP;
+                remainingDamage -= damageStep;
                 remainingMana -= manaPerDamage;
-                negatedDamage += DAMAGE_STEP;
+                negatedDamage += damageStep;
                 continue;
             }
             if (overdraftAvailable && remainingMana > 0.0F) {
-                remainingDamage -= DAMAGE_STEP;
-                negatedDamage += DAMAGE_STEP;
+                remainingDamage -= damageStep;
+                negatedDamage += damageStep;
                 remainingMana = 0.0F;
                 overdraftAvailable = false;
             }
