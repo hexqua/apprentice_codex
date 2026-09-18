@@ -219,8 +219,8 @@ public final class QuickcastCartridgeChargeGameTests extends ApprenticeCodexGame
             var fullHit = postLivingAttackEventForGameTest(full, full.damageSources().lava(), 2);
             helper.assertTrue(fullHit.isCanceled(), "Mana Shield must fully cancel the protected hit");
             helper.assertTrue(QuickcastCartridgeCharge.isReloading(full), "A fully canceled hit must preserve reload");
-            var partialHit = postLivingAttackEventForGameTest(partial, partial.damageSources().lava(), 10);
-            helper.assertTrue(partialHit.isCanceled(), "Partial protection must cancel the original event before applying residual damage");
+            helper.assertTrue(partial.hurt(partial.damageSources().lava(), 10),
+                    "Partial protection must continue the original hit through normal damage processing");
             helper.assertTrue(partial.getHealth() < partial.getMaxHealth(), "Partial protection must apply residual health damage");
             helper.assertFalse(QuickcastCartridgeCharge.isReloading(partial), "Positive final damage must interrupt reload");
             absorbed.getAttribute(Attributes.MAX_ABSORPTION).setBaseValue(8);
@@ -234,10 +234,10 @@ public final class QuickcastCartridgeChargeGameTests extends ApprenticeCodexGame
             MagicData.getPlayerMagicData(shellAbsorbed).setMana(shellMana);
             shellAbsorbed.getAttribute(Attributes.MAX_ABSORPTION).setBaseValue(20);
             shellAbsorbed.setAbsorptionAmount(20);
-            postLivingAttackEventForGameTest(shell, shell.damageSources().lava(), 10);
-            postLivingAttackEventForGameTest(shellAbsorbed, shellAbsorbed.damageSources().lava(), 10);
-            helper.assertTrue(shell.getHealth() < shell.getMaxHealth(), "Shell must apply direct residual health damage");
-            helper.assertFalse(QuickcastCartridgeCharge.isReloading(shell), "Direct Shell residual damage must interrupt reload");
+            shell.hurt(shell.damageSources().lava(), 10);
+            shellAbsorbed.hurt(shellAbsorbed.damageSources().lava(), 10);
+            helper.assertTrue(shell.getHealth() < shell.getMaxHealth(), "Shell must allow residual health damage");
+            helper.assertFalse(QuickcastCartridgeCharge.isReloading(shell), "Final Shell residual damage must interrupt reload");
             helper.assertTrue(shellAbsorbed.getAbsorptionAmount() < 20, "Shell residual damage must reach absorption");
             helper.assertTrue(QuickcastCartridgeCharge.isReloading(shellAbsorbed), "Fully absorbed Shell residual damage must preserve reload");
             QuickcastCartridgeCharge.forget(full);

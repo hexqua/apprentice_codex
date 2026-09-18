@@ -16,6 +16,15 @@ public final class ManaShieldCharmEvents {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onIncomingImmunity(LivingIncomingDamageEvent event) {
+        if (!event.getEntity().level().isClientSide && event.getEntity() instanceof ServerPlayer player) {
+            ManaDefenseImmunityResolver.cancelIfImmune(event, player);
+        }
+    }
+
+    // Iron'sの被弾による詠唱中断(NORMAL)より前に、完全吸収した攻撃をキャンセルする。
+    // 端数も吸収するため、Malumの魔法化へ貫通分を渡す時点では吸収用のマナは残らない。
+    @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onLivingAttack(LivingIncomingDamageEvent event) {
         if (event.getEntity().level().isClientSide) {
             return;
