@@ -4,10 +4,12 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientCastState;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -90,10 +92,16 @@ public final class ArtisanSmashTrajectoryPreviewRenderEvent {
         bufferSource.endBatch(RENDER_TYPE);
     }
 
-    private static boolean isLocalArtisanSmashCasting(Player player) {
+    private static boolean isLocalArtisanSmashCasting(LocalPlayer player) {
+        var spellId = SpellRegistry.ARTISAN_SMASH.get().getSpellId();
         var spellData = ClientMagicData.getSyncedSpellData(player);
-        return spellData.isCasting()
-                && Objects.equals(spellData.getCastingSpellId(), SpellRegistry.ARTISAN_SMASH.get().getSpellId());
+        if (spellData.isCasting() && Objects.equals(spellData.getCastingSpellId(), spellId)) {
+            return true;
+        }
+
+        // FocusStaffbow の溜め中は通常の詠唱状態を使わないため、弓のチャージ演出と同じ専用状態を参照する。
+        var chargeState = FocusStaffbowClientCastState.resolveChargeEffectState(player);
+        return chargeState.visible() && Objects.equals(chargeState.spellId(), spellId);
     }
 
     @Nullable
