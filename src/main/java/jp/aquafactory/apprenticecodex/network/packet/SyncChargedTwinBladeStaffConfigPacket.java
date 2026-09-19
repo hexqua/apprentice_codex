@@ -34,11 +34,12 @@ public record SyncChargedTwinBladeStaffConfigPacket(
     public static void encode(SyncChargedTwinBladeStaffConfigPacket packet, FriendlyByteBuf buffer) {
         buffer.writeVarInt(packet.values.riptideInitialManaCost());
         buffer.writeVarInt(packet.values.riptideSustainManaCostPer10Ticks());
+        buffer.writeVarInt(packet.values.throwManaCost());
     }
 
     public static SyncChargedTwinBladeStaffConfigPacket decode(FriendlyByteBuf buffer) {
         return new SyncChargedTwinBladeStaffConfigPacket(new ChargedTwinBladeStaffServerConfig.Values(
-                buffer.readVarInt(), buffer.readVarInt()
+                buffer.readVarInt(), buffer.readVarInt(), buffer.readVarInt()
         ));
     }
 

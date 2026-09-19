@@ -32,7 +32,6 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -211,19 +210,6 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         }
 
         if (level() instanceof ServerLevel serverLevel) {
-            if (canSummonLightning(serverLevel)) {
-                var lightningBolt = EntityType.LIGHTNING_BOLT.create(serverLevel);
-                if (lightningBolt != null) {
-                    lightningBolt.moveTo(impactPosition);
-                    if (resolveOwnerPlayer(serverLevel) instanceof ServerPlayer serverPlayer) {
-                        lightningBolt.setCause(serverPlayer);
-                    }
-                    serverLevel.addFreshEntity(lightningBolt);
-                    serverLevel.playSound(null, impactPosition.x, impactPosition.y, impactPosition.z,
-                            SoundEvents.TRIDENT_THUNDER.value(), SoundSource.PLAYERS, 5.0F, 1.0F);
-                }
-            }
-
             if (resolveOwnerPlayer(serverLevel) instanceof ServerPlayer serverPlayer) {
                 ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
                         serverLevel,
@@ -281,12 +267,6 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         }
 
         serverLevel.sendParticles(ParticleTypes.END_ROD, getX(), getY(), getZ(), 18, 0.18D, 0.18D, 0.18D, 0.02D);
-    }
-
-    private boolean canSummonLightning(ServerLevel level) {
-        return hasChanneling(weaponStack)
-                && level.isThundering()
-                && level.canSeeSky(blockPosition());
     }
 
     private Vec3 resolveImpactForward(Vec3 impactPosition) {
@@ -469,12 +449,4 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         return false;
     }
 
-    private static boolean hasChanneling(ItemStack stack) {
-        for (var entry : EnchantmentHelper.getEnchantmentsForCrafting(stack).entrySet()) {
-            if (entry.getKey().is(Enchantments.CHANNELING)) {
-                return entry.getIntValue() > 0;
-            }
-        }
-        return false;
-    }
 }

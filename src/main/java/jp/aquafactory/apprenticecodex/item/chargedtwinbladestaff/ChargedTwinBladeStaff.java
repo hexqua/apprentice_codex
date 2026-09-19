@@ -74,7 +74,6 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     public static final int THROW_THRESHOLD_TICKS = 10;
     private static final int USE_DURATION = 72000;
     private static final float THROW_POWER = 2.5F;
-    private static final int THROW_MANA_COST = 100;
     private static final int ENCHANTMENT_VALUE = 15;
     private static final double BASE_PLAYER_ATTACK_DAMAGE = 1.0D;
     private static final double ATTACK_DAMAGE_BONUS = 10.0D;
@@ -305,10 +304,10 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
 
+        var values = FMLEnvironment.dist == Dist.CLIENT
+                ? ChargedTwinBladeStaffClientConfigState.values()
+                : ApprenticeCodexServerConfig.chargedTwinBladeStaffConfig();
         if (getRiptideLevel(stack) > 0) {
-            var values = FMLEnvironment.dist == Dist.CLIENT
-                    ? ChargedTwinBladeStaffClientConfigState.values()
-                    : ApprenticeCodexServerConfig.chargedTwinBladeStaffConfig();
             lines.add(Component.translatable(
                     "item.apprenticecodex.charged_twin_blade_staff.desc.reptide_1",
                     Component.literal(Integer.toString(values.riptideInitialManaCost())).withStyle(ChatFormatting.AQUA)
@@ -323,8 +322,9 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
         }
         lines.add(Component.translatable(
                 "item.apprenticecodex.charged_twin_blade_staff.desc.throwable",
-                Mth.ceil(getThrowManaCost(stack))
-        ).withStyle(ChatFormatting.AQUA));
+                Component.literal(Integer.toString(Mth.ceil(getThrowManaCost(stack, values.throwManaCost()))))
+                        .withStyle(ChatFormatting.AQUA)
+        ).withStyle(ChatFormatting.GRAY));
 
         if (hasChanneling(stack)) {
             lines.add(Component.translatable("item.apprenticecodex.charged_twin_blade_staff.desc.channeling")
@@ -406,8 +406,12 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     }
 
     private static float getThrowManaCost(ItemStack stack) {
+        return getThrowManaCost(stack, ApprenticeCodexServerConfig.chargedTwinBladeStaffConfig().throwManaCost());
+    }
+
+    private static float getThrowManaCost(ItemStack stack, int baseManaCost) {
         var loyaltyLevel = getLoyaltyLevel(stack);
-        return THROW_MANA_COST / (loyaltyLevel + 1.0F);
+        return baseManaCost / (loyaltyLevel + 1.0F);
     }
 
     private static MagicData getMagicData(Player player) {

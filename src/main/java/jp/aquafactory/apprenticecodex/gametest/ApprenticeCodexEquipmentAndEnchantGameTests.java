@@ -1693,6 +1693,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void chargedStaffConfiguredThrowCostsAndBoundaries(GameTestHelper helper) {
+        ChargedStaffThrowGameTestScenarios.configuredCostsAndBoundaries(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedStaffThrowConfigSyncAndTooltip(GameTestHelper helper) {
+        ChargedStaffThrowGameTestScenarios.configSyncAndTooltip(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedStaffChannelingDoesNotSummonLightning(GameTestHelper helper) {
+        ChargedStaffThrowGameTestScenarios.channelingDoesNotSummonLightning(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffThrowConsumesMana(GameTestHelper helper) {
         ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffThrowConsumesMana(helper);
     }
