@@ -39,7 +39,7 @@ public final class ChargedTwinBladeStaffSpellCastManager {
                 impactPosition,
                 forward,
                 RemoteOwnerCastOrigin.CHARGED_TWIN_BLADE_STAFF_IMPACT,
-                false
+                true
         );
     }
 
