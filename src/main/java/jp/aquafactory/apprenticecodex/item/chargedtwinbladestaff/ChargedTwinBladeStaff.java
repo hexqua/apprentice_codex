@@ -3,16 +3,19 @@ package jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
-import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.item.UniqueItem;
+import io.redspace.ironsspellbooks.network.SyncManaPacket;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity;
-import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffClientRenderState;
-import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffClientTooltip;
-import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload;
-import jp.aquafactory.apprenticecodex.renderer.item.ChargedTwinBladeStaffRenderer;
+import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.renderer.item.ChargedTwinBladeStaffRenderer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.BlockPos;
@@ -20,16 +23,16 @@ import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.util.Mth;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
@@ -58,26 +61,19 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.client.GeoRenderProvider;
-import software.bernie.geckolib.constant.DataTickets;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.animation.AnimationController;
-import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.animation.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.constant.DataTickets;
 import software.bernie.geckolib.util.GeckoLibUtil;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Consumer;
-import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 
 public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDamageableAnvilMergeItem, UniqueItem,
         WisdomPolicy {
     public static final int THROW_THRESHOLD_TICKS = 10;
     private static final int USE_DURATION = 72000;
     private static final float THROW_POWER = 2.5F;
-    private static final int THROW_MANA_COST = 100;
-    private static final int RIPTIDE_MANA_COST = 50;
     private static final int ENCHANTMENT_VALUE = 15;
     private static final double BASE_PLAYER_ATTACK_DAMAGE = 1.0D;
     private static final double ATTACK_DAMAGE_BONUS = 10.0D;
@@ -115,6 +111,7 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
             return InteractionResultHolder.fail(stack);
         }
 
+        ChargedTwinBladeStaffRiptide.beginUse(player, stack);
         player.startUsingItem(usedHand);
         return InteractionResultHolder.consume(stack);
     }
@@ -122,6 +119,10 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     @Override
     public void releaseUsing(@NotNull ItemStack stack, @NotNull Level level, @NotNull LivingEntity livingEntity, int timeLeft) {
         if (!(livingEntity instanceof Player player)) {
+            return;
+        }
+
+        if (ChargedTwinBladeStaffRiptide.release(player)) {
             return;
         }
 
@@ -161,12 +162,11 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     }
 
     private static void handleRiptideRelease(Level level, Player player, ItemStack stack) {
-        if (!canSpendRiptideMana(player)) {
+        var cost = level.isClientSide
+                ? ChargedTwinBladeStaffClientConfigState.values().riptideInitialManaCost()
+                : ApprenticeCodexServerConfig.chargedTwinBladeStaffConfig().riptideInitialManaCost();
+        if (!ChargedTwinBladeStaffRiptide.spendMana(player, cost)) {
             return;
-        }
-
-        if (!level.isClientSide) {
-            spendRiptideMana(player);
         }
 
         player.awardStat(Stats.ITEM_USED.get(stack.getItem()));
@@ -180,12 +180,20 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
         var scale = distance / Mth.sqrt(x * x + y * y + z * z);
         player.push(x * scale, y * scale, z * scale);
         player.startAutoSpinAttack(20, 8.0F, stack);
+        ChargedTwinBladeStaffRiptide.started(player, stack);
         if (player.onGround()) {
             player.move(MoverType.SELF, new Vec3(0.0D, 1.1999999D, 0.0D));
         }
 
         var sound = resolveRiptideSound(riptideLevel);
         level.playSound(null, player, sound, SoundSource.PLAYERS, 1.0F, 1.0F);
+    }
+
+    @Override
+    public void onStopUsing(@NotNull ItemStack stack, @NotNull LivingEntity entity, int count) {
+        if (entity instanceof Player player) {
+            ChargedTwinBladeStaffRiptide.release(player);
+        }
     }
 
     @Override
@@ -209,12 +217,12 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     }
 
     @Override
-    public boolean canPerformAction(ItemStack stack, ItemAbility itemAbility) {
+    public boolean canPerformAction(@NotNull ItemStack stack, @NotNull ItemAbility itemAbility) {
         return itemAbility == ItemAbilities.SWORD_SWEEP || super.canPerformAction(stack, itemAbility);
     }
 
     @Override
-    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+    public @NotNull ItemAttributeModifiers getDefaultAttributeModifiers(@NotNull ItemStack stack) {
         return mainhandModifiers;
     }
 
@@ -224,12 +232,12 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     }
 
     @Override
-    public int getEnchantmentValue(ItemStack stack) {
+    public int getEnchantmentValue(@NotNull ItemStack stack) {
         return ENCHANTMENT_VALUE;
     }
 
     @Override
-    public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         if (super.supportsEnchantment(stack, enchantment)) {
             return true;
         }
@@ -257,12 +265,12 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     }
 
     @Override
-    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         return super.isPrimaryItemFor(stack, enchantment) || supportsEnchantment(stack, enchantment);
     }
 
     @Override
-    public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+    public boolean isBookEnchantable(@NotNull ItemStack stack, @NotNull ItemStack book) {
         if (!super.isBookEnchantable(stack, book)) {
             return false;
         }
@@ -296,17 +304,27 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
     public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
 
+        var values = FMLEnvironment.dist == Dist.CLIENT
+                ? ChargedTwinBladeStaffClientConfigState.values()
+                : ApprenticeCodexServerConfig.chargedTwinBladeStaffConfig();
         if (getRiptideLevel(stack) > 0) {
             lines.add(Component.translatable(
-                    "item.apprenticecodex.charged_twin_blade_staff.desc.reptide",
-                    Mth.ceil(RIPTIDE_MANA_COST)
-            ).withStyle(ChatFormatting.AQUA));
-        } else {
+                    "item.apprenticecodex.charged_twin_blade_staff.desc.reptide_1",
+                    Component.literal(Integer.toString(values.riptideInitialManaCost())).withStyle(ChatFormatting.AQUA)
+            ).withStyle(ChatFormatting.GRAY));
             lines.add(Component.translatable(
-                    "item.apprenticecodex.charged_twin_blade_staff.desc.throwable",
-                    Mth.ceil(getThrowManaCost(stack))
-            ).withStyle(ChatFormatting.AQUA));
+                    "item.apprenticecodex.charged_twin_blade_staff.desc.reptide_2",
+                    Component.literal(Long.toString(2L * values.riptideSustainManaCostPer10Ticks())).withStyle(ChatFormatting.AQUA)
+            ).withStyle(ChatFormatting.GRAY));
+            lines.add(Component.translatable("item.apprenticecodex.charged_twin_blade_staff.desc.reptide_3")
+                    .withStyle(ChatFormatting.GRAY));
+            return;
         }
+        lines.add(Component.translatable(
+                "item.apprenticecodex.charged_twin_blade_staff.desc.throwable",
+                Component.literal(Integer.toString(Mth.ceil(getThrowManaCost(stack, values.throwManaCost()))))
+                        .withStyle(ChatFormatting.AQUA)
+        ).withStyle(ChatFormatting.GRAY));
 
         if (hasChanneling(stack)) {
             lines.add(Component.translatable("item.apprenticecodex.charged_twin_blade_staff.desc.channeling")
@@ -377,10 +395,6 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
         return player.getAbilities().instabuild || getMagicData(player).getMana() >= getThrowManaCost(stack);
     }
 
-    private static boolean canSpendRiptideMana(Player player) {
-        return player.getAbilities().instabuild || getMagicData(player).getMana() >= RIPTIDE_MANA_COST;
-    }
-
     private static void spendThrowMana(Player player, ItemStack stack) {
         if (player.getAbilities().instabuild) {
             return;
@@ -391,19 +405,13 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
         syncMana(player, magicData);
     }
 
-    private static void spendRiptideMana(Player player) {
-        if (player.getAbilities().instabuild) {
-            return;
-        }
-
-        var magicData = getMagicData(player);
-        magicData.setMana(Math.max(0.0F, magicData.getMana() - RIPTIDE_MANA_COST));
-        syncMana(player, magicData);
+    private static float getThrowManaCost(ItemStack stack) {
+        return getThrowManaCost(stack, ApprenticeCodexServerConfig.chargedTwinBladeStaffConfig().throwManaCost());
     }
 
-    private static float getThrowManaCost(ItemStack stack) {
+    private static float getThrowManaCost(ItemStack stack, int baseManaCost) {
         var loyaltyLevel = getLoyaltyLevel(stack);
-        return THROW_MANA_COST / (loyaltyLevel + 1.0F);
+        return baseManaCost / (loyaltyLevel + 1.0F);
     }
 
     private static MagicData getMagicData(Player player) {
@@ -463,7 +471,7 @@ public final class ChargedTwinBladeStaff extends Item implements GeoItem, NonDam
         return builder.build();
     }
 
-    private static int getRiptideLevel(ItemStack stack) {
+    public static int getRiptideLevel(ItemStack stack) {
         return getEnchantmentLevel(stack, Enchantments.RIPTIDE);
     }
 

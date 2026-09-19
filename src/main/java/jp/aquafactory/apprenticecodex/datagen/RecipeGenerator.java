@@ -618,8 +618,8 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
                 .define('S', Items.NETHERITE_SWORD)
                 .define('N', Items.NETHERITE_SCRAP)
-                .define('T', Items.TRIDENT)
-                .unlockedBy(getHasName(Items.NETHERITE_SWORD), has(Items.NETHERITE_SWORD))
+                .define('T', Tags.Items.TOOLS_SPEAR)
+                .unlockedBy("has_trident_tagged_item", has(Tags.Items.TOOLS_SPEAR))
                 .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.MANA_FORCE_BLADE.get())

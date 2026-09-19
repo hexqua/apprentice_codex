@@ -1,20 +1,22 @@
 package jp.aquafactory.apprenticecodex.config;
 
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
+import java.util.List;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.config.block.ArcanumInAJarServerConfig;
 import jp.aquafactory.apprenticecodex.config.block.AlchemyBrewerServerConfig;
+import jp.aquafactory.apprenticecodex.config.block.ArcanumInAJarServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ChargedTwinBladeStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.HoverrideBroomServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellReaperScytheServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.CatchFlameServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.LinearBuildServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
@@ -24,8 +26,6 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
-
-import java.util.List;
 
 public final class ApprenticeCodexServerConfig {
     public interface GameTestConfigOverride extends AutoCloseable {
@@ -1049,6 +1049,16 @@ public final class ApprenticeCodexServerConfig {
 
     public static SpellStainedRunicTabletServerConfig.Values spellStainedRunicTabletConfig() {
         return ITEMS_CONFIG.spellStainedRunicTabletConfig();
+    }
+
+    public static ChargedTwinBladeStaffServerConfig.Values chargedTwinBladeStaffConfig() {
+        return ITEMS_CONFIG.chargedTwinBladeStaffConfig();
+    }
+
+    public static GameTestConfigOverride useChargedTwinBladeStaffConfigOverrideForGameTest(ChargedTwinBladeStaffServerConfig.Values values) {
+        var previous = ITEMS_CONFIG.chargedTwinBladeStaffConfig();
+        ITEMS_CONFIG.setChargedTwinBladeStaffConfigForGameTest(values);
+        return () -> ITEMS_CONFIG.setChargedTwinBladeStaffConfigForGameTest(previous);
     }
 
     public static SpellReaperScytheServerConfig.Values spellReaperScytheConfig() {

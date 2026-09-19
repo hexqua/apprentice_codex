@@ -9,6 +9,7 @@
   "refmap": "mixins.apprenticecodex.refmap.json",
   "plugin": "jp.aquafactory.apprenticecodex.mixin.ApprenticeCodexMixinPlugin",
   "mixins": [
+    "LivingEntityChargedStaffRiptideMixin",
     "LivingEntitySacredSignMixin",
     "EvasionSpellSupporterMixin",
     "HeartstopSpellSupporterMixin",
@@ -93,6 +94,8 @@
     "UtilsMixin"
   ],
   "client": [
+    "ChargedStaffItemInHandRendererMixin",
+    "ChargedStaffPlayerRendererMixin",
     "ArrowChargeSpellLayerMixin",
     "ArcaneAnvilJeiRecipeMixin",
     "BetterCombatItemInHandLayerMixin",

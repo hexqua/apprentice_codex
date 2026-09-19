@@ -1,51 +1,51 @@
 package jp.aquafactory.apprenticecodex.config;
 
-import jp.aquafactory.apprenticecodex.config.item.CraftsmansDelightServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.CircuitHeatStaffServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.ChromaticMagiaDressServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerConfig;
+import java.util.List;
+import jp.aquafactory.apprenticecodex.config.item.AbsorptionAmplifyAmuletServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ArcaneCinderServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.BulwarkGreatshieldServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ChargedTwinBladeStaffServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ChromaticMagiaDressServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.CircuitHeatStaffServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.CraftsmansDelightServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ElementalBowServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.FocusStaffbowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.HoverrideBroomServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.FocusStaffbowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.HighTierSwingcastStaffServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.IronSwingcastStaffServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.HoverrideBroomServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.InstantSearchBrazierServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.SoulstainedSteelSwingcastStaffServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.IronSwingcastStaffServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.MagicArmorServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagiCompressorGadgetServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.MagicArmorServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaForceBladeServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaManeuverGearServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.ParrycastBucklerServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaShieldCharmServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.UndyingEmblemServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaSoulTransducerServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaThrusterServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MulticastEchoStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MultipurposeStaffrifleServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ParrycastBucklerServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.PastelStaffServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.RemoteOwnerCastServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.AbsorptionAmplifyAmuletServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.ArcaneCinderServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SatelliteFollowcastAmuletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ScarletThirstServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SoulstainedSteelSwingcastStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellCastParryingRingServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellReaperScytheServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.UndyingEmblemServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ZenithStaffServerConfig;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.ModConfigSpec;
-
-import java.util.List;
 
 final class ItemsServerConfig {
     final QuickcastCartridgeServerConfig quickcastCartridgeConfig;
@@ -82,6 +82,7 @@ final class ItemsServerConfig {
     private final SpellCastParryingRingServerConfig spellCastParryingRingConfig;
     private final SpellchargedGreatswordServerConfig spellchargedGreatswordConfig;
     private final SpellStainedRunicTabletServerConfig spellStainedRunicTabletConfig;
+    private final ChargedTwinBladeStaffServerConfig chargedTwinBladeStaffConfig;
     private final SpellReaperScytheServerConfig spellReaperScytheConfig;
     private final SpellThrowableCardServerConfig spellThrowableCardConfig;
     private final ArchivistsGrimoireServerConfig archivistsGrimoireConfig;
@@ -124,6 +125,7 @@ final class ItemsServerConfig {
             SpellCastParryingRingServerConfig spellCastParryingRingConfig,
             SpellchargedGreatswordServerConfig spellchargedGreatswordConfig,
             SpellStainedRunicTabletServerConfig spellStainedRunicTabletConfig,
+            ChargedTwinBladeStaffServerConfig chargedTwinBladeStaffConfig,
             SpellReaperScytheServerConfig spellReaperScytheConfig,
             SpellThrowableCardServerConfig spellThrowableCardConfig,
             ArchivistsGrimoireServerConfig archivistsGrimoireConfig,
@@ -166,6 +168,7 @@ final class ItemsServerConfig {
         this.spellCastParryingRingConfig = spellCastParryingRingConfig;
         this.spellchargedGreatswordConfig = spellchargedGreatswordConfig;
         this.spellStainedRunicTabletConfig = spellStainedRunicTabletConfig;
+        this.chargedTwinBladeStaffConfig = chargedTwinBladeStaffConfig;
         this.spellReaperScytheConfig = spellReaperScytheConfig;
         this.spellThrowableCardConfig = spellThrowableCardConfig;
         this.archivistsGrimoireConfig = archivistsGrimoireConfig;
@@ -211,6 +214,7 @@ final class ItemsServerConfig {
         var spellCastParryingRingConfig = SpellCastParryingRingServerConfig.define(builder);
         var spellchargedGreatswordConfig = SpellchargedGreatswordServerConfig.define(builder);
         var spellStainedRunicTabletConfig = SpellStainedRunicTabletServerConfig.define(builder);
+        var chargedTwinBladeStaffConfig = ChargedTwinBladeStaffServerConfig.define(builder);
         var spellReaperScytheConfig = SpellReaperScytheServerConfig.define(builder);
         var spellThrowableCardConfig = SpellThrowableCardServerConfig.define(builder);
         var archivistsGrimoireConfig = ArchivistsGrimoireServerConfig.define(builder);
@@ -255,6 +259,7 @@ final class ItemsServerConfig {
                 spellCastParryingRingConfig,
                 spellchargedGreatswordConfig,
                 spellStainedRunicTabletConfig,
+                chargedTwinBladeStaffConfig,
                 spellReaperScytheConfig,
                 spellThrowableCardConfig,
                 archivistsGrimoireConfig,
@@ -840,6 +845,14 @@ final class ItemsServerConfig {
 
     SpellStainedRunicTabletServerConfig.Values spellStainedRunicTabletConfig() {
         return spellStainedRunicTabletConfig.values();
+    }
+
+    ChargedTwinBladeStaffServerConfig.Values chargedTwinBladeStaffConfig() {
+        return chargedTwinBladeStaffConfig.values();
+    }
+
+    void setChargedTwinBladeStaffConfigForGameTest(ChargedTwinBladeStaffServerConfig.Values values) {
+        chargedTwinBladeStaffConfig.setForGameTest(values);
     }
 
     SpellReaperScytheServerConfig.Values spellReaperScytheConfig() {

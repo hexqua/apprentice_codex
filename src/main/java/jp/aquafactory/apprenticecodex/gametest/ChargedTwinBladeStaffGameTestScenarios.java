@@ -360,6 +360,18 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
                         CastSource.SWORD.name(),
                         SpellSelectionManager.MAINHAND
                 );
+                // 基礎詠唱時間ではなく、詠唱短縮を反映した時間だけ延長することを確認する。
+                var longSpell = longPayload.toSpellData().getSpell();
+                var originalCastTime = longSpell.getEffectiveCastTime(longPayload.spellLevel(), player);
+                var castTimeReduction = player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION);
+                helper.assertTrue(castTimeReduction != null, "Impact cast test requires the cast time reduction attribute");
+                castTimeReduction.setBaseValue(castTimeReduction.getBaseValue() + 0.5D);
+                var effectiveCastTime = longSpell.getEffectiveCastTime(longPayload.spellLevel(), player);
+                helper.assertTrue(effectiveCastTime > 0 && effectiveCastTime < originalCastTime,
+                        "Impact cast test requires a positive, reduced LONG cast time");
+                var expectedCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+                        longSpell, player, longPayload.castSource()
+                ) + effectiveCastTime;
                 helper.assertTrue(
                         ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
                                 level, player, sourceStack, longPayload, impactPos, forward
@@ -368,6 +380,9 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
                 );
                 helper.assertTrue(!spawnedLongProjectiles.isEmpty(),
                         "Charged Twin Blade Staff LONG impact cast did not spawn Compound Phial projectiles");
+                var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(longSpell.getSpellId());
+                helper.assertTrue(cooldown != null && cooldown.getCooldownRemaining() == expectedCooldown,
+                        "Charged Twin Blade Staff LONG impact cooldown should include the effective cast time");
             } finally {
                 NeoForge.EVENT_BUS.unregister(projectileListener);
             }
