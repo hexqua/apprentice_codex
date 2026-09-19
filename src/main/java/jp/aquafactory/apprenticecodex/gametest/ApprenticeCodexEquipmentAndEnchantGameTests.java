@@ -1708,6 +1708,36 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void chargedStaffRiptideUpkeepAndExhaustion(GameTestHelper helper) {
+        ChargedStaffRiptideGameTestScenarios.upkeepAndExhaustion(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedStaffRiptideIndependentCostsAndFreeUpkeep(GameTestHelper helper) {
+        ChargedStaffRiptideGameTestScenarios.independentCostsAndFreeUpkeep(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedStaffRiptideCollisionAndFreshCharge(GameTestHelper helper) {
+        ChargedStaffRiptideGameTestScenarios.collisionAndFreshCharge(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedStaffRiptideEquipmentAndCreativeBoundaries(GameTestHelper helper) {
+        ChargedStaffRiptideGameTestScenarios.equipmentAndCreativeBoundaries(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedStaffRiptideTooltipStylesAndCosts(GameTestHelper helper) {
+        ChargedStaffRiptideGameTestScenarios.tooltipStylesAndCosts(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 100)
+    public static void chargedStaffRiptideCruiseSpeedAndSteering(GameTestHelper helper) {
+        ChargedStaffRiptideGameTestScenarios.cruiseSpeedAndSteering(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffImpactForwardUsesHistoryAndFallback(GameTestHelper helper) {
         ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffImpactForwardUsesHistoryAndFallback(helper);
     }
