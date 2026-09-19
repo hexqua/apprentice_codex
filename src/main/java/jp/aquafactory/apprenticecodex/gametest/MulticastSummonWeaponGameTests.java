@@ -103,8 +103,10 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
     }
 
     private static WeaponCastResult castAndFinishWeapon(GameTestHelper helper, AbstractSummonWeaponSpell<?> spell, boolean repeated) {
-        // templateの壁や成功表示ブロックが銃の照準を遮らない高さで検証する。
+        // 1.20.1のGameTest原点は地下にあるため、相対高度だけでは地形に射線を遮られる。
+        // 手動tickする武器の倍率検証は、地形と他テストの構造物を避けた上空で行う。
         var player = createEchoPlayer(helper, new BlockPos(1, 30, 1), "echo_weapon_matrix");
+        player.setPos(player.getX(), helper.getLevel().getMaxBuildHeight() - 32, player.getZ());
         player.setYRot(0);
         player.setXRot(0);
         helper.getLevel().addFreshEntity(player);
