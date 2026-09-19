@@ -255,7 +255,7 @@ final class ChargedStaffRiptideGameTestScenarios extends ApprenticeCodexGameTest
 
     private static ApprenticeCodexServerConfig.GameTestConfigOverride config(int initial, int sustain) {
         return ApprenticeCodexServerConfig.useChargedTwinBladeStaffConfigOverrideForGameTest(
-                new ChargedTwinBladeStaffServerConfig.Values(initial, sustain));
+                new ChargedTwinBladeStaffServerConfig.Values(initial, sustain, 100));
     }
 
     private static ItemStack equip(Player player, int level) {

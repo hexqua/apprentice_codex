@@ -211,19 +211,6 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         }
 
         if (level() instanceof ServerLevel serverLevel) {
-            if (canSummonLightning(serverLevel)) {
-                var lightningBolt = EntityType.LIGHTNING_BOLT.create(serverLevel);
-                if (lightningBolt != null) {
-                    lightningBolt.moveTo(impactPosition);
-                    if (resolveOwnerPlayer(serverLevel) instanceof ServerPlayer serverPlayer) {
-                        lightningBolt.setCause(serverPlayer);
-                    }
-                    serverLevel.addFreshEntity(lightningBolt);
-                    serverLevel.playSound(null, impactPosition.x, impactPosition.y, impactPosition.z,
-                            SoundEvents.TRIDENT_THUNDER, SoundSource.PLAYERS, 5.0F, 1.0F);
-                }
-            }
-
             if (resolveOwnerPlayer(serverLevel) instanceof ServerPlayer serverPlayer) {
                 ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
                         serverLevel,
@@ -281,12 +268,6 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         }
 
         serverLevel.sendParticles(ParticleTypes.END_ROD, getX(), getY(), getZ(), 18, 0.18D, 0.18D, 0.18D, 0.02D);
-    }
-
-    private boolean canSummonLightning(ServerLevel level) {
-        return EnchantmentHelper.hasChanneling(weaponStack)
-                && level.isThundering()
-                && level.canSeeSky(blockPosition());
     }
 
     private Vec3 resolveImpactForward(Vec3 impactPosition) {
