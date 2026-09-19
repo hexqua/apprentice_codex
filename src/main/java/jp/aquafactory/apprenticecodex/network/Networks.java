@@ -53,6 +53,8 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncBoundBowStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncBoundSwordStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffOverheatPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncChargedStaffRiptidePacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncChargedTwinBladeStaffConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncHighTierSwingcastStaffConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncIronSwingcastStaffConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSoulstainedSteelSwingcastStaffConfigPacket;
@@ -108,7 +110,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "103";
+    private static final String PROTOCOL_VERSION = "104";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -122,6 +124,12 @@ public final class Networks {
     }
 
     public static void register() {
+        CHANNEL.registerMessage(nextPacketId++, SyncChargedTwinBladeStaffConfigPacket.class,
+                SyncChargedTwinBladeStaffConfigPacket::encode, SyncChargedTwinBladeStaffConfigPacket::decode,
+                SyncChargedTwinBladeStaffConfigPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(nextPacketId++, SyncChargedStaffRiptidePacket.class,
+                SyncChargedStaffRiptidePacket::encode, SyncChargedStaffRiptidePacket::decode,
+                SyncChargedStaffRiptidePacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(nextPacketId++, SyncManaSoulTransducerConfigPacket.class,
                 SyncManaSoulTransducerConfigPacket::encode, SyncManaSoulTransducerConfigPacket::decode,
                 SyncManaSoulTransducerConfigPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));

@@ -6,6 +6,7 @@
   "refmap": "mixins.apprenticecodex.refmap.json",
   "plugin": "jp.aquafactory.apprenticecodex.mixin.ApprenticeCodexMixinPlugin",
   "mixins": [
+    "LivingEntityChargedStaffRiptideMixin",
     "MonarchBondLifestealMixin",
     "LivingEntitySacredSignMixin",
     "EvasionSpellSupporterMixin",
@@ -80,6 +81,8 @@
     "UtilsMixin"
   ],
   "client": [
+    "ChargedStaffItemInHandRendererMixin",
+    "ChargedStaffPlayerRendererMixin",
     "ArrowChargeSpellLayerMixin",
     "ArcaneAnvilJeiRecipeMixin",
     "BetterCombatItemInHandLayerMixin",

@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.event.SoulstainedSteelSwingcastStaffConfig
 import jp.aquafactory.apprenticecodex.event.SpellgunConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.client.ClientModBusEvents;
 import jp.aquafactory.apprenticecodex.item.broom.BroomCurioSupport;
+import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScytheConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.registry.*;
@@ -46,6 +47,7 @@ public class ApprenticeCodex
         var bus = context.getModEventBus();
         ManaSoulTransducerConfigSyncEvents.register(bus);
         UndyingEmblemConfigSyncEvents.register(bus);
+        ChargedTwinBladeStaffConfigSyncEvents.register(bus);
         SpellRegistry.register(bus);
         EntityRegistry.register(bus);
         BlockRegistry.register(bus);

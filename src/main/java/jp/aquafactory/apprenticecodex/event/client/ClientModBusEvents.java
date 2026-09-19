@@ -73,6 +73,7 @@ import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleRender
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkRenderer;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileRenderer;
 import jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownRenderer;
+import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffClientRenderState;
 import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.SpellThrowableCardRenderer;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsCoreRenderer;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsWingRenderer;
@@ -256,7 +257,7 @@ public final class ClientModBusEvents {
         event.enqueueWork(() -> ItemProperties.register(
                 ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get(),
                 ResourceLocation.withDefaultNamespace("throwing"),
-                (stack, level, living, seed) -> living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F
+                (stack, level, living, seed) -> ChargedTwinBladeStaffClientRenderState.shouldUseThrowingModel(stack, living) ? 1.0F : 0.0F
         ));
         event.enqueueWork(ClientModBusEvents::registerBoundBowItemProperties);
         event.enqueueWork(() -> {
