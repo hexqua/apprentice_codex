@@ -12,6 +12,8 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.spell.IMulticastUnsupportedSpell;
 import jp.aquafactory.apprenticecodex.utility.SpellCooldownHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -76,7 +78,11 @@ public final class MulticastEchoStaffCastHelper {
             boolean triggerCooldown,
             MagicData magicData
     ) {
-        if (!triggerCooldown || !isEchoTarget(player, magicData, spell, false)
+        // 追加詠唱は、並行して始まった通常詠唱のEcho予約を破棄しない。
+        if (!triggerCooldown) {
+            return;
+        }
+        if (!isEchoTarget(player, magicData, spell, false)
                 || isUnsupportedMulticastTarget(spell, spellLevel, player)) {
             PRE_CAST_CONTEXTS.remove(player.getUUID());
             return;
@@ -188,7 +194,8 @@ public final class MulticastEchoStaffCastHelper {
 
     private static boolean isUnsupportedMulticastTarget(AbstractSpell spell, int spellLevel, ServerPlayer player) {
         return (spell.getCastType() != CastType.INSTANT && spell.getCastType() != CastType.LONG)
-                || spell.getRecastCount(spellLevel, player) >= 1;
+                || spell.getRecastCount(spellLevel, player) >= 1
+                || spell instanceof IMulticastUnsupportedSpell;
     }
 
     private static @Nullable Integer resolveEchoAmplifier(ServerPlayer player, ItemStack castingItem, AbstractSpell spell) {
@@ -356,6 +363,10 @@ public final class MulticastEchoStaffCastHelper {
         var remainingCasts = job.remainingCasts() - 1;
         var previousCastData = magicData.getAdditionalCastData();
         try {
+            // 別の通常詠唱の武器を再利用・resetしないよう、条件判定から追加分を分離する。
+            if (spell instanceof AbstractSummonWeaponSpell<?>) {
+                magicData.setAdditionalCastData(null);
+            }
             if (canRunMulticastPreCast(level, spell, job.spellLevel(), job.castSource(), player, magicData)) {
                 runRepeatedCast(level, spell, job, player, magicData);
             }
@@ -381,6 +392,12 @@ public final class MulticastEchoStaffCastHelper {
             ServerPlayer player,
             MagicData magicData
     ) {
+        if (spell instanceof AbstractSummonWeaponSpell<?> weaponSpell) {
+            MulticastEchoStaffAttackHandler.runRepeatedCast(player, spell,
+                    () -> MulticastEchoStaffMobEffectHandler.runRepeatedCast(player, spell,
+                            () -> weaponSpell.castInstantWeapon(level, job.spellLevel(), player, job.castSource(), magicData)));
+            return;
+        }
         var previousCastData = magicData.getAdditionalCastData();
         try {
             spell.onServerPreCast(level, job.spellLevel(), player, magicData);

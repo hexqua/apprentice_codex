@@ -124,6 +124,12 @@ public class BreachingEnemy extends AbstractSummonWeaponSpell<BreachingEnemyShot
     }
 
     @Override
+    protected void prepareWeaponForRelease(Level level, int spellLevel, LivingEntity entity,
+                                           MagicData magicData, @NotNull BreachingEnemyShotgunEntity weapon) {
+        weapon.prepareForFire();
+    }
+
+    @Override
     public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull BreachingEnemyShotgunEntity weapon) {
         if (!cancelled) {
             // FocusStaffbow の補正を召喚時ではなく発射時のダメージへ反映する。

@@ -64,6 +64,17 @@ public final class MulticastEchoStaffAttackProfileDataGenerator
                                 directDefinition(jp.aquafactory.apprenticecodex.registry.SpellRegistry.ARCANE_BLAST),
                                 directDefinition(jp.aquafactory.apprenticecodex.registry.SpellRegistry.SHOCK),
 
+                                // 追加召喚の即時攻撃と、武器・砲弾・斬撃の後続tickにも標準補正を適用する。
+                                defaultDefinition(jp.aquafactory.apprenticecodex.registry.SpellRegistry.SHIDEN),
+                                defaultDefinition(jp.aquafactory.apprenticecodex.registry.SpellRegistry.BREACHING_ENEMY),
+                                defaultDefinition(jp.aquafactory.apprenticecodex.registry.SpellRegistry.SLASH_BLADE),
+                                defaultDefinition(jp.aquafactory.apprenticecodex.registry.SpellRegistry.MOON_LIGHT),
+                                defaultDefinition(jp.aquafactory.apprenticecodex.registry.SpellRegistry.SILENT_ASSASSIN),
+                                directDefinitionWithLifeTime(jp.aquafactory.apprenticecodex.registry.SpellRegistry.ARTISAN_SMASH, 300),
+                                defaultDefinition(jp.aquafactory.apprenticecodex.registry.SpellRegistry.PRECISION_JACK),
+                                defaultDefinition(jp.aquafactory.apprenticecodex.registry.SpellRegistry.HIGANBANA),
+                                defaultDefinition(jp.aquafactory.apprenticecodex.registry.SpellRegistry.LETHAL_ASSAULT),
+
                                 defaultDefinition(jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH),
                                 directDefinitionWithLifeTime(jp.aquafactory.apprenticecodex.registry.SpellRegistry.UNITE_LUNA, 200)
                         ))

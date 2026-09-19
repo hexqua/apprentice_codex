@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.item.Scroll;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
+import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.spellthrowablecard.AbstractSpellThrowableCardItem;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
@@ -716,6 +717,18 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
             return;
         }
 
+        var gauntletToggle = getActiveGauntletCastModeToggle();
+        if (gauntletToggle != null) {
+            craftedStack.onCraftedBy(player.level(), player, craftedStack.getCount());
+            if (!consumeGauntletForCastModeToggle(gauntletToggle.sourceSlotIndex())) {
+                return;
+            }
+
+            playCraftSound();
+            setupResultSlot();
+            return;
+        }
+
         var flaskToggle = getActiveFlaskParticleToggle();
         if (flaskToggle == null) {
             return;
@@ -872,6 +885,10 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         return buildFlaskParticleToggle();
     }
 
+    private @Nullable GauntletCastModeToggle getActiveGauntletCastModeToggle() {
+        return buildGauntletCastModeToggle();
+    }
+
     private @Nullable DynamicCraft getActiveDynamicCraft() {
         var selection = getSelectedSelection();
         if (selection != null && selection.dynamicRecipe() != null) {
@@ -908,6 +925,11 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         var grimoireUpgrade = getActiveGrimoireUpgrade();
         if (grimoireUpgrade != null) {
             return grimoireUpgrade.resultTemplate().copy();
+        }
+
+        var gauntletToggle = getActiveGauntletCastModeToggle();
+        if (gauntletToggle != null) {
+            return gauntletToggle.resultTemplate().copy();
         }
 
         var flaskToggle = getActiveFlaskParticleToggle();
@@ -1184,6 +1206,24 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
         return new FlaskParticleToggle(sourceSlotIndex, toggledStack);
     }
 
+    private @Nullable GauntletCastModeToggle buildGauntletCastModeToggle() {
+        var sourceSlotIndex = findSingleOccupiedInputSlot();
+        if (sourceSlotIndex < 0) {
+            return null;
+        }
+
+        var inputStack = container.getItem(sourceSlotIndex);
+        if (!(inputStack.getItem() instanceof ScrollcasterGauntlet)) {
+            return null;
+        }
+
+        var toggledStack = ScrollcasterGauntlet.copyWithToggledCastMode(inputStack);
+        if (toggledStack.isEmpty()) {
+            return null;
+        }
+        return new GauntletCastModeToggle(sourceSlotIndex, toggledStack);
+    }
+
     private @Nullable GrimoireUpgradeBlockReason getBlockedGrimoireUpgradeReason() {
         var context = getGrimoireUpgradeContext();
         return context == null ? null : context.blockReason();
@@ -1291,6 +1331,20 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     private boolean consumeFlaskForParticleToggle(int sourceSlotIndex) {
         var inputStack = container.getItem(sourceSlotIndex);
         if (!(inputStack.getItem() instanceof SpellcastersFlask)) {
+            return false;
+        }
+
+        inputStack.shrink(1);
+        if (inputStack.isEmpty()) {
+            container.setItem(sourceSlotIndex, ItemStack.EMPTY);
+        }
+        container.setChanged();
+        return true;
+    }
+
+    private boolean consumeGauntletForCastModeToggle(int sourceSlotIndex) {
+        var inputStack = container.getItem(sourceSlotIndex);
+        if (!(inputStack.getItem() instanceof ScrollcasterGauntlet)) {
             return false;
         }
 
@@ -1426,6 +1480,12 @@ public final class SpellcasterWorkbenchMenu extends AbstractContainerMenu {
     }
 
     private record FlaskParticleToggle(
+            int sourceSlotIndex,
+            ItemStack resultTemplate
+    ) {
+    }
+
+    private record GauntletCastModeToggle(
             int sourceSlotIndex,
             ItemStack resultTemplate
     ) {

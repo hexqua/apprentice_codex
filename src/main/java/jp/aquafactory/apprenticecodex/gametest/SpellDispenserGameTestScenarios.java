@@ -397,7 +397,9 @@ final class SpellDispenserGameTestScenarios {
 
     static void spellDispenserPrecisionJackLowManaCleansUpKnife(GameTestHelper helper) {
         var level = helper.getLevel();
-        var pos = new BlockPos(0, 1, 0);
+        // 北向きの召喚位置はブロック中心から前方へずれるため、端では隣接する非tickチャンクへ出る。
+        // basic_floor の水平範囲内へ収め、強制ロードや手動tickに頼らず寿命による破棄を検証する。
+        var pos = new BlockPos(2, 1, 2);
         var absolutePos = helper.absolutePos(pos);
         helper.setBlock(pos, BlockRegistry.SPELL_DISPENSER.get());
 
@@ -408,17 +410,24 @@ final class SpellDispenserGameTestScenarios {
         var spell = SpellRegistry.PRECISION_JACK.get();
         var requiredMana = spell.getManaCost(1);
         spellDispenser.getInventory().setStackInSlot(0, createSpellScroll(spell));
-        spellDispenser.setOwnerProfile(createSpellDispenserOwnerProfile("spell_dispenser_precision_jack_low_mana_test"));
+        var ownerProfile = createSpellDispenserOwnerProfile("spell_dispenser_precision_jack_low_mana_test");
+        spellDispenser.setOwnerProfile(ownerProfile);
         spellDispenser.setCurrentMana(Math.max(0, requiredMana - 1));
 
         var castResult = spellDispenser.tryActivate();
         helper.assertTrue(!castResult.succeeded(), "Spell Dispenser activated Precision Jack with insufficient mana");
         helper.assertTrue(castResult.insufficientMana(), "Spell Dispenser returned the wrong Precision Jack low-mana failure");
 
+        // 周囲の別テストのナイフを数えず、この発動で生成した個体の破棄を追跡する。
+        var knives = level.getEntitiesOfClass(PrecisionJackKnifeEntity.class, new AABB(absolutePos).inflate(8.0D),
+                knife -> knife.getOwner() instanceof Player owner && owner.getUUID().equals(ownerProfile.getId()));
+        helper.assertTrue(knives.size() == 1, "Low-mana Precision Jack must create one pre-cast knife");
+        var knife = knives.get(0);
+        helper.assertTrue(level.isPositionEntityTicking(knife.blockPosition()),
+                "Low-mana Precision Jack knife must spawn in an entity-ticking chunk");
+
         helper.runAtTickTime(20, () -> {
-            var knifeBox = new AABB(absolutePos).inflate(8.0D);
-            var knives = level.getEntitiesOfClass(PrecisionJackKnifeEntity.class, knifeBox);
-            helper.assertTrue(knives.isEmpty(), "Low-mana Precision Jack left knife entities behind: " + knives.size());
+            helper.assertTrue(knife.isRemoved(), "Low-mana Precision Jack left its pre-cast knife behind");
             helper.succeed();
         });
     }

@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPa
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientOpenSpellcasterAccessoryCasePacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientOpenStorageStabilizerEnderChestPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBroomInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientBroomDismountInputPacket;
@@ -34,6 +35,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncEquipmentSpellTimingCon
 import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletNotificationPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletProfileSpellIdsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncApprenticeDeskConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncArcanumInAJarConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncBoundBowStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncBoundSwordStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncCircuitHeatStaffOverheatPacket;
@@ -90,7 +92,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "90";
+    private static final String PROTOCOL_VERSION = "92";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -104,6 +106,22 @@ public final class Networks {
     }
 
     public static void register() {
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                ClientOpenStorageStabilizerEnderChestPacket.class,
+                ClientOpenStorageStabilizerEnderChestPacket::encode,
+                ClientOpenStorageStabilizerEnderChestPacket::decode,
+                ClientOpenStorageStabilizerEnderChestPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER)
+        );
+        CHANNEL.registerMessage(
+                nextPacketId++,
+                SyncArcanumInAJarConfigPacket.class,
+                SyncArcanumInAJarConfigPacket::encode,
+                SyncArcanumInAJarConfigPacket::decode,
+                SyncArcanumInAJarConfigPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
+        );
         CHANNEL.registerMessage(
                 nextPacketId++,
                 ClientBlockTargetCastPacket.class,
