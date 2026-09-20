@@ -757,6 +757,10 @@ final class ItemsServerConfig {
     int multipurposeStaffrifleAdsFullAutoIntervalTicks() {
         return multipurposeStaffrifleConfig.adsFullAutoIntervalTicks();
     }
+    double fullautoRapidcastSpellrifleAdsMovementSpeedMultiplier() {
+        return fullautoRapidcastSpellrifleConfig.adsMovementSpeedMultiplier();
+    }
+
     int fullautoRapidcastSpellrifleAdsFullAutoIntervalTicks() {
         return fullautoRapidcastSpellrifleConfig.adsFullAutoIntervalTicks();
     }

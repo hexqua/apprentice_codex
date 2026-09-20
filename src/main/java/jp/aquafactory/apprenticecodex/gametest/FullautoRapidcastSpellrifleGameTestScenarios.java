@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleAdsMovement;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleCastContext;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleCastEvent;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleRateLimiter;
@@ -41,6 +42,8 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.InteractionHand;
@@ -49,12 +52,67 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
 public final class FullautoRapidcastSpellrifleGameTestScenarios extends ApprenticeCodexGameTestScenarios {
+    @GameTest(template = "gametest/basic_floor")
+    public static void fullautoAdsMovementHonorsConfigAndSprintPriority(GameTestHelper helper) {
+        ModConfigSpec.DoubleValue multiplier = ApprenticeCodexServerConfig.SPEC.getValues()
+                .get("Items.FullautoRapidcastSpellrifle.adsMovementSpeedMultiplier");
+        double previous = multiplier.get();
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "fullauto_ads_movement");
+        var rifle = new ItemStack(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
+        var speed = player.getAttribute(Attributes.MOVEMENT_SPEED);
+        var otherId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "gametest_other_movement");
+        speed.addTransientModifier(new AttributeModifier(otherId, 0.2D, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+        double baseline = speed.getValue();
+        try {
+            player.setItemInHand(InteractionHand.MAIN_HAND, rifle);
+            multiplier.set(0.7D);
+            // バニラの使用状態を開始せず、射撃中にも維持するADS入力の契約を確認する。
+            FullautoRapidcastSpellrifleAdsMovement.update(player, true);
+            FullautoRapidcastSpellrifleAdsMovement.update(player, true);
+            helper.assertTrue(Math.abs(speed.getValue() - baseline * 0.7D) < 1.0E-8D,
+                    "ADS must apply the configured multiplier once, preserving other modifiers");
+            multiplier.set(0.0D);
+            FullautoRapidcastSpellrifleAdsMovement.onPlayerTick(new PlayerTickEvent.Post(player));
+            helper.assertTrue(speed.getValue() == 0.0D, "Zero ADS multiplier must disable movement");
+            FullautoRapidcastSpellrifleAdsMovement.update(player, false);
+            helper.assertTrue(Math.abs(speed.getValue() - baseline) < 1.0E-8D,
+                    "Releasing ADS must restore movement even at zero multiplier");
+            multiplier.set(1.0D);
+            FullautoRapidcastSpellrifleAdsMovement.update(player, true);
+            helper.assertTrue(Math.abs(speed.getValue() - baseline) < 1.0E-8D, "Multiplier one must preserve speed");
+            multiplier.set(0.7D);
+            FullautoRapidcastSpellrifleAdsMovement.update(player, true);
+            player.setSprinting(true);
+            FullautoRapidcastSpellrifleAdsMovement.onPlayerTick(new PlayerTickEvent.Post(player));
+            double sprintSpeed = speed.getValue();
+            helper.assertTrue(player.isSprinting() && sprintSpeed > baseline, "Sprinting must cancel ADS slowdown");
+            FullautoRapidcastSpellrifleAdsMovement.update(player, true);
+            helper.assertTrue(speed.getValue() == sprintSpeed, "ADS requests during sprint must be ignored");
+            player.setSprinting(false);
+            FullautoRapidcastSpellrifleAdsMovement.update(player, true);
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            player.setItemInHand(InteractionHand.OFF_HAND, rifle);
+            FullautoRapidcastSpellrifleAdsMovement.onPlayerTick(new PlayerTickEvent.Post(player));
+            FullautoRapidcastSpellrifleAdsMovement.update(player, true);
+            helper.assertTrue(Math.abs(speed.getValue() - baseline) < 1.0E-8D,
+                    "Switching away must remove slowdown and offhand ADS requests must be ignored");
+            helper.assertTrue(speed.hasModifier(otherId), "Cleanup must preserve unrelated modifiers");
+        } finally {
+            multiplier.set(previous);
+            FullautoRapidcastSpellrifleAdsMovement.update(player, false);
+            speed.removeModifier(otherId);
+        }
+        helper.succeed();
+    }
+
     @GameTest(template = "gametest/basic_floor")
     public static void fullautoRecoveryRuneIsUniqueAndUpdatesDescription(GameTestHelper helper) {
         var lookup = helper.getLevel().registryAccess();

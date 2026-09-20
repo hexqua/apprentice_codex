@@ -89,6 +89,7 @@ public final class ClientFullautoRapidcastSpellrifleInputEvent {
 
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
+        FullautoRapidcastSpellrifleClientAdsState.syncToServer();
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         if (minecraft.screen != null || player == null || player.isSpectator()) {

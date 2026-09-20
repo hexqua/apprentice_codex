@@ -11,6 +11,7 @@ public final class FullautoRapidcastSpellrifleServerConfig {
     private final ModConfigSpec.IntValue cooldownReductionTicks;
     private final ModConfigSpec.IntValue reducedCooldownMinimumTicks;
     private final ModConfigSpec.IntValue adsFullAutoIntervalTicks;
+    private final ModConfigSpec.DoubleValue adsMovementSpeedMultiplier;
     private final ModConfigSpec.ConfigValue<List<? extends String>> spellDenylist;
     private List<String> spellDenylistOverride;
 
@@ -19,12 +20,14 @@ public final class FullautoRapidcastSpellrifleServerConfig {
             ModConfigSpec.IntValue cooldownReductionTicks,
             ModConfigSpec.IntValue reducedCooldownMinimumTicks,
             ModConfigSpec.IntValue adsFullAutoIntervalTicks,
+            ModConfigSpec.DoubleValue adsMovementSpeedMultiplier,
             ModConfigSpec.ConfigValue<List<? extends String>> spellDenylist
     ) {
         this.cooldownBypassThresholdTicks = cooldownBypassThresholdTicks;
         this.cooldownReductionTicks = cooldownReductionTicks;
         this.reducedCooldownMinimumTicks = reducedCooldownMinimumTicks;
         this.adsFullAutoIntervalTicks = adsFullAutoIntervalTicks;
+        this.adsMovementSpeedMultiplier = adsMovementSpeedMultiplier;
         this.spellDenylist = spellDenylist;
     }
 
@@ -42,6 +45,9 @@ public final class FullautoRapidcastSpellrifleServerConfig {
         var adsFullAutoIntervalTicks = builder
                 .comment("Minimum server-side interval between full-auto special cast attempts, both hip fire and ADS.")
                 .defineInRange("adsFullAutoIntervalTicks", 3, 1, 72000);
+        var adsMovementSpeedMultiplier = builder
+                .comment("Movement speed multiplier while aiming Fullauto Rapidcast Spellrifle. 0.7 slows movement by 30%; 0 prevents movement; 1 applies no slowdown.")
+                .defineInRange("adsMovementSpeedMultiplier", 0.7D, 0.0D, 1.0D);
         var spellDenylist = builder
                 .comment("Additional spell IDs blocked only for Fullauto Rapidcast Spellrifle special casts. Entries use \"modid:path\".")
                 .defineListAllowEmpty("spellDenylist", List.<String>of(), FullautoRapidcastSpellrifleServerConfig::isSpellId);
@@ -52,6 +58,7 @@ public final class FullautoRapidcastSpellrifleServerConfig {
                 cooldownReductionTicks,
                 reducedCooldownMinimumTicks,
                 adsFullAutoIntervalTicks,
+                adsMovementSpeedMultiplier,
                 spellDenylist
         );
     }
@@ -70,6 +77,10 @@ public final class FullautoRapidcastSpellrifleServerConfig {
 
     public int adsFullAutoIntervalTicks() {
         return adsFullAutoIntervalTicks.get();
+    }
+
+    public double adsMovementSpeedMultiplier() {
+        return adsMovementSpeedMultiplier.get();
     }
 
     public boolean isSpellDenied(ResourceLocation spellId) {
