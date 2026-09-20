@@ -5,10 +5,10 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
-import net.neoforged.neoforge.event.level.LevelEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
+import net.minecraftforge.event.level.LevelEvent;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.WeakHashMap;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class SupportedShieldPassage {
     // 生成前の通知もUUIDで保持する。サーバーはこの予測用情報を参照しない。
     private static final Map<Level, Set<UUID>> CLIENT_PERMISSIONS = new WeakHashMap<>();

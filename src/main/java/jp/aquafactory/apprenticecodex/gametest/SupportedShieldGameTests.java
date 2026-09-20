@@ -24,8 +24,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.Map;
@@ -45,13 +45,13 @@ public class SupportedShieldGameTests extends ApprenticeCodexGameTestScenarios {
         player.setXRot(0);
         spell.onCast(helper.getLevel(), 3, player, CastSource.SPELLBOOK, data);
         var box = player.getBoundingBox().inflate(6);
-        var normal = helper.getLevel().getEntitiesOfClass(ShieldEntity.class, box).getFirst();
+        var normal = helper.getLevel().getEntitiesOfClass(ShieldEntity.class, box).get(0);
         float health = normal.getHealth();
         var position = normal.position();
         normal.discard();
         equip(player, true);
         spell.onCast(helper.getLevel(), 3, player, CastSource.SPELLBOOK, data);
-        var shield = helper.getLevel().getEntitiesOfClass(SupportedShieldEntity.class, box).getFirst();
+        var shield = helper.getLevel().getEntitiesOfClass(SupportedShieldEntity.class, box).get(0);
         helper.assertTrue(shield.getHealth() == health && shield.position().equals(position), "Supported shield must preserve health and placement");
         helper.assertTrue(shield.getParts().length == normal.getParts().length, "Supported shield must preserve multipart geometry");
         helper.assertTrue(shield.getName().equals(normal.getName()), "Supported shield must use the original translated name");
@@ -158,7 +158,7 @@ public class SupportedShieldGameTests extends ApprenticeCodexGameTestScenarios {
             equip(owner, true);
             shield.takeDamage(helper.getLevel().damageSources().playerAttack(owner), 4, shield.position());
             helper.assertTrue(shield.getHealth() == 40, "Owner melee must not consume shield health");
-            var arrow = new Arrow(helper.getLevel(), owner, new ItemStack(Items.ARROW), new ItemStack(Items.BOW));
+            var arrow = new Arrow(helper.getLevel(), owner);
             shield.takeDamage(helper.getLevel().damageSources().arrow(arrow, owner), 4, shield.position());
             helper.assertTrue(shield.getHealth() == 40, "Owner projectile must not consume shield health");
             shield.takeDamage(helper.getLevel().damageSources().playerAttack(enemy), 4, shield.position());
@@ -168,7 +168,7 @@ public class SupportedShieldGameTests extends ApprenticeCodexGameTestScenarios {
             shield.takeDamage(helper.getLevel().damageSources().playerAttack(owner), 4, shield.position());
             helper.assertTrue(shield.getHealth() == 28, "Unequipped owner must damage shield normally");
             equip(owner, true);
-            var anti = new AntiManaArrowEntity(helper.getLevel(), owner, new ItemStack(ItemRegistry.ANTI_MANA_ARROW.get()), new ItemStack(Items.BOW));
+            var anti = new AntiManaArrowEntity(helper.getLevel(), owner);
             try {
                 var hit = AntiManaArrowEntity.class.getDeclaredMethod("onHitEntity", EntityHitResult.class);
                 hit.setAccessible(true);
@@ -196,7 +196,7 @@ public class SupportedShieldGameTests extends ApprenticeCodexGameTestScenarios {
     }
 
     private static void equip(ServerPlayer player, boolean equipped) {
-        CuriosApi.getCuriosInventory(player).orElseThrow().setEquippedCurio(CuriosSlotConstants.BELT, 0,
+        CuriosApi.getCuriosInventory(player).resolve().orElseThrow().setEquippedCurio(CuriosSlotConstants.BELT, 0,
                 equipped ? new ItemStack(ItemRegistry.PROTECTION_SPELL_SUPPORTER.get()) : ItemStack.EMPTY);
     }
 

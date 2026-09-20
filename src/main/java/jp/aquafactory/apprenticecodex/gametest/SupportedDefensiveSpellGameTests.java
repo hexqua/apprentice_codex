@@ -16,10 +16,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.fml.ModList;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.List;
@@ -38,12 +38,12 @@ public class SupportedDefensiveSpellGameTests extends ApprenticeCodexGameTestSce
             equip(player, equipped);
             for (var spell : targets) {
                 var event = new SpellOnCastEvent(player, spell.getSpellId(), 1, 100, spell.getSchoolType(), CastSource.SPELLBOOK);
-                NeoForge.EVENT_BUS.post(event);
+                MinecraftForge.EVENT_BUS.post(event);
                 helper.assertTrue(event.getManaCost() == (equipped ? 50 : 100), "Discount must follow cast equipment: " + spell.getSpellId());
             }
             var other = SpellRegistry.FORTIFY_SPELL.get();
             var event = new SpellOnCastEvent(player, other.getSpellId(), 1, 100, other.getSchoolType(), CastSource.SPELLBOOK);
-            NeoForge.EVENT_BUS.post(event);
+            MinecraftForge.EVENT_BUS.post(event);
             helper.assertTrue(event.getManaCost() == 100, "Fortify must remain outside the discount list");
         }
         helper.succeed();
@@ -60,10 +60,10 @@ public class SupportedDefensiveSpellGameTests extends ApprenticeCodexGameTestSce
                 equip(player, equipped);
                 int expectedAmp = equipped ? 2 * baseAmp + 1 : baseAmp;
                 cast(helper, player, spell, level);
-                var effect = player.getEffect(MobEffectRegistry.EVASION);
+                var effect = player.getEffect(MobEffectRegistry.EVASION.get());
                 helper.assertTrue(effect != null && effect.getAmplifier() == expectedAmp && effect.getDuration() == 1200,
                         "Spell must double final hits without changing duration");
-                helper.assertTrue(spell.getUniqueInfo(level, player).getFirst().getString().equals(
+                helper.assertTrue(spell.getUniqueInfo(level, player).get(0).getString().equals(
                                 Component.translatable("ui.irons_spellbooks.hits_dodged", expectedAmp + 1).getString()),
                         "Spell information must display the granted hit count");
                 equip(player, !equipped);
@@ -75,7 +75,7 @@ public class SupportedDefensiveSpellGameTests extends ApprenticeCodexGameTestSce
                     helper.assertTrue(player.getHealth() == health, "Every granted Evasion hit must prevent damage");
                     helper.assertTrue(data.getEvasionHitsRemaining() == expectedAmp - hit - 1, "Each hit must consume exactly one charge");
                 }
-                helper.assertFalse(player.hasEffect(MobEffectRegistry.EVASION), "Evasion must end after the final granted hit");
+                helper.assertFalse(player.hasEffect(MobEffectRegistry.EVASION.get()), "Evasion must end after the final granted hit");
                 damage(player, 1);
                 helper.assertTrue(player.getHealth() < health, "Damage must resume after all charges are consumed");
             }
@@ -88,9 +88,9 @@ public class SupportedDefensiveSpellGameTests extends ApprenticeCodexGameTestSce
         var player = player(helper);
         equip(player, true);
         // ポーション等と同じ通常の効果付与経路は、装備中でも増幅しない。
-        player.addEffect(new MobEffectInstance(MobEffectRegistry.EVASION, 1200, 2));
+        player.addEffect(new MobEffectInstance(MobEffectRegistry.EVASION.get(), 1200, 2));
         var data = MagicData.getPlayerMagicData(player).getSyncedData();
-        helper.assertTrue(player.getEffect(MobEffectRegistry.EVASION).getAmplifier() == 2 && data.getEvasionHitsRemaining() == 2,
+        helper.assertTrue(player.getEffect(MobEffectRegistry.EVASION.get()).getAmplifier() == 2 && data.getEvasionHitsRemaining() == 2,
                 "Non-spell Evasion must keep its original amplifier");
         float health = player.getHealth();
         player.hurt(helper.getLevel().damageSources().fall(), 2);
@@ -119,7 +119,7 @@ public class SupportedDefensiveSpellGameTests extends ApprenticeCodexGameTestSce
             helper.assertTrue(player.getHealth() == health, "Heartstop must defer incoming damage");
             equip(player, equippedAtRemoval);
             player.invulnerableTime = 0;
-            player.removeEffect(MobEffectRegistry.HEARTSTOP);
+            player.removeEffect(MobEffectRegistry.HEARTSTOP.get());
             assertClose(helper, health - player.getHealth(), 5, "Removal must settle the same debt regardless of equipment");
             assertClose(helper, data.getHeartstopAccumulatedDamage(), 0, "Removal must clear the settled debt");
         }
@@ -140,20 +140,25 @@ public class SupportedDefensiveSpellGameTests extends ApprenticeCodexGameTestSce
             double[] remaining = new double[2];
             for (int index = 0; index < 2; index++) {
                 var player = player(helper);
-                player.getAttribute(com.sammy.malum.registry.common.MalumAttributes.SOUL_WARD_CAPACITY).setBaseValue(20);
-                var ward = player.getData(com.sammy.malum.registry.common.MalumAttachmentTypes.SOUL_WARD);
-                ward.setSoulWard(20);
+                player.getAttribute(com.sammy.malum.registry.common.AttributeRegistry.SOUL_WARD_CAP.get()).setBaseValue(20);
+                var ward = com.sammy.malum.common.capability.MalumPlayerDataCapability.getCapability(player).soulWardHandler;
+                ward.soulWard = 20;
                 // まず通常被弾で実際にSoul Wardが動作していることを確認する。
+                float controlHealth = player.getHealth();
                 damage(player, 4);
-                helper.assertTrue(ward.getSoulWard() < 20, "Soul Ward control must absorb damage");
-                ward.setSoulWard(20);
+                float controlDamage = controlHealth - player.getHealth();
+                helper.assertTrue(controlDamage > 0, "Soul Ward control must leave residual damage");
+                helper.assertTrue(ward.soulWard < 20, "Soul Ward control must absorb damage");
+                ward.soulWard = 20;
                 player.setHealth(player.getMaxHealth());
                 equip(player, index == 1);
                 cast(helper, player, SpellRegistry.HEARTSTOP_SPELL.get(), 1);
                 damage(player, 4);
-                remaining[index] = ward.getSoulWard();
+                remaining[index] = ward.soulWard;
+                // Forge 1.20.1ではLivingHurtEventのSoul Ward軽減後にLivingDamageEventで蓄積する。
                 assertClose(helper, MagicData.getPlayerMagicData(player).getSyncedData().getHeartstopAccumulatedDamage(),
-                        index == 1 ? 1 : 2, "Soul Ward must not change the Heartstop accumulation basis");
+                        controlDamage * (index == 1 ? 0.25F : 0.5F),
+                        "Heartstop must accumulate the residual damage after Soul Ward");
             }
             helper.assertTrue(Math.abs(remaining[0] - remaining[1]) < 0.001,
                     "Supporter must not change Soul Ward consumption during Heartstop");
@@ -171,7 +176,7 @@ public class SupportedDefensiveSpellGameTests extends ApprenticeCodexGameTestSce
     }
 
     private static void equip(ServerPlayer player, boolean equipped) {
-        CuriosApi.getCuriosInventory(player).orElseThrow().setEquippedCurio(CuriosSlotConstants.BELT, 0,
+        CuriosApi.getCuriosInventory(player).resolve().orElseThrow().setEquippedCurio(CuriosSlotConstants.BELT, 0,
                 equipped ? new ItemStack(ItemRegistry.PROTECTION_SPELL_SUPPORTER.get()) : ItemStack.EMPTY);
     }
 

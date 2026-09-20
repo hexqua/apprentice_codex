@@ -23,9 +23,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.HashMap;
@@ -105,7 +105,7 @@ public class SupportedIceTombGameTests extends ApprenticeCodexGameTestScenarios 
         var player = player(helper);
         equip(player, true);
         for (int level : new int[]{1, 4, 8}) {
-            player.getAttribute(AttributeRegistry.SPELL_POWER).setBaseValue(1);
+            player.getAttribute(AttributeRegistry.SPELL_POWER.get()).setBaseValue(1);
             var tomb = cast(helper, player, level);
             var tag = new CompoundTag();
             tomb.saveWithoutId(tag);
@@ -118,7 +118,7 @@ public class SupportedIceTombGameTests extends ApprenticeCodexGameTestScenarios 
             helper.getLevel().addFreshEntity(restored);
             player.startRiding(restored, true);
             // 詠唱時の威力を保存してしまう回帰を検出する。
-            player.getAttribute(AttributeRegistry.SPELL_POWER).setBaseValue(2);
+            player.getAttribute(AttributeRegistry.SPELL_POWER.get()).setBaseValue(2);
             restored.hurt(helper.getLevel().damageSources().generic(), 2);
             assertBurst(helper, player, restored, level);
             clearShards(helper, restored);
@@ -132,7 +132,7 @@ public class SupportedIceTombGameTests extends ApprenticeCodexGameTestScenarios 
         var spell = SpellRegistry.ICE_TOMB_SPELL.get();
         equip(player, true);
         var event = new SpellOnCastEvent(player, spell.getSpellId(), 1, 30, spell.getSchoolType(), CastSource.SPELLBOOK);
-        NeoForge.EVENT_BUS.post(event);
+        MinecraftForge.EVENT_BUS.post(event);
         helper.assertTrue(event.getManaCost() == 15, "Ice Tomb cast event must halve mana cost");
         var manager = SpellConfigManager.getInstance();
         var field = SpellConfigManager.class.getDeclaredField("config");
@@ -150,7 +150,7 @@ public class SupportedIceTombGameTests extends ApprenticeCodexGameTestScenarios 
             var tomb = cast(helper, player, 4);
             tomb.hurt(helper.getLevel().damageSources().generic(), 2);
             assertBurst(helper, player, tomb, 4);
-            helper.assertTrue(Math.abs(shards(helper, tomb).getFirst().getDamage() - 14) < 0.001,
+            helper.assertTrue(Math.abs(shards(helper, tomb).get(0).getDamage() - 14) < 0.001,
                     "Disabled Frost Step must retain configured power multiplier");
             clearShards(helper, tomb);
         } finally {
@@ -218,7 +218,7 @@ public class SupportedIceTombGameTests extends ApprenticeCodexGameTestScenarios 
     }
 
     private static void equip(ServerPlayer player, boolean equipped) {
-        CuriosApi.getCuriosInventory(player).orElseThrow().setEquippedCurio(CuriosSlotConstants.BELT, 0,
+        CuriosApi.getCuriosInventory(player).resolve().orElseThrow().setEquippedCurio(CuriosSlotConstants.BELT, 0,
                 equipped ? new ItemStack(ItemRegistry.PROTECTION_SPELL_SUPPORTER.get()) : ItemStack.EMPTY);
     }
 

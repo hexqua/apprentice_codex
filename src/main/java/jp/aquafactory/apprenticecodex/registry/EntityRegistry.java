@@ -380,7 +380,7 @@ public final class EntityRegistry {
     public static final RegistryObject<EntityType<ThermalSliceKatanaEntity>> THERMAL_SLICE_KATANA =
             regWeapon("thermal_slice_katana", ThermalSliceKatanaEntity::new, 1);
 
-    public static final DeferredHolder<EntityType<?>, EntityType<SupportedShieldEntity>> SUPPORTED_SHIELD =
+    public static final RegistryObject<EntityType<SupportedShieldEntity>> SUPPORTED_SHIELD =
             ENTITIES.register("supported_shield", () -> EntityType.Builder
                     .<SupportedShieldEntity>of(SupportedShieldEntity::new, MobCategory.MISC)
                     .sized(1F, 1F).clientTrackingRange(64).build("apprenticecodex:supported_shield"));

@@ -1,7 +1,5 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.entity.spells.shield.ShieldEntity;
@@ -14,11 +12,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(value = ShieldSpell.class, remap = false)
 public abstract class ShieldSpellSupporterMixin {
-    @WrapOperation(method = "onCast", at = @At(value = "NEW", target = "(Lnet/minecraft/world/level/Level;F)Lio/redspace/ironsspellbooks/entity/spells/shield/ShieldEntity;"))
-    private ShieldEntity createSupportedShield(Level level, float health, Operation<ShieldEntity> original,
+    @Redirect(method = "onCast", at = @At(value = "NEW", target = "(Lnet/minecraft/world/level/Level;F)Lio/redspace/ironsspellbooks/entity/spells/shield/ShieldEntity;"))
+    private ShieldEntity createSupportedShield(Level level, float health,
                                                Level castLevel, int spellLevel, LivingEntity caster,
                                                CastSource source, MagicData data) {
         if (caster instanceof Player player && ProtectionSpellSupporter.isEquippedBy(player)) {
@@ -27,6 +26,6 @@ public abstract class ShieldSpellSupporterMixin {
             shield.setOwner(player);
             return shield;
         }
-        return original.call(level, health);
+        return new ShieldEntity(level, health);
     }
 }

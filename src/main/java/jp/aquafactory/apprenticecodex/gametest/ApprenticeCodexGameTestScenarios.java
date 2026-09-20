@@ -7464,11 +7464,11 @@ public class ApprenticeCodexGameTestScenarios {
             int activeTicks = supported ? 22 : 25;
             var expectedTooltip = Component.translatable("ui.irons_spellbooks.effect_length",
                     io.redspace.ironsspellbooks.api.util.Utils.timeFromTicks(invulnerableTicks, 1));
-            helper.assertTrue(spell.getUniqueInfo(1, player).getFirst().equals(expectedTooltip),
+            helper.assertTrue(spell.getUniqueInfo(1, player).get(0).equals(expectedTooltip),
                     "MirageAvoidance tooltip must show the equipped invulnerability duration");
             var manaEvent = new SpellOnCastEvent(player, spell.getSpellId(), 1, spell.getManaCost(1),
                     spell.getSchoolType(), CastSource.SPELLBOOK);
-            NeoForge.EVENT_BUS.post(manaEvent);
+            MinecraftForge.EVENT_BUS.post(manaEvent);
             int expectedMana = supported ? Math.max(1, Math.round(spell.getManaCost(1) * 0.5f)) : spell.getManaCost(1);
             helper.assertTrue(manaEvent.getManaCost() == expectedMana,
                     "MirageAvoidance mana discount must follow equipped supporter state");
@@ -7492,8 +7492,8 @@ public class ApprenticeCodexGameTestScenarios {
                     s.activeUntilGameTime = start + activeTicks;
                 }));
                 player.setDeltaMovement(0.3D, -0.5D, 0.2D);
-                MirageAvoidanceEvents.onPlayerTick(new PlayerTickEvent.Pre(player));
-                MirageAvoidanceEvents.onPlayerTick(new PlayerTickEvent.Post(player));
+                MirageAvoidanceEvents.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.START, player));
+                MirageAvoidanceEvents.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
                 boolean active = elapsed < activeTicks;
                 helper.assertTrue(MirageAvoidanceEvents.isInputLocked(player) == active,
                         "MirageAvoidance input lock mismatch at tick " + elapsed + " in mode " + mode);

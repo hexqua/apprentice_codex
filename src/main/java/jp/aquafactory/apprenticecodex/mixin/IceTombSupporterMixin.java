@@ -1,8 +1,5 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
-import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.redspace.ironsspellbooks.entity.spells.ice_tomb.IceTombEntity;
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.IceTombShatter;
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.SupportedIceTomb;
@@ -11,6 +8,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = IceTombEntity.class, remap = false)
@@ -35,34 +33,50 @@ public abstract class IceTombSupporterMixin implements SupportedIceTomb {
         }
     }
 
-    @WrapOperation(method = {"tick", "die"}, at = @At(value = "INVOKE", target = "Lio/redspace/ironsspellbooks/entity/spells/ice_tomb/IceTombEntity;destroyTomb()V"))
-    private void allowNaturalOrDamageRelease(IceTombEntity tomb, Operation<Void> original) {
-        apprenticecodex$withShatterRelease(() -> original.call(tomb));
+    // tickはMinecraft継承メソッドなので本番名へ変換し、Iron's独自のdestroyTombは変換しない。
+    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lio/redspace/ironsspellbooks/entity/spells/ice_tomb/IceTombEntity;destroyTomb()V", remap = false), remap = true)
+    private void allowNaturalRelease(IceTombEntity tomb) {
+        apprenticecodex$withShatterRelease(tomb::destroyTomb);
     }
 
-    @WrapMethod(method = "destroyTomb")
-    private void shatterAfterRelease(Operation<Void> original) {
+    @Redirect(method = "die", at = @At(value = "INVOKE", target = "Lio/redspace/ironsspellbooks/entity/spells/ice_tomb/IceTombEntity;destroyTomb()V"))
+    private void allowDamageRelease(IceTombEntity tomb) {
+        apprenticecodex$withShatterRelease(tomb::destroyTomb);
+    }
+
+    @Unique private int apprenticecodex$releaseDepth;
+    @Unique private Runnable apprenticecodex$pendingBurst;
+
+    @Inject(method = "destroyTomb", at = @At("HEAD"))
+    private void prepareShatter(CallbackInfo ci) {
         var tomb = (IceTombEntity) (Object) this;
-        Runnable burst = () -> {};
+        apprenticecodex$releaseDepth++;
         if (!apprenticecodex$releaseConsumed) {
-            // ejectPassengersからdestroyTombへ再入するため、元処理より先に確定する。
+            // 降車による再入の前に確定し、最外周の解除が終わるまで炸裂を遅延する。
             apprenticecodex$releaseConsumed = true;
             if (apprenticecodex$shatterRelease && !tomb.isRemoved()) {
-                burst = IceTombShatter.prepare(tomb, apprenticecodex$spellLevel);
+                apprenticecodex$pendingBurst = IceTombShatter.prepare(tomb, apprenticecodex$spellLevel);
             }
         }
-        original.call();
-        burst.run();
     }
 
-    @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
+    @Inject(method = "destroyTomb", at = @At("RETURN"))
+    private void shatterAfterRelease(CallbackInfo ci) {
+        if (--apprenticecodex$releaseDepth == 0 && apprenticecodex$pendingBurst != null) {
+            var burst = apprenticecodex$pendingBurst;
+            apprenticecodex$pendingBurst = null;
+            burst.run();
+        }
+    }
+
+    @Inject(method = "addAdditionalSaveData", at = @At("TAIL"), remap = true)
     private void saveSupport(CompoundTag tag, CallbackInfo ci) {
         if (apprenticecodex$spellLevel > 0) {
             tag.putInt("apprenticecodex:ice_tomb_level", apprenticecodex$spellLevel);
         }
     }
 
-    @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
+    @Inject(method = "readAdditionalSaveData", at = @At("TAIL"), remap = true)
     private void loadSupport(CompoundTag tag, CallbackInfo ci) {
         apprenticecodex$spellLevel = tag.getInt("apprenticecodex:ice_tomb_level");
     }
