@@ -65,7 +65,7 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
             var tooltipLines = new ArrayList<Component>();
             stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
 
-            helper.assertTrue(tooltipLines.size() >= 4,
+            helper.assertTrue(tooltipLines.size() >= 5,
                     "Multipurpose Staffrifle tooltip should include controls, spacer, and shift hint");
             assertTranslatableKey(
                     helper,
@@ -79,11 +79,17 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
                     "item.apprenticecodex.multipurpose_staffrifle.desc_2",
                     "Multipurpose Staffrifle should show right-click control second"
             );
-            helper.assertTrue(tooltipLines.get(2).getString().isEmpty(),
+            assertTranslatableKey(
+                    helper,
+                    tooltipLines.get(2),
+                    "item.apprenticecodex.multipurpose_staffrifle.no_scope",
+                    "Multipurpose Staffrifle should show zoom description after controls"
+            );
+            helper.assertTrue(tooltipLines.get(3).getString().isEmpty(),
                     "Multipurpose Staffrifle should separate controls from the shift hint with a blank line");
             assertTranslatableKey(
                     helper,
-                    tooltipLines.get(3),
+                    tooltipLines.get(4),
                     "item.apprenticecodex.spellgun.tooltip.hint",
                     "Multipurpose Staffrifle should show shift hint after controls"
             );

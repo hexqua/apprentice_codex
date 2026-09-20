@@ -753,6 +753,10 @@ final class ItemsServerConfig {
         return fullautoRapidcastSpellrifleConfig.adsFullAutoIntervalTicks();
     }
 
+    double multipurposeStaffrifleAdsMovementSpeedMultiplier() {
+        return multipurposeStaffrifleConfig.adsMovementSpeedMultiplier();
+    }
+
     boolean isMultipurposeStaffrifleSpellDenied(ResourceLocation spellId) {
         return multipurposeStaffrifleConfig.isSpellDenied(spellId);
     }
