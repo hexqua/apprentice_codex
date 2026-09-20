@@ -44,7 +44,7 @@ public final class SpellDispenserSpellProfileDataGenerator extends JsonCodecProv
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.BLOODY_ARROW),
-                                        SpellDispenserSpellProfile.OWNER_REQUIRED
+                                        SpellDispenserSpellProfile.DEFAULT
                                 ),
                                 new SpellDispenserSpellProfileDefinition(
                                         getResourceLocationRegistry(jp.aquafactory.apprenticecodex.registry.SpellRegistry.SACRED_ARROW),

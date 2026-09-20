@@ -25,10 +25,10 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,13 +39,14 @@ import java.util.function.Consumer;
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
 public final class BloodyArrowGameTests {
+    // Forge 1.20.1 の通常地形で地下に埋まらないよう、空中検証は相対高度を220上げる。
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final String BATCH = "apprenticecodex.bloody_arrow";
 
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void flightDelaysGravityAndExpires(GameTestHelper helper) {
         try (var scene = new Scene(helper)) {
-            var origin = helper.absoluteVec(new Vec3(2, 180, 2));
+            var origin = helper.absoluteVec(new Vec3(2, 400, 2));
             var arrow = scene.arrow(origin, new Vec3(1, 0, 0), 1, 3);
             for (int i = 0; i < 10; i++) step(arrow);
             helper.assertTrue(arrow.position().distanceTo(origin.add(25, 0, 0)) < 1.0e-6,
@@ -72,12 +73,12 @@ public final class BloodyArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void waterFlowAndLavaDoNotChangeFlight(GameTestHelper helper) {
         try (var scene = new Scene(helper)) {
-            var origin = helper.absoluteVec(new Vec3(1.5, 20.3, 2.5));
+            var origin = helper.absoluteVec(new Vec3(1.5, 240.3, 2.5));
             for (var state : List.of(Blocks.AIR.defaultBlockState(), Blocks.WATER.defaultBlockState(),
                     Blocks.WATER.defaultBlockState().setValue(LiquidBlock.LEVEL, 3), Blocks.LAVA.defaultBlockState())) {
                 // 水と溶岩を逐次置換すると隣接更新で石になる。各条件を空の区間から始める。
-                for (int x = 1; x <= 3; x++) helper.setBlock(new BlockPos(x, 20, 2), Blocks.AIR);
-                for (int x = 1; x <= 3; x++) helper.setBlock(new BlockPos(x, 20, 2), state);
+                for (int x = 1; x <= 3; x++) helper.setBlock(new BlockPos(x, 240, 2), Blocks.AIR);
+                for (int x = 1; x <= 3; x++) helper.setBlock(new BlockPos(x, 240, 2), state);
                 var arrow = scene.arrow(origin, new Vec3(1, 0, 0), 1, 3);
                 step(arrow);
                 helper.assertTrue(arrow.position().distanceTo(origin.add(2.5, 0, 0)) < 1.0e-6
@@ -86,7 +87,7 @@ public final class BloodyArrowGameTests {
                                 + ", velocity=" + arrow.getDeltaMovement() + ", removed=" + arrow.isRemoved());
                 arrow.discard();
             }
-            for (int x = 1; x <= 3; x++) helper.setBlock(new BlockPos(x, 20, 2), Blocks.AIR);
+            for (int x = 1; x <= 3; x++) helper.setBlock(new BlockPos(x, 240, 2), Blocks.AIR);
         }
         helper.succeed();
     }
@@ -96,8 +97,8 @@ public final class BloodyArrowGameTests {
         try (var scene = new Scene(helper)) {
             for (int level : List.of(1, 2, 9, 10)) {
                 int count = 3 + level / 2;
-                var target = scene.zombie(new Vec3(3, 20, 3));
-                var arrow = scene.arrow(helper.absoluteVec(new Vec3(0.8, 20.8, 3)), new Vec3(1, 0, 0), 2, count);
+                var target = scene.zombie(new Vec3(3, 240, 3));
+                var arrow = scene.arrow(helper.absoluteVec(new Vec3(0.8, 240.8, 3)), new Vec3(1, 0, 0), 2, count);
                 step(arrow);
                 helper.assertTrue(target.getHealth() < 20 && arrow.isRemoved() && scene.orbs().size() == count,
                         "A successful living hit must drop the configured count exactly once");
@@ -106,9 +107,9 @@ public final class BloodyArrowGameTests {
                 scene.clearOrbs();
                 target.discard();
 
-                target = scene.zombie(new Vec3(3, 20, 3));
+                target = scene.zombie(new Vec3(3, 240, 3));
                 target.setHealth(1);
-                arrow = scene.arrow(helper.absoluteVec(new Vec3(0.8, 20.8, 3)), new Vec3(1, 0, 0), 10, count);
+                arrow = scene.arrow(helper.absoluteVec(new Vec3(0.8, 240.8, 3)), new Vec3(1, 0, 0), 10, count);
                 step(arrow);
                 helper.assertTrue(!target.isAlive() && scene.orbs().size() == count * 2,
                         "A lethal hit must double the configured count");
@@ -122,27 +123,27 @@ public final class BloodyArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void invulnerabilityTotemAndCrystalHaveDistinctOutcomes(GameTestHelper helper) {
         try (var scene = new Scene(helper)) {
-            var target = scene.zombie(new Vec3(3, 20, 3));
+            var target = scene.zombie(new Vec3(3, 240, 3));
             target.setInvulnerable(true);
-            var arrow = scene.arrow(helper.absoluteVec(new Vec3(0.8, 20.8, 3)), new Vec3(1, 0, 0), 10, 3);
+            var arrow = scene.arrow(helper.absoluteVec(new Vec3(0.8, 240.8, 3)), new Vec3(1, 0, 0), 10, 3);
             step(arrow);
             helper.assertTrue(arrow.isRemoved() && scene.orbs().isEmpty(), "Rejected damage must not create orbs");
             target.discard();
-            target = scene.zombie(new Vec3(3, 20, 3));
+            target = scene.zombie(new Vec3(3, 240, 3));
             target.setHealth(1);
             target.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(Items.TOTEM_OF_UNDYING));
-            arrow = scene.arrow(helper.absoluteVec(new Vec3(0.8, 20.8, 3)), new Vec3(1, 0, 0), 10, 3);
+            arrow = scene.arrow(helper.absoluteVec(new Vec3(0.8, 240.8, 3)), new Vec3(1, 0, 0), 10, 3);
             step(arrow);
             helper.assertTrue(target.isAlive() && target.getOffhandItem().isEmpty() && scene.orbs().size() == 3,
                     "Totem survival must keep the normal orb count");
             scene.clearOrbs();
             target.discard();
             var crystal = EntityType.END_CRYSTAL.create(helper.getLevel());
-            crystal.setPos(helper.absoluteVec(new Vec3(3, 20, 3)));
+            crystal.setPos(helper.absoluteVec(new Vec3(3, 240, 3)));
             scene.add(crystal);
             // 通常の地形から離れた高度で、実際の破壊経路を確認する。
             crystal.setInvulnerable(false);
-            arrow = scene.arrow(helper.absoluteVec(new Vec3(0.8, 20.8, 3)), new Vec3(1, 0, 0), 2, 3);
+            arrow = scene.arrow(helper.absoluteVec(new Vec3(0.8, 240.8, 3)), new Vec3(1, 0, 0), 2, 3);
             step(arrow);
             helper.assertTrue(crystal.isRemoved() && scene.orbs().isEmpty(),
                     "End crystals must remain damageable without producing blood orbs");
@@ -153,15 +154,15 @@ public final class BloodyArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void terrainStopsFastShotsBeforeTargets(GameTestHelper helper) {
         try (var scene = new Scene(helper)) {
-            helper.setBlock(new BlockPos(2, 20, 3), Blocks.STONE);
-            var target = scene.zombie(new Vec3(3.5, 20, 3.5));
+            helper.setBlock(new BlockPos(2, 240, 3), Blocks.STONE);
+            var target = scene.zombie(new Vec3(3.5, 240, 3.5));
             for (double x : List.of(1.99, 2.5)) {
-                var arrow = scene.arrow(helper.absoluteVec(new Vec3(x, 20.5, 3.5)), new Vec3(1, 0, 0), 10, 3);
+                var arrow = scene.arrow(helper.absoluteVec(new Vec3(x, 240.5, 3.5)), new Vec3(1, 0, 0), 10, 3);
                 step(arrow);
                 helper.assertTrue(arrow.isRemoved() && target.getHealth() == 20 && scene.orbs().isEmpty(),
                         "Near-wall and inside-wall shots must not hit targets behind terrain");
             }
-            helper.setBlock(new BlockPos(2, 20, 3), Blocks.AIR);
+            helper.setBlock(new BlockPos(2, 240, 3), Blocks.AIR);
         }
         helper.succeed();
     }
@@ -174,21 +175,21 @@ public final class BloodyArrowGameTests {
             Consumer<SpellHealEvent> listener = event -> {
                 if (event.getTargetEntity() == scene.owner) events.incrementAndGet();
             };
-            NeoForge.EVENT_BUS.addListener(listener);
+            MinecraftForge.EVENT_BUS.addListener(listener);
             try {
                 step(orb);
                 step(orb);
                 helper.assertTrue(orb.isRemoved() && events.get() == 1 && scene.owner.getHealth() == scene.owner.getMaxHealth(),
                         "Full-health players must consume one orb and emit one spell heal event");
             } finally {
-                NeoForge.EVENT_BUS.unregister(listener);
+                MinecraftForge.EVENT_BUS.unregister(listener);
             }
             var wolf = EntityType.WOLF.create(helper.getLevel());
             wolf.setOwnerUUID(scene.owner.getUUID());
-            wolf.setTame(true, false);
+            wolf.setTame(true);
             wolf.setNoAi(true);
             wolf.setNoGravity(true);
-            wolf.setPos(helper.absoluteVec(new Vec3(3, 20, 3)));
+            wolf.setPos(helper.absoluteVec(new Vec3(3, 240, 3)));
             wolf.setHealth(wolf.getMaxHealth());
             scene.add(wolf);
             orb = scene.orb(wolf.position(), 2);
@@ -205,7 +206,7 @@ public final class BloodyArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void collectionUsesAlliesNotAttackProtection(GameTestHelper helper) {
         try (var scene = new Scene(helper)) {
-            var target = scene.zombie(new Vec3(3, 20, 3));
+            var target = scene.zombie(new Vec3(3, 240, 3));
             target.setHealth(10);
             var orb = scene.orb(target.position(), 2);
             step(orb);
@@ -224,7 +225,7 @@ public final class BloodyArrowGameTests {
                 scene.add(spectator);
                 scoreboard.addPlayerToTeam(spectator.getScoreboardName(), team);
                 spectator.setGameMode(GameType.SPECTATOR);
-                scene.owner.setPos(helper.absoluteVec(new Vec3(1, 25, 1)));
+                scene.owner.setPos(helper.absoluteVec(new Vec3(1, 245, 1)));
                 orb = scene.orb(spectator.position(), 2);
                 step(orb);
                 helper.assertFalse(orb.isRemoved(), "Spectators must not consume allied orbs");
@@ -238,14 +239,14 @@ public final class BloodyArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void orbsRespectWallsOwnersLifetimeAndAntiMagic(GameTestHelper helper) {
         try (var scene = new Scene(helper)) {
-            scene.owner.setPos(helper.absoluteVec(new Vec3(2.4, 20, 2.5)));
-            helper.setBlock(new BlockPos(2, 20, 2), Blocks.STONE);
-            helper.setBlock(new BlockPos(2, 21, 2), Blocks.STONE);
-            var orb = scene.orb(helper.absoluteVec(new Vec3(1.8, 20.5, 2.5)), 2);
+            scene.owner.setPos(helper.absoluteVec(new Vec3(2.4, 240, 2.5)));
+            helper.setBlock(new BlockPos(2, 240, 2), Blocks.STONE);
+            helper.setBlock(new BlockPos(2, 241, 2), Blocks.STONE);
+            var orb = scene.orb(helper.absoluteVec(new Vec3(1.8, 240.5, 2.5)), 2);
             step(orb);
             helper.assertFalse(orb.isRemoved(), "Nearby owners behind a wall must not collect");
-            helper.setBlock(new BlockPos(2, 20, 2), Blocks.AIR);
-            helper.setBlock(new BlockPos(2, 21, 2), Blocks.AIR);
+            helper.setBlock(new BlockPos(2, 240, 2), Blocks.AIR);
+            helper.setBlock(new BlockPos(2, 241, 2), Blocks.AIR);
             orb.discard();
             orb = scene.orb(scene.owner.position(), 2);
             scene.owner.discard();
@@ -257,9 +258,9 @@ public final class BloodyArrowGameTests {
             helper.assertFalse(orb.isRemoved(), "Orbs must survive until their lifetime boundary");
             step(orb);
             helper.assertTrue(orb.isRemoved() && !orb.shouldBeSaved(), "Orbs must expire and never save");
-            orb = scene.orb(helper.absoluteVec(new Vec3(3, 20, 3)), 2);
+            orb = scene.orb(helper.absoluteVec(new Vec3(3, 240, 3)), 2);
             orb.onAntiMagic(null);
-            var arrow = scene.arrow(helper.absoluteVec(new Vec3(3, 20, 3)), new Vec3(1, 0, 0), 2, 3);
+            var arrow = scene.arrow(helper.absoluteVec(new Vec3(3, 240, 3)), new Vec3(1, 0, 0), 2, 3);
             arrow.onAntiMagic(null);
             helper.assertTrue(orb.isRemoved() && arrow.isRemoved(), "Anti-magic must remove both entities");
         }
@@ -269,20 +270,20 @@ public final class BloodyArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void castingUsesExistingSpellValues(GameTestHelper helper) {
         try (var scene = new Scene(helper)) {
-            scene.owner.setPos(helper.absoluteVec(new Vec3(0.8, 20, 3)));
+            scene.owner.setPos(helper.absoluteVec(new Vec3(0.8, 240, 3)));
             scene.owner.setYRot(-90);
             scene.owner.setXRot(0);
             var spell = SpellRegistry.BLOODY_ARROW.get();
             var info = spell.getUniqueInfo(10, scene.owner);
             float damage = Float.parseFloat(((TranslatableContents) info.get(0).getContents()).getArgs()[0].toString());
             float healing = Float.parseFloat(((TranslatableContents) info.get(2).getContents()).getArgs()[0].toString());
-            var target = scene.zombie(new Vec3(3, 20, 3));
+            var target = scene.zombie(new Vec3(3, 240, 3));
             target.getAttribute(Attributes.MAX_HEALTH).setBaseValue(200);
             target.setHealth(200);
             spell.onCast(helper.getLevel(), 10, scene.owner, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(scene.owner));
             var arrows = helper.getLevel().getEntitiesOfClass(BloodyArrowEntity.class, scene.owner.getBoundingBox().inflate(1));
             helper.assertTrue(arrows.size() == 1, "Casting must spawn exactly one arrow");
-            var arrow = arrows.getFirst();
+            var arrow = arrows.get(0);
             scene.entities.add(arrow);
             helper.assertTrue(arrow.position().distanceTo(scene.owner.getEyePosition().add(1, -0.4, 0)) < 1.0e-6,
                     "Casting must start one block forward and 0.4 blocks below the eye");
@@ -290,7 +291,7 @@ public final class BloodyArrowGameTests {
             helper.assertTrue(Math.abs(200 - target.getHealth() - damage) < 0.02 && scene.orbs().size() == 8,
                     "Casting must use existing damage and level-dependent count");
             var orbs = scene.orbs();
-            var orb = orbs.getFirst();
+            var orb = orbs.get(0);
             orbs.stream().skip(1).forEach(Entity::discard);
             scene.owner.setHealth(5);
             orb.setPos(scene.owner.position());
@@ -310,7 +311,7 @@ public final class BloodyArrowGameTests {
             var summon = new TestSummon(helper.getLevel(), scene.owner);
             summon.setNoAi(true);
             summon.setNoGravity(true);
-            summon.setPos(helper.absoluteVec(new Vec3(3, 20, 3)));
+            summon.setPos(helper.absoluteVec(new Vec3(3, 240, 3)));
             summon.setHealth(10);
             scene.add(summon);
             var other = new TestSummon(helper.getLevel(), scene.owner);
@@ -335,16 +336,16 @@ public final class BloodyArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH, timeoutTicks = 80)
     public static void normalServerTicksHoverOrbsWithoutHopperPickup(GameTestHelper helper) {
         var scene = new Scene(helper);
-        var local = new BlockPos(3, 19, 3);
+        var local = new BlockPos(3, 239, 3);
         helper.setBlock(local, Blocks.HOPPER);
         var orb = new BloodyArrowOrbEntity(EntityRegistry.BLOODY_ARROW_ORB.get(), helper.getLevel());
-        orb.spawn(scene.owner, helper.absoluteVec(new Vec3(3.5, 22, 3.5)), 2);
+        orb.spawn(scene.owner, helper.absoluteVec(new Vec3(3.5, 242, 3.5)), 2);
         var anchor = jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodOrbPlacement.findAnchor(scene.owner, orb.position());
         helper.assertTrue(anchor != null, "Hopper must provide a reachable hover anchor");
         orb.scatter(anchor, anchor);
         orb.setDeltaMovement(Vec3.ZERO);
         scene.add(orb);
-        var arrow = scene.arrow(helper.absoluteVec(new Vec3(1, 50, 1)), new Vec3(0, 1, 0), 2, 3);
+        var arrow = scene.arrow(helper.absoluteVec(new Vec3(1, 270, 1)), new Vec3(0, 1, 0), 2, 3);
         helper.runAfterDelay(30, () -> {
             try (scene) {
                 var hopper = (net.minecraft.world.level.block.entity.HopperBlockEntity) helper.getBlockEntity(local);
@@ -363,22 +364,22 @@ public final class BloodyArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void cancelledImpactContinuesWithoutDamage(GameTestHelper helper) {
         try (var scene = new Scene(helper)) {
-            var target = scene.zombie(new Vec3(3, 20, 3));
+            var target = scene.zombie(new Vec3(3, 240, 3));
             target.setBaby(true);
-            var arrow = scene.arrow(helper.absoluteVec(new Vec3(0.8, 20.4, 3)), new Vec3(1, 0, 0), 10, 3);
-            Consumer<net.neoforged.neoforge.event.entity.ProjectileImpactEvent> listener = event -> {
-                if (event.getProjectile() == arrow) event.setCanceled(true);
+            var arrow = scene.arrow(helper.absoluteVec(new Vec3(0.8, 240.4, 3)), new Vec3(1, 0, 0), 10, 3);
+            Consumer<net.minecraftforge.event.entity.ProjectileImpactEvent> listener = event -> {
+                if (event.getProjectile() == arrow) event.setImpactResult(net.minecraftforge.event.entity.ProjectileImpactEvent.ImpactResult.STOP_AT_CURRENT_NO_DAMAGE);
             };
-            NeoForge.EVENT_BUS.addListener(listener);
+            MinecraftForge.EVENT_BUS.addListener(listener);
             try {
                 step(arrow);
                 helper.assertTrue(!arrow.isRemoved() && target.getHealth() == 20 && scene.orbs().isEmpty(),
                         "Cancelled impacts must not damage or create orbs");
             } finally {
-                NeoForge.EVENT_BUS.unregister(listener);
+                MinecraftForge.EVENT_BUS.unregister(listener);
             }
             arrow.discard();
-            var hit = scene.arrow(helper.absoluteVec(new Vec3(0.8, 20.4, 3)), new Vec3(1, 0, 0), 2, 3);
+            var hit = scene.arrow(helper.absoluteVec(new Vec3(0.8, 240.4, 3)), new Vec3(1, 0, 0), 2, 3);
             step(hit);
             helper.assertTrue(hit.isRemoved() && target.getHealth() < 20 && scene.orbs().size() == 3,
                     "An uncancelled fast arrow must hit a small target between tick positions");
@@ -392,16 +393,16 @@ public final class BloodyArrowGameTests {
             var saved = new java.util.LinkedHashMap<BlockPos, net.minecraft.world.level.block.state.BlockState>();
             try {
                 // 広い散布範囲は通常テストの高度から離し、全ブロックを終了時に復元する。
-                for (var local : BlockPos.betweenClosed(new BlockPos(-5, 40, -5), new BlockPos(9, 43, 9))) {
+                for (var local : BlockPos.betweenClosed(new BlockPos(-5, 260, -5), new BlockPos(9, 263, 9))) {
                     var absolute = helper.absolutePos(local);
                     saved.put(absolute.immutable(), helper.getLevel().getBlockState(absolute));
                     helper.getLevel().setBlockAndUpdate(absolute,
-                            local.getY() == 40 ? Blocks.STONE.defaultBlockState() : Blocks.AIR.defaultBlockState());
+                            local.getY() == 260 ? Blocks.STONE.defaultBlockState() : Blocks.AIR.defaultBlockState());
                 }
-                var impact = helper.absoluteVec(new Vec3(2.5, 55, 2.5));
+                var impact = helper.absoluteVec(new Vec3(2.5, 275, 2.5));
                 var anchor = jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodOrbPlacement.findAnchor(scene.owner, impact);
-                helper.assertTrue(anchor != null && Math.abs(anchor.y - helper.absoluteVec(new Vec3(0, 41.65, 0)).y) < 0.001,
-                        "Airborne impacts must find ground and hover 0.65 blocks above it");
+                helper.assertTrue(anchor != null && Math.abs(anchor.y - helper.absoluteVec(new Vec3(0, 261.65, 0)).y) < 0.001,
+                        "Airborne impacts must find ground and hover 0.65 blocks above it anchor=" + anchor + ", impact=" + impact + ", expectedY=" + helper.absoluteVec(new Vec3(0, 261.65, 0)).y);
                 var points = new ArrayList<Vec3>();
                 for (int i = 0; i < 8; i++) {
                     var destination = jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodOrbPlacement.destination(
@@ -421,12 +422,12 @@ public final class BloodyArrowGameTests {
                 }
                 helper.assertTrue(points.get(0).distanceTo(points.get(4)) > 7.9,
                         "Opposite orbs must require movement to collect");
-                for (int y = 41; y <= 43; y++) helper.setBlock(new BlockPos(4, y, 2), Blocks.STONE);
+                for (int y = 261; y <= 263; y++) helper.setBlock(new BlockPos(4, y, 2), Blocks.STONE);
                 var blocked = jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodOrbPlacement.destination(scene.owner, anchor, 0, 4);
                 helper.assertTrue(blocked.x < helper.absoluteVec(new Vec3(4, 0, 0)).x,
                         "Scatter must not choose a destination behind a wall");
-                for (int y = 41; y <= 43; y++) helper.setBlock(new BlockPos(4, y, 2), Blocks.AIR);
-                helper.setBlock(new BlockPos(4, 40, 2), Blocks.AIR);
+                for (int y = 261; y <= 263; y++) helper.setBlock(new BlockPos(4, y, 2), Blocks.AIR);
+                helper.setBlock(new BlockPos(4, 260, 2), Blocks.AIR);
                 var pit = jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodOrbPlacement.destination(scene.owner, anchor, 0, 4);
                 helper.assertTrue(pit.x < helper.absoluteVec(new Vec3(4, 0, 0)).x,
                         "Scatter must not cross a pit to choose distant ground");
@@ -447,10 +448,10 @@ public final class BloodyArrowGameTests {
         try (var scene = new Scene(helper)) {
             var lifetimes = new java.util.HashSet<Integer>();
             var sounds = new AtomicInteger();
-            Consumer<net.neoforged.neoforge.event.PlayLevelSoundEvent.AtPosition> listener = event -> {
+            Consumer<net.minecraftforge.event.PlayLevelSoundEvent.AtPosition> listener = event -> {
                 if (event.getSound() != null && event.getSound().value() == net.minecraft.sounds.SoundEvents.ITEM_PICKUP) sounds.incrementAndGet();
             };
-            NeoForge.EVENT_BUS.addListener(listener);
+            MinecraftForge.EVENT_BUS.addListener(listener);
             try {
                 for (int i = 0; i < 32; i++) {
                     var orb = scene.orb(scene.owner.position(), 2);
@@ -463,7 +464,7 @@ public final class BloodyArrowGameTests {
                 helper.assertTrue(lifetimes.size() > 1, "Orbs must not all expire at the same time");
                 helper.assertTrue(sounds.get() == 1, "Simultaneous pickups must play only one item pickup sound");
             } finally {
-                NeoForge.EVENT_BUS.unregister(listener);
+                MinecraftForge.EVENT_BUS.unregister(listener);
             }
         }
         helper.succeed();
@@ -495,7 +496,7 @@ public final class BloodyArrowGameTests {
         private Scene(GameTestHelper helper) {
             this.helper = helper;
             owner = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "blood_test"));
-            owner.setPos(helper.absoluteVec(new Vec3(1, 20, 1)));
+            owner.setPos(helper.absoluteVec(new Vec3(1, 240, 1)));
             owner.setNoGravity(true);
             add(owner);
         }
@@ -533,8 +534,8 @@ public final class BloodyArrowGameTests {
 
         private List<BloodyArrowOrbEntity> orbs() {
             return helper.getLevel().getEntitiesOfClass(BloodyArrowOrbEntity.class,
-                    new net.minecraft.world.phys.AABB(helper.absoluteVec(new Vec3(-1, 18, -1)),
-                            helper.absoluteVec(new Vec3(6, 24, 6))));
+                    new net.minecraft.world.phys.AABB(helper.absoluteVec(new Vec3(-1, 238, -1)),
+                            helper.absoluteVec(new Vec3(6, 244, 6))));
         }
 
         private void clearOrbs() { orbs().forEach(Entity::discard); }

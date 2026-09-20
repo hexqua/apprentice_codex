@@ -77,7 +77,7 @@ public final class EffectRegistry {
     public static final RegistryObject<MobEffect> BLOOD_ENGRAVED =
             EFFECTS.register("blood_engraved", BloodEngravedEffect::new);
 
-    public static final DeferredHolder<MobEffect, MobEffect> SACRED_SIGN =
+    public static final RegistryObject<MobEffect> SACRED_SIGN =
             EFFECTS.register("sacred_sign", jp.aquafactory.apprenticecodex.effect.SacredSign::new);
 
     public static void register(IEventBus eventBus) {

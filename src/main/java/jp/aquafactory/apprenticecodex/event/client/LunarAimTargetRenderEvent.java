@@ -10,17 +10,17 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class LunarAimTargetRenderEvent {
     private LunarAimTargetRenderEvent() {}
 
     @SubscribeEvent
-    public static void onRenderLevelStage(net.neoforged.neoforge.client.event.RenderLevelStageEvent event) {
-        if (event.getStage() != net.neoforged.neoforge.client.event.RenderLevelStageEvent.Stage.AFTER_ENTITIES) return;
+    public static void onRenderLevelStage(net.minecraftforge.client.event.RenderLevelStageEvent event) {
+        if (event.getStage() != net.minecraftforge.client.event.RenderLevelStageEvent.Stage.AFTER_ENTITIES) return;
         var minecraft = Minecraft.getInstance();
         if (minecraft.level == null || minecraft.player == null || !ClientMagicData.isCasting()) return;
         var spell = SpellRegistry.LUNAR_AIM.get();
@@ -36,7 +36,7 @@ public final class LunarAimTargetRenderEvent {
         boolean rendered = false;
         for (var entity : minecraft.level.entitiesForRendering()) {
             if (!(entity instanceof EndCrystal crystal) || !crystal.isAlive() || !targeting.isTargeted(crystal.getUUID())) continue;
-            var position = crystal.getPosition(event.getPartialTick().getGameTimeDeltaPartialTick(false));
+            var position = crystal.getPosition(event.getPartialTick());
             float halfWidth = crystal.getBbWidth() * 0.55f;
             float height = crystal.getBbHeight();
             pose.pushPose();
@@ -44,10 +44,10 @@ public final class LunarAimTargetRenderEvent {
             var consumer = buffers.getBuffer(renderType);
             for (int i = 0; i < 4; i++) {
                 var matrix = pose.last().pose();
-                consumer.addVertex(matrix, halfWidth, 0, halfWidth).setColor(color.x, color.y, color.z, 1).setUv(0, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
-                consumer.addVertex(matrix, halfWidth, height, halfWidth).setColor(color.x, color.y, color.z, 1).setUv(0, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
-                consumer.addVertex(matrix, -halfWidth, height, halfWidth).setColor(color.x, color.y, color.z, 1).setUv(1, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
-                consumer.addVertex(matrix, -halfWidth, 0, halfWidth).setColor(color.x, color.y, color.z, 1).setUv(1, 1).setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
+                consumer.vertex(matrix, halfWidth, 0, halfWidth).color(color.x, color.y, color.z, 1).uv(0, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
+                consumer.vertex(matrix, halfWidth, height, halfWidth).color(color.x, color.y, color.z, 1).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
+                consumer.vertex(matrix, -halfWidth, height, halfWidth).color(color.x, color.y, color.z, 1).uv(1, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
+                consumer.vertex(matrix, -halfWidth, 0, halfWidth).color(color.x, color.y, color.z, 1).uv(1, 1).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
                 pose.mulPose(Axis.YP.rotationDegrees(90));
             }
             pose.popPose();

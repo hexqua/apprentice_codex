@@ -24,7 +24,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
-import net.neoforged.neoforge.event.EventHooks;
+import net.minecraftforge.event.ForgeEventFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
@@ -111,7 +111,7 @@ public final class EchoArrowEntity extends Projectile implements AntiMagicSuscep
                 hit = new EntityHitResult(entityHit.getEntity(), point);
             }
             if (hit.getType() != HitResult.Type.MISS) {
-                if (EventHooks.onProjectileImpact(this, hit)) {
+                if (ForgeEventFactory.onProjectileImpact(this, hit)) {
                     if (hit instanceof BlockHitResult blockHit) cancelledBlockHit = blockHit;
                 } else {
                     onHit(hit);
@@ -127,7 +127,7 @@ public final class EchoArrowEntity extends Projectile implements AntiMagicSuscep
                     : ProjectileCollisionTools.findPhysicalBlockHit(this, start, requested);
             if (hit == null) {
                 discard();
-            } else if (cancelledBlockHit != null || EventHooks.onProjectileImpact(this, hit)) {
+            } else if (cancelledBlockHit != null || ForgeEventFactory.onProjectileImpact(this, hit)) {
                 ProjectileCollisionTools.continueAfterCancelledImpact(this, start, requested);
             } else {
                 onHit(hit);
@@ -203,8 +203,8 @@ public final class EchoArrowEntity extends Projectile implements AntiMagicSuscep
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
-        builder.define(INITIAL, false);
+    protected void defineSynchedData() {
+        entityData.define(INITIAL, false);
     }
 
     @Override

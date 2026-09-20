@@ -16,8 +16,8 @@ import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.gametest.*;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.gametest.*;
 import java.util.*;
 
 @GameTestHolder(ApprenticeCodex.MODID)
@@ -164,7 +164,7 @@ public final class LunarAimGameTests {
                 var replacement = s.zombie(12, 0, target.getUUID());
                 var velocity = arrow.getDeltaMovement();
                 for (int i = 0; i < 198; i++) { arrow.setPos(s.origin.add(0, 8, 0)); step(arrow); }
-                h.assertTrue(!arrow.isRemoved() && !arrow.hasTarget() && arrow.getDeltaMovement().equals(velocity), "Target loss must preserve straight flight and the original deadline");
+                h.assertTrue(!arrow.isRemoved() && !arrow.hasTarget() && arrow.getDeltaMovement().equals(velocity), "Target loss must preserve straight flight and the original deadline removed=" + arrow.isRemoved() + ", burst=" + arrow.isBursting() + ", velocity=" + arrow.getDeltaMovement() + ", pos=" + arrow.position() + ", ticks=" + arrow.tickCount);
                 step(arrow);
                 h.assertTrue(arrow.isRemoved() && !arrow.isBursting(), "Lost-target arrows must silently expire at 200 ticks");
                 replacement.discard();
@@ -209,20 +209,20 @@ public final class LunarAimGameTests {
             var arrow = s.arrow(null, new Vec3(1, 0, 0));
             arrow.setPos(s.origin.add(0, 5, 0));
             var impacts = new ArrayList<Vec3>();
-            java.util.function.Consumer<net.neoforged.neoforge.event.entity.ProjectileImpactEvent> listener = event -> {
+            java.util.function.Consumer<net.minecraftforge.event.entity.ProjectileImpactEvent> listener = event -> {
                 if (event.getProjectile() == arrow) impacts.add(event.getRayTraceResult().getLocation());
             };
-            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(listener);
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(listener);
             try {
                 step(arrow);
                 var expected = new Vec3(direct.getBoundingBox().minX - (double) 0.3F, s.origin.y + 5, s.origin.z);
                 h.assertTrue(arrow.isBursting() && arrow.position().distanceTo(expected) < 1.0e-6,
                         "The burst must stay at the upper-body entry point");
-                h.assertTrue(impacts.size() == 1 && impacts.getFirst().distanceTo(expected) < 1.0e-6,
+                h.assertTrue(impacts.size() == 1 && impacts.get(0).distanceTo(expected) < 1.0e-6,
                         "The impact event must receive the same restored intersection");
                 h.assertTrue(upper.getHealth() == 16 && lower.getHealth() == 20,
                         "Burst damage must affect neighbors of the impact, not neighbors of the feet");
-            } finally { net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(listener); }
+            } finally { net.minecraftforge.common.MinecraftForge.EVENT_BUS.unregister(listener); }
         }
         h.succeed();
     }
@@ -246,7 +246,7 @@ public final class LunarAimGameTests {
                 for (var fluid : List.of(Blocks.WATER, Blocks.LAVA)) {
                     h.getLevel().setBlockAndUpdate(block, fluid.defaultBlockState());
                     arrow = s.arrow(null, new Vec3(1, 0, 0)); var start = arrow.position(); step(arrow);
-                    h.assertTrue(!arrow.isBursting() && arrow.position().distanceTo(start.add(2, 0, 0)) < 1.0e-6, "Fluids must not stop or slow flight");
+                    h.assertTrue(!arrow.isBursting() && arrow.position().distanceTo(start.add(2, 0, 0)) < 1.0e-6, "Fluids must not stop or slow flight start=" + start + ", end=" + arrow.position() + ", burst=" + arrow.isBursting() + ", fluid=" + fluid);
                 }
             } finally { h.getLevel().setBlockAndUpdate(block, previous); }
             arrow = s.arrow(target, new Vec3(1, 0, 0));
@@ -263,14 +263,12 @@ public final class LunarAimGameTests {
     public static void precastSyncsTargetMarkerForLivingTargetsAndCrystals(GameTestHelper h) {
         try (var s = new Scene(h)) {
             var packets = new ArrayList<net.minecraft.network.protocol.Packet<?>>();
-            var connection = new net.minecraft.network.Connection(net.minecraft.network.protocol.PacketFlow.SERVERBOUND);
-            var channel = new io.netty.channel.embedded.EmbeddedChannel(connection);
-            net.neoforged.neoforge.network.registration.NetworkRegistry.configureMockConnection(connection);
-            var cookie = net.minecraft.server.network.CommonListenerCookie.createInitial(s.owner.getGameProfile(), false);
-            var previous = s.owner.connection;
-            new net.minecraft.server.network.ServerGamePacketListenerImpl(h.getLevel().getServer(), connection, s.owner, cookie) {
+            var connection = new net.minecraft.network.Connection(net.minecraft.network.protocol.PacketFlow.SERVERBOUND) {
                 @Override public void send(net.minecraft.network.protocol.Packet<?> packet) { packets.add(packet); }
             };
+            var channel = new io.netty.channel.embedded.EmbeddedChannel(connection);
+            var previous = s.owner.connection;
+            new net.minecraft.server.network.ServerGamePacketListenerImpl(h.getLevel().getServer(), connection, s.owner);
             try {
                 var living = s.zombie(8, 0);
                 var crystal = new EndCrystal(EntityType.END_CRYSTAL, h.getLevel());
@@ -278,14 +276,15 @@ public final class LunarAimGameTests {
                 for (var target : List.of(living, crystal)) {
                     packets.clear(); s.preCast();
                     var markers = packets.stream()
-                            .filter(p -> p instanceof net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket payload
-                                    && payload.payload() instanceof io.redspace.ironsspellbooks.network.casting.SyncTargetingDataPacket)
-                            .map(p -> (io.redspace.ironsspellbooks.network.casting.SyncTargetingDataPacket)
-                                    ((net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket) p).payload()).toList();
+                            .map(p -> ForgePacketTestSupport.decode(p,
+                                    io.redspace.ironsspellbooks.setup.PacketDistributor.class, "INSTANCE",
+                                    new io.redspace.ironsspellbooks.network.casting.SyncTargetingDataPacket(s.spell, List.of(target.getUUID())),
+                                    io.redspace.ironsspellbooks.network.casting.SyncTargetingDataPacket::new))
+                            .filter(java.util.Objects::nonNull).toList();
                     h.assertTrue(markers.size() == 1, "Successful precast must send one native targeting marker");
                     var buffer = new net.minecraft.network.FriendlyByteBuf(io.netty.buffer.Unpooled.buffer());
                     try {
-                        markers.getFirst().write(buffer);
+                        markers.get(0).toBytes(buffer);
                         h.assertTrue(buffer.readUtf().equals(s.spell.getSpellId()) && buffer.readInt() == 1
                                         && buffer.readUUID().equals(target.getUUID()),
                                 "The marker must carry LunarAim and the selected UUID, including non-living targets");
@@ -328,10 +327,10 @@ public final class LunarAimGameTests {
         try (var s = new Scene(h)) {
             var target = s.zombie(1.5, 0);
             var arrow = s.arrow(null, new Vec3(1, 0, 0));
-            java.util.function.Consumer<net.neoforged.neoforge.event.entity.ProjectileImpactEvent> listener = event -> {
-                if (event.getProjectile() instanceof LunarAimArrowEntity lunar && lunar.getOwner() == s.owner) event.setCanceled(true);
+            java.util.function.Consumer<net.minecraftforge.event.entity.ProjectileImpactEvent> listener = event -> {
+                if (event.getProjectile() instanceof LunarAimArrowEntity lunar && lunar.getOwner() == s.owner) event.setImpactResult(net.minecraftforge.event.entity.ProjectileImpactEvent.ImpactResult.STOP_AT_CURRENT_NO_DAMAGE);
             };
-            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(listener);
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(listener);
             var block = BlockPos.containing(s.origin.add(1, 0, 0));
             var previous = h.getLevel().getBlockState(block);
             try {
@@ -344,7 +343,7 @@ public final class LunarAimGameTests {
                 h.assertTrue(!arrow.isBursting() && arrow.position().distanceTo(start.add(2, 0, 0)) < 1.0e-6,
                         "Cancelled block impacts must undo physical clipping");
             } finally {
-                net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(listener);
+                net.minecraftforge.common.MinecraftForge.EVENT_BUS.unregister(listener);
                 h.getLevel().setBlockAndUpdate(block, previous);
             }
         }
@@ -384,8 +383,8 @@ public final class LunarAimGameTests {
         final LunarAim spell = (LunarAim) SpellRegistry.LUNAR_AIM.get();
         final List<Entity> entities = new ArrayList<>();
         Scene(GameTestHelper h) {
-            // 128ブロックの視線が隣のテストのmobや大型部位を拾わないよう、各sceneの高度を分離する。
-            helper = h; origin = h.absoluteVec(new Vec3(2, 80 + 12 * sceneSequence++, 2));
+            // Forgeの通常地形を避け、128ブロックの視線が隣のsceneを拾わない高度へ分離する。
+            helper = h; origin = h.absoluteVec(new Vec3(2, 280 + 12 * (sceneSequence++ % 4), 2));
             owner = new FakePlayer(h.getLevel(), new GameProfile(UUID.randomUUID(), "lunar_test"));
             owner.setPos(origin); owner.setYRot(-90); owner.setXRot(0); owner.setNoGravity(true); add(owner);
         }

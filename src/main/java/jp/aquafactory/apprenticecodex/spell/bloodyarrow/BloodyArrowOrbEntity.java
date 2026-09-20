@@ -168,7 +168,7 @@ public final class BloodyArrowOrbEntity extends Entity implements AntiMagicSusce
     }
 
     @Override
-    public void lerpTo(double x, double y, double z, float yaw, float pitch, int steps) {
+    public void lerpTo(double x, double y, double z, float yaw, float pitch, int steps, boolean teleport) {
         lerpTarget = new Vec3(x, y, z);
         lerpSteps = Math.max(1, steps);
     }
@@ -177,7 +177,7 @@ public final class BloodyArrowOrbEntity extends Entity implements AntiMagicSusce
     @Override public boolean shouldBeSaved() { return false; }
     @Override public boolean isAttackable() { return false; }
     @Override public void onAntiMagic(MagicData data) { if (!level().isClientSide) discard(); }
-    @Override protected void defineSynchedData(SynchedEntityData.Builder builder) { builder.define(EXPIRES_AT, 0L); }
+    @Override protected void defineSynchedData() { entityData.define(EXPIRES_AT, 0L); }
     @Override protected void readAdditionalSaveData(@NotNull CompoundTag tag) {}
     @Override protected void addAdditionalSaveData(@NotNull CompoundTag tag) {}
 }

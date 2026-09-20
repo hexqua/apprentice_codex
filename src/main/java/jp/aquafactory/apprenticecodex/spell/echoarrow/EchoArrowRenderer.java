@@ -36,7 +36,7 @@ public final class EchoArrowRenderer extends EntityRenderer<EchoArrowEntity> {
             }
         } else if (!trail.isEmpty()) {
             // 1tick前の全身残像は後続の矢と重なるため、補間位置から0.35tickだけ遡る。
-            Vec3 previous = trail.getFirst().position();
+            Vec3 previous = trail.get(0).position();
             Vec3 ghost = partialTick >= .35f
                     ? previous.lerp(entity.position(), partialTick - .35f)
                     : (trail.size() > 1 ? trail.get(1).position().lerp(previous, 1 + partialTick - .35f) : previous);
@@ -76,9 +76,9 @@ public final class EchoArrowRenderer extends EntityRenderer<EchoArrowEntity> {
             var matrix = pose.last().pose();
             float[][] points = {{-8, -2, 0, 0}, {8, -2, .5f, 0}, {8, 2, .5f, .15625f}, {-8, 2, 0, .15625f}};
             for (var point : points)
-                consumer.addVertex(matrix, point[0], point[1], 0)
-                        .setColor(1f, 1f, 1f, alpha).setUv(point[2], point[3]).setOverlay(OverlayTexture.NO_OVERLAY)
-                        .setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
+                consumer.vertex(matrix, point[0], point[1], 0)
+                        .color(1f, 1f, 1f, alpha).uv(point[2], point[3]).overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
         }
         pose.popPose();
     }

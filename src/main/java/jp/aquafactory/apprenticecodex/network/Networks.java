@@ -115,6 +115,16 @@ public final class Networks {
     }
 
     public static void register() {
+        CHANNEL.registerMessage(nextPacketId++, jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket.class,
+                jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket::encode, jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket::decode, jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(nextPacketId++, jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket.class,
+                jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket::encode, jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket::decode, jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(nextPacketId++, jp.aquafactory.apprenticecodex.network.packet.ClientElementalBowCancelPacket.class,
+                jp.aquafactory.apprenticecodex.network.packet.ClientElementalBowCancelPacket::encode, jp.aquafactory.apprenticecodex.network.packet.ClientElementalBowCancelPacket::decode, jp.aquafactory.apprenticecodex.network.packet.ClientElementalBowCancelPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+
         CHANNEL.registerMessage(nextPacketId++, jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePacket.class,
                 jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePacket::encode,
                 jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePacket::decode,
@@ -732,11 +742,7 @@ public final class Networks {
                 GunSpellTracerPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
-        registrar.playToClient(
-                jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket.TYPE,
-                jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket.STREAM_CODEC,
-                jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket::handle
-        );
+
     }
 
     public static void sendToPlayer(ServerPlayer serverPlayer, Object packet) {

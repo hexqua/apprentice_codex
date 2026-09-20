@@ -15,16 +15,16 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +35,7 @@ import java.util.UUID;
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
 public final class LightningArrowGameTests {
+    // Forge 1.20.1 の通常地形で地下に埋まらないよう、空中検証は相対高度を220上げる。
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final String BATCH = "apprenticecodex.lightning_arrow";
 
@@ -44,7 +45,7 @@ public final class LightningArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void flightMaintainsFiveBlocksInEveryDirectionAndStopsAtRange(GameTestHelper helper) {
         try (var scene = new Scene(helper)) {
-            var origin = helper.absoluteVec(new Vec3(3.5, 80, 3.5));
+            var origin = helper.absoluteVec(new Vec3(3.5, 300, 3.5));
             for (var direction : List.of(new Vec3(1, 0, 0), new Vec3(0, 0, 1),
                     new Vec3(0, 1, 0), new Vec3(0, -1, 0), new Vec3(1, 1, 1).normalize())) {
                 var arrow = scene.arrow(origin, direction, 64);
@@ -52,7 +53,7 @@ public final class LightningArrowGameTests {
                     arrow.tick();
                     var expected = Math.min(64, tick * 5);
                     helper.assertTrue(Math.abs(arrow.traveledDistance() - expected) < 1.0e-4,
-                            "Arrow must travel five blocks per tick and trim its final step");
+                            "Arrow must travel five blocks per tick and trim its final step direction=" + direction + ", tick=" + tick + ", pos=" + arrow.position() + ", distance=" + arrow.traveledDistance() + ", stopped=" + arrow.stopped());
                     helper.assertTrue(arrow.position().distanceTo(origin.add(direction.scale(expected))) < 1.0e-4,
                             "Arrow must remain straight without gravity or direction-dependent speed");
                 }
@@ -184,7 +185,7 @@ public final class LightningArrowGameTests {
     public static void protectsCasterAndOwnedSummonsWhilePiercingToEnemy(GameTestHelper helper) {
         try (var scene = new Scene(helper)) {
             var wolf = EntityType.WOLF.create(helper.getLevel());
-            wolf.setTame(true, false);
+            wolf.setTame(true);
             wolf.setOwnerUUID(scene.owner.getUUID());
             wolf.setNoAi(true);
             wolf.setPos(helper.absoluteVec(new Vec3(3, 2, 3.5)));
@@ -207,7 +208,7 @@ public final class LightningArrowGameTests {
         try (var scene = new Scene(helper)) {
             var dragon = EntityType.ENDER_DRAGON.create(helper.getLevel());
             dragon.setNoAi(true);
-            var far = helper.absoluteVec(new Vec3(20, 15, 20));
+            var far = helper.absoluteVec(new Vec3(20, 235, 20));
             dragon.setPos(far);
             scene.add(dragon);
             for (var part : dragon.getSubEntities()) part.setPos(far);
@@ -216,7 +217,7 @@ public final class LightningArrowGameTests {
             var start = helper.absoluteVec(new Vec3(1.5, 2.5, 3.5));
             var arrow = scene.arrow(start, new Vec3(1, 0, 0), 5);
             var hits = LightningArrowCollision.contacts(helper.getLevel(), arrow, scene.owner, start, start.add(5, 0, 0));
-            helper.assertTrue(hits.size() == 1 && hits.getFirst().target() == dragon,
+            helper.assertTrue(hits.size() == 1 && hits.get(0).target() == dragon,
                     "Distinct intersecting parts must resolve to one contact on the parent");
         }
         helper.succeed();
@@ -225,7 +226,7 @@ public final class LightningArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void flightAndImpactDataRoundTripWithoutVelocityClamping(GameTestHelper helper) {
         for (var direction : List.of(new Vec3(1, 0, 0), new Vec3(0, 1, 0), new Vec3(1, -1, 1))) {
-            var flight = new LightningArrowFlight(new Vec3(12345678.125, 65.625, -12345678.375), direction, 5, 64, 123);
+            var flight = new LightningArrowFlight(new Vec3(12345678.125, 285.625, -12345678.375), direction, 5, 64, 123);
             var buffer = new FriendlyByteBuf(Unpooled.buffer());
             try {
                 buffer.writeNbt(flight.encode());
@@ -241,10 +242,10 @@ public final class LightningArrowGameTests {
             }
         }
         var packet = new LightningArrowImpactPacket(new Vec3(1, 2, 3), new Vec3(0, 0, 1), true);
-        var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
+        var buffer = new FriendlyByteBuf(Unpooled.buffer());
         try {
-            LightningArrowImpactPacket.STREAM_CODEC.encode(buffer, packet);
-            helper.assertTrue(packet.equals(LightningArrowImpactPacket.STREAM_CODEC.decode(buffer)),
+            LightningArrowImpactPacket.encode(packet, buffer);
+            helper.assertTrue(packet.equals(LightningArrowImpactPacket.decode(buffer)),
                     "Impact synchronization must preserve its position, direction and terrain flag");
         } finally {
             buffer.release();
@@ -255,7 +256,7 @@ public final class LightningArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void castingUsesArrowOffsetAndServerTicksAdvanceTheArrow(GameTestHelper helper) {
         var scene = new Scene(helper);
-        scene.owner.setPos(helper.absoluteVec(new Vec3(2.5, 20, 2.5)));
+        scene.owner.setPos(helper.absoluteVec(new Vec3(2.5, 240, 2.5)));
         scene.owner.setYRot(0);
         scene.owner.setXRot(0);
         var eye = scene.owner.getEyePosition();
@@ -263,14 +264,14 @@ public final class LightningArrowGameTests {
                 CastSource.SPELLBOOK, MagicData.getPlayerMagicData(scene.owner));
         var arrows = helper.getLevel().getEntitiesOfClass(LightningArrowEntity.class, scene.owner.getBoundingBox().inflate(2));
         helper.assertTrue(arrows.size() == 1, "A completed cast must spawn exactly one arrow");
-        var arrow = arrows.getFirst();
+        var arrow = arrows.get(0);
         scene.entities.add(arrow);
         helper.assertTrue(arrow.position().distanceTo(eye.add(0, -0.4, 1)) < 1.0e-7,
                 "The cast must start one block forward and 0.4 blocks below the eye");
         helper.runAfterDelay(2, () -> {
             try (scene) {
                 helper.assertTrue(arrow.traveledDistance() >= 5 && arrow.traveledDistance() <= 15,
-                        "The registered projectile must advance during normal server ticks");
+                        "The registered projectile must advance during normal server ticks ticks=" + arrow.tickCount + ", pos=" + arrow.position() + ", distance=" + arrow.traveledDistance() + ", stopped=" + arrow.stopped());
                 helper.assertTrue(arrow.flight().range() == 64, "Casting must use the spell range");
             }
             helper.succeed();

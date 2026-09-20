@@ -11,7 +11,7 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAimCastData;
 import jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowCastData;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
+
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
@@ -19,17 +19,18 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.CustomData;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 import java.util.function.Consumer;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
 public final class ElementalBowLongCastGameTests {
+    // Forge 1.20.1 の通常地形で地下に埋まらないよう、空中検証は相対高度を220上げる。
     private static final String TEMPLATE = "gametest/basic_floor";
 
     @GameTest(template = TEMPLATE)
@@ -39,40 +40,38 @@ public final class ElementalBowLongCastGameTests {
             var caster = player(h, InteractionHand.MAIN_HAND, spell);
             var observer = player(h, InteractionHand.MAIN_HAND, spell);
             var packets = new java.util.ArrayList<jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket>();
-            var connection = new net.minecraft.network.Connection(net.minecraft.network.protocol.PacketFlow.SERVERBOUND);
-            var channel = new io.netty.channel.embedded.EmbeddedChannel(connection);
-            net.neoforged.neoforge.network.registration.NetworkRegistry.configureMockConnection(connection);
-            var previous = observer.connection;
-            new net.minecraft.server.network.ServerGamePacketListenerImpl(h.getLevel().getServer(), connection, observer,
-                    net.minecraft.server.network.CommonListenerCookie.createInitial(observer.getGameProfile(), false)) {
+            var connection = new net.minecraft.network.Connection(net.minecraft.network.protocol.PacketFlow.SERVERBOUND) {
                 @Override public void send(net.minecraft.network.protocol.Packet<?> packet) {
-                    if (packet instanceof net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket payload
-                            && payload.payload() instanceof jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket cast) {
-                        packets.add(cast);
-                    }
+                    var cast = ForgePacketTestSupport.decode(packet,
+                            jp.aquafactory.apprenticecodex.network.Networks.class, "CHANNEL",
+                            new jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket(caster.getUUID(), spell.getSpellId(), true),
+                            jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket::decode);
+                    if (cast != null) packets.add(cast);
                 }
             };
+            var channel = new io.netty.channel.embedded.EmbeddedChannel(connection);
+            var previous = observer.connection;
+            new net.minecraft.server.network.ServerGamePacketListenerImpl(h.getLevel().getServer(), connection, observer);
             try {
                 begin(h, caster, InteractionHand.MAIN_HAND);
-                var event = new net.neoforged.neoforge.event.entity.player.PlayerEvent.StartTracking(observer, caster);
-                NeoForge.EVENT_BUS.post(event);
-                h.assertTrue(packets.size() == 1 && packets.getFirst().active()
-                                && packets.getFirst().playerId().equals(caster.getUUID())
-                                && packets.getFirst().spellId().equals(spell.getSpellId()),
+                MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.entity.player.PlayerEvent.StartTracking(observer, caster));
+                h.assertTrue(packets.size() == 1 && packets.get(0).active()
+                                && packets.get(0).playerId().equals(caster.getUUID())
+                                && packets.get(0).spellId().equals(spell.getSpellId()),
                         "A new observer must receive the caster's active bow spell");
                 packets.clear();
                 // 終了を観測できなかった後の再追跡で、過去の弓詠唱を再送しない。
                 ElementalBowPendingCast.cancel(caster);
-                NeoForge.EVENT_BUS.post(event);
+                MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.entity.player.PlayerEvent.StartTracking(observer, caster));
                 h.assertTrue(packets.isEmpty(), "Tracking after cancellation must not restore a finished bow cast");
                 begin(h, caster, InteractionHand.MAIN_HAND);
                 caster.stopUsingItem();
-                NeoForge.EVENT_BUS.post(event);
+                MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.entity.player.PlayerEvent.StartTracking(observer, caster));
                 h.assertTrue(packets.isEmpty(), "Invalid pending state must not be sent before the next cleanup tick");
                 ElementalBowPendingCast.cancel(caster);
                 var magic = MagicData.getPlayerMagicData(caster);
                 magic.initiateCast(spell, 1, 20, io.redspace.ironsspellbooks.api.spells.CastSource.SPELLBOOK, "mainhand");
-                NeoForge.EVENT_BUS.post(event);
+                MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.entity.player.PlayerEvent.StartTracking(observer, caster));
                 h.assertTrue(packets.isEmpty(), "Ordinary casting must not be synchronized as a bow cast");
                 magic.resetCastingState();
             } finally {
@@ -116,7 +115,7 @@ public final class ElementalBowLongCastGameTests {
         target.setNoAi(true);
         target.setNoGravity(true);
         target.setPos(player.position().add(0, 0, 5));
-        target.addEffect(new MobEffectInstance(io.redspace.ironsspellbooks.registries.MobEffectRegistry.GUIDING_BOLT, 200));
+        target.addEffect(new MobEffectInstance(io.redspace.ironsspellbooks.registries.MobEffectRegistry.GUIDING_BOLT.get(), 200));
         h.getLevel().addFreshEntity(target);
         begin(h, player, hand);
         var captured = magic.getAdditionalCastData();
@@ -147,11 +146,11 @@ public final class ElementalBowLongCastGameTests {
                 casts[0]++;
                 h.assertTrue(magic.getAdditionalCastData() == captured, "Release must not reacquire the target");
             };
-            NeoForge.EVENT_BUS.addListener(listener);
+            MinecraftForge.EVENT_BUS.addListener(listener);
             try (var config = BowGameTestSupport.useElementalBowSpellConfig(h)) {
                 int elapsed = (int) (h.getLevel().getGameTime() - startedAt);
-                stack.getItem().releaseUsing(stack, h.getLevel(), player, stack.getUseDuration(player) - elapsed);
-                stack.getItem().releaseUsing(stack, h.getLevel(), player, stack.getUseDuration(player) - elapsed);
+                stack.getItem().releaseUsing(stack, h.getLevel(), player, stack.getUseDuration() - elapsed);
+                stack.getItem().releaseUsing(stack, h.getLevel(), player, stack.getUseDuration() - elapsed);
                 h.assertTrue(casts[0] == 1 && stack.getDamageValue() == 1, "Release must cast and damage exactly once");
                 h.assertTrue(player.getInventory().getItem(2).getCount() == 2, "Release must consume exactly one arrow");
                 h.assertTrue(magic.getMana() < 1000 && ElementalBowOverheatManager.getState(player).active(), "Successful release must consume mana and apply heat");
@@ -159,7 +158,7 @@ public final class ElementalBowLongCastGameTests {
                 h.assertFalse(magic.getPlayerCooldowns().isOnCooldown(spell), "Held casting must bypass normal cooldown");
                 h.succeed();
             } finally {
-                NeoForge.EVENT_BUS.unregister(listener);
+                MinecraftForge.EVENT_BUS.unregister(listener);
                 ElementalBowPendingCast.cancel(player);
                 target.discard();
             }
@@ -205,19 +204,19 @@ public final class ElementalBowLongCastGameTests {
                 var stack = player.getMainHandItem();
                 begin(h, player, InteractionHand.MAIN_HAND);
                 switch (reason) {
-                    case 0 -> stack.getItem().releaseUsing(stack, h.getLevel(), player, stack.getUseDuration(player) - 1);
+                    case 0 -> stack.getItem().releaseUsing(stack, h.getLevel(), player, stack.getUseDuration() - 1);
                     case 1 -> player.setItemInHand(InteractionHand.MAIN_HAND, stack.copy());
                     case 2 -> player.stopUsingItem();
-                    case 3 -> CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putString("ElementalBowShotMode", "normal"));
+                    case 3 -> stack.getOrCreateTag().putString("ElementalBowShotMode", "normal");
                     case 4 -> ElementalBowPendingCast.cancel(player); // 画面・切断・移動からの共通経路。
                     case 5 -> {
                         MagicData.getPlayerMagicData(player).setMana(0);
-                        stack.getItem().releaseUsing(stack, h.getLevel(), player, stack.getUseDuration(player) - 100);
+                        stack.getItem().releaseUsing(stack, h.getLevel(), player, stack.getUseDuration() - 100);
                         MagicData.getPlayerMagicData(player).setMana(1000);
                     }
                     case 6 -> {
                         player.getInventory().setItem(2, ItemStack.EMPTY);
-                        stack.getItem().releaseUsing(stack, h.getLevel(), player, stack.getUseDuration(player) - 100);
+                        stack.getItem().releaseUsing(stack, h.getLevel(), player, stack.getUseDuration() - 100);
                         player.getInventory().setItem(2, new ItemStack(Items.ARROW, 3));
                     }
                 }
@@ -254,13 +253,13 @@ public final class ElementalBowLongCastGameTests {
             Consumer<io.redspace.ironsspellbooks.api.events.SpellPreCastEvent> veto = event -> {
                 if (event.getEntity() == player) event.setCanceled(true);
             };
-            NeoForge.EVENT_BUS.addListener(veto);
+            MinecraftForge.EVENT_BUS.addListener(veto);
             try {
                 h.assertFalse(player.getMainHandItem().getItem().use(h.getLevel(), player, InteractionHand.MAIN_HAND)
                         .getResult().consumesAction(), "A vetoed start must fail");
                 assertCleared(h, player);
                 assertUnspent(h, player, player.getMainHandItem());
-            } finally { NeoForge.EVENT_BUS.unregister(veto); }
+            } finally { MinecraftForge.EVENT_BUS.unregister(veto); }
             var existing = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
             magic.initiateCast(existing, 1, 20, io.redspace.ironsspellbooks.api.spells.CastSource.SPELLBOOK, "mainhand");
             var data = new LunarAimCastData(null, h.getLevel().dimension());
@@ -335,15 +334,15 @@ public final class ElementalBowLongCastGameTests {
     }
 
     private static FakePlayer player(GameTestHelper h, InteractionHand hand, AbstractSpell spell) {
-        var player = BowGameTestSupport.createEquipmentTestPlayer(h, new BlockPos(2, 80, 2), "bow_long");
-        player.getAttribute(AttributeRegistry.MAX_MANA).setBaseValue(2000);
+        var player = BowGameTestSupport.createEquipmentTestPlayer(h, new BlockPos(2, 300, 2), "bow_long");
+        player.getAttribute(AttributeRegistry.MAX_MANA.get()).setBaseValue(2000);
         MagicData.getPlayerMagicData(player).setMana(1000);
         var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
         ElementalBow.setCalibrationScroll(stack, 0, BowGameTestSupport.createSpellScroll(spell), h.getLevel().registryAccess());
-        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+        { var tag = stack.getOrCreateTag();
             tag.putString("ElementalBowShotMode", "magic");
             tag.putString("ElementalBowMode", ElementalBow.selectionIdForSlot(0).toString());
-        });
+        }
         player.setItemInHand(hand, stack);
         player.getInventory().setItem(2, new ItemStack(Items.ARROW, 3));
         return player;

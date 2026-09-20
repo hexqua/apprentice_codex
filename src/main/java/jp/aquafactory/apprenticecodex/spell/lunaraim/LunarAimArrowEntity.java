@@ -20,7 +20,7 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.*;
 import net.minecraft.world.phys.shapes.CollisionContext;
-import net.neoforged.neoforge.event.EventHooks;
+import net.minecraftforge.event.ForgeEventFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -139,7 +139,7 @@ public final class LunarAimArrowEntity extends Projectile implements AntiMagicSu
             hit = new EntityHitResult(entityHit.getEntity(), point);
         }
         if (hit.getType() != HitResult.Type.MISS) {
-            if (EventHooks.onProjectileImpact(this, hit)) {
+            if (ForgeEventFactory.onProjectileImpact(this, hit)) {
                 if (hit instanceof BlockHitResult block) cancelledBlockHit = block;
             } else onHit(hit);
         }
@@ -149,7 +149,7 @@ public final class LunarAimArrowEntity extends Projectile implements AntiMagicSu
         if (horizontalCollision || verticalCollision) {
             var block = cancelledBlockHit != null ? cancelledBlockHit : ProjectileCollisionTools.findPhysicalBlockHit(this, start, requested);
             if (block == null) discard();
-            else if (cancelledBlockHit != null || EventHooks.onProjectileImpact(this, block))
+            else if (cancelledBlockHit != null || ForgeEventFactory.onProjectileImpact(this, block))
                 ProjectileCollisionTools.continueAfterCancelledImpact(this, start, requested);
             else onHit(block);
         }
@@ -203,9 +203,9 @@ public final class LunarAimArrowEntity extends Projectile implements AntiMagicSu
     @Override public boolean isPushedByFluid() { return false; }
     @Override public boolean shouldBeSaved() { return false; }
     @Override public void onAntiMagic(MagicData data) { if (!level().isClientSide) discard(); }
-    @Override protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
-        builder.define(BURST, false);
-        builder.define(RADIUS, 2.5f);
+    @Override protected void defineSynchedData() {
+        entityData.define(BURST, false);
+        entityData.define(RADIUS, 2.5f);
     }
     @Override protected void readAdditionalSaveData(@NotNull CompoundTag tag) { super.readAdditionalSaveData(tag); }
     @Override protected void addAdditionalSaveData(@NotNull CompoundTag tag) { super.addAdditionalSaveData(tag); }

@@ -126,8 +126,8 @@ public class SacredArrow extends AbstractSpell {
                                         // FOV設定によらず上下も含む120度の円錐で絞り、優先順位は距離のままにする。
                                         && look.dot(candidate.getBoundingBox().getCenter().subtract(eye).normalize())
                                         >= TARGET_HALF_ANGLE_COS - 1.0e-7
-                                        && (candidate.hasEffect(EffectRegistry.SACRED_SIGN)
-                                        || candidate.hasEffect(io.redspace.ironsspellbooks.registries.MobEffectRegistry.GUIDING_BOLT)))
+                                        && (candidate.hasEffect(EffectRegistry.SACRED_SIGN.get())
+                                        || candidate.hasEffect(io.redspace.ironsspellbooks.registries.MobEffectRegistry.GUIDING_BOLT.get())))
                 .stream().min(Comparator.comparingDouble((LivingEntity e) -> e.distanceToSqr(caster))
                         .thenComparingInt(LivingEntity::getId)).orElse(null);
         if (target != null && caster instanceof ServerPlayer player) {

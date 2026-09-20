@@ -1,33 +1,27 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.NotNull;
 
-public record LightningArrowImpactPacket(Vec3 position, Vec3 incoming, boolean blockHit) implements CustomPacketPayload {
-    public static final Type<LightningArrowImpactPacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "lightning_arrow_impact"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, LightningArrowImpactPacket> STREAM_CODEC = StreamCodec.of(
-            (buffer, packet) -> {
-                buffer.writeVec3(packet.position());
-                buffer.writeVec3(packet.incoming());
-                buffer.writeBoolean(packet.blockHit());
-            }, buffer -> new LightningArrowImpactPacket(buffer.readVec3(), buffer.readVec3(), buffer.readBoolean()));
-
-    @Override
-    public @NotNull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+public record LightningArrowImpactPacket(Vec3 position, Vec3 incoming, boolean blockHit) {
+    public static void encode(LightningArrowImpactPacket packet, net.minecraft.network.FriendlyByteBuf buffer) {
+        buffer.writeDouble(packet.position().x).writeDouble(packet.position().y).writeDouble(packet.position().z);
+        buffer.writeDouble(packet.incoming().x).writeDouble(packet.incoming().y).writeDouble(packet.incoming().z);
+        buffer.writeBoolean(packet.blockHit());
     }
 
-    public static void handle(LightningArrowImpactPacket packet, IPayloadContext context) {
+    public static LightningArrowImpactPacket decode(net.minecraft.network.FriendlyByteBuf buffer) {
+        return new LightningArrowImpactPacket(new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble()), new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble()), buffer.readBoolean());
+    }
+
+    public static void handle(LightningArrowImpactPacket packet, java.util.function.Supplier<net.minecraftforge.network.NetworkEvent.Context> supplier) {
+        var context = supplier.get();
+        context.setPacketHandled(true);
         context.enqueueWork(() -> {
             if (FMLEnvironment.dist == Dist.CLIENT) ClientHandler.handle(packet);
         });

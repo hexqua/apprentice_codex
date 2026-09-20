@@ -15,11 +15,11 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
-import net.neoforged.neoforge.event.entity.ProjectileImpactEvent;
-import net.neoforged.neoforge.gametest.*;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.ProjectileImpactEvent;
+import net.minecraftforge.gametest.*;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -27,13 +27,14 @@ import java.util.function.Consumer;
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
 public final class EchoArrowGameTests {
+    // Forge 1.20.1 の通常地形で地下に埋まらないよう、空中検証は相対高度を220上げる。
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final String BATCH = "apprenticecodex.echo_arrow";
 
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void initialFlightMatchesBloodyArrowAndExpiresWithCore(GameTestHelper helper) {
         try (var scene = new Scene(helper)) {
-            var pair = scene.pair(new Vec3(2, 120, 2), new Vec3(0, 1, 0), 7);
+            var pair = scene.pair(new Vec3(2, 340, 2), new Vec3(0, 1, 0), 7);
             Vec3 origin = pair.arrow.position();
             for (int i = 0; i < 10; i++) step(pair.arrow);
             helper.assertTrue(pair.arrow.position().distanceTo(origin.add(0, 25, 0)) < 1e-6,
@@ -56,9 +57,9 @@ public final class EchoArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH, timeoutTicks = 60)
     public static void actualTicksFireExactBatchesAtFixedImpactPoint(GameTestHelper helper) {
         var scene = new Scene(helper);
-        var target = scene.zombie(new Vec3(3, 30, 3));
+        var target = scene.zombie(new Vec3(3, 250, 3));
         target.setInvulnerable(true);
-        var pair = scene.pair(new Vec3(.8, 31, 3), new Vec3(1, 0, 0), 7);
+        var pair = scene.pair(new Vec3(.8, 251, 3), new Vec3(1, 0, 0), 7);
         step(pair.arrow);
         Vec3 impact = pair.arrow.position();
         long impactTime = helper.getLevel().getGameTime();
@@ -92,13 +93,13 @@ public final class EchoArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void bothModesIgnoreArmorIframesAndKnockbackWithoutPiercing(GameTestHelper helper) {
         try (var scene = new Scene(helper)) {
-            var target = scene.zombie(new Vec3(3, 30, 3));
+            var target = scene.zombie(new Vec3(3, 250, 3));
             target.getAttribute(Attributes.ARMOR).setBaseValue(30);
             target.invulnerableTime = 20;
-            var behind = scene.zombie(new Vec3(4, 30, 3));
+            var behind = scene.zombie(new Vec3(4, 250, 3));
             Vec3 before = target.getDeltaMovement();
             for (int i = 0; i < 4; i++) {
-                var arrow = scene.arrow(scene.pos(new Vec3(.8, 31, 3)), new Vec3(1, 0, 0), i == 0, null);
+                var arrow = scene.arrow(scene.pos(new Vec3(.8, 251, 3)), new Vec3(1, 0, 0), i == 0, null);
                 step(arrow);
                 helper.assertTrue(arrow.isRemoved(), "Both arrow modes must stop at the first entity");
             }
@@ -112,20 +113,20 @@ public final class EchoArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void counterspellAndRemovalRespectOneWayDependency(GameTestHelper helper) {
         try (var scene = new Scene(helper)) {
-            var pair = scene.pair(new Vec3(2, 30, 2), new Vec3(0, 1, 0), 7);
+            var pair = scene.pair(new Vec3(2, 250, 2), new Vec3(0, 1, 0), 7);
             pair.arrow.onAntiMagic(null);
             helper.assertTrue(pair.core.isRemoved(), "Countering the initial arrow must remove its core");
-            pair = scene.pair(new Vec3(2, 30, 2), new Vec3(0, 1, 0), 7);
+            pair = scene.pair(new Vec3(2, 250, 2), new Vec3(0, 1, 0), 7);
             pair.core.onAntiMagic(null);
             step(pair.arrow);
             helper.assertFalse(pair.arrow.isRemoved(), "Countering the core must not remove its initial arrow");
-            pair = scene.pair(new Vec3(2, 30, 2), new Vec3(0, 1, 0), 7);
+            pair = scene.pair(new Vec3(2, 250, 2), new Vec3(0, 1, 0), 7);
             pair.arrow.remove(Entity.RemovalReason.UNLOADED_TO_CHUNK);
             helper.assertTrue(pair.core.isRemoved(), "Unloading the initial arrow must remove the waiting core");
-            pair = scene.pair(new Vec3(2, 30, 2), new Vec3(0, 1, 0), 7);
+            pair = scene.pair(new Vec3(2, 250, 2), new Vec3(0, 1, 0), 7);
             pair.core.remove(Entity.RemovalReason.UNLOADED_TO_CHUNK);
             helper.assertFalse(pair.arrow.isRemoved(), "Unloading a core must not destroy an already fired arrow");
-            var followup = scene.arrow(scene.pos(new Vec3(2, 30, 2)), new Vec3(0, 1, 0), false, null);
+            var followup = scene.arrow(scene.pos(new Vec3(2, 250, 2)), new Vec3(0, 1, 0), false, null);
             followup.onAntiMagic(null);
             helper.assertTrue(followup.isRemoved(), "Follow-up arrows must also support anti-magic");
         }
@@ -135,9 +136,9 @@ public final class EchoArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void realCounterspellRayCanSelectCore(GameTestHelper helper) {
         try (var scene = new Scene(helper)) {
-            var pair = scene.pair(new Vec3(3, 31.62, 3), new Vec3(0, 1, 0), 7);
+            var pair = scene.pair(new Vec3(3, 251.62, 3), new Vec3(0, 1, 0), 7);
             pair.arrow.setPos(pair.arrow.position().add(0, 5, 0));
-            scene.owner.setPos(scene.pos(new Vec3(.5, 30, 3)));
+            scene.owner.setPos(scene.pos(new Vec3(.5, 250, 3)));
             scene.owner.setYRot(-90);
             scene.owner.setXRot(0);
             var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.COUNTERSPELL_SPELL.get();
@@ -151,11 +152,11 @@ public final class EchoArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void terrainStopsBothModesAndCancelledImpactDoesNotArm(GameTestHelper helper) {
         try (var scene = new Scene(helper)) {
-            var wall = new BlockPos(3, 31, 3);
+            var wall = new BlockPos(3, 251, 3);
             helper.setBlock(wall, Blocks.STONE);
             try {
                 for (boolean initial : new boolean[]{true, false}) {
-                    var arrow = scene.arrow(scene.pos(new Vec3(.8, 31.5, 3.5)), new Vec3(1, 0, 0), initial, null);
+                    var arrow = scene.arrow(scene.pos(new Vec3(.8, 251.5, 3.5)), new Vec3(1, 0, 0), initial, null);
                     step(arrow);
                     helper.assertTrue(arrow.isRemoved() && arrow.getX() <= scene.pos(new Vec3(3, 0, 0)).x + .001,
                             "Terrain must stop initial and follow-up arrows");
@@ -163,18 +164,18 @@ public final class EchoArrowGameTests {
             } finally {
                 helper.setBlock(wall, Blocks.AIR);
             }
-            var target = scene.zombie(new Vec3(3, 30, 3));
-            var pair = scene.pair(new Vec3(.8, 31, 3), new Vec3(1, 0, 0), 7);
+            var target = scene.zombie(new Vec3(3, 250, 3));
+            var pair = scene.pair(new Vec3(.8, 251, 3), new Vec3(1, 0, 0), 7);
             Consumer<ProjectileImpactEvent> listener = event -> {
-                if (event.getProjectile() == pair.arrow) event.setCanceled(true);
+                if (event.getProjectile() == pair.arrow) event.setImpactResult(ProjectileImpactEvent.ImpactResult.STOP_AT_CURRENT_NO_DAMAGE);
             };
-            NeoForge.EVENT_BUS.addListener(listener);
+            MinecraftForge.EVENT_BUS.addListener(listener);
             try {
                 step(pair.arrow);
                 helper.assertTrue(!pair.arrow.isRemoved() && pair.core.startTime() < 0 && target.getHealth() == 100,
                         "Cancelled impacts must not arm the core or deal damage");
             } finally {
-                NeoForge.EVENT_BUS.unregister(listener);
+                MinecraftForge.EVENT_BUS.unregister(listener);
             }
         }
         helper.succeed();
@@ -183,21 +184,21 @@ public final class EchoArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void ownerLossAndUnloadedDestinationEndEntities(GameTestHelper helper) {
         try (var scene = new Scene(helper)) {
-            var pair = scene.pair(new Vec3(2, 30, 2), new Vec3(0, 1, 0), 7);
+            var pair = scene.pair(new Vec3(2, 250, 2), new Vec3(0, 1, 0), 7);
             scene.owner.setHealth(0);
             pair.core.tick();
             step(pair.arrow);
             helper.assertTrue(pair.core.isRemoved() && pair.arrow.isRemoved(), "Owner death must stop both entities");
         }
         try (var scene = new Scene(helper)) {
-            var pair = scene.pair(new Vec3(2, 30, 2), new Vec3(0, 1, 0), 7);
+            var pair = scene.pair(new Vec3(2, 250, 2), new Vec3(0, 1, 0), 7);
             scene.owner.remove(Entity.RemovalReason.CHANGED_DIMENSION);
             pair.core.tick();
             step(pair.arrow);
             helper.assertTrue(pair.core.isRemoved() && pair.arrow.isRemoved(), "Removed owners must not keep echoes active");
         }
         try (var scene = new Scene(helper)) {
-            var pair = scene.pair(new Vec3(2, 30, 2), new Vec3(0, 1, 0), 7);
+            var pair = scene.pair(new Vec3(2, 250, 2), new Vec3(0, 1, 0), 7);
             // GameTestの配置座標はランダムなので、巨大座標を足さず近隣の未読込chunkを使う。
             Vec3 movement = new Vec3(1024, 0, 0);
             if (pair.arrow.getX() > 0) movement = movement.scale(-1);
@@ -222,12 +223,12 @@ public final class EchoArrowGameTests {
                     "Tooltip must describe time from impact to the last shot");
             spell.onCast(helper.getLevel(), 1, scene.owner, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(scene.owner));
             var origin = scene.owner.getEyePosition().add(scene.owner.getForward()).add(0, -0.4, 0);
-            helper.assertTrue(scene.shots.size() == 1 && scene.shots.getFirst().origin.distanceTo(origin) < 1e-6,
+            helper.assertTrue(scene.shots.size() == 1 && scene.shots.get(0).origin.distanceTo(origin) < 1e-6,
                     "Casting must emit exactly one initial arrow at the fixed arrow offset");
             var cores = helper.getLevel().getEntitiesOfClass(EchoArrowCoreEntity.class, scene.owner.getBoundingBox().inflate(2));
-            helper.assertTrue(cores.size() == 1 && cores.getFirst().totalCount() == count,
+            helper.assertTrue(cores.size() == 1 && cores.get(0).totalCount() == count,
                     "The core must snapshot the advertised follow-up count");
-            helper.assertTrue(cores.getFirst().position().distanceTo(origin) < 1e-6,
+            helper.assertTrue(cores.get(0).position().distanceTo(origin) < 1e-6,
                     "The core must share the initial arrow's offset origin");
             cores.forEach(Entity::discard);
         }
@@ -237,8 +238,8 @@ public final class EchoArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH, timeoutTicks = 60)
     public static void counteringDuringVolleyStopsOnlyUnfiredArrows(GameTestHelper helper) {
         var scene = new Scene(helper);
-        scene.zombie(new Vec3(3, 30, 3));
-        var pair = scene.pair(new Vec3(.8, 31, 3), new Vec3(1, 0, 0), 15);
+        scene.zombie(new Vec3(3, 250, 3));
+        var pair = scene.pair(new Vec3(.8, 251, 3), new Vec3(1, 0, 0), 15);
         step(pair.arrow);
         int[] emittedBeforeCounter = {0};
         helper.runAfterDelay(13, () -> {
@@ -261,14 +262,14 @@ public final class EchoArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH, timeoutTicks = 60)
     public static void zeroCountAndMissedDeadlineCannotLeaveCoreActive(GameTestHelper helper) {
         var scene = new Scene(helper);
-        var zero = scene.pair(new Vec3(2, 60, 2), new Vec3(0, 1, 0), 0);
+        var zero = scene.pair(new Vec3(2, 280, 2), new Vec3(0, 1, 0), 0);
         zero.core.acceptImpact(zero.arrow, zero.arrow.position().add(0, 10, 0));
         helper.assertTrue(zero.core.isRemoved(), "Zero follow-up count must finish immediately at impact");
         // worldへ登録しない核でtick停止を再現し、遅れて再開しても発射しないことを確認する。
         var arrow = new EchoArrowEntity(EntityRegistry.ECHO_ARROW.get(), helper.getLevel());
         var core = new EchoArrowCoreEntity(EntityRegistry.ECHO_ARROW_CORE.get(), helper.getLevel());
-        core.configure(scene.owner, scene.pos(new Vec3(2, 60, 2)), 3, 3, arrow);
-        core.acceptImpact(arrow, scene.pos(new Vec3(2, 70, 2)));
+        core.configure(scene.owner, scene.pos(new Vec3(2, 280, 2)), 3, 3, arrow);
+        core.acceptImpact(arrow, scene.pos(new Vec3(2, 290, 2)));
         helper.runAfterDelay(12, () -> {
             try (scene) {
                 core.tick();
@@ -282,10 +283,10 @@ public final class EchoArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH, timeoutTicks = 60)
     public static void blockedCoreConsumesArrowsWithoutSpawningAcrossWall(GameTestHelper helper) {
         var scene = new Scene(helper);
-        scene.zombie(new Vec3(3, 30, 3));
-        var pair = scene.pair(new Vec3(.98, 31, 3), new Vec3(1, 0, 0), 5);
+        scene.zombie(new Vec3(3, 250, 3));
+        var pair = scene.pair(new Vec3(.98, 251, 3), new Vec3(1, 0, 0), 5);
         step(pair.arrow);
-        var wall = new BlockPos(0, 31, 3);
+        var wall = new BlockPos(0, 251, 3);
         helper.setBlock(wall, Blocks.STONE);
         helper.runAfterDelay(17, () -> {
             try (scene) {
@@ -319,7 +320,7 @@ public final class EchoArrowGameTests {
         Scene(GameTestHelper helper) {
             this.helper = helper;
             owner = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "echo_test"));
-            owner.setPos(pos(new Vec3(1, 30, 1)));
+            owner.setPos(pos(new Vec3(1, 250, 1)));
             owner.setNoGravity(true);
             add(owner);
             listener = event -> {
@@ -328,7 +329,7 @@ public final class EchoArrowGameTests {
                     if (!entities.contains(arrow)) entities.add(arrow);
                 }
             };
-            NeoForge.EVENT_BUS.addListener(listener);
+            MinecraftForge.EVENT_BUS.addListener(listener);
         }
 
         Vec3 pos(Vec3 local) {
@@ -371,7 +372,7 @@ public final class EchoArrowGameTests {
 
         @Override
         public void close() {
-            NeoForge.EVENT_BUS.unregister(listener);
+            MinecraftForge.EVENT_BUS.unregister(listener);
             List.copyOf(entities).forEach(Entity::discard);
         }
     }

@@ -189,10 +189,10 @@ public final class EchoArrowCoreEntity extends Entity implements AntiMagicSuscep
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
-        builder.define(START, -1L);
-        builder.define(DIRECTION, new Vector3f(0, 0, 1));
-        builder.define(COUNT, 0);
+    protected void defineSynchedData() {
+        entityData.define(START, -1L);
+        entityData.define(DIRECTION, new Vector3f(0, 0, 1));
+        entityData.define(COUNT, 0);
     }
 
     @Override

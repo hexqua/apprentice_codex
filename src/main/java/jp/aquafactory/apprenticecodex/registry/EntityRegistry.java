@@ -393,23 +393,23 @@ public final class EntityRegistry {
     public static final RegistryObject<EntityType<jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrowEntity>> LIGHTNING_ARROW =
             regProjectile("lightning_arrow_arrow", jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrowEntity::new, 128, 1);
 
-    public static final DeferredHolder<EntityType<?>, EntityType<jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowEntity>> ECHO_ARROW =
+    public static final RegistryObject<EntityType<jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowEntity>> ECHO_ARROW =
             regProjectile("echo_arrow_arrow", jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowEntity::new, 128, 1);
-    public static final DeferredHolder<EntityType<?>, EntityType<jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowCoreEntity>> ECHO_ARROW_CORE =
+    public static final RegistryObject<EntityType<jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowCoreEntity>> ECHO_ARROW_CORE =
             reg("echo_arrow_core", jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowCoreEntity::new,
                     MobCategory.MISC, 0.4f, 0.4f, 128, 1, false, FireBehaviors.IMMUNE);
 
-    public static final DeferredHolder<EntityType<?>, EntityType<BloodyArrowEntity>> BLOODY_ARROW =
+    public static final RegistryObject<EntityType<BloodyArrowEntity>> BLOODY_ARROW =
             regProjectile("bloody_arrow_arrow", BloodyArrowEntity::new, 128, 1);
 
-    public static final DeferredHolder<EntityType<?>, EntityType<BloodyArrowOrbEntity>> BLOODY_ARROW_ORB =
+    public static final RegistryObject<EntityType<BloodyArrowOrbEntity>> BLOODY_ARROW_ORB =
             reg("bloody_arrow_orb", BloodyArrowOrbEntity::new, MobCategory.MISC,
                     0.25F, 0.25F, 32, 1, true, FireBehaviors.IMMUNE);
 
-    public static final DeferredHolder<EntityType<?>, EntityType<jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowEntity>> SACRED_ARROW =
+    public static final RegistryObject<EntityType<jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowEntity>> SACRED_ARROW =
             regProjectile("sacred_arrow_arrow", jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowEntity::new, 128, 1);
 
-    public static final DeferredHolder<EntityType<?>, EntityType<jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAimArrowEntity>> LUNAR_AIM_ARROW =
+    public static final RegistryObject<EntityType<jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAimArrowEntity>> LUNAR_AIM_ARROW =
             regProjectile("lunar_aim_arrow", jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAimArrowEntity::new, 128, 1);
 
     public static void register(IEventBus bus) {

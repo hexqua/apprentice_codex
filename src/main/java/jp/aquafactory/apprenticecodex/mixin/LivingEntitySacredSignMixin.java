@@ -13,6 +13,6 @@ public abstract class LivingEntitySacredSignMixin {
     private void apprenticecodex$sacredSignGlow(CallbackInfoReturnable<Boolean> cir) {
         var self = (LivingEntity) (Object) this;
         // Iron'sと同様にserverの発光判定を標準フラグへ同期し、他の発光理由を解除しない。
-        if (!self.level().isClientSide && self.hasEffect(EffectRegistry.SACRED_SIGN)) cir.setReturnValue(true);
+        if (!self.level().isClientSide && self.hasEffect(EffectRegistry.SACRED_SIGN.get())) cir.setReturnValue(true);
     }
 }

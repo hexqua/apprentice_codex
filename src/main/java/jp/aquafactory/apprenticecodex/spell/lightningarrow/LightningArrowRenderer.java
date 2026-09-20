@@ -56,7 +56,7 @@ public final class LightningArrowRenderer extends EntityRenderer<LightningArrowE
             if (segmentHit.getType() == HitResult.Type.BLOCK) point = segmentHit.getLocation();
             var ageDistance = distance - (previousDistance + nextDistance) * 0.5
                     + flight.speed() * entity.visualStopAge(partialTick);
-            var alpha = (float) Math.clamp(1 - ageDistance / (flight.speed() * LightningArrowEntity.TRAIL_TICKS), 0, 1);
+            var alpha = (float) net.minecraft.util.Mth.clamp(1 - ageDistance / (flight.speed() * LightningArrowEntity.TRAIL_TICKS), 0, 1);
             var scroll = -(entity.tickCount + partialTick) * 0.45F + (float) previousDistance;
             var camera = entityRenderDispatcher.camera.getPosition();
             ShockBoltRenderer.drawSegment(origin, pose, consumer, camera, previous.subtract(origin), point.subtract(origin),
@@ -105,10 +105,10 @@ public final class LightningArrowRenderer extends EntityRenderer<LightningArrowE
         for (int face = 0; face < 4; face++) {
             pose.mulPose(Axis.XP.rotationDegrees(90));
             var matrix = pose.last().pose();
-            consumer.addVertex(matrix, -8, -2, 0).setColor(-1).setUv(0, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
-            consumer.addVertex(matrix, 8, -2, 0).setColor(-1).setUv(0.5F, 0).setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
-            consumer.addVertex(matrix, 8, 2, 0).setColor(-1).setUv(0.5F, 0.15625F).setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
-            consumer.addVertex(matrix, -8, 2, 0).setColor(-1).setUv(0, 0.15625F).setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightTexture.FULL_BRIGHT).setNormal(0, 1, 0);
+            consumer.vertex(matrix, -8, -2, 0).color(-1).uv(0, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
+            consumer.vertex(matrix, 8, -2, 0).color(-1).uv(0.5F, 0).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
+            consumer.vertex(matrix, 8, 2, 0).color(-1).uv(0.5F, 0.15625F).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
+            consumer.vertex(matrix, -8, 2, 0).color(-1).uv(0, 0.15625F).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BRIGHT).normal(0, 1, 0).endVertex();
         }
     }
 

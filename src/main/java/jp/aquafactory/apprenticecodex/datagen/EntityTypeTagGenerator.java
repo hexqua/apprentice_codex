@@ -27,7 +27,7 @@ public final class EntityTypeTagGenerator extends TagsProvider<EntityType<?>> {
         tag(TagRegistry.EntityTypes.GRAVITY_BOUND_DENYLIST);
         // 通常弾も含め、Iron'sの誘導と専用のモード選択を競合させない。
         tag(io.redspace.ironsspellbooks.util.ModTags.GUIDING_BOLT_IMMUNE)
-                .add(EntityRegistry.SACRED_ARROW.getKey())
-                .add(EntityRegistry.LUNAR_AIM_ARROW.getKey());
+                .add(net.minecraft.tags.TagEntry.element(EntityRegistry.SACRED_ARROW.getId()))
+                .add(net.minecraft.tags.TagEntry.element(EntityRegistry.LUNAR_AIM_ARROW.getId()));
     }
 }

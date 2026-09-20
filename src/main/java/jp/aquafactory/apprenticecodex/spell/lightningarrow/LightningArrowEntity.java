@@ -58,10 +58,10 @@ public final class LightningArrowEntity extends Projectile implements AntiMagicS
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        builder.define(FLIGHT, new CompoundTag());
-        builder.define(DISTANCE, 0.0F);
-        builder.define(STOP_TICKS, 0);
+    protected void defineSynchedData() {
+        entityData.define(FLIGHT, new CompoundTag());
+        entityData.define(DISTANCE, 0.0F);
+        entityData.define(STOP_TICKS, 0);
     }
 
     public void launch(LivingEntity owner, Vec3 origin, Vec3 direction, double range, float damage) {
@@ -184,7 +184,7 @@ public final class LightningArrowEntity extends Projectile implements AntiMagicS
 
     // vanilla位置補間と独立した距離同期を二重適用すると、5ブロック/tickの矢が往復して見える。
     @Override
-    public void lerpTo(double x, double y, double z, float yaw, float pitch, int steps) {
+    public void lerpTo(double x, double y, double z, float yaw, float pitch, int steps, boolean teleport) {
     }
 
     @Override

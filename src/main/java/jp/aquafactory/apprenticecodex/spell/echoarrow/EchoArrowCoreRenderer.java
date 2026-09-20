@@ -11,13 +11,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
-import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 
@@ -68,7 +68,7 @@ public final class EchoArrowCoreRenderer extends EntityRenderer<EchoArrowCoreEnt
                     p[axis] = sign * .5f;
                     p[(axis + 1) % 3] = c[0];
                     p[(axis + 2) % 3] = c[1];
-                    portal.addVertex(pose.last().pose(), p[0], p[1], p[2]);
+                    portal.vertex(pose.last().pose(), p[0], p[1], p[2]).endVertex();
                 }
             }
         }
@@ -125,8 +125,8 @@ public final class EchoArrowCoreRenderer extends EntityRenderer<EchoArrowCoreEnt
 
     private static void quad(PoseStack pose, VertexConsumer consumer, float[] a, float[] b, float[] c, float[] d, float alpha) {
         for (var point : new float[][]{a, b, c, d})
-            consumer.addVertex(pose.last().pose(), point[0], point[1], point[2])
-                    .setColor(.35f, .9f, .85f, alpha);
+            consumer.vertex(pose.last().pose(), point[0], point[1], point[2])
+                    .color(.35f, .9f, .85f, alpha).endVertex();
     }
 
     @SubscribeEvent
@@ -146,7 +146,8 @@ public final class EchoArrowCoreRenderer extends EntityRenderer<EchoArrowCoreEnt
     }
 
     @SubscribeEvent
-    public static void tick(ClientTickEvent.Post event) {
+    public static void tick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
         var level = Minecraft.getInstance().level;
         if (level == null) {
             return;
@@ -160,7 +161,7 @@ public final class EchoArrowCoreRenderer extends EntityRenderer<EchoArrowCoreEnt
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES || TAILS.isEmpty()) return;
         var minecraft = Minecraft.getInstance();
         if (minecraft.level == null) return;
-        double time = minecraft.level.getGameTime() + event.getPartialTick().getGameTimeDeltaPartialTick(true);
+        double time = minecraft.level.getGameTime() + event.getPartialTick();
         var pose = event.getPoseStack();
         var buffers = minecraft.renderBuffers().bufferSource();
         var camera = event.getCamera().getPosition();

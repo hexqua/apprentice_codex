@@ -21,7 +21,7 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.*;
 import net.minecraft.world.phys.shapes.CollisionContext;
-import net.neoforged.neoforge.event.EventHooks;
+import net.minecraftforge.event.ForgeEventFactory;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
 import net.minecraft.util.Mth;
@@ -134,7 +134,7 @@ public final class SacredArrowEntity extends Projectile implements AntiMagicSusc
         for (var hit : hits) {
             var target = CombatTools.resolutePartEntity(hit.getEntity());
             if (!attempted.add(target.getUUID()) || !canHitEntity(hit.getEntity())) continue;
-            if (!EventHooks.onProjectileImpact(this, hit)) onHit(hit);
+            if (!ForgeEventFactory.onProjectileImpact(this, hit)) onHit(hit);
             if (isRemoved()) return;
         }
     }
@@ -148,7 +148,7 @@ public final class SacredArrowEntity extends Projectile implements AntiMagicSusc
         BlockHitResult cancelledBlockHit = null;
         var hit = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
         if (hit.getType() != HitResult.Type.MISS) {
-            if (EventHooks.onProjectileImpact(this, hit)) {
+            if (ForgeEventFactory.onProjectileImpact(this, hit)) {
                 if (hit instanceof BlockHitResult block) cancelledBlockHit = block;
             } else onHit(hit);
         }
@@ -158,7 +158,7 @@ public final class SacredArrowEntity extends Projectile implements AntiMagicSusc
         if (horizontalCollision || verticalCollision) {
             var block = cancelledBlockHit != null ? cancelledBlockHit : ProjectileCollisionTools.findPhysicalBlockHit(this, start, requested);
             if (block == null) discard();
-            else if (cancelledBlockHit != null || EventHooks.onProjectileImpact(this, block))
+            else if (cancelledBlockHit != null || ForgeEventFactory.onProjectileImpact(this, block))
                 ProjectileCollisionTools.continueAfterCancelledImpact(this, start, requested);
             else onHit(block);
         }
@@ -175,7 +175,7 @@ public final class SacredArrowEntity extends Projectile implements AntiMagicSusc
         if (applied) {
             damaged.add(target.getUUID());
             if (!chasing && target instanceof LivingEntity living && living.isAlive() && !living.isDeadOrDying()) {
-                living.addEffect(new MobEffectInstance(EffectRegistry.SACRED_SIGN, duration));
+                living.addEffect(new MobEffectInstance(EffectRegistry.SACRED_SIGN.get(), duration));
             }
         }
         impact(hit.getLocation());
@@ -189,7 +189,7 @@ public final class SacredArrowEntity extends Projectile implements AntiMagicSusc
     private void impact(Vec3 point) {
         MagicManager.spawnParticles(level(), ParticleHelper.WISP, point.x, point.y, point.z, 25, 0, 0, 0, .18, true);
         level().playSound(null, point.x, point.y, point.z,
-                io.redspace.ironsspellbooks.registries.SoundRegistry.GUIDING_BOLT_IMPACT.value(), SoundSource.NEUTRAL, 2, 0.9f + random.nextFloat() * .4f);
+                io.redspace.ironsspellbooks.registries.SoundRegistry.GUIDING_BOLT_IMPACT.get(), SoundSource.NEUTRAL, 2, 0.9f + random.nextFloat() * .4f);
     }
 
     @Override protected boolean canHitEntity(@NotNull Entity entity) {
@@ -202,7 +202,7 @@ public final class SacredArrowEntity extends Projectile implements AntiMagicSusc
     @Override public boolean isPushedByFluid() { return false; }
     @Override public boolean shouldBeSaved() { return false; }
     @Override public void onAntiMagic(MagicData data) { if (!level().isClientSide) discard(); }
-    @Override protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {}
+    @Override protected void defineSynchedData() {}
     @Override protected void readAdditionalSaveData(@NotNull CompoundTag tag) { super.readAdditionalSaveData(tag); }
     @Override protected void addAdditionalSaveData(@NotNull CompoundTag tag) { super.addAdditionalSaveData(tag); }
 }

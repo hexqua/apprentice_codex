@@ -20,7 +20,7 @@ public record LightningArrowFlight(Vec3 origin, Vec3 direction, double speed, do
     }
 
     public Vec3 point(double distance) {
-        return origin.add(direction.scale(Math.clamp(distance, 0.0, range)));
+        return origin.add(direction.scale(net.minecraft.util.Mth.clamp(distance, 0.0, range)));
     }
 
     public CompoundTag encode() {
