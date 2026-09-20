@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "110";
+    private static final String PROTOCOL_VERSION = "111";
 
     private Networks() {
     }
@@ -439,6 +439,11 @@ public final class Networks {
                 SyncPhotonSiphonCombatStatePacket.TYPE,
                 SyncPhotonSiphonCombatStatePacket.STREAM_CODEC,
                 SyncPhotonSiphonCombatStatePacket::handle
+        );
+        registrar.playToClient(
+                SpellrifleMuzzleParticlePacket.TYPE,
+                SpellrifleMuzzleParticlePacket.STREAM_CODEC,
+                SpellrifleMuzzleParticlePacket::handle
         );
         registrar.playToClient(
                 SyncMultipurposeStaffrifleFireEffectPacket.TYPE,

@@ -37,6 +37,7 @@ public final class FullautoRapidcastSpellrifleRenderer extends GeoItemRenderer<F
 
     public FullautoRapidcastSpellrifleRenderer() {
         super(new FullautoRapidcastSpellrifleModel());
+        addRenderLayer(new SpellrifleFirstPersonArmsLayer<>(this, () -> this.renderPerspective));
     }
 
     @Override

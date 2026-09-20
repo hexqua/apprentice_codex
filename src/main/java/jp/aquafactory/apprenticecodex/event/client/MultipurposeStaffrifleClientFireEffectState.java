@@ -15,14 +15,12 @@ import net.neoforged.neoforge.client.event.RenderFrameEvent;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class MultipurposeStaffrifleClientFireEffectState {
-    private static final float RECOIL_DURATION_TICKS = 8.0F;
-    private static final float RECOIL_HOLD_TICKS = 2.0F;
+    private static final SpellrifleModelRecoil MODEL_RECOIL = new SpellrifleModelRecoil();
 
     private static long lastFireGameTime = Long.MIN_VALUE;
     private static WeakReference<LocalPlayer> recoilPlayer = new WeakReference<>(null);
     private static WeakReference<ClientLevel> recoilLevel = new WeakReference<>(null);
     private static MultipurposeStaffrifleRecoil recoil = new MultipurposeStaffrifleRecoil();
-    private static float modelRecoilScale = 1.0F;
 
     private MultipurposeStaffrifleClientFireEffectState() {
     }
@@ -37,17 +35,18 @@ public final class MultipurposeStaffrifleClientFireEffectState {
         }
         if (recoilPlayer.get() != player || recoilLevel.get() != minecraft.level) {
             recoil = new MultipurposeStaffrifleRecoil();
+            MODEL_RECOIL.clear();
             recoilPlayer = new WeakReference<>(player);
             recoilLevel = new WeakReference<>(minecraft.level);
         }
         lastFireGameTime = resolveGameTime();
         if (MultipurposeStaffrifle.hasRecoveryRune(player.getMainHandItem(), minecraft.level.registryAccess())) {
             recoil = new MultipurposeStaffrifleRecoil();
-            modelRecoilScale = 1.0F;
+            beginModelRecoil(1.0F);
             return;
         }
         var pitch = MultipurposeStaffrifleRecoil.shotPitch(MultipurposeStaffrifleClientAdsState.shouldHandleAsAds(player));
-        modelRecoilScale = 0.8F + pitch * 0.2F;
+        beginModelRecoil(0.8F + pitch * 0.2F);
         recoil.addImpulse(pitch, System.nanoTime());
     }
 
@@ -80,17 +79,15 @@ public final class MultipurposeStaffrifleClientFireEffectState {
             return 0.0F;
         }
 
-        var age = gameTime + partialTick - lastFireGameTime;
-        if (age < 0.0F || age >= RECOIL_DURATION_TICKS) {
-            return 0.0F;
-        }
+        return MODEL_RECOIL.amount((double) gameTime + partialTick);
+    }
 
-        if (age <= RECOIL_HOLD_TICKS) {
-            return modelRecoilScale;
-        }
-
-        var restoreProgress = (age - RECOIL_HOLD_TICKS) / (RECOIL_DURATION_TICKS - RECOIL_HOLD_TICKS);
-        return (1.0F - restoreProgress) * modelRecoilScale;
+    private static void beginModelRecoil(float strength) {
+        var minecraft = Minecraft.getInstance();
+        boolean ads = MultipurposeStaffrifleClientAdsState.shouldHandleAsAds(minecraft.player);
+        // 描画の補間時刻で衝撃を開始し、受信したtick内の時刻による立ち上がりの飛びを避ける。
+        double time = (double) resolveGameTime() + minecraft.getTimer().getGameTimeDeltaPartialTick(true);
+        MODEL_RECOIL.fire(time, strength * (ads ? 0.55F : 1.0F));
     }
 
     private static long resolveGameTime() {

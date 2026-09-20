@@ -37,6 +37,7 @@ public final class MultipurposeStaffrifleRenderer extends GeoItemRenderer<Multip
 
     public MultipurposeStaffrifleRenderer() {
         super(new MultipurposeStaffrifleModel());
+        addRenderLayer(new SpellrifleFirstPersonArmsLayer<>(this, () -> this.renderPerspective));
     }
 
     @Override

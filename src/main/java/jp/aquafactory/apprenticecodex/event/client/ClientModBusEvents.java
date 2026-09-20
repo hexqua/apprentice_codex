@@ -170,6 +170,7 @@ import jp.aquafactory.apprenticecodex.spell.tirovolley.TiroVolleyMusketRenderer;
 import jp.aquafactory.apprenticecodex.spell.totemofpermafrost.TotemOfPermafrostTotemRenderer;
 import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLunaMoonRenderer;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillRenderer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -308,6 +309,18 @@ public final class ClientModBusEvents {
                 (stack, level, living, seed) -> ChargedTwinBladeStaffClientRenderState.shouldUseThrowingModel(stack, living) ? 1.0F : 0.0F
         ));
         event.enqueueWork(ClientModBusEvents::registerBoundBowItemProperties);
+        event.enqueueWork(() -> {
+            var adsProperty = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "ads");
+            // キー入力だけで判定すると同種のオフハンド品まで切り替わるため、描画中のstackも照合する。
+            ItemProperties.register(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(), adsProperty,
+                    (stack, level, living, seed) -> living != null && living == Minecraft.getInstance().player
+                            && living.getMainHandItem() == stack
+                            && MultipurposeStaffrifleClientAdsState.shouldHandleAsAds(living) ? 1.0F : 0.0F);
+            ItemProperties.register(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get(), adsProperty,
+                    (stack, level, living, seed) -> living != null && living == Minecraft.getInstance().player
+                            && living.getMainHandItem() == stack
+                            && FullautoRapidcastSpellrifleClientAdsState.shouldHandleAsAds(living) ? 1.0F : 0.0F);
+        });
         event.enqueueWork(() -> {
             if (ModList.get().isLoaded(ArsNouveauLuminousDeviceCompat.MOD_ID)) {
                 ArsNouveauLuminousDeviceCompat.register();
@@ -723,10 +736,13 @@ public final class ClientModBusEvents {
             public boolean applyForgeHandTransform(@NotNull PoseStack poseStack, @NotNull LocalPlayer player, @NotNull HumanoidArm arm,
                                                    @NotNull ItemStack itemInHand, float partialTick, float equipProcess,
                                                    float swingProcess) {
+                if (arm != player.getMainArm()) {
+                    return false;
+                }
                 var recoilAmount = MultipurposeStaffrifleClientFireEffectState.getRecoilAmount(partialTick);
                 if (MultipurposeStaffrifleClientAdsState.shouldHandleAsAds(player)) {
                     applyMultipurposeStaffrifleAdsHandTransform(poseStack, arm, equipProcess);
-                    applyMultipurposeStaffrifleRecoilTransform(poseStack, arm, recoilAmount);
+                    applyMultipurposeStaffrifleRecoilTransform(poseStack, recoilAmount);
                     return true;
                 }
 
@@ -735,7 +751,7 @@ public final class ClientModBusEvents {
                 }
 
                 applyMultipurposeStaffrifleNormalHandTransform(poseStack, arm, equipProcess, swingProcess);
-                applyMultipurposeStaffrifleRecoilTransform(poseStack, arm, recoilAmount);
+                applyMultipurposeStaffrifleRecoilTransform(poseStack, recoilAmount);
                 return true;
             }
         }, ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
@@ -762,10 +778,13 @@ public final class ClientModBusEvents {
             public boolean applyForgeHandTransform(@NotNull PoseStack poseStack, @NotNull LocalPlayer player, @NotNull HumanoidArm arm,
                                                    @NotNull ItemStack itemInHand, float partialTick, float equipProcess,
                                                    float swingProcess) {
+                if (arm != player.getMainArm()) {
+                    return false;
+                }
                 var recoilAmount = FullautoRapidcastSpellrifleClientFireEffectState.getRecoilAmount(partialTick);
                 if (FullautoRapidcastSpellrifleClientAdsState.shouldHandleAsAds(player)) {
                     applyMultipurposeStaffrifleAdsHandTransform(poseStack, arm, equipProcess);
-                    applyMultipurposeStaffrifleRecoilTransform(poseStack, arm, recoilAmount);
+                    applyMultipurposeStaffrifleRecoilTransform(poseStack, recoilAmount);
                     return true;
                 }
 
@@ -774,7 +793,7 @@ public final class ClientModBusEvents {
                 }
 
                 applyMultipurposeStaffrifleNormalHandTransform(poseStack, arm, equipProcess, swingProcess);
-                applyMultipurposeStaffrifleRecoilTransform(poseStack, arm, recoilAmount);
+                applyMultipurposeStaffrifleRecoilTransform(poseStack, recoilAmount);
                 return true;
             }
         }, ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
@@ -843,15 +862,18 @@ public final class ClientModBusEvents {
         poseStack.mulPose(Axis.XP.rotationDegrees(-4.0F));
     }
 
-    private static void applyMultipurposeStaffrifleRecoilTransform(PoseStack poseStack, HumanoidArm arm,
+    private static void applyMultipurposeStaffrifleRecoilTransform(PoseStack poseStack,
                                                                    float recoilAmount) {
         if (recoilAmount <= 0.0F) {
             return;
         }
 
-        var side = arm == HumanoidArm.RIGHT ? 1 : -1;
-        poseStack.translate(side * 0.015F * recoilAmount, -0.025F * recoilAmount, 0.18F * recoilAmount);
-        poseStack.mulPose(Axis.XP.rotationDegrees(-7.0F * recoilAmount));
+        // 両銃の一人称display（倍率1.25、Y=-4.5）を通したグリップ中心付近で回す。
+        // 銃口は-Z側なので、正のX回転が跳ね上がりになる。視線の反動量は変更しない。
+        poseStack.translate(0, 0.015F * recoilAmount, 0.08F * recoilAmount);
+        poseStack.translate(0, -0.39F, 0.215F);
+        poseStack.mulPose(Axis.XP.rotationDegrees(3.0F * recoilAmount));
+        poseStack.translate(0, 0.39F, -0.215F);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
