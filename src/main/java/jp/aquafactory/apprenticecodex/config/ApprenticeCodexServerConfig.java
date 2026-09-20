@@ -973,6 +973,10 @@ public final class ApprenticeCodexServerConfig {
     public static int multipurposeStaffrifleAdsFullAutoIntervalTicks() {
         return ITEMS_CONFIG.multipurposeStaffrifleAdsFullAutoIntervalTicks();
     }
+    public static double fullautoRapidcastSpellrifleAdsMovementSpeedMultiplier() {
+        return ITEMS_CONFIG.fullautoRapidcastSpellrifleAdsMovementSpeedMultiplier();
+    }
+
     public static int fullautoRapidcastSpellrifleAdsFullAutoIntervalTicks() {
         return ITEMS_CONFIG.fullautoRapidcastSpellrifleAdsFullAutoIntervalTicks();
     }
