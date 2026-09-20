@@ -2702,6 +2702,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void monarchBondSpellLifestealFollowsModifiedDamage(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.spellLifestealFollowsModifiedDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondSpellLifestealSkipsCanceledDamage(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.spellLifestealSkipsCanceledDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondSpellLifestealPreservesHealingWithoutCharm(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.spellLifestealPreservesHealingWithoutCharm(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void monarchBondCodexManagedEntitiesExposeHealingTarget(GameTestHelper helper) {
         MonarchBondCharmGameTestScenarios.codexManagedEntitiesExposeMonarchBondHealingTarget(helper);
     }

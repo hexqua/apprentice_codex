@@ -10,7 +10,6 @@ import io.redspace.ironsspellbooks.damage.SpellDamageSource;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm.MonarchBondCharm;
 import jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm.MonarchBondHealingTarget;
-import jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm.MonarchBondHealingEvents;
 import jp.aquafactory.apprenticecodex.particle.TransferParticleEffect;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -120,13 +119,58 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
             var evocationSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get();
             var source = SpellDamageSource.source(wearer, evocationSpell).setLifestealPercent(0.5F);
 
-            MonarchBondHealingEvents.onSpellLifesteal(
+            MinecraftForge.EVENT_BUS.post(
                     new LivingHurtEvent(victim, source, 10.0F)
             );
 
             assertHealth(helper, summon, summon.getMaxHealth(),
                     "Positive spell lifesteal should distribute overflow regardless of school");
         });
+    }
+
+    static void spellLifestealFollowsModifiedDamage(GameTestHelper helper) {
+        verifyLifestealEvent(helper, false, true, 2.0F, 8.0F);
+    }
+
+    static void spellLifestealSkipsCanceledDamage(GameTestHelper helper) {
+        verifyLifestealEvent(helper, true, true, 0.0F, 10.0F);
+    }
+
+    static void spellLifestealPreservesHealingWithoutCharm(GameTestHelper helper) {
+        verifyLifestealEvent(helper, false, false, 2.0F, 10.0F);
+    }
+
+    private static void verifyLifestealEvent(GameTestHelper helper, boolean canceled, boolean equipped,
+                                            float expectedWearerHealing, float expectedSummonMissingHealth) {
+        var wearer = createWearer(helper, "monarch_lifesteal_" + canceled + "_" + equipped);
+        if (!equipped) {
+            equipCurio(wearer, CuriosSlotConstants.CHARM, ItemStack.EMPTY);
+        }
+        wearer.setHealth(wearer.getMaxHealth() - 2.0F);
+        var summon = createManagedSummon(helper, wearer, new BlockPos(2, 2, 0), 10.0F);
+        var victim = helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(4, 2, 0));
+        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get();
+        var source = SpellDamageSource.source(wearer, spell).setLifestealPercent(0.5F);
+        var event = new LivingHurtEvent(victim, source, 20.0F);
+        java.util.function.Consumer<LivingHurtEvent> modifier = current -> {
+            if (current == event) {
+                current.setAmount(8.0F);
+                current.setCanceled(canceled);
+            }
+        };
+        MinecraftForge.EVENT_BUS.addListener(net.minecraftforge.eventbus.api.EventPriority.HIGH, false,
+                LivingHurtEvent.class, modifier);
+        try {
+            // 実際のIron'sハンドラとMixinを通し、先行分配への回帰も検出する。
+            MinecraftForge.EVENT_BUS.post(event);
+            assertHealth(helper, wearer, wearer.getMaxHealth() - 2.0F + expectedWearerHealing,
+                    "Iron's lifesteal must respect preceding damage changes");
+            assertHealth(helper, summon, summon.getMaxHealth() - expectedSummonMissingHealth,
+                    "Overflow must match the executed lifesteal and pre-heal missing health");
+        } finally {
+            MinecraftForge.EVENT_BUS.unregister(modifier);
+        }
+        helper.succeed();
     }
 
     static void codexManagedEntitiesExposeMonarchBondHealingTarget(GameTestHelper helper) {

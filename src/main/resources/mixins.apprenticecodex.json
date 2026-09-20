@@ -6,6 +6,7 @@
   "refmap": "mixins.apprenticecodex.refmap.json",
   "plugin": "jp.aquafactory.apprenticecodex.mixin.ApprenticeCodexMixinPlugin",
   "mixins": [
+    "MonarchBondLifestealMixin",
     "EvasionSpellSupporterMixin",
     "HeartstopSpellSupporterMixin",
     "IceTombSpellSupporterMixin",

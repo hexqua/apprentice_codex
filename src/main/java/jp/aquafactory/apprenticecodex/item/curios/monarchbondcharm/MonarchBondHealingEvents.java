@@ -2,13 +2,10 @@ package jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm;
 
 import io.redspace.ironsspellbooks.api.events.SpellHealEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
-import io.redspace.ironsspellbooks.damage.SpellDamageSource;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class MonarchBondHealingEvents {
@@ -23,22 +20,6 @@ public final class MonarchBondHealingEvents {
         }
 
         MonarchBondHealing.distributeOverflow(wearer, event.getHealAmount());
-    }
-
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onSpellLifesteal(LivingHurtEvent event) {
-        if (!(event.getSource() instanceof SpellDamageSource spellDamageSource)
-                || spellDamageSource.getLifestealPercent() <= 0.0F
-                || !(event.getSource().getEntity() instanceof ServerPlayer wearer)
-                || !MonarchBondCharm.isEquippedBy(wearer)) {
-            return;
-        }
-
-        // 1.20.1のIron'sはLivingHurtEventの通常優先度で吸収回復するため、その前に余剰を予約する。
-        MonarchBondHealing.distributeOverflow(
-                wearer,
-                spellDamageSource.getLifestealPercent() * event.getAmount()
-        );
     }
 
     @SubscribeEvent

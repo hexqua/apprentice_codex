@@ -15,6 +15,18 @@ public final class MonarchBondHealing {
     private MonarchBondHealing() {
     }
 
+    public static void healWithLifestealOverflow(LivingEntity attacker, float healingAmount) {
+        var wearer = attacker instanceof ServerPlayer player && MonarchBondCharm.isEquippedBy(player)
+                ? player : null;
+        // Iron'sが実際に回復を呼ぶ時点の量と体力を使い、回復後の体力から余剰を再計算しない。
+        float overflow = wearer == null ? 0.0F
+                : healingAmount - Math.max(0.0F, wearer.getMaxHealth() - wearer.getHealth());
+        attacker.heal(healingAmount);
+        if (wearer != null && overflow > 0.0F) {
+            distributeReservedHealing(wearer, overflow);
+        }
+    }
+
     public static void distributeOverflow(ServerPlayer wearer, float requestedHealing) {
         if (requestedHealing <= 0.0F) {
             return;
@@ -26,6 +38,10 @@ public final class MonarchBondHealing {
             return;
         }
 
+        distributeReservedHealing(wearer, remainingHealing);
+    }
+
+    private static void distributeReservedHealing(ServerPlayer wearer, float remainingHealing) {
         for (var target : findTargets(wearer)) {
             var missingTargetHealth = Math.max(0.0F, target.getMaxHealth() - target.getHealth());
             var reservedHealing = Math.min(remainingHealing, missingTargetHealth);
