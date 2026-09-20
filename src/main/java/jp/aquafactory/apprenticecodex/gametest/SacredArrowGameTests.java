@@ -77,7 +77,13 @@ public final class SacredArrowGameTests {
             }
             h.getLevel().getChunk(pos.x, pos.z);
         }
-        h.runAfterDelay(2, () -> {
+        h.startSequence().thenWaitUntil(() -> {
+            // 通常地形のchunk生成は非同期。固定tick待機ではentityが非公開のsectionへ登録される。
+            for (int x : new int[]{49, 51}) {
+                h.assertTrue(h.getLevel().isPositionEntityTicking(h.absolutePos(new BlockPos(x, 250, 2))),
+                        "Boundary target chunks must be ready before entity registration");
+            }
+        }).thenExecute(() -> {
             try {
                 try (var s = new Scene(h)) {
                     var target = s.zombie(49, 0);

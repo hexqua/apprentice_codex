@@ -83,10 +83,10 @@ public final class ElementalBowLongCastGameTests {
                     h.assertTrue(player.isUsingItem(), "Damage after charging must preserve bow use");
                     int[] casts = {0};
                     Consumer<SpellOnCastEvent> listener = event -> { if (event.getEntity() == player) casts[0]++; };
-                    NeoForge.EVENT_BUS.addListener(listener);
+                    MinecraftForge.EVENT_BUS.addListener(listener);
                     try {
                         float manaBeforeRelease = MagicData.getPlayerMagicData(player).getMana();
-                        stack.getItem().releaseUsing(stack, h.getLevel(), player, stack.getUseDuration(player) - 30);
+                        stack.getItem().releaseUsing(stack, h.getLevel(), player, stack.getUseDuration() - 30);
                         h.assertTrue(casts[0] == 1 && stack.getDamageValue() == 1,
                                 "Damaged bow draw must fire exactly once on release");
                         h.assertTrue(player.getInventory().getItem(2).getCount() == 2,
@@ -97,7 +97,7 @@ public final class ElementalBowLongCastGameTests {
                                         + ", heat=" + ElementalBowOverheatManager.getState(player)
                                         + ", spell=" + ElementalBow.getDisplayedSpellProfile(stack));
                     } finally {
-                        NeoForge.EVENT_BUS.unregister(listener);
+                        MinecraftForge.EVENT_BUS.unregister(listener);
                     }
                 }
                 h.succeed();
@@ -145,7 +145,14 @@ public final class ElementalBowLongCastGameTests {
                         return new io.redspace.ironsspellbooks.api.spells.SpellData(spell, 1);
                     }
                 };
-                player.setData(io.redspace.ironsspellbooks.registries.DataAttachmentRegistry.MAGIC_DATA, magic);
+                // Iron's 3.16.3 の Forge 版は attachment ではなく LivingEntity の追加fieldへ保持する。
+                try {
+                    var field = net.minecraft.world.entity.LivingEntity.class.getDeclaredField("irons_spellbooks$magicData");
+                    field.setAccessible(true);
+                    field.set(player, magic);
+                } catch (ReflectiveOperationException exception) {
+                    throw new IllegalStateException("Unable to install the casting probe", exception);
+                }
                 magic.setMana(1000);
                 var stack = player.getItemInHand(hand);
                 try {
@@ -523,7 +530,7 @@ public final class ElementalBowLongCastGameTests {
     }
 
     private static FakePlayer preparePlayer(GameTestHelper h, InteractionHand hand, AbstractSpell spell, FakePlayer player) {
-        player.getAttribute(AttributeRegistry.MAX_MANA).setBaseValue(2000);
+        player.getAttribute(AttributeRegistry.MAX_MANA.get()).setBaseValue(2000);
         MagicData.getPlayerMagicData(player).setMana(1000);
         var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
         ElementalBow.setCalibrationScroll(stack, 0, BowGameTestSupport.createSpellScroll(spell), h.getLevel().registryAccess());
