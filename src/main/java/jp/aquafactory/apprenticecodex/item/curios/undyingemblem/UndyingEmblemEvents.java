@@ -10,19 +10,18 @@ import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
-import net.neoforged.neoforge.common.EffectCures;
-import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.TickEvent;
+import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import top.theillusivec4.curios.api.event.CurioChangeEvent;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class UndyingEmblemEvents {
     private UndyingEmblemEvents() {
     }
@@ -40,7 +39,8 @@ public final class UndyingEmblemEvents {
         UndyingEmblemRuntime.startCooldown(player);
         event.setCanceled(true);
         player.setHealth(1.0F);
-        player.removeEffectsCuredBy(EffectCures.PROTECTED_BY_TOTEM);
+        // 1.20.1の不死のトーテムと同じく全効果を解除する。
+        player.removeAllEffects();
         player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 45 * 20, 1));
         player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 40 * 20, 0));
         player.addEffect(new MobEffectInstance(MobEffects.ABSORPTION, 5 * 20, 1));
@@ -74,8 +74,8 @@ public final class UndyingEmblemEvents {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(PlayerTickEvent.Post event) {
-        if (event.getEntity() instanceof ServerPlayer player) {
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (event.phase == TickEvent.Phase.END && event.player instanceof ServerPlayer player) {
             UndyingEmblemRuntime.tickCooldown(player);
         }
     }
@@ -116,7 +116,7 @@ public final class UndyingEmblemEvents {
         }
     }
 
-    @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+    @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
     public static final class ClientEvents {
         private ClientEvents() {
         }

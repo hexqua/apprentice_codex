@@ -11,7 +11,7 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.neoforge.network.PacketDistributor;
+import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import top.theillusivec4.curios.api.CuriosApi;
 
 public final class UndyingEmblemRuntime {
@@ -29,7 +29,7 @@ public final class UndyingEmblemRuntime {
     }
 
     public static int getRemainingCooldownTicks(Player player) {
-        return Capabilities.getSpellData(player)
+        return player.getCapability(Capabilities.SPELL_DATA)
                 .map(data -> data.get(CodexSpellStateTypeRegister.UNDYING_EMBLEM_STATE).getRemainingCooldownTicks())
                 .orElse(0);
     }

@@ -1,16 +1,16 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 public final class UndyingEmblemServerConfig {
-    private final ModConfigSpec.IntValue reconstructionSpeedMultiplier;
+    private final ForgeConfigSpec.IntValue reconstructionSpeedMultiplier;
     private Integer reconstructionSpeedMultiplierOverride;
 
-    private UndyingEmblemServerConfig(ModConfigSpec.IntValue reconstructionSpeedMultiplier) {
+    private UndyingEmblemServerConfig(ForgeConfigSpec.IntValue reconstructionSpeedMultiplier) {
         this.reconstructionSpeedMultiplier = reconstructionSpeedMultiplier;
     }
 
-    public static UndyingEmblemServerConfig define(ModConfigSpec.Builder builder) {
+    public static UndyingEmblemServerConfig define(ForgeConfigSpec.Builder builder) {
         builder.push("UndyingEmblem");
         var reconstructionSpeedMultiplier = builder
                 .comment("Cooldown speed multiplier while Idol Reconstruction is being channeled. 1 provides no acceleration.")

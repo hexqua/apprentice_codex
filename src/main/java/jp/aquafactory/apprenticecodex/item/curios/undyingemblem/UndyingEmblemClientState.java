@@ -1,8 +1,8 @@
 package jp.aquafactory.apprenticecodex.item.curios.undyingemblem;
 
 import net.minecraft.client.Minecraft;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
 public final class UndyingEmblemClientState {

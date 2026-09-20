@@ -8,8 +8,8 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
@@ -24,7 +24,7 @@ public class UndyingEmblem extends Item implements ICurioItem{
     }
 
     @Override
-    public List<Component> getSlotsTooltip(List<Component> tooltips, TooltipContext context, ItemStack stack) {
+    public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
         var result = new java.util.ArrayList<>(tooltips);
         result.add(Component.empty());
         result.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));

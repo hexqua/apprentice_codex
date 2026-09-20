@@ -17,10 +17,10 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import org.jetbrains.annotations.Nullable;
 
 @GameTestHolder(ApprenticeCodex.MODID)
@@ -39,8 +39,8 @@ public final class UndyingEmblemGameTests {
         UndyingEmblemEvents.onLivingDeath(firstDeath);
 
         helper.assertTrue(firstDeath.isCanceled(), "Undying Emblem should cancel eligible fatal damage");
-        helper.assertValueEqual(player.getHealth(), 1.0F, "Undying Emblem surviving health");
-        helper.assertValueEqual(
+        assertValueEqual(helper, player.getHealth(), 1.0F, "Undying Emblem surviving health");
+        assertValueEqual(helper,
                 UndyingEmblemRuntime.getRemainingCooldownTicks(player),
                 UndyingEmblemRuntime.COOLDOWN_TICKS,
                 "Undying Emblem cooldown after activation"
@@ -70,7 +70,7 @@ public final class UndyingEmblemGameTests {
 
         CapabilityEvents.onPlayerClone(new PlayerEvent.Clone(clone, original, true));
 
-        helper.assertValueEqual(
+        assertValueEqual(helper,
                 UndyingEmblemRuntime.getRemainingCooldownTicks(clone),
                 0,
                 "Undying Emblem cooldown after death clone"
@@ -84,7 +84,7 @@ public final class UndyingEmblemGameTests {
         var bypassDeath = new LivingDeathEvent(player, player.damageSources().genericKill());
         UndyingEmblemEvents.onLivingDeath(bypassDeath);
         helper.assertFalse(bypassDeath.isCanceled(), "Invulnerability-bypassing damage should bypass Undying Emblem");
-        helper.assertValueEqual(UndyingEmblemRuntime.getRemainingCooldownTicks(player), 0,
+        assertValueEqual(helper, UndyingEmblemRuntime.getRemainingCooldownTicks(player), 0,
                 "Rejected damage should not start cooldown");
 
         var voidDeath = new LivingDeathEvent(player, player.damageSources().fellOutOfWorld());
@@ -104,7 +104,7 @@ public final class UndyingEmblemGameTests {
         try (var ignored = ApprenticeCodexServerConfig
                 .useUndyingEmblemReconstructionSpeedMultiplierOverrideForGameTest(10)) {
             var spell = SpellRegistry.IDOL_RECONSTRUCTION.get();
-            helper.assertValueEqual(spell.getEffectiveCastTime(1, player), 100,
+            assertValueEqual(helper, spell.getEffectiveCastTime(1, player), 100,
                     "Idol Reconstruction effective cast time");
             spell.onCast(
                     player.level(),
@@ -113,13 +113,13 @@ public final class UndyingEmblemGameTests {
                     CastSource.SPELLBOOK,
                     MagicData.getPlayerMagicData(player)
             );
-            helper.assertValueEqual(UndyingEmblemRuntime.getRemainingCooldownTicks(player), 910,
+            assertValueEqual(helper, UndyingEmblemRuntime.getRemainingCooldownTicks(player), 910,
                     "Idol Reconstruction additional cooldown progress per pulse");
         }
         helper.succeed();
     }
 
-    private static net.neoforged.neoforge.common.util.FakePlayer createEquippedPlayer(
+    private static net.minecraftforge.common.util.FakePlayer createEquippedPlayer(
             GameTestHelper helper,
             String profileName
     ) {
@@ -147,7 +147,10 @@ public final class UndyingEmblemGameTests {
             helper.fail("Undying Emblem should grant " + name);
             return;
         }
-        helper.assertValueEqual(effect.getDuration(), duration, "Undying Emblem " + name + " duration");
-        helper.assertValueEqual(effect.getAmplifier(), amplifier, "Undying Emblem " + name + " amplifier");
+        assertValueEqual(helper, effect.getDuration(), duration, "Undying Emblem " + name + " duration");
+        assertValueEqual(helper, effect.getAmplifier(), amplifier, "Undying Emblem " + name + " amplifier");
+    }
+    private static void assertValueEqual(GameTestHelper helper, double actual, double expected, String message) {
+        helper.assertTrue(actual == expected, message + ": expected=" + expected + ", actual=" + actual);
     }
 }

@@ -41,6 +41,7 @@ public class ApprenticeCodex
         context.registerConfig(ModConfig.Type.SERVER, ApprenticeCodexServerConfig.SPEC);
 
         var bus = context.getModEventBus();
+        UndyingEmblemConfigSyncEvents.register(bus);
         SpellRegistry.register(bus);
         EntityRegistry.register(bus);
         BlockRegistry.register(bus);

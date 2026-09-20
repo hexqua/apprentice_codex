@@ -21,7 +21,7 @@
     " M "
   ],
   "result": {
-    "count": 1,
-    "id": "apprenticecodex:undying_emblem"
-  }
+    "item": "apprenticecodex:undying_emblem"
+  },
+  "show_notification": true
 }
