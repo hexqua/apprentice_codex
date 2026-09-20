@@ -34,7 +34,7 @@ import jp.aquafactory.apprenticecodex.item.ImmediateSneakSelectionUiItem;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.SneakSelectionView;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
-import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
@@ -735,19 +735,29 @@ public final class MultipurposeStaffrifle extends Item
     }
 
     @Override
-    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(@NotNull ItemStack stack, int slot, @NotNull SpellData data) {
-        return evaluateCalibrationImbue(stack, slot, data, serializationLookup());
+    public boolean acceptsCalibrationSpell(@NotNull SpellData data) {
+        return SpellCalibrationImbueTarget.acceptsInstantOrLong(data);
     }
 
     @Override
-    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(ItemStack stack, int slot, @NotNull SpellData data,
-                                                                        HolderLookup.@NotNull Provider lookup) {
-        if (stack.getItem() != this || slot < 0 || slot >= getEnabledCalibrationScrollSlotCount(stack, lookup)
-                || data == SpellData.EMPTY || data.getSpell() == null || data.getSpell() == SpellRegistry.none()) {
-            return SpellCalibrationImbueState.REJECTED;
-        }
-        return canCastSpell(stack, data.getSpell(), lookup)
-                ? SpellCalibrationImbueState.accepted(true) : SpellCalibrationImbueState.REJECTED;
+    public boolean isCalibrationSlotAvailable(@NotNull ItemStack stack, int slot) {
+        return isCalibrationSlotAvailable(stack, slot, serializationLookup());
+    }
+
+    @Override
+    public boolean isCalibrationSlotAvailable(@NotNull ItemStack stack, int slot, HolderLookup.@NotNull Provider lookup) {
+        return stack.getItem() == this && slot >= 0 && slot < getEnabledCalibrationScrollSlotCount(stack, lookup);
+    }
+
+    @Override
+    public boolean isCalibrationSpellUsable(@NotNull ItemStack stack, @NotNull SpellData data) {
+        return isCalibrationSpellUsable(stack, data, serializationLookup());
+    }
+
+    @Override
+    public boolean isCalibrationSpellUsable(@NotNull ItemStack stack, @NotNull SpellData data,
+                                            HolderLookup.@NotNull Provider lookup) {
+        return canCastSpell(stack, data.getSpell(), lookup);
     }
 
     @Override

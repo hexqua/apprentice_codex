@@ -510,7 +510,7 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
         helper.assertTrue(rifle.trySetCalibrationAdjustment(stack, 0, ring, lookup), "Silver Ring must be accepted");
         helper.assertFalse(rifle.trySetCalibrationAdjustment(stack, 1, ring, lookup), "Duplicate Silver Ring must be rejected");
         var continuous = rifle.evaluateCalibrationImbue(stack, 0, new SpellData(SpellRegistry.FIRE_BREATH_SPELL.get(), 1), lookup);
-        helper.assertTrue(continuous.canInsert() && !continuous.isUsable(), "CONTINUOUS must remain unusable with Silver Ring");
+        helper.assertFalse(continuous.canInsert(), "CONTINUOUS insertion must be rejected even with Silver Ring");
         helper.assertTrue(FullautoRapidcastSpellrifle.getSelectedSpellData(stack, lookup).getSpell() == spell, "Silver Ring must enable LONG");
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
         var magic = MagicData.getPlayerMagicData(player);

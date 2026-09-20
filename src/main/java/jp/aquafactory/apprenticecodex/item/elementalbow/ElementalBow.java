@@ -82,7 +82,7 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
-import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
@@ -218,10 +218,13 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
     }
 
     @Override
-    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(@NotNull ItemStack stack, int slot, @NotNull SpellData data) {
-        return slot >= 0 && slot < getEnabledCalibrationScrollSlotCount(stack)
-                && data != SpellData.EMPTY && isElementalSpell(data.getSpell())
-                ? SpellCalibrationImbueState.ACCEPTED_USABLE : SpellCalibrationImbueState.REJECTED;
+    public boolean acceptsCalibrationSpell(@NotNull SpellData data) {
+        return SpellCalibrationImbueTarget.isValidCalibrationSpell(data) && isElementalSpell(data.getSpell());
+    }
+
+    @Override
+    public boolean isCalibrationSlotAvailable(@NotNull ItemStack stack, int slot) {
+        return slot >= 0 && slot < getEnabledCalibrationScrollSlotCount(stack);
     }
 
     @Override

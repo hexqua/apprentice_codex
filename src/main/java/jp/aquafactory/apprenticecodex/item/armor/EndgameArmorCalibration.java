@@ -11,7 +11,6 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
-import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import net.minecraft.ChatFormatting;
@@ -286,23 +285,13 @@ public final class EndgameArmorCalibration {
         return usesStoredCalibrationScrolls(armorStack) && !EndgameArmorScrollStorage.get(armorStack).isEmpty();
     }
 
-    public static @NotNull SpellCalibrationImbueState evaluateStoredScroll(
-            ItemStack armorStack,
-            int slot,
-            SpellData spellData
-    ) {
+    public static boolean isStoredScrollSlotAvailable(ItemStack armorStack, int slot) {
         if (!usesStoredCalibrationScrolls(armorStack)) {
             // 胴体は従来どおりSpellContainerを使うため、共通Helper側の検証を通過した呪文をそのまま受理する。
-            return slot == 0 && spellData != SpellData.EMPTY && spellData.getSpell() != null
-                    ? SpellCalibrationImbueState.ACCEPTED_USABLE
-                    : SpellCalibrationImbueState.REJECTED;
+            return slot == 0;
         }
         return slot == 0
-                && getEnabledStoredScrollSlotCount(armorStack) == STORED_SCROLL_SLOT_COUNT
-                && spellData != SpellData.EMPTY
-                && spellData.getSpell() != null
-                ? SpellCalibrationImbueState.ACCEPTED_USABLE
-                : SpellCalibrationImbueState.REJECTED;
+                && getEnabledStoredScrollSlotCount(armorStack) == STORED_SCROLL_SLOT_COUNT;
     }
 
     public static @NotNull SpellData getStoredSpellData(ItemStack armorStack) {
