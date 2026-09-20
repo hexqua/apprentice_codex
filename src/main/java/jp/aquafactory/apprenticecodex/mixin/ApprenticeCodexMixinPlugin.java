@@ -18,6 +18,9 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
     private static final String BETTER_COMBAT_MOD_ID = "bettercombat";
     private static final String EFIS_COMPAT_MOD_ID = "efiscompat";
     private static final String MALUM_MOD_ID = "malum";
+    private static final String MALUM_FISHING_PATCH_VERSION = "1.8.2";
+    private static final String MALUM_FISHING_MIXIN =
+            "jp.aquafactory.apprenticecodex.mixin.MalumFishingHookMixin";
     private static final String IRONS_JEWELRY_MOD_ID = "irons_jewelry";
     private static final String EASY_MAGIC_MIXIN = "jp.aquafactory.apprenticecodex.mixin.EasyMagicModEnchantmentMenuMixin";
     private static final String ARCANE_ANVIL_JEI_RECIPE_MIXIN =
@@ -78,6 +81,12 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
         if (mixinClassName.startsWith(EFIS_COMPAT_MIXIN_PREFIX)) {
             var loadingModList = FMLLoader.getLoadingModList();
             return loadingModList != null && loadingModList.getModFileById(EFIS_COMPAT_MOD_ID) != null;
+        }
+        if (MALUM_FISHING_MIXIN.equals(mixinClassName)) {
+            var loadingModList = FMLLoader.getLoadingModList();
+            var modFile = loadingModList == null ? null : loadingModList.getModFileById(MALUM_MOD_ID);
+            // 1.8.2の上書きと単位不整合だけを修復する。上流更新時は再調査し、1.6.7へは移植しない。
+            return modFile != null && MALUM_FISHING_PATCH_VERSION.equals(modFile.versionString());
         }
         if (mixinClassName.startsWith(MALUM_MIXIN_PREFIX)) {
             var loadingModList = FMLLoader.getLoadingModList();
