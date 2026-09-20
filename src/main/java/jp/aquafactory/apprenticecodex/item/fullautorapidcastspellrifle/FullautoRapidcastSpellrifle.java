@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
@@ -113,6 +114,14 @@ public final class FullautoRapidcastSpellrifle extends Item
                             CalibrationAdjustmentHint.specificItem(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE))
                     .withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(1))
     );
+    public static final String ECHO_ADJUSTMENT_ID = "echo_cast";
+    private static final CalibrationAdjustmentRule ECHO_RULE = CalibrationAdjustmentRule.unique(
+            ECHO_ADJUSTMENT_ID, candidate -> candidate.is(ItemRegistry.MULTICAST_ECHO_STAFF.get()),
+            CalibrationAdjustmentHint.specificItem(ItemRegistry.MULTICAST_ECHO_STAFF))
+            .withEffectLines(() -> CalibrationAdjustmentEffects.gainEchoCast(FullautoEchoCasting.manaMultiplierForCurrentThread()));
+    private static final CalibrationAdjustmentProfile ECHO_PROFILE = CalibrationAdjustmentProfile.of(
+            Stream.concat(CALIBRATION_PROFILE.rules().stream(), Stream.of(ECHO_RULE))
+                    .toArray(CalibrationAdjustmentRule[]::new));
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.fullauto_rapidcast_spellrifle.desc_";
     private static final String MAIN_CONTROLLER = "main";
     private static final String FIRED_ANIMATION = "fired";
@@ -315,7 +324,8 @@ public final class FullautoRapidcastSpellrifle extends Item
 
         boolean casted;
         try {
-            try (var ignored = FullautoRapidcastSpellrifleCastContext.open(player.getUUID(), stack, spell, recast)) {
+            try (var ignored = FullautoRapidcastSpellrifleCastContext.open(player.getUUID(), stack, spell, recast);
+                 var attackScope = FullautoEchoCasting.openAttackScope(player, stack, spell)) {
                 casted = spell.attemptInitiateCast(
                         stack,
                         spellLevel,
@@ -582,6 +592,13 @@ public final class FullautoRapidcastSpellrifle extends Item
 
     private static List<Component> collectFullautoRapidcastSpellrifleAbilityTooltipSection(ItemStack stack) {
         var translatedLines = new ArrayList<Component>();
+        if (FullautoEchoCasting.enabledForCurrentThread() && FullautoEchoCasting.hasStaff(stack, serializationLookup())) {
+            translatedLines.add(ImbueTooltipHelper.translatableGray(
+                    "item.apprenticecodex.spellgun.tooltip.ability_mana_penalty",
+                    Math.round(FullautoEchoCasting.manaMultiplierForCurrentThread() * 100) + "%"));
+            translatedLines.add(ImbueTooltipHelper.translatableGray(
+                    "item.apprenticecodex.spellgun.tooltip.ability_adapt_attack_echo"));
+        }
         if (hasSilverRing(stack, serializationLookup())) {
             translatedLines.add(ImbueTooltipHelper.translatableGray("item.apprenticecodex.spellgun.tooltip.ability_long_to_instant"));
             translatedLines.add(ImbueTooltipHelper.translatableGray("item.apprenticecodex.spellgun.tooltip.ability_extend_cooldown"));
@@ -750,7 +767,7 @@ public final class FullautoRapidcastSpellrifle extends Item
 
     @Override
     public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack stack) {
-        return CALIBRATION_PROFILE;
+        return FullautoEchoCasting.enabledForCurrentThread() ? ECHO_PROFILE : CALIBRATION_PROFILE;
     }
 
     @Override

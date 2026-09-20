@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.event.ApprenticeDeskConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ArcanumInAJarConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.CircuitHeatStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.EquipmentSpellTimingConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.FullautoEchoConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.FloatmountBroomConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.HighTierSwingcastStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.InstantSearchBrazierConfigSyncEvents;
@@ -117,6 +118,7 @@ public class ApprenticeCodex
         SoulstainedSteelSwingcastStaffConfigSyncEvents.register(modEventBus);
         SpellgunConfigSyncEvents.register(modEventBus);
         EquipmentSpellTimingConfigSyncEvents.register(modEventBus);
+        FullautoEchoConfigSyncEvents.register(modEventBus);
         FloatmountBroomConfigSyncEvents.register(modEventBus);
         ChargecastCatalystbookConfigSyncEvents.register(modEventBus);
         ElementalBowConfigSyncEvents.register(modEventBus);

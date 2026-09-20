@@ -11,6 +11,8 @@ import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowCasting;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowPendingCast;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowSpellPowerContext;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoEchoCasting;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleCastContext;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookStartSoundContext;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowStartSoundContext;
@@ -57,6 +59,15 @@ public abstract class AbstractSpellMixin {
         return !QuickcastCartridgeCasting.bypassCooldown(player, spell)
                 && !ElementalBowCasting.isActive(player, spell)
                 && cooldowns.isOnCooldown(spell);
+    }
+
+    // 上流は通常量で開始可否を判定し、消費時の不足を0へ丸めるため、開始判定にも倍率が必要。
+    @Redirect(method = "canBeCastedBy", at = @At(value = "INVOKE",
+            target = "Lio/redspace/ironsspellbooks/api/spells/AbstractSpell;getManaCost(I)I"))
+    private int apprenticecodex$echoManaRequirement(AbstractSpell spell, int requestedLevel,
+            int spellLevel, CastSource source, MagicData magic, Player player) {
+        return FullautoEchoCasting.scaleMana(spell.getManaCost(requestedLevel),
+                FullautoEchoCasting.manaMultiplier(player, player.getMainHandItem(), spell));
     }
 
     @ModifyVariable(method = "castSpell", at = @At("HEAD"), argsOnly = true)
@@ -132,7 +143,25 @@ public abstract class AbstractSpellMixin {
             if (caster instanceof ServerPlayer player) {
                 QuickcastCartridgeCasting.beforeEffect(player, spell, castSource, magicData);
             }
-            spell.onCast(level, spellLevel, caster, castSource, magicData);
+            if (caster instanceof ServerPlayer player) {
+                // INSTANTも上流では次tickに実行されるため、開始時だけでなく実行時にも復元する。
+                try (var attackScope = FullautoEchoCasting.openAttackScope(player, spell)) {
+                    spell.onCast(level, spellLevel, caster, castSource, magicData);
+                }
+            } else {
+                spell.onCast(level, spellLevel, caster, castSource, magicData);
+            }
+        }
+    }
+
+    @Inject(method = "castSpell", at = @At("RETURN"))
+    private void apprenticecodex$finishRifleRecast(Level level, int spellLevel, ServerPlayer player,
+            CastSource source, boolean triggerCooldown, CallbackInfo ci) {
+        var stack = MagicData.getPlayerMagicData(player).getPlayerCastingItem();
+        var spell = (AbstractSpell) (Object) this;
+        // 再発動もonCastと最終クールダウンへの適用が終わってから片付ける。
+        if (FullautoRapidcastSpellrifleCastContext.isActiveRecastFor(player.getUUID(), stack, spell)) {
+            FullautoRapidcastSpellrifleCastContext.clearPendingIfMatches(player.getUUID(), stack, spell);
         }
     }
 

@@ -14,6 +14,9 @@ public final class FullautoRapidcastSpellrifleServerConfig {
     private final ModConfigSpec.DoubleValue adsMovementSpeedMultiplier;
     private final ModConfigSpec.ConfigValue<List<? extends String>> spellDenylist;
     private List<String> spellDenylistOverride;
+    private final ModConfigSpec.BooleanValue echoCastEnabled;
+    private final ModConfigSpec.DoubleValue echoCastDamageMultiplier;
+    private final ModConfigSpec.DoubleValue echoCastManaCostMultiplier;
 
     private FullautoRapidcastSpellrifleServerConfig(
             ModConfigSpec.IntValue cooldownBypassThresholdTicks,
@@ -21,7 +24,10 @@ public final class FullautoRapidcastSpellrifleServerConfig {
             ModConfigSpec.IntValue reducedCooldownMinimumTicks,
             ModConfigSpec.IntValue adsFullAutoIntervalTicks,
             ModConfigSpec.DoubleValue adsMovementSpeedMultiplier,
-            ModConfigSpec.ConfigValue<List<? extends String>> spellDenylist
+            ModConfigSpec.ConfigValue<List<? extends String>> spellDenylist,
+            ModConfigSpec.BooleanValue echoCastEnabled,
+            ModConfigSpec.DoubleValue echoCastDamageMultiplier,
+            ModConfigSpec.DoubleValue echoCastManaCostMultiplier
     ) {
         this.cooldownBypassThresholdTicks = cooldownBypassThresholdTicks;
         this.cooldownReductionTicks = cooldownReductionTicks;
@@ -29,6 +35,9 @@ public final class FullautoRapidcastSpellrifleServerConfig {
         this.adsFullAutoIntervalTicks = adsFullAutoIntervalTicks;
         this.adsMovementSpeedMultiplier = adsMovementSpeedMultiplier;
         this.spellDenylist = spellDenylist;
+        this.echoCastEnabled = echoCastEnabled;
+        this.echoCastDamageMultiplier = echoCastDamageMultiplier;
+        this.echoCastManaCostMultiplier = echoCastManaCostMultiplier;
     }
 
     public static FullautoRapidcastSpellrifleServerConfig define(ModConfigSpec.Builder builder) {
@@ -51,6 +60,12 @@ public final class FullautoRapidcastSpellrifleServerConfig {
         var spellDenylist = builder
                 .comment("Additional spell IDs blocked only for Fullauto Rapidcast Spellrifle special casts. Entries use \"modid:path\".")
                 .defineListAllowEmpty("spellDenylist", List.<String>of(), FullautoRapidcastSpellrifleServerConfig::isSpellId);
+        var echoCastEnabled = builder.comment("Enables the Multicast Echo Staff adjustment, including its mana penalty.")
+                .define("echoCastEnabled", true);
+        var echoCastDamageMultiplier = builder.comment("Additional multiplier applied to attack profile damage from this rifle only.")
+                .defineInRange("echoCastDamageMultiplier", 1.0D, 0.0D, 100.0D);
+        var echoCastManaCostMultiplier = builder.comment("Mana cost multiplier for all rifle spells while the echo adjustment is active, including unsupported spells.")
+                .defineInRange("echoCastManaCostMultiplier", 2.0D, 1.0D, 10.0D);
         builder.pop();
 
         return new FullautoRapidcastSpellrifleServerConfig(
@@ -59,9 +74,18 @@ public final class FullautoRapidcastSpellrifleServerConfig {
                 reducedCooldownMinimumTicks,
                 adsFullAutoIntervalTicks,
                 adsMovementSpeedMultiplier,
-                spellDenylist
+                spellDenylist,
+                echoCastEnabled,
+                echoCastDamageMultiplier,
+                echoCastManaCostMultiplier
         );
     }
+
+    public boolean echoCastEnabled() { return echoCastEnabled.get(); }
+
+    public double echoCastDamageMultiplier() { return echoCastDamageMultiplier.get(); }
+
+    public double echoCastManaCostMultiplier() { return echoCastManaCostMultiplier.get(); }
 
     public int cooldownBypassThresholdTicks() {
         return cooldownBypassThresholdTicks.get();

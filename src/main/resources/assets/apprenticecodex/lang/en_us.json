@@ -1,4 +1,7 @@
 {
+  "item.apprenticecodex.spellgun.tooltip.ability_adapt_attack_echo": "- Supported attack spells bypass invulnerability frames from the first shot, but deal reduced damage.",
+  "jei.apprenticecodex.spell_calibration_bench.effect.gain_echo_cast_1": "Supported attack spells gain Echo Cast",
+  "jei.apprenticecodex.spell_calibration_bench.effect.gain_echo_cast_2": "Mana cost of all spells +%s%%",
   "ui.apprenticecodex.fullauto_rapidcast_spellrifle.cannot_cast": "%1$s cannot be rapid-cast!",
   "ui.apprenticecodex.fullauto_rapidcast_spellrifle.deny_list": "%1$s is denied by the world's reason...",
   "ui.apprenticecodex.common.cannot_use_offhand": "%s cannot be used in the offhand!",

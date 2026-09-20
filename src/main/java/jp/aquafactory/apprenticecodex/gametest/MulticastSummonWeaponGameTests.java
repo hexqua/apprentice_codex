@@ -4,6 +4,12 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleScrollStorage;
+import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
@@ -38,6 +44,9 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import java.util.function.Consumer;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.common.util.FakePlayer;
@@ -107,10 +116,43 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
         helper.succeed();
     }
 
+    @GameTest(template = TEMPLATE, batch = BATCH, timeoutTicks = 100)
+    public static void rifleEchoTracksSupportedSummonWeapons(GameTestHelper helper) {
+        ModConfigSpec.BooleanValue enabled = ApprenticeCodexServerConfig.SPEC.getValues()
+                .get("Items.FullautoRapidcastSpellrifle.echoCastEnabled");
+        ModConfigSpec.DoubleValue damage = ApprenticeCodexServerConfig.SPEC.getValues()
+                .get("Items.FullautoRapidcastSpellrifle.echoCastDamageMultiplier");
+        boolean oldEnabled = enabled.get();
+        double oldDamage = damage.get();
+        try (var staffSettings = ApprenticeCodexServerConfig.useMulticastEchoStaffAttackConfigOverrideForGameTest(false, 9)) {
+            enabled.set(true);
+            damage.set(1.0);
+            for (var spell : List.of(SpellRegistry.SHIDEN.get(), SpellRegistry.BREACHING_ENEMY.get(),
+                    SpellRegistry.SLASH_BLADE.get(), SpellRegistry.MOON_LIGHT.get(), SpellRegistry.SILENT_ASSASSIN.get(),
+                    SpellRegistry.ARTISAN_SMASH.get(), SpellRegistry.PRECISION_JACK.get(),
+                    SpellRegistry.HIGANBANA.get(), SpellRegistry.LETHAL_ASSAULT.get())) {
+                var normal = castAndFinishWeapon(helper, (AbstractSummonWeaponSpell<?>) spell, false, true);
+                var echo = castAndFinishWeapon(helper, (AbstractSummonWeaponSpell<?>) spell, true, true);
+                helper.assertTrue(Math.abs(echo.damage() - normal.damage() * 0.5F) < 0.02F,
+                        "Rifle summon attacks must be halved exactly once, including delayed hits: "
+                                + spell.getSpellId() + " normal=" + normal.damage() + " echo=" + echo.damage());
+            }
+        } finally {
+            enabled.set(oldEnabled);
+            damage.set(oldDamage);
+        }
+        helper.succeed();
+    }
+
     private record WeaponCastResult(UUID id, float damage) {
     }
 
     private static WeaponCastResult castAndFinishWeapon(GameTestHelper helper, AbstractSummonWeaponSpell<?> spell, boolean repeated) {
+        return castAndFinishWeapon(helper, spell, repeated, false);
+    }
+
+    private static WeaponCastResult castAndFinishWeapon(GameTestHelper helper, AbstractSummonWeaponSpell<?> spell,
+                                                       boolean repeated, boolean rifleCast) {
         // templateの壁や成功表示ブロックが銃の照準を遮らない高さで検証する。
         var player = createEchoPlayer(helper, new BlockPos(1, 30, 1), "echo_weapon_matrix");
         player.setYRot(0);
@@ -131,21 +173,43 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
         var magic = MagicData.getPlayerMagicData(player);
         magic.setMana(10000);
         var weapons = new ArrayList<SummonWeaponEntity>();
+        Consumer<EntityJoinLevelEvent> weaponObserver = event -> {
+            if (event.getEntity() instanceof SummonWeaponEntity weapon && weapon.getOwner() == player) weapons.add(weapon);
+        };
+        NeoForge.EVENT_BUS.addListener(weaponObserver);
         try {
             // 散弾の拡散を固定し、通常発動と追加発動の命中条件をそろえる。
             helper.getLevel().getRandom().setSeed(451);
             Runnable cast = () -> spell.castInstantWeapon(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magic);
-            if (repeated) {
+            if (rifleCast) {
+                var stack = new ItemStack(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
+                var rifle = (FullautoRapidcastSpellrifle) stack.getItem();
+                player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+                player.getInventory().add(new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 2));
+                rifle.trySetCalibrationAdjustment(stack, 0,
+                        new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()), player.registryAccess());
+                if (repeated) {
+                    helper.assertTrue(rifle.trySetCalibrationAdjustment(stack, 1,
+                            new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get()), player.registryAccess()), "Echo adjustment must fit");
+                }
+                FullautoRapidcastSpellrifleScrollStorage.set(stack, 0,
+                        SpellCalibrationImbueHelper.createScroll(new SpellData(spell, 1)), player.registryAccess());
+                helper.assertTrue(rifle.tryTriggerSelectedSpell(player, false), "Rifle weapon cast must start: " + spell.getSpellId());
+                if (spell.getCastType() == CastType.INSTANT) {
+                    spell.castSpell(helper.getLevel(), magic.getCastingSpellLevel(), player, CastSource.SWORD, true);
+                    spell.onServerCastTick(helper.getLevel(), 1, player, magic);
+                    spell.onServerCastComplete(helper.getLevel(), 1, player, magic, false);
+                }
+            } else if (repeated) {
                 MulticastEchoStaffAttackHandler.runRepeatedCast(player, spell, cast);
             } else {
                 cast.run();
             }
-            var data = (AbstractSummonWeaponSpell.SummonWeaponSpellCastData) magic.getAdditionalCastData();
-            var weapon = (SummonWeaponEntity) data.getEntity(helper.getLevel());
-            weapons.add(weapon);
-            helper.assertTrue(weapon != null, "Cast must retain its weapon until local data cleanup");
+            // ライフルは完了時に上流がCastDataを解放するため、生成時に捕捉した武器で追跡する。
+            helper.assertTrue(!weapons.isEmpty(), "Cast must create a weapon: " + spell.getSpellId());
+            var weapon = weapons.getFirst();
             var id = weapon.getUUID();
-            data.reset();
+            if (magic.getAdditionalCastData() != null) magic.getAdditionalCastData().reset();
             magic.setAdditionalCastData(null);
             // 実際のEntity.tickを進め、一時MagicDataがなくても遅延攻撃が成立することを確認する。
             for (int tick = 0; tick < 60; tick++) {
@@ -169,6 +233,7 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
             }
             return new WeaponCastResult(id, initialHealth - target.getHealth());
         } finally {
+            NeoForge.EVENT_BUS.unregister(weaponObserver);
             ownedEntities(helper, player).forEach(Entity::discard);
             weapons.forEach(Entity::discard);
             target.discard();

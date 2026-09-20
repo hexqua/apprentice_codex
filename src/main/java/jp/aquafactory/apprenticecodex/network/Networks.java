@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "109";
+    private static final String PROTOCOL_VERSION = "110";
 
     private Networks() {
     }
@@ -22,6 +22,8 @@ public final class Networks {
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar(PROTOCOL_VERSION);
+        registrar.playToClient(SyncFullautoEchoConfigPacket.TYPE,
+                SyncFullautoEchoConfigPacket.STREAM_CODEC, SyncFullautoEchoConfigPacket::handle);
         registrar.playToServer(ClientMultipurposeStaffrifleAdsPacket.TYPE,
                 ClientMultipurposeStaffrifleAdsPacket.STREAM_CODEC, ClientMultipurposeStaffrifleAdsPacket::handle);
         registrar.playToServer(ClientFullautoRapidcastSpellrifleAdsPacket.TYPE,

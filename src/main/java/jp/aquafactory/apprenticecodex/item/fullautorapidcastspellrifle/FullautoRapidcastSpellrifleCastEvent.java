@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFullautoRapidcastSpellrifleFireEffectPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
@@ -48,7 +49,6 @@ public final class FullautoRapidcastSpellrifleCastEvent {
         Networks.sendToTrackingEntityAndSelf(player, new SyncFullautoRapidcastSpellrifleFireEffectPacket(player.getId()));
 
         if (FullautoRapidcastSpellrifleCastContext.isActiveRecastFor(player.getUUID(), castingItem, spell)) {
-            FullautoRapidcastSpellrifleCastContext.clearPendingIfMatches(player.getUUID(), castingItem, spell);
             return;
         }
 
@@ -61,6 +61,17 @@ public final class FullautoRapidcastSpellrifleCastEvent {
             }
             SpellGunCastEvent.consumeAmmo(player, player.getInventory(), staffrifle.getAmmoItem(castingItem), staffrifle);
         }
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onEchoManaCost(SpellOnCastEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData == null) return;
+        var spell = SpellRegistry.getSpell(event.getSpellId());
+        // Hoodなどによる免除・割引を残し、実消費だけに一度乗算する。
+        var multiplier = FullautoEchoCasting.manaMultiplier(player, magicData.getPlayerCastingItem(), spell);
+        if (multiplier != 1.0D) event.setManaCost(FullautoEchoCasting.scaleMana(event.getManaCost(), multiplier));
     }
 
     @SubscribeEvent

@@ -1,4 +1,7 @@
 {
+  "item.apprenticecodex.spellgun.tooltip.ability_adapt_attack_echo": "- 支持的攻击法术从首发起无视无敌帧，但伤害降低。",
+  "jei.apprenticecodex.spell_calibration_bench.effect.gain_echo_cast_1": "支持的攻击法术获得回响施法",
+  "jei.apprenticecodex.spell_calibration_bench.effect.gain_echo_cast_2": "所有法术的法力消耗+%s%%",
   "ui.apprenticecodex.fullauto_rapidcast_spellrifle.cannot_cast": "无法连续射击施放%1$s！",
   "ui.apprenticecodex.fullauto_rapidcast_spellrifle.deny_list": "%1$s被世界之理拒绝了...",
   "ui.apprenticecodex.common.cannot_use_offhand": "%s无法在副手使用！",
