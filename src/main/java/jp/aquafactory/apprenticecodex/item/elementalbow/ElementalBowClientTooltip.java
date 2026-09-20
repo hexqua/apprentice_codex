@@ -13,8 +13,8 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 
@@ -48,7 +48,7 @@ final class ElementalBowClientTooltip {
                         || text.getKey().equals("tooltip.irons_spellbooks.mana_cost_per_second")) ? mana : line);
             }
             if (!details.isEmpty()) {
-                details.removeFirst();
+                details.remove(0);
             }
             var drawTime = Component.literal(" ").append(Component.translatable(
                     "item.apprenticecodex.elemental_bow.tooltip.draw",

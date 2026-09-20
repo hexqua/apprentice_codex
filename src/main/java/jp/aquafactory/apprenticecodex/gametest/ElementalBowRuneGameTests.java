@@ -10,7 +10,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.elementalbow.*;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
+
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -19,9 +19,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.CustomData;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -36,10 +36,10 @@ public final class ElementalBowRuneGameTests {
         var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
         var item = (ElementalBow) stack.getItem();
         var lookup = helper.getLevel().registryAccess();
-        item.trySetCalibrationAdjustment(stack, 0, rune("lesser_spell_slot_upgrade"), lookup);
-        if (school) item.trySetCalibrationAdjustment(stack, 1, rune("fire_rune"), lookup);
+        item.trySetCalibrationAdjustment(stack, 0, rune("lesser_spell_slot_upgrade"));
+        if (school) item.trySetCalibrationAdjustment(stack, 1, rune("fire_rune"));
         if (recovery) item.trySetCalibrationAdjustment(stack, 2,
-                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get()), lookup);
+                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get()));
         for (int slot = 0; slot < 2; slot++) ElementalBow.setCalibrationScroll(stack, slot,
                 BowGameTestSupport.createSpellScroll(SpellRegistry.FIRE_ARROW_SPELL.get()), lookup);
         select(stack, 0);
@@ -47,10 +47,10 @@ public final class ElementalBowRuneGameTests {
     }
 
     private static void select(ItemStack stack, int slot) {
-        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+        { var tag = stack.getOrCreateTag();
             tag.putString("ElementalBowShotMode", "magic");
             tag.putString("ElementalBowMode", ElementalBow.selectionIdForSlot(slot).toString());
-        });
+        }
     }
 
     @GameTest(template = "gametest/basic_floor")
@@ -61,8 +61,8 @@ public final class ElementalBowRuneGameTests {
             var spell = SpellRegistry.getSpell("irons_spellbooks:blood_step");
             var stack = bow(helper, true, false);
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            player.getAttribute(AttributeRegistry.FIRE_SPELL_POWER).setBaseValue(3);
-            player.getAttribute(AttributeRegistry.MAX_MANA).setBaseValue(20000);
+            player.getAttribute(AttributeRegistry.FIRE_SPELL_POWER.get()).setBaseValue(3);
+            player.getAttribute(AttributeRegistry.MAX_MANA.get()).setBaseValue(20000);
             var magic = MagicData.getPlayerMagicData(player);
             float basePower = spell.getSpellPower(1, player);
             int[] casts = {0};
@@ -72,7 +72,7 @@ public final class ElementalBowRuneGameTests {
                 helper.assertTrue(Math.abs(spell.getSpellPower(1, player) - basePower * 3) < .001,
                         "Instant activation must retain school rune power");
             };
-            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(listener);
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(listener);
             try {
                 for (boolean existingCooldown : new boolean[]{false, true}) {
                     if (existingCooldown) magic.getPlayerCooldowns().addCooldown(spell, 123);
@@ -91,7 +91,7 @@ public final class ElementalBowRuneGameTests {
                 }
                 helper.assertTrue(casts[0] == 2, "Each instant shot must activate exactly once");
             } finally {
-                net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(listener);
+                net.minecraftforge.common.MinecraftForge.EVENT_BUS.unregister(listener);
             }
         }
         helper.succeed();
@@ -112,7 +112,7 @@ public final class ElementalBowRuneGameTests {
         apply.setAccessible(true);
         try {
             var json = ElementalBowModeList.CODEC.encodeStart(com.mojang.serialization.JsonOps.INSTANCE,
-                    new ElementalBowModeList(definitions)).getOrThrow();
+                    new ElementalBowModeList(definitions)).getOrThrow(false, message -> { throw new IllegalStateException(message); });
             apply.invoke(constructor.newInstance(), java.util.Map.of(ResourceLocation.parse("apprenticecodex:cast_type_test"), json),
                     helper.getLevel().getServer().getResourceManager(), net.minecraft.util.profiling.InactiveProfiler.INSTANCE);
             helper.assertTrue(ElementalBowModeManager.getResolvedDefinition(instant) != null,
@@ -181,7 +181,7 @@ public final class ElementalBowRuneGameTests {
         menu.getSlot(1).set(ItemStack.EMPTY);
         helper.assertTrue(ElementalBow.getEnabledCalibrationScrollSlotCount(stack) == 1,
                 "Removing the upgrade must disable the second scroll slot");
-        helper.assertTrue(ItemStack.isSameItemSameComponents(secondScroll,
+        helper.assertTrue(ItemStack.isSameItemSameTags(secondScroll,
                 ElementalBow.getCalibrationScroll(stack, 1, helper.getLevel().registryAccess())),
                 "Adjusting runes must preserve inactive owned scrolls");
         helper.succeed();
@@ -195,7 +195,7 @@ public final class ElementalBowRuneGameTests {
                 for (double multiplier : new double[]{1, 1.25, 2, 10}) {
                     try (var config = ApprenticeCodexServerConfig.overrideElementalBowSchoolRuneManaCostMultiplierForGameTest(multiplier)) {
                         var player = BowGameTestSupport.createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "bow_rune_mana");
-                        player.getAttribute(AttributeRegistry.MAX_MANA).setBaseValue(20000);
+                        player.getAttribute(AttributeRegistry.MAX_MANA.get()).setBaseValue(20000);
                         var stack = bow(helper, true, true);
                         if (multiplier == 1.25 || multiplier == 10) {
                             ElementalBow.setCalibrationScroll(stack, 0,
@@ -219,7 +219,7 @@ public final class ElementalBowRuneGameTests {
                                 "Failed drawing must not consume durability or deepen heat");
                         magic.setMana(10000);
                         stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-                        stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - 20);
+                        stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 20);
                         player.stopUsingItem();
                         helper.assertTrue(stack.getDamageValue() == 1, "The rune bow must really fire");
                         helper.assertTrue(Math.abs(magic.getMana() - (10000 - expected)) < .01,
@@ -240,7 +240,7 @@ public final class ElementalBowRuneGameTests {
         var other = BowGameTestSupport.createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "bow_rune_other");
         var stack = bow(helper, true, false);
         var spell = SpellRegistry.MAGIC_ARROW_SPELL.get();
-        player.getAttribute(AttributeRegistry.FIRE_SPELL_POWER).setBaseValue(3);
+        player.getAttribute(AttributeRegistry.FIRE_SPELL_POWER.get()).setBaseValue(3);
         var basePower = spell.getSpellPower(1, player);
         var originalSchool = spell.getSchoolType();
         var otherPower = spell.getSpellPower(1, other);
@@ -272,14 +272,14 @@ public final class ElementalBowRuneGameTests {
         helper.succeedIf(() -> {
             try (var spells = BowGameTestSupport.useElementalBowSpellConfig(helper)) {
                 var player = BowGameTestSupport.createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "bow_recovery_slots");
-                player.getAttribute(AttributeRegistry.MAX_MANA).setBaseValue(20000);
+                player.getAttribute(AttributeRegistry.MAX_MANA.get()).setBaseValue(20000);
                 var first = bow(helper, false, true);
                 var second = bow(helper, false, true);
                 player.setItemInHand(InteractionHand.MAIN_HAND, first);
                 player.getInventory().setItem(1, new ItemStack(Items.ARROW, 8));
                 MagicData.getPlayerMagicData(player).setMana(10000);
                 first.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-                first.getItem().releaseUsing(first, helper.getLevel(), player, first.getUseDuration(player) - 20);
+                first.getItem().releaseUsing(first, helper.getLevel(), player, first.getUseDuration() - 20);
                 player.stopUsingItem();
                 helper.assertTrue(ElementalBowOverheatManager.getState(player, 0, true).chainDepth() == 1
                         && !ElementalBowOverheatManager.getState(player, 1, true).active(),
@@ -292,14 +292,14 @@ public final class ElementalBowRuneGameTests {
                 select(second, 1);
                 player.setItemInHand(InteractionHand.MAIN_HAND, second);
                 second.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-                second.getItem().releaseUsing(second, helper.getLevel(), player, second.getUseDuration(player) - 20);
+                second.getItem().releaseUsing(second, helper.getLevel(), player, second.getUseDuration() - 20);
                 player.stopUsingItem();
                 helper.assertTrue(ElementalBowOverheatManager.getState(player, 0, true).chainDepth() == 1
                         && ElementalBowOverheatManager.getState(player, 1, true).chainDepth() == 1,
                         "Duplicate spells must heat their own slots across bows");
-                ((ElementalBow) second.getItem()).trySetCalibrationAdjustment(second, 2, ItemStack.EMPTY, helper.getLevel().registryAccess());
+                ((ElementalBow) second.getItem()).trySetCalibrationAdjustment(second, 2, ItemStack.EMPTY);
                 second.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-                second.getItem().releaseUsing(second, helper.getLevel(), player, second.getUseDuration(player) - 20);
+                second.getItem().releaseUsing(second, helper.getLevel(), player, second.getUseDuration() - 20);
                 player.stopUsingItem();
                 for (int slot = 0; slot < 4; slot++) helper.assertTrue(
                         ElementalBowOverheatManager.getState(player, slot, true).chainDepth() == 2,

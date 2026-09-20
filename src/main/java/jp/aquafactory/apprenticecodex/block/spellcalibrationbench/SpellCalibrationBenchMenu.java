@@ -225,7 +225,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     public int getEnabledScrollSlotCount() {
-        if (getGauntletStack().getItem() instanceof ElementalBow) return ElementalBowScrollStorage.enabledSlots(getGauntletStack(), lookupProvider);
+        if (getGauntletStack().getItem() instanceof ElementalBow) return ElementalBowScrollStorage.enabledSlots(getGauntletStack(), ElementalBow.serializationLookup());
         if (hasQuickcastCartridge()) return QuickcastScrollCartridge.getEnabledCalibrationScrollSlotCount(getGauntletStack());
         if (hasGauntlet()) {
             return ScrollcasterGauntlet.getEnabledCalibrationScrollSlotCount(getGauntletStack());
@@ -376,7 +376,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         if (hasGauntlet()) {
             return ScrollcasterGauntlet.getCalibrationScroll(getGauntletStack(), slot);
         }
-        if (getGauntletStack().getItem() instanceof ElementalBow) return ElementalBow.getCalibrationScroll(getGauntletStack(), slot, lookupProvider);
+        if (getGauntletStack().getItem() instanceof ElementalBow) return ElementalBow.getCalibrationScroll(getGauntletStack(), slot, ElementalBow.serializationLookup());
         if (hasQuickcastCartridge()) return QuickcastScrollCartridge.getCalibrationScroll(getGauntletStack(), slot);
         if (hasChargecastCatalystbook()) {
             return ChargecastCatalystbook.getCalibrationScroll(getGauntletStack(), slot);
@@ -427,7 +427,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
     private void setScroll(int slot, @NotNull ItemStack stack) {
         if (getGauntletStack().getItem() instanceof ElementalBow) {
-            if (stack.isEmpty() || canPlaceScrollAt(slot, stack)) ElementalBow.setCalibrationScroll(getGauntletStack(), slot, stack, lookupProvider);
+            if (stack.isEmpty() || canPlaceScrollAt(slot, stack)) ElementalBow.setCalibrationScroll(getGauntletStack(), slot, stack, ElementalBow.serializationLookup());
             return;
         }
         if (!canPersistScrollChanges()) {

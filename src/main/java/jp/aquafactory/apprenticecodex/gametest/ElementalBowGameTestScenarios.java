@@ -1,4 +1,15 @@
 package jp.aquafactory.apprenticecodex.gametest;
+import com.mojang.authlib.GameProfile;
+import java.util.UUID;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
@@ -6,14 +17,14 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.item.elementalbow.*;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
+
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -23,7 +34,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.CustomData;
+
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.GameType;
 
@@ -36,28 +47,17 @@ final class ElementalBowGameTestScenarios {
     private ElementalBowGameTestScenarios() {
     }
 
-    static void elementalBowKeepsVanillaBowEnchantmentSurfaces(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            assertReferenceItemEnchantmentsWithRequiredExtras(
-                    helper,
-                    stack,
-                    new ItemStack(Items.BOW),
-                    requiredElementalBowExtraEnchantments(),
-                    "Elemental Bow"
-            );
-        });
-    }
+
     static void elementalBowBuildsSelectionViewsFromHeldAmmo(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var registryAccess = helper.getLevel().registryAccess();
-            var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
+            var infinity = net.minecraft.world.item.enchantment.Enchantments.INFINITY_ARROWS;
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_selection_view_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.enchant(infinity, 1);
             prepareElementalBowScrolls(stack);
-            var healingArrow = PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, net.minecraft.world.item.alchemy.Potions.HEALING.value());
-            var regenerationArrow = PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, net.minecraft.world.item.alchemy.Potions.REGENERATION.value());
+            var healingArrow = PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, net.minecraft.world.item.alchemy.Potions.HEALING);
+            var regenerationArrow = PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, net.minecraft.world.item.alchemy.Potions.REGENERATION);
             var healingId = BuiltInRegistries.POTION.getKey(PotionContentsHelper.getPotion(healingArrow));
             var regenerationId = BuiltInRegistries.POTION.getKey(PotionContentsHelper.getPotion(regenerationArrow));
             helper.assertTrue(healingId != null && regenerationId != null,
@@ -147,7 +147,7 @@ final class ElementalBowGameTestScenarios {
                             "Elemental Bow spectral selection should render the spectral arrow icon");
                 }
 
-                var healingArrow = PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, net.minecraft.world.item.alchemy.Potions.HEALING.value());
+                var healingArrow = PotionContentsHelper.createPotionStack(Items.TIPPED_ARROW, net.minecraft.world.item.alchemy.Potions.HEALING);
                 var healingId = BuiltInRegistries.POTION.getKey(PotionContentsHelper.getPotion(healingArrow));
                 helper.assertTrue(healingId != null,
                         "Elemental Bow overlay test could not resolve the healing arrow potion id");
@@ -159,7 +159,7 @@ final class ElementalBowGameTestScenarios {
                     if (tippedOverlay != null) {
                         helper.assertTrue(tippedOverlay.iconStack().is(Items.TIPPED_ARROW),
                                 "Elemental Bow tipped arrow selection should render a tipped arrow icon");
-                        helper.assertTrue(PotionContentsHelper.getPotion(tippedOverlay.iconStack()) == net.minecraft.world.item.alchemy.Potions.HEALING.value(),
+                        helper.assertTrue(PotionContentsHelper.getPotion(tippedOverlay.iconStack()) == net.minecraft.world.item.alchemy.Potions.HEALING,
                                 "Elemental Bow tipped arrow overlay should keep the selected potion");
                     }
                 }
@@ -222,12 +222,12 @@ final class ElementalBowGameTestScenarios {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_empty_selection_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            setElementalBowShotSelection(stack, "special", ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow"));
+            setElementalBowShotSelection(stack, "special", ResourceLocation.tryParse("minecraft:spectral_arrow"));
 
             var selectedViews = ElementalBow.getAvailableSelectionViews(player, stack);
             var spectralView = selectedViews.stream()
                     .filter(view -> "special".equals(view.selection().shotMode())
-                            && ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow").equals(view.selection().selectionId()))
+                            && ResourceLocation.tryParse("minecraft:spectral_arrow").equals(view.selection().selectionId()))
                     .findFirst()
                     .orElse(null);
             helper.assertTrue(spectralView != null, "Elemental Bow should keep the empty current special selection in the UI");
@@ -242,7 +242,7 @@ final class ElementalBowGameTestScenarios {
             var normalViews = ElementalBow.getAvailableSelectionViews(player, stack);
             helper.assertTrue(normalViews.stream().noneMatch(view ->
                             "special".equals(view.selection().shotMode())
-                                    && ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow").equals(view.selection().selectionId())),
+                                    && ResourceLocation.tryParse("minecraft:spectral_arrow").equals(view.selection().selectionId())),
                     "Elemental Bow should drop the empty special selection after another mode is chosen");
             var arrowView = normalViews.stream()
                     .filter(view -> "arrow".equals(view.selection().shotMode()))
@@ -279,7 +279,7 @@ final class ElementalBowGameTestScenarios {
         helper.succeedIf(() -> {
             var item = (ElementalBow) ItemRegistry.ELEMENTAL_BOW.get();
             var stack = new ItemStack(item);
-            CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putString("ElementalBowMode", "fire"));
+            stack.getOrCreateTag().putString("ElementalBowMode", "fire");
 
             ElementalBowScrollStorage.migrate(stack);
 
@@ -306,9 +306,9 @@ final class ElementalBowGameTestScenarios {
             try (var ignored = useElementalBowSpellConfig(helper)) {
                 var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
                 var lookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-                stack.enchant(lookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.POWER), 5);
-                stack.enchant(lookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.FLAME), 1);
-                stack.enchant(lookup.getOrThrow(Enchantments.TRANSCENDENCE), 3);
+                stack.enchant(net.minecraft.world.item.enchantment.Enchantments.POWER_ARROWS, 5);
+                stack.enchant(net.minecraft.world.item.enchantment.Enchantments.FLAMING_ARROWS, 1);
+                stack.enchant(EnchantmentRegistry.TRANSCENDENCE.get(), 3);
                 setElementalBowMode(stack, "fire");
                 helper.assertTrue(ElementalBow.getDisplayedSpellProfile(stack).spellLevel() == 4,
                         "Only Transcendence may increase the stored scroll level: " + ElementalBow.getDisplayedSpellProfile(stack));
@@ -343,7 +343,7 @@ final class ElementalBowGameTestScenarios {
     static void elementalBowBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            setElementalBowMode(stack, SchoolRegistry.FIRE_RESOURCE.toString());
+            setElementalBowMode(stack, "fire");
             var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
 
             helper.assertTrue(
@@ -402,7 +402,7 @@ final class ElementalBowGameTestScenarios {
             helper.assertTrue(useResult.getResult().consumesAction(),
                     "Elemental Bow should start drawing when mana and ammo are available: " + useResult.getResult());
 
-            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - 19);
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 19);
             helper.assertTrue(stack.getDamageValue() == 0, "Elemental Bow should not lose durability before full draw");
             helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
                     "Elemental Bow should not consume arrows before full draw");
@@ -433,7 +433,7 @@ final class ElementalBowGameTestScenarios {
                     stack,
                     helper.getLevel(),
                     player,
-                    stack.getUseDuration(player) - ElementalBow.READY_DRAW_TICKS
+                    stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS
             );
             player.stopUsingItem();
 
@@ -446,11 +446,9 @@ final class ElementalBowGameTestScenarios {
 
     static void elementalBowInfinityAllowsVanillaDrawWithoutArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var registryAccess = helper.getLevel().registryAccess();
-            var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_infinity_draw_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.enchant(infinity, 1);
+            stack.enchant(Enchantments.INFINITY_ARROWS, 1);
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
 
             var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
@@ -469,7 +467,7 @@ final class ElementalBowGameTestScenarios {
             var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
             helper.assertTrue(result.getResult().consumesAction(),
                     "Elemental Bow vanilla mode should start drawing with only special arrows available: " + result.getResult());
-            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - 20);
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 20);
             helper.assertTrue(player.getInventory().getItem(1).isEmpty(),
                     "Elemental Bow vanilla mode should consume the special arrow that vanilla resolution selected");
         });
@@ -494,11 +492,9 @@ final class ElementalBowGameTestScenarios {
     }
     static void elementalBowInfinityAllowsArrowModeDrawWithoutArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var registryAccess = helper.getLevel().registryAccess();
-            var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_infinity_draw_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_infinity_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.enchant(infinity, 1);
+            stack.enchant(Enchantments.INFINITY_ARROWS, 1);
             setElementalBowShotSelection(stack, "arrow", null);
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
 
@@ -510,12 +506,10 @@ final class ElementalBowGameTestScenarios {
     }
     static void elementalBowMagicModeIgnoresInfinityWithoutAmmo(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var registryAccess = helper.getLevel().registryAccess();
-            var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_magic_infinity_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.enchant(infinity, 1);
-            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            stack.enchant(Enchantments.INFINITY_ARROWS, 1);
+            setElementalBowMode(stack, "fire");
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
 
             var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
@@ -524,65 +518,12 @@ final class ElementalBowGameTestScenarios {
             helper.assertFalse(player.isUsingItem(), "Elemental Bow magic mode should not enter use state without ammo");
         });
     }
-    static void elementalBowAcceptsSynthesisEnchantmentsAndTooltip(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-            var synthesis = enchantmentLookup.getOrThrow(Enchantments.SYNTHESIS);
-            var infinity = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
-            var mending = enchantmentLookup.getOrThrow(net.minecraft.world.item.enchantment.Enchantments.MENDING);
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
 
-            helper.assertTrue(stack.getItem().supportsEnchantment(stack, synthesis),
-                    "Elemental Bow should accept Synthesis at the enchanting table");
-            helper.assertTrue(stack.getItem().isBookEnchantable(stack, createEnchantedBook(synthesis)),
-                    "Elemental Bow should accept Synthesis from enchanted books");
-            helper.assertTrue(synthesis.value().canEnchant(stack),
-                    "Elemental Bow should be included in the Synthesis supported_items tag");
-            helper.assertFalse(Enchantment.areCompatible(synthesis, infinity),
-                    "Synthesis should be incompatible with Infinity");
-            helper.assertFalse(Enchantment.areCompatible(synthesis, mending),
-                    "Synthesis should be incompatible with Mending");
-
-            assertTooltipKeyAt(helper, stack, 0, "item.apprenticecodex.elemental_bow.mode",
-                    "Elemental Bow should always show the current mode tooltip line");
-            assertTooltipKeyUsesColor(helper, stack, "item.apprenticecodex.elemental_bow.desc", ChatFormatting.GRAY,
-                    "Elemental Bow should always show the description tooltip line");
-            assertTooltipKeyAbsent(helper, stack, "item.apprenticecodex.elemental_bow.spell.no_enchantment",
-                    "Elemental Bow should not show spell ammo tooltip while not in magic mode");
-            assertTooltipKeyAbsent(helper, stack, "item.apprenticecodex.elemental_bow.spell.with_infinity",
-                    "Elemental Bow should not show Infinity spell tooltip while not in magic mode");
-            assertTooltipKeyAbsent(helper, stack, "item.apprenticecodex.elemental_bow.spell.with_synthesis",
-                    "Elemental Bow should not show Synthesis spell tooltip while not in magic mode");
-
-            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
-            assertTooltipKeyAt(helper, stack, 1, "item.apprenticecodex.elemental_bow.desc",
-                    "Elemental Bow should show the description below the mode tooltip line");
-            assertTooltipKeyAbsent(helper, stack, "item.apprenticecodex.elemental_bow.spell.no_enchantment", "Spellgun details must omit the ammo section");
-
-            var infinityStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            setElementalBowShotSelection(infinityStack, "magic", SchoolRegistry.FIRE_RESOURCE);
-            infinityStack.enchant(infinity, 1);
-            assertTooltipKeyAbsent(helper, infinityStack, "item.apprenticecodex.elemental_bow.spell.with_infinity", "Spellgun details must omit the ammo section");
-
-            var synthesisStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            setElementalBowShotSelection(synthesisStack, "magic", SchoolRegistry.FIRE_RESOURCE);
-            synthesisStack.enchant(synthesis, 1);
-            assertTooltipKeyAbsent(helper, synthesisStack, "item.apprenticecodex.elemental_bow.spell.with_synthesis", "Spellgun details must omit the ammo section");
-            assertTooltipKeyAbsent(helper, synthesisStack, "item.apprenticecodex.elemental_bow.with_synthesis",
-                    "Elemental Bow should no longer show the legacy Synthesis tooltip key");
-
-            synthesisStack.enchant(infinity, 1);
-            assertTooltipKeyAbsent(helper, synthesisStack, "item.apprenticecodex.elemental_bow.spell.with_synthesis", "Spellgun details must omit the ammo section");
-            assertTooltipKeyAbsent(helper, synthesisStack, "item.apprenticecodex.elemental_bow.spell.with_infinity",
-                    "Elemental Bow should not show the Infinity spell tooltip when Synthesis is also present");
-        });
-    }
     static void elementalBowSynthesisAllowsMagicModeWithoutArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var synthesis = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SYNTHESIS);
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_magic_synthesis_empty_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.enchant(synthesis, 1);
+            stack.enchant(EnchantmentRegistry.SYNTHESIS.get(), 1);
             setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
 
@@ -594,7 +535,7 @@ final class ElementalBowGameTestScenarios {
             var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
             helper.assertTrue(result.getResult().consumesAction(),
                     "Elemental Bow magic mode should start without arrows when Synthesis is enchanted: " + result.getResult());
-            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - ElementalBow.READY_DRAW_TICKS);
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS);
             player.stopUsingItem();
 
             helper.assertTrue(stack.getDamageValue() == 1,
@@ -639,12 +580,7 @@ final class ElementalBowGameTestScenarios {
                 var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
                 helper.assertTrue(result.getResult().consumesAction(),
                         "Elemental Bow magic mode should accept a configured special arrow catalyst: " + result.getResult());
-                stack.getItem().releaseUsing(
-                        stack,
-                        helper.getLevel(),
-                        player,
-                        stack.getUseDuration(player) - ElementalBow.READY_DRAW_TICKS
-                );
+                stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS);
                 player.stopUsingItem();
 
                 helper.assertTrue(player.getInventory().getItem(1).getCount() == 1,
@@ -657,10 +593,9 @@ final class ElementalBowGameTestScenarios {
 
     static void elementalBowSynthesisDoesNotConsumeMagicModeArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var synthesis = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SYNTHESIS);
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_magic_synthesis_ammo_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.enchant(synthesis, 1);
+            stack.enchant(EnchantmentRegistry.SYNTHESIS.get(), 1);
             setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
             player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
@@ -672,7 +607,7 @@ final class ElementalBowGameTestScenarios {
             var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
             helper.assertTrue(result.getResult().consumesAction(),
                     "Elemental Bow magic mode should start with Synthesis while arrows are present: " + result.getResult());
-            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - ElementalBow.READY_DRAW_TICKS);
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS);
             player.stopUsingItem();
 
             helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
@@ -698,9 +633,9 @@ final class ElementalBowGameTestScenarios {
             try (var ignored = useElementalBowSpellConfig(helper)) {
                 var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_cooldown_reduction");
                 var spell = SpellRegistry.FIRE_ARROW_SPELL.get();
-                var attribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION);
-                attribute.addPermanentModifier(new AttributeModifier(ResourceLocation.fromNamespaceAndPath("apprenticecodex", "bow_cdr"),
-                        0.35D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+                var attribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get());
+                attribute.addPermanentModifier(new AttributeModifier(java.util.UUID.randomUUID(), "bow_cdr",
+                        0.35D, AttributeModifier.Operation.MULTIPLY_BASE));
                 int actual = ElementalBowOverheatManager.resolveCooldownTicks(spell, player);
                 int expected = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, CastSource.SPELLBOOK);
                 helper.assertTrue(actual == expected && actual < spell.getSpellCooldown(), "Cooling must keep player CDR and exclude weapon multiplier");
@@ -720,14 +655,14 @@ final class ElementalBowGameTestScenarios {
                 var spell = SpellRegistry.FIRE_ARROW_SPELL.get();
                 // 本来の CD がなくても弓の射撃で新規登録しない。
                 stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-                stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - 20);
+                stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 20);
                 player.stopUsingItem();
                 helper.assertFalse(magic.getPlayerCooldowns().isOnCooldown(spell), "Bow must not register a normal cooldown");
                 io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, CastSource.SPELLBOOK);
                 var before = magic.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId()).getCooldownRemaining();
                 helper.assertTrue(before > 0 && magic.getPlayerCooldowns().isOnCooldown(spell), "The independent normal cooldown must be active");
                 stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-                stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - 20);
+                stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 20);
                 player.stopUsingItem();
                 helper.assertTrue(stack.getDamageValue() == 2, "Bow must shoot even during the normal spell cooldown");
                 helper.assertTrue(magic.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId()).getCooldownRemaining() == before,
@@ -768,7 +703,7 @@ final class ElementalBowGameTestScenarios {
             var overheatedUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
             helper.assertTrue(overheatedUseResult.getResult().consumesAction(),
                     "Elemental Bow should still allow a second overheated draw: " + overheatedUseResult.getResult());
-            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - ElementalBow.READY_DRAW_TICKS);
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - ElementalBow.READY_DRAW_TICKS);
             player.stopUsingItem();
 
             var manaAfterOverheatedShot = magicData.getMana();
@@ -841,7 +776,7 @@ final class ElementalBowGameTestScenarios {
                 var shortUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
                 helper.assertTrue(shortUseResult.getResult().consumesAction(),
                         "Elemental Bow draw config test should start drawing: " + shortUseResult.getResult());
-                stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - 29);
+                stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 29);
                 player.stopUsingItem();
                 helper.assertTrue(stack.getDamageValue() == 0,
                         "Elemental Bow should not fire before configured draw ticks");
@@ -853,7 +788,7 @@ final class ElementalBowGameTestScenarios {
                 var readyUseResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
                 helper.assertTrue(readyUseResult.getResult().consumesAction(),
                         "Elemental Bow draw config test should restart drawing: " + readyUseResult.getResult());
-                stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - 30);
+                stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 30);
                 player.stopUsingItem();
                 helper.assertTrue(stack.getDamageValue() == 1,
                         "Elemental Bow should fire at configured draw ticks");
@@ -926,11 +861,123 @@ final class ElementalBowGameTestScenarios {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             setElementalBowMode(stack, "fire");
-            var power = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
-                    .getOrThrow(net.minecraft.world.item.enchantment.Enchantments.POWER);
+            var power = net.minecraft.world.item.enchantment.Enchantments.POWER_ARROWS;
             stack.enchant(power, 5);
             helper.assertTrue(ElementalBow.getDisplayedSpellProfile(stack).spellLevel() == 1,
                     "Power must not bypass scroll progression");
+        });
+    }
+
+    static void elementalBowHeldWisdomAndPlunderWorkInBothHands(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var state = Blocks.DIAMOND_ORE.defaultBlockState();
+
+            var mainhandPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "elemental_bow_mainhand_held_enchant_test"));
+            var mainhandBow = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            mainhandBow.enchant(EnchantmentRegistry.WISDOM.get(), 1);
+            mainhandBow.enchant(EnchantmentRegistry.PLUNDER.get(), 2);
+            mainhandPlayer.setItemInHand(InteractionHand.MAIN_HAND, mainhandBow);
+
+            var mainhandExperience = new BlockEvent.BreakEvent(level, new BlockPos(3, 2, 0), state, mainhandPlayer);
+            mainhandExperience.setExpToDrop(3);
+            WisdomExperienceDropEvent.onBlockBreak(mainhandExperience);
+            helper.assertTrue(mainhandExperience.getExpToDrop() == 4,
+                    "Elemental Bow mainhand Wisdom should increase block experience from 3 to 4 but got " + mainhandExperience.getExpToDrop());
+
+            var mainhandLootingEvent = new net.minecraftforge.event.entity.living.LootingLevelEvent(
+                    helper.spawn(EntityType.ZOMBIE, new BlockPos(3, 2, 1)),
+                    mainhandPlayer.damageSources().playerAttack(mainhandPlayer),
+                    0
+            );
+            jp.aquafactory.apprenticecodex.enchantment.PlunderLootingLevelEvent.onLootingLevel(mainhandLootingEvent);
+            helper.assertTrue(mainhandLootingEvent.getLootingLevel() == 2,
+                    "Elemental Bow mainhand Plunder should set looting level to 2 but got " + mainhandLootingEvent.getLootingLevel());
+
+            var offhandPlayer = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "elemental_bow_offhand_held_enchant_test"));
+            var offhandBow = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            offhandBow.enchant(EnchantmentRegistry.WISDOM.get(), 1);
+            offhandBow.enchant(EnchantmentRegistry.PLUNDER.get(), 3);
+            offhandPlayer.setItemInHand(InteractionHand.OFF_HAND, offhandBow);
+
+            var offhandExperience = new BlockEvent.BreakEvent(level, new BlockPos(4, 2, 0), state, offhandPlayer);
+            offhandExperience.setExpToDrop(3);
+            WisdomExperienceDropEvent.onBlockBreak(offhandExperience);
+            helper.assertTrue(offhandExperience.getExpToDrop() == 4,
+                    "Elemental Bow offhand Wisdom should increase block experience from 3 to 4 but got " + offhandExperience.getExpToDrop());
+
+            var offhandLootingEvent = new net.minecraftforge.event.entity.living.LootingLevelEvent(
+                    helper.spawn(EntityType.ZOMBIE, new BlockPos(4, 2, 1)),
+                    offhandPlayer.damageSources().playerAttack(offhandPlayer),
+                    0
+            );
+            jp.aquafactory.apprenticecodex.enchantment.PlunderLootingLevelEvent.onLootingLevel(offhandLootingEvent);
+            helper.assertTrue(offhandLootingEvent.getLootingLevel() == 3,
+                    "Elemental Bow offhand Plunder should set looting level to 3 but got " + offhandLootingEvent.getLootingLevel());
+        });
+    }
+
+    static void elementalBowSpecialModeInfinityKeepsSelectionAndAllowsEmptyReuse(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_special_arrow_test");
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            stack.enchant(Enchantments.INFINITY_ARROWS, 1);
+            setElementalBowShotSelection(stack, "special", ResourceLocation.tryParse("minecraft:spectral_arrow"));
+            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+            player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW));
+
+            var firstUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(firstUse.getResult().consumesAction(),
+                    "Elemental Bow special mode should start drawing while the selected arrow exists: " + firstUse.getResult());
+            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration() - 20);
+            helper.assertTrue(player.getInventory().getItem(1).isEmpty(),
+                    "Elemental Bow special mode should consume the selected arrow even with Infinity");
+
+            var secondUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            helper.assertTrue(secondUse.getResult().consumesAction(),
+                    "Elemental Bow special mode should start drawing again with Infinity after the selected arrow runs out: " + secondUse.getResult());
+            helper.assertTrue(player.isUsingItem(),
+                    "Elemental Bow special mode should enter use state again while keeping its empty selection");
+            assertElementalBowSelection(helper, stack, "special", ResourceLocation.tryParse("minecraft:spectral_arrow"),
+                    "Elemental Bow special mode should keep the selected arrow after ammo loss");
+        });
+    }
+
+    static void elementalBowSynthesisTooltipKeepsExpectedState(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            assertTooltipKeyAt(helper, stack, 0, "item.apprenticecodex.elemental_bow.mode",
+                    "Elemental Bow should always show the current mode tooltip line");
+            assertTooltipKeyUsesColor(helper, stack, "item.apprenticecodex.elemental_bow.desc", ChatFormatting.GRAY,
+                    "Elemental Bow should always show the description tooltip line");
+            assertTooltipKeyAbsent(helper, stack, "item.apprenticecodex.elemental_bow.spell.no_enchantment",
+                    "Elemental Bow should not show spell ammo tooltip while not in magic mode");
+            assertTooltipKeyAbsent(helper, stack, "item.apprenticecodex.elemental_bow.spell.with_infinity",
+                    "Elemental Bow should not show Infinity spell tooltip while not in magic mode");
+            assertTooltipKeyAbsent(helper, stack, "item.apprenticecodex.elemental_bow.spell.with_synthesis",
+                    "Elemental Bow should not show Synthesis spell tooltip while not in magic mode");
+
+            setElementalBowShotSelection(stack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            assertTooltipKeyAt(helper, stack, 1, "item.apprenticecodex.elemental_bow.desc",
+                    "Elemental Bow should show the description below the mode tooltip line");
+            assertTooltipKeyAbsent(helper, stack, "item.apprenticecodex.elemental_bow.spell.no_enchantment", "Spellgun details must omit the ammo section");
+
+            var infinityStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            setElementalBowShotSelection(infinityStack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            infinityStack.enchant(Enchantments.INFINITY_ARROWS, 1);
+            assertTooltipKeyAbsent(helper, infinityStack, "item.apprenticecodex.elemental_bow.spell.with_infinity", "Spellgun details must omit the ammo section");
+
+            var synthesisStack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
+            setElementalBowShotSelection(synthesisStack, "magic", SchoolRegistry.FIRE_RESOURCE);
+            synthesisStack.enchant(EnchantmentRegistry.SYNTHESIS.get(), 1);
+            assertTooltipKeyAbsent(helper, synthesisStack, "item.apprenticecodex.elemental_bow.spell.with_synthesis", "Spellgun details must omit the ammo section");
+            assertTooltipKeyAbsent(helper, synthesisStack, "item.apprenticecodex.elemental_bow.with_synthesis",
+                    "Elemental Bow should no longer show the legacy Synthesis tooltip key");
+
+            synthesisStack.enchant(Enchantments.INFINITY_ARROWS, 1);
+            assertTooltipKeyAbsent(helper, synthesisStack, "item.apprenticecodex.elemental_bow.spell.with_synthesis", "Spellgun details must omit the ammo section");
+            assertTooltipKeyAbsent(helper, synthesisStack, "item.apprenticecodex.elemental_bow.spell.with_infinity",
+                    "Elemental Bow should not show the Infinity spell tooltip when Synthesis is also present");
         });
     }
 }

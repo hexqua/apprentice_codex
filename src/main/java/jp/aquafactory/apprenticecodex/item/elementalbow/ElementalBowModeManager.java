@@ -27,7 +27,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = EventBusSubscriber.Bus.FORGE)
 public final class ElementalBowModeManager extends SimpleJsonResourceReloadListener {
     public static final String DIRECTORY = "elemental_bow_modes";
     private static final ElementalBowModeManager INSTANCE = new ElementalBowModeManager();
@@ -104,8 +104,7 @@ public final class ElementalBowModeManager extends SimpleJsonResourceReloadListe
         public ResourceLocation schoolId() { return schoolType().getId(); }
         public int resolveSpellLevel(ItemStack stack, int scrollLevel) {
             // 表示と射撃で同じ値を使い、汎用イベントによる二重加算を避ける。
-            int bonus = jp.aquafactory.apprenticecodex.enchantment.Enchantments.getLevel(
-                    stack, jp.aquafactory.apprenticecodex.enchantment.Enchantments.TRANSCENDENCE);
+            int bonus = stack.getEnchantmentLevel(jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry.TRANSCENDENCE.get());
             return net.minecraft.util.Mth.clamp(scrollLevel + bonus, spell.getMinLevel(), spell.getMaxLevel());
         }
 

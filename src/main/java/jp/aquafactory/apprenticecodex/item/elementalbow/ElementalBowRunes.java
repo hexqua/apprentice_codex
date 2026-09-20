@@ -16,7 +16,7 @@ public final class ElementalBowRunes {
         if (!(bow.getItem() instanceof ElementalBow)) return null;
         for (int slot = 0; slot < 3; slot++) {
             var school = ScrollcasterSchoolRuneResolver.resolveSchool(
-                    CalibrationAdjustmentStorage.get(bow, slot, 3, ElementalBow.serializationLookup()));
+                    CalibrationAdjustmentStorage.get(bow, slot, 3));
             if (school.isPresent()) return school.get();
         }
         return null;
@@ -25,7 +25,7 @@ public final class ElementalBowRunes {
     public static boolean separatesOverheat(ItemStack bow) {
         if (!(bow.getItem() instanceof ElementalBow)) return false;
         for (int slot = 0; slot < 3; slot++) {
-            if (CalibrationAdjustmentStorage.get(bow, slot, 3, ElementalBow.serializationLookup())
+            if (CalibrationAdjustmentStorage.get(bow, slot, 3)
                     .is(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get())) return true;
         }
         return false;

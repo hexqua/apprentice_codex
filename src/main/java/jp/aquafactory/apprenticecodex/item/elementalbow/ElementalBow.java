@@ -189,7 +189,7 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
                 ? net.minecraftforge.server.ServerLifecycleHooks.getCurrentServer().registryAccess()
                 : net.minecraftforge.fml.loading.FMLEnvironment.dist == net.minecraftforge.api.distmarker.Dist.CLIENT
                 ? ElementalBowClientTooltip.lookup()
-                : net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
+                : net.minecraft.core.RegistryAccess.fromRegistryOfRegistries(net.minecraft.core.registries.BuiltInRegistries.REGISTRY);
     }
 
     @Override
@@ -238,7 +238,7 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
     }
 
     @Override
-    public void onCalibrationAdjustmentsChanged(@NotNull ItemStack stack, @NotNull HolderLookup.Provider lookup) {
+    public void onCalibrationAdjustmentsChanged(@NotNull ItemStack stack) {
         ElementalBowScrollStorage.migrate(stack);
         normalizeModeState(stack);
     }
@@ -353,7 +353,7 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
         return 10;
     }
 
-    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
         lines.add(
                 Component.translatable("item.apprenticecodex.elemental_bow.mode", getModeDisplayName(stack))

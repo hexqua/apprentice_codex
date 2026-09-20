@@ -12738,43 +12738,8 @@ public class ApprenticeCodexGameTestScenarios {
                 .orElse(null);
     }
 
-            setElementalBowShotSelection(stack, "arrow", null);
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            player.getInventory().setItem(1, new ItemStack(Items.ARROW, 3));
-
-            var result = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Elemental Bow arrow-only mode should start drawing with Infinity while normal arrows exist: " + result.getResult());
-
-            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - 20);
-            helper.assertTrue(player.getInventory().getItem(1).getCount() == 3,
-                    "Elemental Bow arrow-only mode should not consume normal arrows while Infinity is enchanted");
-        });
-    }
-    static void elementalBowSpecialModeConsumesLastArrowAndKeepsSelection(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var registryAccess = helper.getLevel().registryAccess();
-            var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(net.minecraft.world.item.enchantment.Enchantments.INFINITY);
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_special_arrow_test");
-            var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
-            stack.enchant(infinity, 1);
-            setElementalBowShotSelection(stack, "special", ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow"));
-            player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            player.getInventory().setItem(1, new ItemStack(Items.SPECTRAL_ARROW));
-
-            var firstUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(firstUse.getResult().consumesAction(),
-                    "Elemental Bow special mode should start drawing while the selected arrow exists: " + firstUse.getResult());
-            stack.getItem().releaseUsing(stack, helper.getLevel(), player, stack.getUseDuration(player) - 20);
-            helper.assertTrue(player.getInventory().getItem(1).isEmpty(),
-                    "Elemental Bow special mode should consume the selected arrow even with Infinity");
-
-            var secondUse = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(secondUse.getResult() == net.minecraft.world.InteractionResult.FAIL,
-                    "Elemental Bow special mode should fail after the selected arrow runs out: " + secondUse.getResult());
-            assertElementalBowSelection(helper, stack, "special", ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow"),
-                    "Elemental Bow special mode should keep the selected arrow after ammo loss");
-        });
+    static void setElementalBowShotSelection(ItemStack stack, String shotMode, @Nullable ResourceLocation selectionId) {
+        BowGameTestSupport.setElementalBowShotSelection(stack, shotMode, selectionId);
     }
 
     static void assertTranslatableKey(GameTestHelper helper, Component component, String expectedKey, String message) {
@@ -13723,7 +13688,7 @@ public class ApprenticeCodexGameTestScenarios {
 
         var rawTemplates = ((StructureTemplatePoolAccessor) pool).apprenticecodex$getRawTemplates();
         var matchingRawEntries = rawTemplates.stream()
-                .filter(pair -> isMatchingSinglePoolElement(pair.get(0), expectedStructureId, expectedProcessorId))
+                .filter(pair -> isMatchingSinglePoolElement(pair.getFirst(), expectedStructureId, expectedProcessorId))
                 .toList();
 
         helper.assertTrue(matchingRawEntries.size() == 1,

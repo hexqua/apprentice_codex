@@ -10,7 +10,7 @@ public final class ElementalBowClientConfigState {
     public static double schoolRuneManaCostMultiplier() { return schoolRuneManaCostMultiplier; }
 
     public static void setSchoolRuneManaCostMultiplier(double value) {
-        schoolRuneManaCostMultiplier = Double.isFinite(value) ? Math.clamp(value, 1.0D, 10.0D) : 2.0D;
+        schoolRuneManaCostMultiplier = Double.isFinite(value) ? Math.max(1.0D, Math.min(value, 10.0D)) : 2.0D;
     }
     private static final List<ResourceLocation> DEFAULT_MAGIC_ARROW_CATALYST_ITEM_IDS =
             List.of(ResourceLocation.fromNamespaceAndPath("minecraft", "arrow"));

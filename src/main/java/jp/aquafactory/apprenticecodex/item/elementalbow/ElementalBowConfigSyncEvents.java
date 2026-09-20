@@ -42,7 +42,7 @@ public final class ElementalBowConfigSyncEvents {
     }
 
     @SubscribeEvent
-    public static void onDatapackSync(net.neoforged.neoforge.event.OnDatapackSyncEvent event) {
+    public static void onDatapackSync(net.minecraftforge.event.OnDatapackSyncEvent event) {
         if (event.getPlayer() != null) syncToPlayer(event.getPlayer());
         else syncToAllPlayers();
     }
