@@ -1,16 +1,12 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
-import com.sammy.malum.core.handlers.GeasEffectHandler;
-import com.sammy.malum.registry.common.MalumAttachmentTypes;
-import com.sammy.malum.registry.common.MalumAttributes;
-import com.sammy.malum.registry.common.magic.MalumGeasEffectTypes;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
@@ -25,14 +21,14 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.neoforged.fml.ModList;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
-import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
-import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingDropsEvent;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.function.Consumer;
@@ -44,11 +40,11 @@ public class ManaShieldShellResidualGameTests extends ApprenticeCodexGameTestSce
 
     @GameTest(template = TEMPLATE)
     public static void fractionalAbsorptionProtectsLongCasting(GameTestHelper helper) {
-        verifyCasting(helper, false);
+        verifyCasting(helper);
         helper.succeed();
     }
 
-    private static void verifyCasting(GameTestHelper helper, boolean malum) {
+    private static void verifyCasting(GameTestHelper helper) {
         var spell = SpellRegistry.FIREBALL_SPELL.get();
         helper.assertTrue(spell.getCastType() == CastType.LONG, "Test spell must use LONG casting");
         for (boolean shell : new boolean[]{false, true}) {
@@ -59,26 +55,25 @@ public class ManaShieldShellResidualGameTests extends ApprenticeCodexGameTestSce
                 if (shell) {
                     equipShell(player);
                 } else {
-                    CuriosApi.getCuriosInventory(player).orElseThrow().setEquippedCurio(
+                    CuriosApi.getCuriosInventory(player).resolve().orElseThrow().setEquippedCurio(
                             CuriosSlotConstants.CHARM, 0, new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
                 }
-                if (malum) MalumScenario.addConversion(player);
                 var magic = MagicData.getPlayerMagicData(player);
                 magic.setMana(mana);
                 magic.initiateCast(spell, 1, 40, CastSource.SPELLBOOK, "mainhand");
                 helper.assertTrue(magic.isCasting() && spell.canBeInterrupted(player),
                         "Test must begin with an interruptible active cast");
                 int[] downstream = {0};
-                Consumer<LivingIncomingDamageEvent> listener = event -> {
+                Consumer<LivingAttackEvent> listener = event -> {
                     if (event.getEntity() == player) downstream[0]++;
                 };
-                NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, LivingIncomingDamageEvent.class, listener);
+                MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, LivingAttackEvent.class, listener);
                 float health = player.getHealth();
                 try {
                     // 難易度補正のない詠唱中断対象のダメージで、端数の吸収を比較する。
                     player.hurt(player.damageSources().lava(), 0.5F);
                 } finally {
-                    NeoForge.EVENT_BUS.unregister(listener);
+                    MinecraftForge.EVENT_BUS.unregister(listener);
                 }
                 boolean absorbed = mana > (shell ? 50 : 0);
                 helper.assertTrue(magic.isCasting() == absorbed,
@@ -104,25 +99,38 @@ public class ManaShieldShellResidualGameTests extends ApprenticeCodexGameTestSce
             player.setItemSlot(EquipmentSlot.CHEST, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_COAT.get()));
             player.setItemSlot(EquipmentSlot.LEGS, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get()));
             player.setItemSlot(EquipmentSlot.FEET, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()));
-            var protection = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
-                    .getOrThrow(net.minecraft.world.item.enchantment.Enchantments.PROTECTION);
+            var protection = net.minecraft.world.item.enchantment.Enchantments.ALL_DAMAGE_PROTECTION;
             for (var armor : player.getArmorSlots()) armor.enchant(protection, 4);
             player.doTick();
             equipShell(player);
             MagicData.getPlayerMagicData(player).setMana(mana);
-            var health = player.getHealth();
-            var event = postLivingAttackEventForGameTest(player, player.damageSources().lava(), 240);
+            player.getAttribute(Attributes.MAX_HEALTH).setBaseValue(1000);
+            player.setHealth(1000);
+            float[] forwarded = {0};
+            Consumer<LivingAttackEvent> listener = event -> {
+                if (event.getEntity() == player) forwarded[0] = event.getAmount();
+            };
+            MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, LivingAttackEvent.class, listener);
+            LivingAttackEvent event;
+            try {
+                event = postLivingAttackEventForGameTest(player, player.damageSources().lava(), 240);
+            } finally {
+                MinecraftForge.EVENT_BUS.unregister(listener);
+            }
             // 防御19・Protection IV×4では240→73.2672。800マナなら30点吸収し、残存割合を240へ掛ける。
             float expected = mana == 800 ? 240 * (73.2672F - 30) / 73.2672F : 240;
-            helper.assertFalse(event.isCanceled(), "Tyros-scale damage must continue when incompletely absorbed");
-            helper.assertTrue(Math.abs(event.getAmount() - expected) < 0.001,
-                    "Shell must forward the unblocked proportion: mana=" + mana + ", damage=" + event.getAmount());
-            helper.assertTrue(player.getHealth() == health,
-                    "Posting an incoming event alone must never directly damage the player");
+            helper.assertTrue(event.isCanceled() == (mana == 800),
+                    "Forge must reenter only when Shell changes the incoming damage");
+            helper.assertTrue(Math.abs(forwarded[0] - expected) < 0.001,
+                    "Shell must forward the unblocked proportion: mana=" + mana + ", damage=" + forwarded[0]);
             helper.assertTrue(MagicData.getPlayerMagicData(player).getMana() == 0,
                     "This hit must exhaust the available mana");
-            helper.assertTrue(player.getItemBySlot(EquipmentSlot.CHEST).getDamageValue() == (mana >= 50 ? 60 : 0),
-                    "Shell activation wear must occur even when activation leaves no absorption budget");
+            // 耐火のMagi Agent Suitは溶岩の通常耐久消費を受けず、Shell発動分だけを消費する。
+            int residualWear = 0;
+            helper.assertTrue(player.getItemBySlot(EquipmentSlot.CHEST).getDamageValue() == (mana >= 50 ? 60 : 0) + residualWear,
+                    "Shell activation wear must occur even when activation leaves no absorption budget: mana=" + mana
+                            + ", expected=" + ((mana >= 50 ? 60 : 0) + residualWear)
+                            + ", actual=" + player.getItemBySlot(EquipmentSlot.CHEST).getDamageValue());
         }
         helper.succeed();
     }
@@ -137,28 +145,28 @@ public class ManaShieldShellResidualGameTests extends ApprenticeCodexGameTestSce
         var source = player.damageSources().lava();
         helper.assertFalse(source.is(DamageTypeTags.BYPASSES_ARMOR),
                 "Test damage must enter Shell's armor mitigation branch");
-        float reduced = CombatRules.getDamageAfterAbsorb(player, 12, source,
+        float reduced = CombatRules.getDamageAfterAbsorb(12,
                 player.getArmorValue(), (float) player.getAttributeValue(Attributes.ARMOR_TOUGHNESS));
         reduced = CombatRules.getDamageAfterMagicAbsorb(reduced,
-                EnchantmentHelper.getDamageProtection(helper.getLevel(), player, source));
+                EnchantmentHelper.getDamageProtection(player.getArmorSlots(), source));
         float residual = 12 * (reduced - 2) / reduced;
         control.hurt(source, residual);
         int[] incomingCalls = {0};
         float[] forwarded = {0};
-        Consumer<LivingIncomingDamageEvent> listener = event -> {
+        Consumer<LivingAttackEvent> listener = event -> {
             if (event.getEntity() == player) {
                 incomingCalls[0]++;
                 forwarded[0] = event.getAmount();
             }
         };
-        NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, LivingIncomingDamageEvent.class, listener);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, false, LivingAttackEvent.class, listener);
         try {
             player.hurt(source, 12);
         } finally {
-            NeoForge.EVENT_BUS.unregister(listener);
+            MinecraftForge.EVENT_BUS.unregister(listener);
         }
         helper.assertTrue(incomingCalls[0] == 1 && Math.abs(forwarded[0] - residual) < 0.001,
-                "Shell must forward proportional damage in one original event without reentering hurt");
+                "Shell must expose proportional residual damage exactly once to downstream handlers");
         helper.assertTrue(Math.abs(player.getHealth() - control.getHealth()) < 0.001,
                 "Shell residual must receive the same defenses as an ordinary hit: shell="
                         + player.getHealth() + ", control=" + control.getHealth() + ", residual=" + residual);
@@ -192,54 +200,57 @@ public class ManaShieldShellResidualGameTests extends ApprenticeCodexGameTestSce
         Consumer<LivingDropsEvent> drops = event -> {
             if (event.getEntity() == victim) observed[1] = true;
         };
-        NeoForge.EVENT_BUS.addListener(death);
-        NeoForge.EVENT_BUS.addListener(drops);
+        MinecraftForge.EVENT_BUS.addListener(death);
+        MinecraftForge.EVENT_BUS.addListener(drops);
         try {
             victim.hurt(victim.damageSources().lava(), 200);
             helper.assertTrue(victim.isDeadOrDying() && observed[0] && observed[1],
                     "Lethal Shell residual must invoke normal death and drop events");
         } finally {
-            NeoForge.EVENT_BUS.unregister(death);
-            NeoForge.EVENT_BUS.unregister(drops);
+            MinecraftForge.EVENT_BUS.unregister(death);
+            MinecraftForge.EVENT_BUS.unregister(drops);
         }
         helper.succeed();
     }
 
     @GameTest(template = TEMPLATE)
-    public static void shellResidualPreservesMalumMagicConversionAndSoulWard(GameTestHelper helper) {
+    public static void shellResidualPreservesMalumSoulWard(GameTestHelper helper) {
         if (ModList.get().isLoaded("malum")) {
             MalumScenario.verify(helper);
-            verifyCasting(helper, true);
         }
         helper.succeed();
     }
 
     // optional MODの型は、導入確認後に呼ぶクラスに隔離する。
     private static final class MalumScenario {
-        private static void addConversion(ServerPlayer player) {
-            GeasEffectHandler.addGeasEffect(player, MalumGeasEffectTypes.PACT_OF_THE_ARCANAPHAGE.get());
-        }
-
         private static void verify(GameTestHelper helper) {
+            // Malum 1.6.7にはGeasがないため、Soul Wardへ通常の残ダメージが届くことを検証する。
             var player = player(helper, "shell_ward");
-            helper.assertTrue(GeasEffectHandler.addGeasEffect(player,
-                    MalumGeasEffectTypes.PACT_OF_THE_ARCANAPHAGE.get()), "Arcanaphage pact must equip");
-            helper.assertTrue(GeasEffectHandler.addGeasEffect(player,
-                    MalumGeasEffectTypes.PACT_OF_RECIPROCATION.get()), "Reciprocation pact must equip");
-            player.getAttribute(MalumAttributes.SOUL_WARD_CAPACITY).setBaseValue(100);
-            var ward = player.getData(MalumAttachmentTypes.SOUL_WARD);
-            ward.setSoulWard(100);
+            var control = player(helper, "shell_ward_control");
+            for (var subject : new ServerPlayer[]{player, control}) {
+                subject.getAttribute(com.sammy.malum.registry.common.AttributeRegistry.SOUL_WARD_CAP.get()).setBaseValue(20);
+                com.sammy.malum.common.capability.MalumPlayerDataCapability.getCapability(subject).soulWardHandler.soulWard = 20;
+            }
             equipShell(player);
-            MagicData.getPlayerMagicData(player).setMana(50);
-            player.hurt(player.damageSources().lava(), 200);
-            helper.assertTrue(ward.getSoulWard() < 100,
-                    "Soul Ward must process Shell residual through Arcanaphage conversion");
-            helper.assertTrue(player.isAlive(), "Soul Ward must protect against otherwise lethal Shell residual");
+            MagicData.getPlayerMagicData(player).setMana(100);
+            var source = player.damageSources().lava();
+            helper.assertFalse(source.is(DamageTypeTags.BYPASSES_ARMOR),
+                    "Soul Ward comparison must exercise Shell's proportional armor branch");
+            float reduced = CombatRules.getDamageAfterAbsorb(12, player.getArmorValue(),
+                    (float) player.getAttributeValue(Attributes.ARMOR_TOUGHNESS));
+            reduced = CombatRules.getDamageAfterMagicAbsorb(reduced,
+                    EnchantmentHelper.getDamageProtection(player.getArmorSlots(), source));
+            control.hurt(source, 12 * (reduced - 2) / reduced);
+            player.hurt(source, 12);
+            var ward = com.sammy.malum.common.capability.MalumPlayerDataCapability.getCapability(player).soulWardHandler;
+            var controlWard = com.sammy.malum.common.capability.MalumPlayerDataCapability.getCapability(control).soulWardHandler;
+            helper.assertTrue(ward.soulWard < 20 && Math.abs(ward.soulWard - controlWard.soulWard) < 0.001,
+                    "Soul Ward must process proportional Shell residual like an ordinary hit: actual="
+                            + ward.soulWard + ", control=" + controlWard.soulWard);
+            helper.assertTrue(Math.abs(player.getHealth() - control.getHealth()) < 0.001,
+                    "Shell residual must preserve Soul Ward health mitigation");
 
-            // 端数まで吸収できる攻撃は魔法化より前に止め、マナと防具の二重消費を防ぐ。
             var fractional = player(helper, "shell_ward_fraction");
-            helper.assertTrue(GeasEffectHandler.addGeasEffect(fractional,
-                    MalumGeasEffectTypes.PACT_OF_THE_ARCANAPHAGE.get()), "Arcanaphage pact must equip");
             equipShell(fractional);
             MagicData.getPlayerMagicData(fractional).setMana(800);
             fractional.hurt(fractional.damageSources().lava(), 12);
@@ -253,23 +264,21 @@ public class ManaShieldShellResidualGameTests extends ApprenticeCodexGameTestSce
     private static ServerPlayer player(GameTestHelper helper, String name) {
         var player = createAssistWingsRider(helper, new BlockPos(2, 2, 2), name);
         var chest = new ItemStack(Items.IRON_CHESTPLATE);
-        chest.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
-                .getOrThrow(net.minecraft.world.item.enchantment.Enchantments.PROTECTION), 4);
+        chest.enchant(net.minecraft.world.item.enchantment.Enchantments.ALL_DAMAGE_PROTECTION, 4);
         player.setItemSlot(EquipmentSlot.CHEST, chest);
         // 装備属性とスポーン無敵を実プレイ相当へ進めてからhurt経路を検証する。
         for (int tick = 0; tick < 61; tick++) player.tick();
         player.doTick();
         helper.assertTrue(player.getArmorValue() == 6, "Test chestplate attributes must be active");
-        player.getAttribute(AttributeRegistry.MAX_MANA).setBaseValue(1000);
+        player.getAttribute(AttributeRegistry.MAX_MANA.get()).setBaseValue(1000);
         player.invulnerableTime = 0;
         return player;
     }
 
     private static void equipShell(ServerPlayer player) {
         var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-        charm.enchant(player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
-                .getOrThrow(Enchantments.SHELL), 1);
-        CuriosApi.getCuriosInventory(player).orElseThrow()
+        charm.enchant(EnchantmentRegistry.SHELL.get(), 1);
+        CuriosApi.getCuriosInventory(player).resolve().orElseThrow()
                 .setEquippedCurio(CuriosSlotConstants.CHARM, 0, charm);
     }
 }

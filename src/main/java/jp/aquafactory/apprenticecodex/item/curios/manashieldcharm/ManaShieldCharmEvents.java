@@ -4,19 +4,19 @@ import io.redspace.ironsspellbooks.api.events.CounterSpellEvent;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.curios.manamaneuvergear.ManaManeuverGearDamageLogic;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
 
-@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ManaShieldCharmEvents {
     private ManaShieldCharmEvents() {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onIncomingImmunity(LivingIncomingDamageEvent event) {
+    public static void onIncomingImmunity(LivingAttackEvent event) {
         if (!event.getEntity().level().isClientSide && event.getEntity() instanceof ServerPlayer player) {
             ManaDefenseImmunityResolver.cancelIfImmune(event, player);
         }
@@ -25,7 +25,7 @@ public final class ManaShieldCharmEvents {
     // Iron'sの被弾による詠唱中断(NORMAL)より前に、完全吸収した攻撃をキャンセルする。
     // 端数も吸収するため、Malumの魔法化へ貫通分を渡す時点では吸収用のマナは残らない。
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public static void onLivingAttack(LivingIncomingDamageEvent event) {
+    public static void onLivingAttack(LivingAttackEvent event) {
         if (event.getEntity().level().isClientSide) {
             return;
         }

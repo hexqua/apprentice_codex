@@ -6,7 +6,7 @@ import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.ManaShieldCharmState;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -17,7 +17,6 @@ import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.CombatRules;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -26,7 +25,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
@@ -78,7 +77,7 @@ final class ManaShieldCharmLogic {
         refreshCooldownIfRecovered(player);
 
         var state = getState(player);
-        if (state == null) {
+        if (state == null || state.manualReentryGuard) {
             return;
         }
         if (state.cooldownActive || player.hasEffect(EffectRegistry.INERT_MANA_SHIELD.get())) {
@@ -118,6 +117,8 @@ final class ManaShieldCharmLogic {
             return;
         }
 
+        event.setCanceled(true);
+
         switch (resolution.mitigationResult()) {
             case FULLY_NEGATED_ACTIVE -> {
                 applyVanillaStyleIFrame(player);
@@ -129,8 +130,14 @@ final class ManaShieldCharmLogic {
             }
             case PARTIALLY_NEGATED_FAILED -> {
                 ForceFieldDefenseEvent.spawnManaShieldWallEffect(player, event.getSource(), true);
-                // 元のイベントを継続し、防具損傷・SoulWard・トーテム・死亡処理を通常経路へ任せる。
-                event.setAmount(resolution.remainingDamage());
+                // Forge 1.20.1 では LivingAttackEvent が防御計算前なので、cancel 後に残ダメージだけ hurt し直して
+                // 防具・エンチャント・吸収・ノックバックの通常経路へ戻す。1.21.1 側へはそのまま運ばず再確認すること。
+                withState(player, current -> current.manualReentryGuard = true);
+                try {
+                    player.hurt(event.getSource(), resolution.remainingDamage());
+                } finally {
+                    withState(player, current -> current.manualReentryGuard = false);
+                }
             }
         }
     }
@@ -149,6 +156,7 @@ final class ManaShieldCharmLogic {
         refreshCooldownIfRecovered(player);
         var state = getState(player);
         if (state == null
+                || state.manualReentryGuard
                 || state.cooldownActive
                 || player.hasEffect(EffectRegistry.INERT_MANA_SHIELD.get())
                 || !shouldIgnoreDuringVanillaStyleIFrame(player, event)) {
@@ -189,7 +197,7 @@ final class ManaShieldCharmLogic {
         }
         refreshCooldownIfRecovered(player);
         var state = getState(player);
-        if (state == null || state.cooldownActive) {
+        if (state == null || state.cooldownActive || state.manualReentryGuard) {
             return;
         }
         var charmStack = getEquippedCharm(player);
@@ -280,7 +288,7 @@ final class ManaShieldCharmLogic {
         // 防具軽減後の残存割合だけを元の被ダメージへ戻す。吸収できなければ元の全量を通す。
         // 軽減だけで0になった場合は全吸収として扱い、0除算を避ける。
         var remainingDamage = reducedDamage > 0.0F
-                ? incomingDamage * Math.clamp(barrierResolution.remainingDamage() / reducedDamage, 0.0F, 1.0F)
+                ? incomingDamage * net.minecraft.util.Mth.clamp(barrierResolution.remainingDamage() / reducedDamage, 0.0F, 1.0F)
                 : 0.0F;
         return new DamageResolution(
                 Math.max(incomingDamage - remainingDamage, 0.0F),
