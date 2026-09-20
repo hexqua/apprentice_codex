@@ -21,7 +21,7 @@
     "DM "
   ],
   "result": {
-    "count": 1,
-    "id": "apprenticecodex:quickcast_scroll_cartridge"
-  }
+    "item": "apprenticecodex:quickcast_scroll_cartridge"
+  },
+  "show_notification": true
 }

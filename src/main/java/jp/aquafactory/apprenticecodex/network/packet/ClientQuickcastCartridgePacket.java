@@ -7,39 +7,34 @@ import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidanceInput
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
 public record ClientQuickcastCartridgePacket(ResourceLocation expectedSpell, BlockTargetData target,
-                                             float forward, float strafe) implements CustomPacketPayload {
-    public static final Type<ClientQuickcastCartridgePacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "quickcast_cartridge"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, ClientQuickcastCartridgePacket> STREAM_CODEC =
-            StreamCodec.of((buffer, packet) -> {
-                buffer.writeResourceLocation(packet.expectedSpell);
-                packet.target.writeToBuffer(buffer);
-                buffer.writeFloat(packet.forward);
-                buffer.writeFloat(packet.strafe);
-            }, buffer -> {
-                var spell = buffer.readResourceLocation();
-                var target = new BlockTargetData();
-                target.readFromBuffer(buffer);
-                return new ClientQuickcastCartridgePacket(spell, target, buffer.readFloat(), buffer.readFloat());
-            });
+                                             float forward, float strafe) {
+    public static void encode(ClientQuickcastCartridgePacket packet, net.minecraft.network.FriendlyByteBuf buffer) {
+        buffer.writeResourceLocation(packet.expectedSpell);
+        packet.target.writeToBuffer(buffer);
+        buffer.writeFloat(packet.forward);
+        buffer.writeFloat(packet.strafe);
+    }
 
-    @Override
-    public @NotNull Type<? extends CustomPacketPayload> type() { return TYPE; }
+    public static ClientQuickcastCartridgePacket decode(net.minecraft.network.FriendlyByteBuf buffer) {
+        var spell = buffer.readResourceLocation();
+        var target = new BlockTargetData();
+        target.readFromBuffer(buffer);
+        return new ClientQuickcastCartridgePacket(spell, target, buffer.readFloat(), buffer.readFloat());
+    }
 
-    public static void handle(ClientQuickcastCartridgePacket packet, IPayloadContext context) {
+    public static void handle(ClientQuickcastCartridgePacket packet,
+                              java.util.function.Supplier<net.minecraftforge.network.NetworkEvent.Context> supplier) {
+        var context = supplier.get();
         context.enqueueWork(() -> {
-            if (!(context.player() instanceof ServerPlayer player)) return;
-            handleOnServer(packet, player);
+            var player = context.getSender();
+            if (player != null) handleOnServer(packet, player);
         });
+        context.setPacketHandled(true);
     }
 
     public static boolean handleOnServer(ClientQuickcastCartridgePacket packet, ServerPlayer player) {

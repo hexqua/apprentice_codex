@@ -501,7 +501,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('D', ItemRegistry.SPELLSTAINED_DIAMOND.get())
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
                 .unlockedBy(getHasName(ItemRegistry.SCROLLWOVEN_PARCHMENT.get()), has(ItemRegistry.SCROLLWOVEN_PARCHMENT.get()))
-                .save(recipeOutput);
+                .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.GRIMOIRE_MANIFEST.get())
                 .pattern(" E ")

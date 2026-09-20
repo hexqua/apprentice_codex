@@ -7,15 +7,15 @@ import io.redspace.ironsspellbooks.item.Scroll;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.component.DataComponents;
+
 import net.minecraft.nbt.*;
-import net.minecraft.world.item.component.CustomData;
+
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.animation.*;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.*;
 import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -54,14 +54,14 @@ public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoIte
     }
 
     @Override
-    public List<Component> getSlotsTooltip(List<Component> tooltips, TooltipContext context, ItemStack stack) {
+    public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
         var result = new ArrayList<>(tooltips);
         result.add(Component.empty());
         // item.modifiers.anyは1.20.1にはないため、1.21.1でもオリジナルのキーを定義して使う.
         result.add(Component.translatable("curios.apprenticecodex.modifier.for_quiver").withStyle(ChatFormatting.GOLD));
 
         // キー設定はクライアントだけで参照し、専用サーバーでは未割り当ての説明を使う。
-        var keyDescription = net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT
+        var keyDescription = net.minecraftforge.fml.loading.FMLEnvironment.dist == net.minecraftforge.api.distmarker.Dist.CLIENT
                 ? jp.aquafactory.apprenticecodex.event.client.QuickcastCartridgeClientEvents.getCastKeyDescription()
                 : Component.translatable(getDescriptionId() + ".no_assign");
         result.add(keyDescription.copy().withStyle(ChatFormatting.YELLOW));
@@ -117,14 +117,14 @@ public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoIte
     }
 
     @Override
-    public void onCalibrationAdjustmentsChanged(@NotNull ItemStack stack, @NotNull HolderLookup.Provider lookup) {
+    public void onCalibrationAdjustmentsChanged(@NotNull ItemStack stack) {
         normalizeSelection(stack);
     }
 
     public static int getEnabledCalibrationScrollSlotCount(ItemStack stack) {
         int count = 1;
         for (int i = 0; i < 3; i++) {
-            if (CalibrationAdjustmentStorage.get(stack, i, 3, serializationLookup())
+            if (CalibrationAdjustmentStorage.get(stack, i, 3)
                     .is(ItemRegistry.SCROLLWOVEN_PARCHMENT.get())) count++;
         }
         return count;
@@ -217,11 +217,11 @@ public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoIte
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context,
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable net.minecraft.world.level.Level context,
                                 @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
         // Iron's の詳細表示は LocalPlayer を使うため、専用サーバーから client helper を読み込まない。
-        if (net.neoforged.fml.loading.FMLEnvironment.dist == net.neoforged.api.distmarker.Dist.CLIENT) {
+        if (net.minecraftforge.fml.loading.FMLEnvironment.dist == net.minecraftforge.api.distmarker.Dist.CLIENT) {
             QuickcastCartridgeClientTooltip.append(stack, lines);
         }
     }
@@ -260,7 +260,7 @@ public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoIte
         for (var index = 0; index < list.size(); ++index) {
             var entry = list.getCompound(index);
             if (entry.getInt(SLOT_TAG) == slot && entry.contains(ITEM_TAG, Tag.TAG_COMPOUND)) {
-                return ItemStack.parseOptional(lookupProvider, entry.getCompound(ITEM_TAG));
+                return ItemStack.of(entry.getCompound(ITEM_TAG));
             }
         }
         return ItemStack.EMPTY;
@@ -285,7 +285,7 @@ public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoIte
                 var stored = item.copyWithCount(1);
                 var entry = new CompoundTag();
                 entry.putInt(SLOT_TAG, slot);
-                entry.put(ITEM_TAG, stored.saveOptional(lookupProvider));
+                entry.put(ITEM_TAG, stored.save(new CompoundTag()));
                 list.add(entry);
             }
             if (list.isEmpty()) {
@@ -300,11 +300,10 @@ public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoIte
         if (stack == null || stack.isEmpty()) {
             return null;
         }
-        var customData = stack.get(DataComponents.CUSTOM_DATA);
-        if (customData == null) {
+        var root = stack.getTag();
+        if (root == null) {
             return null;
         }
-        var root = customData.copyTag();
         return root.contains(CALIBRATION_TAG, Tag.TAG_COMPOUND) ? root.getCompound(CALIBRATION_TAG) : null;
     }
 
@@ -312,7 +311,8 @@ public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoIte
         if (stack == null || stack.isEmpty()) {
             return;
         }
-        CustomData.update(DataComponents.CUSTOM_DATA, stack, root -> {
+        {
+            var root = stack.getOrCreateTag();
             var calibration = root.contains(CALIBRATION_TAG, Tag.TAG_COMPOUND)
                     ? root.getCompound(CALIBRATION_TAG) : new CompoundTag();
             updater.accept(calibration);
@@ -321,7 +321,7 @@ public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoIte
             } else {
                 root.put(CALIBRATION_TAG, calibration);
             }
-        });
+        }
     }
 
     private static HolderLookup.Provider serializationLookup() {

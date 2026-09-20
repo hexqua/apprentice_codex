@@ -9,14 +9,16 @@
     }
   },
   "display": {
+    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_quickcast_spell_cartridge.description"
     },
     "frame": "goal",
+    "hidden": false,
     "icon": {
-      "count": 1,
-      "id": "apprenticecodex:quickcast_scroll_cartridge"
+      "item": "apprenticecodex:quickcast_scroll_cartridge"
     },
+    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_quickcast_spell_cartridge.title"
     }

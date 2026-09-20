@@ -21,9 +21,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import top.theillusivec4.curios.api.SlotContext;
 import java.util.function.Consumer;
 
@@ -63,7 +63,7 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
                 "Disabling the selected slot must select the first usable scroll");
         helper.assertFalse(QuickcastScrollCartridge.getCalibrationScroll(stack, 3).isEmpty(),
                 "Disabled scroll contents must be retained");
-        var restored = ItemStack.parseOptional(helper.getLevel().registryAccess(), (net.minecraft.nbt.CompoundTag) stack.saveOptional(helper.getLevel().registryAccess()));
+        var restored = ItemStack.of(stack.save(new net.minecraft.nbt.CompoundTag()));
         helper.assertTrue(QuickcastScrollCartridge.getSelectedSpellData(restored).getSpell() == instant,
                 "Selection must survive item serialization");
         helper.assertFalse(QuickcastScrollCartridge.getCalibrationScroll(restored, 3).isEmpty(),
@@ -88,7 +88,7 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
         item.trySetCalibrationAdjustment(stack, 0, new ItemStack(ItemRegistry.SCROLLWOVEN_PARCHMENT.get()));
         QuickcastScrollCartridge.setCalibrationScroll(stack, 1, createSpellScroll(SpellRegistry.FIREBOLT_SPELL.get()));
         var entries = new SpellSelectionManager(player).getSpellsForSlot(QuickcastCartridgeCasting.SLOT);
-        helper.assertTrue(entries.size() == 1 && entries.getFirst().spellData.getSpell() == spell,
+        helper.assertTrue(entries.size() == 1 && entries.get(0).spellData.getSpell() == spell,
                 "Only the selected scroll may enter the wheel");
         var option = new SpellSelectionManager(player).getAllSpells().stream()
                 .filter(entry -> QuickcastCartridgeCasting.SLOT.equals(entry.slot)).findFirst().orElseThrow();
@@ -110,7 +110,7 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
         var magic = MagicData.getPlayerMagicData(player);
         magic.setMana(1000);
         var cooldowns = magic.getPlayerCooldowns();
-        double normalPower = player.getAttributeValue(AttributeRegistry.SPELL_POWER);
+        double normalPower = player.getAttributeValue(AttributeRegistry.SPELL_POWER.get());
         try {
             for (int remaining : new int[]{0, 50, 100}) {
                 cooldowns.clearCooldowns();
@@ -118,16 +118,16 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
                 var packet = new ClientQuickcastCartridgePacket(spell.getSpellResource(), new BlockTargetData(), 0, 0);
                 helper.assertTrue(ClientQuickcastCartridgePacket.handleOnServer(packet, player),
                         "Dedicated key must start casting even on cooldown");
-                helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.SPELL_POWER)
+                helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.SPELL_POWER.get())
                         - normalPower * (1 - remaining / 100.0)) < 0.00001,
                         "Final spell power must reflect the initial remaining cooldown fraction");
                 cooldowns.tick(20);
                 QuickcastCartridgeCasting.validate(player);
-                helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.SPELL_POWER)
+                helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.SPELL_POWER.get())
                         - normalPower * (1 - remaining / 100.0)) < 0.00001,
                         "Penalty must not decrease during casting");
                 spell.onServerCastComplete(player.level(), 1, player, magic, true);
-                helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.SPELL_POWER) - normalPower) < 0.00001,
+                helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.SPELL_POWER.get()) - normalPower) < 0.00001,
                         "Completion or cancellation must remove the temporary power penalty");
             }
             cooldowns.addCooldown(spell, 100, 50);
@@ -149,26 +149,26 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
         equipCurio(player, "back", stack);
         var magic = MagicData.getPlayerMagicData(player);
         magic.getPlayerCooldowns().addCooldown(spell, 100, 70);
-        double normalPower = player.getAttributeValue(AttributeRegistry.SPELL_POWER);
+        double normalPower = player.getAttributeValue(AttributeRegistry.SPELL_POWER.get());
         magic.setMana(0);
         helper.assertFalse(QuickcastCartridgeCasting.initiate(player), "Cartridge must still require mana");
         helper.assertTrue(magic.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId()).getCooldownRemaining() == 70,
                 "Failed initiation must preserve the existing cooldown");
-        helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER) == normalPower,
+        helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER.get()) == normalPower,
                 "Failed initiation must remove power penalty");
         magic.setMana(1000);
         Consumer<SpellPreCastEvent> reject = event -> {
             if (event.getEntity() == player) event.setCanceled(true);
         };
-        NeoForge.EVENT_BUS.addListener(reject);
+        MinecraftForge.EVENT_BUS.addListener(reject);
         try {
             helper.assertFalse(QuickcastCartridgeCasting.initiate(player), "Precast cancellation must remain effective");
-            helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER) == normalPower,
+            helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER.get()) == normalPower,
                     "Event rejection must remove power penalty");
             helper.assertTrue(magic.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId()).getCooldownRemaining() == 70,
                     "Event rejection must retain cooldown");
         } finally {
-            NeoForge.EVENT_BUS.unregister(reject);
+            MinecraftForge.EVENT_BUS.unregister(reject);
             QuickcastCartridgeCasting.clear(player);
         }
         equipCurio(player, "back", ItemStack.EMPTY);
@@ -205,7 +205,7 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
             equipCurio(player, "belt", ItemStack.EMPTY);
             QuickcastCartridgeCasting.validate(player);
             helper.assertFalse(magic.isCasting(), "Unequipping must cancel the cartridge cast");
-            helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER) == 1,
+            helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER.get()) == 1,
                     "Unequipping must remove the cartridge power penalty");
         } finally {
             Utils.serverSideCancelCast(player);
@@ -234,12 +234,12 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
                 if (spell.getCastType() == CastType.CONTINUOUS) {
                     spell.onServerCastTick(player.level(), 1, player, magic);
                     spell.castSpell(player.level(), 1, player, CastSource.SPELLBOOK, false);
-                    helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER) == 0.5,
+                    helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER.get()) == 0.5,
                             "Continuous activations must retain the initial penalty");
                 }
                 helper.assertTrue(magic.getMana() < before, "Normal cast activations must spend mana");
                 spell.onServerCastComplete(player.level(), 1, player, magic, true);
-                helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER) == 1,
+                helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER.get()) == 1,
                         "Long and continuous completion must remove the penalty");
             }
         } finally {
@@ -293,7 +293,7 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
         try {
             helper.assertTrue(QuickcastCartridgeCasting.initiate(player),
                     "Power-independent spells must remain castable at full cooldown");
-            helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER) == 0,
+            helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER.get()) == 0,
                     "Full cooldown must apply a 100 percent power reduction");
             spell.castSpell(player.level(), 1, player, CastSource.SPELLBOOK, true);
             helper.assertTrue(player.getDeltaMovement().y > 0, "Assist Wings must still produce its jump at zero spell power");

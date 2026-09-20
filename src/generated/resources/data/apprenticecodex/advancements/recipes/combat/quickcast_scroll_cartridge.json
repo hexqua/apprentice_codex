@@ -5,7 +5,9 @@
       "conditions": {
         "items": [
           {
-            "items": "apprenticecodex:scrollwoven_parchment"
+            "items": [
+              "apprenticecodex:scrollwoven_parchment"
+            ]
           }
         ]
       },
@@ -20,13 +22,14 @@
   },
   "requirements": [
     [
-      "has_the_recipe",
-      "has_scrollwoven_parchment"
+      "has_scrollwoven_parchment",
+      "has_the_recipe"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:quickcast_scroll_cartridge"
     ]
-  }
+  },
+  "sends_telemetry_event": false
 }

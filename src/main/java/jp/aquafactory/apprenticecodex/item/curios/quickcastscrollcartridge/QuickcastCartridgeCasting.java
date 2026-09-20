@@ -24,8 +24,7 @@ import java.util.UUID;
 /** 通常詠唱のライフサイクルを維持し、開始判定の cooldown だけを限定的に迂回する。 */
 public final class QuickcastCartridgeCasting {
     public static final String SLOT = "apprenticecodex_quickcast_cartridge";
-    private static final ResourceLocation POWER_ID = ResourceLocation.fromNamespaceAndPath(
-            ApprenticeCodex.MODID, "quickcast_cartridge_power");
+    private static final UUID POWER_ID = UUID.nameUUIDFromBytes("apprenticecodex:quickcast_cartridge_power".getBytes(java.nio.charset.StandardCharsets.UTF_8));
     private static final Map<UUID, CastState> CASTS = new HashMap<>();
     private static final ThreadLocal<Bypass> BYPASS = new ThreadLocal<>();
 
@@ -33,7 +32,7 @@ public final class QuickcastCartridgeCasting {
 
     public static ItemStack findEquipped(Player player) {
         // Item 引数の overload は同 tick の検索結果をキャッシュするため、取り外し直後の再入力で使わない。
-        return CuriosApi.getCuriosInventory(player)
+        return CuriosApi.getCuriosInventory(player).resolve()
                 .flatMap(inv -> inv.findFirstCurio(stack -> stack.is(ItemRegistry.QUICKCAST_SCROLL_CARTRIDGE.get())))
                 .map(SlotResult::stack).orElse(ItemStack.EMPTY);
     }
@@ -71,10 +70,10 @@ public final class QuickcastCartridgeCasting {
         double penalty = cooldown == null ? 0 : reduction(cooldown.getCooldownRemaining(), cooldown.getSpellCooldown());
         var state = new CastState(stack.copy(), spell.getSpellId());
         CASTS.put(player.getUUID(), state);
-        var power = player.getAttribute(AttributeRegistry.SPELL_POWER);
+        var power = player.getAttribute(AttributeRegistry.SPELL_POWER.get());
         if (power != null && penalty > 0) {
-            power.addTransientModifier(new AttributeModifier(POWER_ID, -penalty,
-                    AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+            power.addTransientModifier(new AttributeModifier(POWER_ID, "quickcast_cartridge_power", -penalty,
+                    AttributeModifier.Operation.MULTIPLY_TOTAL));
         }
         var previous = BYPASS.get();
         boolean started = false;
@@ -99,7 +98,7 @@ public final class QuickcastCartridgeCasting {
         if (!magic.isCasting() || !SLOT.equals(magic.getSyncedData().getCastingEquipmentSlot())
                 || !state.spellId().equals(magic.getCastingSpellId())) {
             clear(player);
-        } else if (!ItemStack.isSameItemSameComponents(state.stack(), findEquipped(player))) {
+        } else if (!ItemStack.isSameItemSameTags(state.stack(), findEquipped(player))) {
             Utils.serverSideCancelCast(player);
             clear(player);
         }
@@ -112,7 +111,7 @@ public final class QuickcastCartridgeCasting {
 
     public static void clear(ServerPlayer player) {
         CASTS.remove(player.getUUID());
-        var power = player.getAttribute(AttributeRegistry.SPELL_POWER);
+        var power = player.getAttribute(AttributeRegistry.SPELL_POWER.get());
         if (power != null) power.removeModifier(POWER_ID);
     }
 

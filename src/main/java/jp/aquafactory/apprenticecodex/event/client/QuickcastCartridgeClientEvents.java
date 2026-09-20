@@ -11,11 +11,11 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePac
 import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidanceClientController;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class QuickcastCartridgeClientEvents {
@@ -32,7 +32,8 @@ public final class QuickcastCartridgeClientEvents {
     }
 
     @SubscribeEvent
-    public static void onTick(ClientTickEvent.Post event) {
+    public static void onTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
         var minecraft = Minecraft.getInstance();
         while (CAST.consumeClick()) {
             var player = minecraft.player;
@@ -52,7 +53,7 @@ public final class QuickcastCartridgeClientEvents {
         }
     }
 
-    @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+    @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
     public static final class Registration {
         @SubscribeEvent
         public static void register(RegisterKeyMappingsEvent event) { event.register(CAST); }

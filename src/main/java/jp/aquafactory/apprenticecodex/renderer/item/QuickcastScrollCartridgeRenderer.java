@@ -23,7 +23,7 @@ public final class QuickcastScrollCartridgeRenderer extends GeoItemRenderer<Quic
 
     @Override
     public void renderCubesOfBone(PoseStack poseStack, GeoBone bone, VertexConsumer buffer,
-                                  int packedLight, int packedOverlay, int colour) {
+                                  int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
         // キューブだけを選別し、core の親である cover の変形は両パスで共有する。
         if (isBoneOrChildOf(bone, "core") != renderingCore) {
             return;
@@ -32,15 +32,15 @@ public final class QuickcastScrollCartridgeRenderer extends GeoItemRenderer<Quic
             packedLight = LightTexture.pack(Math.max(MIN_STAR_LIGHT, LightTexture.block(packedLight)),
                     LightTexture.sky(packedLight));
         }
-        super.renderCubesOfBone(poseStack, bone, buffer, packedLight, packedOverlay, colour);
+        super.renderCubesOfBone(poseStack, bone, buffer, packedLight, packedOverlay, red, green, blue, alpha);
     }
 
     @Override
     public void postRender(PoseStack poseStack, QuickcastScrollCartridge animatable, BakedGeoModel model,
                            MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
-                           float partialTick, int packedLight, int packedOverlay, int colour) {
+                           float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
         super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, colour);
+                packedLight, packedOverlay, red, green, blue, alpha);
         if (isReRender) {
             return;
         }
@@ -55,7 +55,8 @@ public final class QuickcastScrollCartridgeRenderer extends GeoItemRenderer<Quic
         try {
             reRender(model, poseStack, bufferSource, animatable, coreRenderType,
                     bufferSource.getBuffer(coreRenderType), partialTick, LightTexture.FULL_BRIGHT,
-                    OverlayTexture.NO_OVERLAY, coreColour);
+                    OverlayTexture.NO_OVERLAY, ((coreColour >> 16) & 255) / 255F,
+                    ((coreColour >> 8) & 255) / 255F, (coreColour & 255) / 255F, 1F);
         } finally {
             renderingCore = false;
         }
