@@ -186,7 +186,8 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         // ProjectileUtil の移動判定は交点を捨てて対象の足元を返すため、同じ判定幅で交点を復元する。
         var bounds = hitResult.getEntity().getBoundingBox().inflate(0.3F);
         var start = position();
-        return bounds.clip(start, start.add(getDeltaMovement())).orElse(hitResult.getLocation());
+        // 命中イベント等で対象の判定が変わり交点を復元できない場合も、足元へ飛ばさず杖の現在位置を使う。
+        return bounds.clip(start, start.add(getDeltaMovement())).orElse(start);
     }
 
     @Override
