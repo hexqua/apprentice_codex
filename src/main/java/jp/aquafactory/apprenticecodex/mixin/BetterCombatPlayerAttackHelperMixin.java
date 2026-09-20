@@ -1,7 +1,5 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatDualWieldingPolicyCompat;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatSpellReaperScytheCompat;
 import net.bettercombat.api.WeaponAttributes;
@@ -10,12 +8,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PlayerAttackHelper.class)
 public abstract class BetterCombatPlayerAttackHelperMixin {
-    @WrapOperation(
+    @Redirect(
             method = "getCurrentAttack(Lnet/minecraft/world/entity/player/Player;I)Lnet/bettercombat/api/AttackHand;",
             at = @At(
                     value = "INVOKE",
@@ -25,11 +24,10 @@ public abstract class BetterCombatPlayerAttackHelperMixin {
     )
     private static WeaponAttributes apprenticecodex$useSpellReaperScytheNoSweepAttributes(
             ItemStack stack,
-            Operation<WeaponAttributes> original,
             Player player,
             int comboCount
     ) {
-        var originalAttributes = original.call(stack);
+        var originalAttributes = net.bettercombat.logic.WeaponRegistry.getAttributes(stack);
         // ItemStackだけを見るWeaponRegistry層では装備中Curioを判定できないため、Playerを持つ攻撃選択時に差し替える。
         return BetterCombatSpellReaperScytheCompat.resolveAttackAttributes(player, stack, originalAttributes);
     }

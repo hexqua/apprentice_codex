@@ -55,6 +55,7 @@
     "MalumIronsSpellsCompatMixin",
     "MalumReplenishingOffhandMixin",
     "MalumSoulDataHandlerMixin",
+    "MalumPlayerScytheAttackMixin",
     "MalumAscensionParticleMixin",
     "MerchantMenuMixin",
     "MerchantOfferMixin",

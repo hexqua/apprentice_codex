@@ -10,8 +10,8 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.fml.ModList;
-import net.neoforged.neoforge.common.util.FakePlayer;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.common.util.FakePlayer;
 import yesman.epicfight.skill.Skill;
 import yesman.epicfight.skill.SkillContainer;
 import yesman.epicfight.skill.SkillSlots;
@@ -22,7 +22,7 @@ import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 final class ScytheEpicFightTestHelper {
     private record Context(FakePlayer player, ServerPlayerPatch patch, SkillContainer container, EpicFightSpellReapingSkill skill) {
         void start() { patch.startSkillHolding(skill); }
-        void release() { container.requestCasting(patch, new net.minecraft.nbt.CompoundTag()); }
+        void release() { container.requestCasting(patch, null); }
         void clean() { skill.abort(patch); var entity = ScytheThrowManager.active(player); if (entity != null) entity.discard(); }
     }
 
@@ -31,7 +31,7 @@ final class ScytheEpicFightTestHelper {
         var patch = EpicFightCapabilities.getEntityPatch(player, ServerPlayerPatch.class);
         h.assertTrue(patch != null, "Epic Fight must attach a server player patch");
         patch.toEpicFightMode(false);
-        var skill = EpicFightSpellReaperScytheCompat.SPELL_REAPING.get();
+        var skill = EpicFightSpellReaperScytheCompat.SPELL_REAPING;
         var container = patch.getSkill(SkillSlots.WEAPON_INNATE);
         container.setSkill(skill);
         return new Context(player, patch, container, skill);
@@ -121,24 +121,24 @@ final class ScytheEpicFightTestHelper {
         try {
             ScytheThrowManager.launchNormal(c.player, c.player.getMainHandItem(), 10);
             var thrown = ScytheThrowManager.active(c.player);
-            var combo = c.patch.getSkill(SkillSlots.COMBO_ATTACKS);
-            combo.setSkill(yesman.epicfight.registry.entries.EpicFightSkills.COMBO_ATTACKS.get());
+            var combo = c.patch.getSkill(SkillSlots.BASIC_ATTACK);
+            combo.setSkill(yesman.epicfight.gameasset.EpicFightSkills.BASIC_ATTACK);
             // 標準はResource.NONE。プレイヤー限定の消費イベントでスタミナ設定時の拒否経路も通す。
-            c.patch.getEventListener().registerEvent(yesman.epicfight.api.event.EpicFightEventHooks.Player.CONSUME_SKILL,
+            c.patch.getEventListener().addEventListener(yesman.epicfight.world.entity.eventlistener.PlayerEventListener.EventType.SKILL_CONSUME_EVENT,
+                    java.util.UUID.fromString("becc574b-2c73-4c38-bc61-7a7d924c47f6"),
                     event -> {
                         if (event.getSkill() == combo.getSkill()) {
                             event.setResourceType(Skill.Resource.STAMINA);
                             event.setAmount(5.0F);
                         }
-                    }, yesman.epicfight.api.event.IdentifierProvider.constant(
-                            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("apprenticecodex", "scythe_attack_test")));
+                    });
             c.player.setOnGround(false);
             c.player.setDeltaMovement(0, 0.5, 0);
             c.patch.setStamina(0);
-            combo.getSkill().executeOnServer(combo, new net.minecraft.nbt.CompoundTag());
+            combo.getSkill().executeOnServer(combo, null);
             h.assertFalse(thrown.isRemoved(), "Rejected air attack must not recall the scythe");
             c.patch.setStamina(c.patch.getMaxStamina());
-            combo.getSkill().executeOnServer(combo, new net.minecraft.nbt.CompoundTag());
+            combo.getSkill().executeOnServer(combo, null);
             h.assertTrue(thrown.isRemoved(), "Accepted air attack must recall before the motion starts");
         } finally { c.clean(); }
         h.succeed();

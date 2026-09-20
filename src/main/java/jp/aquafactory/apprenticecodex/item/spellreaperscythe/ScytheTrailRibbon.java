@@ -16,9 +16,9 @@ final class ScytheTrailRibbon {
             for (int j = 0; j < 4; j++) {
                 int i = face == 0 ? j : 3 - j;
                 var v = points[i];
-                buffer.addVertex(pose, (float) v.x, (float) v.y, (float) v.z)
-                        .setColor((color >> 16) & 255, (color >> 8) & 255, color & 255,
-                                (int) (255 * Math.clamp(alphas[i], 0, 1)));
+                buffer.vertex(pose, (float) v.x, (float) v.y, (float) v.z)
+                        .color((color >> 16) & 255, (color >> 8) & 255, color & 255,
+                                (int) (255 * net.minecraft.util.Mth.clamp(alphas[i], 0, 1))).endVertex();
             }
         }
     }
@@ -44,9 +44,9 @@ final class ScytheTrailRibbon {
                 for (int j = 0; j < 4; j++) {
                     int i = face == 0 ? j : 3 - j;
                     var v = points[i];
-                    buffer.addVertex(pose, (float) v.x, (float) v.y, (float) v.z)
-                            .setColor((color >> 16) & 255, (color >> 8) & 255, color & 255,
-                                    (int) (255 * Math.clamp(alphas[i], 0, 1)));
+                    buffer.vertex(pose, (float) v.x, (float) v.y, (float) v.z)
+                            .color((color >> 16) & 255, (color >> 8) & 255, color & 255,
+                                    (int) (255 * net.minecraft.util.Mth.clamp(alphas[i], 0, 1))).endVertex();
                 }
             }
         }

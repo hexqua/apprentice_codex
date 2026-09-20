@@ -8,11 +8,11 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.InputEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.client.event.InputEvent;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ScytheThrowClient {
@@ -41,7 +41,7 @@ public final class ScytheThrowClient {
     }
 
     @SubscribeEvent public static void input(InputEvent.InteractionKeyMappingTriggered event) {
-        if (net.neoforged.fml.ModList.get().isLoaded("epicfight")) return;
+        if (net.minecraftforge.fml.ModList.get().isLoaded("epicfight")) return;
         // use()内の拒否だけではバニラのC2S使用packet送信を止められない。
         if (event.isUseItem() && requireRelease) {
             event.setCanceled(true);
@@ -49,8 +49,9 @@ public final class ScytheThrowClient {
         }
     }
 
-    @SubscribeEvent public static void tick(ClientTickEvent.Pre event) {
-        if (net.neoforged.fml.ModList.get().isLoaded("epicfight")) {
+    @SubscribeEvent public static void tick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.START) return;
+        if (net.minecraftforge.fml.ModList.get().isLoaded("epicfight")) {
             requireRelease = false;
             wasThrown = false;
             return;
@@ -58,7 +59,7 @@ public final class ScytheThrowClient {
         var mc = Minecraft.getInstance();
         if (mc.player == null) { requireRelease = false; wasThrown = false; return; }
         boolean thrown = ScytheThrowManager.isThrown(mc.player.getMainHandItem());
-        if (thrown && !wasThrown && net.neoforged.fml.ModList.get().isLoaded("bettercombat")) {
+        if (thrown && !wasThrown && net.minecraftforge.fml.ModList.get().isLoaded("bettercombat")) {
             jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScytheThrowClientCompat.stopSwing();
         }
         if (wasThrown && !thrown && mc.options.keyUse.isDown()) requireRelease = true;

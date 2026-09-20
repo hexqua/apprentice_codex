@@ -646,7 +646,7 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spell_reaper_scythe.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spell_reaper_scythe.description"),
                         null,
-                        AdvancementType.CHALLENGE,
+                        FrameType.CHALLENGE,
                         true,
                         true,
                         false)

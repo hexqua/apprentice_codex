@@ -1,29 +1,29 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.network.NetworkEvent;
+import java.util.function.Supplier;
 
-public record ScytheRecallEffectPacket(Vec3 start, Vec3 end, int color, boolean narrow, float yaw) implements CustomPacketPayload {
+public record ScytheRecallEffectPacket(Vec3 start, Vec3 end, int color, boolean narrow, float yaw) {
     public ScytheRecallEffectPacket(Vec3 start, Vec3 end, int color) {
         this(start, end, color, false, 0);
     }
-    public static final Type<ScytheRecallEffectPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "scythe_recall"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, ScytheRecallEffectPacket> STREAM_CODEC = StreamCodec.of(
-            (buffer, packet) -> {
-                buffer.writeVec3(packet.start); buffer.writeVec3(packet.end); buffer.writeInt(packet.color);
-                buffer.writeBoolean(packet.narrow); buffer.writeFloat(packet.yaw);
-            },
-            buffer -> new ScytheRecallEffectPacket(buffer.readVec3(), buffer.readVec3(), buffer.readInt(), buffer.readBoolean(), buffer.readFloat()));
-    @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
-    public static void handle(ScytheRecallEffectPacket packet, IPayloadContext context) {
+    public static void encode(ScytheRecallEffectPacket packet, FriendlyByteBuf buffer) {
+        buffer.writeDouble(packet.start.x); buffer.writeDouble(packet.start.y); buffer.writeDouble(packet.start.z);
+        buffer.writeDouble(packet.end.x); buffer.writeDouble(packet.end.y); buffer.writeDouble(packet.end.z);
+        buffer.writeInt(packet.color); buffer.writeBoolean(packet.narrow); buffer.writeFloat(packet.yaw);
+    }
+    public static ScytheRecallEffectPacket decode(FriendlyByteBuf buffer) {
+        return new ScytheRecallEffectPacket(new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble()),
+                new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble()), buffer.readInt(), buffer.readBoolean(), buffer.readFloat());
+    }
+    public static void handle(ScytheRecallEffectPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
+        var context = contextSupplier.get();
+        context.setPacketHandled(true);
         context.enqueueWork(() -> { if (FMLEnvironment.dist == Dist.CLIENT) ClientHandler.handle(packet); });
     }
     @OnlyIn(Dist.CLIENT)

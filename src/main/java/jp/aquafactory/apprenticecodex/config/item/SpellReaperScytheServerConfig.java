@@ -1,27 +1,27 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 public final class SpellReaperScytheServerConfig {
     private static final int MAX_COOLDOWN_TICKS = 200;
 
-    private final ModConfigSpec.IntValue ascensionBaseManaCost;
-    private final ModConfigSpec.IntValue ascensionManaCostReductionPerLevel;
-    private final ModConfigSpec.IntValue ascensionCooldownTicks;
-    private final ModConfigSpec.IntValue throwManaCost;
-    private final ModConfigSpec.IntValue throwManaPerTick;
-    private final ModConfigSpec.IntValue reboundBaseManaCost;
-    private final ModConfigSpec.IntValue reboundManaCostReductionPerLevel;
+    private final ForgeConfigSpec.IntValue ascensionBaseManaCost;
+    private final ForgeConfigSpec.IntValue ascensionManaCostReductionPerLevel;
+    private final ForgeConfigSpec.IntValue ascensionCooldownTicks;
+    private final ForgeConfigSpec.IntValue throwManaCost;
+    private final ForgeConfigSpec.IntValue throwManaPerTick;
+    private final ForgeConfigSpec.IntValue reboundBaseManaCost;
+    private final ForgeConfigSpec.IntValue reboundManaCostReductionPerLevel;
     private Values override;
 
     private SpellReaperScytheServerConfig(
-            ModConfigSpec.IntValue ascensionBaseManaCost,
-            ModConfigSpec.IntValue ascensionManaCostReductionPerLevel,
-            ModConfigSpec.IntValue ascensionCooldownTicks,
-            ModConfigSpec.IntValue throwManaCost,
-            ModConfigSpec.IntValue throwManaPerTick,
-            ModConfigSpec.IntValue reboundBaseManaCost,
-            ModConfigSpec.IntValue reboundManaCostReductionPerLevel
+            ForgeConfigSpec.IntValue ascensionBaseManaCost,
+            ForgeConfigSpec.IntValue ascensionManaCostReductionPerLevel,
+            ForgeConfigSpec.IntValue ascensionCooldownTicks,
+            ForgeConfigSpec.IntValue throwManaCost,
+            ForgeConfigSpec.IntValue throwManaPerTick,
+            ForgeConfigSpec.IntValue reboundBaseManaCost,
+            ForgeConfigSpec.IntValue reboundManaCostReductionPerLevel
     ) {
         this.ascensionBaseManaCost = ascensionBaseManaCost;
         this.ascensionManaCostReductionPerLevel = ascensionManaCostReductionPerLevel;
@@ -32,7 +32,7 @@ public final class SpellReaperScytheServerConfig {
         this.reboundManaCostReductionPerLevel = reboundManaCostReductionPerLevel;
     }
 
-    public static SpellReaperScytheServerConfig define(ModConfigSpec.Builder builder) {
+    public static SpellReaperScytheServerConfig define(ForgeConfigSpec.Builder builder) {
         builder.push("SpellReaperScythe");
         var ascensionBaseManaCost = builder
                 .comment("Base mana consumed when Spell Reaper Scythe activates Malum Ascension.")

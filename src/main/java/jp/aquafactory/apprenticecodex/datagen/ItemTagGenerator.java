@@ -145,6 +145,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         );
 
         tag(createTag("malum", "scythe")).add(ItemRegistry.SPELL_REAPER_SCYTHE.get());
+        tag(createTag("malum", "magic_capable_weapon")).add(ItemRegistry.SPELL_REAPER_SCYTHE.get());
         tag(MALUM_SOUL_HUNTER_WEAPON).add(ItemRegistry.SPELL_REAPER_SCYTHE.get());
         var malumSoulHunterWeaponTag = tag(MALUM_SOUL_HUNTER_WEAPON);
         malumSoulHunterWeaponTag.add(

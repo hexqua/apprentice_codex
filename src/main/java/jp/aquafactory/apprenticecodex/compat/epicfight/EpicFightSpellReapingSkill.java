@@ -5,13 +5,13 @@ import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowManager;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScythe;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import yesman.epicfight.client.input.EpicFightKeyMappings;
 import yesman.epicfight.gameasset.Animations;
-import yesman.epicfight.network.server.SPSkillFeedback;
+import yesman.epicfight.network.server.SPSkillExecutionFeedback;
 import yesman.epicfight.skill.Skill;
 import yesman.epicfight.skill.SkillContainer;
 import yesman.epicfight.skill.modules.ChargeableSkill;
@@ -21,24 +21,27 @@ import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import java.util.Map;
 
 public final class EpicFightSpellReapingSkill extends WeaponInnateSkill implements ChargeableSkill {
+    private static final java.util.UUID LISTENER_ID = java.util.UUID.fromString("a21a6768-dfe6-4d34-b839-e4d20f536472");
     // Entity.equalsはID比較なので、統合serverのclient/server実体が等価になる。
     // weakKeysは参照同一性で比較し、両sideの状態分離と切断後の解放を両立する。
     private final Map<Player, Holding> holdings = new MapMaker().weakKeys().makeMap();
 
-    public EpicFightSpellReapingSkill(WeaponInnateSkill.Builder<?> builder) { super(builder); }
+    public EpicFightSpellReapingSkill(yesman.epicfight.skill.SkillBuilder<EpicFightSpellReapingSkill> builder) { super(builder); }
 
-    public static WeaponInnateSkill.Builder<?> builder() {
-        return WeaponInnateSkill.createWeaponInnateBuilder(EpicFightSpellReapingSkill::new)
+    public static yesman.epicfight.skill.SkillBuilder<EpicFightSpellReapingSkill> builder() {
+        return new yesman.epicfight.skill.SkillBuilder<EpicFightSpellReapingSkill>()
+                .setCategory(yesman.epicfight.skill.SkillCategories.WEAPON_INNATE)
                 .setActivateType(Skill.ActivateType.HELD).setResource(Skill.Resource.NONE);
     }
 
     @Override
-    public void onInitiate(SkillContainer container, yesman.epicfight.api.event.EntityEventListener listener) {
-        super.onInitiate(container, listener);
-        listener.registerEvent(yesman.epicfight.api.event.EpicFightEventHooks.Animation.START_ACTION, event -> {
+    public void onInitiate(SkillContainer container) {
+        super.onInitiate(container);
+        container.getExecutor().getEventListener().addEventListener(
+                yesman.epicfight.world.entity.eventlistener.PlayerEventListener.EventType.ACTION_EVENT_SERVER, LISTENER_ID, event -> {
             if (container.getExecutor().isHoldingSkill(this)
                     && !event.getAnimation().equals(Animations.STEEL_WHIRLWIND_CHARGING)) abort(container.getExecutor());
-        }, this);
+        });
     }
 
     @Override
@@ -56,19 +59,20 @@ public final class EpicFightSpellReapingSkill extends WeaponInnateSkill implemen
     @Override
     public void onRemoved(SkillContainer container) {
         abort(container.getExecutor());
+        container.getExecutor().getEventListener().removeListener(yesman.epicfight.world.entity.eventlistener.PlayerEventListener.EventType.ACTION_EVENT_SERVER, LISTENER_ID);
         super.onRemoved(container);
     }
 
     @Override
-    public void executeOnServer(SkillContainer container, CompoundTag args) {
+    public void executeOnServer(SkillContainer container, FriendlyByteBuf args) {
         // 標準実装は保持していないCASTでcontainerをactivateする。中断後の遅延CASTは無視する。
         if (container.getExecutor().isHoldingSkill(this)) {
-            onStopHolding(container, SPSkillFeedback.executed(container.getSlot()));
+            onStopHolding(container, SPSkillExecutionFeedback.executed(container.getSlot().universalOrdinal()));
         }
     }
 
     @Override
-    public void cancelOnClient(SkillContainer container, CompoundTag args) {
+    public void cancelOnClient(SkillContainer container, FriendlyByteBuf args) {
         if (container.getExecutor().isHoldingSkill(this)) container.getExecutor().resetHolding();
         super.cancelOnClient(container, args);
     }
@@ -139,13 +143,13 @@ public final class EpicFightSpellReapingSkill extends WeaponInnateSkill implemen
     }
 
     @Override
-    public void cancelOnServer(SkillContainer container, CompoundTag args) {
+    public void cancelOnServer(SkillContainer container, FriendlyByteBuf args) {
         if (container.getExecutor().isHoldingSkill(this)) container.getExecutor().resetHolding();
         super.cancelOnServer(container, args);
     }
 
     @Override
-    public void onStopHolding(SkillContainer container, SPSkillFeedback feedback) {
+    public void onStopHolding(SkillContainer container, SPSkillExecutionFeedback feedback) {
         var patch = container.getServerExecutor();
         var player = patch.getOriginal();
         var holding = holdings.get(player);
@@ -161,7 +165,7 @@ public final class EpicFightSpellReapingSkill extends WeaponInnateSkill implemen
         cancelOnServer(container, null);
     }
 
-    public static double distance(long ticks) { return 2.5D + Math.clamp(ticks - 6, 0L, 24L) * 7.5D / 24.0D; }
+    public static double distance(long ticks) { return 2.5D + Math.max(0L, Math.min(24L, ticks - 6)) * 7.5D / 24.0D; }
     // 最低時間未満の解放もserverまで通し、発射せず保持だけを解除する。
     @Override public int getMinChargingTicks() { return 0; }
     @Override public int getMaxChargingTicks() { return 30; }
@@ -171,7 +175,7 @@ public final class EpicFightSpellReapingSkill extends WeaponInnateSkill implemen
         if (!container.getExecutor().isHoldingSkill(this)) return;
         var holding = holdings.get(container.getExecutor().getOriginal());
         if (holding != null && holding.normal) ChargeableSkill.super.holdTick(container);
-        else container.getExecutor().setChargingTicks(1);
+        else container.getExecutor().setChargingAmount(1);
     }
     @Override public KeyMapping getKeyMapping() { return EpicFightKeyMappings.WEAPON_INNATE_SKILL; }
     @Override public ResourceLocation getSkillTexture() {

@@ -324,7 +324,6 @@
   "item.apprenticecodex.spell_reaper_scythe.epicfight.throw.desc_2": "投掷消耗%1$s点法力。镰刀在目标位置悬停，每秒消耗%2$s点法力，直到切换物品或再次使用技能。",
   "item.apprenticecodex.spell_reaper_scythe.epicfight.rebound.desc_1": "使用武器固有技能可立即投掷。",
   "item.apprenticecodex.spell_reaper_scythe.epicfight.rebound.desc_2": "投掷消耗%1$s点法力。到达目标位置后立即返回，不会悬停。",
-  "item.apprenticecodex.spell_reaper_scythe.epicfight.rebound.maelstrom_desc_2": "投掷消耗%1$s点法力。镰刀不会悬停，而是伴随风暴返回手中。",
   "item.apprenticecodex.spell_reaper_scythe.epicfight.ascension.desc_1": "使用武器固有技能可发动%s。",
   "item.apprenticecodex.spell_reaper_scythe.epicfight.ascension.desc_2": "发动消耗%s点法力，但没有冷却时间。",
   "skill.apprenticecodex.spell_reaping": "法术收割",

@@ -21,15 +21,7 @@
     "  A"
   ],
   "result": {
-    "components": {
-      "irons_spellbooks:spell_container": {
-        "data": [],
-        "maxSpells": 1,
-        "mustEquip": false,
-        "spellWheel": true
-      }
-    },
-    "count": 1,
-    "id": "apprenticecodex:spell_reaper_scythe"
-  }
+    "item": "apprenticecodex:spell_reaper_scythe"
+  },
+  "show_notification": true
 }

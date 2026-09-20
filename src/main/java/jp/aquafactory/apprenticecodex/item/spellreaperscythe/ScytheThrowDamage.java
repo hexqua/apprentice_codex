@@ -20,7 +20,7 @@ public final class ScytheThrowDamage {
         var source = CombatTools.getDamageSource(level, projectile, owner, continuous
                 ? DamageTypes.SPELL_REAPER_SCYTHE_THROW_CONTINUOUS : DamageTypes.SPELL_REAPER_SCYTHE_THROW);
         // damage効果だけを評価し、耐久消費・炎上・スイープ等の近接post-attack処理は呼ばない。
-        var amount = EnchantmentHelper.modifyDamage(level, weapon, target, source, physical);
+        var amount = physical + EnchantmentHelper.getDamageBonus(weapon, living.getMobType());
         var multiplier = continuous ? 0.1f : 1f;
         var memory = (LivingEntityDamageMemoryAccessor) living;
         var savedTime = living.invulnerableTime;

@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.compat.Curios;
-import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
+
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellReaperScytheServerConfig;
 import jp.aquafactory.apprenticecodex.gametest.malum.MalumScytheGameTestHelper;
@@ -32,9 +32,9 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.server.level.ServerLevel;
-import net.neoforged.fml.ModList;
-import net.neoforged.neoforge.common.ItemAbilities;
-import net.neoforged.neoforge.common.util.FakePlayer;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.common.ToolActions;
+import net.minecraftforge.common.util.FakePlayer;
 import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.ArrayList;
@@ -44,20 +44,20 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     private static final String BETTER_COMBAT_MOD_ID = "bettercombat";
     private static final ResourceKey<DamageType> MALUM_SCYTHE_SWEEP = ResourceKey.create(
             Registries.DAMAGE_TYPE,
-            ResourceLocation.fromNamespaceAndPath(MalumCompatibility.MOD_ID, "scythe_sweep")
+            ResourceLocation.fromNamespaceAndPath("malum", "scythe_sweep")
     );
     private static final ResourceKey<DamageType> MALUM_SCYTHE_ASCENSION = ResourceKey.create(
             Registries.DAMAGE_TYPE,
-            ResourceLocation.fromNamespaceAndPath(MalumCompatibility.MOD_ID, "scythe_ascension")
+            ResourceLocation.fromNamespaceAndPath("malum", "scythe_sweep")
     );
     private static final ResourceKey<Enchantment> MALUM_ASCENSION = malumEnchantmentKey("ascension");
     private static final ResourceKey<Enchantment> MALUM_REBOUND = malumEnchantmentKey("rebound");
     private static final ResourceLocation MALUM_ASCENSION_EFFECT = ResourceLocation.fromNamespaceAndPath(
-            MalumCompatibility.MOD_ID,
+            "malum",
             "ascension"
     );
     private static final ResourceLocation MALUM_SCYTHE_BOOMERANG = ResourceLocation.fromNamespaceAndPath(
-            MalumCompatibility.MOD_ID,
+            "malum",
             "scythe_boomerang"
     );
     private static final float DAMAGE_TOLERANCE = 1.0E-4F;
@@ -66,7 +66,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     }
 
     static void spellReaperScytheUsesVanillaSweepWithoutMalum(GameTestHelper helper) {
-        if (ModList.get().isLoaded(MalumCompatibility.MOD_ID)
+        if (ModList.get().isLoaded("malum")
                 || ModList.get().isLoaded(BETTER_COMBAT_MOD_ID)) {
             helper.succeed();
             return;
@@ -84,15 +84,15 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     }
 
     static void spellReaperScytheUsesOneMalumSweepWithMalum(GameTestHelper helper) {
-        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+        if (!ModList.get().isLoaded("malum")) {
             helper.succeed();
             return;
         }
 
         var context = prepareSweepAttack(helper, "spell_reaper_malum_sweep");
-        var sweepingRatio = context.player().getAttributeValue(Attributes.SWEEPING_DAMAGE_RATIO);
+        var sweepingRatio = net.minecraft.world.item.enchantment.EnchantmentHelper.getSweepingDamageRatio(context.player());
         var expectedSweepDamage = (float) (context.player().getAttributeValue(Attributes.ATTACK_DAMAGE)
-                * (0.5D + sweepingRatio * 0.33D));
+                * (0.5D + sweepingRatio));
         performFullyChargedAttack(helper, context);
 
         assertDamageNear(helper, context.firstBystander(), context.firstBystanderHealth(), expectedSweepDamage,
@@ -105,7 +105,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     }
 
     static void spellReaperScytheIsRecognizedByMalumSoulDataHandler(GameTestHelper helper) {
-        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+        if (!ModList.get().isLoaded("malum")) {
             helper.succeed();
             return;
         }
@@ -123,7 +123,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
                 "Malum should resolve the actual Spell Reaper Scythe stack");
 
         var malumScytheItem = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(
-                MalumCompatibility.MOD_ID,
+                "malum",
                 "soul_stained_steel_scythe"
         ));
         helper.assertTrue(malumScytheItem != Items.AIR, "Missing Malum scythe for GameTest");
@@ -167,7 +167,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     static void spellReaperScytheRightClickWithReboundThrowsImmediately(GameTestHelper helper) {
         // Epic Fightの入力・表示契約はScytheEpicFightGameTestsで検証する。
         if (ModList.get().isLoaded("epicfight")) { helper.succeed(); return; }
-        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+        if (!ModList.get().isLoaded("malum")) {
             helper.succeed();
             return;
         }
@@ -193,7 +193,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     static void spellReaperScytheRightClickTriggersMalumAscension(GameTestHelper helper) {
         // Epic Fightの入力・表示契約はScytheEpicFightGameTestsで検証する。
         if (ModList.get().isLoaded("epicfight")) { helper.succeed(); return; }
-        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+        if (!ModList.get().isLoaded("malum")) {
             helper.succeed();
             return;
         }
@@ -223,7 +223,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     static void spellReaperScytheAscensionLevelControlsManaCost(GameTestHelper helper) {
         // Epic Fightの入力・表示契約はScytheEpicFightGameTestsで検証する。
         if (ModList.get().isLoaded("epicfight")) { helper.succeed(); return; }
-        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+        if (!ModList.get().isLoaded("malum")) {
             helper.succeed();
             return;
         }
@@ -239,7 +239,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     static void spellReaperScytheAscensionRejectsInsufficientMana(GameTestHelper helper) {
         // Epic Fightの入力・表示契約はScytheEpicFightGameTestsで検証する。
         if (ModList.get().isLoaded("epicfight")) { helper.succeed(); return; }
-        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+        if (!ModList.get().isLoaded("malum")) {
             helper.succeed();
             return;
         }
@@ -285,7 +285,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     static void spellReaperScytheAscensionUsesServerConfigAndZeroFloor(GameTestHelper helper) {
         // Epic Fightの入力・表示契約はScytheEpicFightGameTestsで検証する。
         if (ModList.get().isLoaded("epicfight")) { helper.succeed(); return; }
-        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+        if (!ModList.get().isLoaded("malum")) {
             helper.succeed();
             return;
         }
@@ -318,7 +318,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     static void spellReaperScytheAscensionCreativeBypassesManaAndCooldown(GameTestHelper helper) {
         // Epic Fightの入力・表示契約はScytheEpicFightGameTestsで検証する。
         if (ModList.get().isLoaded("epicfight")) { helper.succeed(); return; }
-        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+        if (!ModList.get().isLoaded("malum")) {
             helper.succeed();
             return;
         }
@@ -341,7 +341,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     static void spellReaperScytheAscensionTooltipShowsTranslatedNameAndMana(GameTestHelper helper) {
         // Epic Fightの入力・表示契約はScytheEpicFightGameTestsで検証する。
         if (ModList.get().isLoaded("epicfight")) { helper.succeed(); return; }
-        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+        if (!ModList.get().isLoaded("malum")) {
             helper.succeed();
             return;
         }
@@ -349,7 +349,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
         var stack = new ItemStack(ItemRegistry.SPELL_REAPER_SCYTHE.get());
         var noAscensionTooltip = new ArrayList<Component>();
         stack.getItem().appendHoverText(
-                stack, Item.TooltipContext.of(helper.getLevel()), noAscensionTooltip, TooltipFlag.Default.NORMAL
+                stack, helper.getLevel(), noAscensionTooltip, TooltipFlag.Default.NORMAL
         );
         helper.assertTrue(noAscensionTooltip.stream().noneMatch(SpellReaperScytheGameTestScenarios::isAscensionCostTooltip),
                 "Spell Reaper Scythe without Ascension should not show an Ascension mana cost");
@@ -357,7 +357,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
         enchantMalum(helper, stack, MALUM_ASCENSION, 2);
         var tooltip = new ArrayList<Component>();
         stack.getItem().appendHoverText(
-                stack, Item.TooltipContext.of(helper.getLevel()), tooltip, TooltipFlag.Default.NORMAL
+                stack, helper.getLevel(), tooltip, TooltipFlag.Default.NORMAL
         );
         var costLine = tooltip.stream()
                 .filter(SpellReaperScytheGameTestScenarios::isAscensionCostTooltip)
@@ -379,7 +379,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     static void spellReaperScytheAscensionWinsOverForcedRebound(GameTestHelper helper) {
         // Epic Fightの入力・表示契約はScytheEpicFightGameTestsで検証する。
         if (ModList.get().isLoaded("epicfight")) { helper.succeed(); return; }
-        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+        if (!ModList.get().isLoaded("malum")) {
             helper.succeed();
             return;
         }
@@ -400,7 +400,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     static void spellReaperScytheAscensionUsesMalumCurios(GameTestHelper helper) {
         // Epic Fightの入力・表示契約はScytheEpicFightGameTestsで検証する。
         if (ModList.get().isLoaded("epicfight")) { helper.succeed(); return; }
-        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+        if (!ModList.get().isLoaded("malum")) {
             helper.succeed();
             return;
         }
@@ -418,11 +418,13 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
                 "Narrow Edge should increase Spell Reaper Ascension damage");
         narrow.target().discard();
 
-        var rising = prepareAscensionUse(helper, "spell_reaper_ascension_rising", 1);
-        equipMalumCurio(helper, rising.player(), "ring", "ring_of_the_rising_edge");
-        rising.stack().getItem().use(helper.getLevel(), rising.player(), InteractionHand.MAIN_HAND);
-        helper.assertTrue(rising.target().getDeltaMovement().y >= 0.5D,
-                "Rising Edge should launch targets hit by Spell Reaper Ascension");
+        // 1.20.1 の Malum には Rising Edge がないため、強化条件を共有する Hidden Blade を確認する。
+        var hidden = prepareAscensionUse(helper, "spell_reaper_ascension_hidden", 1);
+        equipMalumCurio(helper, hidden.player(), Curios.NECKLACE_SLOT, "necklace_of_the_hidden_blade");
+        hidden.stack().getItem().use(helper.getLevel(), hidden.player(), InteractionHand.MAIN_HAND);
+        var hiddenDamage = hidden.initialTargetHealth() - hidden.target().getHealth();
+        helper.assertTrue(hiddenDamage > normalDamage,
+                "Hidden Blade should increase Spell Reaper Ascension damage");
         helper.succeed();
     }
 
@@ -447,12 +449,14 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
                 "HORIZONTAL_PLANE",
                 "bettercombat:two_handed_slash_horizontal_left"
         );
+        helper.assertTrue(readBetterCombatAttackRange(context.player(), 0) == 3.5D,
+                "Spell Reaper Scythe must use the 1.20.1 Better Combat scythe range");
         helper.succeed();
     }
 
     static void spellReaperScytheBetterCombatUsesNoSweepCombo(GameTestHelper helper) {
         if (!ModList.get().isLoaded(BETTER_COMBAT_MOD_ID)
-                || !ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+                || !ModList.get().isLoaded("malum")) {
             helper.succeed();
             return;
         }
@@ -480,7 +484,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
             String necklaceId,
             String profileSuffix
     ) {
-        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) {
+        if (!ModList.get().isLoaded("malum")) {
             helper.succeed();
             return;
         }
@@ -545,8 +549,8 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
         context.player().setSpeed(0.1F);
         helper.assertTrue(context.player().getAttackStrengthScale(0.5F) > 0.9F,
                 "Spell Reaper Scythe sweep test requires a fully charged attack");
-        helper.assertTrue(context.player().getMainHandItem().canPerformAction(ItemAbilities.SWORD_SWEEP)
-                        == !ModList.get().isLoaded(MalumCompatibility.MOD_ID),
+        helper.assertTrue(context.player().getMainHandItem().canPerformAction(ToolActions.SWORD_SWEEP)
+                        == !ModList.get().isLoaded("malum"),
                 "Spell Reaper Scythe sweep ability should match Malum availability");
         helper.assertTrue(context.player().getMainHandItem().getSweepHitBox(context.player(), context.primaryTarget())
                         .intersects(context.firstBystander().getBoundingBox()),
@@ -565,7 +569,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
             String curioId
     ) {
         var necklace = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(
-                MalumCompatibility.MOD_ID,
+                "malum",
                 curioId
         ));
         helper.assertTrue(necklace != Items.AIR, "Missing Malum curio for GameTest: " + curioId);
@@ -599,7 +603,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
                 "VERTICAL_PLANE",
                 "bettercombat:two_handed_slash_vertical_left"
         );
-        helper.assertTrue(readBetterCombatAttackRangeBonus(player, 0) == 0.5D,
+        helper.assertTrue(readBetterCombatAttackRange(player, 0) == 3.5D,
                 "Spell Reaper Scythe should preserve Better Combat range with " + necklaceName);
         helper.assertTrue(readBetterCombatAttackDamageMultiplier(player, 0) == 1.0D,
                 "Spell Reaper Scythe should preserve Better Combat damage with " + necklaceName);
@@ -628,11 +632,11 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
         }
     }
 
-    private static double readBetterCombatAttackRangeBonus(FakePlayer player, int comboCount) {
+    private static double readBetterCombatAttackRange(FakePlayer player, int comboCount) {
         try {
             var attackHand = getBetterCombatAttackHand(player, comboCount);
             var attributes = attackHand.getClass().getMethod("attributes").invoke(attackHand);
-            return ((Number) attributes.getClass().getMethod("rangeBonus").invoke(attributes)).doubleValue();
+            return ((Number) attributes.getClass().getMethod("attackRange").invoke(attributes)).doubleValue();
         } catch (ReflectiveOperationException exception) {
             throw new IllegalStateException("Failed to inspect Better Combat attack range", exception);
         }
@@ -689,7 +693,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
         player.setYRot(0.0F);
         player.setXRot(0.0F);
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SPELL_REAPER_SCYTHE.get()));
-        var maxMana = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA);
+        var maxMana = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get());
         helper.assertTrue(maxMana != null, "Spell Reaper Scythe Ascension test requires MAX_MANA");
         maxMana.setBaseValue(1000.0D);
     }
@@ -741,7 +745,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
         var enchantment = helper.getLevel().registryAccess()
                 .lookupOrThrow(Registries.ENCHANTMENT)
                 .getOrThrow(enchantmentKey);
-        stack.enchant(enchantment, level);
+        stack.enchant(enchantment.value(), level);
     }
 
     private static void assertCooldownDuration(
@@ -763,7 +767,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     }
 
     private static boolean isAscensionEffect(net.minecraft.world.effect.MobEffectInstance effect) {
-        return MALUM_ASCENSION_EFFECT.equals(BuiltInRegistries.MOB_EFFECT.getKey(effect.getEffect().value()));
+        return MALUM_ASCENSION_EFFECT.equals(BuiltInRegistries.MOB_EFFECT.getKey(effect.getEffect()));
     }
 
     private static boolean hasMalumScytheBoomerang(GameTestHelper helper) {
@@ -778,7 +782,7 @@ final class SpellReaperScytheGameTestScenarios extends ApprenticeCodexGameTestSc
     private static ResourceKey<Enchantment> malumEnchantmentKey(String path) {
         return ResourceKey.create(
                 Registries.ENCHANTMENT,
-                ResourceLocation.fromNamespaceAndPath(MalumCompatibility.MOD_ID, path)
+                ResourceLocation.fromNamespaceAndPath("malum", path)
         );
     }
 

@@ -320,7 +320,6 @@
   "item.apprenticecodex.spell_reaper_scythe.epicfight.throw.desc_2": "投擲には%1$sマナ消費し、持ち替えるか再使用するまで秒間%2$sマナ消費しながら投擲した先で停滞する。",
   "item.apprenticecodex.spell_reaper_scythe.epicfight.rebound.desc_1": "インネイトスキルによって即座に投擲することができる。",
   "item.apprenticecodex.spell_reaper_scythe.epicfight.rebound.desc_2": "投擲には%1$sマナ消費し、到達先で停滞せずに手元に即戻ってくる。",
-  "item.apprenticecodex.spell_reaper_scythe.epicfight.rebound.maelstrom_desc_2": "投擲には%1$sマナ消費し、到達先で停滞せずに嵐をまとって手元へ戻ってくる。",
   "item.apprenticecodex.spell_reaper_scythe.epicfight.ascension.desc_1": "インネイトスキルによって%sを発動することができる。",
   "item.apprenticecodex.spell_reaper_scythe.epicfight.ascension.desc_2": "発動には%sマナ消費するが、クールダウンが発生しない。",
   "item.apprenticecodex.spell_side_edge.desc": "オフハンドに持っている魔法行使関連の利き手用の補正を得ることができる。",

@@ -14,8 +14,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -31,7 +31,7 @@ public final class ScytheProficiencyGameTests {
         float proficiency = 1;
         if (MalumSpellReaperScytheBridge.isAvailable()) {
             var attribute = h.getLevel().registryAccess().registryOrThrow(Registries.ATTRIBUTE)
-                    .getHolder(ResourceLocation.fromNamespaceAndPath("malum", "scythe_proficiency")).orElseThrow();
+                    .get(ResourceLocation.fromNamespaceAndPath("malum", "scythe_proficiency"));
             p.getAttribute(attribute).setBaseValue(2);
             proficiency = 2;
         }

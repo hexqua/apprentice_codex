@@ -5,7 +5,6 @@ import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowManager;
 import jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket;
-import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -17,9 +16,9 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import top.theillusivec4.curios.api.CuriosApi;
 
 @GameTestHolder(ApprenticeCodex.MODID)
@@ -29,11 +28,11 @@ public final class ScytheNarrowGameTests {
 
     static void equip(FakePlayer player, String id) {
         var item = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("malum", id));
-        CuriosApi.getCuriosInventory(player).orElseThrow().setEquippedCurio("necklace", 0, new ItemStack(item));
+        CuriosApi.getCuriosInventory(player).orElseThrow(() -> new IllegalStateException("Missing Curios inventory")).setEquippedCurio("necklace", 0, new ItemStack(item));
     }
 
     static void unequip(FakePlayer player) {
-        CuriosApi.getCuriosInventory(player).orElseThrow().setEquippedCurio("necklace", 0, ItemStack.EMPTY);
+        CuriosApi.getCuriosInventory(player).orElseThrow(() -> new IllegalStateException("Missing Curios inventory")).setEquippedCurio("necklace", 0, ItemStack.EMPTY);
     }
 
     @GameTest(template = TEMPLATE)
@@ -142,10 +141,10 @@ public final class ScytheNarrowGameTests {
     @GameTest(template = TEMPLATE)
     public static void narrowRecallPacketPreservesPose(GameTestHelper h) {
         var packet = new ScytheRecallEffectPacket(Vec3.ZERO, new Vec3(0, 32, 0), 0x123456, true, 45);
-        var buffer = new net.minecraft.network.RegistryFriendlyByteBuf(io.netty.buffer.Unpooled.buffer(), h.getLevel().registryAccess());
+        var buffer = new net.minecraft.network.FriendlyByteBuf(io.netty.buffer.Unpooled.buffer());
         try {
-            ScytheRecallEffectPacket.STREAM_CODEC.encode(buffer, packet);
-            h.assertTrue(ScytheRecallEffectPacket.STREAM_CODEC.decode(buffer).equals(packet), "Recall packet must preserve vertical mode and yaw");
+            ScytheRecallEffectPacket.encode(packet, buffer);
+            h.assertTrue(ScytheRecallEffectPacket.decode(buffer).equals(packet), "Recall packet must preserve vertical mode and yaw");
         } finally { buffer.release(); }
         h.succeed();
     }
@@ -160,10 +159,12 @@ public final class ScytheNarrowGameTests {
         var target = h.spawn(EntityType.HUSK, new BlockPos(2, 20, 5));
         target.setNoAi(true); target.setNoGravity(true);
         target.getAttribute(Attributes.ARMOR).setBaseValue(0);
-        java.util.function.Consumer<net.neoforged.neoforge.event.entity.ProjectileImpactEvent> listener = event -> {
-            if (event.getProjectile() instanceof ScytheThrowEntity scythe && scythe.getOwner() == p) event.setCanceled(true);
+        java.util.function.Consumer<net.minecraftforge.event.entity.ProjectileImpactEvent> listener = event -> {
+            if (event.getProjectile() instanceof ScytheThrowEntity scythe && scythe.getOwner() == p) {
+                event.setImpactResult(net.minecraftforge.event.entity.ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
+            }
         };
-        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(listener);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(listener);
         try {
             ScytheReboundGameTests.use(h, p);
             var entity = ScytheThrowManager.active(p);
@@ -172,7 +173,7 @@ public final class ScytheNarrowGameTests {
                 h.assertFalse(entity.isRemoved(), "Canceled impact must not trigger Narrow recall");
                 h.assertTrue(target.getHealth() == target.getMaxHealth(), "Canceled impact must not deal damage");
             } finally { entity.discard(); }
-        } finally { net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(listener); }
+        } finally { net.minecraftforge.common.MinecraftForge.EVENT_BUS.unregister(listener); }
         target.invulnerableTime = 20;
         ((jp.aquafactory.apprenticecodex.mixin.LivingEntityDamageMemoryAccessor) target).apprenticecodex$setLastHurt(100);
         ScytheReboundGameTests.use(h, p);

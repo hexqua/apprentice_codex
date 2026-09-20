@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
-import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.sammy.malum.core.handlers.SoulDataHandler;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.world.damagesource.DamageSource;
@@ -13,18 +14,17 @@ import org.spongepowered.asm.mixin.injection.At;
 @Pseudo
 @Mixin(targets = "com.sammy.malum.core.handlers.SoulDataHandler", remap = false)
 public abstract class MalumSoulDataHandlerMixin {
-    @ModifyReturnValue(method = "getScytheWeapon", at = @At("RETURN"), require = 0)
-    private static ItemStack apprenticecodex$recognizeSpellReaperScythe(
-            ItemStack original,
+    @Inject(method = "getScytheWeapon", at = @At("RETURN"), cancellable = true)
+    private static void apprenticecodex$recognizeSpellReaperScythe(
             DamageSource source,
-            LivingEntity attacker
+            LivingEntity attacker, CallbackInfoReturnable<ItemStack> cir
     ) {
-        if (!original.isEmpty()) {
-            return original;
+        if (!cir.getReturnValue().isEmpty()) {
+            return;
         }
 
         // Malumの投擲大鎌を含む攻撃元解決は維持し、Spell Reaper Scytheだけ判定結果を補完する。
         var candidate = SoulDataHandler.getSoulHunterWeapon(source, attacker);
-        return candidate.is(ItemRegistry.SPELL_REAPER_SCYTHE.get()) ? candidate : original;
+        if (candidate.is(ItemRegistry.SPELL_REAPER_SCYTHE.get())) cir.setReturnValue(candidate);
     }
 }

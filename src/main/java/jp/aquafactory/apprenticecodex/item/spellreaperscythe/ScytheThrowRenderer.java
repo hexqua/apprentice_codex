@@ -28,9 +28,9 @@ public final class ScytheThrowRenderer extends GeoEntityRenderer<ScytheThrowEnti
     }
 
     @Override
-    protected void applyRotations(ScytheThrowEntity entity, PoseStack pose, float age, float yaw, float partialTick, float scale) {
+    protected void applyRotations(ScytheThrowEntity entity, PoseStack pose, float age, float yaw, float partialTick) {
         // 非LivingEntityのGeckoLib描画はbody yawを持たないため、同期した発射ヨーを明示する。
-        super.applyRotations(entity, pose, age, entity.isNarrow() ? entity.getThrowYaw() : yaw, partialTick, scale);
+        super.applyRotations(entity, pose, age, entity.isNarrow() ? entity.getThrowYaw() : yaw, partialTick);
     }
 
     @Override
@@ -54,7 +54,7 @@ public final class ScytheThrowRenderer extends GeoEntityRenderer<ScytheThrowEnti
         // 当フレームの実アンカー間を補間する。独立した回転式では方向・位相がずれるため使わない。
         while (history.nextSample <= time) {
             double delta = time - previous.time;
-            double t = delta <= 0 ? 1 : Math.clamp((history.nextSample - previous.time) / delta, 0, 1);
+            double t = delta <= 0 ? 1 : net.minecraft.util.Mth.clamp((history.nextSample - previous.time) / delta, 0, 1);
             history.samples.addLast(new Sample(history.nextSample, previous.center.lerp(center, t),
                     previous.tip.lerp(current.tip, t), previous.top.lerp(current.top, t), previous.bottom.lerp(current.bottom, t)));
             history.nextSample += 0.25;
@@ -76,10 +76,10 @@ public final class ScytheThrowRenderer extends GeoEntityRenderer<ScytheThrowEnti
     @Override
     public void renderRecursively(PoseStack pose, ScytheThrowEntity entity, software.bernie.geckolib.cache.object.GeoBone bone,
                                   RenderType renderType, MultiBufferSource buffers, com.mojang.blaze3d.vertex.VertexConsumer buffer,
-                                  boolean reRender, float partialTick, int light, int overlay, int color) {
+                                  boolean reRender, float partialTick, int light, int overlay, float red, float green, float blue, float alpha) {
         boolean anchor = bone.getName().equals("anchor_tip") || bone.getName().equals("anchor_top") || bone.getName().equals("anchor_bottom");
         if (anchor) bone.setTrackingMatrices(true);
-        super.renderRecursively(pose, entity, bone, renderType, buffers, buffer, reRender, partialTick, light, overlay, color);
+        super.renderRecursively(pose, entity, bone, renderType, buffers, buffer, reRender, partialTick, light, overlay, red, green, blue, alpha);
         if (anchor && !reRender) {
             // 当フレームの行列確定後に読む。world行列へのfloat遠方座標の混入も避ける。
             var p = bone.getLocalPosition();

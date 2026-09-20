@@ -21,13 +21,12 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.animation.AnimatableManager;
-import software.bernie.geckolib.animation.AnimationController;
-import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.HashSet;
@@ -174,7 +173,7 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
             if (player != null && player.isAlive() && player.level() == level()) {
                 var end = handPosition(player);
                 sweep(position(), end, new HashSet<>(), false, true);
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(this,
+                jp.aquafactory.apprenticecodex.network.Networks.sendToTrackingEntityAndSelf(this,
                         new ScytheRecallEffectPacket(position(), end, getTrailColor(), isNarrow(), getThrowYaw()));
                 level().playSound(null, end.x, end.y, end.z,
                         jp.aquafactory.apprenticecodex.registry.SoundRegistry.VANILLA_SCYTHE_CATCH.get(),
@@ -211,13 +210,13 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
                 var expanded = raw.getBoundingBox().inflate(1.5, 0.05, 1.5);
                 var origin = expanded.contains(from) ? from : expanded.clip(from, to).orElse(to);
                 var box = raw.getBoundingBox();
-                var closest = new Vec3(Math.clamp(origin.x, box.minX, box.maxX),
-                        Math.clamp(origin.y, box.minY, box.maxY), Math.clamp(origin.z, box.minZ, box.maxZ));
+                var closest = new Vec3(net.minecraft.util.Mth.clamp(origin.x, box.minX, box.maxX),
+                        net.minecraft.util.Mth.clamp(origin.y, box.minY, box.maxY), net.minecraft.util.Mth.clamp(origin.z, box.minZ, box.maxZ));
                 var hit = level.clip(new ClipContext(origin, closest, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
                 if (hit.getType() != HitResult.Type.MISS) continue;
             }
             contacts.add(target.getUUID());
-            if (net.neoforged.neoforge.event.EventHooks.onProjectileImpact(this,
+            if (net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this,
                     new net.minecraft.world.phys.EntityHitResult(raw, to))) continue;
             ScytheThrowDamage.hit(level, this, player, target, weapon, physical, magic, continuous);
         }
@@ -242,13 +241,13 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
             var origin = from.lerp(to, hit.time());
             if (!returning) {
                 var bounds = raw.getBoundingBox();
-                var closest = new Vec3(Math.clamp(origin.x, bounds.minX, bounds.maxX),
-                        Math.clamp(origin.y, bounds.minY, bounds.maxY), Math.clamp(origin.z, bounds.minZ, bounds.maxZ));
+                var closest = new Vec3(net.minecraft.util.Mth.clamp(origin.x, bounds.minX, bounds.maxX),
+                        net.minecraft.util.Mth.clamp(origin.y, bounds.minY, bounds.maxY), net.minecraft.util.Mth.clamp(origin.z, bounds.minZ, bounds.maxZ));
                 if (level.clip(new ClipContext(origin, closest, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this))
                         .getType() != HitResult.Type.MISS) continue;
             }
             contacts.add(target.getUUID());
-            if (net.neoforged.neoforge.event.EventHooks.onProjectileImpact(this,
+            if (net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this,
                     new net.minecraft.world.phys.EntityHitResult(raw, origin))) continue;
             // 同tick内の候補全員へ当てず、最初の接触地点から帰還する。無敵時間は帰還条件を変えない。
             if (!returning) setPos(origin);
@@ -271,11 +270,16 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
         super.remove(reason);
     }
 
-    @Override protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        builder.define(TRAIL_COLOR, DEFAULT_TRAIL_COLOR);
-        builder.define(HOVERING, false);
-        builder.define(MODE, Mode.NORMAL.ordinal());
-        builder.define(THROW_YAW, 0f);
+    @Override
+    public net.minecraft.network.protocol.Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getAddEntityPacket() {
+        return net.minecraftforge.network.NetworkHooks.getEntitySpawningPacket(this);
+    }
+
+    @Override protected void defineSynchedData() {
+        entityData.define(TRAIL_COLOR, DEFAULT_TRAIL_COLOR);
+        entityData.define(HOVERING, false);
+        entityData.define(MODE, Mode.NORMAL.ordinal());
+        entityData.define(THROW_YAW, 0f);
     }
     // セッション限定。保存済みEntityが復元されてもowner無しとして即時破棄する。
     @Override protected void readAdditionalSaveData(@NotNull CompoundTag tag) {}

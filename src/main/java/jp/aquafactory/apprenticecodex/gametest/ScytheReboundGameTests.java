@@ -19,9 +19,9 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 import java.util.UUID;
 
@@ -33,19 +33,23 @@ public final class ScytheReboundGameTests {
     static FakePlayer player(GameTestHelper h, float mana) {
         var p = new FakePlayer(h.getLevel(), new GameProfile(UUID.randomUUID(), "rebound_test"));
         p.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
-        // 構造境界バリアから離し、他テストの敵や地形を射程測定へ混ぜない。
+        // 1.20.1 の構造配置が整地しない高さまで、最大 32 ブロックの縦経路を明示的に空ける。
+        for (int y = 20; y <= 55; y++) h.setBlock(new net.minecraft.core.BlockPos(2, y, 2), net.minecraft.world.level.block.Blocks.AIR);
         p.setPos(h.absoluteVec(new Vec3(2.5, 20, 2.5)));
         p.setYRot(0); p.setXRot(-90);
         p.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(10);
-        p.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA).setBaseValue(10000);
+        p.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get()).setBaseValue(10000);
         p.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SPELL_REAPER_SCYTHE.get()));
         MagicData.getPlayerMagicData(p).setMana(mana);
         return p;
     }
 
     static void enchant(GameTestHelper h, ItemStack stack, String id, int level) {
-        stack.enchant(h.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(
-                ResourceKey.create(Registries.ENCHANTMENT, ResourceLocation.fromNamespaceAndPath("malum", id))), level);
+        // 1.20.1 の ItemStack.enchant は同じ ID を追記するため、既存レベルを明示的に置換する。
+        var enchantments = net.minecraft.world.item.enchantment.EnchantmentHelper.getEnchantments(stack);
+        enchantments.put(h.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(
+                ResourceKey.create(Registries.ENCHANTMENT, ResourceLocation.fromNamespaceAndPath("malum", id))).value(), level);
+        net.minecraft.world.item.enchantment.EnchantmentHelper.setEnchantments(enchantments, stack);
     }
 
     static void use(GameTestHelper h, FakePlayer p) {
@@ -166,15 +170,15 @@ public final class ScytheReboundGameTests {
         if (!MalumSpellReaperScytheBridge.isAvailable()) { h.succeed(); return; }
         var p = player(h, 100);
         enchant(h, p.getMainHandItem(), "rebound", 1);
-        java.util.function.Consumer<net.neoforged.neoforge.event.entity.EntityJoinLevelEvent> listener = event -> {
+        java.util.function.Consumer<net.minecraftforge.event.entity.EntityJoinLevelEvent> listener = event -> {
             if (event.getEntity() instanceof ScytheThrowEntity scythe && scythe.getOwner() == p) event.setCanceled(true);
         };
-        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(listener);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(listener);
         try {
             use(h, p);
             h.assertTrue(ScytheThrowManager.active(p) == null && !ScytheThrowManager.isThrown(p.getMainHandItem())
                     && MagicData.getPlayerMagicData(p).getMana() == 100, "Rejected spawn must not spend mana or leave throw state");
-        } finally { net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(listener); }
+        } finally { net.minecraftforge.common.MinecraftForge.EVENT_BUS.unregister(listener); }
         h.succeed();
     }
 }

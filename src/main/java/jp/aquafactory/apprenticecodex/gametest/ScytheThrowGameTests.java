@@ -22,15 +22,14 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import java.util.UUID;
 
 @GameTestHolder(ApprenticeCodex.MODID)
@@ -57,11 +56,10 @@ public final class ScytheThrowGameTests {
         p.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         h.assertTrue(thrown.getTrailColor() == expected, "Thrown color must retain the launch spell after the original item changes");
         var packet = new jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket(Vec3.ZERO, new Vec3(3, 4, 5), thrown.getTrailColor());
-        var buffer = new net.minecraft.network.RegistryFriendlyByteBuf(io.netty.buffer.Unpooled.buffer(), h.getLevel().registryAccess());
+        var buffer = new net.minecraft.network.FriendlyByteBuf(io.netty.buffer.Unpooled.buffer());
         try {
-            var codec = jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket.STREAM_CODEC;
-            codec.encode(buffer, packet);
-            h.assertTrue(codec.decode(buffer).equals(packet), "Recall packet must preserve endpoints and school color");
+            jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket.encode(packet, buffer);
+            h.assertTrue(jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket.decode(buffer).equals(packet), "Recall packet must preserve endpoints and school color");
         } finally { buffer.release(); }
         h.succeed();
     }
@@ -72,7 +70,7 @@ public final class ScytheThrowGameTests {
         p.setPos(h.absoluteVec(new Vec3(2.5, 2, 2.5)));
         p.setYRot(0); p.setXRot(0);
         p.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SPELL_REAPER_SCYTHE.get()));
-        p.getAttribute(AttributeRegistry.MAX_MANA).setBaseValue(10000);
+        p.getAttribute(AttributeRegistry.MAX_MANA.get()).setBaseValue(10000);
         p.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(10);
         MagicData.getPlayerMagicData(p).setMana(mana);
         return p;
@@ -85,12 +83,13 @@ public final class ScytheThrowGameTests {
     @GameTest(template = TEMPLATE, timeoutTicks = 100)
     public static void longChargeClampsRangeAndDistanceBoundaryRecalls(GameTestHelper h) {
         var p = player(h, 200);
-        // テンプレートの境界バリアより上で射程を検証する。
+        // 1.20.1 の構造配置は上方 20 ブロックまでしか整地しないため、射程測定用の縦経路を空ける。
+        for (int y = 12; y <= 25; y++) h.setBlock(new BlockPos(2, y, 2), Blocks.AIR);
         p.setPos(h.absoluteVec(new Vec3(2.5, 12, 2.5)));
         p.setXRot(-90);
-        var origin = p.getEyePosition();
         begin(h, p);
         h.runAfterDelay(41, () -> {
+            var origin = p.getEyePosition();
             ScytheThrowManager.release(h.getLevel(), p, p.getUseItem()); p.stopUsingItem();
             var entity = ScytheThrowManager.active(p);
             h.assertTrue(entity != null, "Long charge must launch");
@@ -185,8 +184,8 @@ public final class ScytheThrowGameTests {
             h.assertTrue(MagicData.getPlayerMagicData(p).getMana() == 0, "Throw must spend exactly 100 mana");
             h.assertTrue(ScytheThrowManager.isThrown(stack), "Thrown stack must be marked");
             final double[] speed = {0};
-            stack.forEachModifier(EquipmentSlot.MAINHAND, (a, m) -> {
-                if (a.equals(Attributes.ATTACK_SPEED)) speed[0] += m.amount();
+            stack.getAttributeModifiers(EquipmentSlot.MAINHAND).forEach((a, m) -> {
+                if (a.equals(Attributes.ATTACK_SPEED)) speed[0] += m.getAmount();
             });
             h.assertTrue(speed[0] == 0, "Thrown weapon must not retain its speed penalty");
             ScytheThrowManager.release(h.getLevel(), p, stack);
@@ -249,8 +248,8 @@ public final class ScytheThrowGameTests {
         target.getAttribute(Attributes.MAX_HEALTH).setBaseValue(200);
         target.getAttribute(Attributes.ARMOR).setBaseValue(0);
         target.setHealth(200);
-        p.getAttribute(AttributeRegistry.SPELL_POWER).setBaseValue(50);
-        target.getAttribute(AttributeRegistry.SPELL_RESIST).setBaseValue(50);
+        p.getAttribute(AttributeRegistry.SPELL_POWER.get()).setBaseValue(50);
+        target.getAttribute(AttributeRegistry.SPELL_RESIST.get()).setBaseValue(50);
         var source = h.getLevel().damageSources().thrown(new net.minecraft.world.entity.projectile.Snowball(h.getLevel(), p), p);
         CombatTools.applyUnscaledDamage(target, 10, source, CombatTools.KnockbackTypes.NO_KNOCKBACK);
         h.assertTrue(Math.abs(target.getHealth() - 190) < 0.01, "Unscaled damage must ignore Iron's power and resistance");
@@ -294,8 +293,8 @@ public final class ScytheThrowGameTests {
         var p = player(h, 100);
         var stack = p.getMainHandItem();
         var registry = h.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-        stack.enchant(registry.getOrThrow(Enchantments.SHARPNESS), 2);
-        stack.enchant(registry.getOrThrow(Enchantments.FIRE_ASPECT), 2);
+        stack.enchant(Enchantments.SHARPNESS, 2);
+        stack.enchant(Enchantments.FIRE_ASPECT, 2);
         var target = h.spawn(EntityType.HUSK, new BlockPos(2, 2, 4));
         target.setNoAi(true);
         target.getAttribute(Attributes.ARMOR).setBaseValue(0);
@@ -314,11 +313,11 @@ public final class ScytheThrowGameTests {
         if (MalumSpellReaperScytheBridge.isAvailable()) {
             var registry = h.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             p.getMainHandItem().enchant(registry.getOrThrow(ResourceKey.create(Registries.ENCHANTMENT,
-                    ResourceLocation.fromNamespaceAndPath("malum", "haunted"))), 2);
+                    ResourceLocation.fromNamespaceAndPath("malum", "haunted"))).value(), 2);
             // FakePlayer.tick()は空なので、実スタックから得た装備補正を明示的に適用する。
-            p.getMainHandItem().forEachModifier(EquipmentSlot.MAINHAND, (attribute, modifier) -> {
+            p.getMainHandItem().getAttributeModifiers(EquipmentSlot.MAINHAND).forEach((attribute, modifier) -> {
                 var instance = p.getAttribute(attribute);
-                if (instance != null) instance.addOrUpdateTransientModifier(modifier);
+                if (instance != null) { instance.removeModifier(modifier.getId()); instance.addTransientModifier(modifier); }
             });
             h.assertTrue(MalumSpellReaperScytheBridge.throwMagicDamage(p) >= 2, "Haunted must contribute to the captured magic attribute");
         } else {

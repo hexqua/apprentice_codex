@@ -5,6 +5,12 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
+import jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScythe;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import net.minecraftforge.common.ToolActions;
+import java.util.Objects;
+import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.*;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 
 import java.util.ArrayList;
@@ -352,6 +358,16 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         });
     }
 
+    private static java.util.Set<ResourceLocation> expectedSpellReaperScytheEnchantments(ItemStack stack) {
+        var result = new LinkedHashSet<>(collectAllowedEnchantments(e -> e.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD))));
+        result.add(ForgeRegistries.ENCHANTMENTS.getKey(EnchantmentRegistry.WISDOM.get()));
+        result.add(ForgeRegistries.ENCHANTMENTS.getKey(EnchantmentRegistry.TRANSCENDENCE.get()));
+        if (ModList.get().isLoaded(MALUM_MOD_ID)) {
+            for (var name : List.of("spirit_plunder", "haunted", "animated", "ascension", "rebound")) result.add(ResourceLocation.fromNamespaceAndPath("malum", name));
+        }
+        return result;
+    }
+
     static void spellReaperScytheKeepsExpectedStatsTagsEnchantmentsAndImbueContract(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (SpellReaperScythe) ItemRegistry.SPELL_REAPER_SCYTHE.get();
@@ -363,12 +379,12 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     "Spell Reaper Scythe enchantability should be " + SpellReaperScythe.ENCHANTMENT_VALUE
                             + " but got " + item.getEnchantmentValue(stack));
 
-            var modifiers = toModifierMultimap(stack.getAttributeModifiers());
+            var modifiers = stack.getAttributeModifiers(EquipmentSlot.MAINHAND);
             assertModifierWithId(
                     helper,
                     modifiers.get(Attributes.ATTACK_DAMAGE),
                     VANILLA_BASE_ATTACK_DAMAGE_MODIFIER_ID,
-                    AttributeModifier.Operation.ADD_VALUE,
+                    AttributeModifier.Operation.ADDITION,
                     SpellReaperScythe.DISPLAY_ATTACK_DAMAGE - 1.0D,
                     "Spell Reaper Scythe attack damage modifier should display as 10 damage"
             );
@@ -376,7 +392,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     helper,
                     modifiers.get(Attributes.ATTACK_SPEED),
                     VANILLA_BASE_ATTACK_SPEED_MODIFIER_ID,
-                    AttributeModifier.Operation.ADD_VALUE,
+                    AttributeModifier.Operation.ADDITION,
                     SpellReaperScythe.DISPLAY_ATTACK_SPEED - 4.0D,
                     "Spell Reaper Scythe attack speed modifier should display as 1.0 speed"
             );
@@ -406,19 +422,17 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
 
             helper.assertTrue(stack.is(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE),
                     "Spell Reaper Scythe is missing apprenticecodex:spellcaster_workbench_extractable");
-            helper.assertTrue(stack.is(MALUM_MAGIC_CAPABLE_WEAPON),
-                    "Spell Reaper Scythe is missing malum:magic_capable_weapon");
-            helper.assertTrue(stack.is(MALUM_SOUL_SHATTER_CAPABLE_WEAPON),
-                    "Spell Reaper Scythe is missing malum:soul_shatter_capable_weapon");
-            helper.assertTrue(stack.is(MALUM_SCYTHE),
-                    "Spell Reaper Scythe is missing malum:scythe");
-            helper.assertTrue(item.canPerformAction(stack, ItemAbilities.SWORD_SWEEP)
+            helper.assertTrue(stack.is(MALUM_SOUL_HUNTER_WEAPON),
+                    "Spell Reaper Scythe is missing malum:soul_hunter_weapon");
+            helper.assertTrue(item.isValidRepairItem(stack, new ItemStack(Items.NETHERITE_INGOT)),
+                    "Spell Reaper Scythe must accept netherite repairs");
+            helper.assertTrue(item.canPerformAction(stack, ToolActions.SWORD_SWEEP)
                             != ModList.get().isLoaded(MALUM_MOD_ID),
                     "Spell Reaper Scythe should expose vanilla sweep only while Malum is absent");
             assertExactEnchantmentSurfaces(
                     helper,
                     stack,
-                    expectedSpellReaperScytheEnchantments(helper.getLevel().registryAccess(), stack),
+                    expectedSpellReaperScytheEnchantments(stack),
                     "Spell Reaper Scythe"
             );
         });

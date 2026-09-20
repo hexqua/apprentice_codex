@@ -7,23 +7,19 @@ import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.event.ItemAttributeModifierEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.TickEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,8 +34,8 @@ public final class ScytheThrowManager {
     private ScytheThrowManager() {}
 
     public static UUID token(ItemStack stack) {
-        var data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-        return data.hasUUID(TOKEN) ? data.getUUID(TOKEN) : null;
+        var data = stack.getTag();
+        return data != null && data.hasUUID(TOKEN) ? data.getUUID(TOKEN) : null;
     }
 
     public static boolean isThrown(ItemStack stack) {
@@ -47,15 +43,14 @@ public final class ScytheThrowManager {
     }
 
     static void mark(ItemStack stack, UUID token) {
-        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putUUID(TOKEN, token));
+        stack.getOrCreateTag().putUUID(TOKEN, token);
     }
 
     static void clear(ItemStack stack) {
         if (token(stack) == null) return;
-        var data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        var data = stack.getOrCreateTag();
         data.remove(TOKEN);
-        if (data.isEmpty()) stack.remove(DataComponents.CUSTOM_DATA);
-        else stack.set(DataComponents.CUSTOM_DATA, CustomData.of(data));
+        if (data.isEmpty()) stack.setTag(null);
     }
 
     public static ScytheThrowEntity active(Player player) {
@@ -112,7 +107,7 @@ public final class ScytheThrowManager {
     public static void launchNormal(Player player, ItemStack stack, double distance) {
         if (!Double.isFinite(distance)) return;
         launch(player.level(), player, stack, player.getInventory().selected,
-                Math.clamp(distance, 2.5D, 10.0D), ScytheThrowEntity.Mode.NORMAL,
+                net.minecraft.util.Mth.clamp(distance, 2.5D, 10.0D), ScytheThrowEntity.Mode.NORMAL,
                 ApprenticeCodexServerConfig.spellReaperScytheConfig().throwManaCost());
     }
 
@@ -157,8 +152,8 @@ public final class ScytheThrowManager {
         if (cost == 0 || player.getAbilities().instabuild) return;
         var data = MagicData.getPlayerMagicData(player);
         data.setMana(Math.max(0, data.getMana() - cost));
-        if (player instanceof ServerPlayer server && !(server instanceof net.neoforged.neoforge.common.util.FakePlayer)) {
-            PacketDistributor.sendToPlayer(server, new SyncManaPacket(data));
+        if (player instanceof ServerPlayer server && !(server instanceof net.minecraftforge.common.util.FakePlayer)) {
+            io.redspace.ironsspellbooks.setup.PacketDistributor.sendToPlayer(server, new SyncManaPacket(data));
         }
     }
 
@@ -191,13 +186,18 @@ public final class ScytheThrowManager {
     @SubscribeEvent
     public static void attributes(ItemAttributeModifierEvent event) {
         if (!isThrown(event.getItemStack())) return;
-        event.removeModifier(Attributes.ATTACK_DAMAGE, Item.BASE_ATTACK_DAMAGE_ID);
-        event.removeModifier(Attributes.ATTACK_SPEED, Item.BASE_ATTACK_SPEED_ID);
+        event.getModifiers().get(Attributes.ATTACK_DAMAGE).stream()
+                .filter(modifier -> modifier.getId().equals(SpellReaperScythe.BASE_DAMAGE_ID)).toList()
+                .forEach(modifier -> event.removeModifier(Attributes.ATTACK_DAMAGE, modifier));
+        event.getModifiers().get(Attributes.ATTACK_SPEED).stream()
+                .filter(modifier -> modifier.getId().equals(SpellReaperScythe.BASE_SPEED_ID)).toList()
+                .forEach(modifier -> event.removeModifier(Attributes.ATTACK_SPEED, modifier));
     }
 
     @SubscribeEvent
-    public static void tick(PlayerTickEvent.Post event) {
-        var player = event.getEntity();
+    public static void tick(TickEvent.PlayerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
+        var player = event.player;
         if (player.level().isClientSide) return;
         var entity = active(player);
         if (entity != null) entity.checkOwner();
@@ -213,7 +213,7 @@ public final class ScytheThrowManager {
     @SubscribeEvent public static void logout(PlayerEvent.PlayerLoggedOutEvent event) { abort(event.getEntity()); }
     @SubscribeEvent public static void dimension(PlayerEvent.PlayerChangedDimensionEvent event) { abort(event.getEntity()); }
     @SubscribeEvent public static void clone(PlayerEvent.Clone event) { abort(event.getOriginal()); }
-    @SubscribeEvent public static void stopped(net.neoforged.neoforge.event.server.ServerStoppedEvent event) {
+    @SubscribeEvent public static void stopped(net.minecraftforge.event.server.ServerStoppedEvent event) {
         ACTIVE.clear();
         CHARGES.clear();
     }

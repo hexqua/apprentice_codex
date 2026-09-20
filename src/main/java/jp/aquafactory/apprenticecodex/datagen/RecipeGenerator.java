@@ -601,7 +601,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('N', ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get())
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
                 .unlockedBy(getHasName(ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get()), has(ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get()))
-                .save(recipeOutput);
+                .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.SPELL_SIDE_EDGE.get())
                 .pattern(" M")

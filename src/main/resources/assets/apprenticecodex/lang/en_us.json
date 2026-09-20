@@ -309,7 +309,6 @@
   "item.apprenticecodex.spell_reaper_scythe.epicfight.throw.desc_2": "Throwing costs %1$s mana. Hovers at the destination for %2$s mana per second until you switch items or use the skill again.",
   "item.apprenticecodex.spell_reaper_scythe.epicfight.rebound.desc_1": "Use the innate skill to throw instantly.",
   "item.apprenticecodex.spell_reaper_scythe.epicfight.rebound.desc_2": "Throwing costs %1$s mana. Returns immediately upon reaching its destination without hovering.",
-  "item.apprenticecodex.spell_reaper_scythe.epicfight.rebound.maelstrom_desc_2": "Throwing costs %1$s mana. Returns without hovering, surrounded by a maelstrom.",
   "item.apprenticecodex.spell_reaper_scythe.epicfight.ascension.desc_1": "Use the innate skill to activate %s.",
   "item.apprenticecodex.spell_reaper_scythe.epicfight.ascension.desc_2": "Costs %s mana to activate, with no cooldown.",
   "skill.apprenticecodex.spell_reaping": "Spell Reaping",

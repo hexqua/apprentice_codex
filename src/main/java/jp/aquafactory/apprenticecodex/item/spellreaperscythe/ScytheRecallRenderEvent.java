@@ -4,10 +4,10 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.client.Minecraft;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +26,7 @@ public final class ScytheRecallRenderEvent {
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
         var mc = Minecraft.getInstance();
         if (mc.level != world || world == null) { TRAILS.clear(); world = mc.level; return; }
-        float partial = event.getPartialTick().getGameTimeDeltaPartialTick(false);
+        float partial = event.getPartialTick();
         TRAILS.removeIf(t -> world.getGameTime() - t.time >= 4);
         if (TRAILS.isEmpty()) return;
         var pose = event.getPoseStack();
