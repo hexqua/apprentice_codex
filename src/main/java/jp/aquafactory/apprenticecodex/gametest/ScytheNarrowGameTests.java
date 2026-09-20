@@ -159,9 +159,12 @@ public final class ScytheNarrowGameTests {
         var target = h.spawn(EntityType.HUSK, new BlockPos(2, 20, 5));
         target.setNoAi(true); target.setNoGravity(true);
         target.getAttribute(Attributes.ARMOR).setBaseValue(0);
+        int[] impacts = {0};
+        boolean[] cancelImpact = {true};
         java.util.function.Consumer<net.minecraftforge.event.entity.ProjectileImpactEvent> listener = event -> {
             if (event.getProjectile() instanceof ScytheThrowEntity scythe && scythe.getOwner() == p) {
-                event.setImpactResult(net.minecraftforge.event.entity.ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
+                impacts[0]++;
+                if (cancelImpact[0]) event.setImpactResult(net.minecraftforge.event.entity.ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
             }
         };
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(listener);
@@ -169,7 +172,9 @@ public final class ScytheNarrowGameTests {
             ScytheReboundGameTests.use(h, p);
             var entity = ScytheThrowManager.active(p);
             try {
-                entity.tick();
+                // 地形で狙い先が短くなると飛翔時間も変わるため、1tick固定ではなく接触を観測する。
+                for (int tick = 0; tick < 20 && impacts[0] == 0 && !entity.isRemoved(); tick++) entity.tick();
+                h.assertTrue(impacts[0] == 1, "The canceled-impact fixture must reach the target");
                 h.assertFalse(entity.isRemoved(), "Canceled impact must not trigger Narrow recall");
                 h.assertTrue(target.getHealth() == target.getMaxHealth(), "Canceled impact must not deal damage");
             } finally { entity.discard(); }
@@ -178,11 +183,26 @@ public final class ScytheNarrowGameTests {
         ((jp.aquafactory.apprenticecodex.mixin.LivingEntityDamageMemoryAccessor) target).apprenticecodex$setLastHurt(100);
         ScytheReboundGameTests.use(h, p);
         var entity = ScytheThrowManager.active(p);
+        impacts[0] = 0;
+        cancelImpact[0] = false;
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(listener);
         try {
-            entity.tick();
+            for (int tick = 0; tick < 20 && !entity.isRemoved(); tick++) entity.tick();
+            h.assertTrue(impacts[0] == 1, "Invulnerable recall must follow an actual entity contact");
             h.assertTrue(entity.isRemoved() && target.getHealth() == target.getMaxHealth(),
-                    "Valid but invulnerable contact must recall without bypassing damage immunity");
-        } finally { entity.discard(); }
+                    "Valid but invulnerable contact must recall without bypassing damage immunity"
+                            + ": removed=" + entity.isRemoved() + ", health=" + target.getHealth()
+                            + ", projectile=" + entity.position() + ", target=" + target.position()
+                            + ", registered=" + (h.getLevel().getEntity(target.getUUID()) == target)
+                            + ", block=" + h.getLevel().getBlockState(target.blockPosition())
+                            + ", obstruction=" + h.getLevel().clip(new net.minecraft.world.level.ClipContext(
+                            p.getEyePosition(), target.getBoundingBox().getCenter(),
+                            net.minecraft.world.level.ClipContext.Block.COLLIDER,
+                            net.minecraft.world.level.ClipContext.Fluid.NONE, p)).getType());
+        } finally {
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.unregister(listener);
+            entity.discard();
+        }
         h.succeed();
     }
 }
