@@ -444,6 +444,8 @@ public final class ItemRegistry {
             ITEMS.register("mana_force_blade", ManaForceBlade::new);
     public static final RegistryObject<Item> MANA_FORCE_BLADE_SHEATH =
             ITEMS.register("mana_force_blade_sheath", ManaForceBladeSheathItem::new);
+    public static final RegistryObject<Item> SPELL_REAPER_SCYTHE =
+            ITEMS.register("spell_reaper_scythe", jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScythe::new);
     public static final RegistryObject<Item> SPELL_SIDE_EDGE =
             ITEMS.register("spell_side_edge", SpellSideEdge::new);
     public static final RegistryObject<Item> SPELL_SIDE_EDGE_MIRROR =

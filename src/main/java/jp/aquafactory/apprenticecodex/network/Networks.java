@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SupportedShieldPassagePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearSlidePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearJumpPacket;
@@ -35,6 +36,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ManaManeuverGearFallEffectP
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncSpellReaperScytheConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowOverheatPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEquipmentSpellTimingConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncAutocastAmuletNotificationPacket;
@@ -99,7 +101,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "96";
+    private static final String PROTOCOL_VERSION = "97";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -113,6 +115,11 @@ public final class Networks {
     }
 
     public static void register() {
+        CHANNEL.registerMessage(nextPacketId++, ScytheRecallEffectPacket.class, ScytheRecallEffectPacket::encode,
+                ScytheRecallEffectPacket::decode, ScytheRecallEffectPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(nextPacketId++, SyncSpellReaperScytheConfigPacket.class, SyncSpellReaperScytheConfigPacket::encode,
+                SyncSpellReaperScytheConfigPacket::decode, SyncSpellReaperScytheConfigPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+
         CHANNEL.registerMessage(nextPacketId++, SupportedShieldPassagePacket.class,
                 SupportedShieldPassagePacket::encode, SupportedShieldPassagePacket::decode, SupportedShieldPassagePacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));

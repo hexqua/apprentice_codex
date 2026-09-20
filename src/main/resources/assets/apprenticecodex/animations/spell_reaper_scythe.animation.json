@@ -1,0 +1,50 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"idle": {
+			"loop": true
+		},
+		"throw_normal": {
+			"loop": true,
+			"animation_length": 0.4,
+			"bones": {
+				"root": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, 0, -90]
+						},
+						"0.4": {
+							"vector": [360, 0, -90]
+						}
+					}
+				},
+				"all": {
+					"position": {
+						"vector": [0, -15, 0]
+					}
+				}
+			}
+		},
+		"throw_vertical": {
+			"loop": true,
+			"animation_length": 0.4,
+			"bones": {
+				"root": {
+					"rotation": {
+						"0.0": {
+							"vector": [0, 0, 0]
+						},
+						"0.4": {
+							"vector": [360, 0, 0]
+						}
+					}
+				},
+				"all": {
+					"position": {
+						"vector": [0, -15, 0]
+					}
+				}
+			}
+		}
+	}
+}

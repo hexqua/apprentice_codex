@@ -1,0 +1,114 @@
+package jp.aquafactory.apprenticecodex.config.item;
+
+import net.minecraftforge.common.ForgeConfigSpec;
+
+public final class SpellReaperScytheServerConfig {
+    private static final int MAX_COOLDOWN_TICKS = 200;
+
+    private final ForgeConfigSpec.IntValue ascensionBaseManaCost;
+    private final ForgeConfigSpec.IntValue ascensionManaCostReductionPerLevel;
+    private final ForgeConfigSpec.IntValue ascensionCooldownTicks;
+    private final ForgeConfigSpec.IntValue throwManaCost;
+    private final ForgeConfigSpec.IntValue throwManaPerTick;
+    private final ForgeConfigSpec.IntValue reboundBaseManaCost;
+    private final ForgeConfigSpec.IntValue reboundManaCostReductionPerLevel;
+    private Values override;
+
+    private SpellReaperScytheServerConfig(
+            ForgeConfigSpec.IntValue ascensionBaseManaCost,
+            ForgeConfigSpec.IntValue ascensionManaCostReductionPerLevel,
+            ForgeConfigSpec.IntValue ascensionCooldownTicks,
+            ForgeConfigSpec.IntValue throwManaCost,
+            ForgeConfigSpec.IntValue throwManaPerTick,
+            ForgeConfigSpec.IntValue reboundBaseManaCost,
+            ForgeConfigSpec.IntValue reboundManaCostReductionPerLevel
+    ) {
+        this.ascensionBaseManaCost = ascensionBaseManaCost;
+        this.ascensionManaCostReductionPerLevel = ascensionManaCostReductionPerLevel;
+        this.ascensionCooldownTicks = ascensionCooldownTicks;
+        this.throwManaCost = throwManaCost;
+        this.throwManaPerTick = throwManaPerTick;
+        this.reboundBaseManaCost = reboundBaseManaCost;
+        this.reboundManaCostReductionPerLevel = reboundManaCostReductionPerLevel;
+    }
+
+    public static SpellReaperScytheServerConfig define(ForgeConfigSpec.Builder builder) {
+        builder.push("SpellReaperScythe");
+        var ascensionBaseManaCost = builder
+                .comment("Base mana consumed when Spell Reaper Scythe activates Malum Ascension.")
+                .defineInRange("ascensionBaseManaCost", 200, 0, Integer.MAX_VALUE);
+        var ascensionManaCostReductionPerLevel = builder
+                .comment("Mana cost reduction for each Malum Ascension level above level 1.")
+                .defineInRange("ascensionManaCostReductionPerLevel", 40, 0, Integer.MAX_VALUE);
+        var ascensionCooldownTicks = builder
+                .comment("Fixed cooldown after Spell Reaper Scythe activates Malum Ascension. 20 ticks = 1 second.")
+                .defineInRange("ascensionCooldownTicks", 10, 0, MAX_COOLDOWN_TICKS);
+        var throwManaCost = builder.comment("Mana consumed once when throwing Spell Reaper Scythe.")
+                .defineInRange("throwManaCost", 100, 0, Integer.MAX_VALUE);
+        var throwManaPerTick = builder.comment("Mana consumed each tick while the thrown scythe hovers. 20 ticks = 1 second.")
+                .defineInRange("throwManaPerTick", 3, 0, Integer.MAX_VALUE);
+        var reboundBaseManaCost = builder.comment("Mana consumed when Spell Reaper Scythe is thrown with Rebound I.")
+                .defineInRange("reboundBaseManaCost", 100, 0, Integer.MAX_VALUE);
+        var reboundManaCostReductionPerLevel = builder.comment("Mana cost reduction for each Rebound level above level 1. The final cost cannot be negative.")
+                .defineInRange("reboundManaCostReductionPerLevel", 20, 0, Integer.MAX_VALUE);
+        builder.pop();
+
+        return new SpellReaperScytheServerConfig(
+                ascensionBaseManaCost,
+                ascensionManaCostReductionPerLevel,
+                ascensionCooldownTicks, throwManaCost, throwManaPerTick, reboundBaseManaCost, reboundManaCostReductionPerLevel
+        );
+    }
+
+    public Values values() {
+        if (override != null) {
+            return override;
+        }
+        return new Values(
+                ascensionBaseManaCost.get(),
+                ascensionManaCostReductionPerLevel.get(),
+                ascensionCooldownTicks.get(), throwManaCost.get(), throwManaPerTick.get(),
+                reboundBaseManaCost.get(), reboundManaCostReductionPerLevel.get()
+        );
+    }
+
+    public void setForGameTest(Values values) {
+        override = values;
+    }
+
+    public record Values(int ascensionBaseManaCost, int ascensionManaCostReductionPerLevel, int ascensionCooldownTicks,
+                         int throwManaCost, int throwManaPerTick,
+                         int reboundBaseManaCost, int reboundManaCostReductionPerLevel) {
+        public static final Values DEFAULT = new Values(200, 40, 10, 100, 3, 100, 20);
+        public Values(int base, int reduction, int cooldown) {
+            this(base, reduction, cooldown, 100, 3);
+        }
+
+        public Values(int base, int reduction, int cooldown, int throwCost, int upkeep) {
+            this(base, reduction, cooldown, throwCost, upkeep, 100, 20);
+        }
+
+        public Values {
+            throwManaCost = Math.max(0, throwManaCost);
+            throwManaPerTick = Math.max(0, throwManaPerTick);
+            reboundBaseManaCost = Math.max(0, reboundBaseManaCost);
+            reboundManaCostReductionPerLevel = Math.max(0, reboundManaCostReductionPerLevel);
+            ascensionBaseManaCost = Math.max(0, ascensionBaseManaCost);
+            ascensionManaCostReductionPerLevel = Math.max(0, ascensionManaCostReductionPerLevel);
+            ascensionCooldownTicks = Math.max(0, Math.min(MAX_COOLDOWN_TICKS, ascensionCooldownTicks));
+        }
+
+        public int ascensionManaCost(int enchantmentLevel) {
+            var reductionLevels = Math.max(0L, (long) enchantmentLevel - 1L);
+            var reducedCost = (long) ascensionBaseManaCost
+                    - (long) ascensionManaCostReductionPerLevel * reductionLevels;
+            return (int) Math.max(0L, reducedCost);
+        }
+
+        public int reboundManaCost(int enchantmentLevel) {
+            var reductionLevels = Math.max(0L, (long) enchantmentLevel - 1L);
+            var reducedCost = (long) reboundBaseManaCost - (long) reboundManaCostReductionPerLevel * reductionLevels;
+            return (int) Math.max(0L, reducedCost);
+        }
+    }
+}

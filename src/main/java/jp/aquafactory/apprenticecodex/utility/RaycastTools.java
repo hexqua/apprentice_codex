@@ -59,6 +59,37 @@ public final class RaycastTools {
     public record OrientedBoxHit(Entity entity, boolean blockOccluded) {
     }
 
+    /** 固定ヨーの箱を平行移動したときの最初の接触時刻（0～1）。上下移動でも箱は傾けない。 */
+    public static OptionalDouble firstMovingHorizontalBoxContact(AABB target, HorizontalOrientedBox box, Vec3 movement) {
+        var right = horizontalRight(box.forward());
+        var halfDepth = box.depth() * 0.5;
+        var center = box.faceCenter().add(box.forward().scale(halfDepth));
+        var delta = target.getCenter().subtract(center);
+        double enter = 0, exit = 1;
+        // 各SAT軸の重なる時間区間を交差する。端点だけの検査では高速投擲が敵を飛び越えてしまう。
+        for (var axis : List.of(new Vec3(1, 0, 0), new Vec3(0, 1, 0), new Vec3(0, 0, 1), right, box.forward())) {
+            double radius = Math.abs(axis.dot(right)) * box.halfWidth()
+                    + Math.abs(axis.y) * box.halfHeight() + Math.abs(axis.dot(box.forward())) * halfDepth
+                    + (Math.abs(axis.x) * target.getXsize() + Math.abs(axis.y) * target.getYsize()
+                    + Math.abs(axis.z) * target.getZsize()) * 0.5 + ORIENTED_BOX_EPSILON;
+            double offset = delta.dot(axis), speed = movement.dot(axis);
+            if (Math.abs(speed) < ORIENTED_BOX_EPSILON) {
+                if (Math.abs(offset) > radius) return OptionalDouble.empty();
+            } else {
+                double a = (offset - radius) / speed, b = (offset + radius) / speed;
+                enter = Math.max(enter, Math.min(a, b));
+                exit = Math.min(exit, Math.max(a, b));
+                if (enter > exit) return OptionalDouble.empty();
+            }
+        }
+        return OptionalDouble.of(enter);
+    }
+
+    public static AABB movingHorizontalBoxBounds(HorizontalOrientedBox box, Vec3 movement) {
+        var start = createHorizontalOrientedBoxBounds(box);
+        return start.minmax(start.move(movement)).inflate(ORIENTED_BOX_EPSILON);
+    }
+
     private static final class OrientedBoxHitAccumulator {
         private final Entity entity;
         private boolean blockOccluded = true;

@@ -63,6 +63,8 @@ public class ApprenticeCodex
         CreativeTabRegistry.register(bus);
         CreateCompat.register(bus);
         EpicFightCompat.register(bus);
+        jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge.register(bus);
+        jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScytheConfigSyncEvents.register(bus);
         CodexSpellStateTypeRegister.register();
         IronSwingcastStaffConfigSyncEvents.register(bus);
         HighTierSwingcastStaffConfigSyncEvents.register(bus);

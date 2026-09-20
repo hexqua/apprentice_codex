@@ -1,0 +1,10 @@
+{
+  "type": "apprenticecodex:spell_reaper_scythe",
+  "attributes": {
+    "common": {
+      "armor_negation": 15.0,
+      "impact": 4.0,
+      "max_strikes": 8
+    }
+  }
+}
