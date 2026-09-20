@@ -18,7 +18,7 @@
     "M M"
   ],
   "result": {
-    "count": 1,
-    "id": "apprenticecodex:mana_maneuver_gear"
-  }
+    "item": "apprenticecodex:mana_maneuver_gear"
+  },
+  "show_notification": true
 }

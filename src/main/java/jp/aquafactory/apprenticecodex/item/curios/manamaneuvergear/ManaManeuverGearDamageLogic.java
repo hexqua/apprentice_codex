@@ -5,18 +5,20 @@ import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageTypes;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import io.redspace.ironsspellbooks.setup.PacketDistributor;
 
 public final class ManaManeuverGearDamageLogic {
+    private static final java.util.Set<java.util.UUID> RESIDUAL_DAMAGE_PLAYERS = new java.util.HashSet<>();
     private static final float EPSILON = 1.0e-4F;
 
     private ManaManeuverGearDamageLogic() {
     }
 
-    public static void reduceFallDamage(LivingIncomingDamageEvent event, ServerPlayer player) {
-        if (event.isCanceled()
+    public static void reduceFallDamage(LivingAttackEvent event, ServerPlayer player) {
+        if (RESIDUAL_DAMAGE_PLAYERS.contains(player.getUUID())
+                || event.isCanceled()
                 || event.getAmount() <= 0.0F
                 || !event.getSource().is(DamageTypes.FALL)
                 || !ManaManeuverGearManager.isEquipped(player)) {
@@ -51,7 +53,14 @@ public final class ManaManeuverGearDamageLogic {
         if (remainingDamage <= EPSILON) {
             event.setCanceled(true);
         } else {
-            event.setAmount(remainingDamage);
+            // ForgeのLivingAttackEventは量を変更できないため、再入時の二重消費を防いで残ダメージを通常経路へ戻す。
+            event.setCanceled(true);
+            RESIDUAL_DAMAGE_PLAYERS.add(player.getUUID());
+            try {
+                player.hurt(event.getSource(), remainingDamage);
+            } finally {
+                RESIDUAL_DAMAGE_PLAYERS.remove(player.getUUID());
+            }
         }
     }
 

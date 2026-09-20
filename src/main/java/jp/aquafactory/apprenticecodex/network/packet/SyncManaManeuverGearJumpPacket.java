@@ -1,27 +1,13 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.curios.manamaneuvergear.ManaManeuverGearMovement;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.network.NetworkEvent;
+import java.util.function.Supplier;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.jetbrains.annotations.NotNull;
 
-public record SyncManaManeuverGearJumpPacket(Vec3 impulse) implements CustomPacketPayload {
-    public static final Type<SyncManaManeuverGearJumpPacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_mana_maneuver_gear_jump")
-    );
-    public static final StreamCodec<RegistryFriendlyByteBuf, SyncManaManeuverGearJumpPacket> STREAM_CODEC =
-            StreamCodec.of((buffer, packet) -> encode(packet, buffer), SyncManaManeuverGearJumpPacket::decode);
+public record SyncManaManeuverGearJumpPacket(Vec3 impulse) {
 
-    @Override
-    public @NotNull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
 
     public static void encode(SyncManaManeuverGearJumpPacket packet, FriendlyByteBuf buffer) {
         buffer.writeDouble(packet.impulse.x);
@@ -37,7 +23,19 @@ public record SyncManaManeuverGearJumpPacket(Vec3 impulse) implements CustomPack
         ));
     }
 
-    public static void handle(SyncManaManeuverGearJumpPacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ManaManeuverGearMovement.applyWallJump(context.player(), packet.impulse));
+    public static void handle(SyncManaManeuverGearJumpPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
+        var context = contextSupplier.get();
+        context.enqueueWork(() -> net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(
+                net.minecraftforge.api.distmarker.Dist.CLIENT, () -> () -> ClientHandler.handle(packet)));
+        context.setPacketHandled(true);
+    }
+    @net.minecraftforge.api.distmarker.OnlyIn(net.minecraftforge.api.distmarker.Dist.CLIENT)
+    private static final class ClientHandler {
+        private static void handle(SyncManaManeuverGearJumpPacket packet) {
+            var player = net.minecraft.client.Minecraft.getInstance().player;
+            if (player != null) {
+                ManaManeuverGearMovement.applyWallJump(player, packet.impulse);
+            }
+        }
     }
 }

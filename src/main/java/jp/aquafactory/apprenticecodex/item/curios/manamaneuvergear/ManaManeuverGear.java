@@ -28,7 +28,7 @@ public class ManaManeuverGear extends Item implements ICurioItem {
     }
 
     @Override
-    public List<Component> getSlotsTooltip(List<Component> tooltips, TooltipContext context, ItemStack stack) {
+    public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
         var result = new ArrayList<>(tooltips);
         if (slotIdentifier != null) {
             // Curiosっぽい共通ヘッダ.

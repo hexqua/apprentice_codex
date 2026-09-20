@@ -1,22 +1,22 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 public final class ManaManeuverGearServerConfig {
-    private final ModConfigSpec.IntValue manaCostPerJump;
-    private final ModConfigSpec.DoubleValue manaPerDamage;
+    private final ForgeConfigSpec.IntValue manaCostPerJump;
+    private final ForgeConfigSpec.DoubleValue manaPerDamage;
     private Integer manaCostPerJumpOverride;
     private Double manaPerDamageOverride;
 
     private ManaManeuverGearServerConfig(
-            ModConfigSpec.IntValue manaCostPerJump,
-            ModConfigSpec.DoubleValue manaPerDamage
+            ForgeConfigSpec.IntValue manaCostPerJump,
+            ForgeConfigSpec.DoubleValue manaPerDamage
     ) {
         this.manaCostPerJump = manaCostPerJump;
         this.manaPerDamage = manaPerDamage;
     }
 
-    public static ManaManeuverGearServerConfig define(ModConfigSpec.Builder builder) {
+    public static ManaManeuverGearServerConfig define(ForgeConfigSpec.Builder builder) {
         builder.push("ManaManeuverGear");
 
         var manaCostPerJump = builder

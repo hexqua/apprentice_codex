@@ -428,7 +428,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('A', ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get())
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()))
-                .save(recipeOutput);
+                .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.JUMPCAST_CHARM.get())
                 .pattern("S S")

@@ -12,12 +12,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
 
@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ManaManeuverGearManager {
     private static final Map<UUID, Long> LAST_WALL_JUMP_GAME_TIME = new HashMap<>();
     private static final Map<UUID, Long> LAST_WALL_SLIDE_GAME_TIME = new HashMap<>();
@@ -128,7 +128,7 @@ public final class ManaManeuverGearManager {
     }
 
     private static boolean isPrimaryEquippedCurio(SlotContext slotContext) {
-        return CuriosApi.getCuriosInventory(slotContext.entity())
+        return CuriosApi.getCuriosInventory(slotContext.entity()).resolve()
                 .flatMap(inventory -> inventory.findFirstCurio(stack -> stack.getItem() instanceof ManaManeuverGear))
                 .map(slotResult -> slotResult.slotContext().index() == slotContext.index()
                         && slotResult.slotContext().identifier().equals(slotContext.identifier()))

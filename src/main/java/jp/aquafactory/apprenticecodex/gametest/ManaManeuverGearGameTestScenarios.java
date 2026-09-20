@@ -22,7 +22,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LadderBlock;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
+import net.minecraftforge.common.util.FakePlayer;
 
 import java.util.UUID;
 
@@ -225,9 +225,10 @@ final class ManaManeuverGearGameTestScenarios extends ApprenticeCodexGameTestSce
 
             var event = postFallDamage(helper, player, 3.5F, 5.0D);
 
-            helper.assertFalse(event.isCanceled(), "Partially absorbed fall damage should remain active");
-            helper.assertTrue(Math.abs(event.getAmount() - 2.0F) < EPSILON,
-                    "Fall damage should be reduced by the fractional affordable amount: " + event.getAmount());
+            // Forgeでは元イベントを取り消し、軽減後の2ダメージをhurt経由で適用する。
+            helper.assertTrue(event.isCanceled(), "Partial absorption should replace the original Forge attack");
+            helper.assertTrue(Math.abs(player.getMaxHealth() - player.getHealth() - 2.0F) < EPSILON,
+                    "Residual fall damage should pass through the normal damage pipeline: " + player.getHealth());
             helper.assertTrue(Math.abs(magicData.getMana()) < EPSILON,
                     "Fractional fall absorption should spend all affordable mana");
             helper.assertTrue(Math.abs(player.fallDistance - 14.0F) < EPSILON,
@@ -275,20 +276,22 @@ final class ManaManeuverGearGameTestScenarios extends ApprenticeCodexGameTestSce
             magicData.setMana(7.5F);
             player.invulnerableTime = 0;
 
-            LivingIncomingDamageEventHolder partial;
+            LivingAttackEventHolder partial;
             try (var gearConfig = ApprenticeCodexServerConfig.useManaManeuverGearConfigOverrideForGameTest(10, 5.0D);
                  var shieldConfig = ApprenticeCodexServerConfig.useManaShieldCharmConfigOverrideForGameTest(
                          25.0D, 100, 50, 15.0D, 30.0D, 50, 100, 1, 20
                  )) {
                 var event = postLivingAttackEventForGameTest(
                         player, helper.getLevel().damageSources().fall(), 3.5F);
-                partial = new LivingIncomingDamageEventHolder(event.isCanceled(), event.getAmount());
+                partial = new LivingAttackEventHolder(event.isCanceled(), event.getAmount());
             }
-            helper.assertFalse(partial.canceled(), "Partial Gear absorption should leave damage for Mana Shield");
-            helper.assertTrue(Math.abs(partial.amount() - 2.0F) < EPSILON,
-                    "Mana Shield should receive only the damage left after Gear: " + partial.amount());
-            helper.assertTrue(player.invulnerableTime == 0,
-                    "A depleted Mana Shield should not create invulnerability after partial Gear absorption");
+            helper.assertTrue(partial.canceled(), "Partial Gear absorption should replace the original Forge attack");
+            helper.assertTrue(Math.abs(player.getMaxHealth() - player.getHealth() - 2.0F) < EPSILON,
+                    "A depleted Mana Shield should allow exactly the residual fall damage: " + player.getHealth());
+            helper.assertTrue(Math.abs(magicData.getMana()) < EPSILON,
+                    "Residual damage must not spend Gear mana twice");
+            helper.assertTrue(player.invulnerableTime == 20,
+                    "Residual fall damage should grant only vanilla hurt invulnerability");
 
             var iframePlayer = createGearPlayer(helper, "mana_maneuver_shield_iframe");
             equipCurio(iframePlayer, CuriosSlotConstants.CHARM,
@@ -341,7 +344,7 @@ final class ManaManeuverGearGameTestScenarios extends ApprenticeCodexGameTestSce
         });
     }
 
-    private static net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent postFallDamage(
+    private static net.minecraftforge.event.entity.living.LivingAttackEvent postFallDamage(
             GameTestHelper helper,
             FakePlayer player,
             float damage,
@@ -383,7 +386,19 @@ final class ManaManeuverGearGameTestScenarios extends ApprenticeCodexGameTestSce
     }
 
     private static FakePlayer createGearPlayer(GameTestHelper helper, String profileName) {
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), profileName);
+        // ForgeのFakePlayerは常時無敵なので、残ダメージの実適用を確認できるプレイヤーを使う。
+        var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName)) {
+            @Override
+            public boolean isInvulnerableTo(net.minecraft.world.damagesource.DamageSource source) {
+                return false;
+            }
+        };
+        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        var position = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 2, 0)));
+        player.setPos(position.x, position.y, position.z);
+        // GameTestServerは専用サーバー判定がfalseのため、スポーン直後の落下無敵も解除する。
+        net.minecraftforge.fml.util.ObfuscationReflectionHelper.setPrivateValue(
+                net.minecraft.server.level.ServerPlayer.class, player, 0, "f_8921_");
         equipCurio(player, CuriosSlotConstants.FEET, new ItemStack(ItemRegistry.MANA_MANEUVER_GEAR.get()));
         player.setOnGround(false);
         ManaManeuverGearManager.clear(player);
@@ -397,6 +412,6 @@ final class ManaManeuverGearGameTestScenarios extends ApprenticeCodexGameTestSce
         return magicData;
     }
 
-    private record LivingIncomingDamageEventHolder(boolean canceled, float amount) {
+    private record LivingAttackEventHolder(boolean canceled, float amount) {
     }
 }

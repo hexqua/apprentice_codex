@@ -6,13 +6,13 @@ import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaManeuverGearJumpPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.event.TickEvent;
 import top.theillusivec4.curios.api.CuriosApi;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ManaManeuverGearClientInputEvent {
     private static boolean previousJumpDown;
     private static boolean blockedUntilJumpRelease;
@@ -21,8 +21,10 @@ public final class ManaManeuverGearClientInputEvent {
     }
 
     @SubscribeEvent
-    public static void onClientTickPre(ClientTickEvent.Pre event) {
-        handleClientTick(Minecraft.getInstance());
+    public static void onClientTickPre(TickEvent.ClientTickEvent event) {
+        if (event.phase == TickEvent.Phase.START) {
+            handleClientTick(Minecraft.getInstance());
+        }
     }
 
     private static void handleClientTick(Minecraft minecraft) {
