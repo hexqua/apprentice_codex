@@ -22,8 +22,8 @@
     },
     "firstperson_righthand": {
       "translation": [
-        2,
-        -1,
+        0,
+        -4.5,
         0
       ],
       "scale": [
@@ -34,8 +34,8 @@
     },
     "firstperson_lefthand": {
       "translation": [
-        2,
-        -1,
+        0,
+        -4.5,
         0
       ],
       "scale": [
@@ -70,12 +70,6 @@
     }
   },
   "textures": {
-    "particle": "apprenticecodex:item/multipurpose_staffrifle"
-  },
-  "overrides": [
-    {
-      "predicate": { "apprenticecodex:ads": 1 },
-      "model": "apprenticecodex:item/multipurpose_staffrifle_ads"
-    }
-  ]
+    "particle": "apprenticecodex:item/fullauto_rapidcast_spellrifle"
+  }
 }

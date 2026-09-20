@@ -45,6 +45,7 @@ import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunSpellListManager;
 import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellrifleMuzzleParticles;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
@@ -447,7 +448,7 @@ public final class FullautoRapidcastSpellrifle extends Item
         var blue = (color & 0xFF) / 255.0F;
         var muzzlePosition = resolveMuzzlePosition(player, adsFullAuto);
         var look = player.getLookAngle().normalize();
-        spawnMuzzleFlashParticles(serverLevel, muzzlePosition, look, red, green, blue);
+        spawnMuzzleFlashParticles(player, muzzlePosition, look, red, green, blue);
     }
 
     private static Vec3 resolveMuzzlePosition(ServerPlayer player, boolean adsFullAuto) {
@@ -462,14 +463,14 @@ public final class FullautoRapidcastSpellrifle extends Item
                 .add(0.0D, downOffset, 0.0D);
     }
 
-    private static void spawnMuzzleFlashParticles(ServerLevel level, Vec3 center, Vec3 look,
+    private static void spawnMuzzleFlashParticles(ServerPlayer player, Vec3 center, Vec3 look,
                                                   float red, float green, float blue) {
-        var random = level.getRandom();
+        var random = player.serverLevel().getRandom();
         for (var i = 0; i < MUZZLE_RHOMBUS_COUNT; ++i) {
             var size = Mth.lerp(random.nextFloat(), 0.16F, 0.28F);
             var position = center.add(createMuzzleParticleOffset(random, look, 0.08D));
             var velocity = look.scale(Mth.lerp(random.nextFloat(), 0.03D, 0.08D));
-            level.sendParticles(
+            SpellrifleMuzzleParticles.send(player,
                     createMuzzleRhombusOptions(size, red, green, blue),
                     position.x,
                     position.y,
@@ -487,7 +488,7 @@ public final class FullautoRapidcastSpellrifle extends Item
             var position = center.add(createMuzzleParticleOffset(random, look, 0.14D));
             var velocity = look.scale(Mth.lerp(random.nextFloat(), 0.05D, 0.13D))
                     .add(createRandomSpread(random, 0.035D));
-            level.sendParticles(
+            SpellrifleMuzzleParticles.send(player,
                     createMuzzleSparkOptions(size, red, green, blue),
                     position.x,
                     position.y,
