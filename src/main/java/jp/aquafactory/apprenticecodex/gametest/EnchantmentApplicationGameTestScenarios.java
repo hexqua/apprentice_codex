@@ -59,7 +59,6 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
                             AttributeEnchantmentType.ALACRITY,
                             AttributeEnchantmentType.REFLUX,
                             AttributeEnchantmentType.RESERVOIR,
-                            AttributeEnchantmentType.SURGE,
                             AttributeEnchantmentType.TENSE
                     ), "Multipurpose Staffrifle");
             assertDefinitionSurface(helper, new ItemStack(ItemRegistry.MANA_FORCE_BLADE.get()),
@@ -100,7 +99,6 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
                     AttributeEnchantmentType.ALACRITY,
                     AttributeEnchantmentType.REFLUX,
                     AttributeEnchantmentType.RESERVOIR,
-                    AttributeEnchantmentType.SURGE,
                     AttributeEnchantmentType.TENSE
             ));
             assertDirectAttributePolicy(helper, ItemRegistry.MANA_FORCE_BLADE.get(), Set.of(

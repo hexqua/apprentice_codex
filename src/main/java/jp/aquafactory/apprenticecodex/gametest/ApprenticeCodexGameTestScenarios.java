@@ -13755,7 +13755,7 @@ public class ApprenticeCodexGameTestScenarios {
                 Enchantments.ALACRITY,
                 Enchantments.REFLUX,
                 Enchantments.RESERVOIR,
-                Enchantments.SURGE,
+                Enchantments.TRANSCENDENCE,
                 Enchantments.TENSE,
                 Enchantments.WISDOM,
                 Enchantments.PLUNDER

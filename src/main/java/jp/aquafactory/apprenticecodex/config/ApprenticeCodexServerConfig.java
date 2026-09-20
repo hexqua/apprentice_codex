@@ -949,30 +949,18 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.multicastEchoStaffRepeatDamageMultiplier();
     }
 
-    public static int multipurposeStaffrifleCooldownBypassThresholdTicks() {
-        return ITEMS_CONFIG.multipurposeStaffrifleCooldownBypassThresholdTicks();
-    }
     public static int fullautoRapidcastSpellrifleCooldownBypassThresholdTicks() {
         return ITEMS_CONFIG.fullautoRapidcastSpellrifleCooldownBypassThresholdTicks();
     }
 
-    public static int multipurposeStaffrifleCooldownReductionTicks() {
-        return ITEMS_CONFIG.multipurposeStaffrifleCooldownReductionTicks();
-    }
     public static int fullautoRapidcastSpellrifleCooldownReductionTicks() {
         return ITEMS_CONFIG.fullautoRapidcastSpellrifleCooldownReductionTicks();
     }
 
-    public static int multipurposeStaffrifleReducedCooldownMinimumTicks() {
-        return ITEMS_CONFIG.multipurposeStaffrifleReducedCooldownMinimumTicks();
-    }
     public static int fullautoRapidcastSpellrifleReducedCooldownMinimumTicks() {
         return ITEMS_CONFIG.fullautoRapidcastSpellrifleReducedCooldownMinimumTicks();
     }
 
-    public static int multipurposeStaffrifleAdsFullAutoIntervalTicks() {
-        return ITEMS_CONFIG.multipurposeStaffrifleAdsFullAutoIntervalTicks();
-    }
     public static double fullautoRapidcastSpellrifleAdsMovementSpeedMultiplier() {
         return ITEMS_CONFIG.fullautoRapidcastSpellrifleAdsMovementSpeedMultiplier();
     }

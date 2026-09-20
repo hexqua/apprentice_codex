@@ -60,13 +60,6 @@ final class AttributeEnchantmentEffectGameTestScenarios extends ApprenticeCodexG
             AttributeEnchantmentType.RESERVOIR,
             AttributeEnchantmentType.TENSE
     );
-    private static final Set<AttributeEnchantmentType> STAFFRIFLE_ENCHANTMENTS = Set.of(
-            AttributeEnchantmentType.ALACRITY,
-            AttributeEnchantmentType.REFLUX,
-            AttributeEnchantmentType.RESERVOIR,
-            AttributeEnchantmentType.SURGE,
-            AttributeEnchantmentType.TENSE
-    );
 
     private AttributeEnchantmentEffectGameTestScenarios() {
     }
@@ -371,7 +364,7 @@ final class AttributeEnchantmentEffectGameTestScenarios extends ApprenticeCodexG
         addCase(cases, coveredItems, ItemRegistry.REVOLVERCAST_STAFF.get(), ModifierTarget.mainhand(),
                 BASIC_MAGIC_ENCHANTMENTS);
         addCase(cases, coveredItems, ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(), ModifierTarget.mainhand(),
-                STAFFRIFLE_ENCHANTMENTS);
+                BASIC_MAGIC_ENCHANTMENTS);
         addCase(cases, coveredItems, ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get(), ModifierTarget.mainhand(),
                 BASIC_MAGIC_ENCHANTMENTS);
         addCase(cases, coveredItems, ItemRegistry.SCROLLCASTER_GAUNTLET.get(), ModifierTarget.mainhand(),

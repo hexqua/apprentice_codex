@@ -545,9 +545,6 @@ final class ItemsServerConfig {
         return hoverrideBroomConfig.values();
     }
 
-    int multipurposeStaffrifleCooldownBypassThresholdTicks() {
-        return multipurposeStaffrifleConfig.cooldownBypassThresholdTicks();
-    }
     int fullautoRapidcastSpellrifleCooldownBypassThresholdTicks() {
         return fullautoRapidcastSpellrifleConfig.cooldownBypassThresholdTicks();
     }
@@ -740,23 +737,14 @@ final class ItemsServerConfig {
         return multicastEchoStaffConfig.repeatDamageMultiplier();
     }
 
-    int multipurposeStaffrifleCooldownReductionTicks() {
-        return multipurposeStaffrifleConfig.cooldownReductionTicks();
-    }
     int fullautoRapidcastSpellrifleCooldownReductionTicks() {
         return fullautoRapidcastSpellrifleConfig.cooldownReductionTicks();
     }
 
-    int multipurposeStaffrifleReducedCooldownMinimumTicks() {
-        return multipurposeStaffrifleConfig.reducedCooldownMinimumTicks();
-    }
     int fullautoRapidcastSpellrifleReducedCooldownMinimumTicks() {
         return fullautoRapidcastSpellrifleConfig.reducedCooldownMinimumTicks();
     }
 
-    int multipurposeStaffrifleAdsFullAutoIntervalTicks() {
-        return multipurposeStaffrifleConfig.adsFullAutoIntervalTicks();
-    }
     double fullautoRapidcastSpellrifleAdsMovementSpeedMultiplier() {
         return fullautoRapidcastSpellrifleConfig.adsMovementSpeedMultiplier();
     }
