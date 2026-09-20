@@ -969,6 +969,10 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.fullautoRapidcastSpellrifleAdsFullAutoIntervalTicks();
     }
 
+    public static double multipurposeStaffrifleAdsMovementSpeedMultiplier() {
+        return ITEMS_CONFIG.multipurposeStaffrifleAdsMovementSpeedMultiplier();
+    }
+
     public static boolean isMultipurposeStaffrifleSpellDenied(ResourceLocation spellId) {
         return ITEMS_CONFIG.isMultipurposeStaffrifleSpellDenied(spellId);
     }

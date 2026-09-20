@@ -14,8 +14,10 @@ import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleAdsMovement;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastEvent;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleRateLimiter;
@@ -31,15 +33,73 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
 public final class MultipurposeStaffrifleReworkGameTests extends ApprenticeCodexGameTestScenarios {
+    @GameTest(template = "gametest/basic_floor")
+    public static void multipurposeAdsMovementHonorsConfigAndSprintPriority(GameTestHelper helper) {
+        ModConfigSpec.DoubleValue multiplier = ApprenticeCodexServerConfig.SPEC.getValues()
+                .get("Items.MultipurposeStaffrifle.adsMovementSpeedMultiplier");
+        double previous = multiplier.get();
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_ads_movement");
+        var rifle = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+        var speed = player.getAttribute(Attributes.MOVEMENT_SPEED);
+        var otherId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "gametest_other_movement");
+        speed.addTransientModifier(new AttributeModifier(otherId, 0.2D, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+        double baseline = speed.getValue();
+        try {
+            player.setItemInHand(InteractionHand.MAIN_HAND, rifle);
+            multiplier.set(0.7D);
+            // バニラの使用状態を開始せず、射撃中にも維持するADS入力の契約を確認する。
+            MultipurposeStaffrifleAdsMovement.update(player, true);
+            MultipurposeStaffrifleAdsMovement.update(player, true);
+            helper.assertTrue(Math.abs(speed.getValue() - baseline * 0.7D) < 1.0E-8D,
+                    "ADS must apply the configured multiplier once, preserving other modifiers");
+            multiplier.set(0.0D);
+            MultipurposeStaffrifleAdsMovement.onPlayerTick(new PlayerTickEvent.Post(player));
+            helper.assertTrue(speed.getValue() == 0.0D, "Zero ADS multiplier must disable movement");
+            MultipurposeStaffrifleAdsMovement.update(player, false);
+            helper.assertTrue(Math.abs(speed.getValue() - baseline) < 1.0E-8D,
+                    "Releasing ADS must restore movement even at zero multiplier");
+            multiplier.set(1.0D);
+            MultipurposeStaffrifleAdsMovement.update(player, true);
+            helper.assertTrue(Math.abs(speed.getValue() - baseline) < 1.0E-8D, "Multiplier one must preserve speed");
+            multiplier.set(0.7D);
+            MultipurposeStaffrifleAdsMovement.update(player, true);
+            player.setSprinting(true);
+            MultipurposeStaffrifleAdsMovement.onPlayerTick(new PlayerTickEvent.Post(player));
+            double sprintSpeed = speed.getValue();
+            helper.assertTrue(player.isSprinting() && sprintSpeed > baseline, "Sprinting must cancel ADS slowdown");
+            MultipurposeStaffrifleAdsMovement.update(player, true);
+            helper.assertTrue(speed.getValue() == sprintSpeed, "ADS requests during sprint must be ignored");
+            player.setSprinting(false);
+            MultipurposeStaffrifleAdsMovement.update(player, true);
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            player.setItemInHand(InteractionHand.OFF_HAND, rifle);
+            MultipurposeStaffrifleAdsMovement.onPlayerTick(new PlayerTickEvent.Post(player));
+            MultipurposeStaffrifleAdsMovement.update(player, true);
+            helper.assertTrue(Math.abs(speed.getValue() - baseline) < 1.0E-8D,
+                    "Switching away must remove slowdown and offhand ADS requests must be ignored");
+            helper.assertTrue(speed.hasModifier(otherId), "Cleanup must preserve unrelated modifiers");
+        } finally {
+            multiplier.set(previous);
+            MultipurposeStaffrifleAdsMovement.update(player, false);
+            speed.removeModifier(otherId);
+        }
+        helper.succeed();
+    }
+
     @GameTest(template = "gametest/basic_floor")
     public static void wisdomDisablesSlotsWithoutDestroyingOrLockingScrolls(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_storage");

@@ -92,6 +92,7 @@ public final class ClientMultipurposeStaffrifleInputEvent {
 
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
+        MultipurposeStaffrifleClientAdsState.syncToServer();
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         if (minecraft.screen != null || player == null || !player.isAlive() || player.isSpectator()) {
