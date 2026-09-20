@@ -5,13 +5,13 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientCompat;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightClientCompat;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFullautoRapidcastSpellrifleCastPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -25,8 +25,8 @@ import org.lwjgl.glfw.GLFW;
 @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ClientFullautoRapidcastSpellrifleInputEvent {
     private static final float CLIENT_MANA_SAFE_MARGIN = 0.0001F;
-    private static boolean adsManaShortageLocked;
-    private static boolean nonAdsAttackLocked;
+    private static boolean manaShortageLocked;
+    private static boolean initialAttackLocked;
 
     private ClientFullautoRapidcastSpellrifleInputEvent() {
     }
@@ -45,7 +45,7 @@ public final class ClientFullautoRapidcastSpellrifleInputEvent {
         // Epic Fight の攻撃入力は Forge の InteractionKeyMappingTriggered を経由しないことがある。
         // マウス押下時点で止め、近接の片手攻撃モーションへ入る前に射撃詠唱へ差し替える。
         event.setCanceled(true);
-        trySendNonAdsSpecialCast(minecraft);
+        trySendInitialSpecialCast(minecraft);
     }
 
     @SubscribeEvent
@@ -68,11 +68,11 @@ public final class ClientFullautoRapidcastSpellrifleInputEvent {
 
         if (isEpicFightBattleMode()) {
             // Staffrifle は近接武器ではないため、Epic Fight の基本攻撃モーションへ渡さず射撃詠唱へ差し替える。
-            // 右クリック長押しは client tick 側でフルオートとして処理する。
+            // 攻撃キー長押しは client tick 側で、構えの有無によらず連射として処理する。
             event.setCanceled(true);
             event.setSwingHand(false);
             if (event.isAttack()) {
-                trySendNonAdsSpecialCast(minecraft);
+                trySendInitialSpecialCast(minecraft);
             }
             return;
         }
@@ -84,16 +84,7 @@ public final class ClientFullautoRapidcastSpellrifleInputEvent {
             return;
         }
 
-        if (FullautoRapidcastSpellrifleClientAdsState.isLocalAdsKeyHeld(player)) {
-            return;
-        }
-
-        if (ModList.get().isLoaded(BetterCombatClientCompat.MOD_ID)
-                && BetterCombatClientCompat.usesBetterCombatAttackTiming(player)) {
-            return;
-        }
-
-        trySendNonAdsSpecialCast(minecraft);
+        trySendInitialSpecialCast(minecraft);
     }
 
     @SubscribeEvent
@@ -110,31 +101,25 @@ public final class ClientFullautoRapidcastSpellrifleInputEvent {
             return;
         }
 
-        if (!minecraft.options.keyAttack.isDown()) {
-            nonAdsAttackLocked = false;
-        }
-
-        var epicFightBattleFullAuto = isEpicFightBattleFullAuto(player);
-        if (!FullautoRapidcastSpellrifleClientAdsState.isLocalAdsKeyHeld(player) && !epicFightBattleFullAuto) {
-            clearAdsManaShortageLock();
+        var attackHeld = minecraft.options.keyAttack.isDown()
+                || (isEpicFightBattleMode() && EpicFightClientCompat.isAttackActive());
+        if (!attackHeld) {
+            initialAttackLocked = false;
+            clearManaShortageLock();
             return;
         }
 
-        if (!epicFightBattleFullAuto && !minecraft.options.keyAttack.isDown()) {
+        if (manaShortageLocked) {
             return;
         }
 
-        if (adsManaShortageLocked) {
+        if (shouldLockManaShortage(player)) {
+            sendSpecialCast(minecraft, FullautoRapidcastSpellrifleClientAdsState.shouldHandleAsAds(player));
+            manaShortageLocked = true;
             return;
         }
 
-        if (shouldLockAdsManaShortage(player)) {
-            sendSpecialCast(minecraft, true);
-            adsManaShortageLocked = true;
-            return;
-        }
-
-        sendSpecialCast(minecraft, true);
+        sendSpecialCast(minecraft, FullautoRapidcastSpellrifleClientAdsState.shouldHandleAsAds(player));
     }
 
     @SubscribeEvent
@@ -152,6 +137,9 @@ public final class ClientFullautoRapidcastSpellrifleInputEvent {
             return;
         }
 
+        FullautoRapidcastSpellrifleClientFireEffectState.applyCameraRecoil();
+        // 描画フレームで動いた視線を、照準取得と射撃要求より先に server へ送る。
+        player.connection.send(new ServerboundMovePlayerPacket.Rot(player.getYRot(), player.getXRot(), player.onGround()));
         ClientFullautoRapidcastSpellrifleCastContext.beginPending(player.getUUID(), player.getMainHandItem());
         var spellData = resolveSelectedSpellData(player);
         // 内部適用の Transcendence は汎用レベルイベントで加算されないため、照準にも射撃と同じ基礎レベルを渡す。
@@ -163,16 +151,19 @@ public final class ClientFullautoRapidcastSpellrifleInputEvent {
         Networks.sendToServer(new ClientFullautoRapidcastSpellrifleCastPacket(adsFullAuto, targetData));
     }
 
-    public static void trySendNonAdsSpecialCast(Minecraft minecraft) {
-        if (nonAdsAttackLocked) {
+    public static void trySendInitialSpecialCast(Minecraft minecraft) {
+        if (initialAttackLocked || manaShortageLocked) {
             return;
         }
 
-        nonAdsAttackLocked = true;
-        sendSpecialCast(minecraft, false);
+        initialAttackLocked = true;
+        if (minecraft.player != null && shouldLockManaShortage(minecraft.player)) {
+            manaShortageLocked = true;
+        }
+        sendSpecialCast(minecraft, FullautoRapidcastSpellrifleClientAdsState.shouldHandleAsAds(minecraft.player));
     }
 
-    private static boolean shouldLockAdsManaShortage(LocalPlayer player) {
+    private static boolean shouldLockManaShortage(LocalPlayer player) {
         if (player.getAbilities().instabuild) {
             return false;
         }
@@ -195,21 +186,13 @@ public final class ClientFullautoRapidcastSpellrifleInputEvent {
         return FullautoRapidcastSpellrifle.getSelectedSpellData(player.getMainHandItem(), player.level().registryAccess());
     }
 
-    private static void clearAdsManaShortageLock() {
-        adsManaShortageLocked = false;
+    private static void clearManaShortageLock() {
+        manaShortageLocked = false;
     }
 
     private static void clearInputLocks() {
-        adsManaShortageLocked = false;
-        nonAdsAttackLocked = false;
-    }
-
-    private static boolean isEpicFightBattleFullAuto(LocalPlayer player) {
-        var minecraft = Minecraft.getInstance();
-        return player != null
-                && minecraft.options.keyUse.isDown()
-                && player.getMainHandItem().getItem() instanceof FullautoRapidcastSpellrifle
-                && isEpicFightBattleMode();
+        manaShortageLocked = false;
+        initialAttackLocked = false;
     }
 
     private static boolean shouldReplaceEpicFightAttackInput(Minecraft minecraft, InputConstants.Type type, int value) {

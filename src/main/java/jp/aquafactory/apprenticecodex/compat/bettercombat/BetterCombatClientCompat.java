@@ -81,7 +81,7 @@ public final class BetterCombatClientCompat {
         if (!attackHand.isOffHand()
                 && player.getMainHandItem().getItem() instanceof FullautoRapidcastSpellrifle
                 && !FullautoRapidcastSpellrifleClientAdsState.isLocalAdsKeyHeld(player)) {
-            ClientFullautoRapidcastSpellrifleInputEvent.trySendNonAdsSpecialCast(minecraft);
+            ClientFullautoRapidcastSpellrifleInputEvent.trySendInitialSpecialCast(minecraft);
         }
         if (CrystalBladedStaff.isCrystalBladedStaff(player.getItemInHand(hand))) {
             // 命中時もサーバー側の遅延コンテキストへ渡し、杖魔法を抑止した後の指輪フォールバックを処理する。

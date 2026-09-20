@@ -92,6 +92,10 @@ public final class CalibrationAdjustmentEffects {
         return line("add_long_support");
     }
 
+    public static List<Component> removeRecoil() {
+        return line("remove_recoil");
+    }
+
     public static List<Component> addAllSupport() {
         return line("add_all_support");
     }
