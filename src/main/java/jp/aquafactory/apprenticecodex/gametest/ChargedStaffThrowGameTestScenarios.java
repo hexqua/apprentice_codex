@@ -175,6 +175,50 @@ final class ChargedStaffThrowGameTestScenarios extends ApprenticeCodexGameTestSc
         });
     }
 
+    static void entityImpactKeepsHitPositionWithoutFollowing(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "staff_impact_position");
+            var origin = helper.absoluteVec(new Vec3(1, 100, 1));
+            // 実際の飛翔判定を通し、中央への命中とかすめる命中の両方で座標を確認する。
+            for (int scenario = 0; scenario < 2; ++scenario) {
+                var target = Objects.requireNonNull(EntityType.COW.create(level));
+                target.setPos(origin);
+                target.setNoAi(true);
+                target.setNoGravity(true);
+                level.addFreshEntity(target);
+                var projectile = new ChargedTwinBladeStaffThrownEntity(EntityRegistry.CHARGED_TWIN_BLADE_STAFF_THROWN.get(),
+                        level, player, new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
+                        ChargedTwinBladeStaffSpellPayload.EMPTY);
+                double xOffset = scenario == 1 ? target.getBbWidth() / 2.0D + 0.15D : 0;
+                var start = origin.add(xOffset, 0.8D, -2);
+                projectile.setPos(start);
+                projectile.shoot(0, 0, 1, 3, 0);
+                level.addFreshEntity(projectile);
+                try {
+                    projectile.tick();
+                    helper.assertTrue(projectile.isImpacted(), "Staff must hit the target through the flight collision path");
+                    double expectedZ = target.getBoundingBox().minZ - (double) 0.3F - 0.01D;
+                    var expected = new Vec3(start.x, start.y, expectedZ);
+                    helper.assertTrue(projectile.position().distanceToSqr(expected) < 1.0E-8D,
+                            "Staff must remain at the flight intersection instead of the target's feet: " + projectile.position());
+                    var fixedPosition = projectile.position();
+                    target.setPos(origin.add(2, 1, 2));
+                    target.setYRot(90);
+                    target.yBodyRot = 90;
+                    for (int tick = 0; tick < 3; ++tick) {
+                        projectile.tick();
+                    }
+                    helper.assertTrue(projectile.position().equals(fixedPosition) && projectile.getDeltaMovement().equals(Vec3.ZERO),
+                            "Impacted staff must stay at its world position after the target moves and turns");
+                } finally {
+                    projectile.discard();
+                    target.discard();
+                }
+            }
+        });
+    }
+
     private static ApprenticeCodexServerConfig.GameTestConfigOverride config(int throwCost) {
         return ApprenticeCodexServerConfig.useChargedTwinBladeStaffConfigOverrideForGameTest(
                 new ChargedTwinBladeStaffServerConfig.Values(50, 20, throwCost));
