@@ -28,6 +28,7 @@ import jp.aquafactory.apprenticecodex.config.item.ManaSoulTransducerServerConfig
 import jp.aquafactory.apprenticecodex.config.item.ManaThrusterServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MulticastEchoStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MultipurposeStaffrifleServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.FullautoRapidcastSpellrifleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ParrycastBucklerServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.PastelStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig;
@@ -76,6 +77,7 @@ final class ItemsServerConfig {
     private final SpellgunServerConfig spellgunConfig;
     private final MulticastEchoStaffServerConfig multicastEchoStaffConfig;
     private final MultipurposeStaffrifleServerConfig multipurposeStaffrifleConfig;
+    private final FullautoRapidcastSpellrifleServerConfig fullautoRapidcastSpellrifleConfig;
     private final FocusStaffbowServerConfig focusStaffbowConfig;
     private final ChargecastCatalystbookServerConfig chargecastCatalystbookConfig;
     private final ElementalBowServerConfig elementalBowConfig;
@@ -119,6 +121,7 @@ final class ItemsServerConfig {
             SpellgunServerConfig spellgunConfig,
             MulticastEchoStaffServerConfig multicastEchoStaffConfig,
             MultipurposeStaffrifleServerConfig multipurposeStaffrifleConfig,
+            FullautoRapidcastSpellrifleServerConfig fullautoRapidcastSpellrifleConfig,
             FocusStaffbowServerConfig focusStaffbowConfig,
             ChargecastCatalystbookServerConfig chargecastCatalystbookConfig,
             ElementalBowServerConfig elementalBowConfig,
@@ -162,6 +165,7 @@ final class ItemsServerConfig {
         this.spellgunConfig = spellgunConfig;
         this.multicastEchoStaffConfig = multicastEchoStaffConfig;
         this.multipurposeStaffrifleConfig = multipurposeStaffrifleConfig;
+        this.fullautoRapidcastSpellrifleConfig = fullautoRapidcastSpellrifleConfig;
         this.focusStaffbowConfig = focusStaffbowConfig;
         this.chargecastCatalystbookConfig = chargecastCatalystbookConfig;
         this.elementalBowConfig = elementalBowConfig;
@@ -208,6 +212,7 @@ final class ItemsServerConfig {
         var spellgunConfig = SpellgunServerConfig.define(builder);
         var multicastEchoStaffConfig = MulticastEchoStaffServerConfig.define(builder);
         var multipurposeStaffrifleConfig = MultipurposeStaffrifleServerConfig.define(builder);
+        var fullautoRapidcastSpellrifleConfig = FullautoRapidcastSpellrifleServerConfig.define(builder);
         var focusStaffbowConfig = FocusStaffbowServerConfig.define(builder);
         var chargecastCatalystbookConfig = ChargecastCatalystbookServerConfig.define(builder);
         var elementalBowConfig = ElementalBowServerConfig.define(builder);
@@ -253,6 +258,7 @@ final class ItemsServerConfig {
                 spellgunConfig,
                 multicastEchoStaffConfig,
                 multipurposeStaffrifleConfig,
+                fullautoRapidcastSpellrifleConfig,
                 focusStaffbowConfig,
                 chargecastCatalystbookConfig,
                 elementalBowConfig,
@@ -542,6 +548,9 @@ final class ItemsServerConfig {
     int multipurposeStaffrifleCooldownBypassThresholdTicks() {
         return multipurposeStaffrifleConfig.cooldownBypassThresholdTicks();
     }
+    int fullautoRapidcastSpellrifleCooldownBypassThresholdTicks() {
+        return fullautoRapidcastSpellrifleConfig.cooldownBypassThresholdTicks();
+    }
 
     int circuitHeatStaffAdditionalManaReferenceCooldownTicks() {
         return circuitHeatStaffConfig.additionalManaReferenceCooldownTicks();
@@ -734,17 +743,29 @@ final class ItemsServerConfig {
     int multipurposeStaffrifleCooldownReductionTicks() {
         return multipurposeStaffrifleConfig.cooldownReductionTicks();
     }
+    int fullautoRapidcastSpellrifleCooldownReductionTicks() {
+        return fullautoRapidcastSpellrifleConfig.cooldownReductionTicks();
+    }
 
     int multipurposeStaffrifleReducedCooldownMinimumTicks() {
         return multipurposeStaffrifleConfig.reducedCooldownMinimumTicks();
+    }
+    int fullautoRapidcastSpellrifleReducedCooldownMinimumTicks() {
+        return fullautoRapidcastSpellrifleConfig.reducedCooldownMinimumTicks();
     }
 
     int multipurposeStaffrifleAdsFullAutoIntervalTicks() {
         return multipurposeStaffrifleConfig.adsFullAutoIntervalTicks();
     }
+    int fullautoRapidcastSpellrifleAdsFullAutoIntervalTicks() {
+        return fullautoRapidcastSpellrifleConfig.adsFullAutoIntervalTicks();
+    }
 
     boolean isMultipurposeStaffrifleSpellDenied(ResourceLocation spellId) {
         return multipurposeStaffrifleConfig.isSpellDenied(spellId);
+    }
+    boolean isFullautoRapidcastSpellrifleSpellDenied(ResourceLocation spellId) {
+        return fullautoRapidcastSpellrifleConfig.isSpellDenied(spellId);
     }
 
     boolean focusStaffbowEnableContinuousFocusedCast() {
@@ -934,6 +955,9 @@ final class ItemsServerConfig {
     List<String> multipurposeStaffrifleSpellDenylist() {
         return multipurposeStaffrifleConfig.spellDenylist();
     }
+    List<String> fullautoRapidcastSpellrifleSpellDenylist() {
+        return fullautoRapidcastSpellrifleConfig.spellDenylist();
+    }
 
     SpellgunServerConfig.Values spellgunConfig() {
         return spellgunConfig.values();
@@ -965,6 +989,9 @@ final class ItemsServerConfig {
 
     void setMultipurposeStaffrifleSpellDenylistForGameTest(List<String> spellDenylist) {
         multipurposeStaffrifleConfig.setSpellDenylistForGameTest(spellDenylist);
+    }
+    void setFullautoRapidcastSpellrifleSpellDenylistForGameTest(List<String> spellDenylist) {
+        fullautoRapidcastSpellrifleConfig.setSpellDenylistForGameTest(spellDenylist);
     }
 
     void setManaShieldCharmConfigForGameTest(

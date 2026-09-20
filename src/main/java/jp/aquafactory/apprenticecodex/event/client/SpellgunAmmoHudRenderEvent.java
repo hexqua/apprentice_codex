@@ -1,10 +1,12 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexClientConfig;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -85,7 +87,7 @@ public final class SpellgunAmmoHudRenderEvent {
             return new AmmoHudEntry(
                     new ItemStack(ammoItem),
                     SpellGunCastEvent.countAvailableAmmo(player, player.getInventory(), ammoItem),
-                    resolveCooldownRatio(spellGunItem, weaponStack, partialTick)
+                    resolveCooldownRatio(spellGunItem.getImbuedSpellData(weaponStack), partialTick)
             );
         }
 
@@ -97,12 +99,19 @@ public final class SpellgunAmmoHudRenderEvent {
                     0.0F
             );
         }
+        if (weaponStack.getItem() instanceof FullautoRapidcastSpellrifle staffrifle) {
+            var ammoItem = staffrifle.getDisplayedAmmoItem(weaponStack);
+            return new AmmoHudEntry(
+                    new ItemStack(ammoItem),
+                    SpellGunCastEvent.countAvailableAmmo(player, player.getInventory(), ammoItem),
+                    resolveCooldownRatio(FullautoRapidcastSpellrifle.getSelectedSpellData(weaponStack, player.level().registryAccess()), partialTick)
+            );
+        }
 
         return null;
     }
 
-    private static float resolveCooldownRatio(AbstractSpellGunItem spellGunItem, ItemStack weaponStack, float partialTick) {
-        var spellData = spellGunItem.getImbuedSpellData(weaponStack);
+    private static float resolveCooldownRatio(@Nullable SpellData spellData, float partialTick) {
         if (spellData == null || spellData.getSpell() == null) {
             return 0.0F;
         }

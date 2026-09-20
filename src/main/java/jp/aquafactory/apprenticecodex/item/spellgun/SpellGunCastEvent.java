@@ -113,6 +113,9 @@ public final class SpellGunCastEvent {
     public static void consumeAmmo(ServerPlayer player, Inventory inventory, Item ammoItem, MultipurposeStaffrifle staffrifle) {
         consumeAmmo(player, inventory, ammoItem, staffrifle::shouldReturnEmptyCasing);
     }
+    public static void consumeAmmo(ServerPlayer player, Inventory inventory, Item ammoItem, FullautoRapidcastSpellrifle staffrifle) {
+        consumeAmmo(player, inventory, ammoItem, staffrifle::shouldReturnEmptyCasing);
+    }
 
     private static void consumeAmmo(ServerPlayer player, Inventory inventory, Item ammoItem, EmptyCasingReturnPolicy returnPolicy) {
         if (SpellcasterAmmoPouch.consumeAmmoFromAccessiblePouches(player, ammoItem)) {
