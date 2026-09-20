@@ -2,9 +2,12 @@ package jp.aquafactory.apprenticecodex.compat.bettercombat;
 
 import jp.aquafactory.apprenticecodex.event.client.ClientSwingMagicAttackTrigger;
 import jp.aquafactory.apprenticecodex.event.client.ClientMultipurposeStaffrifleInputEvent;
+import jp.aquafactory.apprenticecodex.event.client.ClientFullautoRapidcastSpellrifleInputEvent;
 import jp.aquafactory.apprenticecodex.event.client.MultipurposeStaffrifleClientAdsState;
+import jp.aquafactory.apprenticecodex.event.client.FullautoRapidcastSpellrifleClientAdsState;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import net.bettercombat.api.AttackHand;
 import net.bettercombat.api.WeaponAttributes;
 import net.bettercombat.api.client.BetterCombatClientEvents;
@@ -72,6 +75,11 @@ public final class BetterCombatClientCompat {
                 && player.getMainHandItem().getItem() instanceof MultipurposeStaffrifle
                 && !MultipurposeStaffrifleClientAdsState.isLocalAdsKeyHeld(player)) {
             ClientMultipurposeStaffrifleInputEvent.trySendNonAdsSpecialCast(minecraft);
+        }
+        if (!attackHand.isOffHand()
+                && player.getMainHandItem().getItem() instanceof FullautoRapidcastSpellrifle
+                && !FullautoRapidcastSpellrifleClientAdsState.isLocalAdsKeyHeld(player)) {
+            ClientFullautoRapidcastSpellrifleInputEvent.trySendNonAdsSpecialCast(minecraft);
         }
         if (CrystalBladedStaff.isCrystalBladedStaff(player.getItemInHand(hand))) {
             // 命中時もサーバー側の遅延コンテキストへ渡し、杖魔法を抑止した後の指輪フォールバックを処理する。

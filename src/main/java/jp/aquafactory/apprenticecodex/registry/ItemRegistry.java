@@ -72,6 +72,7 @@ import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.item.offhand.CopperSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.DiamondSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.ExplorersCane;
@@ -451,6 +452,8 @@ public final class ItemRegistry {
             ITEMS.register("smashcast_scepter", SmashcastScepter::new);
     public static final DeferredHolder<Item, Item> MULTIPURPOSE_STAFFRIFLE =
             ITEMS.register("multipurpose_staffrifle", MultipurposeStaffrifle::new);
+    public static final DeferredHolder<Item, Item> FULLAUTO_RAPIDCAST_SPELLRIFLE =
+            ITEMS.register("fullauto_rapidcast_spellrifle", FullautoRapidcastSpellrifle::new);
     public static final DeferredHolder<Item, Item> SCROLLCASTER_GAUNTLET =
             ITEMS.register("scrollcaster_gauntlet", ScrollcasterGauntlet::new);
     public static final DeferredHolder<Item, Item> CHARGECAST_CATALYSTBOOK =

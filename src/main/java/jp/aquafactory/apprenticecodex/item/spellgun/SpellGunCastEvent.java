@@ -17,6 +17,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 
 import java.util.List;
 
@@ -111,6 +112,9 @@ public final class SpellGunCastEvent {
     }
 
     public static void consumeAmmo(ServerPlayer player, Inventory inventory, Item ammoItem, MultipurposeStaffrifle staffrifle) {
+        consumeAmmo(player, inventory, ammoItem, staffrifle::shouldReturnEmptyCasing);
+    }
+    public static void consumeAmmo(ServerPlayer player, Inventory inventory, Item ammoItem, FullautoRapidcastSpellrifle staffrifle) {
         consumeAmmo(player, inventory, ammoItem, staffrifle::shouldReturnEmptyCasing);
     }
 

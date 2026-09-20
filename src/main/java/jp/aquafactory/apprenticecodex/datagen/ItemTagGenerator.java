@@ -258,6 +258,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
 
         // Multipurpose Staffrifle は main hand で射撃攻撃する武器なので、Malum の主手武器 tag へ明示登録する。
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+        malumSoulShatterCapableWeaponTag.add(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
 
         // Charged Twin Blade Staff は剣/トライデント両面の enchant を許可するが、耐久系と超越は除外する。
         malumMagicCapableWeaponTag.add(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());

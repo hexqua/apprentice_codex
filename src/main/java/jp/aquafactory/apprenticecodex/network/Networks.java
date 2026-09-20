@@ -130,6 +130,11 @@ public final class Networks {
                 ClientMultipurposeStaffrifleCastPacket::handle
         );
         registrar.playToServer(
+                ClientFullautoRapidcastSpellrifleCastPacket.TYPE,
+                ClientFullautoRapidcastSpellrifleCastPacket.STREAM_CODEC,
+                ClientFullautoRapidcastSpellrifleCastPacket::handle
+        );
+        registrar.playToServer(
                 ClientSpellgunCastPacket.TYPE,
                 ClientSpellgunCastPacket.STREAM_CODEC,
                 ClientSpellgunCastPacket::handle
@@ -433,6 +438,11 @@ public final class Networks {
                 SyncMultipurposeStaffrifleFireEffectPacket.TYPE,
                 SyncMultipurposeStaffrifleFireEffectPacket.STREAM_CODEC,
                 SyncMultipurposeStaffrifleFireEffectPacket::handle
+        );
+        registrar.playToClient(
+                SyncFullautoRapidcastSpellrifleFireEffectPacket.TYPE,
+                SyncFullautoRapidcastSpellrifleFireEffectPacket.STREAM_CODEC,
+                SyncFullautoRapidcastSpellrifleFireEffectPacket::handle
         );
         registrar.playToClient(
                 SyncSmashcastScepterReadyStatePacket.TYPE,

@@ -79,6 +79,7 @@ import jp.aquafactory.apprenticecodex.renderer.item.IlluminateStellarStaffRender
 import jp.aquafactory.apprenticecodex.renderer.item.LuminousDeviceRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.MithrilFreecastStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.MultipurposeStaffrifleRenderer;
+import jp.aquafactory.apprenticecodex.renderer.item.FullautoRapidcastSpellrifleRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.MulticastEchoStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.PastelStaffRenderer;
 import jp.aquafactory.apprenticecodex.renderer.item.PhotonSiphonRenderer;
@@ -738,6 +739,45 @@ public final class ClientModBusEvents {
                 return true;
             }
         }, ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+        event.registerItem(new IClientItemExtensions() {
+            private FullautoRapidcastSpellrifleRenderer renderer;
+
+            @Override
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new FullautoRapidcastSpellrifleRenderer();
+                }
+
+                return renderer;
+            }
+
+            @Override
+            public HumanoidModel.ArmPose getArmPose(@NotNull LivingEntity entityLiving, @NotNull InteractionHand hand, @NotNull ItemStack itemStack) {
+                return hand == InteractionHand.MAIN_HAND
+                        ? HumanoidModel.ArmPose.CROSSBOW_HOLD
+                        : HumanoidModel.ArmPose.ITEM;
+            }
+
+            @Override
+            public boolean applyForgeHandTransform(@NotNull PoseStack poseStack, @NotNull LocalPlayer player, @NotNull HumanoidArm arm,
+                                                   @NotNull ItemStack itemInHand, float partialTick, float equipProcess,
+                                                   float swingProcess) {
+                var recoilAmount = FullautoRapidcastSpellrifleClientFireEffectState.getRecoilAmount(partialTick);
+                if (FullautoRapidcastSpellrifleClientAdsState.shouldHandleAsAds(player)) {
+                    applyMultipurposeStaffrifleAdsHandTransform(poseStack, arm, equipProcess);
+                    applyMultipurposeStaffrifleRecoilTransform(poseStack, arm, recoilAmount);
+                    return true;
+                }
+
+                if (recoilAmount <= 0.0F) {
+                    return false;
+                }
+
+                applyMultipurposeStaffrifleNormalHandTransform(poseStack, arm, equipProcess, swingProcess);
+                applyMultipurposeStaffrifleRecoilTransform(poseStack, arm, recoilAmount);
+                return true;
+            }
+        }, ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
     }
 
     private static void registerTooltipComponentFactories(RegisterClientTooltipComponentFactoriesEvent event) {

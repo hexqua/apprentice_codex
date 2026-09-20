@@ -57,13 +57,14 @@ public final class ApprenticeCodexClientConfig {
                 .comment(
                         "Main-hand item IDs that suppress the Scrollcaster Gauntlet's extra offhand visual rendering.",
                         "Use this for weapons that share a broad Epic Fight category with unrelated items.",
-                        "Default entries cover vanilla crossbow, Iron's Autoloader Crossbow, and Multipurpose Staffrifle."
+                        "Default entries cover vanilla crossbow, Iron's Autoloader Crossbow, Multipurpose Staffrifle, and Fullauto Rapidcast Spellrifle."
                 )
                 .defineList("scrollcasterGauntletOffhandVisualDisabledMainhandItems",
                         List.of(
                                 "minecraft:crossbow",
                                 "irons_spellbooks:autoloader_crossbow",
-                                "apprenticecodex:multipurpose_staffrifle"
+                                "apprenticecodex:multipurpose_staffrifle",
+                                "apprenticecodex:fullauto_rapidcast_spellrifle"
                         ),
                         value -> value instanceof String text && ResourceLocation.tryParse(text) != null);
         ENABLE_BETTER_COMBAT_SCROLLCASTER_GAUNTLET_FIRST_PERSON_OFFHAND_VISUAL = builder
