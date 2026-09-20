@@ -11,11 +11,11 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePac
 import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidanceClientController;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class QuickcastCartridgeClientEvents {
@@ -35,7 +35,8 @@ public final class QuickcastCartridgeClientEvents {
     }
 
     @SubscribeEvent
-    public static void beforeTick(ClientTickEvent.Pre event) {
+    public static void beforeTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.START) return;
         var minecraft = Minecraft.getInstance();
         HELD.removeIf(key -> !key.isDown());
         if (!CAST.isDown() && !io.redspace.ironsspellbooks.player.KeyMappings.SPELLBOOK_CAST_ACTIVE_KEYMAP.isDown()
@@ -55,7 +56,8 @@ public final class QuickcastCartridgeClientEvents {
     }
 
     @SubscribeEvent
-    public static void onTick(ClientTickEvent.Post event) {
+    public static void onTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
         while (CAST.consumeClick()) sendCast(CAST);
     }
 
@@ -93,7 +95,7 @@ public final class QuickcastCartridgeClientEvents {
     }
 
     @SubscribeEvent
-    public static void onMovement(net.neoforged.neoforge.client.event.MovementInputUpdateEvent event) {
+    public static void onMovement(net.minecraftforge.client.event.MovementInputUpdateEvent event) {
         if (!QuickcastCartridgeClientState.reloading()) return;
         var input = event.getInput();
         input.forwardImpulse = 0;
@@ -101,13 +103,13 @@ public final class QuickcastCartridgeClientEvents {
         input.up = input.down = input.left = input.right = input.jumping = input.shiftKeyDown = false;
     }
 
-    @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.HIGHEST)
-    public static void onInteraction(net.neoforged.neoforge.client.event.InputEvent.InteractionKeyMappingTriggered event) {
+    @SubscribeEvent(priority = net.minecraftforge.eventbus.api.EventPriority.HIGHEST)
+    public static void onInteraction(net.minecraftforge.client.event.InputEvent.InteractionKeyMappingTriggered event) {
         if (event.isAttack() || event.isUseItem()) QuickcastCartridgeClientState.interrupt();
     }
 
-    @SubscribeEvent(priority = net.neoforged.bus.api.EventPriority.HIGHEST)
-    public static void onMouse(net.neoforged.neoforge.client.event.InputEvent.MouseButton.Pre event) {
+    @SubscribeEvent(priority = net.minecraftforge.eventbus.api.EventPriority.HIGHEST)
+    public static void onMouse(net.minecraftforge.client.event.InputEvent.MouseButton.Pre event) {
         var minecraft = Minecraft.getInstance();
         if (minecraft.screen == null && event.getAction() == org.lwjgl.glfw.GLFW.GLFW_PRESS
                 && (minecraft.options.keyAttack.matchesMouse(event.getButton()) || minecraft.options.keyUse.matchesMouse(event.getButton()))) {
@@ -117,7 +119,7 @@ public final class QuickcastCartridgeClientEvents {
     }
 
     @SubscribeEvent
-    public static void onKey(net.neoforged.neoforge.client.event.InputEvent.Key event) {
+    public static void onKey(net.minecraftforge.client.event.InputEvent.Key event) {
         var minecraft = Minecraft.getInstance();
         if (minecraft.screen == null && event.getAction() == org.lwjgl.glfw.GLFW.GLFW_PRESS
                 && (minecraft.options.keyAttack.matches(event.getKey(), event.getScanCode())
@@ -127,14 +129,14 @@ public final class QuickcastCartridgeClientEvents {
     }
 
     @SubscribeEvent
-    public static void onLogout(net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent.LoggingOut event) {
+    public static void onLogout(net.minecraftforge.client.event.ClientPlayerNetworkEvent.LoggingOut event) {
         QuickcastCartridgeClientState.reset();
         HELD.clear();
         lastSentTick = -1;
         awaitingRelease = false;
     }
 
-    @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+    @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
     public static final class Registration {
         @SubscribeEvent
         public static void register(RegisterKeyMappingsEvent event) { event.register(CAST); }

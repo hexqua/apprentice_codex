@@ -118,16 +118,16 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
                 var packet = new ClientQuickcastCartridgePacket(spell.getSpellResource(), new BlockTargetData(), 0, 0);
                 helper.assertTrue(ClientQuickcastCartridgePacket.handleOnServer(packet, player),
                         "Dedicated key must start casting even on cooldown");
-                helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.SPELL_POWER)
+                helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.SPELL_POWER.get())
                         - normalPower) < 0.00001,
                         "Cooldown bypass must preserve normal spell power");
                 cooldowns.tick(20);
                 QuickcastCartridgeCasting.validate(player);
-                helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.SPELL_POWER)
+                helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.SPELL_POWER.get())
                         - normalPower) < 0.00001,
                         "Spell power must remain unchanged during casting");
                 spell.onServerCastComplete(player.level(), 1, player, magic, true);
-                helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.SPELL_POWER) - normalPower) < 0.00001,
+                helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.SPELL_POWER.get()) - normalPower) < 0.00001,
                         "Completion or cancellation must preserve normal spell power");
                 helper.assertFalse(QuickcastCartridgeCasting.hasReservation(player), "Cancellation must release the reservation");
                 helper.assertTrue(QuickcastCartridgeCharge.state(player).available(QuickcastCartridgeCharge.now(player)),
@@ -157,7 +157,7 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
         helper.assertFalse(QuickcastCartridgeCasting.initiate(player), "Cartridge must still require mana");
         helper.assertTrue(magic.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId()).getCooldownRemaining() == 70,
                 "Failed initiation must preserve the existing cooldown");
-        helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER) == normalPower,
+        helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER.get()) == normalPower,
                 "Failed initiation must preserve normal spell power");
         helper.assertFalse(QuickcastCartridgeCasting.hasReservation(player), "Mana rejection must release the reservation");
         magic.setMana(1000);
@@ -167,7 +167,7 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
         MinecraftForge.EVENT_BUS.addListener(reject);
         try {
             helper.assertFalse(QuickcastCartridgeCasting.initiate(player), "Precast cancellation must remain effective");
-            helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER) == normalPower,
+            helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER.get()) == normalPower,
                     "Event rejection must preserve normal spell power");
             helper.assertFalse(QuickcastCartridgeCasting.hasReservation(player), "Precast rejection must release the reservation");
             helper.assertTrue(magic.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId()).getCooldownRemaining() == 70,
@@ -212,7 +212,7 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
             equipCurio(player, "belt", ItemStack.EMPTY);
             QuickcastCartridgeCasting.validate(player);
             helper.assertFalse(magic.isCasting(), "Unequipping must cancel the cartridge cast");
-            helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER) == 1,
+            helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER.get()) == 1,
                     "Unequipping must preserve normal spell power");
         } finally {
             Utils.serverSideCancelCast(player);
@@ -248,14 +248,14 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
                 if (spell.getCastType() == CastType.CONTINUOUS) {
                     spell.onServerCastTick(player.level(), 1, player, magic);
                     spell.castSpell(player.level(), 1, player, CastSource.SPELLBOOK, false);
-                    helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER) == 1,
+                    helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER.get()) == 1,
                             "Continuous activations must retain normal spell power");
                     helper.assertTrue(QuickcastCartridgeCharge.state(player).recoveryUntil() == recoveryUntil,
                             "Repeated continuous activations must not consume again");
                 }
                 helper.assertTrue(magic.getMana() < before, "Normal cast activations must spend mana");
                 spell.onServerCastComplete(player.level(), 1, player, magic, true);
-                helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER) == 1,
+                helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER.get()) == 1,
                         "Long and continuous completion must preserve normal spell power");
                 helper.assertTrue(QuickcastCartridgeCharge.state(player).recoveryUntil() == recoveryUntil,
                         "Cancellation after activation must not refund the charge");
@@ -312,7 +312,7 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
         try {
             helper.assertTrue(QuickcastCartridgeCasting.initiate(player),
                     "Assist Wings must remain castable with no cartridge charge");
-            helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER) == 1,
+            helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER.get()) == 1,
                     "Normal casting must preserve full spell power");
             spell.castSpell(player.level(), 1, player, CastSource.SPELLBOOK, true);
             helper.assertTrue(player.getDeltaMovement().y > 0, "Assist Wings must still produce its jump with no charge");

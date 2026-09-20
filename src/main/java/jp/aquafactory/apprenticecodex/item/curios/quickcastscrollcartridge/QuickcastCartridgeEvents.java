@@ -5,17 +5,17 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.EquipmentChangedPacket;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
-import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
-import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.TickEvent;
+import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import top.theillusivec4.curios.api.event.CurioChangeEvent;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
@@ -41,8 +41,9 @@ public final class QuickcastCartridgeEvents {
     }
 
     @SubscribeEvent
-    public static void onTick(PlayerTickEvent.Pre event) {
-        if (event.getEntity() instanceof ServerPlayer player) {
+    public static void onTick(TickEvent.PlayerTickEvent event) {
+        if (event.phase != TickEvent.Phase.START) return;
+        if (event.player instanceof ServerPlayer player) {
             QuickcastCartridgeCasting.validate(player);
             QuickcastCartridgeCharge.tick(player);
         }
@@ -76,9 +77,9 @@ public final class QuickcastCartridgeEvents {
         if (event.getEntity() instanceof ServerPlayer player) QuickcastCartridgeCharge.tick(player);
     }
 
-    @SubscribeEvent
-    public static void onDamage(LivingDamageEvent.Post event) {
-        if (event.getEntity() instanceof ServerPlayer player && event.getNewDamage() > 0) {
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onDamage(LivingDamageEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player && event.getAmount() > 0) {
             QuickcastCartridgeCharge.interruptReload(player);
         }
     }

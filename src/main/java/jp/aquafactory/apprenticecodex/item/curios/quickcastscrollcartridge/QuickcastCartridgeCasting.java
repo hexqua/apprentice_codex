@@ -31,7 +31,7 @@ public final class QuickcastCartridgeCasting {
 
     public static ItemStack findEquipped(Player player) {
         // Item 引数の overload は同 tick の検索結果をキャッシュするため、取り外し直後の再入力で使わない。
-        return CuriosApi.getCuriosInventory(player)
+        return CuriosApi.getCuriosInventory(player).resolve()
                 .flatMap(inv -> inv.findFirstCurio(stack -> stack.is(ItemRegistry.QUICKCAST_SCROLL_CARTRIDGE.get())))
                 .map(SlotResult::stack).orElse(ItemStack.EMPTY);
     }
@@ -107,7 +107,7 @@ public final class QuickcastCartridgeCasting {
                 || !state.spellId.equals(magic.getCastingSpellId())) {
             clear(player);
         } else if (state.equipped != findEquipped(player)
-                || !ItemStack.isSameItemSameComponents(state.stack, findEquipped(player))) {
+                || !ItemStack.isSameItemSameTags(state.stack, findEquipped(player))) {
             Utils.serverSideCancelCast(player);
             clear(player);
         }

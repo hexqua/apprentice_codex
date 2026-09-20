@@ -15,9 +15,9 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -29,7 +29,7 @@ public final class QuickcastCartridgeChargeGameTests extends ApprenticeCodexGame
     @GameTest(template = TEMPLATE, batch = BATCH, timeoutTicks = 100)
     public static void reloadFeedbackFollowsServerTransitions(GameTestHelper helper) {
         var messages = new java.util.ArrayList<net.minecraft.network.chat.Component>();
-        var manual = new net.neoforged.neoforge.common.util.FakePlayer(helper.getLevel(),
+        var manual = new net.minecraftforge.common.util.FakePlayer(helper.getLevel(),
                 new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "reload_feedback")) {
             @Override public void displayClientMessage(net.minecraft.network.chat.Component message, boolean actionBar) {
                 if (actionBar) messages.add(message);
@@ -103,14 +103,14 @@ public final class QuickcastCartridgeChargeGameTests extends ApprenticeCodexGame
     private static final class ReloadSoundObservation implements AutoCloseable {
         int started;
         int completed;
-        final java.util.function.Consumer<net.neoforged.neoforge.event.PlayLevelSoundEvent.AtPosition> listener = event -> {
+        final java.util.function.Consumer<net.minecraftforge.event.PlayLevelSoundEvent.AtPosition> listener = event -> {
             if (event.getSound() == null) return;
             var sound = event.getSound().value();
             if (sound == jp.aquafactory.apprenticecodex.registry.SoundRegistry.VANILLA_COLLECT_MANA.get()) started++;
             if (sound == jp.aquafactory.apprenticecodex.registry.SoundRegistry.SPELLCHARGE.get()) completed++;
         };
-        ReloadSoundObservation() { net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(listener); }
-        @Override public void close() { net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(listener); }
+        ReloadSoundObservation() { net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(listener); }
+        @Override public void close() { net.minecraftforge.common.MinecraftForge.EVENT_BUS.unregister(listener); }
     }
 
     @GameTest(template = TEMPLATE, batch = BATCH)
@@ -121,10 +121,9 @@ public final class QuickcastCartridgeChargeGameTests extends ApprenticeCodexGame
         QuickcastScrollCartridge.setCalibrationScroll(stack, 0, createSpellScroll(spell));
         var magic = MagicData.getPlayerMagicData(player);
         magic.getPlayerCooldowns().addCooldown(spell, 1000);
-        var tick = new net.neoforged.neoforge.event.tick.EntityTickEvent.Post(player);
-        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(tick);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.entity.living.LivingEvent.LivingTickEvent(player));
         helper.assertTrue(QuickcastCartridgeCasting.initiate(player), "First LONG cast must initiate");
-        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(tick);
+        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.entity.living.LivingEvent.LivingTickEvent(player));
         helper.assertTrue(magic.isCasting(), "Curios metadata notifications must not cancel the first LONG cast");
         helper.assertTrue(QuickcastCartridgeCasting.hasReservation(player), "Metadata notification must preserve the reservation");
         equipCurio(player, "back", stack.copy());
@@ -135,14 +134,14 @@ public final class QuickcastCartridgeChargeGameTests extends ApprenticeCodexGame
         helper.succeed();
     }
 
-    private static net.neoforged.neoforge.common.util.FakePlayer prepare(GameTestHelper helper, String name, long wait) {
+    private static net.minecraftforge.common.util.FakePlayer prepare(GameTestHelper helper, String name, long wait) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), name);
         return preparePlayer(player, wait);
     }
 
-    private static net.neoforged.neoforge.common.util.FakePlayer prepareDamageable(GameTestHelper helper, String name) {
+    private static net.minecraftforge.common.util.FakePlayer prepareDamageable(GameTestHelper helper, String name) {
         // 通常のFakePlayerは常時無敵なので、残ダメージを通常hurt経路へ戻すケースだけ解除する。
-        var player = new net.neoforged.neoforge.common.util.FakePlayer(helper.getLevel(),
+        var player = new net.minecraftforge.common.util.FakePlayer(helper.getLevel(),
                 new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), name)) {
             @Override public boolean isInvulnerableTo(net.minecraft.world.damagesource.DamageSource source) { return false; }
         };
@@ -158,8 +157,8 @@ public final class QuickcastCartridgeChargeGameTests extends ApprenticeCodexGame
         return preparePlayer(player, 1000);
     }
 
-    private static net.neoforged.neoforge.common.util.FakePlayer preparePlayer(
-            net.neoforged.neoforge.common.util.FakePlayer player, long wait) {
+    private static net.minecraftforge.common.util.FakePlayer preparePlayer(
+            net.minecraftforge.common.util.FakePlayer player, long wait) {
         var stack = new ItemStack(ItemRegistry.QUICKCAST_SCROLL_CARTRIDGE.get());
         QuickcastScrollCartridge.setCalibrationScroll(stack, 0, createSpellScroll(SpellRegistry.MAGIC_MISSILE_SPELL.get()));
         equipCurio(player, "back", stack);
@@ -181,8 +180,7 @@ public final class QuickcastCartridgeChargeGameTests extends ApprenticeCodexGame
         equipCurio(full, "charm", new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
         equipCurio(partial, "charm", new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get()));
         var shellCharm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
-        shellCharm.enchant(helper.getLevel().registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.ENCHANTMENT)
-                .getOrThrow(jp.aquafactory.apprenticecodex.enchantment.Enchantments.SHELL), 1);
+        shellCharm.enchant(jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry.SHELL.get(), 1);
         equipCurio(shell, "charm", shellCharm);
         equipCurio(shellAbsorbed, "charm", shellCharm.copy());
         for (var player : new ServerPlayer[]{full, partial, absorbed, shell, shellAbsorbed}) QuickcastCartridgeCasting.initiate(player);
@@ -197,7 +195,6 @@ public final class QuickcastCartridgeChargeGameTests extends ApprenticeCodexGame
             helper.assertTrue(partialHit.isCanceled(), "Partial protection must cancel the original event before applying residual damage");
             helper.assertTrue(partial.getHealth() < partial.getMaxHealth(), "Partial protection must apply residual health damage");
             helper.assertFalse(QuickcastCartridgeCharge.isReloading(partial), "Positive final damage must interrupt reload");
-            absorbed.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MAX_ABSORPTION).setBaseValue(8);
             absorbed.setAbsorptionAmount(8);
             helper.assertTrue(absorbed.getAbsorptionAmount() == 8, "Absorption must be initialized before the test hit");
             absorbed.hurt(absorbed.damageSources().generic(), 5);
@@ -206,7 +203,6 @@ public final class QuickcastCartridgeChargeGameTests extends ApprenticeCodexGame
             float shellMana = jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig.manaShieldCharmShellActivationManaCost() + 1;
             MagicData.getPlayerMagicData(shell).setMana(shellMana);
             MagicData.getPlayerMagicData(shellAbsorbed).setMana(shellMana);
-            shellAbsorbed.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MAX_ABSORPTION).setBaseValue(20);
             shellAbsorbed.setAbsorptionAmount(20);
             postLivingAttackEventForGameTest(shell, shell.damageSources().lava(), 10);
             postLivingAttackEventForGameTest(shellAbsorbed, shellAbsorbed.damageSources().lava(), 10);
@@ -245,7 +241,7 @@ public final class QuickcastCartridgeChargeGameTests extends ApprenticeCodexGame
     public static void recoveryUsesAttributesAtReservation(GameTestHelper helper) {
         var player = prepare(helper, "cartridge_attribute", 0);
         var spell = SpellRegistry.MAGIC_MISSILE_SPELL.get();
-        var cooldownAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION);
+        var cooldownAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get());
         cooldownAttribute.setBaseValue(0.4);
         int effective = io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(spell, player, CastSource.SPELLBOOK);
         var config = jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig.quickcastCartridge();
@@ -275,10 +271,6 @@ public final class QuickcastCartridgeChargeGameTests extends ApprenticeCodexGame
         Capabilities.getSpellDataOrNull(player).loadAll(saved);
         helper.assertTrue(QuickcastCartridgeCharge.state(player).recoveryUntil() == until,
                 "Save and load must preserve the recovery deadline");
-        var clone = prepare(helper, "cartridge_clone", 0);
-        CapabilityEvents.onPlayerClone(new PlayerEvent.Clone(clone, player, true));
-        helper.assertTrue(QuickcastCartridgeCharge.state(clone).recoveryUntil() == until,
-                "Death clone must preserve the recovery deadline");
         var replacement = QuickcastCartridgeCasting.findEquipped(player).copy();
         equipCurio(player, "back", ItemStack.EMPTY);
         QuickcastCartridgeCharge.tick(player);
@@ -289,6 +281,11 @@ public final class QuickcastCartridgeChargeGameTests extends ApprenticeCodexGame
         QuickcastCartridgeCharge.forget(player);
         helper.assertTrue(QuickcastCartridgeCharge.state(player).recoveryUntil() == until,
                 "Logout cleanup must preserve recovery");
+        // Forgeのclone処理は旧playerのcapabilityを無効化するため、旧個体の検証を先に済ませる。
+        var clone = prepare(helper, "cartridge_clone", 0);
+        CapabilityEvents.onPlayerClone(new PlayerEvent.Clone(clone, player, true));
+        helper.assertTrue(QuickcastCartridgeCharge.state(clone).recoveryUntil() == until,
+                "Death clone must preserve the recovery deadline");
         var restored = new QuickcastCartridgeChargeState();
         restored.consume(1000, 200);
         var tag = restored.save();
@@ -367,11 +364,11 @@ public final class QuickcastCartridgeChargeGameTests extends ApprenticeCodexGame
                 QuickcastCartridgeCasting.initiate(player);
                 helper.assertTrue(QuickcastCartridgeCharge.isReloading(player), "Second shortage must start reload");
             }
-            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(new net.neoforged.neoforge.event.entity.player.AttackEntityEvent(attack, use));
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.entity.player.AttackEntityEvent(attack, use));
             helper.assertFalse(QuickcastCartridgeCharge.isReloading(attack), "Attacking must interrupt reload");
             helper.assertTrue(QuickcastCartridgeCharge.state(attack).recoveryUntil() == until, "Interruption must preserve automatic progress");
-            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(new net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent.Start(
-                    use, new ItemStack(net.minecraft.world.item.Items.APPLE), net.minecraft.world.InteractionHand.MAIN_HAND, 32));
+            net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.entity.living.LivingEntityUseItemEvent.Start(
+                    use, new ItemStack(net.minecraft.world.item.Items.APPLE), 32));
             helper.assertFalse(QuickcastCartridgeCharge.isReloading(use), "Using an item must interrupt reload");
             MagicData.getPlayerMagicData(cast).getPlayerCooldowns().clearCooldowns();
             helper.assertTrue(SpellRegistry.MAGIC_MISSILE_SPELL.get().attemptInitiateCast(ItemStack.EMPTY, 1,

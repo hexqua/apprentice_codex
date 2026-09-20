@@ -1,13 +1,13 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 public final class QuickcastCartridgeServerConfig {
-    private final ModConfigSpec.DoubleValue multiplier;
-    private final ModConfigSpec.IntValue minimum;
-    private final ModConfigSpec.IntValue reload;
+    private final ForgeConfigSpec.DoubleValue multiplier;
+    private final ForgeConfigSpec.IntValue minimum;
+    private final ForgeConfigSpec.IntValue reload;
 
-    private QuickcastCartridgeServerConfig(ModConfigSpec.Builder builder) {
+    private QuickcastCartridgeServerConfig(ForgeConfigSpec.Builder builder) {
         builder.push("QuickcastScrollCartridge");
         multiplier = builder.comment("Multiplier for the full attribute-adjusted cooldown used to recover one charge.")
                 .defineInRange("chargeRecoveryMultiplier", 1.0, Double.MIN_NORMAL, Double.MAX_VALUE);
@@ -18,7 +18,7 @@ public final class QuickcastCartridgeServerConfig {
         builder.pop();
     }
 
-    public static QuickcastCartridgeServerConfig define(ModConfigSpec.Builder builder) {
+    public static QuickcastCartridgeServerConfig define(ForgeConfigSpec.Builder builder) {
         return new QuickcastCartridgeServerConfig(builder);
     }
 

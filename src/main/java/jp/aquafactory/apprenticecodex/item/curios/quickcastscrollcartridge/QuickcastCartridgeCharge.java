@@ -11,7 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.PacketDistributor;
+import io.redspace.ironsspellbooks.setup.PacketDistributor;
 
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -97,7 +97,7 @@ public final class QuickcastCartridgeCharge {
     public static void tick(ServerPlayer player) {
         var runtime = runtime(player);
         var stack = QuickcastCartridgeCasting.findEquipped(player);
-        if (runtime.equipped != stack || !ItemStack.isSameItemSameComponents(runtime.equipmentSnapshot, stack)) {
+        if (runtime.equipped != stack || !ItemStack.isSameItemSameTags(runtime.equipmentSnapshot, stack)) {
             runtime.confirmationAt = -1;
             runtime.reloadUntil = 0;
             runtime.reloadDuration = 0;
@@ -131,7 +131,7 @@ public final class QuickcastCartridgeCharge {
                 state.recoveryUntil(), state.recoveryDuration(), runtime.reloadUntil, runtime.reloadDuration);
         if (!force && !completed && snapshot.equals(runtime.last)) return;
         runtime.last = snapshot;
-        PacketDistributor.sendToPlayer(player, new SyncQuickcastCartridgePacket(snapshot.equipped(),
+        jp.aquafactory.apprenticecodex.network.Networks.sendToPlayer(player, new SyncQuickcastCartridgePacket(snapshot.equipped(),
                 snapshot.available(), snapshot.reserved(), now(player), snapshot.recoveryUntil(),
                 snapshot.recoveryDuration(), snapshot.reloadUntil(), snapshot.reloadDuration(), completed));
     }
