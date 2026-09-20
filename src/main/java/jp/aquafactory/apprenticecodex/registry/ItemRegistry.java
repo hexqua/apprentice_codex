@@ -14,6 +14,9 @@ import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBlad
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
+import jp.aquafactory.apprenticecodex.item.curios.manamaneuvergear.ManaManeuverGear;
+import jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm.MonarchBondCharm;
+import jp.aquafactory.apprenticecodex.item.curios.undyingemblem.UndyingEmblem;
 import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCase;
 import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRing;
 import jp.aquafactory.apprenticecodex.item.curios.circlets.AshenCirclet;
@@ -343,6 +346,8 @@ public final class ItemRegistry {
             ITEMS.register("satellite_followcast_amulet", SatelliteFollowcastAmulet::new);
     public static final RegistryObject<Item> MANA_THRUSTER =
             ITEMS.register("mana_thruster", ManaThruster::new);
+    public static final RegistryObject<Item> MANA_MANEUVER_GEAR =
+            ITEMS.register("mana_maneuver_gear", ManaManeuverGear::new);
     public static final RegistryObject<Item> MAGI_COMPRESSOR_GADGET =
             ITEMS.register("magi_compressor_gadget", MagiCompressorGadget::new);
     public static final RegistryObject<Item> JUMPCAST_CHARM =
@@ -357,6 +362,10 @@ public final class ItemRegistry {
             ITEMS.register("enchanted_circlet", EnchantedCirclet::new);
     public static final RegistryObject<Item> MANA_SHIELD_CHARM =
             ITEMS.register("mana_shield_charm", ManaShieldCharm::new);
+    public static final RegistryObject<Item> MONARCH_BOND_CHARM =
+            ITEMS.register("monarch_bond_charm", MonarchBondCharm::new);
+    public static final RegistryObject<Item> UNDYING_EMBLEM =
+            ITEMS.register("undying_emblem", UndyingEmblem::new);
     public static final RegistryObject<Item> ENDER_GRIMOIRE =
             ITEMS.register("ender_grimoire", EnderGrimoire::new);
     public static final RegistryObject<Item> ARCHIVISTS_GRIMOIRE =

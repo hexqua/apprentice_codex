@@ -1,6 +1,9 @@
 package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.network.packet.SupportedShieldPassagePacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearSlidePacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearJumpPacket;
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.AlchemyBrewerWaterSupplyEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientAnchorBlinkPacket;
@@ -13,6 +16,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientConfirmSneakSelection
 import jp.aquafactory.apprenticecodex.network.packet.ClientEpicFightAttackcastRingTargetsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientManaManeuverGearJumpPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientOpenSpellcasterAccessoryCasePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientOpenStorageStabilizerEnderChestPacket;
@@ -27,6 +31,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ForceFieldDefenseEffectPack
 import jp.aquafactory.apprenticecodex.network.packet.GunSpellTracerPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HeavenlyFistPulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.HealingBloomPulsePacket;
+import jp.aquafactory.apprenticecodex.network.packet.ManaManeuverGearFallEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowConfigPacket;
@@ -60,6 +65,8 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncLinearBuildConfigPacket
 import jp.aquafactory.apprenticecodex.network.packet.SyncMageLightConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaShieldCharmConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncUndyingEmblemConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncUndyingEmblemStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterActivePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaThrusterConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFloatmountBroomConfigPacket;
@@ -92,7 +99,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "92";
+    private static final String PROTOCOL_VERSION = "96";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -106,6 +113,29 @@ public final class Networks {
     }
 
     public static void register() {
+        CHANNEL.registerMessage(nextPacketId++, SupportedShieldPassagePacket.class,
+                SupportedShieldPassagePacket::encode, SupportedShieldPassagePacket::decode, SupportedShieldPassagePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(nextPacketId++, SyncManaManeuverGearSlidePacket.class,
+                SyncManaManeuverGearSlidePacket::encode, SyncManaManeuverGearSlidePacket::decode, SyncManaManeuverGearSlidePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(nextPacketId++, ManaManeuverGearFallEffectPacket.class,
+                ManaManeuverGearFallEffectPacket::encode, ManaManeuverGearFallEffectPacket::decode, ManaManeuverGearFallEffectPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(nextPacketId++, SyncManaManeuverGearJumpPacket.class,
+                SyncManaManeuverGearJumpPacket::encode, SyncManaManeuverGearJumpPacket::decode, SyncManaManeuverGearJumpPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(nextPacketId++, ClientManaManeuverGearJumpPacket.class,
+                ClientManaManeuverGearJumpPacket::encode, ClientManaManeuverGearJumpPacket::decode, ClientManaManeuverGearJumpPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(nextPacketId++, SyncUndyingEmblemStatePacket.class,
+                SyncUndyingEmblemStatePacket::encode, SyncUndyingEmblemStatePacket::decode, SyncUndyingEmblemStatePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+
+        CHANNEL.registerMessage(nextPacketId++, SyncUndyingEmblemConfigPacket.class,
+                SyncUndyingEmblemConfigPacket::encode, SyncUndyingEmblemConfigPacket::decode, SyncUndyingEmblemConfigPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+
         CHANNEL.registerMessage(
                 nextPacketId++,
                 ClientOpenStorageStabilizerEnderChestPacket.class,

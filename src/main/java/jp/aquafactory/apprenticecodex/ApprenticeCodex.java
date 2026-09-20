@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex;
 
+import jp.aquafactory.apprenticecodex.event.UndyingEmblemConfigSyncEvents;
+
 import com.mojang.logging.LogUtils;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexClientConfig;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
@@ -39,6 +41,7 @@ public class ApprenticeCodex
         context.registerConfig(ModConfig.Type.SERVER, ApprenticeCodexServerConfig.SPEC);
 
         var bus = context.getModEventBus();
+        UndyingEmblemConfigSyncEvents.register(bus);
         SpellRegistry.register(bus);
         EntityRegistry.register(bus);
         BlockRegistry.register(bus);

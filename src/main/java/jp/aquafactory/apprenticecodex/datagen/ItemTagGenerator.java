@@ -259,9 +259,14 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.ASHEN_CIRCLET.get(),
                 ItemRegistry.ENCHANTED_CIRCLET.get()
         );
-        tag(CURIOS_CHARM).add(ItemRegistry.MANA_SHIELD_CHARM.get());
+        tag(CURIOS_CHARM).add(
+                ItemRegistry.MANA_SHIELD_CHARM.get(),
+                ItemRegistry.MONARCH_BOND_CHARM.get(),
+                ItemRegistry.UNDYING_EMBLEM.get()
+        );
         tag(CURIOS_FEET).add(
                 ItemRegistry.MANA_THRUSTER.get(),
+                ItemRegistry.MANA_MANEUVER_GEAR.get(),
                 ItemRegistry.JUMPCAST_CHARM.get()
         );
 

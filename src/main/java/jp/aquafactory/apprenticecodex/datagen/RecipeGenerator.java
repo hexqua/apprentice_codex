@@ -366,6 +366,28 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.PROTECTION_RUNE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.PROTECTION_RUNE.get()))
                 .save(recipeWriter);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.MONARCH_BOND_CHARM.get())
+                .pattern(" R ")
+                .pattern("AEA")
+                .pattern(" M ")
+                .define('E', Items.EMERALD)
+                .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                .define('R', io.redspace.ironsspellbooks.registries.ItemRegistry.EVOCATION_RUNE.get())
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.EVOCATION_RUNE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.EVOCATION_RUNE.get()))
+                .save(recipeWriter);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.UNDYING_EMBLEM.get())
+                .pattern("ERE")
+                .pattern("MTM")
+                .pattern(" M ")
+                .define('T', Items.TOTEM_OF_UNDYING)
+                .define('E', Items.EMERALD)
+                .define('R', io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get())
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
+                .unlockedBy(getHasName(Items.TOTEM_OF_UNDYING), has(Items.TOTEM_OF_UNDYING))
+                .save(recipeWriter);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.AUTOCAST_AMULET.get())
                 .pattern("I I")
                 .pattern("ACA")
@@ -394,6 +416,16 @@ public final class RecipeGenerator extends RecipeProvider {
                 .pattern("M M")
                 .define('F', Items.FEATHER)
                 .define('P', Items.PHANTOM_MEMBRANE)
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()))
+                .save(recipeWriter);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.MANA_MANEUVER_GEAR.get())
+                .pattern("F F")
+                .pattern("A A")
+                .pattern("M M")
+                .define('F', Items.FEATHER)
+                .define('A', ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get())
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()))
                 .save(recipeWriter);

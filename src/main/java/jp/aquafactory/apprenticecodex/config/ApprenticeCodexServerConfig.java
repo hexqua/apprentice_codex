@@ -84,6 +84,16 @@ public final class ApprenticeCodexServerConfig {
         return DAMAGE_MULTIPLIER_CONFIG.value(key);
     }
 
+    public static int undyingEmblemReconstructionSpeedMultiplier() {
+        return ITEMS_CONFIG.undyingEmblemReconstructionSpeedMultiplier();
+    }
+
+    public static GameTestConfigOverride useUndyingEmblemReconstructionSpeedMultiplierOverrideForGameTest(int value) {
+        var previousValue = ITEMS_CONFIG.undyingEmblemReconstructionSpeedMultiplier();
+        ITEMS_CONFIG.setUndyingEmblemReconstructionSpeedMultiplierForGameTest(value);
+        return () -> ITEMS_CONFIG.setUndyingEmblemReconstructionSpeedMultiplierForGameTest(previousValue);
+    }
+
     public static GameTestConfigOverride useDamageMultiplierOverrideForGameTest(DamageMultiplierKey key, double value) {
         var previousValue = DAMAGE_MULTIPLIER_CONFIG.value(key);
         DAMAGE_MULTIPLIER_CONFIG.setValueForGameTest(key, value);
@@ -723,6 +733,14 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.manaThrusterManaCostPerTick();
     }
 
+    public static int manaManeuverGearManaCostPerJump() {
+        return ITEMS_CONFIG.manaManeuverGearManaCostPerJump();
+    }
+
+    public static float manaManeuverGearManaPerDamage() {
+        return ITEMS_CONFIG.manaManeuverGearManaPerDamage();
+    }
+
     public static FloatmountBroomServerConfig.Values floatmountBroomConfig() {
         return ITEMS_CONFIG.floatmountBroomConfig();
     }
@@ -1214,6 +1232,20 @@ public final class ApprenticeCodexServerConfig {
 
         ITEMS_CONFIG.setManaThrusterConfigForGameTest(manaCostPerTick);
         return () -> ITEMS_CONFIG.setManaThrusterConfigForGameTest(previousManaCostPerTick);
+    }
+
+    public static GameTestConfigOverride useManaManeuverGearConfigOverrideForGameTest(
+            int manaCostPerJump,
+            double manaPerDamage
+    ) {
+        var previousManaCostPerJump = ITEMS_CONFIG.manaManeuverGearManaCostPerJump();
+        var previousManaPerDamage = ITEMS_CONFIG.manaManeuverGearManaPerDamage();
+
+        ITEMS_CONFIG.setManaManeuverGearConfigForGameTest(manaCostPerJump, manaPerDamage);
+        return () -> ITEMS_CONFIG.setManaManeuverGearConfigForGameTest(
+                previousManaCostPerJump,
+                previousManaPerDamage
+        );
     }
 
     public static GameTestConfigOverride useFloatmountBroomConfigOverrideForGameTest(

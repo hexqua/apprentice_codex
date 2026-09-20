@@ -81,6 +81,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
             "apprenticecodex.mana_shield_charm_iframe_config";
     private static final String MANA_THRUSTER_CONFIG_BATCH =
             "apprenticecodex.mana_thruster_config";
+    private static final String MANA_MANEUVER_GEAR_CONFIG_BATCH =
+            "apprenticecodex.mana_maneuver_gear_config";
     private static final String MAGI_COMPRESSOR_GADGET_CONFIG_BATCH =
             "apprenticecodex.magi_compressor_gadget_config";
     private static final String ABSORPTION_AMPLIFY_AMULET_CONFIG_BATCH =
@@ -790,6 +792,56 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
     public static void manaThrusterAppliesFixedThrustAndUsesServerConfigManaCost(GameTestHelper helper) {
         ManaThrusterGameTestScenarios.manaThrusterAppliesFixedThrustAndUsesServerConfigManaCost(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaManeuverGearUsesFeetSlotAndDedicatedImplementation(GameTestHelper helper) {
+        ManaManeuverGearGameTestScenarios.usesFeetSlotAndDedicatedImplementation(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_MANEUVER_GEAR_CONFIG_BATCH)
+    public static void manaManeuverGearWallJumpUsesConfiguredManaAndPreservesHorizontalVelocity(GameTestHelper helper) {
+        ManaManeuverGearGameTestScenarios.wallJumpUsesConfiguredManaAndPreservesHorizontalVelocity(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_MANEUVER_GEAR_CONFIG_BATCH)
+    public static void manaManeuverGearWallJumpRejectsGroundInsufficientManaAndRepeatedTick(GameTestHelper helper) {
+        ManaManeuverGearGameTestScenarios.wallJumpRejectsGroundInsufficientManaAndRepeatedTick(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_MANEUVER_GEAR_CONFIG_BATCH)
+    public static void manaManeuverGearWallJumpRejectsPassengerWithoutSpendingMana(GameTestHelper helper) {
+        ManaManeuverGearGameTestScenarios.wallJumpRejectsPassengerWithoutSpendingMana(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_MANEUVER_GEAR_CONFIG_BATCH)
+    public static void manaManeuverGearWallJumpRequiresWallButAllowsFreeCreativeFlightContext(GameTestHelper helper) {
+        ManaManeuverGearGameTestScenarios.wallJumpRequiresWallButAllowsFreeCreativeFlightContext(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_MANEUVER_GEAR_CONFIG_BATCH)
+    public static void manaManeuverGearWallMovementRejectsClimbablesAndScaffolding(GameTestHelper helper) {
+        ManaManeuverGearGameTestScenarios.wallMovementRejectsClimbablesAndScaffolding(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_MANEUVER_GEAR_CONFIG_BATCH)
+    public static void manaManeuverGearWallSlideClampsFallingSpeedAndResetsFallDistance(GameTestHelper helper) {
+        ManaManeuverGearGameTestScenarios.wallSlideClampsFallingSpeedAndResetsFallDistance(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_MANEUVER_GEAR_CONFIG_BATCH)
+    public static void manaManeuverGearFallDamageUsesFractionalManaAndKeepsFallDistance(GameTestHelper helper) {
+        ManaManeuverGearGameTestScenarios.fallDamageUsesFractionalManaPerDamageAndKeepsFallDistance(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_MANEUVER_GEAR_CONFIG_BATCH)
+    public static void manaManeuverGearFallDamageSupportsFullFreeAndZeroManaOutcomes(GameTestHelper helper) {
+        ManaManeuverGearGameTestScenarios.fallDamageSupportsFullFreeAndZeroManaOutcomes(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MANA_MANEUVER_GEAR_CONFIG_BATCH)
+    public static void manaManeuverGearRunsBeforeManaShieldAndIgnoresOtherDamage(GameTestHelper helper) {
+        ManaManeuverGearGameTestScenarios.gearRunsBeforeManaShieldAndIgnoresOtherDamage(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = MANA_THRUSTER_CONFIG_BATCH)
@@ -2627,5 +2679,80 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE, batch = LUMINOUS_DEVICE_CONFIG_BATCH)
     public static void luminousDeviceMageLightProfileScalesManaAndDisablesRedundantExtension(GameTestHelper helper) {
         LuminousDeviceGameTestScenarios.luminousDeviceMageLightProfileScalesManaAndDisablesRedundantExtension(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondSpellHealOverflowIsReservedNearestFirst(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.spellHealOverflowIsReservedNearestFirst(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondSpellHealRequiresEquippedWearerAndMatchingOwner(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.spellHealRequiresEquippedWearerAndMatchingOwner(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondGreaterHealFullyRestoresEveryOwnedTarget(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.greaterHealFullyRestoresEveryOwnedTarget(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondSpellLifestealDoesNotDependOnSchool(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.spellLifestealDoesNotDependOnSchool(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondSpellLifestealFollowsModifiedDamage(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.spellLifestealFollowsModifiedDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondSpellLifestealSkipsCanceledDamage(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.spellLifestealSkipsCanceledDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondSpellLifestealPreservesHealingWithoutCharm(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.spellLifestealPreservesHealingWithoutCharm(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondCodexManagedEntitiesExposeHealingTarget(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.codexManagedEntitiesExposeMonarchBondHealingTarget(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondAutoRestockRefillsEmptyOwnedTurretAtRangeBoundary(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.autoRestockRefillsEmptyOwnedTurretAtRangeBoundary(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondAutoRestockUsesNearestDeterministicPriority(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.autoRestockUsesNearestDeterministicPriority(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondAutoRestockSkipsIneligibleAndUnaffordableTurrets(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.autoRestockSkipsIneligibleAndUnaffordableTurrets(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondTransferParticleCountScalesAndCaps(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.transferParticleCountScalesAndCaps(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondFieldOverseerManaRangeExtendsWhenEquipped(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.fieldOverseerManaRangeExtendsWhenCharmIsEquipped(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void monarchBondFieldOverseerManaRangeRemainsEightBlocksWithoutCharm(GameTestHelper helper) {
+        MonarchBondCharmGameTestScenarios.fieldOverseerManaRangeRemainsEightBlocksWithoutCharm(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void gracedRainHealingPostsSpellHealEvent(GameTestHelper helper) {
+        CraftsmansDelightGracedRainGameTestScenarios.gracedRainHealingPostsSpellHealEvent(helper);
     }
 }

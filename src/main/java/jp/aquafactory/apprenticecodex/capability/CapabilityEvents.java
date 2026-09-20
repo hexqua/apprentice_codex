@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.Remo
 import jp.aquafactory.apprenticecodex.capability.endergrimoire.EnderGrimoireSpellbookDataProvider;
 import jp.aquafactory.apprenticecodex.capability.companiontrunkinventory.CompanionTrunkInventoryProvider;
 import jp.aquafactory.apprenticecodex.capability.personalinventory.PersonalInventoryProvider;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.UndyingEmblemState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
@@ -74,6 +75,7 @@ public class CapabilityEvents {
                                 newSpellData.edit(CodexSpellStateTypeRegister.MANA_SHIELD_CHARM_STATE, ManaShieldCharmState::reset);
                                 newSpellData.edit(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE, MirageAvoidanceState::reset);
                                 newSpellData.edit(CodexSpellStateTypeRegister.REMOTE_EYE_STATE, RemoteEyeState::reset);
+                                newSpellData.edit(CodexSpellStateTypeRegister.UNDYING_EMBLEM_STATE, UndyingEmblemState::reset);
                             }
                         }
                 )
