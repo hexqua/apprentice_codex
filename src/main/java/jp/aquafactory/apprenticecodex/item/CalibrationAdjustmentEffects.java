@@ -21,6 +21,11 @@ public final class CalibrationAdjustmentEffects {
                 Component.translatable(KEY_PREFIX + "force_spell_school_2", percentage(manaMultiplier - 1.0D)));
     }
 
+    public static List<Component> gainEchoCast(double manaMultiplier) {
+        return List.of(Component.translatable(KEY_PREFIX + "gain_echo_cast_1"),
+                Component.translatable(KEY_PREFIX + "gain_echo_cast_2", percentage(manaMultiplier - 1.0D)));
+    }
+
     public static List<Component> separateCooldown() {
         return List.of(Component.translatable(KEY_PREFIX + "separate_cooldown_1"),
                 Component.translatable(KEY_PREFIX + "separate_cooldown_2"));

@@ -949,6 +949,18 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.multicastEchoStaffRepeatDamageMultiplier();
     }
 
+    public static boolean fullautoRapidcastSpellrifleEchoCastEnabled() {
+        return ITEMS_CONFIG.fullautoRapidcastSpellrifleEchoCastEnabled();
+    }
+
+    public static double fullautoRapidcastSpellrifleEchoCastDamageMultiplier() {
+        return ITEMS_CONFIG.fullautoRapidcastSpellrifleEchoCastDamageMultiplier();
+    }
+
+    public static double fullautoRapidcastSpellrifleEchoCastManaCostMultiplier() {
+        return ITEMS_CONFIG.fullautoRapidcastSpellrifleEchoCastManaCostMultiplier();
+    }
+
     public static int fullautoRapidcastSpellrifleCooldownBypassThresholdTicks() {
         return ITEMS_CONFIG.fullautoRapidcastSpellrifleCooldownBypassThresholdTicks();
     }

@@ -545,6 +545,18 @@ final class ItemsServerConfig {
         return hoverrideBroomConfig.values();
     }
 
+    boolean fullautoRapidcastSpellrifleEchoCastEnabled() {
+        return fullautoRapidcastSpellrifleConfig.echoCastEnabled();
+    }
+
+    double fullautoRapidcastSpellrifleEchoCastDamageMultiplier() {
+        return fullautoRapidcastSpellrifleConfig.echoCastDamageMultiplier();
+    }
+
+    double fullautoRapidcastSpellrifleEchoCastManaCostMultiplier() {
+        return fullautoRapidcastSpellrifleConfig.echoCastManaCostMultiplier();
+    }
+
     int fullautoRapidcastSpellrifleCooldownBypassThresholdTicks() {
         return fullautoRapidcastSpellrifleConfig.cooldownBypassThresholdTicks();
     }
