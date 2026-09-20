@@ -162,7 +162,8 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         var hitEntity = hitResult.getEntity();
         var owner = getOwner();
         var damageSource = damageSources().trident(this, owner == null ? this : owner);
-        var impactForward = resolveImpactForward(hitResult.getLocation());
+        var impactPosition = resolveEntityImpactPosition(hitResult);
+        var impactForward = resolveImpactForward(impactPosition);
         var damage = (float) ChargedTwinBladeStaff.resolveThrownDamage(
                 weaponStack,
                 hitEntity instanceof LivingEntity livingEntity ? livingEntity.getMobType() : MobType.UNDEFINED
@@ -179,7 +180,14 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
             }
         }
 
-        finishImpact(hitResult.getLocation().subtract(impactForward.scale(ENTITY_IMPACT_OFFSET)), impactForward, SoundEvents.TRIDENT_HIT);
+        finishImpact(impactPosition.subtract(impactForward.scale(ENTITY_IMPACT_OFFSET)), impactForward, SoundEvents.TRIDENT_HIT);
+    }
+
+    private Vec3 resolveEntityImpactPosition(EntityHitResult hitResult) {
+        // ProjectileUtil の移動判定は交点を捨てて対象の足元を返すため、同じ判定幅で交点を復元する。
+        var bounds = hitResult.getEntity().getBoundingBox().inflate(0.3F);
+        var start = position();
+        return bounds.clip(start, start.add(getDeltaMovement())).orElse(hitResult.getLocation());
     }
 
     @Override

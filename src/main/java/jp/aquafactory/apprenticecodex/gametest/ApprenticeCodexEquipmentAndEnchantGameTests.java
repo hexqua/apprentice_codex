@@ -1490,6 +1490,11 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void chargedStaffEntityImpactKeepsHitPositionWithoutFollowing(GameTestHelper helper) {
+        ChargedStaffThrowGameTestScenarios.entityImpactKeepsHitPositionWithoutFollowing(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffThrowConsumesMana(GameTestHelper helper) {
         ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffThrowConsumesMana(helper);
     }
