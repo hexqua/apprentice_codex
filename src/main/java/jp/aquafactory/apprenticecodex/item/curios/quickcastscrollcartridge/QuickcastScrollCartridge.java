@@ -187,10 +187,13 @@ public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoIte
     }
 
     @Override
-    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
-            @NotNull ItemStack stack, int slot, @NotNull SpellData data) {
-        return slot >= 0 && slot < getEnabledCalibrationScrollSlotCount(stack) && data != SpellData.EMPTY
-                ? SpellCalibrationImbueState.ACCEPTED_USABLE : SpellCalibrationImbueState.REJECTED;
+    public boolean acceptsCalibrationSpell(@NotNull SpellData spellData) {
+        return SpellCalibrationImbueTarget.isValidCalibrationSpell(spellData);
+    }
+
+    @Override
+    public boolean isCalibrationSlotAvailable(@NotNull ItemStack targetStack, int slot) {
+        return slot >= 0 && slot < getEnabledCalibrationScrollSlotCount(targetStack);
     }
 
     @Override

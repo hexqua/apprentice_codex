@@ -144,14 +144,15 @@ public final class MultipurposeStaffrifleReworkGameTests extends ApprenticeCodex
     }
 
     @GameTest(template = "gametest/basic_floor")
-    public static void silverRingRestrictsInsertionAndAddsEffectiveCastTime(GameTestHelper helper) throws Exception {
+    public static void silverRingEnablesStoredLongSpellAndAddsEffectiveCastTime(GameTestHelper helper) throws Exception {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_long");
         var lookup = helper.getLevel().registryAccess();
         var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
         var rifle = (MultipurposeStaffrifle) stack.getItem();
         var spell = SpellRegistry.FIREBALL_SPELL.get();
         var data = new SpellData(spell, 1);
-        helper.assertFalse(rifle.evaluateCalibrationImbue(stack, 0, data, lookup).canInsert(), "LONG insertion requires Silver Ring");
+        var state = rifle.evaluateCalibrationImbue(stack, 0, data, lookup);
+        helper.assertTrue(state.canInsert() && !state.isUsable(), "LONG must be storable without Silver Ring but unusable");
         rifle.trySetCalibrationAdjustment(stack, 0, new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()), lookup);
         helper.assertTrue(rifle.evaluateCalibrationImbue(stack, 0, data, lookup).isUsable(), "Silver Ring must permit LONG");
         helper.assertFalse(rifle.evaluateCalibrationImbue(stack, 0, new SpellData(SpellRegistry.FIRE_BREATH_SPELL.get(), 1), lookup).canInsert(),

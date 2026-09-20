@@ -16,7 +16,6 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
-import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRules;
@@ -250,15 +249,19 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
     }
 
     @Override
-    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
-            @NotNull ItemStack targetStack,
-            int slot,
-            @NotNull SpellData spellData
-    ) {
-        if (!isEnabledSpellSlot(targetStack, slot) || !canImbueSpell(spellData)) {
-            return SpellCalibrationImbueState.REJECTED;
-        }
-        return SpellCalibrationImbueState.accepted(canFollowcastSpell(targetStack, spellData));
+    public boolean acceptsCalibrationSpell(@NotNull SpellData spellData) {
+        return canImbueSpell(spellData);
+    }
+
+    @Override
+    public boolean isCalibrationSlotAvailable(@NotNull ItemStack targetStack, int slot) {
+        return isEnabledSpellSlot(targetStack, slot);
+    }
+
+    @Override
+    public boolean isCalibrationSpellUsable(@NotNull ItemStack targetStack, @NotNull SpellData spellData) {
+        // プレイヤー状態はここで扱わず、調整台では対象の構成による使用可否を示す。
+        return canFollowcastSpell(targetStack, spellData);
     }
 
     public static boolean isEnabledSpellSlot(@NotNull ItemStack amuletStack, int slot) {

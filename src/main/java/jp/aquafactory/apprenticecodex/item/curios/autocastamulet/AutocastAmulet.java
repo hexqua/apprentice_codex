@@ -16,7 +16,6 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
-import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -148,16 +147,19 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
     }
 
     @Override
-    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
-            @NotNull ItemStack targetStack,
-            int slot,
-            @NotNull SpellData spellData
-    ) {
-        if (!isEnabledSpellSlot(targetStack, slot) || !canImbueSpell(spellData)) {
-            return SpellCalibrationImbueState.REJECTED;
-        }
+    public boolean acceptsCalibrationSpell(@NotNull SpellData spellData) {
+        return canImbueSpell(spellData);
+    }
+
+    @Override
+    public boolean isCalibrationSlotAvailable(@NotNull ItemStack targetStack, int slot) {
+        return isEnabledSpellSlot(targetStack, slot);
+    }
+
+    @Override
+    public boolean isCalibrationSpellUsable(@NotNull ItemStack targetStack, @NotNull SpellData spellData) {
         // Wisdom Shard のプロファイルはプレイヤー状態に依存するため、ここでは対象構成だけを評価する。
-        return SpellCalibrationImbueState.accepted(canAutoCastSpell(targetStack, spellData));
+        return canAutoCastSpell(targetStack, spellData);
     }
 
     public List<Component> getImbueRestrictionTooltipLines() {
