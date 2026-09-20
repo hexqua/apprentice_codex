@@ -1,4 +1,31 @@
 {
+  "echo_arrow_charge": {
+    "subtitle": "subtitle.apprenticecodex.sound.echo_arrow_charge",
+    "sounds": [
+      {
+        "name": "minecraft:entity.warden.sonic_charge",
+        "type": "event"
+      }
+    ]
+  },
+  "echo_arrow_cast": {
+    "subtitle": "subtitle.apprenticecodex.sound.echo_arrow_cast",
+    "sounds": [
+      {
+        "name": "irons_spellbooks:spell.eldritch_blast.cast",
+        "type": "event"
+      }
+    ]
+  },
+  "echo_arrow_volley": {
+    "subtitle": "subtitle.apprenticecodex.sound.echo_arrow_volley",
+    "sounds": [
+      {
+        "name": "irons_spellbooks:spell.eldritch_blast.cast",
+        "type": "event"
+      }
+    ]
+  },
   "rifle": {
     "category": "player",
     "subtitle": "subtitle.apprenticecodex.sound.rifle",
@@ -863,6 +890,15 @@
       "minecraft:block/amethyst/break2",
       "minecraft:block/amethyst/break3",
       "minecraft:block/amethyst/break4"
+    ]
+  },
+  "vanilla_collect_mana": {
+    "_apprentice_codex_note": "ベースはSoundEvents.ENCHANTMENT_TABLE_USE",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_collect_mana",
+    "sounds": [
+      "minecraft:block/enchantment_table/enchant1",
+      "minecraft:block/enchantment_table/enchant2",
+      "minecraft:block/enchantment_table/enchant3"
     ]
   }
 }

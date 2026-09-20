@@ -128,18 +128,14 @@ final class BowGameTestSupport {
             double overheatAdditionalManaQuadraticMultiplier,
             double overheatDurationMultiplier,
             int overheatDurationMinTicks,
-            int overheatDurationCapTicks,
-            double powerArrowSpellLevelBonusPerLevel
-    ) {
+            int overheatDurationCapTicks) {
         return ApprenticeCodexServerConfig.useElementalBowConfigOverrideForGameTest(
                 magicReadyDrawTicksMultiplier,
                 overheatAdditionalManaLinearMultiplier,
                 overheatAdditionalManaQuadraticMultiplier,
                 overheatDurationMultiplier,
                 overheatDurationMinTicks,
-                overheatDurationCapTicks,
-                powerArrowSpellLevelBonusPerLevel
-        );
+                overheatDurationCapTicks);
     }
 
     static int getFocusStaffbowArrowCount(Player player) {
@@ -200,7 +196,7 @@ final class BowGameTestSupport {
             }
         }
         helper.assertTrue(
-                Objects.equals(actualShotMode, expectedShotMode) && Objects.equals(actualSelectionId, expectedSelectionId),
+                Objects.equals(actualShotMode, expectedShotMode) && Objects.equals(actualSelectionId, "magic".equals(expectedShotMode) ? elementalBowSlotId(expectedSelectionId) : expectedSelectionId),
                 message + ": expected shotMode=" + expectedShotMode + ", selection=" + expectedSelectionId
                         + " but got shotMode=" + actualShotMode + ", selection=" + actualSelectionId
         );
@@ -213,32 +209,40 @@ final class BowGameTestSupport {
     }
 
     @Nullable
-    static ElementalBow.ModeSelectionView findElementalBowSelectionView(ServerPlayer player, ItemStack stack,
-                                                                                String shotMode, @Nullable ResourceLocation selectionId) {
+    static ElementalBow.ModeSelectionView findElementalBowSelectionView(
+            ServerPlayer player,
+            ItemStack stack,
+            String shotMode,
+            @Nullable ResourceLocation selectionId
+    ) {
         return ElementalBow.getAvailableSelectionViews(player, stack).stream()
                 .filter(view -> shotMode.equals(view.selection().shotMode())
-                        && Objects.equals(selectionId, view.selection().selectionId()))
+                        && Objects.equals("magic".equals(shotMode) ? elementalBowSlotId(selectionId) : selectionId, view.selection().selectionId()))
                 .findFirst()
                 .orElse(null);
     }
 
     static void setElementalBowShotSelection(ItemStack stack, String shotMode, @Nullable ResourceLocation selectionId) {
-        var tag = stack.getOrCreateTag();
-        tag.putString("ElementalBowShotMode", shotMode);
-        if ("magic".equals(shotMode)) {
-            if (selectionId != null) {
-                tag.putString("ElementalBowMode", selectionId.toString());
+        jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowScrollStorage.migrate(stack);
+        if ("magic".equals(shotMode)) prepareElementalBowScrolls(stack);
+        var resolvedSelectionId = "magic".equals(shotMode) ? elementalBowSlotId(selectionId) : selectionId;
+        { var tag = stack.getOrCreateTag();
+            tag.putString("ElementalBowShotMode", shotMode);
+            if ("magic".equals(shotMode)) {
+                if (selectionId != null) {
+                    tag.putString("ElementalBowMode", resolvedSelectionId.toString());
+                }
+                tag.remove("ElementalBowAmmoSelection");
+                return;
             }
-            tag.remove("ElementalBowAmmoSelection");
-            return;
-        }
 
-        if (selectionId != null) {
-            tag.putString("ElementalBowAmmoSelection", selectionId.toString());
-        } else {
-            tag.remove("ElementalBowAmmoSelection");
+            if (selectionId != null) {
+                tag.putString("ElementalBowAmmoSelection", selectionId.toString());
+            } else {
+                tag.remove("ElementalBowAmmoSelection");
+            }
+            tag.remove("ElementalBowMode");
         }
-        tag.remove("ElementalBowMode");
     }
 
     static void assertTranslatableKey(GameTestHelper helper, Component component, String expectedKey, String message) {
@@ -367,5 +371,45 @@ final class BowGameTestSupport {
                 message + " (level mismatch: " + spellData.getLevel() + ")");
         helper.assertTrue(spellData.isLocked() == expectedLocked,
                 message + " (locked mismatch: " + spellData.isLocked() + ")");
+    }
+
+    static void setElementalBowMode(ItemStack stack, String mode) {
+        setElementalBowShotSelection(stack, "magic", ResourceLocation.tryParse((mode.contains(":") ? mode : "irons_spellbooks:" + mode)));
+    }
+
+    static jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig.GameTestConfigOverride useElementalBowSpellConfig(GameTestHelper helper) {
+        var previous = io.redspace.ironsspellbooks.api.config.SpellConfigManager.INSTANCE;
+        io.redspace.ironsspellbooks.api.config.SpellConfigManager.INSTANCE = new io.redspace.ironsspellbooks.api.config.SpellConfigManager();
+        io.redspace.ironsspellbooks.api.config.SpellConfigManager.INSTANCE.handleServerConfigUpdate();
+        io.redspace.ironsspellbooks.api.config.SpellConfigManager.onDatapackSync(
+                new net.minecraftforge.event.OnDatapackSyncEvent(helper.getLevel().getServer().getPlayerList(), null));
+        return () -> io.redspace.ironsspellbooks.api.config.SpellConfigManager.INSTANCE = previous;
+    }
+
+    static ResourceLocation elementalBowSlotId(ResourceLocation school) {
+        if (school == null) return null;
+        return switch (school.toString()) {
+            case "irons_spellbooks:fire" -> ElementalBow.selectionIdForSlot(0);
+            case "irons_spellbooks:ender" -> ElementalBow.selectionIdForSlot(1);
+            case "irons_spellbooks:nature" -> ElementalBow.selectionIdForSlot(2);
+            default -> school;
+        };
+    }
+
+    static void prepareElementalBowScrolls(ItemStack stack) {
+        var lookup = ElementalBow.serializationLookup();
+        var item = (ElementalBow) stack.getItem();
+        var upgrade = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get());
+        item.trySetCalibrationAdjustment(stack, 0, upgrade);
+        item.trySetCalibrationAdjustment(stack, 1, upgrade);
+        var spells = List.of(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
+                io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get(),
+                io.redspace.ironsspellbooks.api.registry.SpellRegistry.POISON_ARROW_SPELL.get());
+        for (int i = 0; i < spells.size(); i++) {
+            if (ElementalBow.getCalibrationScroll(stack, i, lookup).isEmpty()) {
+                var scroll = createSpellScroll(spells.get(i));
+                ElementalBow.setCalibrationScroll(stack, i, scroll, lookup);
+            }
+        }
     }
 }

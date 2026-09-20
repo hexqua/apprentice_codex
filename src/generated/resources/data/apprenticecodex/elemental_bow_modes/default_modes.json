@@ -1,22 +1,31 @@
 {
   "values": [
     {
-      "enchantment_bonuses": [
-        {
-          "enchantment": "minecraft:flame",
-          "flat_bonus": 2
-        }
-      ],
-      "school": "irons_spellbooks:fire",
       "spell": "irons_spellbooks:fire_arrow"
     },
     {
-      "school": "irons_spellbooks:ender",
       "spell": "irons_spellbooks:magic_arrow"
     },
     {
-      "school": "irons_spellbooks:nature",
       "spell": "irons_spellbooks:poison_arrow"
+    },
+    {
+      "spell": "irons_spellbooks:arrow_volley"
+    },
+    {
+      "spell": "apprenticecodex:lightning_arrow"
+    },
+    {
+      "spell": "apprenticecodex:bloody_arrow"
+    },
+    {
+      "spell": "apprenticecodex:sacred_arrow"
+    },
+    {
+      "spell": "apprenticecodex:lunar_aim"
+    },
+    {
+      "spell": "apprenticecodex:echo_arrow"
     }
   ]
 }

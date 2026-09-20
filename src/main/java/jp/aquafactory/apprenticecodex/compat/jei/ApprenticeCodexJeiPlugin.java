@@ -417,7 +417,7 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
                                 targetStack,
                                 displayCandidates,
                                 displayResults,
-                                rule.effectLines(),
+                                rule::effectLines,
                                 rule.constraintDisplay()
                         ));
                     }

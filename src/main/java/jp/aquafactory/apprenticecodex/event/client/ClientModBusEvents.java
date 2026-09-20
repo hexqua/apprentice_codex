@@ -62,6 +62,8 @@ import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashShellRender
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingRenderer;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarRenderer;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretRenderer;
+import jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodyArrowOrbRenderer;
+import jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodyArrowRenderer;
 import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemyShotgunRenderer;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunRenderer;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleRenderer;
@@ -74,12 +76,16 @@ import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsWin
 import jp.aquafactory.apprenticecodex.spell.dualacrobat.DualAcrobatSmgRenderer;
 import jp.aquafactory.apprenticecodex.spell.combustionjet.CombustionJetWaveRenderer;
 import jp.aquafactory.apprenticecodex.spell.bloodbrand.BloodBrandKunaiRenderer;
+import jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowCoreRenderer;
+import jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowRenderer;
 import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingRenderer;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterLauncherRenderer;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.fieldoverseer.FieldOverseerStaffRenderer;
+import jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAimArrowRenderer;
+import jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowRenderer;
 import jp.aquafactory.apprenticecodex.spell.servantgaze.ServantGazeProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.servantgaze.ServantGazeStaffRenderer;
 import jp.aquafactory.apprenticecodex.spell.frostrune.FrostRuneTrapBlockEntityRenderer;
@@ -179,6 +185,8 @@ public final class ClientModBusEvents {
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.SPELLSTAINED_RUNIC_TABLET.get(), SpellBookCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.SPELLCASTER_AMMO_POUCH.get(), SpellcasterAmmoPouchCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.SPELLCASTER_QUIVER.get(), SpellcasterQuiverCurioRenderer::new));
+        event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.QUICKCAST_SCROLL_CARTRIDGE.get(),
+                jp.aquafactory.apprenticecodex.renderer.curio.QuickcastScrollCartridgeCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.FLOATMOUNT_BROOM.get(), BroomCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.HOVERRIDE_BROOM.get(), BroomCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.ASHEN_CIRCLET.get(), AshenCircletCurioRenderer::new));
@@ -345,6 +353,8 @@ public final class ClientModBusEvents {
     }
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(EntityRegistry.LIGHTNING_ARROW.get(),
+                jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrowRenderer::new);
         event.registerEntityRenderer(EntityRegistry.SUPPORTED_SHIELD.get(), io.redspace.ironsspellbooks.entity.spells.shield.ShieldRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.ALCHEMY_BREWER.get(), AlchemyBrewerBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.ATELIER_STATION.get(), AtelierStationBlockEntityRenderer::new);
@@ -427,6 +437,12 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.ANTI_MANA_ARROW.get(), AntiManaArrowRenderer::new);
         event.registerEntityRenderer(EntityRegistry.COMBUSTION_JET_WAVE.get(), CombustionJetWaveRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BLOOD_BRAND_KUNAI.get(), BloodBrandKunaiRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.SACRED_ARROW.get(), SacredArrowRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.ECHO_ARROW.get(), EchoArrowRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.ECHO_ARROW_CORE.get(), EchoArrowCoreRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.LUNAR_AIM_ARROW.get(), LunarAimArrowRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.BLOODY_ARROW.get(), BloodyArrowRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.BLOODY_ARROW_ORB.get(), BloodyArrowOrbRenderer::new);
         event.registerEntityRenderer(EntityRegistry.THERMAL_SLICE_KATANA.get(), ThermalSliceKatanaRenderer::new);
     }
 }

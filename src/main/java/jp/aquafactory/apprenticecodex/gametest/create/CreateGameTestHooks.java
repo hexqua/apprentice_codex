@@ -223,6 +223,8 @@ public final class CreateGameTestHooks {
             var toolboxClass = Class.forName("com.simibubi.create.content.equipment.toolbox.ToolboxBlockEntity");
             var handlerClass = Class.forName("com.simibubi.create.content.equipment.toolbox.ToolboxHandler");
             if (toolboxClass.isInstance(blockEntity)) {
+                // Createは初回保存・同期でUniqueIdを採番する。監視playerのいないGameTestでも検索可能にする。
+                blockEntity.saveWithoutMetadata();
                 handlerClass.getMethod("onLoad", toolboxClass).invoke(null, blockEntity);
             }
         } catch (ReflectiveOperationException exception) {

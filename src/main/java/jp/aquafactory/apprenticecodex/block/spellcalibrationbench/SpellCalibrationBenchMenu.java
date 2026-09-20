@@ -4,10 +4,13 @@ import io.redspace.ironsspellbooks.item.Scroll;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowScrollStorage;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
+import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastScrollCartridge;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
 import jp.aquafactory.apprenticecodex.item.armor.EndgameArmorCalibration;
@@ -166,6 +169,10 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         return isScrollcasterGauntlet(getGauntletStack());
     }
 
+    public boolean hasQuickcastCartridge() {
+        return getGauntletStack().getItem() instanceof QuickcastScrollCartridge;
+    }
+
     public boolean hasChargecastCatalystbook() {
         return getGauntletStack().getItem() instanceof ChargecastCatalystbook;
     }
@@ -218,6 +225,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     public int getEnabledScrollSlotCount() {
+        if (getGauntletStack().getItem() instanceof ElementalBow) return ElementalBowScrollStorage.enabledSlots(getGauntletStack(), ElementalBow.serializationLookup());
+        if (hasQuickcastCartridge()) return QuickcastScrollCartridge.getEnabledCalibrationScrollSlotCount(getGauntletStack());
         if (hasGauntlet()) {
             return ScrollcasterGauntlet.getEnabledCalibrationScrollSlotCount(getGauntletStack());
         }
@@ -299,6 +308,10 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     public @NotNull List<Component> getImbueRestrictionTooltipLines() {
+        if (getGauntletStack().getItem() instanceof ElementalBow) {
+            return List.of(Component.translatable(
+                    "item.apprenticecodex.spellgun.tooltip.restrict_restrict_by_specific.elemental_bow"));
+        }
         if (hasRevolvercastStaff()) {
             return ((RevolvercastStaff) getGauntletStack().getItem()).getImbueRestrictionTooltipLines(getGauntletStack());
         }
@@ -363,6 +376,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         if (hasGauntlet()) {
             return ScrollcasterGauntlet.getCalibrationScroll(getGauntletStack(), slot);
         }
+        if (getGauntletStack().getItem() instanceof ElementalBow) return ElementalBow.getCalibrationScroll(getGauntletStack(), slot, ElementalBow.serializationLookup());
+        if (hasQuickcastCartridge()) return QuickcastScrollCartridge.getCalibrationScroll(getGauntletStack(), slot);
         if (hasChargecastCatalystbook()) {
             return ChargecastCatalystbook.getCalibrationScroll(getGauntletStack(), slot);
         }
@@ -388,6 +403,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
     private void refreshTargetCalibration() {
         var gauntletStack = getGauntletStack();
+        if (gauntletStack.getItem() instanceof ElementalBow) ElementalBowScrollStorage.migrate(gauntletStack);
         if (hasGauntlet()) {
             ScrollcasterGauntlet.refreshResolvedCalibrationSchool(gauntletStack);
             ScrollcasterGauntlet.refreshSelectedSpellContainer(gauntletStack);
@@ -410,6 +426,10 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     private void setScroll(int slot, @NotNull ItemStack stack) {
+        if (getGauntletStack().getItem() instanceof ElementalBow) {
+            if (stack.isEmpty() || canPlaceScrollAt(slot, stack)) ElementalBow.setCalibrationScroll(getGauntletStack(), slot, stack, ElementalBow.serializationLookup());
+            return;
+        }
         if (!canPersistScrollChanges()) {
             return;
         }
@@ -427,6 +447,10 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             return;
         }
 
+        if (hasQuickcastCartridge()) {
+            QuickcastScrollCartridge.setCalibrationScroll(getGauntletStack(), slot, stack);
+            return;
+        }
         if (hasChargecastCatalystbook()) {
             var storedStack = stack.copy();
             if (!storedStack.isEmpty()) {

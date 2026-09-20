@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.network.packet;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import jp.aquafactory.apprenticecodex.item.ImmediateSneakSelectionUiItem;
+import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastCartridgeCharge;
+import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastScrollCartridge;
 import jp.aquafactory.apprenticecodex.utility.HandStackResolver;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.InteractionHand;
@@ -45,6 +47,9 @@ public record ClientConfirmSneakSelectionPacket(InteractionHand hand, int select
                 return;
             }
             item.setSneakSelectionIndex(stack, packet.selectedIndex());
+            if (item instanceof QuickcastScrollCartridge) {
+                QuickcastCartridgeCharge.selectionChanged(player);
+            }
         });
         context.setPacketHandled(true);
     }

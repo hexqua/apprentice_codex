@@ -6,9 +6,13 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowPendingCast;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,16 +29,22 @@ final class SpellCastParryingRingDefenseLogic {
         }
 
         var windowTicks = ApprenticeCodexServerConfig.spellCastParryingRingParryWindowTicks();
-        return isWithinNormalLongCastWindow(defender, windowTicks)
+        return isWithinTimedCastWindow(defender, windowTicks)
                 || isWithinFocusStaffbowPendingWindow(defender, windowTicks);
     }
 
-    private static boolean isWithinNormalLongCastWindow(LivingEntity defender, int windowTicks) {
+    private static boolean isWithinTimedCastWindow(LivingEntity defender, int windowTicks) {
+        // エレメンタルボウの引き絞りは防御に転用させない.
+        if (defender instanceof ServerPlayer player && ElementalBowPendingCast.isManagedCast(player)) {
+            return false;
+        }
         var magicData = MagicData.getPlayerMagicData(defender);
         if (magicData == null || !magicData.isCasting()) {
             return false;
         }
-        if (magicData.getCastType() != CastType.LONG) {
+        // Chargecast は元の INSTANT 型を維持して待機時間だけを追加するため、発動体も確認する。
+        var chargecast = defender instanceof Player player && ChargecastCatalystbook.isManagedCast(player, null);
+        if (magicData.getCastType() != CastType.LONG && !chargecast) {
             return false;
         }
 

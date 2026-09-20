@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
@@ -24,5 +25,9 @@ public final class EntityTypeTagGenerator extends TagsProvider<EntityType<?>> {
         tag(TagRegistry.EntityTypes.COUNTS_AS_UNDEAD)
                 .addOptional(ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "necromancer"));
         tag(TagRegistry.EntityTypes.GRAVITY_BOUND_DENYLIST);
+        // 通常弾も含め、Iron'sの誘導と専用のモード選択を競合させない。
+        tag(io.redspace.ironsspellbooks.util.ModTags.GUIDING_BOLT_IMMUNE)
+                .add(net.minecraft.tags.TagEntry.element(EntityRegistry.SACRED_ARROW.getId()))
+                .add(net.minecraft.tags.TagEntry.element(EntityRegistry.LUNAR_AIM_ARROW.getId()));
     }
 }

@@ -130,4 +130,9 @@ public final class SoundRegistry {
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);
     }
+
+    public static final RegistryObject<SoundEvent> ECHO_ARROW_CHARGE = reg("echo_arrow_charge");
+    public static final RegistryObject<SoundEvent> ECHO_ARROW_CAST = reg("echo_arrow_cast");
+    public static final RegistryObject<SoundEvent> ECHO_ARROW_VOLLEY = reg("echo_arrow_volley");
+    public static final RegistryObject<SoundEvent> VANILLA_COLLECT_MANA = reg("vanilla_collect_mana");
 }

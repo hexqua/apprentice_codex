@@ -1440,6 +1440,16 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void spellCastParryingRingFocusStaffbowLongPendingBlocks(GameTestHelper helper) {
+        SpellCastParryingRingGameTestScenarios.spellCastParryingRingFocusStaffbowLongPendingBlocks(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = SPELL_CAST_PARRYING_RING_CONFIG_BATCH)
+    public static void spellCastParryingRingChargecastRespectsWindowAndCancellation(GameTestHelper helper) {
+        SpellCastParryingRingGameTestScenarios.spellCastParryingRingChargecastRespectsWindowAndCancellation(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void spellCastParryingRingFocusStaffbowContinuousPendingDoesNotBlock(GameTestHelper helper) {
         SpellCastParryingRingGameTestScenarios.spellCastParryingRingFocusStaffbowContinuousPendingDoesNotBlock(helper);
     }
@@ -1966,13 +1976,13 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void elementalBowSynchronizesSpellContainerToCurrentMode(GameTestHelper helper) {
-        ElementalBowGameTestScenarios.elementalBowSynchronizesSpellContainerToCurrentMode(helper);
+    public static void elementalBowUsesStoredScrollWithoutSpellContainer(GameTestHelper helper) {
+        ElementalBowGameTestScenarios.elementalBowUsesStoredScrollWithoutSpellContainer(helper);
     }
 
     @GameTest(template = TEMPLATE)
-    public static void elementalBowSpellContainerAppliesPowerFlameAndClearsInNoneMode(GameTestHelper helper) {
-        ElementalBowGameTestScenarios.elementalBowSpellContainerAppliesPowerFlameAndClearsInNoneMode(helper);
+    public static void elementalBowScrollLevelUsesOnlyTranscendence(GameTestHelper helper) {
+        ElementalBowGameTestScenarios.elementalBowScrollLevelUsesOnlyTranscendence(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -2161,8 +2171,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = ELEMENTAL_BOW_OVERHEAT_BATCH)
-    public static void elementalBowOverheatTracksSchoolsSeparately(GameTestHelper helper) {
-        ElementalBowGameTestScenarios.elementalBowOverheatTracksSchoolsSeparately(helper);
+    public static void elementalBowSharesOverheatAcrossSpellsAndBows(GameTestHelper helper) {
+        ElementalBowGameTestScenarios.elementalBowSharesOverheatAcrossSpellsAndBows(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = ELEMENTAL_BOW_OVERHEAT_BATCH, timeoutTicks = 80)
@@ -2186,8 +2196,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = ELEMENTAL_BOW_POWER_CONFIG_BATCH)
-    public static void elementalBowPowerSpellLevelBonusUsesServerConfig(GameTestHelper helper) {
-        ElementalBowGameTestScenarios.elementalBowPowerSpellLevelBonusUsesServerConfig(helper);
+    public static void elementalBowPowerDoesNotIncreaseSpellLevel(GameTestHelper helper) {
+        ElementalBowGameTestScenarios.elementalBowPowerDoesNotIncreaseSpellLevel(helper);
     }
 
     @GameTest(template = TEMPLATE)

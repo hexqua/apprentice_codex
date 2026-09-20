@@ -206,10 +206,9 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
                     "Mana Shield Charm partial reduction should apply the one-hit low mana rescue consistently for the unarmored player"
                             + " expectedMana=" + expectedRemainingMana
                             + " actualMana=" + unarmoredMana.getMana());
-            helper.assertTrue(armoredEvent.isCanceled(),
-                    "Mana Shield Charm partial reduction should cancel the original armored LivingAttackEvent");
-            helper.assertTrue(unarmoredEvent.isCanceled(),
-                    "Mana Shield Charm partial reduction should cancel the original unarmored LivingAttackEvent");
+            // ForgeのLivingAttackEventは量を変更できないため、元イベントを止めて残量だけ再入する。
+            helper.assertTrue(armoredEvent.isCanceled() && unarmoredEvent.isCanceled(),
+                    "Partial absorption must cancel both original damage events before residual damage");
             helper.assertTrue(getManaShieldCharmState(armored).cooldownActive == (expectedRemainingMana <= 0.0F),
                     "Mana Shield Charm armored partial reduction cooldown should match the rescued remaining mana expectation");
             helper.assertTrue(getManaShieldCharmState(unarmored).cooldownActive == (expectedRemainingMana <= 0.0F),
@@ -306,11 +305,12 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
             var unarmoredEvent = postLivingAttackEventForGameTest(unarmored, normalSource, 8.0F);
             var bypassSource = jp.aquafactory.apprenticecodex.utility.CombatTools.getDamageSource(helper.getLevel(), bypassArmor, DamageTypes.UNITE_LUNA);
             var bypassEvent = postLivingAttackEventForGameTest(bypassArmor, bypassSource, 2.0F);
-            helper.assertTrue(armoredEvent.isCanceled() && unarmoredEvent.isCanceled() && bypassEvent.isCanceled(),
-                    "Mana Shield Charm Shell test should cancel all intercepted LivingAttackEvent instances");
+            helper.assertTrue(armoredEvent.isCanceled() && unarmoredEvent.isCanceled(),
+                    "Forge must cancel the original hit for full absorption or residual reentry");
+            helper.assertTrue(bypassEvent.isCanceled(), "Shell must cancel fully absorbed armor-bypass damage");
             var expectedArmoredMana = armoredAvailableMana
                     - 50.0F
-                    - 25.0F * countWholeDamageStepsForGameTest(fullyReduced);
+                    - 25.0F * (int) Math.ceil(fullyReduced);
             helper.assertTrue(Math.abs(armoredMana.getMana() - expectedArmoredMana) < 1.0e-4F,
                     "Shell should apply armor, toughness, and protection before charging barrier mana"
                             + " reducedDamage=" + fullyReduced
@@ -387,8 +387,10 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
                     helper.getLevel(), bypassArmor, DamageTypes.UNITE_LUNA);
             var bypassEvent = postLivingAttackEventForGameTest(bypassArmor, bypassSource, 2.0F);
 
-            helper.assertTrue(armoredEvent.isCanceled(),
-                    "Shell should apply armor mitigation when mana exactly pays its activation cost");
+            helper.assertFalse(armoredEvent.isCanceled(),
+                    "Shell must continue the event when only its activation cost is available");
+            helper.assertTrue(armoredEvent.getAmount() == 2.0F,
+                    "Shell must pass the original damage when mana absorbs none of the hit");
             helper.assertTrue(armoredChestplate.getDamageValue() == 1,
                     "Shell should damage armor after activating at its exact mana cost");
             helper.assertTrue(Math.abs(armoredMana.getMana()) < 1.0e-4F,
@@ -421,10 +423,10 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
             var event = postLivingAttackEventForGameTest(
                     player, helper.getLevel().damageSources().lava(), 0.5F);
 
-            helper.assertFalse(event.isCanceled(),
-                    "Shell should not cancel fractional damage when no armor or barrier step reduces it");
-            helper.assertTrue(Math.abs(magicData.getMana() - 50.0F) < 1.0e-4F,
-                    "Shell should charge its fixed activation cost even for fractional damage");
+            helper.assertTrue(event.isCanceled(),
+                    "Shell must fully absorb fractional damage");
+            helper.assertTrue(Math.abs(magicData.getMana() - 25.0F) < 1.0e-4F,
+                    "Shell must charge activation plus one full mana step for fractional damage");
             helper.succeed();
         });
     }
@@ -733,7 +735,7 @@ final class ManaShieldCharmGameTestScenarios extends ApprenticeCodexGameTestScen
                 var event = postLivingAttackEventForGameTest(player, source, 5.0F);
 
                 helper.assertTrue(event.isCanceled(),
-                        "Shell durability config test should still intercept normal damage");
+                        "Forge must cancel the original hit before applying residual damage");
                 helper.assertTrue(chestplate.getDamageValue() == 3,
                         "Shell should damage armor by ceil(raw damage / 4 * configured multiplier)");
             }

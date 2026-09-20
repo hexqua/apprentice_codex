@@ -11755,18 +11755,14 @@ public class ApprenticeCodexGameTestScenarios {
             double overheatAdditionalManaQuadraticMultiplier,
             double overheatDurationMultiplier,
             int overheatDurationMinTicks,
-            int overheatDurationCapTicks,
-            double powerArrowSpellLevelBonusPerLevel
-    ) {
+            int overheatDurationCapTicks) {
         return ApprenticeCodexServerConfig.useElementalBowConfigOverrideForGameTest(
                 magicReadyDrawTicksMultiplier,
                 overheatAdditionalManaLinearMultiplier,
                 overheatAdditionalManaQuadraticMultiplier,
                 overheatDurationMultiplier,
                 overheatDurationMinTicks,
-                overheatDurationCapTicks,
-                powerArrowSpellLevelBonusPerLevel
-        );
+                overheatDurationCapTicks);
     }
 
     static int getFocusStaffbowArrowCount(Player player) {
@@ -12642,38 +12638,9 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static float resolveExpectedBarrierManaAfterHitForGameTest(float incomingDamage, float availableMana) {
-        var remainingDamage = incomingDamage;
-        var remainingMana = availableMana;
-        var manaPerDamage = ApprenticeCodexServerConfig.manaShieldCharmManaPerDamage();
-
-        if (manaPerDamage <= 0.0F) {
-            return remainingMana;
-        }
-
-        while (remainingDamage >= 1.0F) {
-            if (remainingMana >= manaPerDamage) {
-                remainingDamage -= 1.0F;
-                remainingMana -= manaPerDamage;
-                continue;
-            }
-            if (remainingMana > 0.0F) {
-                remainingDamage -= 1.0F;
-                remainingMana = 0.0F;
-            }
-            break;
-        }
-
-        return Math.max(remainingMana, 0.0F);
-    }
-
-    static int countWholeDamageStepsForGameTest(float damage) {
-        var remainingDamage = damage;
-        var count = 0;
-        while (remainingDamage >= 1.0F) {
-            remainingDamage -= 1.0F;
-            ++count;
-        }
-        return count;
+        var cost = (float) Math.ceil(Math.max(incomingDamage, 0.0F))
+                * ApprenticeCodexServerConfig.manaShieldCharmManaPerDamage();
+        return Math.max(availableMana - cost, 0.0F);
     }
 
     static void assertClose(
@@ -12743,22 +12710,7 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static void setElementalBowShotSelection(ItemStack stack, String shotMode, @Nullable ResourceLocation selectionId) {
-        var tag = stack.getOrCreateTag();
-        tag.putString("ElementalBowShotMode", shotMode);
-        if ("magic".equals(shotMode)) {
-            if (selectionId != null) {
-                tag.putString("ElementalBowMode", selectionId.toString());
-            }
-            tag.remove("ElementalBowAmmoSelection");
-            return;
-        }
-
-        if (selectionId != null) {
-            tag.putString("ElementalBowAmmoSelection", selectionId.toString());
-        } else {
-            tag.remove("ElementalBowAmmoSelection");
-        }
-        tag.remove("ElementalBowMode");
+        BowGameTestSupport.setElementalBowShotSelection(stack, shotMode, selectionId);
     }
 
     static void assertTranslatableKey(GameTestHelper helper, Component component, String expectedKey, String message) {
@@ -14510,5 +14462,9 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(registry.get(id) == entry.get(),
                     "Missing " + registryName + " registry entry: " + id);
         }
+    }
+
+    static void setElementalBowMode(ItemStack stack, String mode) {
+        BowGameTestSupport.setElementalBowMode(stack, mode);
     }
 }
