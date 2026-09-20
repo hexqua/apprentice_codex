@@ -85,9 +85,6 @@ public final class EntityRegistry {
     public static final DeferredRegister<EntityType<?>> ENTITIES =
             DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, ApprenticeCodex.MODID);
 
-    public static final RegistryObject<EntityType<jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity>> SCYTHE_THROW =
-            regProjectile("spell_reaper_scythe_throw", jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity::new, 8, 1);
-
     private enum FireBehaviors {
         IMMUNE,
         VULNERABLE
@@ -388,6 +385,9 @@ public final class EntityRegistry {
                     .<SupportedShieldEntity>of(SupportedShieldEntity::new, MobCategory.MISC)
                     .sized(1F, 1F).clientTrackingRange(64).build("apprenticecodex:supported_shield"));
 
+    public static final RegistryObject<EntityType<jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity>> SCYTHE_THROW =
+            regProjectile("spell_reaper_scythe_throw", jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity::new, 8, 1);
+    
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);
     }
