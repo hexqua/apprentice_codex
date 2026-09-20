@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunCastContext;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
@@ -263,8 +264,8 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
                     CastSource.SWORD
             );
             MultipurposeStaffrifleCastEvent.onSpellCooldownAdded(cooldownEvent);
-            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == 0,
-                    "Multipurpose Staffrifle instant cast should bypass cooldowns at the threshold: "
+            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == 200,
+                    "Multipurpose Staffrifle instant cast must preserve normal cooldown: "
                             + cooldownEvent.getEffectiveCooldown());
         });
     }

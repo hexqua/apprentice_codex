@@ -108,6 +108,16 @@ public final class CalibrationAdjustmentEffects {
         return line("change_imbue_to_select");
     }
 
+    public static List<Component> switchImbueToSelected() {
+        return List.of(Component.translatable(KEY_PREFIX + "switch_imbue_to_select_1"),
+                Component.translatable(KEY_PREFIX + "switch_imbue_to_select_2"));
+    }
+
+    public static List<Component> spyglassScope() {
+        return List.of(Component.translatable(KEY_PREFIX + "spyglass_scope_1"),
+                Component.translatable(KEY_PREFIX + "spyglass_scope_2"));
+    }
+
     public static List<Component> adaptAutocastSituation() {
         return List.of(
                 Component.translatable(KEY_PREFIX + "adapt_autocast_situation_1"),

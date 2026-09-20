@@ -13,8 +13,8 @@ public final class MultipurposeStaffrifleClientAdsState {
     }
 
     public static boolean shouldHandleAsAds(@Nullable LivingEntity entity) {
-        if (entity instanceof LocalPlayer localPlayer && isLocalAdsKeyHeld(localPlayer)) {
-            return true;
+        if (entity instanceof LocalPlayer localPlayer) {
+            return isLocalAdsKeyHeld(localPlayer);
         }
 
         return MultipurposeStaffrifle.isAdsUse(entity);
@@ -26,10 +26,19 @@ public final class MultipurposeStaffrifleClientAdsState {
         return player != null
                 && player == minecraft.player
                 && minecraft.screen == null
+                && player.isAlive()
+                && !minecraft.isPaused()
                 && !player.isSpectator()
                 && !isEpicFightBattleMode()
                 && minecraft.options.keyUse.isDown()
                 && player.getMainHandItem().getItem() instanceof MultipurposeStaffrifle;
+    }
+
+    public static boolean isScoped(@Nullable LivingEntity player) {
+        return player instanceof LocalPlayer localPlayer
+                && Minecraft.getInstance().options.getCameraType().isFirstPerson()
+                && isLocalAdsKeyHeld(localPlayer)
+                && MultipurposeStaffrifle.hasSpyglass(player.getMainHandItem(), player.level().registryAccess());
     }
 
     private static boolean isEpicFightBattleMode() {

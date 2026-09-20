@@ -96,7 +96,7 @@ public final class SpellgunAmmoHudRenderEvent {
             return new AmmoHudEntry(
                     new ItemStack(ammoItem),
                     SpellGunCastEvent.countAvailableAmmo(player, player.getInventory(), ammoItem),
-                    0.0F
+                    resolveCooldownRatio(MultipurposeStaffrifle.resolveCastSpellData(player, weaponStack), partialTick)
             );
         }
         if (weaponStack.getItem() instanceof FullautoRapidcastSpellrifle staffrifle) {

@@ -76,7 +76,7 @@ public final class BetterCombatClientCompat {
         if (!attackHand.isOffHand()
                 && player.getMainHandItem().getItem() instanceof MultipurposeStaffrifle
                 && !MultipurposeStaffrifleClientAdsState.isLocalAdsKeyHeld(player)) {
-            ClientMultipurposeStaffrifleInputEvent.trySendNonAdsSpecialCast(minecraft);
+            ClientMultipurposeStaffrifleInputEvent.trySendSingleShot(minecraft);
         }
         if (!attackHand.isOffHand()
                 && player.getMainHandItem().getItem() instanceof FullautoRapidcastSpellrifle
