@@ -31,9 +31,12 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.ProjectileImpactEvent;
 
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 final class ChargedStaffThrowGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private ChargedStaffThrowGameTestScenarios() {
@@ -171,6 +174,76 @@ final class ChargedStaffThrowGameTestScenarios extends ApprenticeCodexGameTestSc
                 target.discard();
                 level.setRainLevel(rain);
                 level.setThunderLevel(thunder);
+            }
+        });
+    }
+
+    static void entityImpactKeepsHitPositionWithoutFollowing(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var level = helper.getLevel();
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "staff_impact_position");
+            var origin = helper.absoluteVec(new Vec3(1, 100, 1));
+            // 実際の飛翔判定を通し、中央への命中とかすめる命中の両方で座標を確認する。
+            for (int scenario = 0; scenario < 4; ++scenario) {
+                var target = Objects.requireNonNull(EntityType.COW.create(level));
+                target.setPos(origin);
+                target.setNoAi(true);
+                target.setNoGravity(true);
+                level.addFreshEntity(target);
+                var projectile = new ChargedTwinBladeStaffThrownEntity(EntityRegistry.CHARGED_TWIN_BLADE_STAFF_THROWN.get(),
+                        level, player, new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get()),
+                        ChargedTwinBladeStaffSpellPayload.EMPTY);
+                double xOffset = scenario == 1 ? target.getBbWidth() / 2.0D + 0.15D : 0;
+                var start = origin.add(xOffset, 0.8D, -2);
+                projectile.setPos(start);
+                projectile.shoot(0, 0, 1, 3, 0);
+                level.addFreshEntity(projectile);
+                var originalHitPosition = new Vec3(start.x, start.y, target.getBoundingBox().minZ - (double) 0.3F);
+                boolean moveTargetAroundStart = scenario == 2;
+                boolean moveTargetAlongPath = scenario == 3;
+                // イベント中に交点が消える場合と別の交点ができる場合の両方で、元の交点を維持する。
+                Consumer<ProjectileImpactEvent> impactListener = event -> {
+                    if (event.getProjectile() != projectile) {
+                        return;
+                    }
+                    helper.assertTrue(event.getRayTraceResult().getLocation().distanceToSqr(originalHitPosition) < 1.0E-8D,
+                            "Impact event must receive the original flight intersection");
+                    if (moveTargetAroundStart) {
+                        target.setPos(origin.add(0, 0, -2));
+                        var bounds = target.getBoundingBox().inflate(0.3F);
+                        helper.assertTrue(bounds.contains(start)
+                                        && bounds.clip(start, start.add(projectile.getDeltaMovement())).isEmpty(),
+                                "Regression setup must move the target around the staff with no entry intersection");
+                    } else if (moveTargetAlongPath) {
+                        target.setPos(origin.add(0, 0, 0.5D));
+                        var movedIntersection = target.getBoundingBox().inflate(0.3F)
+                                .clip(start, start.add(projectile.getDeltaMovement()));
+                        helper.assertTrue(movedIntersection.isPresent()
+                                        && movedIntersection.get().distanceToSqr(originalHitPosition) > 0.1D,
+                                "Regression setup must produce a different intersection after the target moves");
+                    }
+                };
+                NeoForge.EVENT_BUS.addListener(impactListener);
+                try {
+                    projectile.tick();
+                    helper.assertTrue(projectile.isImpacted(), "Staff must hit the target through the flight collision path");
+                    var expected = originalHitPosition.add(0, 0, -0.01D);
+                    helper.assertTrue(projectile.position().distanceToSqr(expected) < 1.0E-8D,
+                            "Staff must remain at the flight intersection instead of the target's feet: " + projectile.position());
+                    var fixedPosition = projectile.position();
+                    target.setPos(origin.add(2, 1, 2));
+                    target.setYRot(90);
+                    target.yBodyRot = 90;
+                    for (int tick = 0; tick < 3; ++tick) {
+                        projectile.tick();
+                    }
+                    helper.assertTrue(projectile.position().equals(fixedPosition) && projectile.getDeltaMovement().equals(Vec3.ZERO),
+                            "Impacted staff must stay at its world position after the target moves and turns");
+                } finally {
+                    NeoForge.EVENT_BUS.unregister(impactListener);
+                    projectile.discard();
+                    target.discard();
+                }
             }
         });
     }
