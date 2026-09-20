@@ -8,6 +8,8 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.SyncFullautoRapidcastSpellrifleFireEffectPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -40,6 +42,10 @@ public final class FullautoRapidcastSpellrifleCastEvent {
         if (!FullautoRapidcastSpellrifleCastContext.isActiveFor(player.getUUID(), castingItem, spell)) {
             return;
         }
+
+        // 詠唱開始の通知では、実行までに届いた反動の視線同期が初弾の向きを変えてしまう。
+        // 同期処理へ戻る前に魔法を実行するこのイベントで、発射後のリコイルを通知する。
+        Networks.sendToTrackingEntityAndSelf(player, new SyncFullautoRapidcastSpellrifleFireEffectPacket(player.getId()));
 
         if (FullautoRapidcastSpellrifleCastContext.isActiveRecastFor(player.getUUID(), castingItem, spell)) {
             FullautoRapidcastSpellrifleCastContext.clearPendingIfMatches(player.getUUID(), castingItem, spell);

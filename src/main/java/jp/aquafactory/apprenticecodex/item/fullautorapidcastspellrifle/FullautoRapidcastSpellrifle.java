@@ -44,8 +44,6 @@ import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunSpellListManager;
 import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
-import jp.aquafactory.apprenticecodex.network.Networks;
-import jp.aquafactory.apprenticecodex.network.packet.SyncFullautoRapidcastSpellrifleFireEffectPacket;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
@@ -108,6 +106,9 @@ public final class FullautoRapidcastSpellrifle extends Item
     private static final CalibrationAdjustmentProfile CALIBRATION_PROFILE = CalibrationAdjustmentProfile.of(
             CalibrationAdjustmentRule.unique("silver_ring", FullautoRapidcastSpellrifle::isSilverRing,
                     CalibrationAdjustmentHints.silverRing()).withEffectLines(CalibrationAdjustmentEffects.addLongSupport()),
+            CalibrationAdjustmentRule.unique("recovery_rune", FullautoRapidcastSpellrifle::isRecoveryRune,
+                            CalibrationAdjustmentHint.specificItem(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE))
+                    .withEffectLines(CalibrationAdjustmentEffects.removeRecoil()),
             CalibrationAdjustmentRule.repeatable("slot_upgrade", FullautoRapidcastSpellrifle::isSlotUpgrade,
                             CalibrationAdjustmentHint.specificItem(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE))
                     .withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(1))
@@ -425,7 +426,6 @@ public final class FullautoRapidcastSpellrifle extends Item
                 0.9F,
                 0.96F + player.getRandom().nextFloat() * 0.08F
         );
-        Networks.sendToTrackingEntityAndSelf(player, new SyncFullautoRapidcastSpellrifleFireEffectPacket(player.getId()));
 
         if (!(player.level() instanceof ServerLevel serverLevel)) {
             return;
@@ -554,7 +554,7 @@ public final class FullautoRapidcastSpellrifle extends Item
     }
 
     private void appendFullautoRapidcastSpellrifleHelpTooltip(ItemStack stack, List<Component> lines) {
-        appendFullautoRapidcastSpellrifleDescription(lines);
+        appendFullautoRapidcastSpellrifleDescription(stack, lines);
         ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
         if (ImbueTooltipHelper.appendHintIfDetailsHidden(lines)) {
             return;
@@ -598,13 +598,15 @@ public final class FullautoRapidcastSpellrifle extends Item
         return translatedLines;
     }
 
-    private static void appendFullautoRapidcastSpellrifleDescription(List<Component> lines) {
+    private static void appendFullautoRapidcastSpellrifleDescription(ItemStack stack, List<Component> lines) {
         lines.add(Component.translatable(
-                "item.apprenticecodex.multipurpose_staffrifle.desc_1",
+                "item.apprenticecodex.fullauto_rapidcast_spellrifle.desc_1",
                 ImbueTooltipHelper.getAttackKeyName()
         ).withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable(
-                "item.apprenticecodex.multipurpose_staffrifle.desc_2",
+                hasRecoveryRune(stack, serializationLookup())
+                        ? "item.apprenticecodex.fullauto_rapidcast_spellrifle.desc_2.no_recoil"
+                        : "item.apprenticecodex.fullauto_rapidcast_spellrifle.desc_2",
                 ImbueTooltipHelper.getUseKeyName()
         ).withStyle(ChatFormatting.GRAY));
     }
@@ -656,6 +658,20 @@ public final class FullautoRapidcastSpellrifle extends Item
 
     public static boolean isSilverRing(ItemStack stack) {
         return stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get());
+    }
+
+    private static boolean isRecoveryRune(ItemStack stack) {
+        return stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get());
+    }
+
+    public static boolean hasRecoveryRune(ItemStack stack, HolderLookup.Provider lookup) {
+        if (!(stack.getItem() instanceof FullautoRapidcastSpellrifle)) return false;
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; slot++) {
+            if (isRecoveryRune(CalibrationAdjustmentStorage.get(stack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, lookup))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static HolderLookup.Provider serializationLookup() {

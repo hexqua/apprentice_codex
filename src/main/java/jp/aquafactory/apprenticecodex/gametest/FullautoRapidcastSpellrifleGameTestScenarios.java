@@ -24,6 +24,7 @@ import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoR
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleCastContext;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleCastEvent;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleRateLimiter;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleRecoil;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleScrollStorage;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
@@ -54,6 +55,98 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
 public final class FullautoRapidcastSpellrifleGameTestScenarios extends ApprenticeCodexGameTestScenarios {
+    @GameTest(template = "gametest/basic_floor")
+    public static void fullautoRecoveryRuneIsUniqueAndUpdatesDescription(GameTestHelper helper) {
+        var lookup = helper.getLevel().registryAccess();
+        var stack = new ItemStack(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
+        var rifle = (FullautoRapidcastSpellrifle) stack.getItem();
+        var rune = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get());
+        helper.assertFalse(FullautoRapidcastSpellrifle.hasRecoveryRune(stack, lookup), "Unadjusted rifle must retain recoil");
+        helper.assertTrue(rifle.trySetCalibrationAdjustment(stack, 2, rune, lookup), "Recovery Rune must fit any adjustment slot");
+        helper.assertTrue(FullautoRapidcastSpellrifle.hasRecoveryRune(stack, lookup), "Recovery Rune must disable camera recoil");
+        helper.assertFalse(rifle.trySetCalibrationAdjustment(stack, 0, rune, lookup), "Duplicate Recovery Rune must be rejected");
+        helper.assertTrue(rifle.trySetCalibrationAdjustment(stack, 0,
+                        new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()), lookup),
+                "Recovery Rune must coexist with Silver Ring");
+        helper.assertTrue(rifle.trySetCalibrationAdjustment(stack, 1,
+                        new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get()), lookup),
+                "Recovery Rune must coexist with the scroll slot upgrade");
+        helper.assertTrue(rifle.getEnabledCalibrationScrollSlotCount(stack, lookup) == 2
+                        && FullautoRapidcastSpellrifle.hasSilverRing(stack, lookup),
+                "Other adjustments must retain their effects");
+        var restored = ItemStack.parseOptional(lookup, (CompoundTag) stack.saveOptional(lookup));
+        helper.assertTrue(FullautoRapidcastSpellrifle.hasRecoveryRune(restored, lookup), "Recovery Rune must survive serialization");
+        var rule = rifle.getCalibrationAdjustmentProfile(stack).rules().stream()
+                .filter(candidate -> candidate.accepts(rune)).findFirst().orElseThrow();
+        assertTranslatableKey(helper, rule.effectLines().getFirst(),
+                "jei.apprenticecodex.spell_calibration_bench.effect.remove_recoil", "JEI must explain recoil removal");
+        var lines = new ArrayList<Component>();
+        rifle.appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), lines, TooltipFlag.Default.NORMAL);
+        assertTranslatableKey(helper, lines.get(1), "item.apprenticecodex.fullauto_rapidcast_spellrifle.desc_2.no_recoil",
+                "Adjusted controls must not claim ADS reduces recoil");
+        helper.assertTrue(rifle.trySetCalibrationAdjustment(stack, 2, ItemStack.EMPTY, lookup), "Recovery Rune must be removable");
+        helper.assertFalse(FullautoRapidcastSpellrifle.hasRecoveryRune(stack, lookup), "Removing Recovery Rune must restore recoil");
+        lines.clear();
+        rifle.appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), lines, TooltipFlag.Default.NORMAL);
+        assertTranslatableKey(helper, lines.get(1), "item.apprenticecodex.fullauto_rapidcast_spellrifle.desc_2",
+                "Removing Recovery Rune must restore the ADS recoil description");
+        helper.succeed();
+    }
+
+    @GameTest(template = "gametest/basic_floor")
+    public static void fullautoRecoilDistributesAndOverlapsWithoutLosingAngle(GameTestHelper helper) {
+        var recoil = new FullautoRapidcastSpellrifleRecoil();
+        recoil.addImpulse(3.0F, 0);
+        helper.assertTrue(recoil.advanceImpulses(0) == 0, "Recoil must not jump when a shot arrives");
+        var firstQuarter = recoil.advanceImpulses(25_000_000);
+        helper.assertTrue(Math.abs(firstQuarter - 1.3125F) < 0.001F, "Ease-out must apply 43.75 percent of the angle at 25 ms");
+        var firstHalf = firstQuarter + recoil.advanceImpulses(50_000_000);
+        helper.assertTrue(Math.abs(firstHalf - 2.25F) < 0.001F, "Ease-out must apply 75 percent of the angle at 50 ms");
+        recoil.addImpulse(1.5F, 50_000_000);
+        helper.assertTrue(recoil.advanceImpulses(50_000_000) == 0, "Repeated sampling must not duplicate recoil");
+        var total = firstHalf + recoil.advanceImpulses(100_000_000) + recoil.advanceImpulses(150_000_000);
+        helper.assertTrue(Math.abs(total - 4.5F) < 0.001F, "Overlapping shots must preserve their combined angle");
+        helper.assertTrue(recoil.advanceImpulses(200_000_000) == 0, "Completed recoil must not move or restore the view");
+        recoil.addImpulse(3.0F, 200_000_000);
+        helper.assertTrue(Math.abs(recoil.advanceImpulses(350_000_000) - 3.0F) < 0.001F,
+                "Sparse frames must preserve the same total angle");
+        recoil.addImpulse(3.0F, 350_000_000);
+        recoil.advanceImpulses(375_000_000);
+        recoil.clearImpulses();
+        helper.assertTrue(recoil.advanceImpulses(500_000_000) == 0, "Discarded recoil must not resume after a pause or item switch");
+        recoil.addImpulse(3.0F, 500_000_000);
+        var previousDelta = Float.MAX_VALUE;
+        for (var sample = 1; sample <= 4; sample++) {
+            var delta = recoil.advanceImpulses(500_000_000L + sample * 25_000_000L);
+            helper.assertTrue(delta >= 0 && delta < previousDelta,
+                    "Ease-out must decelerate without moving the view backward");
+            previousDelta = delta;
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = "gametest/basic_floor")
+    public static void fullautoRecoilBuildsRecoversAndReducesWhileAiming(GameTestHelper helper) {
+        var hip = new FullautoRapidcastSpellrifleRecoil();
+        var ads = new FullautoRapidcastSpellrifleRecoil();
+        helper.assertTrue(Math.abs(hip.fire(0, false) - 1.5F) < 0.001F, "First hip shot must kick by 1.5 degrees");
+        helper.assertTrue(Math.abs(ads.fire(0, true) - 0.675F) < 0.001F, "ADS must reduce the first kick");
+        var hipSecond = hip.fire(3, false);
+        var adsSecond = ads.fire(3, true);
+        helper.assertTrue(hipSecond > 1.5F && adsSecond < hipSecond * 0.45F,
+                "ADS must reduce both kick and buildup");
+        for (var tick = 6; tick <= 60; tick += 3) {
+            helper.assertTrue(hip.fire(tick, false) <= 3.0F, "Continuous hip fire must cap at 3 degrees");
+        }
+        helper.assertTrue(Math.abs(hip.fire(63, false) - 3.0F) < 0.001F, "Sustained fire must reach maximum kick");
+        helper.assertTrue(Math.abs(hip.fire(67, false) - 3.0F) < 0.001F, "Buildup must be held for four ticks");
+        var recovered = hip.fire(77, false);
+        helper.assertTrue(recovered > 1.5F && recovered < 3.0F, "Buildup must recover gradually");
+        helper.assertTrue(Math.abs(hip.fire(93, false) - 1.5F) < 0.001F, "Sixteen idle ticks must fully recover buildup");
+        helper.assertTrue(Math.abs(hip.fire(0, false) - 1.5F) < 0.001F, "Clock reset must discard previous buildup");
+        helper.succeed();
+    }
+
     private static final String LEGACY_NEXT_SPECIAL_CAST_TICK_TAG =
             "ApprenticeCodexFullautoRapidcastSpellrifleNextSpecialCastTick";
 
@@ -88,13 +181,13 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
             assertTranslatableKey(
                     helper,
                     tooltipLines.get(0),
-                    "item.apprenticecodex.multipurpose_staffrifle.desc_1",
+                    "item.apprenticecodex.fullauto_rapidcast_spellrifle.desc_1",
                     "Fullauto Rapidcast Spellrifle should show left-click control first"
             );
             assertTranslatableKey(
                     helper,
                     tooltipLines.get(1),
-                    "item.apprenticecodex.multipurpose_staffrifle.desc_2",
+                    "item.apprenticecodex.fullauto_rapidcast_spellrifle.desc_2",
                     "Fullauto Rapidcast Spellrifle should show right-click control second"
             );
             helper.assertTrue(tooltipLines.get(2).getString().isEmpty(),

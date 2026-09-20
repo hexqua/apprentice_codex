@@ -40,7 +40,7 @@ public final class FullautoRapidcastSpellrifleServerConfig {
                 .comment("Minimum cooldown after Fullauto Rapidcast Spellrifle special cast reduction. 20 ticks = 1 second.")
                 .defineInRange("reducedCooldownMinimumTicks", 20, 0, 72000);
         var adsFullAutoIntervalTicks = builder
-                .comment("Minimum server-side interval between ADS full-auto special cast attempts.")
+                .comment("Minimum server-side interval between full-auto special cast attempts, both hip fire and ADS.")
                 .defineInRange("adsFullAutoIntervalTicks", 3, 1, 72000);
         var spellDenylist = builder
                 .comment("Additional spell IDs blocked only for Fullauto Rapidcast Spellrifle special casts. Entries use \"modid:path\".")
