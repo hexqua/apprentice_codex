@@ -127,6 +127,10 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         }
 
         var hitResult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
+        if (hitResult instanceof EntityHitResult entityHitResult) {
+            // イベント内で対象が移動しても、命中判定時の交点をイベントと着弾処理で共有する。
+            hitResult = new EntityHitResult(entityHitResult.getEntity(), resolveEntityImpactPosition(entityHitResult));
+        }
         if (hitResult.getType() != HitResult.Type.MISS && !ForgeEventFactory.onProjectileImpact(this, hitResult)) {
             onHit(hitResult);
             if (impacted) {
@@ -162,7 +166,7 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         var hitEntity = hitResult.getEntity();
         var owner = getOwner();
         var damageSource = damageSources().trident(this, owner == null ? this : owner);
-        var impactPosition = resolveEntityImpactPosition(hitResult);
+        var impactPosition = hitResult.getLocation();
         var impactForward = resolveImpactForward(impactPosition);
         var damage = (float) ChargedTwinBladeStaff.resolveThrownDamage(
                 weaponStack,
@@ -187,7 +191,7 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         // ProjectileUtil の移動判定は交点を捨てて対象の足元を返すため、同じ判定幅で交点を復元する。
         var bounds = hitResult.getEntity().getBoundingBox().inflate(0.3F);
         var start = position();
-        // 命中イベント等で対象の判定が変わり交点を復元できない場合も、足元へ飛ばさず杖の現在位置を使う。
+        // 交点を復元できない場合も、足元へ飛ばさず杖の現在位置を使う。
         return bounds.clip(start, start.add(getDeltaMovement())).orElse(start);
     }
 
