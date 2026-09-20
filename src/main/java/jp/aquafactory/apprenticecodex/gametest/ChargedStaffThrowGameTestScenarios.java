@@ -30,9 +30,12 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.ProjectileImpactEvent;
 
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 final class ChargedStaffThrowGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private ChargedStaffThrowGameTestScenarios() {
@@ -183,7 +186,7 @@ final class ChargedStaffThrowGameTestScenarios extends ApprenticeCodexGameTestSc
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "staff_impact_position");
             var origin = helper.absoluteVec(new Vec3(1, 100, 1));
             // 実際の飛翔判定を通し、中央への命中とかすめる命中の両方で座標を確認する。
-            for (int scenario = 0; scenario < 2; ++scenario) {
+            for (int scenario = 0; scenario < 3; ++scenario) {
                 var target = Objects.requireNonNull(EntityType.COW.create(level));
                 target.setPos(origin);
                 target.setNoAi(true);
@@ -197,10 +200,23 @@ final class ChargedStaffThrowGameTestScenarios extends ApprenticeCodexGameTestSc
                 projectile.setPos(start);
                 projectile.shoot(0, 0, 1, 3, 0);
                 level.addFreshEntity(projectile);
+                boolean moveTargetOnImpact = scenario == 2;
+                // 通常の移動判定は AABB 内からの命中を返さないため、命中イベントで対象が移動する経路を使う。
+                Consumer<ProjectileImpactEvent> impactListener = event -> {
+                    if (moveTargetOnImpact && event.getProjectile() == projectile) {
+                        target.setPos(origin.add(0, 0, -2));
+                        var bounds = target.getBoundingBox().inflate(0.3F);
+                        helper.assertTrue(bounds.contains(start)
+                                        && bounds.clip(start, start.add(projectile.getDeltaMovement())).isEmpty(),
+                                "Regression setup must move the target around the staff with no entry intersection");
+                    }
+                };
+                NeoForge.EVENT_BUS.addListener(impactListener);
                 try {
                     projectile.tick();
                     helper.assertTrue(projectile.isImpacted(), "Staff must hit the target through the flight collision path");
-                    double expectedZ = target.getBoundingBox().minZ - (double) 0.3F - 0.01D;
+                    double expectedZ = moveTargetOnImpact ? start.z - 0.01D
+                            : target.getBoundingBox().minZ - (double) 0.3F - 0.01D;
                     var expected = new Vec3(start.x, start.y, expectedZ);
                     helper.assertTrue(projectile.position().distanceToSqr(expected) < 1.0E-8D,
                             "Staff must remain at the flight intersection instead of the target's feet: " + projectile.position());
@@ -214,6 +230,7 @@ final class ChargedStaffThrowGameTestScenarios extends ApprenticeCodexGameTestSc
                     helper.assertTrue(projectile.position().equals(fixedPosition) && projectile.getDeltaMovement().equals(Vec3.ZERO),
                             "Impacted staff must stay at its world position after the target moves and turns");
                 } finally {
+                    NeoForge.EVENT_BUS.unregister(impactListener);
                     projectile.discard();
                     target.discard();
                 }
