@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientFullautoRapidcastSpel
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
+import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -129,7 +130,10 @@ public final class ClientFullautoRapidcastSpellrifleInputEvent {
             return;
         }
 
-        event.setNewFovModifier(event.getFovModifier() * FullautoRapidcastSpellrifle.getAdsFovModifier());
+        // 設定適用済みのFOVを維持し、ADS倍率にもFOV効果設定を反映する。
+        var adsModifier = (float) Mth.lerp(Minecraft.getInstance().options.fovEffectScale().get(),
+                1.0, FullautoRapidcastSpellrifle.getAdsFovModifier());
+        event.setNewFovModifier(event.getNewFovModifier() * adsModifier);
     }
 
     public static void sendSpecialCast(Minecraft minecraft, boolean adsFullAuto) {
