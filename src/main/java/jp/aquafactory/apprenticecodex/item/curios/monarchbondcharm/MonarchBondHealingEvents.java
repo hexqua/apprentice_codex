@@ -5,12 +5,12 @@ import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.damage.SpellDamageSource;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class MonarchBondHealingEvents {
     private MonarchBondHealingEvents() {
     }
@@ -26,7 +26,7 @@ public final class MonarchBondHealingEvents {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void onSpellLifesteal(LivingDamageEvent.Post event) {
+    public static void onSpellLifesteal(LivingHurtEvent event) {
         if (!(event.getSource() instanceof SpellDamageSource spellDamageSource)
                 || spellDamageSource.getLifestealPercent() <= 0.0F
                 || !(event.getSource().getEntity() instanceof ServerPlayer wearer)
@@ -34,10 +34,10 @@ public final class MonarchBondHealingEvents {
             return;
         }
 
-        // Iron's本体は通常優先度でこの直後に回復するため、回復前の体力を使える最高優先度で余剰だけ予約する。
+        // 1.20.1のIron'sはLivingHurtEventの通常優先度で吸収回復するため、その前に余剰を予約する。
         MonarchBondHealing.distributeOverflow(
                 wearer,
-                spellDamageSource.getLifestealPercent() * event.getNewDamage()
+                spellDamageSource.getLifestealPercent() * event.getAmount()
         );
     }
 

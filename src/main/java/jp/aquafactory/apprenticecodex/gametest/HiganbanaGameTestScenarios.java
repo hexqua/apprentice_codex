@@ -2,7 +2,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.events.SpellHealEvent;
-import net.neoforged.neoforge.common.NeoForge;
+import net.minecraftforge.common.MinecraftForge;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.higanbana.Higanbana;
@@ -97,11 +97,11 @@ final class HiganbanaGameTestScenarios {
             }
         };
 
-        NeoForge.EVENT_BUS.addListener(healListener);
+        MinecraftForge.EVENT_BUS.addListener(healListener);
         try {
             weapon.slash(level);
         } finally {
-            NeoForge.EVENT_BUS.unregister(healListener);
+            MinecraftForge.EVENT_BUS.unregister(healListener);
         }
 
         var dealtDamage = initialTargetHealth - target.getHealth();

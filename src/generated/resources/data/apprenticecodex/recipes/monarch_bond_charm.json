@@ -21,7 +21,7 @@
     " M "
   ],
   "result": {
-    "count": 1,
-    "id": "apprenticecodex:monarch_bond_charm"
-  }
+    "item": "apprenticecodex:monarch_bond_charm"
+  },
+  "show_notification": true
 }

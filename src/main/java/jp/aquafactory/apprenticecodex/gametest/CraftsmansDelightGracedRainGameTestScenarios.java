@@ -96,11 +96,11 @@ final class CraftsmansDelightGracedRainGameTestScenarios extends ApprenticeCodex
                 }
             };
 
-            NeoForge.EVENT_BUS.addListener(healListener);
+            MinecraftForge.EVENT_BUS.addListener(healListener);
             try {
                 processGracedRainEntityEffect(helper, owner, cow);
             } finally {
-                NeoForge.EVENT_BUS.unregister(healListener);
+                MinecraftForge.EVENT_BUS.unregister(healListener);
             }
 
             helper.assertTrue(healEvent.get() != null,

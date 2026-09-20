@@ -25,10 +25,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.damagesource.DamageContainer;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 
 
 final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestScenarios {
@@ -43,7 +42,7 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
             var nearest = createManagedSummon(helper, wearer, new BlockPos(2, 2, 0), 6.0F);
             var next = createManagedSummon(helper, wearer, new BlockPos(4, 2, 0), 10.0F);
 
-            NeoForge.EVENT_BUS.post(new SpellHealEvent(wearer, wearer, 10.0F, SchoolRegistry.HOLY.get()));
+            MinecraftForge.EVENT_BUS.post(new SpellHealEvent(wearer, wearer, 10.0F, SchoolRegistry.HOLY.get()));
 
             assertHealth(helper, nearest, nearest.getMaxHealth(),
                     "Nearest summon should reserve its full missing health first");
@@ -51,7 +50,7 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
                     "Second summon should receive only the remaining overflow");
 
             var nextHealth = next.getHealth();
-            NeoForge.EVENT_BUS.post(new SpellHealEvent(wearer, nearest, 100.0F, SchoolRegistry.HOLY.get()));
+            MinecraftForge.EVENT_BUS.post(new SpellHealEvent(wearer, nearest, 100.0F, SchoolRegistry.HOLY.get()));
             assertHealth(helper, next, nextHealth,
                     "Healing a summon directly should not distribute from the wearer");
         });
@@ -66,7 +65,7 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
             var unequippedSummon = createManagedSummon(
                     helper, unequippedWearer, new BlockPos(2, 2, 0), 5.0F);
 
-            NeoForge.EVENT_BUS.post(new SpellHealEvent(
+            MinecraftForge.EVENT_BUS.post(new SpellHealEvent(
                     unequippedWearer, unequippedWearer, 5.0F, SchoolRegistry.HOLY.get()));
             assertHealth(helper, unequippedSummon, unequippedSummon.getMaxHealth() - 5.0F,
                     "Unequipped wearer should not distribute overflow");
@@ -81,7 +80,7 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
 
             helper.assertTrue(MonarchBondCharm.isEquippedBy(wearer),
                     "Equipped wearer should expose Monarch Bond through Curios");
-            NeoForge.EVENT_BUS.post(new SpellHealEvent(wearer, wearer, 5.0F, SchoolRegistry.HOLY.get()));
+            MinecraftForge.EVENT_BUS.post(new SpellHealEvent(wearer, wearer, 5.0F, SchoolRegistry.HOLY.get()));
             assertHealth(helper, ownSummon, ownSummon.getMaxHealth(),
                     "Equipped wearer should heal their own summon");
             assertHealth(helper, otherSummon, otherSummon.getMaxHealth() - 5.0F,
@@ -96,7 +95,7 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
             var second = createManagedSummon(helper, wearer, new BlockPos(4, 2, 0), 9.0F);
             var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
 
-            NeoForge.EVENT_BUS.post(new SpellOnCastEvent(
+            MinecraftForge.EVENT_BUS.post(new SpellOnCastEvent(
                     wearer,
                     spell.getSpellId(),
                     1,
@@ -122,7 +121,7 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
             var source = SpellDamageSource.source(wearer, evocationSpell).setLifestealPercent(0.5F);
 
             MonarchBondHealingEvents.onSpellLifesteal(
-                    new LivingDamageEvent.Post(victim, new DamageContainer(source, 10.0F))
+                    new LivingHurtEvent(victim, source, 10.0F)
             );
 
             assertHealth(helper, summon, summon.getMaxHealth(),
@@ -248,7 +247,7 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
         if (equipCharm) {
             equipCurio(owner, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MONARCH_BOND_CHARM.get()));
         }
-        var manaRegen = owner.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN);
+        var manaRegen = owner.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get());
         if (manaRegen != null) {
             manaRegen.setBaseValue(0.0D);
         }
@@ -311,7 +310,7 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
     }
 
     private static void tickCharmAtRestockInterval(FakePlayer wearer) {
-        var slotResult = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(wearer)
+        var slotResult = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(wearer).resolve()
                 .flatMap(inventory -> inventory.findFirstCurio(ItemRegistry.MONARCH_BOND_CHARM.get()))
                 .orElseThrow(() -> new IllegalStateException("Missing equipped Monarch Bond Charm for GameTest"));
         wearer.tickCount = 20;

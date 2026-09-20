@@ -375,7 +375,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('R', io.redspace.ironsspellbooks.registries.ItemRegistry.EVOCATION_RUNE.get())
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.EVOCATION_RUNE.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.EVOCATION_RUNE.get()))
-                .save(recipeOutput);
+                .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.AUTOCAST_AMULET.get())
                 .pattern("I I")

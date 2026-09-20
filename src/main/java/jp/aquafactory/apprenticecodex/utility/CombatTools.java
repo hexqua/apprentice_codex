@@ -86,7 +86,7 @@ public final class CombatTools {
 
         // Iron's と同じく実回復前に通知し、イベント購読側が回復前の体力から余剰量を計算できるようにする。
         if (!target.level().isClientSide) {
-            NeoForge.EVENT_BUS.post(new SpellHealEvent(caster, target, amount, school));
+            MinecraftForge.EVENT_BUS.post(new SpellHealEvent(caster, target, amount, school));
         }
         target.heal(amount);
     }
