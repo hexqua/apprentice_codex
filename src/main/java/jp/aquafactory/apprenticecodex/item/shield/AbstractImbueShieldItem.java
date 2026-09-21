@@ -11,7 +11,6 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.*;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
@@ -35,7 +34,7 @@ import java.util.List;
 import java.util.Locale;
 
 public abstract class AbstractImbueShieldItem extends ShieldItem implements IPresetSpellContainer, RestrictedSpellImbuableItem,
-        ManaBypassSpellItem, CastAnimationOverrideItem, TranscendencePolicy, WisdomPolicy {
+        ManaBypassSpellItem, CastAnimationOverrideItem, WisdomPolicy {
     private static final int BLOCK_READY_TICKS = 5;
     private static final int SPELL_TRIGGER_WINDOW_TICKS = 15;
     private static final String TRIGGER_WINDOW_START_TAG_PREFIX = "ApprenticeCodexImbueShieldWindowStart.";

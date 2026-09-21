@@ -26,7 +26,8 @@ import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceHelper;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.event.client.FullautoRapidcastSpellrifleClientLookup;
 import jp.aquafactory.apprenticecodex.event.client.FullautoRapidcastSpellrifleClientAdsState;
@@ -115,7 +116,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 public final class FullautoRapidcastSpellrifle extends Item
         implements GeoItem, NonDamageableAnvilMergeItem, IJeiInfoItem, CastAnimationOverrideItem,
-        AttributeEnchantmentPolicy, WisdomPolicy, PlunderTarget, TranscendencePolicy,
+        AttributeEnchantmentPolicy, WisdomPolicy, PlunderTarget, TranscendenceTarget,
         StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget, ImmediateSneakSelectionUiItem {
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     private static final HolderLookup.Provider FALLBACK_LOOKUP = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
@@ -691,12 +692,6 @@ public final class FullautoRapidcastSpellrifle extends Item
                 (EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get())
                         || (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
                         || (EnchantmentRegistry.PLUNDER.isPresent() && enchantment == EnchantmentRegistry.PLUNDER.get()));
-    }
-
-    @Override
-    public Handling transcendenceHandling() {
-        // 本体を SpellContainer にせず、選択中スクロールに一度だけ補正する。
-        return Handling.INTERNAL;
     }
 
     public static int resolveImbuedSpellLevel(ItemStack stack, SpellData spellData) {

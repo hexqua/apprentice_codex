@@ -14,7 +14,6 @@ import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
@@ -67,7 +66,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class ManaForceBlade extends SwordItem
-        implements GeoItem, IPresetSpellContainer, SpellSlotUpgradeableItem, TranscendencePolicy,
+        implements GeoItem, IPresetSpellContainer, SpellSlotUpgradeableItem,
         AttributeEnchantmentPolicy, WisdomPolicy {
     public static final float DISPLAY_ATTACK_DAMAGE = 6.0F;
     public static final int DEFAULT_RELEASE_COOLDOWN_TICKS = 40;
@@ -88,8 +87,7 @@ public class ManaForceBlade extends SwordItem
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_SWORD);
     private static final Set<String> EXTRA_ENCHANTMENTS = Set.of(
-            "apprenticecodex:wisdom",
-            "apprenticecodex:transcendence"
+            "apprenticecodex:wisdom"
     );
     private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
             AttributeEnchantmentType.SURGE,

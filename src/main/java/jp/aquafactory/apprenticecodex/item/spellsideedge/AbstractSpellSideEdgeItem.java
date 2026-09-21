@@ -61,8 +61,7 @@ public abstract class AbstractSpellSideEdgeItem extends SwordItem
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
     );
     private static final Set<ResourceLocation> EXTRA_ENCHANTMENTS = Set.of(
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom"),
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "transcendence")
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom")
     );
 
     private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(

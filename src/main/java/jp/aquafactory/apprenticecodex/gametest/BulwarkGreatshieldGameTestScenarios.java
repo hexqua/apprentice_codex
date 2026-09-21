@@ -9,7 +9,6 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.config.ServerConfigs;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendenceSpellLevelEvent;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.event.KnockbackControlEvent;
 import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
@@ -185,7 +184,7 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
         });
     }
 
-    static void imbueShieldsApplyTranscendenceAndWisdomEffects(GameTestHelper helper) {
+    static void imbueShieldsIgnoreLegacyTranscendenceAndApplyWisdom(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = BowGameTestSupport.createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
                     "imbue_shield_enchantment_effect_test");
@@ -219,9 +218,9 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
 
         var spellLevelEvent = new ModifySpellLevelEvent(spell, player, 1, 1);
-        TranscendenceSpellLevelEvent.onModifySpellLevel(spellLevelEvent);
-        helper.assertTrue(spellLevelEvent.getLevel() == 2,
-                itemName + " Transcendence should increase the imbued spell level from 1 to 2");
+        NeoForge.EVENT_BUS.post(spellLevelEvent);
+        helper.assertTrue(spellLevelEvent.getLevel() == 1,
+                itemName + " legacy Transcendence must not change the imbued spell level");
 
         var experienceEvent = new BlockEvent.BreakEvent(
                 helper.getLevel(),

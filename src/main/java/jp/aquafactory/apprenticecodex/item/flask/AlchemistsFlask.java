@@ -23,14 +23,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.PotionItem;
 import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AlchemistsFlask extends AbstractPotionFlaskItem
         implements IPresetSpellContainer, RestrictedSpellImbuableItem, NonDamageableAnvilMergeItem, UniqueItem,
-        TranscendencePolicy, WisdomPolicy {
+        WisdomPolicy {
     private static final int BASE_MAX_STORED_DOSES = 16;
     private static final int LARGE_MUG_BONUS_PER_LEVEL = 4;
 

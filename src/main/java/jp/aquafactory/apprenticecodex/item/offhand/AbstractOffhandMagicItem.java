@@ -32,7 +32,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 public abstract class AbstractOffhandMagicItem extends Item
-        implements IPresetSpellContainer, IJeiInfoItem, NonDamageableAnvilMergeItem, TranscendencePolicy,
+        implements IPresetSpellContainer, IJeiInfoItem, NonDamageableAnvilMergeItem,
         AttributeEnchantmentPolicy {
     private static final String JEI_INFO_GROUP_ID = "offhand_magic_items";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.offhand_magic_items.desc_";

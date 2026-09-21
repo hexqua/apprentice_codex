@@ -11,7 +11,6 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
@@ -92,16 +91,6 @@ public class ElementMaidenRobeItem extends ArmorItem
 
     public boolean hasImbueSlot() {
         return armorType == Type.CHESTPLATE;
-    }
-
-    @Override
-    public boolean isTranscendenceActiveWhileHeld() {
-        return false;
-    }
-
-    @Override
-    public boolean supportsDirectTranscendenceApplication() {
-        return hasImbueSlot();
     }
 
     @Override

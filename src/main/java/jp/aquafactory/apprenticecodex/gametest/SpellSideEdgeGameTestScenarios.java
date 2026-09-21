@@ -12,7 +12,6 @@ import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendenceSpellLevelEvent;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdge;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeMirror;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeOffhandAttributeBridge;
@@ -407,9 +406,9 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
             assertSpellData(helper, ISpellContainer.get(mainhand), 0, SpellRegistry.EDGE_DANCER.get(), 1, true,
                     "Mainhand Spell Side Edge should keep Edge Dancer");
             var levelEvent = new ModifySpellLevelEvent(SpellRegistry.ANCHOR_BLINK.get(), player, 1, 1);
-            TranscendenceSpellLevelEvent.onModifySpellLevel(levelEvent);
-            helper.assertTrue(levelEvent.getLevel() == 2,
-                    "Offhand Spell Side Edge Mirror should apply Transcendence to Anchor Blink");
+            NeoForge.EVENT_BUS.post(levelEvent);
+            helper.assertTrue(levelEvent.getLevel() == 1,
+                    "Offhand Spell Side Edge Mirror must ignore copied Transcendence");
 
             EdgeDancerManager.deactivate(player, true);
         });
