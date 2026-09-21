@@ -74,7 +74,7 @@ final class ParrycastBucklerGameTestScenarios {
             helper.assertTrue(item.supportsEnchantment(stack, enchantments.getOrThrow(Enchantments.UNBREAKING)), "Parrycast should accept shield enchantments");
             helper.assertTrue(item.supportsEnchantment(stack, enchantments.getOrThrow(jp.aquafactory.apprenticecodex.enchantment.Enchantments.TENSE)), "Parrycast should accept Tense");
             helper.assertTrue(item.supportsEnchantment(stack, enchantments.getOrThrow(jp.aquafactory.apprenticecodex.enchantment.Enchantments.ALACRITY)), "Parrycast should accept Alacrity");
-            helper.assertTrue(item.supportsEnchantment(stack, enchantments.getOrThrow(jp.aquafactory.apprenticecodex.enchantment.Enchantments.TRANSCENDENCE)), "Parrycast should accept Transcendence");
+            helper.assertFalse(item.supportsEnchantment(stack, enchantments.getOrThrow(jp.aquafactory.apprenticecodex.enchantment.Enchantments.TRANSCENDENCE)), "Parrycast should reject Transcendence");
             helper.assertTrue(item.supportsEnchantment(stack, enchantments.getOrThrow(jp.aquafactory.apprenticecodex.enchantment.Enchantments.WISDOM)), "Parrycast should accept Wisdom");
             helper.assertTrue(item.canImbueSpell(SpellRegistry.SENSE_EVIL.get(), 1), "Parrycast should accept instant no-recast spells");
             helper.assertTrue(item.canImbueSpell(SpellRegistry.MANTIS_LEAP.get(), 1),

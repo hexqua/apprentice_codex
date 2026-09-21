@@ -13584,7 +13584,6 @@ public class ApprenticeCodexGameTestScenarios {
                 Enchantments.SURGE,
                 Enchantments.ATTUNEMENT,
                 Enchantments.TENSE,
-                Enchantments.TRANSCENDENCE,
                 Enchantments.WISDOM,
                 Enchantments.PLUNDER
         );
@@ -13599,8 +13598,7 @@ public class ApprenticeCodexGameTestScenarios {
                 Enchantments.RESERVOIR,
                 Enchantments.SURGE,
                 Enchantments.ATTUNEMENT,
-                Enchantments.TENSE,
-                Enchantments.TRANSCENDENCE
+                Enchantments.TENSE
         );
     }
 
@@ -13680,7 +13678,6 @@ public class ApprenticeCodexGameTestScenarios {
                     enchantment -> enchantment.value().isSupportedItem(stack)
             ));
             expectedEnchantments.addAll(registryIdSet(
-                    Enchantments.TRANSCENDENCE,
                     Enchantments.WISDOM,
                     Enchantments.PLUNDER
             ));
@@ -13696,12 +13693,8 @@ public class ApprenticeCodexGameTestScenarios {
                         && !isDurabilityTargetEnchantment(enchantment)
         );
         expectedEnchantments.addAll(registryIdSet(
-                Enchantments.TRANSCENDENCE,
                 Enchantments.WISDOM
         ));
-        if (stack.getItem() instanceof MithrilFreecastStaff) {
-            expectedEnchantments.remove(Enchantments.TRANSCENDENCE.location());
-        }
         if (stack.getItem() instanceof AttributeEnchantmentPolicy policy) {
             for (var type : policy.directlyApplicableAttributeEnchantments()) {
                 expectedEnchantments.add(type.enchantmentKey().location());
@@ -13753,7 +13746,6 @@ public class ApprenticeCodexGameTestScenarios {
         );
         expectedEnchantments.addAll(registryIdSet(
                 Enchantments.WISDOM,
-                Enchantments.TRANSCENDENCE,
                 Enchantments.ALACRITY,
                 Enchantments.REFLUX,
                 Enchantments.RESERVOIR,
@@ -13798,7 +13790,6 @@ public class ApprenticeCodexGameTestScenarios {
                 enchantment -> enchantment.value().canEnchant(new ItemStack(Items.SHIELD))
         );
         expectedEnchantments.addAll(registryIdSet(
-                Enchantments.TRANSCENDENCE,
                 Enchantments.WISDOM
         ));
         return expectedEnchantments;
@@ -13847,7 +13838,6 @@ public class ApprenticeCodexGameTestScenarios {
 
     static Set<ResourceLocation> expectedAlchemistsFlaskEnchantments() {
         return registryIdSet(
-                Enchantments.TRANSCENDENCE,
                 Enchantments.LARGE_MUG,
                 Enchantments.RED_ENERGY,
                 Enchantments.GLOW_ENERGY
@@ -13908,8 +13898,7 @@ public class ApprenticeCodexGameTestScenarios {
         if (stack.getItem() instanceof ElementMaidenRobeItem robeItem && robeItem.hasImbueSlot()) {
             expectedEnchantments.addAll(registryIdSet(
                     Enchantments.SURGE,
-                    Enchantments.ATTUNEMENT,
-                    Enchantments.TRANSCENDENCE
+                    Enchantments.ATTUNEMENT
             ));
         }
         return expectedEnchantments;

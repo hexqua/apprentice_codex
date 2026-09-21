@@ -4,8 +4,9 @@ import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
+import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -156,24 +157,23 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
         helper.succeedIf(() -> {
             helper.assertFalse(ItemRegistry.CIRCUIT_HEAT_STAFF.get() instanceof PlunderTarget,
                     "Circuit Heat Staff must not convert Plunder into Looting");
-            helper.assertFalse(ItemRegistry.ENCHANTRESS_ROBE.get() instanceof TranscendencePolicy,
+            helper.assertFalse(ItemRegistry.ENCHANTRESS_ROBE.get() instanceof TranscendenceTarget,
                     "Enchantress Robe must reject and ignore Transcendence");
-            helper.assertTrue(TranscendencePolicy.supportsDirectApplication(ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get()),
-                    "Stealth Rune chest armor should accept Transcendence");
-            helper.assertFalse(TranscendencePolicy.supportsDirectApplication(ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get()),
+            helper.assertFalse(TranscendenceTarget.supportsDirectApplication(ItemRegistry.STEALTH_RUNE_ARMOR_BODY.get()),
+                    "Stealth Rune chest armor should reject Transcendence");
+            helper.assertFalse(TranscendenceTarget.supportsDirectApplication(ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get()),
                     "Stealth Rune non-chest armor should reject Transcendence");
 
             var scrollcaster = ItemRegistry.SCROLLCASTER_GAUNTLET.get();
-            helper.assertTrue(TranscendencePolicy.supportsDirectApplication(scrollcaster),
-                    "Scrollcaster Gauntlet should accept Transcendence through normal enchanting");
+            helper.assertFalse(TranscendenceTarget.supportsDirectApplication(scrollcaster),
+                    "Scrollcaster Gauntlet should reject Transcendence");
             helper.assertTrue(WisdomPolicy.supportsDirectApplication(scrollcaster),
                     "Scrollcaster Gauntlet should accept Wisdom through normal enchanting");
 
-            helper.assertTrue(TranscendencePolicy.supportsDirectApplication(ItemRegistry.REVOLVERCAST_STAFF.get()),
-                    "Revolvercast Staff should accept Transcendence like the 1.20.1 implementation");
-            var elementalBow = (TranscendencePolicy) ItemRegistry.ELEMENTAL_BOW.get();
-            helper.assertTrue(elementalBow.transcendenceHandling() == TranscendencePolicy.Handling.INTERNAL,
-                    "Elemental Bow should keep internal Transcendence handling");
+            helper.assertFalse(TranscendenceTarget.supportsDirectApplication(ItemRegistry.REVOLVERCAST_STAFF.get()),
+                    "Revolvercast Staff should reject Transcendence");
+            helper.assertTrue(TranscendenceTarget.supportsDirectApplication(ItemRegistry.ELEMENTAL_BOW.get()),
+                    "Elemental Bow should accept Transcendence");
         });
     }
 
@@ -322,7 +322,7 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
                     helper,
                     stack,
                     enchantments.getOrThrow(Enchantments.TRANSCENDENCE),
-                    TranscendencePolicy.supportsDirectApplication(item)
+                    TranscendenceTarget.supportsDirectApplication(item)
             );
             assertPolicyDrivenApplicationSurface(
                     helper,
@@ -375,6 +375,15 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
         helper.assertTrue(item.isPrimaryItemFor(stack, enchantment) == expected,
                 item + " enchanting-table surface changed for " + enchantmentId + ": "
                         + item.isPrimaryItemFor(stack, enchantment));
+        if (enchantment.is(Enchantments.TRANSCENDENCE)) {
+            helper.assertTrue((item.supportsEnchantment(stack, enchantment)
+                            && item.isBookEnchantable(stack, createEnchantedBook(enchantment))) == expected,
+                    item + " Transcendence book application must match its marker");
+            if (item instanceof NonDamageableAnvilMergeItem mergeItem) {
+                helper.assertTrue(mergeItem.isAnvilMergeEnchantmentAllowed(stack, enchantment) == expected,
+                        item + " Transcendence anvil transfer must match its marker");
+            }
+        }
     }
 
     private static void assertApplicationSurface(

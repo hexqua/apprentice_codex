@@ -8,14 +8,11 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.item.consumables.SimpleElixir;
-import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
-import net.minecraft.core.Holder;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
@@ -24,14 +21,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.PotionItem;
 import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AlchemistsFlask extends AbstractPotionFlaskItem
         implements IPresetSpellContainer, RestrictedSpellImbuableItem, NonDamageableAnvilMergeItem, UniqueItem,
-        TranscendencePolicy, WisdomPolicy {
+        WisdomPolicy {
     private static final int BASE_MAX_STORED_DOSES = 16;
     private static final int LARGE_MUG_BONUS_PER_LEVEL = 4;
 
@@ -134,12 +130,6 @@ public class AlchemistsFlask extends AbstractPotionFlaskItem
     @Override
     protected boolean isPreferredPotionItem(ItemStack stack) {
         return stack.is(Items.SPLASH_POTION) || stack.is(Items.LINGERING_POTION);
-    }
-
-    @Override
-    protected boolean isSupportedFlaskEnchantment(Holder<Enchantment> enchantment) {
-        return enchantment.is(Enchantments.TRANSCENDENCE)
-                || super.isSupportedFlaskEnchantment(enchantment);
     }
 
     private @Nullable SpellData getPrimarySpellData(ItemStack stack) {

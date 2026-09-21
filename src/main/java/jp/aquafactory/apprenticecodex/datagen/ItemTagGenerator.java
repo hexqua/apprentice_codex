@@ -5,7 +5,7 @@ import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
@@ -324,7 +324,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
             if (item instanceof ArmorItem || item instanceof AbstractOffhandMagicItem) {
                 malumSoulwovenPouchEfficientTag.add(item);
             }
-            if (TranscendencePolicy.supportsDirectApplication(item)) {
+            if (TranscendenceTarget.supportsDirectApplication(item)) {
                 transcendenceEnchantableTag.add(item);
             }
             if (WisdomPolicy.supportsDirectApplication(item)) {
@@ -565,7 +565,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         // 1.21.1 の enchantment JSON は supported_items tag を直接参照するため、
         // 飲用専用の Guzzle と共通 flask enchant 群を分離して誤適用を防ぐ。
         tag(DRINKABLE_FLASK_ENCHANTABLE).add(ItemRegistry.SPELLCASTERS_FLASK.get());
-        // 錬金術師のフラスコは Large/Red/Glow/Transcendence のみを許可したいので、
+        // 錬金術師のフラスコは Large/Red/Glow のみを許可したいので、
         // spell container 系や Wisdom と混線しない専用タグで分離する。
         tag(ALCHEMISTS_FLASK_ENCHANTABLE).add(ItemRegistry.ALCHEMISTS_FLASK.get());
         tag(FLASK_ENCHANTABLE)

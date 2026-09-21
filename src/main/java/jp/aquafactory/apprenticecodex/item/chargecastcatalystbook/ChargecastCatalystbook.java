@@ -79,7 +79,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
         RestrictedSpellImbuableItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
         ArcaneAnvilScrollImbueBlockItem, CastAnimationOverrideItem, ImmediateSneakSelectionUiItem,
         OffhandAttributeRelocatingItem, NonDamageableAnvilMergeItem,
-        TranscendencePolicy, AttributeEnchantmentPolicy, WisdomPolicy, PlunderTarget, IJeiInfoItem {
+        AttributeEnchantmentPolicy, WisdomPolicy, PlunderTarget, IJeiInfoItem {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.chargecast_catalystbook.desc_";
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     public static final int CALIBRATION_SCROLL_SLOT_COUNT = 4;
@@ -182,7 +182,6 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
                 || AttributeEnchantmentType.from(enchantment)
                 .map(SUPPORTED_ATTRIBUTE_ENCHANTMENTS::contains)
                 .orElse(false)
-                || enchantment.is(Enchantments.TRANSCENDENCE)
                 || enchantment.is(Enchantments.WISDOM)
                 || enchantment.is(Enchantments.PLUNDER);
     }

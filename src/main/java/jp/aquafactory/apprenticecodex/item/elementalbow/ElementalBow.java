@@ -9,7 +9,7 @@ import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.ScrollSlotTooltipData;
 import jp.aquafactory.apprenticecodex.item.SneakSelectionUiItem;
@@ -92,7 +92,7 @@ import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import java.util.Optional;
 
 public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget, ArcaneAnvilImbueBlockItem,
-        IJeiInfoItem, SneakSelectionUiItem, TranscendencePolicy, WisdomPolicy, PlunderTarget {
+        IJeiInfoItem, SneakSelectionUiItem, TranscendenceTarget, WisdomPolicy, PlunderTarget {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.elemental_bow.desc_";
 
     public static final int READY_DRAW_TICKS = 20;
@@ -116,11 +116,6 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
     public ElementalBow() {
         super(new Properties().durability(1561).fireResistant());
         GeoItem.registerSyncedAnimatable(this);
-    }
-
-    @Override
-    public Handling transcendenceHandling() {
-        return Handling.INTERNAL;
     }
 
     @Override
@@ -386,7 +381,8 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
     public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
         lines.add(
-                Component.translatable("item.apprenticecodex.elemental_bow.mode", getModeDisplayName(stack))
+                Component.translatable("item.apprenticecodex.elemental_bow.mode", FMLEnvironment.dist == Dist.CLIENT
+                                ? ElementalBowClientTooltip.modeDisplayName(stack) : getModeDisplayName(stack, null))
                         .withStyle(ChatFormatting.GRAY)
         );
         lines.add(Component.translatable("item.apprenticecodex.elemental_bow.desc")
@@ -490,7 +486,7 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
             return InteractionResultHolder.fail(stack);
         }
 
-        var profile = createSpellCastProfile(stack, mode);
+        var profile = createSpellCastProfile(stack, mode, player);
 
         var requiredMana = ElementalBowRunes.baseManaCost(stack, player, profile.spell().getManaCost(profile.spellLevel()));
         if (!player.getAbilities().instabuild) {
@@ -639,7 +635,7 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
             return;
         }
 
-        var profile = createSpellCastProfile(stack, mode);
+        var profile = createSpellCastProfile(stack, mode, player);
 
         if (profile.spell().getCastType() == CastType.LONG
                 && !ElementalBowPendingCast.ready((ServerPlayer) player, stack, drawDuration)) return;
@@ -755,6 +751,12 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
     @Nullable
     private SpellCastProfile resolveSpellProfile(ItemStack stack, @Nullable ResolvedDefinition mode) {
         return mode == null ? null : createSpellCastProfile(stack, mode);
+    }
+
+    private SpellCastProfile createSpellCastProfile(ItemStack stack, ResolvedDefinition mode, Player player) {
+        var profile = createSpellCastProfile(stack, mode);
+        // スクロール固有の補正後に Affinity 等を一度だけ適用し、消費マナと発動へ同じ値を渡す。
+        return new SpellCastProfile(profile.spell(), profile.spell().getLevelFor(profile.spellLevel(), player));
     }
 
     private SpellCastProfile createSpellCastProfile(ItemStack stack, ResolvedDefinition mode) {
@@ -878,7 +880,7 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
         player.displayClientMessage(
                 Component.translatable(
                                 "ui.apprenticecodex.elemental_bow.mode_switched",
-                                resolveSelectionDisplayName(stack, requestedSelection)
+                                resolveSelectionDisplayName(stack, requestedSelection, player)
                         )
                         .withStyle(ChatFormatting.GOLD),
                 true
@@ -1055,7 +1057,7 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
     }
 
     private void displayOverheatManaWarning(Player player, ItemStack stack, ResolvedDefinition mode) {
-        var profile = createSpellCastProfile(stack, mode);
+        var profile = createSpellCastProfile(stack, mode, player);
 
         var extraMana = getAdditionalManaCost(player, stack, profile);
         if (extraMana <= MANA_SAFE_MARGIN) {
@@ -1323,7 +1325,8 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
         if (selection.kind() == ShotModeKind.MAGIC) {
             var resolvedMode = resolveMode(stack, selection.id());
             var spellIcon = resolvedMode != null ? resolvedMode.spell().getSpellIconResource() : null;
-            var levelText = resolvedMode != null ? Integer.toString(resolveSpellLevel(stack, selection.id(), resolvedMode)) : "?";
+            var levelText = resolvedMode != null ? Integer.toString(resolvedMode.spell().getLevelFor(
+                    resolveSpellLevel(stack, selection.id(), resolvedMode), player)) : "?";
             var badgeColor = resolvedMode != null ? resolvedMode.color() : 0xFFFFFF;
             var overheatActive = resolvedMode != null && ElementalBowOverheatManager.getState(player,
                     scrollSlot(selection.id()), ElementalBowRunes.separatesOverheat(stack)).active();
@@ -1333,7 +1336,7 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
                     : 0.0F;
             return new ModeSelectionView(
                     selection.toKey(),
-                    resolveSelectionDisplayName(stack, selection),
+                    resolveSelectionDisplayName(stack, selection, player),
                     SelectionIconKind.SPELL,
                     ItemStack.EMPTY,
                     spellIcon,
@@ -1448,18 +1451,22 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
         CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.remove(key));
     }
 
-    private Component getModeDisplayName(ItemStack stack) {
-        return resolveSelectionDisplayName(stack, normalizeModeState(stack));
+    static Component getModeDisplayName(ItemStack stack, @Nullable Player player) {
+        return resolveSelectionDisplayName(stack, normalizeModeState(stack), player);
     }
 
     private static Component resolveSelectionDisplayName(ItemStack stack, ModeSelection selection) {
+        return resolveSelectionDisplayName(stack, selection, null);
+    }
+
+    private static Component resolveSelectionDisplayName(ItemStack stack, ModeSelection selection, @Nullable Player player) {
         return switch (selection.kind()) {
             case NORMAL, ARROW, SPECIAL, MOD -> resolveAmmoDisplayName(selection).copy();
-            case MAGIC -> resolveMagicDisplayName(stack, selection.id());
+            case MAGIC -> resolveMagicDisplayName(stack, selection.id(), player);
         };
     }
 
-    private static Component resolveMagicDisplayName(ItemStack stack, @Nullable ResourceLocation selectionId) {
+    private static Component resolveMagicDisplayName(ItemStack stack, @Nullable ResourceLocation selectionId, @Nullable Player player) {
         if (selectionId == null) {
             return Component.literal("?");
         }
@@ -1471,6 +1478,7 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
 
         var textColor = resolvedMode.color();
         var spellLevel = resolveSpellLevel(stack, selectionId, resolvedMode);
+        if (player != null) spellLevel = resolvedMode.spell().getLevelFor(spellLevel, player);
         return resolvedMode.spell().getDisplayName(null).copy()
                 .withStyle(style -> style.withColor(textColor))
                 .append(Component.literal(" " + spellLevel).withStyle(style -> style.withColor(textColor)));

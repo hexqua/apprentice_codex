@@ -11,7 +11,6 @@ import jp.aquafactory.apprenticecodex.enchantment.VanillaEnchantmentCompatibilit
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
@@ -61,7 +60,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class ElementMaidenRobeItem extends ArmorItem
-        implements GeoItem, IPresetSpellContainer, UniqueItem, TranscendencePolicy,
+        implements GeoItem, IPresetSpellContainer, UniqueItem,
         AttributeEnchantmentPolicy, SpellCalibrationAdjustmentTarget,
         StoredSpellCalibrationImbueTarget, WisdomPolicy {
     private static final String DESCRIPTION_KEY = "item." + ApprenticeCodex.MODID + ".element_maiden_robe.desc";
@@ -91,16 +90,6 @@ public class ElementMaidenRobeItem extends ArmorItem
 
     public boolean hasImbueSlot() {
         return getType() == Type.CHESTPLATE;
-    }
-
-    @Override
-    public boolean isTranscendenceActiveWhileHeld() {
-        return false;
-    }
-
-    @Override
-    public boolean supportsDirectTranscendenceApplication() {
-        return hasImbueSlot();
     }
 
     @Override
@@ -365,7 +354,6 @@ public class ElementMaidenRobeItem extends ArmorItem
 
     private boolean isSupportedRobeEnchantment(ResourceLocation enchantmentId) {
         return enchantmentId.equals(Enchantments.WISDOM.location())
-                || (hasImbueSlot() && enchantmentId.equals(Enchantments.TRANSCENDENCE.location()))
                 || (hasImbueSlot() && enchantmentId.equals(Enchantments.SURGE.location()))
                 || (hasImbueSlot() && enchantmentId.equals(Enchantments.ATTUNEMENT.location()));
     }

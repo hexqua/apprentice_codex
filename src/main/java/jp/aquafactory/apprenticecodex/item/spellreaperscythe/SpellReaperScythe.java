@@ -6,7 +6,6 @@ import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
 import jp.aquafactory.apprenticecodex.renderer.item.SpellReaperScytheRenderer;
@@ -53,7 +52,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public final class SpellReaperScythe extends SwordItem
-        implements GeoItem, IPresetSpellContainer, SpellSlotUpgradeableItem, TranscendencePolicy, WisdomPolicy {
+        implements GeoItem, IPresetSpellContainer, SpellSlotUpgradeableItem, WisdomPolicy {
     public static final int DURABILITY = 2031;
     public static final int ENCHANTMENT_VALUE = 15;
     public static final double DISPLAY_ATTACK_DAMAGE = 10.0D;
@@ -70,7 +69,6 @@ public final class SpellReaperScythe extends SwordItem
     private static final ResourceLocation MALUM_REBOUND_ID = ResourceLocation.fromNamespaceAndPath(MalumCompatibility.MOD_ID, "rebound");
     private static final Set<ResourceLocation> EXTRA_ENCHANTMENTS = Set.of(
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom"),
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "transcendence"),
             ResourceLocation.fromNamespaceAndPath(MalumCompatibility.MOD_ID, "rebound"),
             MALUM_ASCENSION_ID
     );

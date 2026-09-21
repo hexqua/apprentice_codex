@@ -9,7 +9,6 @@ import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.enchantment.VanillaEnchantmentCompatibility;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.renderer.armor.StealthRuneArmorRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
@@ -44,7 +43,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetSpellContainer,
-        WisdomPolicy, TranscendencePolicy, AttributeEnchantmentPolicy {
+        WisdomPolicy, AttributeEnchantmentPolicy {
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
             AttributeEnchantmentType.ALACRITY,
@@ -69,16 +68,6 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
 
     public boolean hasImbueSlot() {
         return getType() == Type.CHESTPLATE;
-    }
-
-    @Override
-    public boolean isTranscendenceActiveWhileHeld() {
-        return false;
-    }
-
-    @Override
-    public boolean supportsDirectTranscendenceApplication() {
-        return hasImbueSlot();
     }
 
     @Override
@@ -214,7 +203,6 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
     }
 
     private boolean isSupportedArmorEnchantment(ResourceLocation enchantmentId) {
-        return enchantmentId.equals(Enchantments.WISDOM.location())
-                || hasImbueSlot() && enchantmentId.equals(Enchantments.TRANSCENDENCE.location());
+        return enchantmentId.equals(Enchantments.WISDOM.location());
     }
 }

@@ -233,7 +233,7 @@ public final class Enchantments {
                                         transcendenceItems,
                                         transcendenceItems,
                                         1,
-                                        3,
+                                        1,
                                         Enchantment.dynamicCost(25, 8),
                                         Enchantment.dynamicCost(75, 8),
                                         8,

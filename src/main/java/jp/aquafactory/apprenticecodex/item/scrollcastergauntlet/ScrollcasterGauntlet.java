@@ -22,7 +22,6 @@ import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -113,7 +112,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         ItemTransformPreservingCastAnimationItem, ArcaneAnvilScrollImbueBlockItem,
         BetterCombatOffhandDualWieldingPolicyItem, SwingTriggeredMagicItem, PriorityOffhandUseDeferringItem, IJeiInfoItem,
         ImmediateSneakSelectionUiItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
-        NonDamageableAnvilMergeItem, TranscendencePolicy, AttributeEnchantmentPolicy, WisdomPolicy {
+        NonDamageableAnvilMergeItem, AttributeEnchantmentPolicy, WisdomPolicy {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.scrollcaster_gauntlet.desc_";
 
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
@@ -610,7 +609,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                 || matches(enchantment, Enchantments.REFLUX)
                 || matches(enchantment, Enchantments.RESERVOIR)
                 || matches(enchantment, Enchantments.TENSE)
-                || matches(enchantment, Enchantments.TRANSCENDENCE)
                 || matches(enchantment, Enchantments.WISDOM);
     }
 

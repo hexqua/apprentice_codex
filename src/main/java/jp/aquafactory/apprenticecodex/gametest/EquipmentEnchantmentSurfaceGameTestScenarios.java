@@ -1528,7 +1528,6 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "reflux"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "reservoir"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "tense"),
-                    ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "transcendence"),
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom"),
                     ResourceLocation.withDefaultNamespace("bane_of_arthropods"),
                     ResourceLocation.withDefaultNamespace("fire_aspect"),
@@ -2254,7 +2253,6 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                 enchantment -> enchantment.value().canEnchant(new ItemStack(Items.DIAMOND_SWORD))
         ));
         expectedEnchantments.add(Enchantments.WISDOM.location());
-        expectedEnchantments.add(Enchantments.TRANSCENDENCE.location());
         addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedEnchantments);
         addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
         if (ModList.get().isLoaded(MALUM_MOD_ID)) {
