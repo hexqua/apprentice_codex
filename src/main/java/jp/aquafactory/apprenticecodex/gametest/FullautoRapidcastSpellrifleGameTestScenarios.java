@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrati
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
+import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleAdsMovement;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleCastContext;
@@ -34,6 +35,7 @@ import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunCastContext;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -313,19 +315,31 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
             var item = (FullautoRapidcastSpellrifle) stack.getItem();
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "fullauto_rapidcast_spellrifle_ammo_policy_test");
 
-            helper.assertTrue(item.getAmmoItem(stack) == ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(),
-                    "Fullauto Rapidcast Spellrifle should use Multi-purpose Spell Round");
-            helper.assertTrue(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get() instanceof SpellcasterRoundItem,
-                    "Multi-purpose Spell Round should be a SpellcasterRoundItem");
-            var roundItem = (SpellcasterRoundItem) ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get();
-            helper.assertTrue(roundItem.getEmptyCasingItem() == ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get(),
-                    "Multi-purpose Spell Round should return Empty Multi-purpose Spell Casing");
+            helper.assertTrue(item.getAmmoItem(stack) == ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get(),
+                    "Fullauto Rapidcast Spellrifle should use Full-auto Spell Casting Round");
+            helper.assertTrue(ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get() instanceof SpellcasterRoundItem,
+                    "Full-auto Spell Casting Round should be a SpellcasterRoundItem");
+            var roundItem = (SpellcasterRoundItem) ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get();
+            helper.assertTrue(roundItem.getEmptyCasingItem() == ItemRegistry.EMPTY_FULLAUTO_SPELL_CASTING_CASING.get(),
+                    "Full-auto Spell Casting Round should return Empty Full-auto Spell Casting Casing");
             helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.0F,
                     "Fullauto Rapidcast Spellrifle should not return empty casings without Spellcaster Ammo Pouch");
 
             equipCurio(player, CuriosSlotConstants.BELT, new ItemStack(ItemRegistry.SPELLCASTER_AMMO_POUCH.get()));
             helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.2F,
                     "Fullauto Rapidcast Spellrifle should use 20% empty casing return chance with Spellcaster Ammo Pouch");
+            var ammo = new ItemStack(roundItem, 2);
+            var casing = new ItemStack(ItemRegistry.EMPTY_FULLAUTO_SPELL_CASTING_CASING.get());
+            helper.assertTrue(SpellcasterAmmoPouch.storeInEquippedPouches(player, ammo) == 2,
+                    "Ammo pouch should store Full-auto Spell Casting Rounds");
+            helper.assertTrue(SpellcasterAmmoPouch.consumeAmmoFromAccessiblePouches(player, roundItem),
+                    "Full-auto ammunition should be consumable from an equipped pouch");
+            helper.assertTrue(SpellcasterAmmoPouch.countAmmoInAccessiblePouches(player, roundItem) == 1,
+                    "Pouch consumption should remove exactly one Full-auto round");
+            helper.assertTrue(casing.is(TagRegistry.Items.SPELLCASTER_EMPTY_CASINGS),
+                    "Full-auto casing should be classified as an empty casing");
+            helper.assertTrue(SpellcasterAmmoPouch.storeInEquippedPouches(player, casing) == 1,
+                    "Ammo pouch should store Empty Full-auto Spell Casting Casings");
         });
     }
 
@@ -336,7 +350,7 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
             var item = (FullautoRapidcastSpellrifle) stack.getItem();
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "fullauto_rapidcast_spellrifle_recast_ammo_test");
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            var ammoStack = new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 1);
+            var ammoStack = new ItemStack(ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get(), 1);
             player.getInventory().add(ammoStack);
 
             var spell = SpellRegistry.MAGIC_MISSILE_SPELL.get();
@@ -359,7 +373,7 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
                     player,
                     player.getInventory(),
                     item.getAmmoItem(stack)
-            ) == 1, "Fullauto Rapidcast Spellrifle recast should not consume Multi-purpose Spell Round");
+            ) == 1, "Fullauto Rapidcast Spellrifle recast should not consume Full-auto Spell Casting Round");
         });
     }
 
@@ -370,7 +384,7 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
             var item = (FullautoRapidcastSpellrifle) stack.getItem();
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "fullauto_rapidcast_spellrifle_mana_policy_test");
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            player.getInventory().add(new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 1));
+            player.getInventory().add(new ItemStack(ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get(), 1));
 
             helper.assertFalse(stack.getItem() instanceof ManaBypassSpellItem,
                     "Fullauto Rapidcast Spellrifle should not bypass mana consumption");
@@ -421,7 +435,7 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
             var item = (FullautoRapidcastSpellrifle) stack.getItem();
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "fullauto_rapidcast_spellrifle_instant_policy_test");
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            player.getInventory().add(new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 1));
+            player.getInventory().add(new ItemStack(ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get(), 1));
 
             var spell = SpellRegistry.MAGIC_MISSILE_SPELL.get();
             var magicData = MagicData.getPlayerMagicData(player);
@@ -446,7 +460,7 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
                     player,
                     player.getInventory(),
                     item.getAmmoItem(stack)
-            ) == 0, "Fullauto Rapidcast Spellrifle instant cast should consume Multi-purpose Spell Round");
+            ) == 0, "Fullauto Rapidcast Spellrifle instant cast should consume Full-auto Spell Casting Round");
 
             var cooldownEvent = new SpellCooldownAddedEvent.Pre(
                     20 * 5,
@@ -590,7 +604,7 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
         var stack = new ItemStack(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
         player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_HOOD.get()));
-        player.getInventory().add(new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 1));
+        player.getInventory().add(new ItemStack(ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get(), 1));
         MagicData.getPlayerMagicData(player).setPlayerCastingItem(stack);
         var spell = SpellRegistry.MAGIC_MISSILE_SPELL.get();
         for (var skipMana : List.of(false, true)) {
@@ -599,7 +613,7 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
                 var event = new SpellOnCastEvent(player, spell.getSpellId(), 1, spell.getManaCost(1), spell.getSchoolType(), CastSource.SWORD);
                 FullautoRapidcastSpellrifleCastEvent.onSpellCast(event);
                 helper.assertTrue(event.getManaCost() == (skipMana ? 0 : spell.getManaCost(1)), "Suit mana benefit must follow its setting");
-                helper.assertTrue(SpellGunCastEvent.countAvailableAmmo(player, player.getInventory(), ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get()) == 1,
+                helper.assertTrue(SpellGunCastEvent.countAvailableAmmo(player, player.getInventory(), ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get()) == 1,
                         "Suit ammo benefit must preserve the round");
             } catch (Exception exception) {
                 throw new IllegalStateException("Failed to close suit test context", exception);
@@ -620,7 +634,7 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
         helper.assertTrue(rifle.resolveSneakSelectionStack(player, InteractionHand.OFF_HAND).isEmpty(), "Offhand selection must be disabled");
         player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-        player.getInventory().add(new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 2));
+        player.getInventory().add(new ItemStack(ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get(), 2));
         var magic = MagicData.getPlayerMagicData(player);
         magic.setSyncedData(new SyncedSpellData(player));
         magic.setMana(1000);

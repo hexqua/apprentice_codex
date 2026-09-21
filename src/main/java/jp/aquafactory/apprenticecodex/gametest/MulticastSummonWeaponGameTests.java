@@ -183,7 +183,7 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
                 var stack = new ItemStack(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
                 var rifle = (FullautoRapidcastSpellrifle) stack.getItem();
                 player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-                player.getInventory().add(new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 2));
+                player.getInventory().add(new ItemStack(ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get(), 2));
                 rifle.trySetCalibrationAdjustment(stack, 0,
                         new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()), player.registryAccess());
                 if (repeated) {

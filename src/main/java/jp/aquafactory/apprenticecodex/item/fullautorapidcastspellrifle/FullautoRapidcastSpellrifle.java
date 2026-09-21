@@ -364,7 +364,7 @@ public final class FullautoRapidcastSpellrifle extends Item
     }
 
     public Item getAmmoItem(ItemStack stack) {
-        return ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get();
+        return ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get();
     }
 
     public static boolean isSpecialCastSpellDenied(@Nullable AbstractSpell spell) {

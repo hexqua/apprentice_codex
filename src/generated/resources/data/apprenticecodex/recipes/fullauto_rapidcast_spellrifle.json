@@ -6,13 +6,13 @@
       "tag": "minecraft:buttons"
     },
     "M": {
-      "item": "irons_spellbooks:mithril_scrap"
+      "item": "irons_spellbooks:mithril_ingot"
     },
     "R": {
       "item": "minecraft:redstone"
     },
     "S": {
-      "item": "apprenticecodex:spellstained_diamond"
+      "item": "irons_spellbooks:divine_soulshard"
     },
     "W": {
       "item": "irons_spellbooks:weapon_parts"
@@ -24,7 +24,7 @@
     " BM"
   ],
   "result": {
-    "item": "apprenticecodex:multipurpose_staffrifle"
-  },
-  "show_notification": true
+    "count": 1,
+    "id": "apprenticecodex:fullauto_rapidcast_spellrifle"
+  }
 }
