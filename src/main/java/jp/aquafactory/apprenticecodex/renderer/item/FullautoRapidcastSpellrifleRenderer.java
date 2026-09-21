@@ -3,11 +3,14 @@ package jp.aquafactory.apprenticecodex.renderer.item;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.model.FullautoRapidcastSpellrifleModel;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -15,6 +18,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
@@ -51,11 +55,12 @@ public final class FullautoRapidcastSpellrifleRenderer extends GeoItemRenderer<F
             return;
         }
 
-        float runeBrightness = resolveRuneBarrelBrightness(partialTick);
         var runeColor = resolveRuneBarrelColor();
-        renderGlowPass(model, poseStack, bufferSource, animatable, GlowPass.RUNE_BARREL, RUNE_BARREL_RENDER_TYPE,
-                partialTick, rgba(runeColor.red() * runeBrightness, runeColor.green() * runeBrightness,
-                        runeColor.blue() * runeBrightness, 1.0F));
+        if (runeColor != null) {
+            float runeBrightness = resolveRuneBarrelBrightness(partialTick);
+            renderGlowPass(model, poseStack, bufferSource, animatable, GlowPass.RUNE_BARREL, RUNE_BARREL_RENDER_TYPE,
+                    partialTick, multiplyRgb(0xFF000000 | runeColor, runeBrightness));
+        }
 
         float emitterBrightness = resolveEmitterBrightness(partialTick);
         renderGlowPass(model, poseStack, bufferSource, animatable, GlowPass.EMITTER, EMITTER_RENDER_TYPE,
@@ -195,8 +200,19 @@ public final class FullautoRapidcastSpellrifleRenderer extends GeoItemRenderer<F
         return 0.9F + 0.1F * Mth.sin(time * Mth.TWO_PI / 40.0F);
     }
 
-    private static GlowColor resolveRuneBarrelColor() {
-        return new GlowColor(1.0F, 1.0F, 1.0F);
+    private @Nullable Integer resolveRuneBarrelColor() {
+        var level = Minecraft.getInstance().level;
+        if (level == null || this.currentItemStack == null || this.currentItemStack.isEmpty()) {
+            return null;
+        }
+
+        var data = FullautoRapidcastSpellrifle.getSelectedSpellData(this.currentItemStack, level.registryAccess());
+        if (data == SpellData.EMPTY || data.getSpell() == SpellRegistry.none()) {
+            return null;
+        }
+
+        var school = data.getSpell().getSchoolType();
+        return school == null ? null : MagicTools.resolveSchoolTintColor(school);
     }
 
     private static float resolveEmitterBrightness(float partialTick) {
@@ -255,9 +271,6 @@ public final class FullautoRapidcastSpellrifleRenderer extends GeoItemRenderer<F
                 | (Mth.clamp(Math.round(red * 255.0F), 0, 255) << 16)
                 | (Mth.clamp(Math.round(green * 255.0F), 0, 255) << 8)
                 | Mth.clamp(Math.round(blue * 255.0F), 0, 255);
-    }
-
-    private record GlowColor(float red, float green, float blue) {
     }
 
     private enum GlowPass {
