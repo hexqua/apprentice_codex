@@ -50,12 +50,12 @@ import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.List;
 import java.util.function.Consumer;
-import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.AbstractImbuedMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 
-public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
+public final class SmashcastScepter extends AbstractImbuedMagicWeaponItem
         implements GeoItem, RestrictedSpellImbuableItem, IJeiInfoItem, PlunderTarget {
     public static final double ATTACK_DAMAGE_MODIFIER = 5.0D;
     public static final double ATTACK_SPEED_MODIFIER = -3.4D;

@@ -71,7 +71,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
-import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.AbstractImbuedMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
@@ -90,7 +90,7 @@ import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 
-public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
+public final class RevolvercastStaff extends AbstractImbuedMagicWeaponItem
         implements GeoItem, CastAnimationOverrideItem, IJeiInfoItem, SwingTriggeredMagicItem,
         RestrictedSpellImbuableItem, ArcaneAnvilImbueBlockItem, StoredSpellCalibrationImbueTarget,
         SpellCalibrationAdjustmentTarget, AttributeEnchantmentPolicy {

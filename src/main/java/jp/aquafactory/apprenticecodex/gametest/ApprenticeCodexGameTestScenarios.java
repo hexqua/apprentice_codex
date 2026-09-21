@@ -104,7 +104,7 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerDirectionMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.shield.AbstractImbueShieldItem;
-import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.AbstractImbuedMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff;
@@ -6840,7 +6840,7 @@ public class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.CRYSTAL_BLADED_STAFF.get());
             var item = (CrystalBladedStaff) stack.getItem();
-            helper.assertTrue(item instanceof AbstractRightClickMagicWeaponItem,
+            helper.assertTrue(item instanceof AbstractImbuedMagicWeaponItem,
                     "Crystal Bladed Staff should return to the right-click magic weapon inheritance path");
             assertExactEnchantmentSurfaces(
                     helper,
@@ -15972,7 +15972,7 @@ public class ApprenticeCodexGameTestScenarios {
         var item = stack.getItem();
         if (item instanceof AbstractSpellGunItem spellGunItem) {
             spellGunItem.repairPresetSpellContainerStateIfNeeded(stack);
-        } else if (item instanceof AbstractRightClickMagicWeaponItem magicWeaponItem) {
+        } else if (item instanceof AbstractImbuedMagicWeaponItem magicWeaponItem) {
             magicWeaponItem.repairPresetSpellContainerStateIfNeeded(stack);
         } else if (item instanceof AbstractImbueShieldItem imbueShieldItem) {
             imbueShieldItem.repairPresetSpellContainerStateIfNeeded(stack);
