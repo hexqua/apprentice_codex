@@ -26,7 +26,7 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHint;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
-import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
+import jp.aquafactory.apprenticecodex.item.ammo.EmptyCasingReturnPolicy;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
@@ -101,7 +101,6 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                             new CalibrationAdjustmentHint.SpecificItem(ItemRegistry.SILVER_SPELL_AMPLIFIER)
                     ).withEffectLines(CalibrationAdjustmentEffects.changeAttributeOffhand())
             );
-    public static final float EMPTY_CASING_RETURN_CHANCE = 0.5F;
     private final SpellGunConfig spellGunConfig;
     private final Supplier<? extends AbstractSpell> configuredSpell;
     private final int configuredSpellLevel;
@@ -427,12 +426,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     }
 
     final boolean shouldReturnEmptyCasing(Player player) {
-        var emptyCasingReturnChance = SpellcasterAmmoPouch.applyEmptyCasingReturnChanceBonus(
-                EMPTY_CASING_RETURN_CHANCE,
-                player
-        );
-        return emptyCasingReturnChance > 0.0F
-                && player.getRandom().nextFloat() < emptyCasingReturnChance;
+        return EmptyCasingReturnPolicy.shouldReturnEmptyCasing(player);
     }
 
     public boolean shouldOverrideSpellGunCastStartAnimation(ItemStack stack, @Nullable AbstractSpell spell) {

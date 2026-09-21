@@ -322,12 +322,12 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
             var roundItem = (SpellcasterRoundItem) ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get();
             helper.assertTrue(roundItem.getEmptyCasingItem() == ItemRegistry.EMPTY_FULLAUTO_SPELL_CASTING_CASING.get(),
                     "Full-auto Spell Casting Round should return Empty Full-auto Spell Casting Casing");
-            helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.0F,
-                    "Fullauto Rapidcast Spellrifle should not return empty casings without Spellcaster Ammo Pouch");
+            helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.2F,
+                    "Fullauto Rapidcast Spellrifle should use 20% empty casing return chance without Spellcaster Ammo Pouch");
 
             equipCurio(player, CuriosSlotConstants.BELT, new ItemStack(ItemRegistry.SPELLCASTER_AMMO_POUCH.get()));
-            helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.2F,
-                    "Fullauto Rapidcast Spellrifle should use 20% empty casing return chance with Spellcaster Ammo Pouch");
+            helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.9F,
+                    "Fullauto Rapidcast Spellrifle should use 90% empty casing return chance with Spellcaster Ammo Pouch");
             var ammo = new ItemStack(roundItem, 2);
             var casing = new ItemStack(ItemRegistry.EMPTY_FULLAUTO_SPELL_CASTING_CASING.get());
             helper.assertTrue(SpellcasterAmmoPouch.storeInEquippedPouches(player, ammo) == 2,
