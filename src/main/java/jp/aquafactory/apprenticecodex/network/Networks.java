@@ -102,7 +102,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "102";
+    private static final String PROTOCOL_VERSION = "103";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -116,6 +116,9 @@ public final class Networks {
     }
 
     public static void register() {
+        CHANNEL.registerMessage(nextPacketId++, SyncManaSoulTransducerConfigPacket.class,
+                SyncManaSoulTransducerConfigPacket::encode, SyncManaSoulTransducerConfigPacket::decode,
+                SyncManaSoulTransducerConfigPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(nextPacketId++, jp.aquafactory.apprenticecodex.network.packet.SyncQuickcastCartridgePacket.class,
                 jp.aquafactory.apprenticecodex.network.packet.SyncQuickcastCartridgePacket::encode, jp.aquafactory.apprenticecodex.network.packet.SyncQuickcastCartridgePacket::decode, jp.aquafactory.apprenticecodex.network.packet.SyncQuickcastCartridgePacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));

@@ -41,6 +41,7 @@ public class ApprenticeCodex
         context.registerConfig(ModConfig.Type.SERVER, ApprenticeCodexServerConfig.SPEC);
 
         var bus = context.getModEventBus();
+        jp.aquafactory.apprenticecodex.event.ManaSoulTransducerConfigSyncEvents.register(bus);
         UndyingEmblemConfigSyncEvents.register(bus);
         SpellRegistry.register(bus);
         EntityRegistry.register(bus);

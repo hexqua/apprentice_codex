@@ -21,19 +21,19 @@ public class ManaSoulTransducer extends Item implements ICurioItem{
     }
 
     @Override
-    public List<Component> getSlotsTooltip(List<Component> tooltips, TooltipContext context, ItemStack stack) {
+    public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
         var result = new java.util.ArrayList<>(tooltips);
         result.add(Component.empty());
         result.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
-        // desc_1～3は1.20.1ではlegacy.desc_1～3にする.
+        // 1.6.7は予備回数とクールダウンをマナで代替する。
         result.add(Component.literal(" ")
-                .append(Component.translatable(getDescriptionId() + ".desc_1"))
+                .append(Component.translatable(getDescriptionId() + ".legacy.desc_1", ManaSoulTransducerConfigState.manaCost()))
                 .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
         result.add(Component.literal(" ")
-                .append(Component.translatable(getDescriptionId() + ".desc_2"))
+                .append(Component.translatable(getDescriptionId() + ".legacy.desc_2"))
                 .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
         result.add(Component.literal(" ")
-                .append(Component.translatable(getDescriptionId() + ".desc_3"))
+                .append(Component.translatable(getDescriptionId() + ".legacy.desc_3"))
                 .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
         ManaSoulTransducerTooltip.appendStatus(result, getDescriptionId());
         return result;

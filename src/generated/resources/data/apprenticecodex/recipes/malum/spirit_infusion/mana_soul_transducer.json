@@ -1,26 +1,5 @@
 {
   "type": "malum:spirit_infusion",
-  "input": {
-    "item": "malum:runic_brooch"
-  },
-  "spirits": [
-    {
-      "type": "aerial",
-      "count": 16
-    },
-    {
-      "type": "aqueous",
-      "count": 16
-    },
-    {
-      "type": "arcane",
-      "count": 64
-    },
-    {
-      "type": "eldritch",
-      "count": 64
-    }
-  ],
   "conditions": [
     {
       "type": "forge:mod_loaded",
@@ -40,7 +19,28 @@
       "item": "malum:malignant_pewter_plating"
     }
   ],
+  "input": {
+    "item": "malum:runic_brooch"
+  },
   "output": {
     "item": "apprenticecodex:mana_soul_transducer"
-  }
+  },
+  "spirits": [
+    {
+      "type": "aerial",
+      "count": 16
+    },
+    {
+      "type": "aqueous",
+      "count": 16
+    },
+    {
+      "type": "arcane",
+      "count": 64
+    },
+    {
+      "type": "eldritch",
+      "count": 64
+    }
+  ]
 }

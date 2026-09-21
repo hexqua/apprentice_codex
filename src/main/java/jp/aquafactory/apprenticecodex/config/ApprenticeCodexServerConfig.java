@@ -93,8 +93,8 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.manaSoulTransducerConfig.castTimeReductionTransferRate().get();
     }
 
-    public static double manaSoulTransducerRecoveryRate() {
-        return ITEMS_CONFIG.manaSoulTransducerConfig.cooldownReductionTransferRate().get();
+    public static int manaSoulTransducerManaCost() {
+        return ITEMS_CONFIG.manaSoulTransducerConfig.manaCost().get();
     }
 
     public static int undyingEmblemReconstructionSpeedMultiplier() {

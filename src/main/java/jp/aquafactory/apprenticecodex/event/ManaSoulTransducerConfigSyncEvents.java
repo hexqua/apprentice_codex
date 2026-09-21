@@ -5,13 +5,13 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaSoulTransducerConfigPacket;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.config.ModConfig;
-import net.neoforged.fml.event.config.ModConfigEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ManaSoulTransducerConfigSyncEvents {
@@ -70,6 +70,6 @@ public final class ManaSoulTransducerConfigSyncEvents {
 
     private static SyncManaSoulTransducerConfigPacket createPacket() {
         return new SyncManaSoulTransducerConfigPacket(
-                ApprenticeCodexServerConfig.manaSoulTransducerCastRate(), ApprenticeCodexServerConfig.manaSoulTransducerRecoveryRate());
+                ApprenticeCodexServerConfig.manaSoulTransducerCastRate(), ApprenticeCodexServerConfig.manaSoulTransducerManaCost());
     }
 }

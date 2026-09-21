@@ -60,6 +60,7 @@
     "MagicManagerMixin",
     "MalumIronsSpellsCompatMixin",
     "MalumReplenishingOffhandMixin",
+    "MalumStaffTransducerMixin",
     "MalumSoulDataHandlerMixin",
     "MalumPlayerScytheAttackMixin",
     "MalumAscensionParticleMixin",

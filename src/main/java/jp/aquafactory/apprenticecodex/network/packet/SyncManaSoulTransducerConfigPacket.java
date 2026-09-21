@@ -1,50 +1,24 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.curios.manasoultransducer.ManaSoulTransducerConfigState;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.jetbrains.annotations.NotNull;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.network.NetworkEvent;
+import java.util.function.Supplier;
 
-public record SyncManaSoulTransducerConfigPacket(double castRate, double recoveryRate) implements CustomPacketPayload {
-    public static final Type<SyncManaSoulTransducerConfigPacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_mana_soul_transducer_config"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, SyncManaSoulTransducerConfigPacket> STREAM_CODEC =
-            StreamCodec.of(SyncManaSoulTransducerConfigPacket::encode, SyncManaSoulTransducerConfigPacket::decode);
-
-    @Override
-    public @NotNull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
-    private static void encode(FriendlyByteBuf buffer, SyncManaSoulTransducerConfigPacket packet) {
+public record SyncManaSoulTransducerConfigPacket(double castRate, int manaCost) {
+    public static void encode(SyncManaSoulTransducerConfigPacket packet, FriendlyByteBuf buffer) {
         buffer.writeDouble(packet.castRate);
-        buffer.writeDouble(packet.recoveryRate);
+        buffer.writeVarInt(packet.manaCost);
     }
-
-    private static SyncManaSoulTransducerConfigPacket decode(FriendlyByteBuf buffer) {
-        return new SyncManaSoulTransducerConfigPacket(buffer.readDouble(), buffer.readDouble());
+    public static SyncManaSoulTransducerConfigPacket decode(FriendlyByteBuf buffer) {
+        return new SyncManaSoulTransducerConfigPacket(buffer.readDouble(), buffer.readVarInt());
     }
-
-    public static void handle(SyncManaSoulTransducerConfigPacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (FMLEnvironment.dist == Dist.CLIENT) {
-                ClientHandler.handle(packet);
-            }
-        });
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    private static final class ClientHandler {
-        private static void handle(SyncManaSoulTransducerConfigPacket packet) {
-            ManaSoulTransducerConfigState.set(packet.castRate, packet.recoveryRate);
-        }
+    public static void handle(SyncManaSoulTransducerConfigPacket packet, Supplier<NetworkEvent.Context> supplier) {
+        var context = supplier.get();
+        context.enqueueWork(() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
+                () -> () -> ManaSoulTransducerConfigState.set(packet.castRate, packet.manaCost)));
+        context.setPacketHandled(true);
     }
 }
