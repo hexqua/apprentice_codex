@@ -8,19 +8,28 @@ public final class FullautoEchoConfigState {
     private static final Set<Runnable> LISTENERS = new LinkedHashSet<>();
     private static boolean enabled;
     private static double manaMultiplier = 2.0D;
+    private static int cooldownBypassThresholdTicks = 100;
+    private static int cooldownReductionTicks = 200;
+    private static int reducedCooldownMinimumTicks = 10;
 
     private FullautoEchoConfigState() {}
 
     public static boolean enabled() { return enabled; }
     public static double manaMultiplier() { return manaMultiplier; }
+    public static int cooldownBypassThresholdTicks() { return cooldownBypassThresholdTicks; }
+    public static int cooldownReductionTicks() { return cooldownReductionTicks; }
+    public static int reducedCooldownMinimumTicks() { return reducedCooldownMinimumTicks; }
 
-    public static void set(boolean enabled, double multiplier) {
+    public static void set(boolean enabled, double multiplier, int threshold, int reduction, int minimum) {
         FullautoEchoConfigState.enabled = enabled;
         manaMultiplier = Double.isFinite(multiplier) ? Math.clamp(multiplier, 1.0D, 10.0D) : 2.0D;
+        cooldownBypassThresholdTicks = Math.clamp(threshold, 0, 72000);
+        cooldownReductionTicks = Math.clamp(reduction, 0, 72000);
+        reducedCooldownMinimumTicks = Math.clamp(minimum, 0, 72000);
         for (var listener : LISTENERS.toArray(Runnable[]::new)) listener.run();
     }
 
-    public static void reset() { set(false, 2.0D); }
+    public static void reset() { set(false, 2.0D, 100, 200, 10); }
     public static void addChangeListener(Runnable listener) { LISTENERS.add(listener); }
     public static void removeChangeListener(Runnable listener) { LISTENERS.remove(listener); }
 }

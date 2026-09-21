@@ -64,7 +64,7 @@ public final class RifleSpellTooltipClientHelper {
                         || containsTranslation(line, "tooltip.irons_spellbooks.cooldown_length_seconds"));
                 int castTime = spell.getCastType() == CastType.LONG
                         ? spell.getEffectiveCastTime(spell.getLevelFor(spellData.getLevel(), player), player) : 0;
-                int cooldown = FullautoCooldownPolicy.resolve(spell.getSpellCooldown(),
+                int cooldown = FullautoCooldownPolicy.resolveClient(spell.getSpellCooldown(),
                         WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, CastSource.SWORD), castTime);
                 // 上流がCD行を省略する0秒の魔法でも、最終値を必ず表示する。
                 details.add(Component.translatable("item.apprenticecodex.fullauto_rapidcast_spellrifle.tooltip.cooldown",
