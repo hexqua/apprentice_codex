@@ -6543,32 +6543,34 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
     static void healingBloomSkipsSelfRegenerationAndUsesSlowNaturalHealing(GameTestHelper helper) {
-        var level = helper.getLevel();
-        // 同 batch の他 Healing Bloom から再生オーラを受けないよう、高所へ隔離する。
-        var relativeAnchorPos = new BlockPos(0, 20, 0);
-        var anchorPos = helper.absolutePos(relativeAnchorPos);
-        prepareHighIsolationPlatform(helper, relativeAnchorPos);
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
+            var level = helper.getLevel();
+            // 同 batch の他 Healing Bloom から再生オーラを受けないよう、高所へ隔離する。
+            var relativeAnchorPos = new BlockPos(0, 20, 0);
+            var anchorPos = helper.absolutePos(relativeAnchorPos);
+            prepareHighIsolationPlatform(helper, relativeAnchorPos);
 
-        var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "healing_bloom_regen_test"));
-        var bloom = new HealingBloomEntity(EntityRegistry.HEALING_BLOOM.get(), level);
-        bloom.setOwner(owner);
-        bloom.setAnchorPos(anchorPos);
-        bloom.setBloomMaxHealth(10.0f);
-        bloom.setHealth(5.0f);
-        bloom.moveTo(anchorPos.getX() + 0.5, anchorPos.getY(), anchorPos.getZ() + 0.5, 0.0f, 0.0f);
-        level.addFreshEntity(bloom);
+            var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "healing_bloom_regen_test"));
+            var bloom = new HealingBloomEntity(EntityRegistry.HEALING_BLOOM.get(), level);
+            bloom.setOwner(owner);
+            bloom.setAnchorPos(anchorPos);
+            bloom.setBloomMaxHealth(10.0f);
+            bloom.setHealth(5.0f);
+            bloom.moveTo(anchorPos.getX() + 0.5, anchorPos.getY(), anchorPos.getZ() + 0.5, 0.0f, 0.0f);
+            level.addFreshEntity(bloom);
 
-        helper.runAtTickTime(45, () -> {
-            helper.assertFalse(bloom.hasEffect(MobEffects.REGENERATION),
-                    "Healing Bloom should not grant its own regeneration effect to itself");
-            helper.assertTrue(Math.abs(bloom.getHealth() - 5.0f) < 0.01f,
-                    "Healing Bloom should not recover before its low-speed natural heal ticks");
-        });
-        helper.runAtTickTime(85, () -> {
-            helper.assertTrue(Math.abs(bloom.getHealth() - 6.0f) < 0.01f,
-                    "Healing Bloom should recover exactly one point from low-speed natural healing after 80 ticks: "
-                            + bloom.getHealth());
-            helper.succeed();
+            helper.runAfterDelay(45, () -> {
+                helper.assertFalse(bloom.hasEffect(MobEffects.REGENERATION),
+                        "Healing Bloom should not grant its own regeneration effect to itself");
+                helper.assertTrue(Math.abs(bloom.getHealth() - 5.0f) < 0.01f,
+                        "Healing Bloom should not recover before its low-speed natural heal ticks");
+            });
+            helper.runAfterDelay(85, () -> {
+                helper.assertTrue(Math.abs(bloom.getHealth() - 6.0f) < 0.01f,
+                        "Healing Bloom should recover exactly one point from low-speed natural healing after 80 ticks: "
+                                + bloom.getHealth());
+                helper.succeed();
+            });
         });
     }
     static void healingBloomCanBePlacedOnSupportedSlab(GameTestHelper helper) {
@@ -8126,47 +8128,49 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static void fieldOverseerPrioritizesHealthAndTransfersMana(GameTestHelper helper) {
-        var owner = createEquipmentTestPlayer(helper, new BlockPos(2, 2, 0), "field_overseer_attack_test");
-        var manaRegen = owner.getAttribute(AttributeRegistry.MANA_REGEN.get());
-        if (manaRegen != null) {
-            manaRegen.setBaseValue(0.0D);
-        }
-        var ownerMagicData = MagicData.getPlayerMagicData(owner);
-        ownerMagicData.setMana(75.0F);
-        var anchorPos = helper.absolutePos(new BlockPos(2, 2, 2));
-        helper.setBlock(new BlockPos(2, 1, 2), Blocks.STONE);
-        var staff = createFieldOverseerTestEntity(helper, owner, anchorPos, 100.0F, 40);
-        // 並列実行中の別構造内の敵を拾わないよう、このテストでは構造内に収まる射程へ絞る.
-        staff.configure(anchorPos, 4.0F, 4.0D, 40, 100.0F, 20);
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
+            var owner = createEquipmentTestPlayer(helper, new BlockPos(2, 2, 0), "field_overseer_attack_test");
+            var manaRegen = owner.getAttribute(AttributeRegistry.MANA_REGEN.get());
+            if (manaRegen != null) {
+                manaRegen.setBaseValue(0.0D);
+            }
+            var ownerMagicData = MagicData.getPlayerMagicData(owner);
+            ownerMagicData.setMana(75.0F);
+            var anchorPos = helper.absolutePos(new BlockPos(2, 2, 2));
+            helper.setBlock(new BlockPos(2, 1, 2), Blocks.STONE);
+            var staff = createFieldOverseerTestEntity(helper, owner, anchorPos, 100.0F, 40);
+            // 並列実行中の別構造内の敵を拾わないよう、このテストでは構造内に収まる射程へ絞る.
+            staff.configure(anchorPos, 4.0F, 4.0D, 40, 100.0F, 20);
 
-        // 日光や構造外への落下で攻撃対象から外れないよう、床内にハスクを配置する.
-        var highHealthTarget = helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(4, 2, 2));
-        var mediumHealthTarget = helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(2, 2, 4));
-        var lowHealthTarget = helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(0, 2, 2));
-        highHealthTarget.setHealth(20.0F);
-        mediumHealthTarget.setHealth(10.0F);
-        lowHealthTarget.setHealth(5.0F);
+            // 日光や構造外への落下で攻撃対象から外れないよう、床内にハスクを配置する.
+            var highHealthTarget = helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(4, 2, 2));
+            var mediumHealthTarget = helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(2, 2, 4));
+            var lowHealthTarget = helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(0, 2, 2));
+            highHealthTarget.setHealth(20.0F);
+            mediumHealthTarget.setHealth(10.0F);
+            lowHealthTarget.setHealth(5.0F);
 
-        helper.runAtTickTime(52, () -> {
-            helper.assertTrue(highHealthTarget.getHealth() < 20.0F,
-                    "FieldOverseer should strike the highest-current-health target first");
-            helper.assertTrue(Math.abs(mediumHealthTarget.getHealth() - 10.0F) < 0.0001F,
-                    "FieldOverseer second strike should wait three ticks");
-            helper.assertTrue(Math.abs(lowHealthTarget.getHealth() - 5.0F) < 0.0001F,
-                    "FieldOverseer should not strike the lower-health target before its sequence turn");
-        });
-        helper.runAtTickTime(58, () -> {
-            helper.assertTrue(mediumHealthTarget.getHealth() < 10.0F,
-                    "FieldOverseer should perform the second strike three ticks after the first");
-        });
-        helper.runAtTickTime(62, () -> {
-            helper.assertTrue(lowHealthTarget.getHealth() < 5.0F,
-                    "FieldOverseer should perform the third strike six ticks after the first");
-            helper.assertTrue(Math.abs(staff.getCurrentMana() - 100.0F) < 0.0001F,
-                    "FieldOverseer should receive two 20 mana transfers after spending one attack cost");
-            helper.assertTrue(Math.abs(ownerMagicData.getMana() - 35.0F) < 0.0001F,
-                    "FieldOverseer should drain the same amount from the owner: " + ownerMagicData.getMana());
-            helper.succeed();
+            helper.runAfterDelay(52, () -> {
+                helper.assertTrue(highHealthTarget.getHealth() < 20.0F,
+                        "FieldOverseer should strike the highest-current-health target first");
+                helper.assertTrue(Math.abs(mediumHealthTarget.getHealth() - 10.0F) < 0.0001F,
+                        "FieldOverseer second strike should wait three ticks");
+                helper.assertTrue(Math.abs(lowHealthTarget.getHealth() - 5.0F) < 0.0001F,
+                        "FieldOverseer should not strike the lower-health target before its sequence turn");
+            });
+            helper.runAfterDelay(58, () -> {
+                helper.assertTrue(mediumHealthTarget.getHealth() < 10.0F,
+                        "FieldOverseer should perform the second strike three ticks after the first");
+            });
+            helper.runAfterDelay(62, () -> {
+                helper.assertTrue(lowHealthTarget.getHealth() < 5.0F,
+                        "FieldOverseer should perform the third strike six ticks after the first");
+                helper.assertTrue(Math.abs(staff.getCurrentMana() - 100.0F) < 0.0001F,
+                        "FieldOverseer should receive two 20 mana transfers after spending one attack cost");
+                helper.assertTrue(Math.abs(ownerMagicData.getMana() - 35.0F) < 0.0001F,
+                        "FieldOverseer should drain the same amount from the owner: " + ownerMagicData.getMana());
+                helper.succeed();
+            });
         });
     }
 
@@ -8556,34 +8560,36 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static void autoMagnetRecastSwitchesModeAndStopsSameMode(GameTestHelper helper) {
-        helper.runAtTickTime(1, () -> {
-            var level = helper.getLevel();
-            var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "auto_magnet_recast_mode_test");
-            level.addFreshEntity(owner);
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
+            helper.runAfterDelay(1, () -> {
+                var level = helper.getLevel();
+                var owner = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "auto_magnet_recast_mode_test");
+                level.addFreshEntity(owner);
 
-            AutoMagnetFamiliarManager.activate(owner, 4.0D, 0.0D, AutoMagnetCollectionMode.NORMAL);
-            var initialFamiliars = getOwnedAutoMagnetFamiliars(helper, owner);
-            helper.assertTrue(initialFamiliars.size() == 1,
-                    "AutoMagnet should spawn exactly one familiar before mode switch");
-            var familiar = initialFamiliars.get(0);
+                AutoMagnetFamiliarManager.activate(owner, 4.0D, 0.0D, AutoMagnetCollectionMode.NORMAL);
+                var initialFamiliars = getOwnedAutoMagnetFamiliars(helper, owner);
+                helper.assertTrue(initialFamiliars.size() == 1,
+                        "AutoMagnet should spawn exactly one familiar before mode switch");
+                var familiar = initialFamiliars.get(0);
 
-            var switched = AutoMagnetFamiliarManager.toggle(owner, 6.0D, 0.0D, AutoMagnetCollectionMode.REVERSE);
-            helper.assertTrue(switched, "AutoMagnet should switch mode instead of deactivating");
-            var switchedFamiliars = getOwnedAutoMagnetFamiliars(helper, owner);
-            helper.assertTrue(switchedFamiliars.size() == 1,
-                    "AutoMagnet mode switch should keep exactly one familiar");
-            helper.assertTrue(switchedFamiliars.get(0) == familiar,
-                    "AutoMagnet mode switch should reuse the existing familiar");
-            helper.assertTrue(familiar.getCollectionMode() == AutoMagnetCollectionMode.REVERSE,
-                    "AutoMagnet familiar should use reverse mode after switch");
-            helper.assertTrue(Math.abs(familiar.getPickupRange() - 6.0D) < 1.0E-4D,
-                    "AutoMagnet mode switch should update the familiar range");
+                var switched = AutoMagnetFamiliarManager.toggle(owner, 6.0D, 0.0D, AutoMagnetCollectionMode.REVERSE);
+                helper.assertTrue(switched, "AutoMagnet should switch mode instead of deactivating");
+                var switchedFamiliars = getOwnedAutoMagnetFamiliars(helper, owner);
+                helper.assertTrue(switchedFamiliars.size() == 1,
+                        "AutoMagnet mode switch should keep exactly one familiar");
+                helper.assertTrue(switchedFamiliars.get(0) == familiar,
+                        "AutoMagnet mode switch should reuse the existing familiar");
+                helper.assertTrue(familiar.getCollectionMode() == AutoMagnetCollectionMode.REVERSE,
+                        "AutoMagnet familiar should use reverse mode after switch");
+                helper.assertTrue(Math.abs(familiar.getPickupRange() - 6.0D) < 1.0E-4D,
+                        "AutoMagnet mode switch should update the familiar range");
 
-            var deactivated = AutoMagnetFamiliarManager.toggle(owner, 6.0D, 0.0D, AutoMagnetCollectionMode.REVERSE);
-            helper.assertFalse(deactivated, "AutoMagnet same-mode recast should deactivate");
-            helper.assertTrue(getOwnedAutoMagnetFamiliars(helper, owner).isEmpty(),
-                    "AutoMagnet same-mode recast should discard the familiar");
-            helper.succeed();
+                var deactivated = AutoMagnetFamiliarManager.toggle(owner, 6.0D, 0.0D, AutoMagnetCollectionMode.REVERSE);
+                helper.assertFalse(deactivated, "AutoMagnet same-mode recast should deactivate");
+                helper.assertTrue(getOwnedAutoMagnetFamiliars(helper, owner).isEmpty(),
+                        "AutoMagnet same-mode recast should discard the familiar");
+                helper.succeed();
+            });
         });
     }
 
@@ -10216,7 +10222,7 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static void dualAcrobatCancelledInterruptionDiscardsImmediately(GameTestHelper helper) {
-        helper.runAtTickTime(1, () -> {
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
             var level = helper.getLevel();
             prepareDualAcrobatShootingLane(helper);
             var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(2, 2, 1), "dual_acrobat_cancelled_test");
@@ -10233,14 +10239,14 @@ public class ApprenticeCodexGameTestScenarios {
             var weapon = findDualAcrobatSmg(level, player);
             helper.assertTrue(weapon != null, "Dual Acrobat should spawn an SMG pair while casting");
 
-            helper.runAtTickTime(4, () -> {
+            helper.runAfterDelay(3, () -> {
                 helper.assertTrue(weapon.getStartupTicksRemaining() > 0,
                         "Cancelled Dual Acrobat should still be in startup before interruption");
                 spell.onServerCastComplete(level, 1, player, magicData, true);
                 helper.assertTrue(weapon.isRemoved(),
                         "Cancelling Dual Acrobat should discard its SMGs immediately");
 
-                helper.runAtTickTime(DualAcrobatSmgEntity.STARTUP_TICKS + 3L, () -> {
+                helper.runAfterDelay(DualAcrobatSmgEntity.STARTUP_TICKS, () -> {
                     helper.assertTrue(Math.abs(target.getHealth() - initialHealth) < 1.0e-6f,
                             "Cancelled Dual Acrobat should not start firing after the interruption");
                     helper.succeed();

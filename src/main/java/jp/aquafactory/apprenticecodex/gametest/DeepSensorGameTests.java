@@ -187,36 +187,44 @@ public final class DeepSensorGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE, batch = SCULK_STEP_ISOLATED_BATCH, timeoutTicks = 20)
+    @GameTest(template = TEMPLATE, batch = SCULK_STEP_ISOLATED_BATCH, timeoutTicks = 100)
     public static void activeEffectKeepsSculkSensorInactiveForStep(GameTestHelper helper) {
-        var player = createTestPlayer(helper, "deep_sensor_sculk_step");
-        addSenseSensorEffect(player);
-        assertSculkSensorResponse(helper, GameEvent.STEP, GameEvent.Context.of(player), false);
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
+            var player = createTestPlayer(helper, "deep_sensor_sculk_step");
+            addSenseSensorEffect(player);
+            assertSculkSensorResponse(helper, GameEvent.STEP, GameEvent.Context.of(player), false);
+        });
     }
 
-    @GameTest(template = TEMPLATE, batch = SCULK_PROJECTILE_ISOLATED_BATCH, timeoutTicks = 20)
+    @GameTest(template = TEMPLATE, batch = SCULK_PROJECTILE_ISOLATED_BATCH, timeoutTicks = 100)
     public static void activeEffectLetsSculkSensorReceiveProjectileShoot(GameTestHelper helper) {
-        var player = createTestPlayer(helper, "deep_sensor_sculk_projectile");
-        addSenseSensorEffect(player);
-        assertSculkSensorResponse(helper, GameEvent.PROJECTILE_SHOOT, GameEvent.Context.of(player), true);
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
+            var player = createTestPlayer(helper, "deep_sensor_sculk_projectile");
+            addSenseSensorEffect(player);
+            assertSculkSensorResponse(helper, GameEvent.PROJECTILE_SHOOT, GameEvent.Context.of(player), true);
+        });
     }
 
-    @GameTest(template = TEMPLATE, batch = SCULK_SNEAKING_ISOLATED_BATCH, timeoutTicks = 20)
+    @GameTest(template = TEMPLATE, batch = SCULK_SNEAKING_ISOLATED_BATCH, timeoutTicks = 100)
     public static void sneakingStillSuppressesAudibleGameEvent(GameTestHelper helper) {
-        var player = createTestPlayer(helper, "deep_sensor_sculk_sneaking");
-        player.setShiftKeyDown(true);
-        assertSculkSensorResponse(helper, GameEvent.PROJECTILE_SHOOT, GameEvent.Context.of(player), false);
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
+            var player = createTestPlayer(helper, "deep_sensor_sculk_sneaking");
+            player.setShiftKeyDown(true);
+            assertSculkSensorResponse(helper, GameEvent.PROJECTILE_SHOOT, GameEvent.Context.of(player), false);
+        });
     }
 
-    @GameTest(template = TEMPLATE, batch = SCULK_WOOL_ISOLATED_BATCH, timeoutTicks = 20)
+    @GameTest(template = TEMPLATE, batch = SCULK_WOOL_ISOLATED_BATCH, timeoutTicks = 100)
     public static void woolStillSuppressesStepWithoutEffect(GameTestHelper helper) {
-        var player = createTestPlayer(helper, "deep_sensor_sculk_wool");
-        assertSculkSensorResponse(
-                helper,
-                GameEvent.STEP,
-                GameEvent.Context.of(player, Blocks.WHITE_WOOL.defaultBlockState()),
-                false
-        );
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
+            var player = createTestPlayer(helper, "deep_sensor_sculk_wool");
+            assertSculkSensorResponse(
+                    helper,
+                    GameEvent.STEP,
+                    GameEvent.Context.of(player, Blocks.WHITE_WOOL.defaultBlockState()),
+                    false
+            );
+        });
     }
 
     private static FakePlayer createTestPlayer(

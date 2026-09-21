@@ -179,20 +179,22 @@ public final class FloatmountBroomGameTests {
         });
     }
 
-    @GameTest(template = TEMPLATE, timeoutTicks = 50)
+    @GameTest(template = TEMPLATE, batch = "apprenticecodex.broom_deep_sensor_isolated", timeoutTicks = 100)
     public static void deepSensorSilencesMountedBroomFlightVibration(GameTestHelper helper) {
-        var broom = spawnBroom(helper, 1.5D);
-        var player = serverRider(helper, "floatmount_deep_sensor_rider");
-        var senseSensor = EffectRegistry.SENSE_SENSOR.get();
-        player.addEffect(new MobEffectInstance(senseSensor, 60, 0));
-        mountForVibrationTest(helper, broom, player);
-        placeVibrationSensor(helper);
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
+            var broom = spawnBroom(helper, 1.5D);
+            var player = serverRider(helper, "floatmount_deep_sensor_rider");
+            var senseSensor = EffectRegistry.SENSE_SENSOR.get();
+            player.addEffect(new MobEffectInstance(senseSensor, 60, 0));
+            mountForVibrationTest(helper, broom, player);
+            placeVibrationSensor(helper);
 
-        helper.runAfterDelay(35, () -> {
-            helper.assertFalse(isVibrationSensorActive(helper),
-                    "Deep Sensor should silence player-sourced broom flight vibrations");
-            player.stopRiding();
-            helper.succeed();
+            helper.runAfterDelay(35, () -> {
+                helper.assertFalse(isVibrationSensorActive(helper),
+                        "Deep Sensor should silence player-sourced broom flight vibrations");
+                player.stopRiding();
+                helper.succeed();
+            });
         });
     }
 
@@ -925,75 +927,79 @@ public final class FloatmountBroomGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void hoverrideRushRequiresFullCombinedManaAndRejectsAnomalousTravel(GameTestHelper helper) {
-        var config = rushTestConfig(1.0D);
-        try (var ignored = ApprenticeCodexServerConfig.useHoverrideBroomConfigOverrideForGameTest(config)) {
-            var broom = spawnHoverrideBroom(helper, 1.5D);
-            installRushStyle(broom);
-            var player = serverRider(helper, "hoverride_rush_mana");
-            var magicData = magicData(helper, player);
-            magicData.setMana(10.0F);
-            helper.assertTrue(player.startRiding(broom, true), "Rush mana test rider should mount");
-            broom.tick();
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
+            var config = rushTestConfig(1.0D);
+            try (var ignored = ApprenticeCodexServerConfig.useHoverrideBroomConfigOverrideForGameTest(config)) {
+                var broom = spawnHoverrideBroom(helper, 1.5D);
+                installRushStyle(broom);
+                var player = serverRider(helper, "hoverride_rush_mana");
+                var magicData = magicData(helper, player);
+                magicData.setMana(10.0F);
+                helper.assertTrue(player.startRiding(broom, true), "Rush mana test rider should mount");
+                broom.tick();
 
-            var target = spawnRushTarget(helper, broom.position().add(0.4D, 0.0D, 0.0D));
-            var initialHealth = target.getHealth();
-            magicData.setMana(1.4F);
-            broom.acceptServerInput(player, 0.0F, 1.0F, false, false,
-                    BroomInputTransition.NONE, 0L);
-            broom.setPos(broom.getX() + 0.5D, broom.getY(), broom.getZ());
-            broom.tick();
-            helper.assertTrue(Math.abs(target.getHealth() - initialHealth) < 1.0e-4F,
-                    "Rush attack should require the full movement and rush mana cost");
-            helper.assertTrue(broom.isManaDepleted() && !broom.isRushAttackActive(),
-                    "Insufficient combined mana should deplete propulsion without activating rush");
+                var target = spawnRushTarget(helper, broom.position().add(0.4D, 0.0D, 0.0D));
+                var initialHealth = target.getHealth();
+                magicData.setMana(1.4F);
+                broom.acceptServerInput(player, 0.0F, 1.0F, false, false,
+                        BroomInputTransition.NONE, 0L);
+                broom.setPos(broom.getX() + 0.5D, broom.getY(), broom.getZ());
+                broom.tick();
+                helper.assertTrue(Math.abs(target.getHealth() - initialHealth) < 1.0e-4F,
+                        "Rush attack should require the full movement and rush mana cost");
+                helper.assertTrue(broom.isManaDepleted() && !broom.isRushAttackActive(),
+                        "Insufficient combined mana should deplete propulsion without activating rush");
 
-            magicData.setMana(50.0F);
-            broom.tick();
-            // 回復確認の静止tickを含む2tick観測なので、平均0.5 block/tickとなる距離を使う。
-            var exactCostTarget = spawnRushTarget(helper, broom.position().add(0.8D, 0.0D, 0.0D));
-            magicData.setMana(1.5F);
-            broom.setPos(broom.getX() + 1.0D, broom.getY(), broom.getZ());
-            broom.tick();
-            helper.assertTrue(exactCostTarget.getHealth() < exactCostTarget.getMaxHealth(),
-                    "An exact combined mana payment should still apply rush damage");
-            helper.assertTrue(broom.isManaDepleted() && broom.isRushAttackActive(),
-                    "An exact combined mana payment should attack before entering depleted mode");
+                magicData.setMana(50.0F);
+                broom.tick();
+                // 回復確認の静止tickを含む2tick観測なので、平均0.5 block/tickとなる距離を使う。
+                var exactCostTarget = spawnRushTarget(helper, broom.position().add(0.8D, 0.0D, 0.0D));
+                magicData.setMana(1.5F);
+                broom.setPos(broom.getX() + 1.0D, broom.getY(), broom.getZ());
+                broom.tick();
+                helper.assertTrue(exactCostTarget.getHealth() < exactCostTarget.getMaxHealth(),
+                        "An exact combined mana payment should still apply rush damage");
+                helper.assertTrue(broom.isManaDepleted() && broom.isRushAttackActive(),
+                        "An exact combined mana payment should attack before entering depleted mode");
 
-            magicData.setMana(50.0F);
-            broom.tick();
-            var manaBeforeAnomaly = magicData.getMana();
-            broom.setPos(broom.getX() + 5.0D, broom.getY(), broom.getZ());
-            broom.tick();
-            helper.assertFalse(broom.isRushAttackActive(),
-                    "An anomalously long server-observed displacement must not activate rush");
-            helper.assertTrue(Math.abs(magicData.getMana() - (manaBeforeAnomaly - 1.0F)) < 1.0e-4F,
-                    "Rejected rush travel should only retain the ordinary movement cost");
-        }
-        helper.succeed();
+                magicData.setMana(50.0F);
+                broom.tick();
+                var manaBeforeAnomaly = magicData.getMana();
+                broom.setPos(broom.getX() + 5.0D, broom.getY(), broom.getZ());
+                broom.tick();
+                helper.assertFalse(broom.isRushAttackActive(),
+                        "An anomalously long server-observed displacement must not activate rush");
+                helper.assertTrue(Math.abs(magicData.getMana() - (manaBeforeAnomaly - 1.0F)) < 1.0e-4F,
+                        "Rejected rush travel should only retain the ordinary movement cost");
+            }
+            helper.succeed();
+        });
     }
 
     @GameTest(template = TEMPLATE)
     public static void hoverrideRushCapsTargetsPerTick(GameTestHelper helper) {
-        var config = rushTestConfig(0.0D);
-        try (var ignored = ApprenticeCodexServerConfig.useHoverrideBroomConfigOverrideForGameTest(config)) {
-            var broom = spawnHoverrideBroom(helper, 1.5D);
-            installRushStyle(broom);
-            var player = serverRider(helper, "hoverride_rush_target_cap");
-            magicData(helper, player).setMana(10.0F);
-            helper.assertTrue(player.startRiding(broom, true), "Rush target cap rider should mount");
-            broom.tick();
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
+            var config = rushTestConfig(0.0D);
+            try (var ignored = ApprenticeCodexServerConfig.useHoverrideBroomConfigOverrideForGameTest(config)) {
+                var broom = spawnHoverrideBroom(helper, 1.5D);
+                installRushStyle(broom);
+                var player = serverRider(helper, "hoverride_rush_target_cap");
+                magicData(helper, player).setMana(10.0F);
+                helper.assertTrue(player.startRiding(broom, true), "Rush target cap rider should mount");
+                broom.tick();
 
-            var targets = new ArrayList<Zombie>();
-            for (var index = 0; index < 5; ++index) {
-                targets.add(spawnRushTarget(helper, broom.position().add(0.4D, 0.0D, index * 0.05D)));
+                var targets = new ArrayList<Zombie>();
+                for (var index = 0; index < 5; ++index) {
+                    targets.add(spawnRushTarget(helper, broom.position().add(0.4D, 0.0D, index * 0.05D)));
+                }
+                broom.setPos(broom.getX() + 0.5D, broom.getY(), broom.getZ());
+                broom.tick();
+                var damagedTargets = targets.stream().filter(target -> target.getHealth() < target.getMaxHealth()).count();
+                helper.assertTrue(damagedTargets == HoverrideBroomRushAttack.MAX_TARGETS_PER_TICK,
+                        "Rush should damage at most four targets per tick");
             }
-            broom.setPos(broom.getX() + 0.5D, broom.getY(), broom.getZ());
-            broom.tick();
-            var damagedTargets = targets.stream().filter(target -> target.getHealth() < target.getMaxHealth()).count();
-            helper.assertTrue(damagedTargets == HoverrideBroomRushAttack.MAX_TARGETS_PER_TICK,
-                    "Rush should damage at most four targets per tick");
-        }
-        helper.succeed();
+            helper.succeed();
+        });
     }
 
     @GameTest(template = TEMPLATE)
@@ -1430,21 +1436,23 @@ public final class FloatmountBroomGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void namedItemPlacementCopiesVisibleNameAndEntitySaveRetainsIt(GameTestHelper helper) {
-        var player = player(helper, "floatmount_broom_named_placement");
-        var expectedName = Component.literal("Zephyr").withStyle(ChatFormatting.AQUA);
-        var stack = new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get());
-        stack.setHoverName(expectedName);
-        var broom = placeBroomFromItem(helper, player, stack);
-        helper.assertTrue(expectedName.equals(broom.getCustomName()), "Placed broom should copy the item name");
-        helper.assertTrue(broom.isCustomNameVisible(), "Named broom should show its nameplate");
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
+            var player = player(helper, "floatmount_broom_named_placement");
+            var expectedName = Component.literal("Zephyr").withStyle(ChatFormatting.AQUA);
+            var stack = new ItemStack(ItemRegistry.FLOATMOUNT_BROOM.get());
+            stack.setHoverName(expectedName);
+            var broom = placeBroomFromItem(helper, player, stack);
+            helper.assertTrue(expectedName.equals(broom.getCustomName()), "Placed broom should copy the item name");
+            helper.assertTrue(broom.isCustomNameVisible(), "Named broom should show its nameplate");
 
-        var saved = new CompoundTag();
-        broom.saveWithoutId(saved);
-        var loaded = new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), helper.getLevel());
-        loaded.load(saved);
-        helper.assertTrue(expectedName.equals(loaded.getCustomName()), "Saved broom should retain its name");
-        helper.assertTrue(loaded.isCustomNameVisible(), "Saved broom should retain nameplate visibility");
-        helper.succeed();
+            var saved = new CompoundTag();
+            broom.saveWithoutId(saved);
+            var loaded = new FloatmountBroomEntity(EntityRegistry.FLOATMOUNT_BROOM.get(), helper.getLevel());
+            loaded.load(saved);
+            helper.assertTrue(expectedName.equals(loaded.getCustomName()), "Saved broom should retain its name");
+            helper.assertTrue(loaded.isCustomNameVisible(), "Saved broom should retain nameplate visibility");
+            helper.succeed();
+        });
     }
 
     @GameTest(template = TEMPLATE)
@@ -1506,45 +1514,47 @@ public final class FloatmountBroomGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void sneakingRecoveryPreservesCalibrationAndRedeploysWithResetState(GameTestHelper helper) {
-        var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 1.0D, 1.5D);
-        try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
-            var expectedName = Component.literal("Restored Broom").withStyle(ChatFormatting.GOLD);
-            var sourceStack = backCurioCalibratedBroomStack(ItemRegistry.FLOATMOUNT_BROOM.get(), 2);
-            sourceStack.setHoverName(expectedName);
-            var placer = player(helper, "floatmount_broom_calibrated_placer");
-            var broom = placeBroomFromItem(helper, placer, sourceStack);
-            broom.setCustomNameVisible(true);
-            broom.hurt(helper.getLevel().damageSources().fellOutOfWorld(), 20.0F);
-            var damagedState = new CompoundTag();
-            broom.saveWithoutId(damagedState);
-            damagedState.putBoolean("EmergencyLanding", true);
-            broom.load(damagedState);
-            helper.assertTrue(broom.isDamaged(), "Recovery setup should use a damaged broom");
-            helper.assertTrue(broom.isManaEmergencyLanding(), "Recovery setup should use an emergency broom");
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
+            var config = new FloatmountBroomServerConfig.Values(1000, 50, 10, Set.of(), 100, 50, 1.0D, 1.0D, 1.5D);
+            try (var ignored = ApprenticeCodexServerConfig.useFloatmountBroomConfigOverrideForGameTest(config)) {
+                var expectedName = Component.literal("Restored Broom").withStyle(ChatFormatting.GOLD);
+                var sourceStack = backCurioCalibratedBroomStack(ItemRegistry.FLOATMOUNT_BROOM.get(), 2);
+                sourceStack.setHoverName(expectedName);
+                var placer = player(helper, "floatmount_broom_calibrated_placer");
+                var broom = placeBroomFromItem(helper, placer, sourceStack);
+                broom.setCustomNameVisible(true);
+                broom.hurt(helper.getLevel().damageSources().fellOutOfWorld(), 20.0F);
+                var damagedState = new CompoundTag();
+                broom.saveWithoutId(damagedState);
+                damagedState.putBoolean("EmergencyLanding", true);
+                broom.load(damagedState);
+                helper.assertTrue(broom.isDamaged(), "Recovery setup should use a damaged broom");
+                helper.assertTrue(broom.isManaEmergencyLanding(), "Recovery setup should use an emergency broom");
 
-            var player = player(helper, "floatmount_broom_named_recovery");
-            player.setShiftKeyDown(true);
-            broom.interact(player, InteractionHand.MAIN_HAND);
-            var recovered = findBroomInInventory(helper, player);
-            helper.assertTrue(expectedName.equals(recovered.getHoverName()),
-                    "Sneaking recovery should copy the entity custom name");
-            assertCalibrationContents(helper, recovered, 2, "Recovered Floatmount Broom");
-            helper.assertTrue(AbstractBroomItem.isBackCurioEnabled(recovered),
-                    "Normal placement and recovery should preserve Curios calibration");
+                var player = player(helper, "floatmount_broom_named_recovery");
+                player.setShiftKeyDown(true);
+                broom.interact(player, InteractionHand.MAIN_HAND);
+                var recovered = findBroomInInventory(helper, player);
+                helper.assertTrue(expectedName.equals(recovered.getHoverName()),
+                        "Sneaking recovery should copy the entity custom name");
+                assertCalibrationContents(helper, recovered, 2, "Recovered Floatmount Broom");
+                helper.assertTrue(AbstractBroomItem.isBackCurioEnabled(recovered),
+                        "Normal placement and recovery should preserve Curios calibration");
 
-            var redeployStack = recovered.copy();
-            player.getInventory().clearContent();
-            player.setShiftKeyDown(false);
-            var redeployed = placeBroomFromItem(helper, player, redeployStack);
-            helper.assertTrue(expectedName.equals(redeployed.getCustomName()), "Redeployed broom should retain its name");
-            helper.assertTrue(redeployed.getDamage() == 0, "Redeployed broom should reset damage");
-            helper.assertFalse(redeployed.isDamaged(), "Redeployed broom should reset damaged state");
-            helper.assertFalse(redeployed.isManaEmergencyLanding(), "Redeployed broom should reset emergency landing");
-            assertCalibrationContents(helper, redeployed.getBroomItemStack(), 2, "Redeployed Floatmount Broom");
-            helper.assertTrue(AbstractBroomItem.isBackCurioEnabled(redeployed.getBroomItemStack()),
-                    "Redeployed broom should preserve Curios calibration");
-        }
-        helper.succeed();
+                var redeployStack = recovered.copy();
+                player.getInventory().clearContent();
+                player.setShiftKeyDown(false);
+                var redeployed = placeBroomFromItem(helper, player, redeployStack);
+                helper.assertTrue(expectedName.equals(redeployed.getCustomName()), "Redeployed broom should retain its name");
+                helper.assertTrue(redeployed.getDamage() == 0, "Redeployed broom should reset damage");
+                helper.assertFalse(redeployed.isDamaged(), "Redeployed broom should reset damaged state");
+                helper.assertFalse(redeployed.isManaEmergencyLanding(), "Redeployed broom should reset emergency landing");
+                assertCalibrationContents(helper, redeployed.getBroomItemStack(), 2, "Redeployed Floatmount Broom");
+                helper.assertTrue(AbstractBroomItem.isBackCurioEnabled(redeployed.getBroomItemStack()),
+                        "Redeployed broom should preserve Curios calibration");
+            }
+            helper.succeed();
+        });
     }
 
     @GameTest(template = TEMPLATE)

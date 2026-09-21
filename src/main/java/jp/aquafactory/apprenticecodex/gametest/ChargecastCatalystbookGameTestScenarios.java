@@ -341,37 +341,39 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
     }
 
     static void lethalAssaultWaitsForChargecastCompletionBeforeFiring(GameTestHelper helper) {
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
-                "chargecast_lethal_assault_wait_test");
-        var book = new ItemStack(ItemRegistry.CHARGECAST_CATALYSTBOOK.get());
-        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.LETHAL_ASSAULT.get();
-        ChargecastCatalystbook.setCalibrationScroll(book, 0, createSpellScroll(spell));
-        player.setItemInHand(InteractionHand.MAIN_HAND, book);
-        MagicData.getPlayerMagicData(player).setMana(1000.0F);
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "chargecast_lethal_assault_wait_test");
+            var book = new ItemStack(ItemRegistry.CHARGECAST_CATALYSTBOOK.get());
+            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.LETHAL_ASSAULT.get();
+            ChargecastCatalystbook.setCalibrationScroll(book, 0, createSpellScroll(spell));
+            player.setItemInHand(InteractionHand.MAIN_HAND, book);
+            MagicData.getPlayerMagicData(player).setMana(1000.0F);
 
-        helper.runAtTickTime(1, () -> {
-            var result = book.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Chargecast Lethal Assault should start charging but got " + result.getResult());
-        });
-        helper.runAtTickTime(12, () -> {
-            var rifles = BowGameTestSupport.getOwnedSummonWeapons(helper, player, LethalAssaultRifleEntity.class);
-            helper.assertTrue(rifles.size() == 1,
-                    "Chargecast Lethal Assault should keep one pre-cast rifle while charging");
-            helper.assertFalse(rifles.get(0).hasStartedFiringForGameTest(),
-                    "Chargecast Lethal Assault rifle should not enter its firing state before completion");
-        });
-        helper.runAtTickTime(13, () -> {
-            var magicData = MagicData.getPlayerMagicData(player);
-            ChargecastCatalystbookCastEvents.castWithPowerBonus(
-                    spell, helper.getLevel(), 1, player, CastSource.SWORD, true
-            );
-            spell.onServerCastComplete(helper.getLevel(), 1, player, magicData, false);
+            helper.runAfterDelay(1, () -> {
+                var result = book.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+                helper.assertTrue(result.getResult().consumesAction(),
+                        "Chargecast Lethal Assault should start charging but got " + result.getResult());
+            });
+            helper.runAfterDelay(12, () -> {
+                var rifles = BowGameTestSupport.getOwnedSummonWeapons(helper, player, LethalAssaultRifleEntity.class);
+                helper.assertTrue(rifles.size() == 1,
+                        "Chargecast Lethal Assault should keep one pre-cast rifle while charging");
+                helper.assertFalse(rifles.get(0).hasStartedFiringForGameTest(),
+                        "Chargecast Lethal Assault rifle should not enter its firing state before completion");
+            });
+            helper.runAfterDelay(13, () -> {
+                var magicData = MagicData.getPlayerMagicData(player);
+                ChargecastCatalystbookCastEvents.castWithPowerBonus(
+                        spell, helper.getLevel(), 1, player, CastSource.SWORD, true
+                );
+                spell.onServerCastComplete(helper.getLevel(), 1, player, magicData, false);
 
-            var rifles = BowGameTestSupport.getOwnedSummonWeapons(helper, player, LethalAssaultRifleEntity.class);
-            helper.assertTrue(rifles.size() == 1 && rifles.get(0).hasStartedFiringForGameTest(),
-                    "Chargecast Lethal Assault rifle should start firing when the charged cast completes");
-            helper.succeed();
+                var rifles = BowGameTestSupport.getOwnedSummonWeapons(helper, player, LethalAssaultRifleEntity.class);
+                helper.assertTrue(rifles.size() == 1 && rifles.get(0).hasStartedFiringForGameTest(),
+                        "Chargecast Lethal Assault rifle should start firing when the charged cast completes");
+                helper.succeed();
+            });
         });
     }
 
