@@ -67,8 +67,10 @@ public final class MultipurposeStaffrifleReworkGameTests extends ApprenticeCodex
             helper.assertTrue(Math.abs(speed.getValue() - baseline * 0.7D) < 1.0E-8D,
                     "ADS must apply the configured multiplier once, preserving other modifiers");
             multiplier.set(0.0D);
+            player.setSprinting(true);
             MultipurposeStaffrifleAdsMovement.onPlayerTick(new PlayerTickEvent.Post(player));
             helper.assertTrue(speed.getValue() == 0.0D, "Zero ADS multiplier must disable movement");
+            helper.assertTrue(!player.isSprinting(), "ADS must suppress sprinting even at zero movement multiplier");
             MultipurposeStaffrifleAdsMovement.update(player, false);
             helper.assertTrue(Math.abs(speed.getValue() - baseline) < 1.0E-8D,
                     "Releasing ADS must restore movement even at zero multiplier");
@@ -79,16 +81,26 @@ public final class MultipurposeStaffrifleReworkGameTests extends ApprenticeCodex
             MultipurposeStaffrifleAdsMovement.update(player, true);
             player.setSprinting(true);
             MultipurposeStaffrifleAdsMovement.onPlayerTick(new PlayerTickEvent.Post(player));
-            double sprintSpeed = speed.getValue();
-            helper.assertTrue(player.isSprinting() && sprintSpeed > baseline, "Sprinting must cancel ADS slowdown");
+            helper.assertTrue(!player.isSprinting() && Math.abs(speed.getValue() - baseline * 0.7D) < 1.0E-8D,
+                    "ADS must stop sprinting and preserve configured slowdown");
+            MultipurposeStaffrifleAdsMovement.update(player, false);
+            player.setSprinting(true);
             MultipurposeStaffrifleAdsMovement.update(player, true);
-            helper.assertTrue(speed.getValue() == sprintSpeed, "ADS requests during sprint must be ignored");
+            helper.assertTrue(!player.isSprinting() && Math.abs(speed.getValue() - baseline * 0.7D) < 1.0E-8D,
+                    "ADS requests during sprint must enter ADS and stop sprinting");
+            MultipurposeStaffrifleAdsMovement.update(player, false);
+            player.setSprinting(true);
+            MultipurposeStaffrifleAdsMovement.onPlayerTick(new PlayerTickEvent.Post(player));
+            helper.assertTrue(player.isSprinting(), "Releasing ADS must allow sprinting again");
             player.setSprinting(false);
             MultipurposeStaffrifleAdsMovement.update(player, true);
             player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
             player.setItemInHand(InteractionHand.OFF_HAND, rifle);
+            player.setSprinting(true);
             MultipurposeStaffrifleAdsMovement.onPlayerTick(new PlayerTickEvent.Post(player));
             MultipurposeStaffrifleAdsMovement.update(player, true);
+            helper.assertTrue(player.isSprinting(), "Offhand ADS requests must not cancel sprinting");
+            player.setSprinting(false);
             helper.assertTrue(Math.abs(speed.getValue() - baseline) < 1.0E-8D,
                     "Switching away must remove slowdown and offhand ADS requests must be ignored");
             helper.assertTrue(speed.hasModifier(otherId), "Cleanup must preserve unrelated modifiers");

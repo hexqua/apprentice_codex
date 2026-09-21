@@ -23,12 +23,14 @@ public final class MultipurposeStaffrifleAdsMovement {
         if (speed == null) {
             return;
         }
-        if (!aiming || !player.isAlive() || player.isSpectator() || player.isSprinting()
+        if (!aiming || !player.isAlive() || player.isSpectator()
                 || !(player.getMainHandItem().getItem() instanceof MultipurposeStaffrifle)) {
             speed.removeModifier(MODIFIER_ID);
             return;
         }
 
+        // ADS開始とスプリント通知の到着順に依存せず、照準入力を優先する。
+        player.setSprinting(false);
         // 射撃でバニラの使用状態が解除されても減速を維持し、倍率は必ずサーバー設定から取得する。
         double amount = ApprenticeCodexServerConfig.multipurposeStaffrifleAdsMovementSpeedMultiplier() - 1.0D;
         var current = speed.getModifier(MODIFIER_ID);
@@ -43,7 +45,7 @@ public final class MultipurposeStaffrifleAdsMovement {
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         if (event.getEntity() instanceof ServerPlayer player) {
             var speed = player.getAttribute(Attributes.MOVEMENT_SPEED);
-            // 入力通知以外の持ち替え・死亡・スプリント開始でも、減速を残さない。
+            // 持ち替え・死亡時は減速を解除し、ADS中のスプリント再開は抑止する。
             if (speed != null && speed.hasModifier(MODIFIER_ID)) {
                 update(player, true);
             }

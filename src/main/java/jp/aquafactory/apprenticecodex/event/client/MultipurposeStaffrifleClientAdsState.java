@@ -34,9 +34,6 @@ public final class MultipurposeStaffrifleClientAdsState {
                 && player.isAlive()
                 && !minecraft.isPaused()
                 && !player.isSpectator()
-                && !player.isSprinting()
-                // 減速倍率0でもスプリント入力を優先し、ADSを解除できるようにする。
-                && !minecraft.options.keySprint.isDown()
                 && !isEpicFightBattleMode()
                 && minecraft.options.keyUse.isDown()
                 && player.getMainHandItem().getItem() instanceof MultipurposeStaffrifle;
@@ -52,7 +49,7 @@ public final class MultipurposeStaffrifleClientAdsState {
             return;
         }
         boolean aiming = isLocalAdsKeyHeld(player);
-        // スプリント解除通知との順序差で開始要求が拒否されても、保持中は次tickに再評価する。
+        // 射撃による使用状態解除後も、ADS入力をサーバーへ維持する。
         if (aiming || sentAiming) {
             Networks.sendToServer(new ClientMultipurposeStaffrifleAdsPacket(aiming));
         }

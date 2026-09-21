@@ -746,11 +746,13 @@ public final class ClientModBusEvents {
                     return true;
                 }
 
-                if (recoilAmount <= 0.0F) {
+                var sprintAmount = SpellrifleSprintState.amount(partialTick);
+                if (recoilAmount <= 0.0F && sprintAmount <= 0.0F) {
                     return false;
                 }
 
                 applyMultipurposeStaffrifleNormalHandTransform(poseStack, arm, equipProcess, swingProcess);
+                applySpellrifleSprintTransform(poseStack, arm, sprintAmount);
                 applyMultipurposeStaffrifleRecoilTransform(poseStack, recoilAmount);
                 return true;
             }
@@ -788,11 +790,13 @@ public final class ClientModBusEvents {
                     return true;
                 }
 
-                if (recoilAmount <= 0.0F) {
+                var sprintAmount = SpellrifleSprintState.amount(partialTick);
+                if (recoilAmount <= 0.0F && sprintAmount <= 0.0F) {
                     return false;
                 }
 
                 applyMultipurposeStaffrifleNormalHandTransform(poseStack, arm, equipProcess, swingProcess);
+                applySpellrifleSprintTransform(poseStack, arm, sprintAmount);
                 applyMultipurposeStaffrifleRecoilTransform(poseStack, recoilAmount);
                 return true;
             }
@@ -860,6 +864,15 @@ public final class ClientModBusEvents {
         poseStack.translate(side * -0.56F, 0.15F, 0.22F);
         poseStack.mulPose(Axis.YP.rotationDegrees(side * -2.0F));
         poseStack.mulPose(Axis.XP.rotationDegrees(-4.0F));
+    }
+
+    private static void applySpellrifleSprintTransform(PoseStack poseStack, HumanoidArm arm, float amount) {
+        var side = arm == HumanoidArm.RIGHT ? 1 : -1;
+        // 銃とアンカーの手をまとめて体側へ寄せる。右手では銃口を画面左へ向ける。
+        poseStack.translate(side * -0.12F * amount, -0.10F * amount, 0.12F * amount);
+        poseStack.mulPose(Axis.YP.rotationDegrees(side * 45.0F * amount));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(side * -15.0F * amount));
+        poseStack.mulPose(Axis.XP.rotationDegrees(-10.0F * amount));
     }
 
     private static void applyMultipurposeStaffrifleRecoilTransform(PoseStack poseStack,

@@ -113,6 +113,7 @@
     "EpicFightPatchedItemInHandLayerMixin",
     "KeyboardHandlerMixin",
     "LocalPlayerSpellcasterQuiverMixin",
+    "LocalPlayerSpellrifleSprintMixin",
     "LocalPlayerParrycastBucklerMixin",
     "MouseHandlerMixin",
     "MinecraftMixin",

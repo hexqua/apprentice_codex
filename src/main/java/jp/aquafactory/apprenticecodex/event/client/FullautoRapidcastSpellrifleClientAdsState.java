@@ -33,9 +33,6 @@ public final class FullautoRapidcastSpellrifleClientAdsState {
                 && minecraft.screen == null
                 && !player.isSpectator()
                 && player.isAlive()
-                && !player.isSprinting()
-                // 停止中や減速倍率0でも、スプリント入力で先にADSを解除できるようにする。
-                && !minecraft.options.keySprint.isDown()
                 && !isEpicFightBattleMode()
                 && minecraft.options.keyUse.isDown()
                 && player.getMainHandItem().getItem() instanceof FullautoRapidcastSpellrifle;
@@ -51,7 +48,7 @@ public final class FullautoRapidcastSpellrifleClientAdsState {
             return;
         }
         boolean aiming = isLocalAdsKeyHeld(player);
-        // スプリント解除通知との順序差で開始要求が拒否されても、保持中は次tickに再評価する。
+        // 射撃による使用状態解除後も、ADS入力をサーバーへ維持する。
         if (aiming || sentAiming) {
             Networks.sendToServer(new ClientFullautoRapidcastSpellrifleAdsPacket(aiming));
         }
