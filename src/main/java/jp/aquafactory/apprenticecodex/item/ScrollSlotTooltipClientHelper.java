@@ -24,6 +24,14 @@ public final class ScrollSlotTooltipClientHelper {
         lines.add(Component.translatable(PREFIX + "foldout_label").withStyle(ChatFormatting.GRAY));
     }
 
+    public static void appendList(List<Component> lines, ScrollSlotTooltipData data, LocalPlayer player) {
+        appendLabel(lines);
+        for (var entry : data.entries()) {
+            appendSpell(lines, entry.spell(), entry.scroll().getHoverName(), entry.usable(),
+                    entry.slot() == data.selectedSlot(), player);
+        }
+    }
+
     public static void appendSpell(List<Component> lines, SpellData data, Component fallback,
                                    boolean usable, boolean selected, LocalPlayer player) {
         MutableComponent name;
