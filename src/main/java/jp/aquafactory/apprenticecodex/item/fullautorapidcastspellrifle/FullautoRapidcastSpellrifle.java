@@ -41,6 +41,7 @@ import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.SneakSelectionView;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
+import jp.aquafactory.apprenticecodex.item.spellgun.RifleSpellTooltipClientHelper;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunSpellListManager;
 import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
@@ -418,6 +419,9 @@ public final class FullautoRapidcastSpellrifle extends Item
                                 @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
         appendFullautoRapidcastSpellrifleHelpTooltip(stack, lines);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RifleSpellTooltipClientHelper.append(stack, lines);
+        }
     }
 
     private static void playSuccessfulFireEffects(ServerPlayer player, AbstractSpell spell, boolean adsFullAuto) {

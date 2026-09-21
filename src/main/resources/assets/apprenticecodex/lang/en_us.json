@@ -1,4 +1,11 @@
 {
+  "item.apprenticecodex.common.scroll_slots.foldout_hint": "Scrolls inserted: %d [Ctrl: Show list]",
+  "item.apprenticecodex.common.scroll_slots.foldout_label": "Inserted spells:",
+  "item.apprenticecodex.common.scroll_slots.spell_line.not_selected": "[%s]",
+  "item.apprenticecodex.common.scroll_slots.spell_line.selected": ">[%s]",
+  "item.apprenticecodex.common.scroll_slots.spell_line.inactive": "[%s] (Inactive)",
+  "item.apprenticecodex.common.scroll_slots.no_selected_spell": "No spell selected",
+  "item.apprenticecodex.common.scroll_slots.echo_supported": " (Echo Cast supported)",
   "item.apprenticecodex.spellgun.tooltip.ability_adapt_attack_echo": "- Supported attack spells bypass invulnerability frames from the first shot, but deal reduced damage.",
   "jei.apprenticecodex.spell_calibration_bench.effect.gain_echo_cast_1": "Supported attack spells gain Echo Cast",
   "jei.apprenticecodex.spell_calibration_bench.effect.gain_echo_cast_2": "Mana cost of all spells +%s%%",

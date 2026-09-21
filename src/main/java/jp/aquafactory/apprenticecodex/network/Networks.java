@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "111";
+    private static final String PROTOCOL_VERSION = "112";
 
     private Networks() {
     }
@@ -394,6 +394,11 @@ public final class Networks {
                 SyncAutocastAmuletProfileSpellIdsPacket.TYPE,
                 SyncAutocastAmuletProfileSpellIdsPacket.STREAM_CODEC,
                 SyncAutocastAmuletProfileSpellIdsPacket::handle
+        );
+        registrar.playToClient(
+                SyncEchoProfileSpellIdsPacket.TYPE,
+                SyncEchoProfileSpellIdsPacket.STREAM_CODEC,
+                SyncEchoProfileSpellIdsPacket::handle
         );
         registrar.playToClient(
                 SyncRemainingCountNotificationPacket.TYPE,

@@ -38,6 +38,7 @@ import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 import jp.aquafactory.apprenticecodex.item.ammo.EmptyCasingReturnPolicy;
+import jp.aquafactory.apprenticecodex.item.spellgun.RifleSpellTooltipClientHelper;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunSpellListManager;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunCastContext;
@@ -404,6 +405,9 @@ public final class MultipurposeStaffrifle extends Item
                                 @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
         appendMultipurposeStaffrifleHelpTooltip(stack, lines);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RifleSpellTooltipClientHelper.append(stack, lines);
+        }
     }
 
     private static void playSuccessfulFireEffects(ServerPlayer player, AbstractSpell spell, boolean aiming) {

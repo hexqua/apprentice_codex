@@ -1,4 +1,11 @@
 {
+  "item.apprenticecodex.common.scroll_slots.foldout_hint": "已插入卷轴 %d个 [Ctrl: 显示列表]",
+  "item.apprenticecodex.common.scroll_slots.foldout_label": "已插入法术：",
+  "item.apprenticecodex.common.scroll_slots.spell_line.not_selected": "[%s]",
+  "item.apprenticecodex.common.scroll_slots.spell_line.selected": ">[%s]",
+  "item.apprenticecodex.common.scroll_slots.spell_line.inactive": "[%s]（无效）",
+  "item.apprenticecodex.common.scroll_slots.no_selected_spell": "未选择法术",
+  "item.apprenticecodex.common.scroll_slots.echo_supported": "（支持回响施法）",
   "item.apprenticecodex.spellgun.tooltip.ability_adapt_attack_echo": "- 支持的攻击法术从首发起无视无敌帧，但伤害降低。",
   "jei.apprenticecodex.spell_calibration_bench.effect.gain_echo_cast_1": "支持的攻击法术获得回响施法",
   "jei.apprenticecodex.spell_calibration_bench.effect.gain_echo_cast_2": "所有法术的法力消耗+%s%%",
