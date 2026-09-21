@@ -73,7 +73,10 @@ public final class FullautoEchoConfigSyncEvents {
     private static SyncFullautoEchoConfigPacket createPacket() {
         return new SyncFullautoEchoConfigPacket(
                 ApprenticeCodexServerConfig.fullautoRapidcastSpellrifleEchoCastEnabled(),
-                ApprenticeCodexServerConfig.fullautoRapidcastSpellrifleEchoCastManaCostMultiplier()
+                ApprenticeCodexServerConfig.fullautoRapidcastSpellrifleEchoCastManaCostMultiplier(),
+                ApprenticeCodexServerConfig.fullautoRapidcastSpellrifleCooldownBypassThresholdTicks(),
+                ApprenticeCodexServerConfig.fullautoRapidcastSpellrifleCooldownReductionTicks(),
+                ApprenticeCodexServerConfig.fullautoRapidcastSpellrifleReducedCooldownMinimumTicks()
         );
     }
 

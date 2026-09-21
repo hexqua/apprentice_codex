@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoCooldownPolicy;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoEchoCasting;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoEchoConfigState;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
@@ -268,10 +269,20 @@ public final class FullautoEchoGameTests extends ApprenticeCodexGameTestScenario
         var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
         boolean previousEnabled = FullautoEchoConfigState.enabled();
         double previousMultiplier = FullautoEchoConfigState.manaMultiplier();
+        int previousThreshold = FullautoEchoConfigState.cooldownBypassThresholdTicks();
+        int previousReduction = FullautoEchoConfigState.cooldownReductionTicks();
+        int previousMinimum = FullautoEchoConfigState.reducedCooldownMinimumTicks();
         try {
-            SyncFullautoEchoConfigPacket.STREAM_CODEC.encode(buffer, new SyncFullautoEchoConfigPacket(true, 2.5));
+            SyncFullautoEchoConfigPacket.STREAM_CODEC.encode(buffer, new SyncFullautoEchoConfigPacket(true, 2.5, 40, 60, 30));
             var decoded = SyncFullautoEchoConfigPacket.STREAM_CODEC.decode(buffer);
-            FullautoEchoConfigState.set(decoded.enabled(), decoded.manaMultiplier());
+            FullautoEchoConfigState.set(decoded.enabled(), decoded.manaMultiplier(), decoded.cooldownBypassThresholdTicks(),
+                    decoded.cooldownReductionTicks(), decoded.reducedCooldownMinimumTicks());
+            helper.assertTrue(FullautoCooldownPolicy.resolveClient(40, 400, 20) == 0,
+                    "Synced threshold must bypass cooldown at the boundary");
+            helper.assertTrue(FullautoCooldownPolicy.resolveClient(41, 400, 20) == 360,
+                    "Display must use synced threshold and reduction instead of local config");
+            helper.assertTrue(FullautoCooldownPolicy.resolveClient(41, 70, 0) == 30,
+                    "Display must use the synced minimum cooldown");
             helper.assertTrue(FullautoEchoConfigState.enabled() && FullautoEchoConfigState.manaMultiplier() == 2.5,
                     "Sync must preserve enabled state and fractional multiplier");
             var increase = (TranslatableContents) CalibrationAdjustmentEffects.gainEchoCast(FullautoEchoConfigState.manaMultiplier()).get(1).getContents();
@@ -279,9 +290,13 @@ public final class FullautoEchoGameTests extends ApprenticeCodexGameTestScenario
             FullautoEchoConfigState.reset();
             helper.assertFalse(FullautoEchoConfigState.enabled(), "Disconnect must hide the adjustment until the next sync");
             helper.assertTrue(FullautoEchoConfigState.manaMultiplier() == 2, "Disconnect must clear the previous server multiplier");
+            helper.assertTrue(FullautoEchoConfigState.cooldownBypassThresholdTicks() == 100
+                            && FullautoEchoConfigState.cooldownReductionTicks() == 200
+                            && FullautoEchoConfigState.reducedCooldownMinimumTicks() == 10,
+                    "Disconnect must clear the previous server cooldown settings");
         } finally {
             buffer.release();
-            FullautoEchoConfigState.set(previousEnabled, previousMultiplier);
+            FullautoEchoConfigState.set(previousEnabled, previousMultiplier, previousThreshold, previousReduction, previousMinimum);
         }
         helper.succeed();
     }

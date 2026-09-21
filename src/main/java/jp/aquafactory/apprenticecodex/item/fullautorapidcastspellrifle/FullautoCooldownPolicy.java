@@ -12,6 +12,14 @@ public final class FullautoCooldownPolicy {
                 ApprenticeCodexServerConfig.fullautoRapidcastSpellrifleReducedCooldownMinimumTicks());
     }
 
+    public static int resolveClient(int baseCooldown, int effectiveCooldown, int castTime) {
+        // 接続時のSERVER config同期だけでなく、接続中の設定リロードも表示へ反映する。
+        return calculate(baseCooldown, effectiveCooldown, castTime,
+                FullautoEchoConfigState.cooldownBypassThresholdTicks(),
+                FullautoEchoConfigState.cooldownReductionTicks(),
+                FullautoEchoConfigState.reducedCooldownMinimumTicks());
+    }
+
     public static int calculate(int baseCooldown, int effectiveCooldown, int castTime,
                                 int threshold, int reduction, int minimum) {
         // 発動条件は装備やAttributeで変動させず、詠唱時間も実CDにだけ加える。
