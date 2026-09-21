@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.utility;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.UniqueItem;
+import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -15,6 +16,9 @@ public final class SpellExtractionHelper {
     public static @NotNull Evaluation evaluate(@NotNull ItemStack targetStack) {
         if (targetStack.isEmpty()) {
             return Evaluation.notApplicable();
+        }
+        if (targetStack.getItem() instanceof RevolvercastStaff) {
+            return Evaluation.blocked(BlockReason.NOT_TARGET);
         }
         if (targetStack.getItem() instanceof UniqueItem) {
             return Evaluation.blocked(BlockReason.UNIQUE_ITEM);

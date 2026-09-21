@@ -68,14 +68,14 @@ public final class RightClickWeaponContainerGameTests {
     @GameTest(template = "gametest/basic_floor")
     public static void onlyImbuedWeaponsExposePresetInitialization(GameTestHelper helper) {
         for (var item : new Item[]{ItemRegistry.MITHRIL_FREECAST_STAFF.get(),
+                ItemRegistry.REVOLVERCAST_STAFF.get(),
                 ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get()}) {
             helper.assertFalse(item instanceof IPresetSpellContainer, "Wheel weapons must not expose preset initialization");
             var stack = item.getDefaultInstance();
             SpellCalibrationImbueHelper.prepareTarget(stack);
             helper.assertFalse(ISpellContainer.isSpellContainer(stack), "Wheel weapons must remain container-free");
         }
-        for (var item : new Item[]{ItemRegistry.REVOLVERCAST_STAFF.get(),
-                ItemRegistry.SMASHCAST_SCEPTER.get(), ItemRegistry.CRYSTAL_BLADED_STAFF.get()}) {
+        for (var item : new Item[]{ItemRegistry.SMASHCAST_SCEPTER.get(), ItemRegistry.CRYSTAL_BLADED_STAFF.get()}) {
             helper.assertTrue(item instanceof IPresetSpellContainer, "Imbued weapons must retain preset initialization");
         }
         helper.succeed();
