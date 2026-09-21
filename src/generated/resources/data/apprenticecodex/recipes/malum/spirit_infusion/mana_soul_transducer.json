@@ -1,0 +1,46 @@
+{
+  "type": "malum:spirit_infusion",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "malum"
+    }
+  ],
+  "extra_items": [
+    {
+      "item": "malum:fused_consciousness"
+    },
+    {
+      "count": 8,
+      "item": "malum:mnemonic_fragment"
+    },
+    {
+      "count": 4,
+      "item": "malum:malignant_pewter_plating"
+    }
+  ],
+  "input": {
+    "item": "malum:runic_brooch"
+  },
+  "output": {
+    "item": "apprenticecodex:mana_soul_transducer"
+  },
+  "spirits": [
+    {
+      "type": "aerial",
+      "count": 16
+    },
+    {
+      "type": "aqueous",
+      "count": 16
+    },
+    {
+      "type": "arcane",
+      "count": 64
+    },
+    {
+      "type": "eldritch",
+      "count": 64
+    }
+  ]
+}

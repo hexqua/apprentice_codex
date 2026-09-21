@@ -72,7 +72,8 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
             // 申し送り:1.21.1対応時にも制限するか検討する.
             return malumModFile != null && MALUM_MANAWEAVING_PATCH_VERSION.equals(malumModFile.versionString());
         }
-        if (MALUM_REPLENISHING_OFFHAND_MIXIN.equals(mixinClassName)
+        if (mixinClassName.equals("jp.aquafactory.apprenticecodex.mixin.MalumStaffTransducerMixin")
+                || MALUM_REPLENISHING_OFFHAND_MIXIN.equals(mixinClassName)
                 || mixinClassName.equals("jp.aquafactory.apprenticecodex.mixin.MalumSoulDataHandlerMixin")
                 || mixinClassName.equals("jp.aquafactory.apprenticecodex.mixin.MalumAscensionParticleMixin")
                 || mixinClassName.equals("jp.aquafactory.apprenticecodex.mixin.MalumPlayerScytheAttackMixin")) {

@@ -1,0 +1,75 @@
+package jp.aquafactory.apprenticecodex.event;
+
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaSoulTransducerConfigPacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.server.ServerLifecycleHooks;
+
+@EventBusSubscriber(modid = ApprenticeCodex.MODID)
+public final class ManaSoulTransducerConfigSyncEvents {
+    private ManaSoulTransducerConfigSyncEvents() {
+    }
+
+    public static void register(IEventBus modEventBus) {
+        modEventBus.addListener(ManaSoulTransducerConfigSyncEvents::onConfigLoading);
+        modEventBus.addListener(ManaSoulTransducerConfigSyncEvents::onConfigReloading);
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            syncToPlayer(player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            syncToPlayer(player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            syncToPlayer(player);
+        }
+    }
+
+    private static void onConfigLoading(ModConfigEvent.Loading event) {
+        syncIfServerConfig(event);
+    }
+
+    private static void onConfigReloading(ModConfigEvent.Reloading event) {
+        syncIfServerConfig(event);
+    }
+
+    private static void syncIfServerConfig(ModConfigEvent event) {
+        if (event.getConfig().getType() != ModConfig.Type.SERVER
+                || !ApprenticeCodex.MODID.equals(event.getConfig().getModId())) {
+            return;
+        }
+        var server = ServerLifecycleHooks.getCurrentServer();
+        if (server != null) {
+            var packet = createPacket();
+            server.getPlayerList().getPlayers().forEach(player -> Networks.sendToPlayer(player, packet));
+        }
+    }
+
+    private static void syncToPlayer(ServerPlayer player) {
+        Networks.sendToPlayer(player, createPacket());
+    }
+
+    private static SyncManaSoulTransducerConfigPacket createPacket() {
+        return new SyncManaSoulTransducerConfigPacket(
+                ApprenticeCodexServerConfig.manaSoulTransducerCastRate(), ApprenticeCodexServerConfig.manaSoulTransducerManaCost());
+    }
+}

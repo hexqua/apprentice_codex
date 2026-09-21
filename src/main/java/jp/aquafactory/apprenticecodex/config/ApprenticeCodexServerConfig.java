@@ -89,6 +89,14 @@ public final class ApprenticeCodexServerConfig {
         return DAMAGE_MULTIPLIER_CONFIG.value(key);
     }
 
+    public static double manaSoulTransducerCastRate() {
+        return ITEMS_CONFIG.manaSoulTransducerConfig.castTimeReductionTransferRate().get();
+    }
+
+    public static int manaSoulTransducerManaCost() {
+        return ITEMS_CONFIG.manaSoulTransducerConfig.manaCost().get();
+    }
+
     public static int undyingEmblemReconstructionSpeedMultiplier() {
         return ITEMS_CONFIG.undyingEmblemReconstructionSpeedMultiplier();
     }
