@@ -13692,6 +13692,9 @@ public class ApprenticeCodexGameTestScenarios {
         expectedEnchantments.addAll(registryIdSet(
                 Enchantments.WISDOM
         ));
+        if (stack.is(ItemRegistry.REVOLVERCAST_STAFF.get())) {
+            expectedEnchantments.add(Enchantments.TRANSCENDENCE.location());
+        }
         if (stack.getItem() instanceof AttributeEnchantmentPolicy policy) {
             for (var type : policy.directlyApplicableAttributeEnchantments()) {
                 expectedEnchantments.add(type.enchantmentKey().location());

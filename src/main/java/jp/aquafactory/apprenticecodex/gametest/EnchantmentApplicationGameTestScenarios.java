@@ -170,8 +170,8 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
             helper.assertTrue(WisdomPolicy.supportsDirectApplication(scrollcaster),
                     "Scrollcaster Gauntlet should accept Wisdom through normal enchanting");
 
-            helper.assertFalse(TranscendenceTarget.supportsDirectApplication(ItemRegistry.REVOLVERCAST_STAFF.get()),
-                    "Revolvercast Staff should reject Transcendence");
+            helper.assertTrue(TranscendenceTarget.supportsDirectApplication(ItemRegistry.REVOLVERCAST_STAFF.get()),
+                    "Revolvercast Staff should accept Transcendence");
             helper.assertTrue(TranscendenceTarget.supportsDirectApplication(ItemRegistry.ELEMENTAL_BOW.get()),
                     "Elemental Bow should accept Transcendence");
         });

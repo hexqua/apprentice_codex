@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.item.curios.AffinityData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
@@ -8,6 +9,8 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffSpellSelectionEvents;
@@ -17,6 +20,7 @@ import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import jp.aquafactory.apprenticecodex.utility.SpellExtractionHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
@@ -26,6 +30,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import top.theillusivec4.curios.api.CuriosApi;
 
 import static io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING;
 import static jp.aquafactory.apprenticecodex.registry.SpellRegistry.ARCANE_BLAST;
@@ -34,6 +39,75 @@ import static jp.aquafactory.apprenticecodex.registry.SpellRegistry.ARCANE_BLAST
 @PrefixGameTestTemplate(false)
 public final class RevolvercastStaffContainerGameTests {
     private RevolvercastStaffContainerGameTests() {}
+
+    @GameTest(template = "gametest/basic_floor")
+    public static void transcendenceBoostsInternalScrollsWithoutChangingAssets(GameTestHelper helper) {
+        var spell = SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        var scroll = SpellCalibrationImbueHelper.createScroll(new SpellData(spell, spell.getMaxLevel()));
+        var enchantment = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(Enchantments.TRANSCENDENCE);
+        for (int level : new int[]{0, 1, 3, 10}) {
+            var staff = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
+            if (level > 0) staff.enchant(enchantment, level);
+            RevolvercastStaff.setCalibrationScroll(staff, 0, scroll.copy());
+            RevolvercastStaff.setCalibrationScroll(staff, 8, scroll.copy());
+            var before = staff.copy();
+            int expected = spell.getMaxLevel() + (level > 0 ? 1 : 0);
+            for (int repeat = 0; repeat < 2; ++repeat) {
+                helper.assertTrue(RevolvercastStaff.getSelectedSpellData(staff).getLevel() == expected,
+                        "Internal bonus must exceed the maximum once, regardless of enchantment level");
+                var tooltip = RevolvercastStaff.getScrollTooltipData(staff);
+                helper.assertTrue(tooltip.selectedSpell().getLevel() == expected
+                                && tooltip.entries().getFirst().spell().getLevel() == expected
+                                && tooltip.entries().getLast().spell().getLevel() == spell.getMaxLevel(),
+                        "Tooltip must boost usable scrolls only");
+            }
+            helper.assertTrue(ItemStack.isSameItemSameComponents(before, staff),
+                    "Resolving levels must preserve scrolls and legacy enchantment levels");
+            var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(helper,
+                    new BlockPos(0, 2, 0), "revolver_bonus_" + level);
+            player.setItemInHand(InteractionHand.MAIN_HAND, staff);
+            var ring = new ItemStack(ItemRegistry.ENCHANTED_CIRCLET.get());
+            AffinityData.setAffinityData(ring, spell, 2);
+            CuriosApi.getCuriosInventory(player).orElseThrow().setEquippedCurio(CuriosSlotConstants.HEAD, 0, ring);
+            helper.assertTrue(new SpellSelectionManager(player).getSpellForSlot(SpellSelectionManager.MAINHAND, 0)
+                            .getLevel() == expected,
+                    "Wheel must expose the internally boosted level without applying Affinity twice");
+            var magic = MagicData.getPlayerMagicData(player);
+            magic.getSyncedData();
+            magic.setMana(10000);
+            helper.assertTrue(((RevolvercastStaff) staff.getItem()).tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
+                    "Swing must start casting the internal scroll");
+            helper.assertTrue(magic.getCastingSpellLevel() == expected + 2,
+                    "Actual swing casting must stack Affinity once with the internal bonus");
+            helper.assertTrue(ItemStack.isSameItemSameComponents(scroll, RevolvercastStaff.getCalibrationScroll(staff, 0)),
+                    "Casting must not write the bonus into the stored scroll");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = "gametest/basic_floor")
+    public static void transcendenceDoesNotBoostExternalWheelSpell(GameTestHelper helper) {
+        var spell = SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        var staff = new ItemStack(ItemRegistry.REVOLVERCAST_STAFF.get());
+        staff.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(Enchantments.TRANSCENDENCE), 3);
+        RevolvercastStaff.setCalibrationScroll(staff, 0,
+                SpellCalibrationImbueHelper.createScroll(new SpellData(spell, 1)));
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(helper,
+                new BlockPos(0, 2, 0), "revolver_external");
+        player.setItemInHand(InteractionHand.MAIN_HAND, staff);
+        var helmet = new ItemStack(Items.LEATHER_HELMET);
+        ISpellContainer.createImbuedContainer(spell, 1, helmet);
+        player.setItemSlot(EquipmentSlot.HEAD, helmet);
+        var magic = MagicData.getPlayerMagicData(player);
+        magic.getSyncedData().getSpellSelection().makeSelection(EquipmentSlot.HEAD.getName(), 0);
+        magic.setMana(10000);
+        staff.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(magic.isCasting() && magic.getCastingSpellLevel() == 1,
+                "Right click must not boost the same spell sourced from another item");
+        helper.succeed();
+    }
 
     @GameTest(template = "gametest/basic_floor")
     public static void tooltipIncludesInactiveScrollsWithoutChangingSelection(GameTestHelper helper) {

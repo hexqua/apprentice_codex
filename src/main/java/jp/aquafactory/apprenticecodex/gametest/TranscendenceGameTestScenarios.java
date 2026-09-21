@@ -44,14 +44,15 @@ final class TranscendenceGameTestScenarios {
             var spell = SpellRegistry.MAGIC_MISSILE_SPELL.get();
             var source = new SpellData(spell, spell.getMaxLevel());
             var targets = List.of(ItemRegistry.ELEMENTAL_BOW.get(), ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
-                    ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
+                    ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get(),
+                    ItemRegistry.REVOLVERCAST_STAFF.get());
             var enchantment = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
                     .getOrThrow(Enchantments.TRANSCENDENCE);
             helper.assertTrue(enchantment.value().getMaxLevel() == 1, "New Transcendence must have a single level");
             for (var entry : ItemRegistry.ITEMS.getEntries()) {
                 var item = entry.get();
                 helper.assertTrue(TranscendenceTarget.supportsDirectApplication(item) == targets.contains(item),
-                        "Only the three internal scroll weapons may accept Transcendence: " + item);
+                        "Only supported internal scroll weapons may accept Transcendence: " + item);
                 for (int level : new int[]{0, 1, 3, 10}) {
                     var stack = new ItemStack(item);
                     if (level > 0) stack.enchant(enchantment, level);

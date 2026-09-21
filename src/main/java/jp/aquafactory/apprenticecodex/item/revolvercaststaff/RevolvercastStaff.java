@@ -19,6 +19,8 @@ import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceHelper;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
@@ -98,7 +100,7 @@ import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         implements GeoItem, CastAnimationOverrideItem, IJeiInfoItem, SwingTriggeredMagicItem,
         ArcaneAnvilImbueBlockItem, StoredSpellCalibrationImbueTarget,
-        SpellCalibrationAdjustmentTarget, AttributeEnchantmentPolicy {
+        SpellCalibrationAdjustmentTarget, AttributeEnchantmentPolicy, TranscendenceTarget {
     private static final String ITEM_KEY = "revolvercast_staff";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.revolvercast_staff.desc_";
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
@@ -642,7 +644,14 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
             return SpellData.EMPTY;
         }
 
-        return getScrollSpellData(getCalibrationScroll(staffStack, selectedIndex));
+        return resolveScrollSpellData(staffStack, getCalibrationScroll(staffStack, selectedIndex));
+    }
+
+    private static SpellData resolveScrollSpellData(ItemStack staffStack, ItemStack scroll) {
+        var data = getScrollSpellData(scroll);
+        if (data == SpellData.EMPTY) return data;
+        return new SpellData(data.getSpell(),
+                TranscendenceHelper.resolveScrollSpellLevel(staffStack, data.getLevel()), data.isLocked());
     }
 
     public static ScrollSlotTooltipData getScrollTooltipData(ItemStack stack) {
@@ -653,8 +662,9 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         for (int slot = 0; slot < CALIBRATION_SCROLL_SLOT_COUNT; ++slot) {
             var scroll = getCalibrationScroll(displayStack, slot);
             if (scroll.isEmpty()) continue;
-            entries.add(new ScrollSlotTooltipData.Entry(slot, scroll, getScrollSpellData(scroll),
-                    isSelectableScrollIndex(displayStack, slot)));
+            var usable = isSelectableScrollIndex(displayStack, slot);
+            entries.add(new ScrollSlotTooltipData.Entry(slot, scroll,
+                    usable ? resolveScrollSpellData(displayStack, scroll) : getScrollSpellData(scroll), usable));
         }
         return new ScrollSlotTooltipData(selected, getSelectedScrollIndex(displayStack), entries);
     }
