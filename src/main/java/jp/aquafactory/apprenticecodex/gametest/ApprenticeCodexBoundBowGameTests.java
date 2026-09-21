@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
+import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
@@ -31,6 +32,7 @@ import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
+import top.theillusivec4.curios.api.CuriosApi;
 import java.util.UUID;
 
 @GameTestHolder(ApprenticeCodex.MODID)
@@ -299,9 +301,9 @@ public final class ApprenticeCodexBoundBowGameTests {
     }
 
     private static void equipGreaterConjurersTalisman(FakePlayer player) {
-        var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+        var curiosInventory = CuriosApi.getCuriosInventory(player)
                 .orElseThrow(() -> new IllegalStateException("Missing curios inventory for Bound Bow Greater Conjurer's Talisman test"));
-        curiosInventory.setEquippedCurio(io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, 0,
+        curiosInventory.setEquippedCurio(Curios.NECKLACE_SLOT, 0,
                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.GREATER_CONJURERS_TALISMAN.get()));
     }
 

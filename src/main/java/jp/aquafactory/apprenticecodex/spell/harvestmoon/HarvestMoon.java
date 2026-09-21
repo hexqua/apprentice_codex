@@ -20,6 +20,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
+import net.minecraft.world.phys.Vec3;
 import java.util.List;
 import java.util.Optional;
 
@@ -109,7 +110,7 @@ public class HarvestMoon extends AbstractSpell implements ICraftsmansDelightAffe
                         serverPlayer,
                         getWorkingMainHandStack(serverPlayer),
                         actions,
-                        new net.minecraft.world.phys.Vec3(serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ()),
+                        new Vec3(serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ()),
                         BLOCK_BUDGET_PER_TICK
                 );
                 HarvestMoonJobManager.submit(serverLevel, job);

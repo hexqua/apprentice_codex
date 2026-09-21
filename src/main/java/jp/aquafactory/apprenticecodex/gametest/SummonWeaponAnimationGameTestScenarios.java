@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
+import net.minecraft.world.entity.LivingEntity;
 import java.util.UUID;
 import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -101,7 +102,7 @@ final class SummonWeaponAnimationGameTestScenarios {
         });
     }
 
-    private static void applyCastTimeReduction(GameTestHelper helper, net.minecraft.world.entity.LivingEntity player) {
+    private static void applyCastTimeReduction(GameTestHelper helper, LivingEntity player) {
         var castTimeReductionAttribute = player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION.get());
         helper.assertTrue(castTimeReductionAttribute != null,
                 "Summon weapon animation test could not resolve cast-time reduction attribute");

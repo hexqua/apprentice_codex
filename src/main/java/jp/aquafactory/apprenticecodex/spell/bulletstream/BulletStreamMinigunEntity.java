@@ -14,6 +14,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -235,7 +236,7 @@ public class BulletStreamMinigunEntity extends SummonWeaponEntity implements Geo
         return entityData.get(IS_SPINNING_DOWN);
     }
 
-    private float resolveCurrentDamage(net.minecraft.world.entity.Entity owner) {
+    private float resolveCurrentDamage(Entity owner) {
         if (owner instanceof LivingEntity livingOwner && spellLevel > 0) {
             return BulletStream.getDamage(SpellRegistry.BULLET_STREAM.get().getSpellPower(spellLevel, livingOwner));
         }

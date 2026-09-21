@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import com.sammy.malum.common.capability.MalumPlayerDataCapability;
+import com.sammy.malum.registry.common.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
@@ -140,8 +142,8 @@ public class SupportedDefensiveSpellGameTests extends ApprenticeCodexGameTestSce
             double[] remaining = new double[2];
             for (int index = 0; index < 2; index++) {
                 var player = player(helper);
-                player.getAttribute(com.sammy.malum.registry.common.AttributeRegistry.SOUL_WARD_CAP.get()).setBaseValue(20);
-                var ward = com.sammy.malum.common.capability.MalumPlayerDataCapability.getCapability(player).soulWardHandler;
+                player.getAttribute(AttributeRegistry.SOUL_WARD_CAP.get()).setBaseValue(20);
+                var ward = MalumPlayerDataCapability.getCapability(player).soulWardHandler;
                 ward.soulWard = 20;
                 // まず通常被弾で実際にSoul Wardが動作していることを確認する。
                 float controlHealth = player.getHealth();

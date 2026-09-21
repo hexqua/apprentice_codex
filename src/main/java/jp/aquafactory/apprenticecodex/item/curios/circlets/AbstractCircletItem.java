@@ -12,6 +12,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -81,7 +82,7 @@ public abstract class AbstractCircletItem extends Item implements ICurioItem, IP
 
     @Override
     public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
-                                net.minecraft.world.item.@NotNull TooltipFlag flag) {
+                                @NotNull TooltipFlag flag) {
         initializeSpellContainer(stack);
         super.appendHoverText(stack, level, lines, flag);
     }

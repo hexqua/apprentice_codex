@@ -16,6 +16,7 @@ import io.redspace.ironsspellbooks.network.casting.UpdateCastingStatePacket;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.FocusStaffbowCastState;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -32,14 +33,17 @@ import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import jp.aquafactory.apprenticecodex.utility.SpellCooldownHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Locale;
 import java.util.UUID;
 
 public final class FocusStaffbowCastManager {
@@ -49,7 +53,7 @@ public final class FocusStaffbowCastManager {
     private FocusStaffbowCastManager() {
     }
 
-    public static boolean handleSelectedSpellInput(net.minecraft.world.entity.player.Player player, ItemStack stack) {
+    public static boolean handleSelectedSpellInput(Player player, ItemStack stack) {
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return false;
         }
@@ -57,7 +61,7 @@ public final class FocusStaffbowCastManager {
         return handleResolvedInput(serverPlayer, resolveSelection(serverPlayer), stack);
     }
 
-    public static boolean hasActiveContinuousCast(net.minecraft.world.entity.player.Player player) {
+    public static boolean hasActiveContinuousCast(Player player) {
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return false;
         }
@@ -70,13 +74,13 @@ public final class FocusStaffbowCastManager {
         return codexSpellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_CAST_STATE).isContinuous();
     }
 
-    public static boolean hasOutstandingLoan(net.minecraft.world.entity.player.Player player) {
+    public static boolean hasOutstandingLoan(Player player) {
         var codexSpellData = Capabilities.getSpellDataOrNull(player);
         return codexSpellData != null
                 && codexSpellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE).hasOutstandingLoan();
     }
 
-    public static float getOutstandingLoanMana(net.minecraft.world.entity.player.Player player) {
+    public static float getOutstandingLoanMana(Player player) {
         var codexSpellData = Capabilities.getSpellDataOrNull(player);
         if (codexSpellData == null) {
             return 0.0F;
@@ -112,7 +116,7 @@ public final class FocusStaffbowCastManager {
         FocusStaffbowLoanSync.syncToClient(player);
     }
 
-    public static void releasePendingCast(net.minecraft.world.entity.player.Player player, ItemStack stack, int drawDuration) {
+    public static void releasePendingCast(Player player, ItemStack stack, int drawDuration) {
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return;
         }
@@ -146,7 +150,7 @@ public final class FocusStaffbowCastManager {
         confirmPendingCast(serverPlayer, stack, spell, state, codexSpellData, totalCastTicks, currentGameTime);
     }
 
-    public static void releaseContinuousCast(net.minecraft.world.entity.player.Player player, ItemStack stack) {
+    public static void releaseContinuousCast(Player player, ItemStack stack) {
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return;
         }
@@ -333,7 +337,7 @@ public final class FocusStaffbowCastManager {
 
     private static boolean beginPendingCast(ServerPlayer player, ItemStack focusStaffbowStack, AbstractSpell spell, int spellLevel,
                                             CastSource castSource, String castingSlot,
-                                            jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData codexSpellData,
+                                            CodexSpellData codexSpellData,
                                             BowCastAmmoResolver.FocusStaffbowAmmoRoute ammoRoute) {
         var originalEffectiveCastTicks = Math.max(spell.getEffectiveCastTime(spellLevel, player), 0);
         var requiredCastTicks = FocusStaffbowChargeLogic.normalizePendingRequiredCastTicks(originalEffectiveCastTicks);
@@ -402,7 +406,7 @@ public final class FocusStaffbowCastManager {
 
     private static boolean beginContinuousCast(ServerPlayer player, ItemStack focusStaffbowStack, AbstractSpell spell, int spellLevel,
                                                CastSource castSource, String castingSlot,
-                                               jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData codexSpellData,
+                                               CodexSpellData codexSpellData,
                                                BowCastAmmoResolver.FocusStaffbowAmmoRoute ammoRoute) {
         // CONTINUOUS は詠唱時間短縮 Attribute が逆効果になるため、
         // FocusStaffbow 側では spell 本来の castTime だけを標準詠唱可能時間として扱う。
@@ -490,7 +494,7 @@ public final class FocusStaffbowCastManager {
 
     private static boolean confirmPendingCast(ServerPlayer player, ItemStack focusStaffbowStack, AbstractSpell spell,
                                               FocusStaffbowCastState state,
-                                              jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData codexSpellData,
+                                              CodexSpellData codexSpellData,
                                               long totalCastTicks, long currentGameTime) {
         var spellLevel = state.spellLevel;
         var castSource = resolveCastSource(state.castSource);
@@ -791,7 +795,7 @@ public final class FocusStaffbowCastManager {
     }
 
     private static boolean denyIfLoanOutstanding(ServerPlayer player,
-                                                 jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData codexSpellData) {
+                                                 CodexSpellData codexSpellData) {
         var loanState = codexSpellData.get(CodexSpellStateTypeRegister.FOCUS_STAFFBOW_LOAN_STATE);
         if (!loanState.hasOutstandingLoan()) {
             return false;
@@ -975,7 +979,7 @@ public final class FocusStaffbowCastManager {
                                                    int chargeBaselineTicks, int baseManaCost,
                                                    FocusStaffbowCastState.Mode mode, int chargeUpdateIntervalTicks) {
         var data = new CompoundTag();
-        data.putString("castMode", mode.name().toLowerCase(java.util.Locale.ROOT));
+        data.putString("castMode", mode.name().toLowerCase(Locale.ROOT));
         data.putString("spellId", spell.getSpellId());
         data.putLong("startedGameTime", startedGameTime);
         data.putInt("requiredCastTicks", requiredCastTicks);
@@ -1043,7 +1047,7 @@ public final class FocusStaffbowCastManager {
     }
 
     private static void cleanupPendingSpellArtifacts(ServerPlayer player, @Nullable ICastData castData) {
-        if (!(player.level() instanceof net.minecraft.server.level.ServerLevel serverLevel)) {
+        if (!(player.level() instanceof ServerLevel serverLevel)) {
             return;
         }
         if (!(castData instanceof AbstractSummonWeaponSpell.SummonWeaponSpellCastData summonCastData)) {

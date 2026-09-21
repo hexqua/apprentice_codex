@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
@@ -153,7 +154,7 @@ public final class ForceFieldDefenseEffectRenderEvent {
         buffers.endBatch(RIPPLE_RENDER_TYPE);
     }
 
-    private static void renderEffect(PoseStack poseStack, net.minecraft.client.renderer.MultiBufferSource.BufferSource buffers,
+    private static void renderEffect(PoseStack poseStack, MultiBufferSource.BufferSource buffers,
                                      ActiveEffect effect, float age) {
         var alpha = getWallAlpha(age);
         if (alpha <= 0.0f) {

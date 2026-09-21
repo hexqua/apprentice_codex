@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.curios.autocastamulet;
 
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
@@ -28,6 +29,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
@@ -42,6 +44,7 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, ArcaneAnvilImbueBlockItem,
         StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget {
@@ -128,7 +131,7 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
 
     public boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel) {
         return spell != null
-                && spell != io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()
+                && spell != SpellRegistry.none()
                 && (spell.getCastType() == CastType.INSTANT || spell.getCastType() == CastType.LONG)
                 && spell.getRecastCount(spellLevel, null) <= 0;
     }
@@ -139,7 +142,7 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
 
     public boolean canAutoCastSpell(ItemStack stack, @Nullable AbstractSpell spell, int spellLevel) {
         return spell != null
-                && spell != io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()
+                && spell != SpellRegistry.none()
                 && getSupportedCastTypes(stack).contains(SpellGunCastType.from(spell.getCastType()))
                 && spell.getRecastCount(spellLevel, null) <= 0;
     }
@@ -283,7 +286,7 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
     }
 
     @Override
-    public @NotNull java.util.Optional<net.minecraft.world.inventory.tooltip.TooltipComponent> getTooltipImage(
+    public @NotNull Optional<TooltipComponent> getTooltipImage(
             @NotNull ItemStack stack
     ) {
         return createCalibrationAdjustmentTooltip(stack);

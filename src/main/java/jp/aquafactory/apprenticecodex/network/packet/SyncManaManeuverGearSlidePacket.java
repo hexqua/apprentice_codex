@@ -1,6 +1,10 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 import java.util.function.Supplier;
 import net.minecraft.world.entity.LivingEntity;
@@ -18,8 +22,8 @@ public record SyncManaManeuverGearSlidePacket(double ySpeed) {
 
     public static void handle(SyncManaManeuverGearSlidePacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
         var context = contextSupplier.get();
-        context.enqueueWork(() -> net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(
-                net.minecraftforge.api.distmarker.Dist.CLIENT, () -> () -> ClientHandler.handle(packet)));
+        context.enqueueWork(() -> DistExecutor.unsafeRunWhenOn(
+                Dist.CLIENT, () -> () -> ClientHandler.handle(packet)));
         context.setPacketHandled(true);
     }
 
@@ -29,10 +33,10 @@ public record SyncManaManeuverGearSlidePacket(double ySpeed) {
         entity.hasImpulse = true;
         entity.fallDistance = 0.0F;
     }
-    @net.minecraftforge.api.distmarker.OnlyIn(net.minecraftforge.api.distmarker.Dist.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     private static final class ClientHandler {
         private static void handle(SyncManaManeuverGearSlidePacket packet) {
-            var player = net.minecraft.client.Minecraft.getInstance().player;
+            var player = Minecraft.getInstance().player;
             if (player != null) {
                 applyTo(player, packet.ySpeed);
             }

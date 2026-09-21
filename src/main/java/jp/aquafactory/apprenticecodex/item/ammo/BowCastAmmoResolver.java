@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -177,7 +178,7 @@ public final class BowCastAmmoResolver {
     }
 
     private static boolean isArrowCatalyst(ItemStack stack, List<ResourceLocation> arrowCatalystItemIds) {
-        var itemId = net.minecraftforge.registries.ForgeRegistries.ITEMS.getKey(stack.getItem());
+        var itemId = ForgeRegistries.ITEMS.getKey(stack.getItem());
         return itemId != null && arrowCatalystItemIds.contains(itemId);
     }
 

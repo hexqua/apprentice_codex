@@ -14,6 +14,8 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -27,6 +29,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -170,7 +173,7 @@ public class ArcherMultiple  extends AbstractSpell {
     }
 
     public static class ArcherMultipleCastData implements ICastDataSerializable {
-        private final java.util.ArrayList<UUID> bowUuids = new java.util.ArrayList<>();
+        private final ArrayList<UUID> bowUuids = new ArrayList<>();
         private ResourceLocation dimension;
 
         void bindBow(ArcherMultipleBowEntity bow) {
@@ -224,7 +227,7 @@ public class ArcherMultiple  extends AbstractSpell {
         @Override
         public CompoundTag serializeNBT() {
             var tag = new CompoundTag();
-            var bows = new net.minecraft.nbt.ListTag();
+            var bows = new ListTag();
             bowUuids.forEach(uuid -> {
                 var bow = new CompoundTag();
                 bow.putUUID("Uuid", uuid);
@@ -238,7 +241,7 @@ public class ArcherMultiple  extends AbstractSpell {
         @Override
         public void deserializeNBT(CompoundTag tag) {
             bowUuids.clear();
-            var bows = tag.getList("Bows", net.minecraft.nbt.Tag.TAG_COMPOUND);
+            var bows = tag.getList("Bows", Tag.TAG_COMPOUND);
             bows.forEach(raw -> {
                 if (raw instanceof CompoundTag bow && bow.hasUUID("Uuid")) bowUuids.add(bow.getUUID("Uuid"));
             });

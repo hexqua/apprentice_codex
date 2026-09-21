@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import java.util.List;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.ammo.BowAmmoConsumptionNotification;
@@ -179,7 +181,7 @@ final class SpellcasterQuiverGameTestScenarios {
                         bowStack,
                         helper.getLevel(),
                         player,
-                        bowStack.getUseDuration() - jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow.READY_DRAW_TICKS
+                        bowStack.getUseDuration() - ElementalBow.READY_DRAW_TICKS
                 );
                 player.stopUsingItem();
 
@@ -405,7 +407,7 @@ final class SpellcasterQuiverGameTestScenarios {
             var amplifierItem = (AbstractOffhandMagicItem) ItemRegistry.COPPER_SPELL_AMPLIFIER.get();
             var amplifierStack = new ItemStack(amplifierItem);
             amplifierItem.initializeSpellContainer(amplifierStack);
-            setSingleUnlockedSpell(helper, amplifierStack, jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANA_SLASH.get(), 1);
+            setSingleUnlockedSpell(helper, amplifierStack, SpellRegistry.MANA_SLASH.get(), 1);
 
             player.setItemInHand(InteractionHand.MAIN_HAND, bowStack);
             player.setItemInHand(InteractionHand.OFF_HAND, amplifierStack);

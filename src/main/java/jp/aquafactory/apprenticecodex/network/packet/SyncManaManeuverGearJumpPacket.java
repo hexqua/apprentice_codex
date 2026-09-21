@@ -1,7 +1,11 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
 import jp.aquafactory.apprenticecodex.item.curios.manamaneuvergear.ManaManeuverGearMovement;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 import java.util.function.Supplier;
 import net.minecraft.world.phys.Vec3;
@@ -25,14 +29,14 @@ public record SyncManaManeuverGearJumpPacket(Vec3 impulse) {
 
     public static void handle(SyncManaManeuverGearJumpPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
         var context = contextSupplier.get();
-        context.enqueueWork(() -> net.minecraftforge.fml.DistExecutor.unsafeRunWhenOn(
-                net.minecraftforge.api.distmarker.Dist.CLIENT, () -> () -> ClientHandler.handle(packet)));
+        context.enqueueWork(() -> DistExecutor.unsafeRunWhenOn(
+                Dist.CLIENT, () -> () -> ClientHandler.handle(packet)));
         context.setPacketHandled(true);
     }
-    @net.minecraftforge.api.distmarker.OnlyIn(net.minecraftforge.api.distmarker.Dist.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     private static final class ClientHandler {
         private static void handle(SyncManaManeuverGearJumpPacket packet) {
-            var player = net.minecraft.client.Minecraft.getInstance().player;
+            var player = Minecraft.getInstance().player;
             if (player != null) {
                 ManaManeuverGearMovement.applyWallJump(player, packet.impulse);
             }

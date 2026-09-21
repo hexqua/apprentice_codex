@@ -12,6 +12,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.*;
 
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.server.ServerLifecycleHooks;
@@ -221,11 +222,11 @@ public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoIte
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable net.minecraft.world.level.Level context,
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level context,
                                 @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
         // Iron's の詳細表示は LocalPlayer を使うため、専用サーバーから client helper を読み込まない。
-        if (net.minecraftforge.fml.loading.FMLEnvironment.dist == net.minecraftforge.api.distmarker.Dist.CLIENT) {
+        if (FMLEnvironment.dist == Dist.CLIENT) {
             QuickcastCartridgeClientTooltip.append(stack, lines);
         }
     }

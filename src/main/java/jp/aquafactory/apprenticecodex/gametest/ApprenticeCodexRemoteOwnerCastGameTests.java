@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.config.ServerConfigs;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.datagen.spell.RemoteOwnerCastSpellProfileDataGenerator;
@@ -35,6 +36,7 @@ import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerEntity;
 import jp.aquafactory.apprenticecodex.utility.CombatOwnerResolver;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -44,6 +46,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
@@ -58,6 +62,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -158,18 +164,18 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
         helper.succeedIf(() -> {
             var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
                     helper,
-                    new net.minecraft.core.BlockPos(0, 2, 0),
+                    new BlockPos(0, 2, 0),
                     "remote_owner_creative_cooldown_test"
             );
             var magicData = MagicData.getPlayerMagicData(player);
             helper.assertTrue(magicData != null, "Remote Owner creative cooldown test requires MagicData");
             var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MAGE_LIGHT.get();
             var spellData = new SpellData(spell, 1);
-            var originalCreativeCooldown = io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.get();
+            var originalCreativeCooldown = ServerConfigs.CREATIVE_COOLDOWN.get();
 
             try {
-                player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
-                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(false);
+                player.gameMode.changeGameModeForPlayer(GameType.CREATIVE);
+                ServerConfigs.CREATIVE_COOLDOWN.set(false);
                 RemoteOwnerCooldownManager.addCooldown(
                         player,
                         spellData,
@@ -179,7 +185,7 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
                 helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
                         "Remote Owner should skip creative cooldowns when Iron's setting is disabled");
 
-                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(true);
+                ServerConfigs.CREATIVE_COOLDOWN.set(true);
                 RemoteOwnerCooldownManager.addCooldown(
                         player,
                         spellData,
@@ -190,8 +196,8 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
                         "Remote Owner should apply creative cooldowns when Iron's setting is enabled");
 
                 magicData.getPlayerCooldowns().clearCooldowns();
-                player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
-                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(false);
+                player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
+                ServerConfigs.CREATIVE_COOLDOWN.set(false);
                 RemoteOwnerCooldownManager.addCooldown(
                         player,
                         spellData,
@@ -201,7 +207,7 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
                 helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(spell),
                         "Remote Owner should keep applying survival cooldowns");
             } finally {
-                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(originalCreativeCooldown);
+                ServerConfigs.CREATIVE_COOLDOWN.set(originalCreativeCooldown);
                 magicData.getPlayerCooldowns().clearCooldowns();
             }
         });
@@ -495,13 +501,13 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
     @GameTest(template = TEMPLATE)
     public static void remoteOwnerCastDatagenUsesAnchorOwnerForSummonWeaponProfiles(GameTestHelper helper) {
         var remoteOwnerProfiles = RemoteOwnerCastSpellProfileDataGenerator.createProfileDefinitions().stream()
-                .collect(java.util.stream.Collectors.toMap(
+                .collect(Collectors.toMap(
                         definition -> definition.spell(),
                         definition -> definition.profile()
                 ));
         var spellDispenserProfileSpells = SpellDispenserSpellProfileDataGenerator.createProfileDefinitions().stream()
                 .map(definition -> definition.spell())
-                .collect(java.util.stream.Collectors.toSet());
+                .collect(Collectors.toSet());
         var assertedAny = false;
 
         for (var spellEntry : jp.aquafactory.apprenticecodex.registry.SpellRegistry.SPELLS.getEntries()) {
@@ -544,7 +550,7 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
     public static void remoteOwnerCastContextKeepsInscribeIceJobGeometry(GameTestHelper helper) {
         var level = helper.getLevel();
         var owner = new FakePlayer(level, new GameProfile(UUID.randomUUID(), "inscribe_ice_remote_owner_test"));
-        owner.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        owner.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var ownerPos = helper.absoluteVec(new Vec3(1.5D, 2.0D, 1.5D));
         owner.setPos(ownerPos.x, ownerPos.y, ownerPos.z);
         owner.setYRot(0.0F);
@@ -555,7 +561,7 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
         var remoteOrigin = helper.absoluteVec(new Vec3(2.5D, 4.5D, 2.5D));
         var remoteForward = new Vec3(0.0D, 1.0D, 0.0D);
         var spawnedDaggers = new ArrayList<InscribeIceDaggerEntity>();
-        java.util.function.Consumer<EntityJoinLevelEvent> daggerListener = event -> {
+        Consumer<EntityJoinLevelEvent> daggerListener = event -> {
             if (event.getLevel() == level
                     && event.getEntity() instanceof InscribeIceDaggerEntity dagger
                     && dagger.getOwner() == owner) {
@@ -624,7 +630,7 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
     }
 
     private static FakePlayer createChromaticRecordTestOwner(GameTestHelper helper, String profileName) {
-        var owner = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(helper, new net.minecraft.core.BlockPos(0, 2, 0),
+        var owner = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
                 profileName);
         helper.getLevel().addFreshEntity(owner);
         return owner;
@@ -705,7 +711,7 @@ public final class ApprenticeCodexRemoteOwnerCastGameTests {
     }
 
     private static final class TestHiganbanaKatanaEntity extends HiganbanaKatanaEntity {
-        private TestHiganbanaKatanaEntity(net.minecraft.world.level.Level level, LivingEntity owner) {
+        private TestHiganbanaKatanaEntity(Level level, LivingEntity owner) {
             super(EntityRegistry.HIGANBANA_KATANA.get(), level, owner);
         }
 

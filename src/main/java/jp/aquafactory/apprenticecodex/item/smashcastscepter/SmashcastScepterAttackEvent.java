@@ -9,10 +9,12 @@ import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
@@ -188,7 +190,7 @@ public final class SmashcastScepterAttackEvent {
         }
     }
 
-    private static ServerPlayer resolveDirectPlayerAttack(net.minecraft.world.damagesource.DamageSource source) {
+    private static ServerPlayer resolveDirectPlayerAttack(DamageSource source) {
         if (!(source.getDirectEntity() instanceof ServerPlayer player)) {
             return null;
         }
@@ -333,7 +335,7 @@ public final class SmashcastScepterAttackEvent {
             var pos = start.below(offset);
             var state = level.getBlockState(pos);
             if (!state.isAir()
-                    && state.getRenderShape() == net.minecraft.world.level.block.RenderShape.MODEL
+                    && state.getRenderShape() == RenderShape.MODEL
                     && !state.getCollisionShape(level, pos).isEmpty()) {
                 return pos;
             }

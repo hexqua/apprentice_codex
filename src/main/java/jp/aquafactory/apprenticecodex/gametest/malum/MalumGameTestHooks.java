@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.gametest.malum;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.item.crafting.Recipe;
@@ -9,6 +10,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 
 /** Optional Malum API is reflected so the standard GameTest profile remains loadable without Malum. */
 public final class MalumGameTestHooks {
@@ -25,12 +27,12 @@ public final class MalumGameTestHooks {
             ItemStack expectedOutput
     ) {
         assertSpiritInfusionRecipe(level, recipeId, input, extras, expectedOutput,
-                java.util.Map.of("arcane_spirit", 16, "wicked_spirit", 16));
+                Map.of("arcane_spirit", 16, "wicked_spirit", 16));
     }
 
     public static void assertSpiritInfusionRecipe(
             Level level, ResourceLocation recipeId, ItemStack input, List<ItemStack> extras,
-            ItemStack expectedOutput, java.util.Map<String, Integer> expectedSpiritCosts
+            ItemStack expectedOutput, Map<String, Integer> expectedSpiritCosts
     ) {
         try {
             var recipeClass = Class.forName(SPIRIT_INFUSION_RECIPE);
@@ -77,7 +79,7 @@ public final class MalumGameTestHooks {
         for (Object spirit : spirits) {
             Method getItem = spirit.getClass().getMethod("getItem");
             Method getCount = spirit.getClass().getMethod("getCount");
-            var item = (net.minecraft.world.item.Item) getItem.invoke(spirit);
+            var item = (Item) getItem.invoke(spirit);
             int count = (int) getCount.invoke(spirit);
             var itemId = ForgeRegistries.ITEMS.getKey(item);
             if (itemId != null && expectedPath.equals(itemId.getPath()) && count == expectedCount) {

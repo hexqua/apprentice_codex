@@ -1,13 +1,20 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import com.mojang.serialization.JsonOps;
+import io.netty.buffer.Unpooled;
+import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
+import jp.aquafactory.apprenticecodex.compat.jei.SpellCalibrationAdjustmentJeiRecipe;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
+import jp.aquafactory.apprenticecodex.item.CalibrationConstraintDisplay;
 import jp.aquafactory.apprenticecodex.item.elementalbow.*;
+import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowConfigPacket;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 
@@ -15,13 +22,23 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.profiling.InactiveProfiler;
+import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
+
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -66,13 +83,13 @@ public final class ElementalBowRuneGameTests {
             var magic = MagicData.getPlayerMagicData(player);
             float basePower = spell.getSpellPower(1, player);
             int[] casts = {0};
-            java.util.function.Consumer<io.redspace.ironsspellbooks.api.events.SpellOnCastEvent> listener = event -> {
+            Consumer<SpellOnCastEvent> listener = event -> {
                 if (event.getEntity() != player || !event.getSpellId().equals(spell.getSpellId())) return;
                 casts[0]++;
                 helper.assertTrue(Math.abs(spell.getSpellPower(1, player) - basePower * 3) < .001,
                         "Instant activation must retain school rune power");
             };
-            net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(listener);
+            MinecraftForge.EVENT_BUS.addListener(listener);
             try {
                 for (boolean existingCooldown : new boolean[]{false, true}) {
                     if (existingCooldown) magic.getPlayerCooldowns().addCooldown(spell, 123);
@@ -91,7 +108,7 @@ public final class ElementalBowRuneGameTests {
                 }
                 helper.assertTrue(casts[0] == 2, "Each instant shot must activate exactly once");
             } finally {
-                net.minecraftforge.common.MinecraftForge.EVENT_BUS.unregister(listener);
+                MinecraftForge.EVENT_BUS.unregister(listener);
             }
         }
         helper.succeed();
@@ -103,18 +120,18 @@ public final class ElementalBowRuneGameTests {
         var instant = ResourceLocation.parse("irons_spellbooks:blood_step");
         var continuous = ResourceLocation.parse("irons_spellbooks:fire_breath");
         var longSpell = SpellRegistry.FIRE_ARROW_SPELL.get().getSpellResource();
-        var definitions = java.util.List.of(new ElementalBowModeDefinition(instant, 20),
+        var definitions = List.of(new ElementalBowModeDefinition(instant, 20),
                 new ElementalBowModeDefinition(continuous, 20), new ElementalBowModeDefinition(longSpell, 20));
         var constructor = ElementalBowModeManager.class.getDeclaredConstructor();
         constructor.setAccessible(true);
-        var apply = ElementalBowModeManager.class.getDeclaredMethod("apply", java.util.Map.class,
-                net.minecraft.server.packs.resources.ResourceManager.class, net.minecraft.util.profiling.ProfilerFiller.class);
+        var apply = ElementalBowModeManager.class.getDeclaredMethod("apply", Map.class,
+                ResourceManager.class, ProfilerFiller.class);
         apply.setAccessible(true);
         try {
-            var json = ElementalBowModeList.CODEC.encodeStart(com.mojang.serialization.JsonOps.INSTANCE,
+            var json = ElementalBowModeList.CODEC.encodeStart(JsonOps.INSTANCE,
                     new ElementalBowModeList(definitions)).getOrThrow(false, message -> { throw new IllegalStateException(message); });
-            apply.invoke(constructor.newInstance(), java.util.Map.of(ResourceLocation.parse("apprenticecodex:cast_type_test"), json),
-                    helper.getLevel().getServer().getResourceManager(), net.minecraft.util.profiling.InactiveProfiler.INSTANCE);
+            apply.invoke(constructor.newInstance(), Map.of(ResourceLocation.parse("apprenticecodex:cast_type_test"), json),
+                    helper.getLevel().getServer().getResourceManager(), InactiveProfiler.INSTANCE);
             helper.assertTrue(ElementalBowModeManager.getResolvedDefinition(instant) != null,
                     "Datapacks must accept INSTANT modes");
             helper.assertTrue(ElementalBowModeManager.getResolvedDefinition(longSpell) != null,
@@ -133,25 +150,25 @@ public final class ElementalBowRuneGameTests {
     @GameTest(template = "gametest/basic_floor")
     public static void elementalBowRuneConfigSyncUpdatesExistingJeiRecipe(GameTestHelper helper) {
         double previous = ElementalBowClientConfigState.schoolRuneManaCostMultiplier();
-        var buffer = new net.minecraft.network.FriendlyByteBuf(io.netty.buffer.Unpooled.buffer());
+        var buffer = new FriendlyByteBuf(Unpooled.buffer());
         try (var config = ApprenticeCodexServerConfig.overrideElementalBowSchoolRuneManaCostMultiplierForGameTest(2.5)) {
-            var packet = new jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowConfigPacket(java.util.List.of());
-            jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowConfigPacket.encode(packet, buffer);
-            var decoded = jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowConfigPacket.decode(buffer);
+            var packet = new SyncElementalBowConfigPacket(List.of());
+            SyncElementalBowConfigPacket.encode(packet, buffer);
+            var decoded = SyncElementalBowConfigPacket.decode(buffer);
             helper.assertTrue(decoded.schoolRuneManaCostMultiplier() == 2.5, "Config codec must preserve fractional rune multipliers");
             var stack = bow(helper, true, false);
-            var recipe = new jp.aquafactory.apprenticecodex.compat.jei.SpellCalibrationAdjustmentJeiRecipe(
+            var recipe = new SpellCalibrationAdjustmentJeiRecipe(
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "rune_sync_test"),
-                    stack, java.util.List.of(rune("fire_rune")), java.util.List.of(stack),
-                    () -> jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects.forceSpellSchool(
+                    stack, List.of(rune("fire_rune")), List.of(stack),
+                    () -> CalibrationAdjustmentEffects.forceSpellSchool(
                             ElementalBowRunes.configuredManaMultiplier(true)),
-                    jp.aquafactory.apprenticecodex.item.CalibrationConstraintDisplay.none());
+                    CalibrationConstraintDisplay.none());
             ElementalBowClientConfigState.setSchoolRuneManaCostMultiplier(2);
-            var before = (net.minecraft.network.chat.contents.TranslatableContents) recipe.effectLines().get(1).getContents();
+            var before = (TranslatableContents) recipe.effectLines().get(1).getContents();
             helper.assertTrue(((Number) before.getArgs()[0]).longValue() == 100,
                     "Double mana must be shown as a 100 percent JEI increase");
             ElementalBowClientConfigState.setSchoolRuneManaCostMultiplier(decoded.schoolRuneManaCostMultiplier());
-            var after = (net.minecraft.network.chat.contents.TranslatableContents) recipe.effectLines().get(1).getContents();
+            var after = (TranslatableContents) recipe.effectLines().get(1).getContents();
             helper.assertTrue(((Number) after.getArgs()[0]).longValue() == 150,
                     "An existing JEI recipe must use newly synchronized config");
             ElementalBowClientConfigState.reset();

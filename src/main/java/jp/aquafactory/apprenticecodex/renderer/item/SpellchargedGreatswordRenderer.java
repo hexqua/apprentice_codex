@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -358,7 +359,7 @@ public final class SpellchargedGreatswordRenderer extends GeoItemRenderer<Spellc
             return new ChargeRenderState(1.0F, GlowColor.WHITE, 0.0F, 0.0F, true);
         }
 
-        var stack = this.currentItemStack != null ? this.currentItemStack : net.minecraft.world.item.ItemStack.EMPTY;
+        var stack = this.currentItemStack != null ? this.currentItemStack : ItemStack.EMPTY;
         var renderTime = resolveRenderTime(partialTick);
         if (SpellchargedGreatsword.isOverchargeActive(stack, renderTime)) {
             return new ChargeRenderState(

@@ -13,6 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SculkSensorBlock;
@@ -99,7 +100,7 @@ public final class DeepSensorGameTests {
                     new BlockPos(i, 0, 0),
                     i,
                     i,
-                    UUID.nameUUIDFromBytes(("deep-sensor-" + i).getBytes(java.nio.charset.StandardCharsets.UTF_8)),
+                    UUID.nameUUIDFromBytes(("deep-sensor-" + i).getBytes(StandardCharsets.UTF_8)),
                     null,
                     STEP_EVENT
             );
@@ -233,7 +234,7 @@ public final class DeepSensorGameTests {
         return player;
     }
 
-    private static void addSenseSensorEffect(net.minecraft.world.entity.LivingEntity entity) {
+    private static void addSenseSensorEffect(LivingEntity entity) {
         entity.addEffect(new MobEffectInstance(EffectRegistry.SENSE_SENSOR.get(), 40, 0));
     }
 

@@ -77,7 +77,7 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
     }
 
     @Override
-    public void onCraftedBy(@NotNull ItemStack stack, @NotNull Level level, @NotNull net.minecraft.world.entity.player.Player player) {
+    public void onCraftedBy(@NotNull ItemStack stack, @NotNull Level level, @NotNull Player player) {
         super.onCraftedBy(stack, level, player);
         initializeSpellContainer(stack);
     }

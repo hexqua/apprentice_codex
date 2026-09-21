@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.registries.PotionRegistry;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.InventoryInsertTarget;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
@@ -56,7 +57,7 @@ final class InventoryInsertHintGameTestScenarios {
 
         var manaPotion = PotionUtils.setPotion(
                 new ItemStack(Items.POTION),
-                io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()
+                PotionRegistry.INSTANT_MANA_ONE.get()
         );
         helper.assertTrue(resolveHint(deviceStack, manaPotion, player)
                         == InventoryInsertTarget.InsertHint.MANA,

@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStream;
+import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntityType;
@@ -12,6 +13,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 
+import net.minecraftforge.common.util.FakePlayer;
 import java.util.UUID;
 
 final class BulletStreamGameTestScenarios {
@@ -128,7 +130,7 @@ final class BulletStreamGameTestScenarios {
 
     private static void assertTenTickRelease(
             GameTestHelper helper,
-            jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunEntity weapon
+            BulletStreamMinigunEntity weapon
     ) {
         for (var tick = 0; tick < RELEASE_DURATION_TICKS - 1; tick++) {
             weapon.tickOnServer(helper.getLevel());
@@ -140,7 +142,7 @@ final class BulletStreamGameTestScenarios {
                 "Released Bullet Stream should disappear on the tenth finish tick");
     }
 
-    private static void faceForward(net.minecraftforge.common.util.FakePlayer player) {
+    private static void faceForward(FakePlayer player) {
         player.setYRot(0.0F);
         player.setYBodyRot(0.0F);
         player.setYHeadRot(0.0F);

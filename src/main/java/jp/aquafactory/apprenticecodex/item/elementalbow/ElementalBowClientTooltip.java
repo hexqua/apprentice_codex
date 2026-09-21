@@ -11,6 +11,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -36,7 +37,7 @@ final class ElementalBowClientTooltip {
         if (selected != null) {
             var data = new SpellData(selected.spell(), selected.spellLevel());
             // 常設ルーンの系統とマナを一括反映し、一時的な過熱ペナルティは表示へ反映しない。
-            List<net.minecraft.network.chat.MutableComponent> details;
+            List<MutableComponent> details;
             try (var ignored = ElementalBowSpellPowerContext.open(player, selected.spell(), stack)) {
                 details = TooltipsUtils.formatActiveSpellTooltip(stack, data, CastSource.SPELLBOOK, player);
                 var mana = TooltipsUtils.getManaCostComponent(selected.spell().getCastType(),

@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.item.antimanaarrow.AntiManaArrowEntity;
 import jp.aquafactory.apprenticecodex.spell.forcefield.ForceFieldDefenseEvent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.CombatRules;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
@@ -21,11 +22,14 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
@@ -288,7 +292,7 @@ final class ManaShieldCharmLogic {
         // 防具軽減後の残存割合だけを元の被ダメージへ戻す。吸収できなければ元の全量を通す。
         // 軽減だけで0になった場合は全吸収として扱い、0除算を避ける。
         var remainingDamage = reducedDamage > 0.0F
-                ? incomingDamage * net.minecraft.util.Mth.clamp(barrierResolution.remainingDamage() / reducedDamage, 0.0F, 1.0F)
+                ? incomingDamage * Mth.clamp(barrierResolution.remainingDamage() / reducedDamage, 0.0F, 1.0F)
                 : 0.0F;
         return new DamageResolution(
                 Math.max(incomingDamage - remainingDamage, 0.0F),
@@ -397,7 +401,7 @@ final class ManaShieldCharmLogic {
         return EnchantmentMode.NONE;
     }
 
-    private static int getExclusiveEnchantmentLevel(ItemStack stack, net.minecraftforge.registries.RegistryObject<net.minecraft.world.item.enchantment.Enchantment> enchantment) {
+    private static int getExclusiveEnchantmentLevel(ItemStack stack, RegistryObject<Enchantment> enchantment) {
         return enchantment.isPresent() ? stack.getEnchantmentLevel(enchantment.get()) : 0;
     }
 
@@ -508,7 +512,7 @@ final class ManaShieldCharmLogic {
     private static float sumAttributeModifierAmount(
             ItemStack stack,
             EquipmentSlot slot,
-            net.minecraft.world.entity.ai.attributes.Attribute attribute
+            Attribute attribute
     ) {
         return (float) stack.getAttributeModifiers(slot).get(attribute).stream()
                 .filter(modifier -> modifier.getOperation() == AttributeModifier.Operation.ADDITION)

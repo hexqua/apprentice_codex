@@ -1,12 +1,18 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
+import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
+import io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry;
+import io.redspace.ironsspellbooks.util.UpgradeUtils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -15,6 +21,8 @@ import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunCastContext;
@@ -28,6 +36,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -39,10 +48,12 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.ItemAttributeModifierEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -239,7 +250,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
 
     static void spellcasterGunsRemoveBaseSpellPowerButKeepSurge(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var spellPower = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
+            var spellPower = AttributeRegistry.SPELL_POWER.get();
             for (var item : List.of(
                     ItemRegistry.IRON_SPELLCASTER_GUN.get(),
                     ItemRegistry.COPPER_SPELLCASTER_GUN.get(),
@@ -388,22 +399,22 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
 
             var cases = List.of(
                     new SpellgunAttributeCase(EnchantmentRegistry.ALACRITY.get(),
-                            io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get(),
+                            AttributeRegistry.COOLDOWN_REDUCTION.get(),
                             AttributeModifier.Operation.MULTIPLY_BASE, 0.02D),
                     new SpellgunAttributeCase(EnchantmentRegistry.REFLUX.get(),
-                            io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get(),
+                            AttributeRegistry.MANA_REGEN.get(),
                             AttributeModifier.Operation.MULTIPLY_BASE, 0.05D),
                     new SpellgunAttributeCase(EnchantmentRegistry.RESERVOIR.get(),
-                            io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get(),
+                            AttributeRegistry.MAX_MANA.get(),
                             AttributeModifier.Operation.ADDITION, 20.0D),
                     new SpellgunAttributeCase(EnchantmentRegistry.SURGE.get(),
-                            io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get(),
+                            AttributeRegistry.SPELL_POWER.get(),
                             AttributeModifier.Operation.MULTIPLY_BASE, 0.02D),
                     new SpellgunAttributeCase(EnchantmentRegistry.ATTUNEMENT.get(), attunementAttribute,
                             AttributeModifier.Operation.MULTIPLY_BASE,
                             AttributeEnchantmentType.ATTUNEMENT.amountPerLevel()),
                     new SpellgunAttributeCase(EnchantmentRegistry.TENSE.get(),
-                            io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get(),
+                            AttributeRegistry.CAST_TIME_REDUCTION.get(),
                             AttributeModifier.Operation.MULTIPLY_BASE,
                             AttributeEnchantmentType.TENSE.amountPerLevel())
             );
@@ -438,7 +449,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
     static void silverSpellAmplifierKeepsDualSpellgunModifiersIndependent(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AbstractSpellGunItem) ItemRegistry.IRON_SPELLCASTER_GUN.get();
-            var spellPower = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
+            var spellPower = AttributeRegistry.SPELL_POWER.get();
             var mainhandStack = createInitializedPresetStack(item);
             mainhandStack.enchant(EnchantmentRegistry.SURGE.get(), 1);
             var offhandStack = createInitializedPresetStack(item);
@@ -479,14 +490,14 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
     static void silverSpellAmplifierMovesUpgradeOrbModifiersToOffhand(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (AbstractSpellGunItem) ItemRegistry.IRON_SPELLCASTER_GUN.get();
-            var maxMana = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
+            var maxMana = AttributeRegistry.MAX_MANA.get();
 
             var orbBeforeCalibration = createInitializedPresetStack(item);
             orbBeforeCalibration.enchant(EnchantmentRegistry.RESERVOIR.get(), 1);
             createUpgradeData(
                     helper.getLevel().registryAccess(),
                     orbBeforeCalibration,
-                    io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.MANA,
+                    UpgradeOrbTypeRegistry.MANA,
                     EquipmentSlot.MAINHAND.getName()
             );
             helper.assertTrue(SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
@@ -502,7 +513,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             createUpgradeData(
                     helper.getLevel().registryAccess(),
                     calibrationBeforeOrb,
-                    io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.MANA,
+                    UpgradeOrbTypeRegistry.MANA,
                     EquipmentSlot.MAINHAND.getName()
             );
             assertAdjustedUpgradeOrbSlots(helper, calibrationBeforeOrb, maxMana, "Calibration-before-orb");
@@ -515,7 +526,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             createUpgradeData(
                     helper.getLevel().registryAccess(),
                     unadjusted,
-                    io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.MANA,
+                    UpgradeOrbTypeRegistry.MANA,
                     EquipmentSlot.MAINHAND.getName()
             );
             var unadjustedMainhand = resolveRuntimeSpellgunModifiers(unadjusted, EquipmentSlot.MAINHAND);
@@ -530,7 +541,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
     static void reflectcastShieldCastRestrictionsFollowCalibration(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
-            var item = (jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield) stack.getItem();
+            var item = (ReflectcastShield) stack.getItem();
             var defaultTooltipLines = new ArrayList<Component>();
             item.appendHoverText(stack, helper.getLevel(), defaultTooltipLines, TooltipFlag.Default.NORMAL);
             helper.assertTrue(containsTranslatableKey(defaultTooltipLines,
@@ -565,9 +576,9 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                     stack, 0, new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()));
             SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     stack, 1, new ItemStack(ItemRegistry.WISDOM_SHARD.get()));
-            helper.assertTrue(jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.hasSilverRing(stack),
+            helper.assertTrue(ReflectcastShield.hasSilverRing(stack),
                     "Reflectcast Shield should store Silver Ring calibration");
-            helper.assertTrue(jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.hasWisdomShard(stack),
+            helper.assertTrue(ReflectcastShield.hasWisdomShard(stack),
                     "Reflectcast Shield should store Wisdom Shard calibration alongside Silver Ring");
             var wisdomTooltipLines = new ArrayList<Component>();
             item.appendHoverText(stack, helper.getLevel(), wisdomTooltipLines, TooltipFlag.Default.NORMAL);
@@ -625,29 +636,29 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             var longCooldownEvent = new SpellCooldownAddedEvent.Pre(
                     baseCooldown, longSpell, player, CastSource.SWORD
             );
-            jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime
+            ReflectcastShieldRuntime
                     .onSpellCooldownAdded(longCooldownEvent);
             helper.assertTrue(longCooldownEvent.getEffectiveCooldown()
                             == baseCooldown + longSpell.getEffectiveCastTime(1, player),
                     "Reflectcast Shield should extend LONG cooldown by its effective cast time");
             magicData.setPlayerCastingItem(ItemStack.EMPTY);
             var manaBeforeCast = magicData.getMana();
-            helper.assertTrue(jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime.tryTriggerSpell(
+            helper.assertTrue(ReflectcastShieldRuntime.tryTriggerSpell(
                             player, castStack, InteractionHand.OFF_HAND),
                     "A valid block trigger should start Reflectcast continuous casting immediately");
-            helper.assertTrue(jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime
+            helper.assertTrue(ReflectcastShieldRuntime
                             .shouldBypassMagicManager(magicData),
                     "Reflectcast continuous casting should bypass Iron's standard cast tick");
             helper.assertTrue(magicData.getMana() < manaBeforeCast,
                     "Reflectcast continuous casting should consume normal spell mana");
-            helper.assertFalse(jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime.tryTriggerSpell(
+            helper.assertFalse(ReflectcastShieldRuntime.tryTriggerSpell(
                             player, castStack, InteractionHand.OFF_HAND),
                     "Additional blocks should not restart an active continuous cast");
-            jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime.finishUse(player);
+            ReflectcastShieldRuntime.finishUse(player);
             helper.assertFalse(magicData.isCasting(),
                     "Releasing Reflectcast Shield should clear its continuous casting state");
             player.stopUsingItem();
-            jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldRuntime.clear(player);
+            ReflectcastShieldRuntime.clear(player);
         });
     }
 
@@ -704,7 +715,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellgun_fixed_cooldown_attribute_test");
             var cooldownAttribute = player.getAttribute(
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get()
+                    AttributeRegistry.COOLDOWN_REDUCTION.get()
             );
             helper.assertTrue(cooldownAttribute != null,
                     "Spellgun fixed cooldown test player is missing cooldown reduction attribute");
@@ -965,7 +976,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
     private static boolean hasExpectedEpicFightSpellgunCapability(Object player, ItemStack stack) {
         return invokeEpicFightSpellgunBoolean(
                 "hasExpectedSpellgunCapability",
-                new Class<?>[]{net.minecraft.server.level.ServerPlayer.class, ItemStack.class},
+                new Class<?>[]{ServerPlayer.class, ItemStack.class},
                 player,
                 stack
         );
@@ -974,7 +985,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
     private static boolean enterEpicFightBattleMode(Object player) {
         return invokeEpicFightSpellgunBoolean(
                 "enterBattleMode",
-                new Class<?>[]{net.minecraft.server.level.ServerPlayer.class},
+                new Class<?>[]{ServerPlayer.class},
                 player
         );
     }
@@ -982,7 +993,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
     private static boolean isEpicFightMainhandSpellgunBasicAttack(Object player) {
         return invokeEpicFightSpellgunBoolean(
                 "isMainhandSpellgunBasicAttack",
-                new Class<?>[]{net.minecraft.server.level.ServerPlayer.class},
+                new Class<?>[]{ServerPlayer.class},
                 player
         );
     }
@@ -990,7 +1001,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
     private static boolean hasNoEpicFightSpellgunAttackMotion(Object player, ItemStack stack) {
         return invokeEpicFightSpellgunBoolean(
                 "hasNoSpellgunAttackMotion",
-                new Class<?>[]{net.minecraft.server.level.ServerPlayer.class, ItemStack.class},
+                new Class<?>[]{ServerPlayer.class, ItemStack.class},
                 player,
                 stack
         );
@@ -999,7 +1010,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
     private static boolean canUseEpicFightOffhandSpellgun(Object player) {
         return invokeEpicFightSpellgunBoolean(
                 "canUseOffhandSpellgun",
-                new Class<?>[]{net.minecraft.server.level.ServerPlayer.class},
+                new Class<?>[]{ServerPlayer.class},
                 player
         );
     }
@@ -1007,7 +1018,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
     private static boolean canExecuteEpicFightGuard(Object player) {
         return invokeEpicFightSpellgunBoolean(
                 "canExecuteGuard",
-                new Class<?>[]{net.minecraft.server.level.ServerPlayer.class},
+                new Class<?>[]{ServerPlayer.class},
                 player
         );
     }
@@ -1073,14 +1084,14 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spellgun_existing_cast_test");
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
             var magicData = MagicData.getPlayerMagicData(player);
-            magicData.setSyncedData(new io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData(player));
+            magicData.setSyncedData(new SyncedSpellData(player));
             var activeSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
             magicData.initiateCast(
                     activeSpell,
                     1,
                     activeSpell.getEffectiveCastTime(1, player),
                     CastSource.SPELLBOOK,
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+                    SpellSelectionManager.MAINHAND
             );
 
             helper.assertFalse(item.tryTriggerImbuedSpell(player, InteractionHand.MAIN_HAND, null),
@@ -1102,7 +1113,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             player.setItemInHand(InteractionHand.MAIN_HAND, diamondStack);
             player.getInventory().add(new ItemStack(ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get()));
             var maxMana = player.getAttribute(
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get());
+                    AttributeRegistry.MAX_MANA.get());
             helper.assertTrue(maxMana != null, "Spellgun maximum mana test requires MAX_MANA");
             maxMana.setBaseValue(0.0D);
             MagicData.getPlayerMagicData(player).setMana(0.0F);
@@ -1145,9 +1156,9 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             var stack = new ItemStack(item);
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "malignant_spellgun_power_test");
             var genericPower = player.getAttribute(
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get());
+                    AttributeRegistry.SPELL_POWER.get());
             var summonDamage = player.getAttribute(
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SUMMON_DAMAGE.get());
+                    AttributeRegistry.SUMMON_DAMAGE.get());
             helper.assertTrue(genericPower != null && summonDamage != null,
                     "Malignant Spellgun power test requires Iron's power attributes");
             genericPower.setBaseValue(0.0D);
@@ -1168,7 +1179,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                     helper.assertTrue(Math.abs(spell.getSpellPower(1, player) - basePower * 6.0F) < 1.0e-4F,
                             "Malignant initiation should replace generic and school spell power");
                     helper.assertTrue(player.getAttributeValue(
-                                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SUMMON_DAMAGE.get()) == 0.0D,
+                                    AttributeRegistry.SUMMON_DAMAGE.get()) == 0.0D,
                             "Summon damage must not be replaced during pre-cast checks");
                 }
 
@@ -1178,7 +1189,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                     helper.assertTrue(Math.abs(spell.getSpellPower(1, player) - basePower * 6.0F) < 1.0e-4F,
                             "Malignant activation should replace generic and school spell power");
                     helper.assertTrue(player.getAttributeValue(
-                                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SUMMON_DAMAGE.get()) == 4.0D,
+                                    AttributeRegistry.SUMMON_DAMAGE.get()) == 4.0D,
                             "Malignant activation should replace summon damage");
                 }
             }
@@ -1186,7 +1197,7 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             helper.assertTrue(spell.getSpellPower(1, player) == 0.0F,
                     "Malignant spell power override must end with its context");
             helper.assertTrue(player.getAttributeValue(
-                            io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SUMMON_DAMAGE.get()) == 0.0D,
+                            AttributeRegistry.SUMMON_DAMAGE.get()) == 0.0D,
                     "Malignant summon damage override must end with its context");
             helper.assertTrue(item.getAmmoItem(stack, new SpellData(spell, 1, false))
                             == ItemRegistry.SPELL_DOMINATOR_ROUND.get(),
@@ -1336,17 +1347,17 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
 
         var args = contents.getArgs();
         helper.assertTrue(args.length == 1 && expectedArgument.equals(args[0]),
-                message + ": expected=" + expectedArgument + ", actual=" + java.util.Arrays.toString(args));
+                message + ": expected=" + expectedArgument + ", actual=" + Arrays.toString(args));
     }
 
     @SuppressWarnings("unchecked")
     private static List<Component> collectReflectcastAbilityTooltipLines(
             GameTestHelper helper,
-            jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield item,
+            ReflectcastShield item,
             ItemStack stack
     ) {
         try {
-            var method = jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.class
+            var method = ReflectcastShield.class
                     .getDeclaredMethod("getImbueShieldAbilityTooltipSection", ItemStack.class);
             method.setAccessible(true);
             return (List<Component>) method.invoke(item, stack);
@@ -1442,15 +1453,15 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                 context + " adjusted Spellgun offhand modifier should be 70 but got "
                         + matchingModifiers.get(0).getAmount());
         helper.assertTrue(matchingModifiers.get(0).getId().equals(
-                        io.redspace.ironsspellbooks.util.UpgradeUtils.UUIDForSlot(EquipmentSlot.OFFHAND)),
+                        UpgradeUtils.UUIDForSlot(EquipmentSlot.OFFHAND)),
                 context + " adjusted Spellgun Upgrade Orb should use the offhand UUID");
     }
 
-    private static com.google.common.collect.Multimap<Attribute, AttributeModifier> resolveRuntimeSpellgunModifiers(
+    private static Multimap<Attribute, AttributeModifier> resolveRuntimeSpellgunModifiers(
             ItemStack stack,
             EquipmentSlot slot
     ) {
-        var event = new net.minecraftforge.event.ItemAttributeModifierEvent(
+        var event = new ItemAttributeModifierEvent(
                 stack,
                 slot,
                 stack.getItem().getAttributeModifiers(slot, stack)

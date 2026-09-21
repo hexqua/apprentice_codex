@@ -71,6 +71,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -958,7 +959,7 @@ public class LuminousDevice extends Item implements SneakSelectionUiItem, ManaBy
                 null,
                 null,
                 stack.getHoverName(),
-                CompactCountFormatter.format(count).toLowerCase(java.util.Locale.ROOT),
+                CompactCountFormatter.format(count).toLowerCase(Locale.ROOT),
                 count > 0 ? SELECTION_COUNT_COLOR : EMPTY_SELECTION_COUNT_COLOR,
                 currentSelection
         );

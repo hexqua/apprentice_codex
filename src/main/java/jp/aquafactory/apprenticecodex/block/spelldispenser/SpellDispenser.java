@@ -4,7 +4,9 @@ import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -29,15 +31,18 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("deprecation")
 public final class SpellDispenser extends BaseEntityBlock {
-    public static final net.minecraft.world.level.block.state.properties.DirectionProperty FACING = DispenserBlock.FACING;
-    public static final net.minecraft.world.level.block.state.properties.BooleanProperty TRIGGERED = BlockStateProperties.TRIGGERED;
+    public static final DirectionProperty FACING = DispenserBlock.FACING;
+    public static final BooleanProperty TRIGGERED = BlockStateProperties.TRIGGERED;
     private static final String CREATIVE_DENY_OPEN_KEY = "ui.apprenticecodex.spell_dispenser.creative_version.deny_open";
 
     private final SpellDispenserVariant variant;
@@ -140,13 +145,13 @@ public final class SpellDispenser extends BaseEntityBlock {
                 type,
                 BlockEntityRegistry.SPELL_DISPENSER.get(),
                 (tickLevel, tickPos, tickState, blockEntity) ->
-                        SpellDispenserBlockEntity.serverTick((net.minecraft.server.level.ServerLevel) tickLevel, tickPos, tickState, blockEntity)
+                        SpellDispenserBlockEntity.serverTick((ServerLevel) tickLevel, tickPos, tickState, blockEntity)
         );
     }
 
     @Override
     public @NotNull InteractionResult use(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos,
-                                          @NotNull Player player, @NotNull InteractionHand hand, @NotNull net.minecraft.world.phys.BlockHitResult hitResult) {
+                                          @NotNull Player player, @NotNull InteractionHand hand, @NotNull BlockHitResult hitResult) {
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
@@ -222,7 +227,7 @@ public final class SpellDispenser extends BaseEntityBlock {
         return variant;
     }
 
-    private static void writeOwnerName(net.minecraft.network.FriendlyByteBuf buffer, @Nullable String ownerName) {
+    private static void writeOwnerName(FriendlyByteBuf buffer, @Nullable String ownerName) {
         buffer.writeBoolean(ownerName != null && !ownerName.isBlank());
         if (ownerName != null && !ownerName.isBlank()) {
             buffer.writeUtf(ownerName);

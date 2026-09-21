@@ -9,8 +9,12 @@ import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 public final class ManaManeuverGearDamageLogic {
-    private static final java.util.Set<java.util.UUID> RESIDUAL_DAMAGE_PLAYERS = new java.util.HashSet<>();
+    private static final Set<UUID> RESIDUAL_DAMAGE_PLAYERS = new HashSet<>();
     private static final float EPSILON = 1.0e-4F;
 
     private ManaManeuverGearDamageLogic() {

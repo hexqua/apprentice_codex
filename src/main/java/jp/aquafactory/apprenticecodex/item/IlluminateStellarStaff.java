@@ -7,12 +7,14 @@ import jp.aquafactory.apprenticecodex.renderer.item.IlluminateStellarStaffRender
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -47,9 +49,9 @@ public class IlluminateStellarStaff extends AbstractSwingMagicItem implements Ge
                 "IlluminateStellarStaff",
                 ATTACK_DAMAGE,
                 ATTACK_SPEED,
-                bonus(net.minecraftforge.common.ForgeMod.ENTITY_REACH, ENTITY_REACH_BONUS, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADDITION, "entity_reach"),
-                bonus(AttributeRegistry.SPELL_POWER, SPELL_POWER_BONUS, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.MULTIPLY_BASE, "spell_power"),
-                bonus(AttributeRegistry.HOLY_SPELL_POWER, HOLY_SPELL_POWER_BONUS, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.MULTIPLY_BASE, "holy_spell_power")
+                bonus(ForgeMod.ENTITY_REACH, ENTITY_REACH_BONUS, AttributeModifier.Operation.ADDITION, "entity_reach"),
+                bonus(AttributeRegistry.SPELL_POWER, SPELL_POWER_BONUS, AttributeModifier.Operation.MULTIPLY_BASE, "spell_power"),
+                bonus(AttributeRegistry.HOLY_SPELL_POWER, HOLY_SPELL_POWER_BONUS, AttributeModifier.Operation.MULTIPLY_BASE, "holy_spell_power")
         );
         GeoItem.registerSyncedAnimatable(this);
     }

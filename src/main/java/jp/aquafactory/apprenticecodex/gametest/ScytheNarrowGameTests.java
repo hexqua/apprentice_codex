@@ -1,25 +1,34 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import io.netty.buffer.Unpooled;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowManager;
+import jp.aquafactory.apprenticecodex.mixin.LivingEntityDamageMemoryAccessor;
 import jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.monster.Husk;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import top.theillusivec4.curios.api.CuriosApi;
+
+import java.util.function.Consumer;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -98,7 +107,7 @@ public final class ScytheNarrowGameTests {
         // 遠い敵を先に登録し、Entity列挙順に依存せず手前で折り返すことを確認する。
         var far = h.spawn(EntityType.HUSK, new BlockPos(2, 20, 6));
         var near = h.spawn(EntityType.HUSK, new BlockPos(2, 20, 5));
-        for (var target : new net.minecraft.world.entity.monster.Husk[]{far, near}) {
+        for (var target : new Husk[]{far, near}) {
             target.setNoAi(true); target.setNoGravity(true);
             target.getAttribute(Attributes.ARMOR).setBaseValue(0);
             target.getAttribute(Attributes.MAX_HEALTH).setBaseValue(100);
@@ -141,7 +150,7 @@ public final class ScytheNarrowGameTests {
     @GameTest(template = TEMPLATE)
     public static void narrowRecallPacketPreservesPose(GameTestHelper h) {
         var packet = new ScytheRecallEffectPacket(Vec3.ZERO, new Vec3(0, 32, 0), 0x123456, true, 45);
-        var buffer = new net.minecraft.network.FriendlyByteBuf(io.netty.buffer.Unpooled.buffer());
+        var buffer = new FriendlyByteBuf(Unpooled.buffer());
         try {
             ScytheRecallEffectPacket.encode(packet, buffer);
             h.assertTrue(ScytheRecallEffectPacket.decode(buffer).equals(packet), "Recall packet must preserve vertical mode and yaw");
@@ -161,13 +170,13 @@ public final class ScytheNarrowGameTests {
         target.getAttribute(Attributes.ARMOR).setBaseValue(0);
         int[] impacts = {0};
         boolean[] cancelImpact = {true};
-        java.util.function.Consumer<net.minecraftforge.event.entity.ProjectileImpactEvent> listener = event -> {
+        Consumer<ProjectileImpactEvent> listener = event -> {
             if (event.getProjectile() instanceof ScytheThrowEntity scythe && scythe.getOwner() == p) {
                 impacts[0]++;
-                if (cancelImpact[0]) event.setImpactResult(net.minecraftforge.event.entity.ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
+                if (cancelImpact[0]) event.setImpactResult(ProjectileImpactEvent.ImpactResult.SKIP_ENTITY);
             }
         };
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(listener);
+        MinecraftForge.EVENT_BUS.addListener(listener);
         try {
             ScytheReboundGameTests.use(h, p);
             var entity = ScytheThrowManager.active(p);
@@ -178,14 +187,14 @@ public final class ScytheNarrowGameTests {
                 h.assertFalse(entity.isRemoved(), "Canceled impact must not trigger Narrow recall");
                 h.assertTrue(target.getHealth() == target.getMaxHealth(), "Canceled impact must not deal damage");
             } finally { entity.discard(); }
-        } finally { net.minecraftforge.common.MinecraftForge.EVENT_BUS.unregister(listener); }
+        } finally { MinecraftForge.EVENT_BUS.unregister(listener); }
         target.invulnerableTime = 20;
-        ((jp.aquafactory.apprenticecodex.mixin.LivingEntityDamageMemoryAccessor) target).apprenticecodex$setLastHurt(100);
+        ((LivingEntityDamageMemoryAccessor) target).apprenticecodex$setLastHurt(100);
         ScytheReboundGameTests.use(h, p);
         var entity = ScytheThrowManager.active(p);
         impacts[0] = 0;
         cancelImpact[0] = false;
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(listener);
+        MinecraftForge.EVENT_BUS.addListener(listener);
         try {
             for (int tick = 0; tick < 20 && !entity.isRemoved(); tick++) entity.tick();
             h.assertTrue(impacts[0] == 1, "Invulnerable recall must follow an actual entity contact");
@@ -195,12 +204,12 @@ public final class ScytheNarrowGameTests {
                             + ", projectile=" + entity.position() + ", target=" + target.position()
                             + ", registered=" + (h.getLevel().getEntity(target.getUUID()) == target)
                             + ", block=" + h.getLevel().getBlockState(target.blockPosition())
-                            + ", obstruction=" + h.getLevel().clip(new net.minecraft.world.level.ClipContext(
+                            + ", obstruction=" + h.getLevel().clip(new ClipContext(
                             p.getEyePosition(), target.getBoundingBox().getCenter(),
-                            net.minecraft.world.level.ClipContext.Block.COLLIDER,
-                            net.minecraft.world.level.ClipContext.Fluid.NONE, p)).getType());
+                            ClipContext.Block.COLLIDER,
+                            ClipContext.Fluid.NONE, p)).getType());
         } finally {
-            net.minecraftforge.common.MinecraftForge.EVENT_BUS.unregister(listener);
+            MinecraftForge.EVENT_BUS.unregister(listener);
             entity.discard();
         }
         h.succeed();

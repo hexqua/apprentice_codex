@@ -1,26 +1,28 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastCartridgeCasting;
 import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastScrollCartridge;
 import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidanceInput;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import org.jetbrains.annotations.NotNull;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.function.Supplier;
 
 public record ClientQuickcastCartridgePacket(ResourceLocation expectedSpell, BlockTargetData target,
                                              float forward, float strafe) {
-    public static void encode(ClientQuickcastCartridgePacket packet, net.minecraft.network.FriendlyByteBuf buffer) {
+    public static void encode(ClientQuickcastCartridgePacket packet, FriendlyByteBuf buffer) {
         buffer.writeResourceLocation(packet.expectedSpell);
         packet.target.writeToBuffer(buffer);
         buffer.writeFloat(packet.forward);
         buffer.writeFloat(packet.strafe);
     }
 
-    public static ClientQuickcastCartridgePacket decode(net.minecraft.network.FriendlyByteBuf buffer) {
+    public static ClientQuickcastCartridgePacket decode(FriendlyByteBuf buffer) {
         var spell = buffer.readResourceLocation();
         var target = new BlockTargetData();
         target.readFromBuffer(buffer);
@@ -28,7 +30,7 @@ public record ClientQuickcastCartridgePacket(ResourceLocation expectedSpell, Blo
     }
 
     public static void handle(ClientQuickcastCartridgePacket packet,
-                              java.util.function.Supplier<net.minecraftforge.network.NetworkEvent.Context> supplier) {
+                              Supplier<NetworkEvent.Context> supplier) {
         var context = supplier.get();
         context.enqueueWork(() -> {
             var player = context.getSender();

@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
+import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
@@ -22,12 +23,14 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
+import top.theillusivec4.curios.api.CuriosApi;
 import java.util.UUID;
 
 @GameTestHolder(ApprenticeCodex.MODID)
@@ -246,9 +249,9 @@ public final class ApprenticeCodexBoundSwordGameTests {
         var stack = BoundSwordItem.create(UUID.randomUUID(), 9.0F, EquipmentSlot.OFFHAND);
 
         var modifiers = stack.getAttributeModifiers(EquipmentSlot.OFFHAND);
-        helper.assertTrue(modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE).isEmpty(),
+        helper.assertTrue(modifiers.get(Attributes.ATTACK_DAMAGE).isEmpty(),
                 "Bound Sword offhand should not stack vanilla attack damage on the player");
-        helper.assertTrue(modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED).isEmpty(),
+        helper.assertTrue(modifiers.get(Attributes.ATTACK_SPEED).isEmpty(),
                 "Bound Sword offhand should not stack vanilla attack speed and break combat cooldown");
         helper.succeed();
     }
@@ -271,7 +274,7 @@ public final class ApprenticeCodexBoundSwordGameTests {
                 "Bound Sword display damage should snapshot Summon Damage at cast time");
 
         var attackDamage = sword.getAttributeModifiers(EquipmentSlot.MAINHAND)
-                .get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE)
+                .get(Attributes.ATTACK_DAMAGE)
                 .stream()
                 .mapToDouble(AttributeModifier::getAmount)
                 .sum();
@@ -360,9 +363,9 @@ public final class ApprenticeCodexBoundSwordGameTests {
     }
 
     private static void equipGreaterConjurersTalisman(FakePlayer player) {
-        var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+        var curiosInventory = CuriosApi.getCuriosInventory(player)
                 .orElseThrow(() -> new IllegalStateException("Missing curios inventory for Bound Sword Greater Conjurer's Talisman test"));
-        curiosInventory.setEquippedCurio(io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, 0,
+        curiosInventory.setEquippedCurio(Curios.NECKLACE_SLOT, 0,
                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.GREATER_CONJURERS_TALISMAN.get()));
     }
 

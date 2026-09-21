@@ -6,11 +6,15 @@ import jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScythe;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.eventbus.api.IEventBus;
+import yesman.epicfight.api.forgeevent.SkillBuildEvent;
+import yesman.epicfight.api.forgeevent.WeaponCapabilityPresetRegistryEvent;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.capabilities.item.WeaponCapability;
 import yesman.epicfight.world.capabilities.item.WeaponTypeReloadListener;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
+
+import java.util.Optional;
 
 public final class EpicFightSpellReaperScytheCompat {
     public static EpicFightSpellReapingSkill SPELL_REAPING;
@@ -23,12 +27,12 @@ public final class EpicFightSpellReaperScytheCompat {
         bus.addListener(EpicFightSpellReaperScytheCompat::onWeaponPreset);
     }
 
-    private static void onSkillBuild(yesman.epicfight.api.forgeevent.SkillBuildEvent event) {
+    private static void onSkillBuild(SkillBuildEvent event) {
         SPELL_REAPING = (EpicFightSpellReapingSkill) event.createRegistryWorker(ApprenticeCodex.MODID)
                 .build("spell_reaping", EpicFightSpellReapingSkill::new, EpicFightSpellReapingSkill.builder());
     }
 
-    private static void onWeaponPreset(yesman.epicfight.api.forgeevent.WeaponCapabilityPresetRegistryEvent event) {
+    private static void onWeaponPreset(WeaponCapabilityPresetRegistryEvent event) {
         event.getTypeEntry().put(TYPE, item -> {
             var builder = (WeaponCapability.Builder) WeaponTypeReloadListener.getOrThrow("epicfight:greatsword").apply(item);
             builder.constructor(EpicFightSpellReaperScytheCapability::new);
@@ -39,14 +43,14 @@ public final class EpicFightSpellReaperScytheCompat {
     }
 
     public static void tick(ServerPlayer player) {
-        java.util.Optional.ofNullable(EpicFightCapabilities.getEntityPatch(player, ServerPlayerPatch.class)).ifPresent(patch -> {
+        Optional.ofNullable(EpicFightCapabilities.getEntityPatch(player, ServerPlayerPatch.class)).ifPresent(patch -> {
             if (!patch.isEpicFightMode()) ScytheThrowManager.recall(player);
             SPELL_REAPING.validateHolding(patch);
         });
     }
 
     public static void clear(ServerPlayer player) {
-        java.util.Optional.ofNullable(EpicFightCapabilities.getEntityPatch(player, ServerPlayerPatch.class))
+        Optional.ofNullable(EpicFightCapabilities.getEntityPatch(player, ServerPlayerPatch.class))
                 .ifPresent(patch -> SPELL_REAPING.abort(patch));
     }
 

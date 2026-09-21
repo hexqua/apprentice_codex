@@ -3,8 +3,10 @@ package jp.aquafactory.apprenticecodex.compat.jei;
 import jp.aquafactory.apprenticecodex.recipe.essencesmoker.EssenceSmokerRecipe;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,8 +59,8 @@ public final class EssenceSmokerRecipeCategory extends AbstractApprenticeCodexRe
     @Override
     public void draw(
             @NotNull EssenceSmokerRecipe recipe,
-            @NotNull mezz.jei.api.gui.ingredient.IRecipeSlotsView recipeSlotsView,
-            @NotNull net.minecraft.client.gui.GuiGraphics guiGraphics,
+            @NotNull IRecipeSlotsView recipeSlotsView,
+            @NotNull GuiGraphics guiGraphics,
             double mouseX,
             double mouseY
     ) {

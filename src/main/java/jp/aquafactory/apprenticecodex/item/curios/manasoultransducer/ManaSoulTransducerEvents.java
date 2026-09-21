@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.item.curios.manasoultransducer;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.network.SyncManaPacket;
+import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumStaffChargeBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -28,7 +30,7 @@ public final class ManaSoulTransducerEvents {
         if (!(data.getMana() >= cost)) return false;
         // 解除と発射の支払いを共有しない。
         data.setMana(data.getMana() - cost);
-        io.redspace.ironsspellbooks.setup.PacketDistributor.sendToPlayer(player, new io.redspace.ironsspellbooks.network.SyncManaPacket(data));
+        PacketDistributor.sendToPlayer(player, new SyncManaPacket(data));
         return true;
     }
     @SubscribeEvent

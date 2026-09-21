@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -27,12 +28,14 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -348,7 +351,7 @@ public class MagicSpearMissileEntity extends Projectile implements GeoEntity, An
     private boolean moveWithImpactCheck(Vec3 movement) {
         setDeltaMovement(movement);
         var hitResult = findImpactResult(movement);
-        if (hitResult != null && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitResult)) {
+        if (hitResult != null && !ForgeEventFactory.onProjectileImpact(this, hitResult)) {
             onHit(hitResult);
         }
         if (isRemoved() || getPhase() == PHASE_BURST) {
@@ -367,11 +370,11 @@ public class MagicSpearMissileEntity extends Projectile implements GeoEntity, An
 
         var start = position();
         var end = start.add(movement);
-        var blockHit = level().clip(new net.minecraft.world.level.ClipContext(
+        var blockHit = level().clip(new ClipContext(
                 start,
                 end,
-                net.minecraft.world.level.ClipContext.Block.COLLIDER,
-                net.minecraft.world.level.ClipContext.Fluid.NONE,
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE,
                 this
         ));
         var entitySearchEnd = blockHit.getType() == HitResult.Type.BLOCK ? blockHit.getLocation() : end;
@@ -557,7 +560,7 @@ public class MagicSpearMissileEntity extends Projectile implements GeoEntity, An
         return createBurnerParticle(ParticleRegistry.ADDITIVE_SPARK.get(), size);
     }
 
-    private static AdditiveGlowParticleOptions createBurnerParticle(net.minecraft.core.particles.ParticleType<AdditiveGlowParticleOptions> type,
+    private static AdditiveGlowParticleOptions createBurnerParticle(ParticleType<AdditiveGlowParticleOptions> type,
                                                                     float size) {
         return new AdditiveGlowParticleOptions(
                 type,

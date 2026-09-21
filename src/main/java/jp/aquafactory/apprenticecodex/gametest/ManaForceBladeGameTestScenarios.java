@@ -1,12 +1,15 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeGuardLogic;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -27,14 +30,14 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
             var item = (ManaForceBlade) ItemRegistry.MANA_FORCE_BLADE.get();
             var stack = new ItemStack(item);
             item.initializeSpellContainer(stack);
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get();
+            var spell = SpellRegistry.GUIDING_BOLT_SPELL.get();
             setSingleUnlockedSpell(helper, stack, spell, 1);
             stack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
 
-            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
+            var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
             helper.assertTrue(imbuedSchool != null,
                     "Mana Force Blade test could not resolve the imbued spell school");
-            var attunementAttribute = jp.aquafactory.apprenticecodex.utility.MagicTools
+            var attunementAttribute = MagicTools
                     .resolveSchoolPowerAttribute(imbuedSchool);
             helper.assertTrue(attunementAttribute != null,
                     "Mana Force Blade test could not resolve the Attunement spell power attribute: " + imbuedSchool.getId());
@@ -81,7 +84,7 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
             var surgeModifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, surgeStack);
             assertSingleModifierAmount(
                     helper,
-                    surgeModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    surgeModifiers.get(AttributeRegistry.SPELL_POWER.get()),
                     AttributeModifier.Operation.MULTIPLY_BASE,
                     0.02D,
                     "Mana Force Blade Surge should add spell power"
@@ -90,13 +93,13 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
 
             var attunementStack = new ItemStack(item);
             item.initializeSpellContainer(attunementStack);
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get();
+            var spell = SpellRegistry.GUIDING_BOLT_SPELL.get();
             setSingleUnlockedSpell(helper, attunementStack, spell, 1);
             attunementStack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
-            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(attunementStack);
+            var imbuedSchool = MagicTools.getImbuedSpellSchool(attunementStack);
             helper.assertTrue(imbuedSchool != null,
                     "Mana Force Blade Attunement test could not resolve the imbued spell school");
-            var attunementAttribute = jp.aquafactory.apprenticecodex.utility.MagicTools
+            var attunementAttribute = MagicTools
                     .resolveSchoolPowerAttribute(imbuedSchool);
             helper.assertTrue(attunementAttribute != null,
                     "Mana Force Blade Attunement test could not resolve the spell power attribute: " + imbuedSchool.getId());
@@ -121,7 +124,7 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
             var stack = new ItemStack(item);
             item.initializeSpellContainer(stack);
             setSingleUnlockedSpell(helper, stack,
-                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get(), 1);
+                    SpellRegistry.GUIDING_BOLT_SPELL.get(), 1);
 
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
                     "mana_force_blade_attack_mana_once_test");
@@ -150,21 +153,21 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
             var stack = new ItemStack(item);
             item.initializeSpellContainer(stack);
             setSingleUnlockedSpell(helper, stack,
-                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get(), 1);
+                    SpellRegistry.GUIDING_BOLT_SPELL.get(), 1);
 
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
                     "mana_force_blade_config_formula_test");
-            var spellPower = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get());
+            var spellPower = player.getAttribute(AttributeRegistry.SPELL_POWER.get());
             helper.assertTrue(spellPower != null,
                     "Mana Force Blade config formula test could not resolve spell power attribute");
             if (spellPower != null) {
                 spellPower.setBaseValue(1.5D);
             }
 
-            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
+            var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
             helper.assertTrue(imbuedSchool != null,
                     "Mana Force Blade config formula test could not resolve imbued school");
-            var schoolPowerAttribute = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
+            var schoolPowerAttribute = MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
             helper.assertTrue(schoolPowerAttribute != null,
                     "Mana Force Blade config formula test could not resolve school power attribute");
             var schoolPower = schoolPowerAttribute == null ? null : player.getAttribute(schoolPowerAttribute);

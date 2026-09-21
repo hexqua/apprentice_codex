@@ -7,6 +7,8 @@ import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.capabilities.magic.PlayerCooldowns;
 import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastCartridgeCasting;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowCasting;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowPendingCast;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowSpellPowerContext;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookStartSoundContext;
@@ -16,6 +18,7 @@ import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunCastContext;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPowerHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
@@ -37,7 +40,7 @@ public abstract class AbstractSpellMixin {
     private void apprenticecodex$finishElementalBowHold(Level level, int spellLevel, LivingEntity entity,
                                                        MagicData magicData, boolean cancelled, CallbackInfo ci) {
         if (entity instanceof ServerPlayer player) {
-            jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowPendingCast.onSpellComplete(
+            ElementalBowPendingCast.onSpellComplete(
                     player, (AbstractSpell) (Object) this);
         }
     }
@@ -72,10 +75,10 @@ public abstract class AbstractSpellMixin {
     )
     private double apprentice_codex$useDivinePossessionSchoolPower(SchoolType schoolType, LivingEntity caster) {
         var spell = (AbstractSpell) (Object) this;
-        var bowSchool = jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowSpellPowerContext.school(spell, caster);
+        var bowSchool = ElementalBowSpellPowerContext.school(spell, caster);
         // ルーンは参照系統だけを強制し、Divine Possession などの共通補正は維持する。
         var resolvedPower = bowSchool == null ? MagiAgentSuitEffects.resolveSchoolPower(spell, schoolType, caster)
-                : jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPowerHelper.resolveSchoolPower(bowSchool, caster);
+                : DivinePossessionPowerHelper.resolveSchoolPower(bowSchool, caster);
         return SpellgunCastContext.resolveSchoolSpellPower(spell, caster, resolvedPower);
     }
 
@@ -133,7 +136,7 @@ public abstract class AbstractSpellMixin {
 
     @Inject(method = "canBeInterrupted", at = @At("RETURN"), cancellable = true)
     private void apprentice_codex$protectNetheriteSwingcastStaffCast(
-            @Nullable net.minecraft.world.entity.player.Player player,
+            @Nullable Player player,
             CallbackInfoReturnable<Boolean> cir
     ) {
         if (player != null && player.getMainHandItem().is(ItemRegistry.NETHERITE_SWINGCAST_STAFF.get())) {

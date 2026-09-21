@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.mojang.authlib.GameProfile;
 import com.simibubi.create.AllMountedStorageTypes;
 import com.simibubi.create.AllBlocks;
+import com.simibubi.create.api.contraption.ContraptionType;
 import com.simibubi.create.api.contraption.storage.item.MountedItemStorage;
 import com.simibubi.create.api.contraption.storage.item.MountedItemStorageWrapper;
 import com.simibubi.create.api.contraption.storage.item.WrapperMountedItemStorage;
@@ -24,6 +25,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.capabilities.Capability;
@@ -339,7 +343,7 @@ public final class CreateGameTestHooks {
         }
 
         @Override
-        public boolean assemble(net.minecraft.world.level.Level level, BlockPos pos) {
+        public boolean assemble(Level level, BlockPos pos) {
             return false;
         }
 
@@ -349,7 +353,7 @@ public final class CreateGameTestHooks {
         }
 
         @Override
-        public com.simibubi.create.api.contraption.ContraptionType getType() {
+        public ContraptionType getType() {
             throw new UnsupportedOperationException("GameTest helper contraption does not provide a type");
         }
     }
@@ -410,7 +414,7 @@ public final class CreateGameTestHooks {
         }
 
         @Override
-        public void unmount(net.minecraft.world.level.Level level, net.minecraft.world.level.block.state.BlockState state, BlockPos pos, net.minecraft.world.level.block.entity.BlockEntity blockEntity) {
+        public void unmount(Level level, BlockState state, BlockPos pos, BlockEntity blockEntity) {
         }
     }
 }

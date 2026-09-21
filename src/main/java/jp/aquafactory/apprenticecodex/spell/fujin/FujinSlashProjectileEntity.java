@@ -12,6 +12,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -31,6 +32,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -105,7 +107,7 @@ public class FujinSlashProjectileEntity extends Projectile
         if (!level().isClientSide && damageMovement.lengthSqr() > 1.0E-8D) {
             var blockHit = findBlockCollision(damageMovement);
             var shouldDiscardOnBlockHit = blockHit != null
-                    && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, blockHit);
+                    && !ForgeEventFactory.onProjectileImpact(this, blockHit);
             var entityDamageMovement = shouldDiscardOnBlockHit
                     ? blockHit.getLocation().subtract(position())
                     : damageMovement;
@@ -318,8 +320,8 @@ public class FujinSlashProjectileEntity extends Projectile
         loadCombatOwnerUuid(tag);
 
         victimUuids.clear();
-        var victims = tag.getList("Victims", net.minecraft.nbt.Tag.TAG_INT_ARRAY);
-        for (net.minecraft.nbt.Tag victim : victims) {
+        var victims = tag.getList("Victims", Tag.TAG_INT_ARRAY);
+        for (Tag victim : victims) {
             victimUuids.add(NbtUtils.loadUUID(victim));
         }
     }

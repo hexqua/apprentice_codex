@@ -4,33 +4,43 @@ import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.events.SpellHealEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.entity.mobs.IMagicSummon;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodOrbPlacement;
 import jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodyArrowEntity;
 import jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodyArrowOrbEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.level.block.entity.HopperBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.PlayLevelSoundEvent;
+import net.minecraftforge.event.entity.ProjectileImpactEvent;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -340,7 +350,7 @@ public final class BloodyArrowGameTests {
         helper.setBlock(local, Blocks.HOPPER);
         var orb = new BloodyArrowOrbEntity(EntityRegistry.BLOODY_ARROW_ORB.get(), helper.getLevel());
         orb.spawn(scene.owner, helper.absoluteVec(new Vec3(3.5, 242, 3.5)), 2);
-        var anchor = jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodOrbPlacement.findAnchor(scene.owner, orb.position());
+        var anchor = BloodOrbPlacement.findAnchor(scene.owner, orb.position());
         helper.assertTrue(anchor != null, "Hopper must provide a reachable hover anchor");
         orb.scatter(anchor, anchor);
         orb.setDeltaMovement(Vec3.ZERO);
@@ -348,7 +358,7 @@ public final class BloodyArrowGameTests {
         var arrow = scene.arrow(helper.absoluteVec(new Vec3(1, 270, 1)), new Vec3(0, 1, 0), 2, 3);
         helper.runAfterDelay(30, () -> {
             try (scene) {
-                var hopper = (net.minecraft.world.level.block.entity.HopperBlockEntity) helper.getBlockEntity(local);
+                var hopper = (HopperBlockEntity) helper.getBlockEntity(local);
                 helper.assertTrue(!orb.isRemoved() && orb.position().distanceTo(anchor) < 0.09 && orb.isNoGravity(),
                         "Normal server ticks must guide the orb to a stable hover above the hopper");
                 helper.assertTrue(hopper.isEmpty(), "Hoppers must not collect blood orbs");
@@ -367,8 +377,8 @@ public final class BloodyArrowGameTests {
             var target = scene.zombie(new Vec3(3, 240, 3));
             target.setBaby(true);
             var arrow = scene.arrow(helper.absoluteVec(new Vec3(0.8, 240.4, 3)), new Vec3(1, 0, 0), 10, 3);
-            Consumer<net.minecraftforge.event.entity.ProjectileImpactEvent> listener = event -> {
-                if (event.getProjectile() == arrow) event.setImpactResult(net.minecraftforge.event.entity.ProjectileImpactEvent.ImpactResult.STOP_AT_CURRENT_NO_DAMAGE);
+            Consumer<ProjectileImpactEvent> listener = event -> {
+                if (event.getProjectile() == arrow) event.setImpactResult(ProjectileImpactEvent.ImpactResult.STOP_AT_CURRENT_NO_DAMAGE);
             };
             MinecraftForge.EVENT_BUS.addListener(listener);
             try {
@@ -390,7 +400,7 @@ public final class BloodyArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void scatterUsesWideReachableGroundAndAvoidsWallsAndPits(GameTestHelper helper) {
         try (var scene = new Scene(helper)) {
-            var saved = new java.util.LinkedHashMap<BlockPos, net.minecraft.world.level.block.state.BlockState>();
+            var saved = new LinkedHashMap<BlockPos, BlockState>();
             try {
                 // 広い散布範囲は通常テストの高度から離し、全ブロックを終了時に復元する。
                 for (var local : BlockPos.betweenClosed(new BlockPos(-5, 260, -5), new BlockPos(9, 263, 9))) {
@@ -400,12 +410,12 @@ public final class BloodyArrowGameTests {
                             local.getY() == 260 ? Blocks.STONE.defaultBlockState() : Blocks.AIR.defaultBlockState());
                 }
                 var impact = helper.absoluteVec(new Vec3(2.5, 275, 2.5));
-                var anchor = jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodOrbPlacement.findAnchor(scene.owner, impact);
+                var anchor = BloodOrbPlacement.findAnchor(scene.owner, impact);
                 helper.assertTrue(anchor != null && Math.abs(anchor.y - helper.absoluteVec(new Vec3(0, 261.65, 0)).y) < 0.001,
                         "Airborne impacts must find ground and hover 0.65 blocks above it anchor=" + anchor + ", impact=" + impact + ", expectedY=" + helper.absoluteVec(new Vec3(0, 261.65, 0)).y);
                 var points = new ArrayList<Vec3>();
                 for (int i = 0; i < 8; i++) {
-                    var destination = jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodOrbPlacement.destination(
+                    var destination = BloodOrbPlacement.destination(
                             scene.owner, anchor, i * Math.PI / 4, 4);
                     helper.assertTrue(Math.abs(destination.distanceTo(anchor) - 4) < 0.01,
                             "Open terrain must permit a four-block scatter in every direction");
@@ -423,16 +433,16 @@ public final class BloodyArrowGameTests {
                 helper.assertTrue(points.get(0).distanceTo(points.get(4)) > 7.9,
                         "Opposite orbs must require movement to collect");
                 for (int y = 261; y <= 263; y++) helper.setBlock(new BlockPos(4, y, 2), Blocks.STONE);
-                var blocked = jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodOrbPlacement.destination(scene.owner, anchor, 0, 4);
+                var blocked = BloodOrbPlacement.destination(scene.owner, anchor, 0, 4);
                 helper.assertTrue(blocked.x < helper.absoluteVec(new Vec3(4, 0, 0)).x,
                         "Scatter must not choose a destination behind a wall");
                 for (int y = 261; y <= 263; y++) helper.setBlock(new BlockPos(4, y, 2), Blocks.AIR);
                 helper.setBlock(new BlockPos(4, 260, 2), Blocks.AIR);
-                var pit = jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodOrbPlacement.destination(scene.owner, anchor, 0, 4);
+                var pit = BloodOrbPlacement.destination(scene.owner, anchor, 0, 4);
                 helper.assertTrue(pit.x < helper.absoluteVec(new Vec3(4, 0, 0)).x,
                         "Scatter must not cross a pit to choose distant ground");
                 scene.owner.setPos(anchor);
-                var fallback = jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodOrbPlacement.findAnchor(
+                var fallback = BloodOrbPlacement.findAnchor(
                         scene.owner, impact.add(0, 100, 0));
                 helper.assertTrue(fallback != null && fallback.distanceTo(anchor) < 0.01,
                         "Out-of-range airborne impacts must fall back to the caster's ground");
@@ -446,10 +456,10 @@ public final class BloodyArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void orbLifetimesVaryAndPickupSoundsAreCoalesced(GameTestHelper helper) {
         try (var scene = new Scene(helper)) {
-            var lifetimes = new java.util.HashSet<Integer>();
+            var lifetimes = new HashSet<Integer>();
             var sounds = new AtomicInteger();
-            Consumer<net.minecraftforge.event.PlayLevelSoundEvent.AtPosition> listener = event -> {
-                if (event.getSound() != null && event.getSound().value() == net.minecraft.sounds.SoundEvents.ITEM_PICKUP) sounds.incrementAndGet();
+            Consumer<PlayLevelSoundEvent.AtPosition> listener = event -> {
+                if (event.getSound() != null && event.getSound().value() == SoundEvents.ITEM_PICKUP) sounds.incrementAndGet();
             };
             MinecraftForge.EVENT_BUS.addListener(listener);
             try {
@@ -470,10 +480,10 @@ public final class BloodyArrowGameTests {
         helper.succeed();
     }
 
-    private static final class TestSummon extends Zombie implements io.redspace.ironsspellbooks.entity.mobs.IMagicSummon {
+    private static final class TestSummon extends Zombie implements IMagicSummon {
         private Entity summoner;
 
-        private TestSummon(net.minecraft.world.level.Level level, Entity summoner) {
+        private TestSummon(Level level, Entity summoner) {
             super(EntityType.ZOMBIE, level);
             this.summoner = summoner;
         }
@@ -534,7 +544,7 @@ public final class BloodyArrowGameTests {
 
         private List<BloodyArrowOrbEntity> orbs() {
             return helper.getLevel().getEntitiesOfClass(BloodyArrowOrbEntity.class,
-                    new net.minecraft.world.phys.AABB(helper.absoluteVec(new Vec3(-1, 238, -1)),
+                    new AABB(helper.absoluteVec(new Vec3(-1, 238, -1)),
                             helper.absoluteVec(new Vec3(6, 244, 6))));
         }
 

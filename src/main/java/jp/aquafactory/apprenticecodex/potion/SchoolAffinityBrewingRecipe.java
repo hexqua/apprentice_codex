@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraftforge.common.brewing.IBrewingRecipe;
 
@@ -75,7 +76,7 @@ public class SchoolAffinityBrewingRecipe implements IBrewingRecipe {
         return ItemStack.EMPTY;
     }
 
-    private static ItemStack createOutput(ItemStack input, net.minecraft.world.item.alchemy.Potion potion) {
+    private static ItemStack createOutput(ItemStack input, Potion potion) {
         var output = input.copy();
         output.setCount(1);
         PotionUtils.setPotion(output, potion);

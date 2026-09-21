@@ -2,12 +2,21 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumStaffChargeBridge;
+import jp.aquafactory.apprenticecodex.gametest.malum.MalumGameTestHooks;
 import jp.aquafactory.apprenticecodex.item.curios.manasoultransducer.ManaSoulTransducerLogic;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.spell.HiddenFromEldritchResearch;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
+
+import net.minecraftforge.registries.ForgeRegistries;
+import java.util.List;
+import java.util.Map;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -44,29 +53,29 @@ public final class ManaSoulTransducerGameTests {
     }
     @GameTest(template = TEMPLATE, batch = "apprenticecodex.mana_soul_transducer")
     public static void researchMarkersAndRecipe(GameTestHelper h) {
-        h.assertTrue(SpellRegistry.ECHO_CAST.get() instanceof jp.aquafactory.apprenticecodex.spell.HiddenFromEldritchResearch,
+        h.assertTrue(SpellRegistry.ECHO_CAST.get() instanceof HiddenFromEldritchResearch,
                 "Echo Cast must be hidden from research");
-        h.assertTrue(SpellRegistry.PALETTE_SHIFT.get() instanceof jp.aquafactory.apprenticecodex.spell.HiddenFromEldritchResearch,
+        h.assertTrue(SpellRegistry.PALETTE_SHIFT.get() instanceof HiddenFromEldritchResearch,
                 "Palette Shift must be hidden from research");
-        h.assertTrue(SpellRegistry.SOUL_CONVERSION.get() instanceof jp.aquafactory.apprenticecodex.spell.HiddenFromEldritchResearch,
+        h.assertTrue(SpellRegistry.SOUL_CONVERSION.get() instanceof HiddenFromEldritchResearch,
                 "Soul Conversion must be hidden from research");
-        var recipeId = net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID,
+        var recipeId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID,
                 "malum/spirit_infusion/mana_soul_transducer");
         if (MalumStaffChargeBridge.isAvailable()) {
-            jp.aquafactory.apprenticecodex.gametest.malum.MalumGameTestHooks.assertSpiritInfusionRecipe(
+            MalumGameTestHooks.assertSpiritInfusionRecipe(
                     h.getLevel(), recipeId, malumItem("runic_brooch", 1),
-                    java.util.List.of(malumItem("fused_consciousness", 1), malumItem("mnemonic_fragment", 8),
+                    List.of(malumItem("fused_consciousness", 1), malumItem("mnemonic_fragment", 8),
                             malumItem("malignant_pewter_plating", 4)),
-                    new net.minecraft.world.item.ItemStack(jp.aquafactory.apprenticecodex.registry.ItemRegistry.MANA_SOUL_TRANSDUCER.get()),
-                    java.util.Map.of("aerial_spirit", 16, "aqueous_spirit", 16, "arcane_spirit", 64, "eldritch_spirit", 64));
+                    new ItemStack(ItemRegistry.MANA_SOUL_TRANSDUCER.get()),
+                    Map.of("aerial_spirit", 16, "aqueous_spirit", 16, "arcane_spirit", 64, "eldritch_spirit", 64));
         } else {
             h.assertFalse(h.getLevel().getRecipeManager().byKey(recipeId).isPresent(), "Malum recipe must be conditional");
         }
         h.succeed();
     }
-    private static net.minecraft.world.item.ItemStack malumItem(String path, int count) {
-        return new net.minecraft.world.item.ItemStack(net.minecraftforge.registries.ForgeRegistries.ITEMS.getValue(
-                net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("malum", path)), count);
+    private static ItemStack malumItem(String path, int count) {
+        return new ItemStack(ForgeRegistries.ITEMS.getValue(
+                ResourceLocation.fromNamespaceAndPath("malum", path)), count);
     }
     private static void close(GameTestHelper h, double actual, double expected) {
         h.assertTrue(Math.abs(actual - expected) < 1e-6, "Charge duration transfer must match the soft cap");

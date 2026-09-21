@@ -10,6 +10,8 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.ResourceLocation;
+import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
@@ -17,8 +19,8 @@ import software.bernie.geckolib.util.RenderUtils;
 
 public class ServantGazeStaffRenderer extends GeoEntityRenderer<ServantGazeStaffEntity> {
     private static final int STAR_MIN_BLOCK_LIGHT = 7;
-    private static final net.minecraft.resources.ResourceLocation TEXTURE =
-            net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(
+    private static final ResourceLocation TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(
                     ApprenticeCodex.MODID, "textures/geo/servant_gaze_staff.png");
     private static final RenderType CORE_RENDER_TYPE = ApprenticeRenderTypes.entityAdditiveGlowNoCull(
             "servant_gaze_staff_core_additive", TEXTURE);
@@ -77,7 +79,7 @@ public class ServantGazeStaffRenderer extends GeoEntityRenderer<ServantGazeStaff
                                 float red, float green, float blue, float alpha) {
         poseStack.pushPose();
         if (bone.isTrackingMatrices()) {
-            var poseState = new org.joml.Matrix4f(poseStack.last().pose());
+            var poseState = new Matrix4f(poseStack.last().pose());
             bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, modelRenderTranslations));
             bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, entityRenderTranslations));
         }

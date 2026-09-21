@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -199,7 +200,7 @@ public class EssenceSmokerBlockEntityRenderer implements BlockEntityRenderer<Ess
             return 0;
         }
 
-        return (net.minecraft.world.item.Item.getId(stack.getItem()) * 37)
+        return (Item.getId(stack.getItem()) * 37)
                 + (stack.getDamageValue() * 17)
                 + (stack.hasTag() ? stack.getTag().hashCode() : 0)
                 + (salt * 31);

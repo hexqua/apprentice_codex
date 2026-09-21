@@ -11,6 +11,7 @@ import net.minecraft.server.packs.PackType;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.common.data.JsonCodecProvider;
 
+import java.util.List;
 import java.util.Map;
 
 public class SenseEvilHighlightDataGenerator extends JsonCodecProvider<SenseEvilHighlightEntityList> {
@@ -25,7 +26,7 @@ public class SenseEvilHighlightDataGenerator extends JsonCodecProvider<SenseEvil
                 SenseEvilHighlightEntityList.CODEC,
                 Map.of(
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, SenseEvilHighlightVariant.STRONG.getDataFileName()),
-                        new SenseEvilHighlightEntityList(java.util.List.of(
+                        new SenseEvilHighlightEntityList(List.of(
                                 ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "necromancer")
                         ))
                 )

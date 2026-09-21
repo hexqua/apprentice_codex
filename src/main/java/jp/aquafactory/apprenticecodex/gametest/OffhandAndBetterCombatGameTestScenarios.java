@@ -1,10 +1,27 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.Utils;
 
+import io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry;
+import io.redspace.ironsspellbooks.util.ModTags;
+import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat;
+import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScrollcasterGauntletCompat;
+import jp.aquafactory.apprenticecodex.item.UniteLunaStaff;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import net.bettercombat.logic.PlayerAttackHelper;
+import net.bettercombat.logic.WeaponRegistry;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraftforge.common.ForgeMod;
+import top.theillusivec4.curios.api.CuriosApi;
+import top.theillusivec4.curios.api.SlotContext;
+import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import java.util.UUID;
 
 import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
@@ -57,7 +74,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             helper.assertTrue(spellContainer != null, "Copper Spell Amplifier spell container is null");
 
             var spellData = spellContainer.getSpellAtIndex(0);
-            helper.assertTrue(spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
+            helper.assertTrue(spellData != SpellData.EMPTY,
                     "Copper Spell Amplifier has no preset spell");
             helper.assertTrue(spellData.getSpell() == SpellRegistry.SHOCK.get(),
                     "Copper Spell Amplifier preset spell mismatch: " + spellData.getSpell().getSpellResource());
@@ -146,7 +163,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     helper,
                     diamondItem,
                     diamondStack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CASTING_MOVESPEED.get(),
+                    AttributeRegistry.CASTING_MOVESPEED.get(),
                     0.25D,
                     AttributeModifier.Operation.MULTIPLY_BASE,
                     "Diamond Spell Amplifier casting move speed bonus regression"
@@ -158,7 +175,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     helper,
                     netheriteItem,
                     netheriteStack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CASTING_MOVESPEED.get(),
+                    AttributeRegistry.CASTING_MOVESPEED.get(),
                     0.50D,
                     AttributeModifier.Operation.MULTIPLY_BASE,
                     "Netherite Spell Amplifier casting move speed bonus regression"
@@ -171,7 +188,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             var stack = new ItemStack(item);
             item.initializeSpellContainer(stack);
 
-            helper.assertTrue(stack.getRarity() == net.minecraft.world.item.Rarity.COMMON,
+            helper.assertTrue(stack.getRarity() == Rarity.COMMON,
                     "Soulstained Steel Spell Amplifier should use common rarity");
             helper.assertTrue(item.getEnchantmentValue(stack) == 16,
                     "Soulstained Steel Spell Amplifier should use enchantment value 16");
@@ -212,7 +229,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             helper.assertTrue((recipe != null) == ModList.get().isLoaded("malum"),
                     "Soulstained Steel Spell Amplifier recipe availability should follow Malum");
             if (recipe != null) {
-                helper.assertTrue(recipe instanceof net.minecraft.world.item.crafting.ShapedRecipe,
+                helper.assertTrue(recipe instanceof ShapedRecipe,
                         "Soulstained Steel Spell Amplifier recipe should be shaped crafting");
                 helper.assertTrue(recipe.getResultItem(helper.getLevel().registryAccess()).is(item),
                         "Soulstained Steel Spell Amplifier recipe returned the wrong item");
@@ -247,7 +264,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     "Spell Side Edge should be upgradeable via explicit whitelist entry");
 
             var shieldStack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
-            helper.assertFalse(shieldStack.is(io.redspace.ironsspellbooks.util.ModTags.CAN_BE_UPGRADED),
+            helper.assertFalse(shieldStack.is(ModTags.CAN_BE_UPGRADED),
                     "Reflectcast Shield should not be in the upgrade whitelist");
             helper.assertFalse(Utils.canBeUpgraded(shieldStack),
                     "Reflectcast Shield should remain excluded from the upgrade system");
@@ -255,7 +272,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
     }
     static void uniteLunaStaffStartsWithUniteLunaAndExpectedMainhandBonuses(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var item = (jp.aquafactory.apprenticecodex.item.UniteLunaStaff) ItemRegistry.UNITE_LUNA_STAFF.get();
+            var item = (UniteLunaStaff) ItemRegistry.UNITE_LUNA_STAFF.get();
             var stack = new ItemStack(item);
             item.initializeSpellContainer(stack);
 
@@ -264,7 +281,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             helper.assertTrue(spellContainer != null, "Unite Luna Staff spell container is null");
 
             var spellData = spellContainer.getSpellAtIndex(0);
-            helper.assertTrue(spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
+            helper.assertTrue(spellData != SpellData.EMPTY,
                     "Unite Luna Staff has no preset spell");
             helper.assertTrue(spellData.getSpell() == jp.aquafactory.apprenticecodex.registry.SpellRegistry.UNITE_LUNA.get(),
                     "Unite Luna Staff preset spell mismatch: " + spellData.getSpell().getSpellResource());
@@ -272,15 +289,15 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     "Unite Luna Staff preset spell level mismatch: " + spellData.getLevel());
 
             var modifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
-            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE), AttributeModifier.Operation.ADDITION) - 12.0D) < 1.0e-9D,
+            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(Attributes.ATTACK_DAMAGE), AttributeModifier.Operation.ADDITION) - 12.0D) < 1.0e-9D,
                     "Unite Luna Staff attack damage regression: " + describeModifiers(modifiers));
-            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED), AttributeModifier.Operation.ADDITION) - (-3.2D)) < 1.0e-9D,
+            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(Attributes.ATTACK_SPEED), AttributeModifier.Operation.ADDITION) - (-3.2D)) < 1.0e-9D,
                     "Unite Luna Staff attack speed regression: " + describeModifiers(modifiers));
-            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(net.minecraftforge.common.ForgeMod.ENTITY_REACH.get()), AttributeModifier.Operation.ADDITION) - 0.5D) < 1.0e-9D,
+            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(ForgeMod.ENTITY_REACH.get()), AttributeModifier.Operation.ADDITION) - 0.5D) < 1.0e-9D,
                     "Unite Luna Staff entity reach regression: " + describeModifiers(modifiers));
-            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()), AttributeModifier.Operation.MULTIPLY_BASE) - 0.05D) < 1.0e-9D,
+            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(AttributeRegistry.SPELL_POWER.get()), AttributeModifier.Operation.MULTIPLY_BASE) - 0.05D) < 1.0e-9D,
                     "Unite Luna Staff spell power regression: " + describeModifiers(modifiers));
-            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.HOLY_SPELL_POWER.get()), AttributeModifier.Operation.MULTIPLY_BASE) - 0.10D) < 1.0e-9D,
+            helper.assertTrue(Math.abs(sumModifierAmount(modifiers.get(AttributeRegistry.HOLY_SPELL_POWER.get()), AttributeModifier.Operation.MULTIPLY_BASE) - 0.10D) < 1.0e-9D,
                     "Unite Luna Staff holy spell power regression: " + describeModifiers(modifiers));
         });
     }
@@ -290,7 +307,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             var upgradeData = createUpgradeData(
                     helper.getLevel().registryAccess(),
                     stack,
-                    io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.MANA,
+                    UpgradeOrbTypeRegistry.MANA,
                     EquipmentSlot.MAINHAND.getName()
             );
 
@@ -302,7 +319,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             MinecraftForge.EVENT_BUS.post(event);
 
             var maxManaAmount = sumModifierAmount(
-                    event.getModifiers().get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get()),
+                    event.getModifiers().get(AttributeRegistry.MAX_MANA.get()),
                     AttributeModifier.Operation.ADDITION
             );
             helper.assertTrue(Math.abs(maxManaAmount - 50.0D) < 1.0e-9D,
@@ -321,7 +338,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "spellbreaker")
             );
             helper.assertTrue(spellbreaker != null, "Missing irons_spellbooks:spellbreaker for Better Combat regression test");
-            var spellbreakerAttributes = net.bettercombat.logic.WeaponRegistry.getAttributes(new ItemStack(spellbreaker));
+            var spellbreakerAttributes = WeaponRegistry.getAttributes(new ItemStack(spellbreaker));
             helper.assertTrue(spellbreakerAttributes != null && spellbreakerAttributes.isTwoHanded(),
                     "Better Combat spellbreaker should resolve as a two-handed weapon but got " + spellbreakerAttributes);
 
@@ -334,7 +351,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             MinecraftForge.EVENT_BUS.post(amplifierEvent);
 
             var spellPowerBonus = sumModifierAmount(
-                    amplifierEvent.getModifiers().get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    amplifierEvent.getModifiers().get(AttributeRegistry.SPELL_POWER.get()),
                     AttributeModifier.Operation.MULTIPLY_BASE
             );
             helper.assertTrue(Math.abs(spellPowerBonus - 0.05D) < 1.0e-9D,
@@ -350,9 +367,9 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
 
             var swordStack = new ItemStack(Items.DIAMOND_SWORD);
             var gauntletStack = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
-            helper.assertTrue(net.bettercombat.logic.WeaponRegistry.getAttributes(swordStack) != null,
+            helper.assertTrue(WeaponRegistry.getAttributes(swordStack) != null,
                     "Better Combat diamond sword attributes should be present for offhand Gauntlet test");
-            helper.assertTrue(net.bettercombat.logic.WeaponRegistry.getAttributes(gauntletStack) != null,
+            helper.assertTrue(WeaponRegistry.getAttributes(gauntletStack) != null,
                     "Better Combat Scrollcaster Gauntlet attributes should be present for offhand Gauntlet test");
 
             var swordMainPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
@@ -360,9 +377,9 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             swordMainPlayer.setItemInHand(InteractionHand.MAIN_HAND, swordStack);
             swordMainPlayer.setItemInHand(InteractionHand.OFF_HAND, gauntletStack.copy());
 
-            helper.assertFalse(net.bettercombat.logic.PlayerAttackHelper.isDualWielding(swordMainPlayer),
+            helper.assertFalse(PlayerAttackHelper.isDualWielding(swordMainPlayer),
                     "Offhand-only Scrollcaster Gauntlet should not make a normal mainhand weapon dual wield");
-            var secondSwordAttack = net.bettercombat.logic.PlayerAttackHelper.getCurrentAttack(swordMainPlayer, 1);
+            var secondSwordAttack = PlayerAttackHelper.getCurrentAttack(swordMainPlayer, 1);
             helper.assertTrue(secondSwordAttack != null && !secondSwordAttack.isOffHand(),
                     "Offhand-only Scrollcaster Gauntlet should keep Better Combat attacks on mainhand but got "
                             + secondSwordAttack);
@@ -372,9 +389,9 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             dualGauntletPlayer.setItemInHand(InteractionHand.MAIN_HAND, gauntletStack.copy());
             dualGauntletPlayer.setItemInHand(InteractionHand.OFF_HAND, gauntletStack.copy());
 
-            helper.assertTrue(net.bettercombat.logic.PlayerAttackHelper.isDualWielding(dualGauntletPlayer),
+            helper.assertTrue(PlayerAttackHelper.isDualWielding(dualGauntletPlayer),
                     "Two Scrollcaster Gauntlets should keep the previous Better Combat dual wield behavior");
-            var secondGauntletAttack = net.bettercombat.logic.PlayerAttackHelper.getCurrentAttack(dualGauntletPlayer, 1);
+            var secondGauntletAttack = PlayerAttackHelper.getCurrentAttack(dualGauntletPlayer, 1);
             helper.assertTrue(secondGauntletAttack != null && secondGauntletAttack.isOffHand(),
                     "Dual Scrollcaster Gauntlets should still select offhand on the second attack but got "
                             + secondGauntletAttack);
@@ -425,11 +442,11 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             var edgeStack = new ItemStack(ItemRegistry.SPELL_SIDE_EDGE.get());
             var mirrorStack = new ItemStack(ItemRegistry.SPELL_SIDE_EDGE_MIRROR.get());
             var swordStack = new ItemStack(Items.DIAMOND_SWORD);
-            helper.assertTrue(net.bettercombat.logic.WeaponRegistry.getAttributes(edgeStack) != null,
+            helper.assertTrue(WeaponRegistry.getAttributes(edgeStack) != null,
                     "Better Combat Spell Side Edge attributes should be present for dual wield policy test");
-            helper.assertTrue(net.bettercombat.logic.WeaponRegistry.getAttributes(mirrorStack) != null,
+            helper.assertTrue(WeaponRegistry.getAttributes(mirrorStack) != null,
                     "Better Combat Spell Side Edge Mirror attributes should be present for dual wield policy test");
-            helper.assertTrue(net.bettercombat.logic.WeaponRegistry.getAttributes(swordStack) != null,
+            helper.assertTrue(WeaponRegistry.getAttributes(swordStack) != null,
                     "Better Combat diamond sword attributes should be present for Spell Side Edge dual wield policy test");
 
             var swordOffhandPlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
@@ -437,9 +454,9 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             swordOffhandPlayer.setItemInHand(InteractionHand.MAIN_HAND, edgeStack.copy());
             swordOffhandPlayer.setItemInHand(InteractionHand.OFF_HAND, swordStack.copy());
 
-            helper.assertFalse(net.bettercombat.logic.PlayerAttackHelper.isDualWielding(swordOffhandPlayer),
+            helper.assertFalse(PlayerAttackHelper.isDualWielding(swordOffhandPlayer),
                     "Spell Side Edge should suppress non-Mirror offhand Better Combat dual wielding");
-            var secondSwordOffhandAttack = net.bettercombat.logic.PlayerAttackHelper.getCurrentAttack(swordOffhandPlayer, 1);
+            var secondSwordOffhandAttack = PlayerAttackHelper.getCurrentAttack(swordOffhandPlayer, 1);
             helper.assertTrue(secondSwordOffhandAttack != null && !secondSwordOffhandAttack.isOffHand(),
                     "Spell Side Edge with a non-Mirror offhand should keep attacks on mainhand but got "
                             + secondSwordOffhandAttack);
@@ -449,9 +466,9 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             mirrorOffhandPlayer.setItemInHand(InteractionHand.MAIN_HAND, edgeStack.copy());
             mirrorOffhandPlayer.setItemInHand(InteractionHand.OFF_HAND, mirrorStack.copy());
 
-            helper.assertTrue(net.bettercombat.logic.PlayerAttackHelper.isDualWielding(mirrorOffhandPlayer),
+            helper.assertTrue(PlayerAttackHelper.isDualWielding(mirrorOffhandPlayer),
                     "Spell Side Edge Mirror should remain allowed for Better Combat dual wielding");
-            var secondMirrorOffhandAttack = net.bettercombat.logic.PlayerAttackHelper.getCurrentAttack(mirrorOffhandPlayer, 1);
+            var secondMirrorOffhandAttack = PlayerAttackHelper.getCurrentAttack(mirrorOffhandPlayer, 1);
             helper.assertTrue(secondMirrorOffhandAttack != null && secondMirrorOffhandAttack.isOffHand(),
                     "Spell Side Edge Mirror should stay in the Better Combat combo but got "
                             + secondMirrorOffhandAttack);
@@ -466,11 +483,11 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             var ironAmplifier = new ItemStack(ItemRegistry.IRON_SPELL_AMPLIFIER.get());
             ironAmplifier.enchant(EnchantmentRegistry.SURGE.get(), 1);
             var rescuedIronModifiers =
-                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat
+                    BetterCombatOffhandAttributeRescueCompat
                             .buildRescueModifiers(ironAmplifier);
 
             var rescuedSpellPowerBonus = sumModifierAmount(
-                    rescuedIronModifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    rescuedIronModifiers.get(AttributeRegistry.SPELL_POWER.get()),
                     AttributeModifier.Operation.MULTIPLY_BASE
             );
             helper.assertTrue(Math.abs(rescuedSpellPowerBonus - 0.07D) < 1.0e-9D,
@@ -482,14 +499,14 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             copperAmplifierItem.initializeSpellContainer(copperAmplifier);
             copperAmplifier.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
             var rescuedCopperModifiers =
-                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat
+                    BetterCombatOffhandAttributeRescueCompat
                             .buildRescueModifiers(copperAmplifier);
 
-            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(copperAmplifier);
+            var imbuedSchool = MagicTools.getImbuedSpellSchool(copperAmplifier);
             helper.assertTrue(imbuedSchool != null,
                     "Copper Spell Amplifier rescue test could not resolve imbued school");
             var imbuedSpellPowerAttribute =
-                    jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
+                    MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
             helper.assertTrue(imbuedSpellPowerAttribute != null,
                     "Copper Spell Amplifier rescue test could not resolve school spell power attribute");
 
@@ -525,21 +542,21 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     "Better Combat should hide getOffhandItem() for spellbreaker but returned " + player.getOffhandItem());
 
             var physicalOffhand =
-                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat
+                    BetterCombatOffhandAttributeRescueCompat
                             .getPhysicalOffhandStack(player);
             helper.assertTrue(
                     physicalOffhand.is(ItemRegistry.SILVER_SPELL_AMPLIFIER.get()),
                     "Physical offhand resolver should keep Silver Spell Amplifier but got " + physicalOffhand
             );
             helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat
+                    BetterCombatOffhandAttributeRescueCompat
                             .isRescueActive(player),
                     "Better Combat rescue should stay active while physical offhand stack exists"
             );
 
-            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
+            var maxManaAttribute = AttributeRegistry.MAX_MANA.get();
             var expectedMaxManaBonus = sumModifierAmount(
-                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat
+                    BetterCombatOffhandAttributeRescueCompat
                             .buildRescueModifiers(physicalOffhand)
                             .get(maxManaAttribute),
                     AttributeModifier.Operation.ADDITION
@@ -549,7 +566,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                             + expectedMaxManaBonus);
 
             var baseMaxMana = player.getAttributeValue(maxManaAttribute);
-            jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat.sync(player);
+            BetterCombatOffhandAttributeRescueCompat.sync(player);
             var rescuedMaxMana = player.getAttributeValue(maxManaAttribute);
             helper.assertTrue(Math.abs((rescuedMaxMana - baseMaxMana) - expectedMaxManaBonus) < 1.0e-9D,
                     "Better Combat rescue should restore Silver Spell Amplifier max mana by "
@@ -658,14 +675,14 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     "Better Combat should hide getOffhandItem() for spellbreaker spell rescue but returned "
                             + player.getOffhandItem());
 
-            var selectionManager = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player);
-            var offhandSelections = selectionManager.getSpellsForSlot(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND);
+            var selectionManager = new SpellSelectionManager(player);
+            var offhandSelections = selectionManager.getSpellsForSlot(SpellSelectionManager.OFFHAND);
             helper.assertTrue(offhandSelections.size() == 1,
                     "Better Combat spell rescue should add exactly one fixed offhand spell but got "
                             + offhandSelections.size() + " selections=" + offhandSelections);
 
             var rescuedSpell = selectionManager.getSpellForSlot(
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND,
+                    SpellSelectionManager.OFFHAND,
                     0
             );
             helper.assertTrue(
@@ -706,32 +723,32 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             helper.assertFalse(((ScrollcasterGauntlet) gauntlet.getItem()).tryTriggerSpellOnSwing(player, InteractionHand.OFF_HAND, true),
                     "Scrollcaster Gauntlet freecast swing should not resolve Better Combat hidden physical offhand stacks");
             helper.assertFalse(
-                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat
+                    BetterCombatOffhandAttributeRescueCompat
                             .isRescueActive(player),
                     "Scrollcaster Gauntlet should not join the Better Combat attribute rescue path"
             );
             helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScrollcasterGauntletCompat
+                    BetterCombatScrollcasterGauntletCompat
                             .isRescueActive(player),
                     "Scrollcaster Gauntlet should join only the Better Combat magic-holder rescue path"
             );
 
             var resolvedStack =
-                    jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScrollcasterGauntletCompat
+                    BetterCombatScrollcasterGauntletCompat
                             .getResolvedHeldStack(player, InteractionHand.OFF_HAND);
             helper.assertTrue(resolvedStack.is(ItemRegistry.SCROLLCASTER_GAUNTLET.get()),
                     "Scrollcaster resolver should return the physical offhand gauntlet but got " + resolvedStack);
 
-            var selectionManager = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player);
+            var selectionManager = new SpellSelectionManager(player);
             var offhandSelections = selectionManager.getSpellsForSlot(
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND
+                    SpellSelectionManager.OFFHAND
             );
             helper.assertTrue(offhandSelections.size() == 1,
                     "Better Combat Scrollcaster rescue should add exactly one selected offhand spell but got "
                             + offhandSelections.size() + " selections=" + offhandSelections);
 
             var rescuedSpell = selectionManager.getSpellForSlot(
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND,
+                    SpellSelectionManager.OFFHAND,
                     0
             );
             helper.assertTrue(
@@ -746,10 +763,10 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
     static void enchantedCircletKeepsBaseCurioPenalty(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
-            var item = (top.theillusivec4.curios.api.type.capability.ICurioItem) stack.getItem();
-            var slotContext = new top.theillusivec4.curios.api.SlotContext(
+            var item = (ICurioItem) stack.getItem();
+            var slotContext = new SlotContext(
                     CuriosSlotConstants.HEAD,
-                    helper.spawn(net.minecraft.world.entity.EntityType.PIG, new BlockPos(0, 2, 0)),
+                    helper.spawn(EntityType.PIG, new BlockPos(0, 2, 0)),
                     0,
                     false,
                     true
@@ -760,7 +777,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     item,
                     slotContext,
                     stack,
-                    net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE,
+                    Attributes.ATTACK_DAMAGE,
                     -0.10D,
                     AttributeModifier.Operation.MULTIPLY_BASE,
                     "Enchanted Circlet attack damage penalty regression"
@@ -770,18 +787,18 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
     }
     static void enchantedCircletCurioModifiersStayIndependentAcrossSlots(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var item = (top.theillusivec4.curios.api.type.capability.ICurioItem) ItemRegistry.ENCHANTED_CIRCLET.get();
-            var wearer = helper.spawn(net.minecraft.world.entity.EntityType.PIG, new BlockPos(0, 2, 0));
-            var headZero = new top.theillusivec4.curios.api.SlotContext(
+            var item = (ICurioItem) ItemRegistry.ENCHANTED_CIRCLET.get();
+            var wearer = helper.spawn(EntityType.PIG, new BlockPos(0, 2, 0));
+            var headZero = new SlotContext(
                     CuriosSlotConstants.HEAD, wearer, 0, false, true
             );
-            var headOne = new top.theillusivec4.curios.api.SlotContext(
+            var headOne = new SlotContext(
                     CuriosSlotConstants.HEAD, wearer, 1, false, true
             );
-            var genericCurio = new top.theillusivec4.curios.api.SlotContext(
+            var genericCurio = new SlotContext(
                     "curio", wearer, 0, false, true
             );
-            var spellPower = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
+            var spellPower = AttributeRegistry.SPELL_POWER.get();
 
             var headZeroStack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
             headZeroStack.enchant(EnchantmentRegistry.SURGE.get(), 1);
@@ -790,21 +807,21 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
 
             var headZeroModifiers = item.getAttributeModifiers(
                             headZero,
-                            top.theillusivec4.curios.api.CuriosApi.getSlotUuid(headZero),
+                            CuriosApi.getSlotUuid(headZero),
                             headZeroStack
                     ).get(spellPower).stream()
                     .filter(modifier -> modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE)
                     .toList();
             var headOneModifiers = item.getAttributeModifiers(
                             headOne,
-                            top.theillusivec4.curios.api.CuriosApi.getSlotUuid(headOne),
+                            CuriosApi.getSlotUuid(headOne),
                             headOneStack
                     ).get(spellPower).stream()
                     .filter(modifier -> modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE)
                     .toList();
             var genericCurioModifierMap = item.getAttributeModifiers(
                     genericCurio,
-                    top.theillusivec4.curios.api.CuriosApi.getSlotUuid(genericCurio),
+                    CuriosApi.getSlotUuid(genericCurio),
                     genericCurioStack
             );
             var genericCurioModifiers = genericCurioModifierMap.get(spellPower).stream()
@@ -820,7 +837,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             helper.assertFalse(headZeroModifiers.get(0).getId().equals(genericCurioModifiers.get(0).getId()),
                     "Generic Curios slots must use different Enchanted Circlet modifier UUIDs");
             helper.assertTrue(Math.abs(sumModifierAmount(
-                            genericCurioModifierMap.get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE),
+                            genericCurioModifierMap.get(Attributes.ATTACK_DAMAGE),
                             AttributeModifier.Operation.MULTIPLY_BASE) + 0.10D) < 1.0e-9D,
                     "Generic Curios slot should retain the Enchanted Circlet attack damage penalty");
 
@@ -861,7 +878,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             circletStack.enchant(EnchantmentRegistry.WISDOM.get(), 1);
             var backCircletStack = circletStack.copy();
 
-            var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+            var curiosInventory = CuriosApi.getCuriosInventory(player)
                     .orElseThrow(() -> new IllegalStateException("Missing curios inventory for wisdom test"));
             curiosInventory.setEquippedCurio(CuriosSlotConstants.HEAD, 0, circletStack);
             curiosInventory.setEquippedCurio(CuriosSlotConstants.BACK, 0, backCircletStack);
@@ -893,7 +910,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
             var circletStack = createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get());
             circletStack.enchant(EnchantmentRegistry.WISDOM.get(), 1);
 
-            var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(curioPlayer)
+            var curiosInventory = CuriosApi.getCuriosInventory(curioPlayer)
                     .orElseThrow(() -> new IllegalStateException("Missing curios inventory for block wisdom test"));
             curiosInventory.setEquippedCurio(CuriosSlotConstants.HEAD, 0, circletStack);
 

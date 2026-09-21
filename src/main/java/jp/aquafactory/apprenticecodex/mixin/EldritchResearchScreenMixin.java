@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.gui.EldritchResearchScreen;
@@ -24,7 +25,7 @@ public abstract class EldritchResearchScreenMixin {
             expect = 0
     )
     private List<AbstractSpell> apprenticecodex$filterResearchSpells() {
-        return io.redspace.ironsspellbooks.api.registry.SpellRegistry.getEnabledSpells().stream()
+        return SpellRegistry.getEnabledSpells().stream()
                 .filter(spell -> !(spell instanceof HiddenFromEldritchResearch))
                 .toList();
     }

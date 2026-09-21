@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
@@ -17,10 +18,12 @@ import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -220,7 +223,7 @@ public class AnchorBlinkDaggerEntity extends ThrowableProjectile implements Anti
         return dagger.tryBlinkOwner(player);
     }
 
-    public static boolean isProtectedFromEnemyDamage(ServerPlayer player, net.minecraft.world.damagesource.DamageSource source) {
+    public static boolean isProtectedFromEnemyDamage(ServerPlayer player, DamageSource source) {
         var protection = DAMAGE_PROTECTIONS.get(player.getUUID());
         if (protection == null || protection.isExpired(player)) {
             DAMAGE_PROTECTIONS.remove(player.getUUID(), protection);
@@ -297,7 +300,7 @@ public class AnchorBlinkDaggerEntity extends ThrowableProjectile implements Anti
         var level = player.serverLevel();
         var dimensions = player.getDimensions(Pose.STANDING);
         var box = dimensions.makeBoundingBox(candidate.x, candidate.y, candidate.z).deflate(1.0E-7D);
-        return level.getWorldBorder().isWithinBounds(net.minecraft.core.BlockPos.containing(candidate))
+        return level.getWorldBorder().isWithinBounds(BlockPos.containing(candidate))
                 && level.noCollision(player, box)
                 && level.getBlockStates(box).allMatch(state -> state.getFluidState().isEmpty());
     }
@@ -465,10 +468,10 @@ public class AnchorBlinkDaggerEntity extends ThrowableProjectile implements Anti
         );
     }
 
-    private record ActiveAnchor(net.minecraft.resources.ResourceKey<Level> dimension, int entityId) {
+    private record ActiveAnchor(ResourceKey<Level> dimension, int entityId) {
     }
 
-    private record DamageProtection(net.minecraft.resources.ResourceKey<Level> dimension, long untilGameTime) {
+    private record DamageProtection(ResourceKey<Level> dimension, long untilGameTime) {
         private boolean isExpired(ServerPlayer player) {
             return isExpired(player.serverLevel());
         }

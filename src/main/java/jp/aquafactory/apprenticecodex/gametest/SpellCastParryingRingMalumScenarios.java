@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -12,6 +14,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.projectile.Arrow;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -21,6 +24,7 @@ import com.sammy.malum.common.capability.MalumPlayerDataCapability;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 
+import team.lodestar.lodestone.registry.common.LodestoneAttributeRegistry;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,7 +38,7 @@ final class SpellCastParryingRingMalumScenarios {
                     var player = player(h, item, hand, true);
                     // 最短チャージ後の保持も、使用開始からの受付時間で判定する。
                     BowGameTestSupport.equipCurio(player, "charm", new ItemStack(ItemRegistry.MANA_SOUL_TRANSDUCER.get()));
-                    player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get()).setBaseValue(100);
+                    player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION.get()).setBaseValue(100);
                     start(h, player, hand);
                     var source = front(h, player);
                     h.assertTrue(attack(player, source), "Staff must parry at charge start");
@@ -105,7 +109,7 @@ final class SpellCastParryingRingMalumScenarios {
     private static void discardPlayer(StaffPlayer player) {
         // 実際のreleaseUsingで生成した弾を残すと、近隣テストの振動・damage判定に干渉する。
         for (var entity : player.serverLevel().getAllEntities()) {
-            if (entity instanceof net.minecraft.world.entity.projectile.Projectile projectile
+            if (entity instanceof Projectile projectile
                     && projectile.getOwner() == player) projectile.discard();
         }
         player.discard();
@@ -125,13 +129,13 @@ final class SpellCastParryingRingMalumScenarios {
         h.getLevel().addFreshEntity(player);
         player.setItemInHand(hand, new ItemStack(item));
         // FakePlayer の通常tickに依存せず、使用処理が必要とする属性を明示する。
-        player.getAttribute(team.lodestar.lodestone.registry.common.LodestoneAttributeRegistry.MAGIC_DAMAGE.get()).setBaseValue(5);
+        player.getAttribute(LodestoneAttributeRegistry.MAGIC_DAMAGE.get()).setBaseValue(5);
         if (ring) equip(player);
         return player;
     }
 
     private static void equip(FakePlayer player) {
-        BowGameTestSupport.equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.RING_SLOT,
+        BowGameTestSupport.equipCurio(player, Curios.RING_SLOT,
                 new ItemStack(ItemRegistry.SPELL_CAST_PARRYING_RING.get()));
     }
 

@@ -12,6 +12,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.SmithingRecipe;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.common.ForgeHooks;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.stream.Stream;
@@ -150,6 +151,6 @@ public final class SpellbookCarryoverSmithingRecipe implements SmithingRecipe {
 
     @Override
     public boolean isIncomplete() {
-        return Stream.of(template, base, addition).anyMatch(net.minecraftforge.common.ForgeHooks::hasNoElements);
+        return Stream.of(template, base, addition).anyMatch(ForgeHooks::hasNoElements);
     }
 }

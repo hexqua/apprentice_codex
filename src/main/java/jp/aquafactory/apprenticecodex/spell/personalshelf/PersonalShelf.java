@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.ClientPlacementPreviewData;
+import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
 import jp.aquafactory.apprenticecodex.spell.IClientPlacementPreviewSpell;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
@@ -35,7 +36,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 import java.util.Optional;
 
-public class PersonalShelf extends AbstractSpell implements jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell, IClientPlacementPreviewSpell {
+public class PersonalShelf extends AbstractSpell implements IClientBlockTargetingSpell, IClientPlacementPreviewSpell {
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "personal_shelf");
 
     private final DefaultConfig config = new DefaultConfig()

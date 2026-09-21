@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.spell.boundbow.BoundBowClientTooltip;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
@@ -255,7 +256,7 @@ public class BoundBowItem extends BowItem {
         }
 
         magicData.setMana(Math.max(0.0F, magicData.getMana() - manaCost));
-        if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+        if (player instanceof ServerPlayer serverPlayer) {
             PacketDistributor.sendToPlayer(serverPlayer, new SyncManaPacket(magicData));
         }
     }

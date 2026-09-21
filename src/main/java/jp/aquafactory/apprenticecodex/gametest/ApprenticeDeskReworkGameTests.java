@@ -4,9 +4,12 @@ import io.netty.buffer.Unpooled;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.config.SpellConfigManager;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
+import io.redspace.ironsspellbooks.item.InkItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskFeatureState;
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskInkTooltip;
@@ -89,7 +92,7 @@ public final class ApprenticeDeskReworkGameTests {
 
             helper.assertTrue(menu.hasAllInputs(), "Apprentice Desk did not recognize all three inputs");
             helper.assertFalse(menu.getAvailableSpells().isEmpty(), "Fire focus exposed no craftable spells");
-            var selectedSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIREBALL_SPELL.get();
+            var selectedSpell = SpellRegistry.FIREBALL_SPELL.get();
             var selectedIndex = menu.getAvailableSpells().indexOf(selectedSpell);
             helper.assertTrue(selectedIndex >= 0, "Fire focus did not expose Fireball");
             MagicData.getPlayerMagicData(player).getSyncedData().learnSpell(selectedSpell, false);
@@ -133,7 +136,7 @@ public final class ApprenticeDeskReworkGameTests {
 
             var magicData = MagicData.getPlayerMagicData(player);
             var maxMana = player.getAttribute(
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get()
+                    AttributeRegistry.MAX_MANA.get()
             );
             helper.assertTrue(maxMana != null, "Wooden wand test could not resolve max mana");
             maxMana.setBaseValue(1000.0D);
@@ -194,7 +197,7 @@ public final class ApprenticeDeskReworkGameTests {
                 "Partially used ink unexpectedly uses vanilla item damage");
         helper.assertTrue(stack.getItem() instanceof PartiallyUsedInkItem,
                 "Partially used ink was registered with the wrong item class");
-        helper.assertFalse(stack.getItem() instanceof io.redspace.ironsspellbooks.item.InkItem,
+        helper.assertFalse(stack.getItem() instanceof InkItem,
                 "Partially used ink inherited Iron's InkItem and may be accepted by fluid integrations");
         helper.assertFalse(stack.isEnchantable(),
                 "Partially used ink unexpectedly allows enchanting");
@@ -338,7 +341,7 @@ public final class ApprenticeDeskReworkGameTests {
                 player.getInventory(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(deskPos))
         );
-        var fireball = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIREBALL_SPELL.get();
+        var fireball = SpellRegistry.FIREBALL_SPELL.get();
         var scroll = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
         ISpellContainer.createScrollContainer(fireball, 1, scroll);
 
@@ -381,7 +384,7 @@ public final class ApprenticeDeskReworkGameTests {
 
             var player = createPlayer(helper, "crude_ink_common_wand_test");
             var menu = new ApprenticeDeskMenu(0, player.getInventory(), ContainerLevelAccess.NULL);
-            var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var magicMissile = SpellRegistry.MAGIC_MISSILE_SPELL.get();
             MagicData.getPlayerMagicData(player).getSyncedData().learnSpell(magicMissile, false);
 
             menu.container.setItem(ApprenticeDeskMenu.INK_SLOT, new ItemStack(ItemRegistry.CRUDE_INK.get()));
@@ -430,7 +433,7 @@ public final class ApprenticeDeskReworkGameTests {
             menu.container.setItem(ApprenticeDeskMenu.INK_SLOT, new ItemStack(ItemRegistry.CRUDE_INK.get()));
             menu.container.setItem(ApprenticeDeskMenu.WAND_BASE_SLOT, new ItemStack(Items.STICK));
             menu.container.setItem(ApprenticeDeskMenu.FOCUS_SLOT, new ItemStack(Items.ENDER_PEARL));
-            var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var magicMissile = SpellRegistry.MAGIC_MISSILE_SPELL.get();
             MagicData.getPlayerMagicData(player).getSyncedData().learnSpell(magicMissile, false);
             var selectedIndex = menu.getAvailableSpells().indexOf(magicMissile);
             helper.assertTrue(selectedIndex >= 0 && menu.clickMenuButton(player, selectedIndex),
@@ -513,8 +516,8 @@ public final class ApprenticeDeskReworkGameTests {
     public static void woodenWandUsesOwnSpellAndConsumesDurabilityOnCooldown(GameTestHelper helper) {
         var player = createPlayer(helper, "wooden_wand_durability_test");
         var wand = new ItemStack(ItemRegistry.WOODEN_WAND.get());
-        var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
-        var fireball = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIREBALL_SPELL.get();
+        var magicMissile = SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        var fireball = SpellRegistry.FIREBALL_SPELL.get();
         var mutable = ISpellContainer.create(1, false, false).mutableCopy();
         mutable.addSpellAtIndex(magicMissile, 1, 0, true);
         ISpellContainer.set(wand, mutable.toImmutable());

@@ -4,12 +4,15 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.effect.SchoolAffinityEffect;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffectUtil;
 import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+
+import java.util.List;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class SchoolAffinityPotionTooltipEvent {
@@ -34,7 +37,7 @@ public final class SchoolAffinityPotionTooltipEvent {
         }
     }
 
-    private static MutableComponent buildTooltipLine(MutableComponent baseName, net.minecraft.world.effect.MobEffectInstance effectInstance) {
+    private static MutableComponent buildTooltipLine(MutableComponent baseName, MobEffectInstance effectInstance) {
         var line = baseName;
         if (effectInstance.getAmplifier() > 0) {
             line = Component.translatable(
@@ -55,7 +58,7 @@ public final class SchoolAffinityPotionTooltipEvent {
         return line.withStyle(effectInstance.getEffect().getCategory().getTooltipFormatting());
     }
 
-    private static void replaceTooltipLine(java.util.List<Component> tooltip, Component oldLine, Component newLine) {
+    private static void replaceTooltipLine(List<Component> tooltip, Component oldLine, Component newLine) {
         var oldText = oldLine.getString();
         for (var i = 0; i < tooltip.size(); i++) {
             if (!tooltip.get(i).getString().equals(oldText)) {

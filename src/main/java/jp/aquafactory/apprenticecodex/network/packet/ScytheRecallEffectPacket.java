@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
+import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheRecallRenderEvent;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
@@ -29,7 +30,7 @@ public record ScytheRecallEffectPacket(Vec3 start, Vec3 end, int color, boolean 
     @OnlyIn(Dist.CLIENT)
     private static final class ClientHandler {
         static void handle(ScytheRecallEffectPacket packet) {
-            jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheRecallRenderEvent.add(packet.start, packet.end, packet.color, packet.narrow, packet.yaw);
+            ScytheRecallRenderEvent.add(packet.start, packet.end, packet.color, packet.narrow, packet.yaw);
         }
     }
 }

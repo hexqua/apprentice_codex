@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.Suppo
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.antimanaarrow.AntiManaArrowEntity;
+import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity;
 import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.anchorblink.AnchorBlinkDaggerEntity;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
@@ -31,6 +32,8 @@ import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectil
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsCoreEntity;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsWingEntity;
 import jp.aquafactory.apprenticecodex.spell.dualacrobat.DualAcrobatSmgEntity;
+import jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowCoreEntity;
+import jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowEntity;
 import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingEntity;
@@ -48,6 +51,8 @@ import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarS
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerEntity;
 import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssaultRifleEntity;
+import jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrowEntity;
+import jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAimArrowEntity;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileEntity;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
@@ -57,6 +62,7 @@ import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldProjectileE
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldShieldEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxChargeBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxWeaponryEntity;
+import jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowEntity;
 import jp.aquafactory.apprenticecodex.spell.shiden.ShidenKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
@@ -76,6 +82,7 @@ import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLunaMoonEntity;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillEntity;
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -93,7 +100,7 @@ public final class EntityRegistry {
     }
 
     // ベース.
-    private static <T extends net.minecraft.world.entity.Entity> RegistryObject<EntityType<T>> reg(
+    private static <T extends Entity> RegistryObject<EntityType<T>> reg(
             String id,
             EntityType.EntityFactory<T> factory,
             MobCategory category,
@@ -120,7 +127,7 @@ public final class EntityRegistry {
     }
 
     // テンプレ.
-    private static <T extends net.minecraft.world.entity.Entity> RegistryObject<EntityType<T>> regProjectile(
+    private static <T extends Entity> RegistryObject<EntityType<T>> regProjectile(
             String id, EntityType.EntityFactory<T> factory,
             int trackingRange, int updateInterval
     ) {
@@ -130,7 +137,7 @@ public final class EntityRegistry {
                 true, FireBehaviors.IMMUNE);
     }
 
-    private static <T extends net.minecraft.world.entity.Entity> RegistryObject<EntityType<T>> regWeapon(
+    private static <T extends Entity> RegistryObject<EntityType<T>> regWeapon(
             String id, EntityType.EntityFactory<T> factory,
             int updateInterval
     ) {
@@ -140,7 +147,7 @@ public final class EntityRegistry {
                 false, FireBehaviors.IMMUNE);
     }
 
-    private static <T extends net.minecraft.world.entity.Entity> RegistryObject<EntityType<T>> regLiving(
+    private static <T extends Entity> RegistryObject<EntityType<T>> regLiving(
             String id,
             EntityType.EntityFactory<T> factory,
             float width,
@@ -387,16 +394,16 @@ public final class EntityRegistry {
                     .<SupportedShieldEntity>of(SupportedShieldEntity::new, MobCategory.MISC)
                     .sized(1F, 1F).clientTrackingRange(64).build("apprenticecodex:supported_shield"));
 
-    public static final RegistryObject<EntityType<jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity>> SCYTHE_THROW =
-            regProjectile("spell_reaper_scythe_throw", jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity::new, 8, 1);
+    public static final RegistryObject<EntityType<ScytheThrowEntity>> SCYTHE_THROW =
+            regProjectile("spell_reaper_scythe_throw", ScytheThrowEntity::new, 8, 1);
     
-    public static final RegistryObject<EntityType<jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrowEntity>> LIGHTNING_ARROW =
-            regProjectile("lightning_arrow_arrow", jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrowEntity::new, 128, 1);
+    public static final RegistryObject<EntityType<LightningArrowEntity>> LIGHTNING_ARROW =
+            regProjectile("lightning_arrow_arrow", LightningArrowEntity::new, 128, 1);
 
-    public static final RegistryObject<EntityType<jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowEntity>> ECHO_ARROW =
-            regProjectile("echo_arrow_arrow", jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowEntity::new, 128, 1);
-    public static final RegistryObject<EntityType<jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowCoreEntity>> ECHO_ARROW_CORE =
-            reg("echo_arrow_core", jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowCoreEntity::new,
+    public static final RegistryObject<EntityType<EchoArrowEntity>> ECHO_ARROW =
+            regProjectile("echo_arrow_arrow", EchoArrowEntity::new, 128, 1);
+    public static final RegistryObject<EntityType<EchoArrowCoreEntity>> ECHO_ARROW_CORE =
+            reg("echo_arrow_core", EchoArrowCoreEntity::new,
                     MobCategory.MISC, 0.4f, 0.4f, 128, 1, false, FireBehaviors.IMMUNE);
 
     public static final RegistryObject<EntityType<BloodyArrowEntity>> BLOODY_ARROW =
@@ -406,11 +413,11 @@ public final class EntityRegistry {
             reg("bloody_arrow_orb", BloodyArrowOrbEntity::new, MobCategory.MISC,
                     0.25F, 0.25F, 32, 1, true, FireBehaviors.IMMUNE);
 
-    public static final RegistryObject<EntityType<jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowEntity>> SACRED_ARROW =
-            regProjectile("sacred_arrow_arrow", jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowEntity::new, 128, 1);
+    public static final RegistryObject<EntityType<SacredArrowEntity>> SACRED_ARROW =
+            regProjectile("sacred_arrow_arrow", SacredArrowEntity::new, 128, 1);
 
-    public static final RegistryObject<EntityType<jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAimArrowEntity>> LUNAR_AIM_ARROW =
-            regProjectile("lunar_aim_arrow", jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAimArrowEntity::new, 128, 1);
+    public static final RegistryObject<EntityType<LunarAimArrowEntity>> LUNAR_AIM_ARROW =
+            regProjectile("lunar_aim_arrow", LunarAimArrowEntity::new, 128, 1);
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

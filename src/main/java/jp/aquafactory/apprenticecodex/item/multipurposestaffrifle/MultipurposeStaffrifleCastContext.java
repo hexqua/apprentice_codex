@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.multipurposestaffrifle;
 
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
@@ -90,7 +91,7 @@ public final class MultipurposeStaffrifleCastContext {
     private record Context(
             @Nullable Context previous,
             UUID playerId,
-            net.minecraft.world.item.Item item,
+            Item item,
             String spellId,
             boolean recast,
             long gameTime

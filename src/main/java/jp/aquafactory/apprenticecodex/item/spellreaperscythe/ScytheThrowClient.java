@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.spellreaperscythe;
 
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScytheThrowClientCompat;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
@@ -10,6 +11,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.client.event.InputEvent;
@@ -41,7 +43,7 @@ public final class ScytheThrowClient {
     }
 
     @SubscribeEvent public static void input(InputEvent.InteractionKeyMappingTriggered event) {
-        if (net.minecraftforge.fml.ModList.get().isLoaded("epicfight")) return;
+        if (ModList.get().isLoaded("epicfight")) return;
         // use()内の拒否だけではバニラのC2S使用packet送信を止められない。
         if (event.isUseItem() && requireRelease) {
             event.setCanceled(true);
@@ -51,7 +53,7 @@ public final class ScytheThrowClient {
 
     @SubscribeEvent public static void tick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
-        if (net.minecraftforge.fml.ModList.get().isLoaded("epicfight")) {
+        if (ModList.get().isLoaded("epicfight")) {
             requireRelease = false;
             wasThrown = false;
             return;
@@ -59,8 +61,8 @@ public final class ScytheThrowClient {
         var mc = Minecraft.getInstance();
         if (mc.player == null) { requireRelease = false; wasThrown = false; return; }
         boolean thrown = ScytheThrowManager.isThrown(mc.player.getMainHandItem());
-        if (thrown && !wasThrown && net.minecraftforge.fml.ModList.get().isLoaded("bettercombat")) {
-            jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScytheThrowClientCompat.stopSwing();
+        if (thrown && !wasThrown && ModList.get().isLoaded("bettercombat")) {
+            BetterCombatScytheThrowClientCompat.stopSwing();
         }
         if (wasThrown && !thrown && mc.options.keyUse.isDown()) requireRelease = true;
         if (!mc.options.keyUse.isDown()) requireRelease = false;

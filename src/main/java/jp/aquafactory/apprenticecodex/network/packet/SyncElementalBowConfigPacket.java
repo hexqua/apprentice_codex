@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowClientConfigState;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeDefinition;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowModeManager;
@@ -26,7 +27,7 @@ public record SyncElementalBowConfigPacket(List<ResourceLocation> magicArrowCata
     }
 
     public SyncElementalBowConfigPacket(List<ResourceLocation> ids, List<ElementalBowModeDefinition> definitions) {
-        this(ids, definitions, jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig.elementalBowSchoolRuneManaCostMultiplier());
+        this(ids, definitions, ApprenticeCodexServerConfig.elementalBowSchoolRuneManaCostMultiplier());
     }
 
 

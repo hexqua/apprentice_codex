@@ -1,12 +1,16 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import com.google.common.collect.Multimap;
 import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.api.backwards_compat.UpgradeTypeCache;
 import io.redspace.ironsspellbooks.api.events.CounterSpellEvent;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.item.UpgradeData;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.MagicHelper;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
@@ -14,23 +18,81 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainerMutable;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import io.redspace.ironsspellbooks.capabilities.magic.SummonManager;
+import io.redspace.ironsspellbooks.compat.Curios;
+import io.redspace.ironsspellbooks.config.ServerConfigs;
 import io.redspace.ironsspellbooks.effect.MagicMobEffect;
 import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import io.redspace.ironsspellbooks.entity.mobs.SummonedZombie;
 import io.redspace.ironsspellbooks.entity.spells.target_area.TargetedAreaEntity;
+import io.redspace.ironsspellbooks.fluids.PotionFluid;
+import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
+import io.redspace.ironsspellbooks.item.UniqueItem;
+import io.redspace.ironsspellbooks.item.UniqueSpellBook;
+import io.redspace.ironsspellbooks.item.armor.UpgradeOrbType;
+import io.redspace.ironsspellbooks.loot.SpellFilter;
+import io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry;
 import io.redspace.ironsspellbooks.spells.nature.TouchDigSpell;
+import io.redspace.ironsspellbooks.util.ModTags;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
+import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightScrollcasterGauntletOffhandBridge;
+import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSwingMagicCompat;
+import jp.aquafactory.apprenticecodex.effect.MistFormEffect;
+import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.event.AlchemistsFlaskAdvancementEvent;
+import jp.aquafactory.apprenticecodex.item.SneakSelectionState;
+import jp.aquafactory.apprenticecodex.item.SneakSelectionView;
+import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
+import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoireMenu;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletCastEvent;
+import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
+import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporterManaCostDiscountEvent;
+import jp.aquafactory.apprenticecodex.recipe.crafting.AlchemistsFlaskTippedArrowRecipe;
+import jp.aquafactory.apprenticecodex.recipe.crafting.SpellcastersFlaskExtractRecipe;
+import jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe;
+import jp.aquafactory.apprenticecodex.spell.extract.Extract;
+import jp.aquafactory.apprenticecodex.spell.mistform.MistForm;
+import jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents;
+import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWingFlightEvent;
+import jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.TrapDoorBlock;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
+import net.minecraftforge.common.ForgeMod;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingFallEvent;
+import net.minecraftforge.eventbus.api.Event;
+import top.theillusivec4.curios.api.CuriosApi;
+import top.theillusivec4.curios.api.SlotContext;
+import top.theillusivec4.curios.api.SlotResult;
+import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -519,16 +581,16 @@ public class ApprenticeCodexGameTestScenarios {
 
     static void registriesAndDynamicContentAreRegistered(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            assertForgeRegistryEntries(helper, "item", net.minecraftforge.registries.ForgeRegistries.ITEMS, ItemRegistry.ITEMS.getEntries());
-            assertForgeRegistryEntries(helper, "block", net.minecraftforge.registries.ForgeRegistries.BLOCKS, BlockRegistry.BLOCKS.getEntries());
-            assertForgeRegistryEntries(helper, "block entity", net.minecraftforge.registries.ForgeRegistries.BLOCK_ENTITY_TYPES, BlockEntityRegistry.BLOCK_ENTITY_TYPES.getEntries());
-            assertForgeRegistryEntries(helper, "entity", net.minecraftforge.registries.ForgeRegistries.ENTITY_TYPES, EntityRegistry.ENTITIES.getEntries());
-            assertForgeRegistryEntries(helper, "mob effect", net.minecraftforge.registries.ForgeRegistries.MOB_EFFECTS, EffectRegistry.EFFECTS.getEntries());
-            assertForgeRegistryEntries(helper, "enchantment", net.minecraftforge.registries.ForgeRegistries.ENCHANTMENTS, EnchantmentRegistry.ENCHANTMENTS.getEntries());
-            assertForgeRegistryEntries(helper, "attribute", net.minecraftforge.registries.ForgeRegistries.ATTRIBUTES, ApprenticeAttributeRegistry.ATTRIBUTES.getEntries());
-            assertForgeRegistryEntries(helper, "recipe serializer", net.minecraftforge.registries.ForgeRegistries.RECIPE_SERIALIZERS, RecipeRegistry.RECIPE_SERIALIZERS.getEntries());
-            assertForgeRegistryEntries(helper, "point of interest type", net.minecraftforge.registries.ForgeRegistries.POI_TYPES, PoiTypeRegistry.POI_TYPES.getEntries());
-            assertForgeRegistryEntries(helper, "villager profession", net.minecraftforge.registries.ForgeRegistries.VILLAGER_PROFESSIONS, VillagerProfessionRegistry.VILLAGER_PROFESSIONS.getEntries());
+            assertForgeRegistryEntries(helper, "item", ForgeRegistries.ITEMS, ItemRegistry.ITEMS.getEntries());
+            assertForgeRegistryEntries(helper, "block", ForgeRegistries.BLOCKS, BlockRegistry.BLOCKS.getEntries());
+            assertForgeRegistryEntries(helper, "block entity", ForgeRegistries.BLOCK_ENTITY_TYPES, BlockEntityRegistry.BLOCK_ENTITY_TYPES.getEntries());
+            assertForgeRegistryEntries(helper, "entity", ForgeRegistries.ENTITY_TYPES, EntityRegistry.ENTITIES.getEntries());
+            assertForgeRegistryEntries(helper, "mob effect", ForgeRegistries.MOB_EFFECTS, EffectRegistry.EFFECTS.getEntries());
+            assertForgeRegistryEntries(helper, "enchantment", ForgeRegistries.ENCHANTMENTS, EnchantmentRegistry.ENCHANTMENTS.getEntries());
+            assertForgeRegistryEntries(helper, "attribute", ForgeRegistries.ATTRIBUTES, ApprenticeAttributeRegistry.ATTRIBUTES.getEntries());
+            assertForgeRegistryEntries(helper, "recipe serializer", ForgeRegistries.RECIPE_SERIALIZERS, RecipeRegistry.RECIPE_SERIALIZERS.getEntries());
+            assertForgeRegistryEntries(helper, "point of interest type", ForgeRegistries.POI_TYPES, PoiTypeRegistry.POI_TYPES.getEntries());
+            assertForgeRegistryEntries(helper, "villager profession", ForgeRegistries.VILLAGER_PROFESSIONS, VillagerProfessionRegistry.VILLAGER_PROFESSIONS.getEntries());
 
             assertBuiltinRegistryEntries(helper, "potion", BuiltInRegistries.POTION, PotionRegistry.POTIONS.getEntries());
             assertBuiltinRegistryEntries(helper, "recipe type", BuiltInRegistries.RECIPE_TYPE, RecipeRegistry.RECIPE_TYPES.getEntries());
@@ -1395,7 +1457,7 @@ public class ApprenticeCodexGameTestScenarios {
             taggedScroll.getOrCreateTag().putString("apprenticecodex_test", "tagged");
             var taggedScrollCost = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
             taggedScrollCost.getOrCreateTag().putString("apprenticecodex_test", "cost");
-            var scrollOffer = new net.minecraft.world.item.trading.MerchantOffer(
+            var scrollOffer = new MerchantOffer(
                     taggedScrollCost,
                     new ItemStack(Items.EMERALD, 16),
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INK_COMMON.get()),
@@ -1502,10 +1564,10 @@ public class ApprenticeCodexGameTestScenarios {
                     RecipeRegistry.SPELLCASTERS_FLASK_EXTRACT_SERIALIZER.get(), null);
             assertRecipeLoaded(helper, recipeManager,
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "alchemists_flask"),
-                    RecipeRegistry.ALCHEMISTS_FLASK_SMITHING_SERIALIZER.get(), net.minecraft.world.item.crafting.RecipeType.SMITHING);
+                    RecipeRegistry.ALCHEMISTS_FLASK_SMITHING_SERIALIZER.get(), RecipeType.SMITHING);
             assertRecipeLoaded(helper, recipeManager,
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "alchemists_flask_tipped_arrow"),
-                    RecipeRegistry.ALCHEMISTS_FLASK_TIPPED_ARROW_SERIALIZER.get(), net.minecraft.world.item.crafting.RecipeType.CRAFTING);
+                    RecipeRegistry.ALCHEMISTS_FLASK_TIPPED_ARROW_SERIALIZER.get(), RecipeType.CRAFTING);
             assertRecipeLoaded(helper, recipeManager,
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "explorers_cane_lodestone_bind"),
                     RecipeRegistry.EXPLORERS_CANE_LODESTONE_BIND_SERIALIZER.get(), null);
@@ -1514,8 +1576,8 @@ public class ApprenticeCodexGameTestScenarios {
                     RecipeRegistry.EXPLORERS_CODEX_GUIDEBOOK_TRANSFER_SERIALIZER.get(), null);
             assertRecipeLoaded(helper, recipeManager,
                     ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "comfort_sandwich"),
-                    net.minecraft.world.item.crafting.RecipeSerializer.SHAPELESS_RECIPE,
-                    net.minecraft.world.item.crafting.RecipeType.CRAFTING);
+                    RecipeSerializer.SHAPELESS_RECIPE,
+                    RecipeType.CRAFTING);
             var guidebookRecipeId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "isekai_travel_guidebook");
             helper.assertTrue(recipeManager.byKey(guidebookRecipeId).isEmpty(),
                     "Isekai Travel Guidebook crafting recipe should not be loaded: " + guidebookRecipeId);
@@ -1794,7 +1856,7 @@ public class ApprenticeCodexGameTestScenarios {
             AbstractSpell spell,
             String context
     ) {
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), context.toLowerCase(java.util.Locale.ROOT).replace(' ', '_'));
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), context.toLowerCase(Locale.ROOT).replace(' ', '_'));
         var scrollStack = createSpellScroll(spell);
         var menu = createSpellcasterWorkbenchMenuWithInputs(player, baseStack.copy(), catalystStack.copy(), scrollStack.copy());
 
@@ -1872,7 +1934,7 @@ public class ApprenticeCodexGameTestScenarios {
             ItemStack scrollStack,
             String context
     ) {
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), context.toLowerCase(java.util.Locale.ROOT).replace(' ', '_'));
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), context.toLowerCase(Locale.ROOT).replace(' ', '_'));
         var menu = createSpellcasterWorkbenchMenuWithInputs(player, baseStack, catalystStack, scrollStack);
         helper.assertTrue(menu.getSlot(SpellcasterWorkbenchMenu.RESULT_SLOT).getItem().isEmpty(),
                 context + ": result slot should stay empty");
@@ -2249,7 +2311,7 @@ public class ApprenticeCodexGameTestScenarios {
     static void spellcastersFlaskDrinkingLastDoseClearsStoredItem(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var flask = createFilledSpellcastersFlask(
-                    PotionUtils.setPotion(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION),
+                    PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.REGENERATION),
                     1,
                     0
             );
@@ -2269,7 +2331,7 @@ public class ApprenticeCodexGameTestScenarios {
     }
     static void spellcastersFlaskDrinkingGlowEnergyTradesDurationForAmplifier(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var storedPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+            var storedPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.REGENERATION);
             var originalEffect = PotionUtils.getMobEffects(storedPotion).get(0);
             var flask = createFilledSpellcastersFlask(storedPotion, 1, 2);
             var player = new FakePlayer((ServerLevel) helper.getLevel(), new GameProfile(UUID.randomUUID(), "spellcasters_flask_glow_tradeoff_test"));
@@ -2287,7 +2349,7 @@ public class ApprenticeCodexGameTestScenarios {
     }
     static void spellcastersFlaskMismatchedVanillaPotionDrinkConsumesExtraDose(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var storedPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+            var storedPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), Potions.REGENERATION);
             var twoDoseFlask = createFilledSpellcastersFlask(storedPotion, 2, 0);
             var player = new FakePlayer((ServerLevel) helper.getLevel(), new GameProfile(UUID.randomUUID(), "spellcasters_flask_mismatch_drink_test"));
 
@@ -2324,7 +2386,7 @@ public class ApprenticeCodexGameTestScenarios {
     }
     static void spellcastersFlaskExtractRecipeClearsStoredItemWhenEmpty(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var recipe = (jp.aquafactory.apprenticecodex.recipe.crafting.SpellcastersFlaskExtractRecipe) helper.getLevel()
+            var recipe = (SpellcastersFlaskExtractRecipe) helper.getLevel()
                     .getRecipeManager()
                     .byKey(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcasters_flask_extract"))
                     .orElseThrow();
@@ -2409,8 +2471,8 @@ public class ApprenticeCodexGameTestScenarios {
     }
     static void flaskMismatchTooltipOnlyWarnsForVanillaPotionTypeMismatch(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var normalPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
-            var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+            var normalPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.REGENERATION);
+            var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), Potions.REGENERATION);
             var simpleElixir = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get());
 
             assertTooltipKeyUsesColor(
@@ -2443,8 +2505,8 @@ public class ApprenticeCodexGameTestScenarios {
     }
     static void flaskAutomaticFillAcceptsSupportedMismatchedVanillaPotion(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var normalPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
-            var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+            var normalPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.REGENERATION);
+            var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), Potions.REGENERATION);
             var simpleElixir = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get());
 
             helper.assertTrue(AbstractPotionFlaskItem.canAcceptRepresentativeForAutomaticFill(
@@ -2488,7 +2550,7 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(SpellcastersFlask.getStoredDoseCount(filledFlask) == 16,
                     "Alchemist's Flask stored dose count mismatch: " + SpellcastersFlask.getStoredDoseCount(filledFlask));
 
-            var recipe = (jp.aquafactory.apprenticecodex.recipe.crafting.SpellcastersFlaskExtractRecipe) helper.getLevel()
+            var recipe = (SpellcastersFlaskExtractRecipe) helper.getLevel()
                     .getRecipeManager()
                     .byKey(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcasters_flask_extract"))
                     .orElseThrow();
@@ -2515,12 +2577,12 @@ public class ApprenticeCodexGameTestScenarios {
     }
     static void alchemistsFlaskSmithingConvertsSupportedStoredItemsAndRemovesGuzzle(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var recipe = (jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe) helper.getLevel()
+            var recipe = (AlchemistsFlaskSmithingRecipe) helper.getLevel()
                     .getRecipeManager()
                     .byKey(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "alchemists_flask"))
                     .orElseThrow();
 
-            var normalPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.HEALING);
+            var normalPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.HEALING);
             var spellcastersFlask = new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get());
             if (EnchantmentRegistry.GUZZLE.isPresent()) {
                 spellcastersFlask.enchant(EnchantmentRegistry.GUZZLE.get(), 2);
@@ -2538,7 +2600,7 @@ public class ApprenticeCodexGameTestScenarios {
             filledSpellcastersFlask = SpellcastersFlask.copyWithToggledEffectParticles(filledSpellcastersFlask);
             helper.assertTrue(SpellcastersFlask.isEffectParticlesSuppressed(filledSpellcastersFlask),
                     "Spellcaster's Flask test input should start with suppressed particles");
-            var smithingContainer = new net.minecraft.world.SimpleContainer(
+            var smithingContainer = new SimpleContainer(
                     new ItemStack(Items.EMERALD),
                     filledSpellcastersFlask,
                     new ItemStack(Items.GUNPOWDER)
@@ -2578,7 +2640,7 @@ public class ApprenticeCodexGameTestScenarios {
                     "Alchemist's Flask smithing recipe should keep Glow Energy");
 
             var simpleElixir = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.INVISIBILITY_ELIXIR.get());
-            var simpleElixirContainer = new net.minecraft.world.SimpleContainer(
+            var simpleElixirContainer = new SimpleContainer(
                     new ItemStack(Items.EMERALD),
                     SpellcastersFlask.copyWithAddedDoses(new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get()), simpleElixir, 1),
                     new ItemStack(Items.GUNPOWDER)
@@ -2590,7 +2652,7 @@ public class ApprenticeCodexGameTestScenarios {
                     "Alchemist's Flask smithing recipe should keep Simple Elixir unchanged");
 
             var fireAle = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_ALE.get());
-            var fireAleContainer = new net.minecraft.world.SimpleContainer(
+            var fireAleContainer = new SimpleContainer(
                     new ItemStack(Items.EMERALD),
                     SpellcastersFlask.copyWithAddedDoses(new ItemStack(ItemRegistry.SPELLCASTERS_FLASK.get()), fireAle, 1),
                     new ItemStack(Items.GUNPOWDER)
@@ -2601,12 +2663,12 @@ public class ApprenticeCodexGameTestScenarios {
     }
     static void alchemistsFlaskTippedArrowRecipeConsumesOneDoseAndRejectsSimpleElixir(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var recipe = (jp.aquafactory.apprenticecodex.recipe.crafting.AlchemistsFlaskTippedArrowRecipe) helper.getLevel()
+            var recipe = (AlchemistsFlaskTippedArrowRecipe) helper.getLevel()
                     .getRecipeManager()
                     .byKey(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "alchemists_flask_tipped_arrow"))
                     .orElseThrow();
 
-            var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+            var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), Potions.REGENERATION);
             var splashFlask = createFilledAlchemistsFlask(splashPotion, 2, 1);
             var splashContainer = createCraftingContainer(
                     new ItemStack(Items.ARROW),
@@ -2633,7 +2695,7 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(SpellcastersFlask.getStoredDoseCount(splashRemainingFlask) == 1,
                     "Alchemist's Flask tipped arrow recipe should consume exactly one dose");
 
-            var lingeringPotion = PotionUtils.setPotion(new ItemStack(Items.LINGERING_POTION), net.minecraft.world.item.alchemy.Potions.HEALING);
+            var lingeringPotion = PotionUtils.setPotion(new ItemStack(Items.LINGERING_POTION), Potions.HEALING);
             var lingeringFlask = createFilledAlchemistsFlask(lingeringPotion, 1, 0);
             var lingeringContainer = createCraftingContainer(
                     new ItemStack(Items.ARROW),
@@ -2698,26 +2760,26 @@ public class ApprenticeCodexGameTestScenarios {
 
             helper.assertTrue(advancement != null, "Missing advancement for flask tipped arrow crafting");
             helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.event.AlchemistsFlaskAdvancementEvent.shouldAward(craftedStack, craftingContainer),
+                    AlchemistsFlaskAdvancementEvent.shouldAward(craftedStack, craftingContainer),
                     "Crafting tipped arrows with Alchemist's Flask should satisfy the advancement award conditions"
             );
         });
     }
     static void extractPreCastUsesFirstFilledFlaskAcrossHands(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var spell = (jp.aquafactory.apprenticecodex.spell.extract.Extract) SpellRegistry.EXTRACT.get();
+            var spell = (Extract) SpellRegistry.EXTRACT.get();
             var player = createExtractPlayer(helper, new BlockPos(0, 2, 0), "extract_precast_hand_test");
-            var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
-            var lingeringPotion = PotionUtils.setPotion(new ItemStack(Items.LINGERING_POTION), net.minecraft.world.item.alchemy.Potions.HEALING);
+            var splashPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), Potions.REGENERATION);
+            var lingeringPotion = PotionUtils.setPotion(new ItemStack(Items.LINGERING_POTION), Potions.HEALING);
             var magicData = MagicData.getPlayerMagicData(player);
 
             player.setItemInHand(InteractionHand.MAIN_HAND, createFilledAlchemistsFlask(splashPotion, 2, 0));
             player.setItemInHand(InteractionHand.OFF_HAND, createFilledAlchemistsFlask(lingeringPotion, 2, 0));
             helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
                     "Extract should cast when the main hand flask is filled");
-            helper.assertTrue(magicData.getAdditionalCastData() instanceof jp.aquafactory.apprenticecodex.spell.extract.Extract.ExtractCastData,
+            helper.assertTrue(magicData.getAdditionalCastData() instanceof Extract.ExtractCastData,
                     "Extract should store cast data for the selected flask");
-            var mainCastData = (jp.aquafactory.apprenticecodex.spell.extract.Extract.ExtractCastData) magicData.getAdditionalCastData();
+            var mainCastData = (Extract.ExtractCastData) magicData.getAdditionalCastData();
             helper.assertTrue(mainCastData.hand() == InteractionHand.MAIN_HAND,
                     "Extract should prefer the main hand filled flask");
             helper.assertTrue(ItemStack.isSameItemSameTags(mainCastData.storedItem(), splashPotion),
@@ -2728,7 +2790,7 @@ public class ApprenticeCodexGameTestScenarios {
             player.setItemInHand(InteractionHand.OFF_HAND, createFilledAlchemistsFlask(lingeringPotion, 2, 0));
             helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
                     "Extract should cast when only the offhand flask is filled");
-            var offhandCastData = (jp.aquafactory.apprenticecodex.spell.extract.Extract.ExtractCastData) magicData.getAdditionalCastData();
+            var offhandCastData = (Extract.ExtractCastData) magicData.getAdditionalCastData();
             helper.assertTrue(offhandCastData.hand() == InteractionHand.OFF_HAND,
                     "Extract should fall back to the offhand filled flask when the main hand flask is empty");
             helper.assertTrue(ItemStack.isSameItemSameTags(offhandCastData.storedItem(), lingeringPotion),
@@ -2751,10 +2813,10 @@ public class ApprenticeCodexGameTestScenarios {
     }
     static void extractCastConsumesDoseAndSpawnsExpectedPotionProjectile(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var spell = (jp.aquafactory.apprenticecodex.spell.extract.Extract) SpellRegistry.EXTRACT.get();
+            var spell = (Extract) SpellRegistry.EXTRACT.get();
             var player = createExtractPlayer(helper, new BlockPos(0, 2, 0), "extract_cast_projectile_test");
             var magicData = MagicData.getPlayerMagicData(player);
-            var lingeringPotion = PotionUtils.setPotion(new ItemStack(Items.LINGERING_POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+            var lingeringPotion = PotionUtils.setPotion(new ItemStack(Items.LINGERING_POTION), Potions.REGENERATION);
 
             player.setItemInHand(InteractionHand.MAIN_HAND, createFilledAlchemistsFlask(lingeringPotion, 2, 0));
             helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
@@ -2764,13 +2826,13 @@ public class ApprenticeCodexGameTestScenarios {
             var lingeringProjectile = getSingleExtractProjectile(helper, player);
             helper.assertTrue(lingeringProjectile.getItem().is(Items.LINGERING_POTION),
                     "Extract should throw a lingering potion when the flask stores a lingering potion");
-            helper.assertTrue(jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem.getStoredDoseCount(player.getMainHandItem()) == 1,
+            helper.assertTrue(AbstractPotionFlaskItem.getStoredDoseCount(player.getMainHandItem()) == 1,
                     "Extract should consume exactly one dose from the casting flask");
 
             lingeringProjectile.discard();
             magicData.setAdditionalCastData(null);
 
-            var normalPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+            var normalPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.REGENERATION);
             player.setItemInHand(InteractionHand.MAIN_HAND, createFilledAlchemistsFlask(normalPotion, 2, 0));
             player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
             helper.assertTrue(spell.checkPreCastConditions(helper.getLevel(), 1, player, magicData),
@@ -2780,7 +2842,7 @@ public class ApprenticeCodexGameTestScenarios {
             var forcedSplashProjectile = getSingleExtractProjectile(helper, player);
             helper.assertTrue(forcedSplashProjectile.getItem().is(Items.SPLASH_POTION),
                     "Extract should throw normal potion contents as a splash potion");
-            helper.assertTrue(jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem.getStoredDoseCount(player.getMainHandItem()) == 0,
+            helper.assertTrue(AbstractPotionFlaskItem.getStoredDoseCount(player.getMainHandItem()) == 0,
                     "Extract should consume two doses when force-splashing a normal potion");
             forcedSplashProjectile.discard();
             magicData.setAdditionalCastData(null);
@@ -2795,13 +2857,13 @@ public class ApprenticeCodexGameTestScenarios {
             var splashProjectile = getSingleExtractProjectile(helper, player);
             helper.assertTrue(splashProjectile.getItem().is(Items.SPLASH_POTION),
                     "Extract should throw Simple Elixir contents as a splash potion");
-            helper.assertTrue(jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem.getStoredDoseCount(player.getOffhandItem()) == 1,
+            helper.assertTrue(AbstractPotionFlaskItem.getStoredDoseCount(player.getOffhandItem()) == 1,
                     "Extract should consume exactly one offhand dose after a successful cast");
         });
     }
     static void extractThrownPotionRespectsGlowRedEnergyAndAmplify(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var storedPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), net.minecraft.world.item.alchemy.Potions.REGENERATION);
+            var storedPotion = PotionUtils.setPotion(new ItemStack(Items.SPLASH_POTION), Potions.REGENERATION);
             var flask = new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get());
             if (EnchantmentRegistry.RED_ENERGY.isPresent()) {
                 flask.enchant(EnchantmentRegistry.RED_ENERGY.get(), 1);
@@ -2811,7 +2873,7 @@ public class ApprenticeCodexGameTestScenarios {
             }
             flask = SpellcastersFlask.copyWithAddedDoses(flask, storedPotion, 1);
 
-            var thrownPotion = jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem.createExtractedPotionForThrow(flask, 1);
+            var thrownPotion = AbstractPotionFlaskItem.createExtractedPotionForThrow(flask, 1);
             var originalEffect = PotionUtils.getMobEffects(storedPotion).get(0);
             var extractedEffect = PotionUtils.getMobEffects(thrownPotion).get(0);
 
@@ -3060,8 +3122,8 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(magicData != null,
                     "Scrollcaster Gauntlet cast mode test could not resolve player magic data");
             magicData.setMana(1000.0F);
-            magicData.getSyncedData().setSpellSelection(new io.redspace.ironsspellbooks.gui.overlays.SpellSelection(
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND,
+            magicData.getSyncedData().setSpellSelection(new SpellSelection(
+                    SpellSelectionManager.OFFHAND,
                     0
             ));
 
@@ -3147,7 +3209,7 @@ public class ApprenticeCodexGameTestScenarios {
     static void scrollcasterGauntletSelectedScrollDrivesImbuedSpell(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var gauntlet = new ItemStack(ItemRegistry.SCROLLCASTER_GAUNTLET.get());
-            helper.assertTrue(gauntlet.getItem() instanceof io.redspace.ironsspellbooks.item.UniqueItem,
+            helper.assertTrue(gauntlet.getItem() instanceof UniqueItem,
                     "Scrollcaster Gauntlet should be a UniqueItem to block Arcane Anvil imbue tooltips and normal imbue");
             assertTooltipKeyAt(helper, gauntlet, 0, "item.apprenticecodex.right_click_magic_weapon.desc",
                     "Scrollcaster Gauntlet should show offhand priority tooltip first");
@@ -3353,8 +3415,8 @@ public class ApprenticeCodexGameTestScenarios {
             var magicData = MagicData.getPlayerMagicData(player);
             helper.assertTrue(magicData != null,
                     "Scrollcaster Gauntlet cooldown test could not resolve player mana data");
-            magicData.getSyncedData().setSpellSelection(new io.redspace.ironsspellbooks.gui.overlays.SpellSelection(
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND,
+            magicData.getSyncedData().setSpellSelection(new SpellSelection(
+                    SpellSelectionManager.OFFHAND,
                     0
             ));
             var resolvedOffhandCastingItemSpell = RightClickSpellResolver.resolve(player, InteractionHand.OFF_HAND);
@@ -3374,13 +3436,13 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(resolvedMainHandPrioritySpell.get().hand() == InteractionHand.MAIN_HAND,
                     "Right-click resolver should mark the prioritized mainhand spell");
             magicData.setPlayerCastingItem(gauntlet.copy());
-            var expectedCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+            var expectedCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     heal,
                     player,
                     CastSource.SWORD
             );
             var cooldownEvent = new SpellCooldownAddedEvent.Pre(
-                    io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(heal, player, CastSource.SWORD),
+                    MagicManager.getEffectiveSpellCooldown(heal, player, CastSource.SWORD),
                     heal,
                     player,
                     CastSource.SWORD
@@ -3421,9 +3483,9 @@ public class ApprenticeCodexGameTestScenarios {
             var baseViews = ScrollcasterGauntlet.getSelectionViews(gauntlet);
             helper.assertTrue(baseViews.size() == ScrollcasterGauntlet.BASE_CALIBRATION_SCROLL_SLOT_COUNT,
                     "Empty Scrollcaster Gauntlet selection UI should expose every base slot");
-            helper.assertTrue(baseViews.stream().noneMatch(jp.aquafactory.apprenticecodex.item.SneakSelectionView::selectable),
+            helper.assertTrue(baseViews.stream().noneMatch(SneakSelectionView::selectable),
                     "Empty Scrollcaster Gauntlet selection UI should expose only empty slots");
-            var emptyState = jp.aquafactory.apprenticecodex.item.SneakSelectionState.open(
+            var emptyState = SneakSelectionState.open(
                     InteractionHand.MAIN_HAND,
                     baseViews,
                     ScrollcasterGauntlet.getSelectedScrollIndex(gauntlet)
@@ -3448,7 +3510,7 @@ public class ApprenticeCodexGameTestScenarios {
                     "Empty Scrollcaster Gauntlet selection UI should track its enabled slot count");
             helper.assertTrue(expandedViews.size() > baseViews.size(),
                     "Slot upgrade should add empty slots to the Scrollcaster Gauntlet selection UI");
-            helper.assertTrue(expandedViews.stream().noneMatch(jp.aquafactory.apprenticecodex.item.SneakSelectionView::selectable),
+            helper.assertTrue(expandedViews.stream().noneMatch(SneakSelectionView::selectable),
                     "Expanded empty Scrollcaster Gauntlet selection UI should keep every slot empty");
         });
     }
@@ -3487,7 +3549,7 @@ public class ApprenticeCodexGameTestScenarios {
                     "Scrollcaster Gauntlet should swing-cast the selected instant spell with a Mithril Freecast Staff adjustment");
             helper.assertTrue(ItemStack.isSameItemSameTags(magicData.getPlayerCastingItem(), gauntlet),
                     "Scrollcaster Gauntlet freecast should cast with the gauntlet stack");
-            helper.assertTrue(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND.equals(magicData.getCastingEquipmentSlot()),
+            helper.assertTrue(SpellSelectionManager.MAINHAND.equals(magicData.getCastingEquipmentSlot()),
                     "Scrollcaster Gauntlet freecast should mark the mainhand casting slot");
             magicData.resetCastingState();
             magicData.getPlayerCooldowns().removeCooldown(magicMissile.getSpellId());
@@ -3507,7 +3569,7 @@ public class ApprenticeCodexGameTestScenarios {
 
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(magicMissile));
             ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
-            io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, magicMissile, CastSource.SWORD);
+            MagicHelper.MAGIC_MANAGER.addCooldown(player, magicMissile, CastSource.SWORD);
             helper.assertFalse(gauntletItem.tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
                     "Scrollcaster Gauntlet freecast should reject spells that are already on cooldown");
             magicData.getPlayerCooldowns().removeCooldown(magicMissile.getSpellId());
@@ -3515,13 +3577,13 @@ public class ApprenticeCodexGameTestScenarios {
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(heal));
             ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 0);
             magicData.setPlayerCastingItem(gauntlet.copy());
-            var baseCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+            var baseCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     heal,
                     player,
                     CastSource.SWORD
             );
             var normalEvent = new SpellCooldownAddedEvent.Pre(
-                    io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(heal, player, CastSource.SWORD),
+                    MagicManager.getEffectiveSpellCooldown(heal, player, CastSource.SWORD),
                     heal,
                     player,
                     CastSource.SWORD
@@ -3532,7 +3594,7 @@ public class ApprenticeCodexGameTestScenarios {
 
             try (var ignored = ScrollcasterGauntletFreecastContext.open(player.getUUID(), gauntlet, heal)) {
                 var freecastEvent = new SpellCooldownAddedEvent.Pre(
-                        io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(heal, player, CastSource.SWORD),
+                        MagicManager.getEffectiveSpellCooldown(heal, player, CastSource.SWORD),
                         heal,
                         player,
                         CastSource.SWORD
@@ -3548,14 +3610,14 @@ public class ApprenticeCodexGameTestScenarios {
             var thermalProcess = SpellRegistry.THERMAL_PROCESS.get();
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(thermalProcess));
             magicData.setPlayerCastingItem(gauntlet.copy());
-            var craftsmansBaseCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+            var craftsmansBaseCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     thermalProcess,
                     player,
                     CastSource.SWORD
             );
             try (var ignored = ScrollcasterGauntletFreecastContext.open(player.getUUID(), gauntlet, thermalProcess)) {
                 var freecastEvent = new SpellCooldownAddedEvent.Pre(
-                        io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(thermalProcess, player, CastSource.SWORD),
+                        MagicManager.getEffectiveSpellCooldown(thermalProcess, player, CastSource.SWORD),
                         thermalProcess,
                         player,
                         CastSource.SWORD
@@ -3576,14 +3638,14 @@ public class ApprenticeCodexGameTestScenarios {
             var artisanSmash = SpellRegistry.ARTISAN_SMASH.get();
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 0, createSpellScroll(artisanSmash));
             magicData.setPlayerCastingItem(gauntlet.copy());
-            var artisanBaseCooldown = jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
+            var artisanBaseCooldown = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(
                     artisanSmash,
                     player,
                     CastSource.SWORD
             );
             try (var ignored = ScrollcasterGauntletFreecastContext.open(player.getUUID(), gauntlet, artisanSmash)) {
                 var freecastEvent = new SpellCooldownAddedEvent.Pre(
-                        io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(artisanSmash, player, CastSource.SWORD),
+                        MagicManager.getEffectiveSpellCooldown(artisanSmash, player, CastSource.SWORD),
                         artisanSmash,
                         player,
                         CastSource.SWORD
@@ -3604,7 +3666,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static void scrollcasterGauntletEpicFightMirroredOffhandSwingcastUsesMainhand(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            if (!ModList.get().isLoaded(jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat.MOD_ID)) {
+            if (!ModList.get().isLoaded(EpicFightCompat.MOD_ID)) {
                 return;
             }
 
@@ -3628,30 +3690,30 @@ public class ApprenticeCodexGameTestScenarios {
             magicData.setMana(1000.0F);
 
             helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightScrollcasterGauntletOffhandBridge
+                    EpicFightScrollcasterGauntletOffhandBridge
                             .shouldMirrorMainhand(player, InteractionHand.OFF_HAND),
                     "Epic Fight mirrored offhand state should resolve from a mainhand Gauntlet and empty offhand"
             );
-            var resolvedHand = jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSwingMagicCompat
+            var resolvedHand = EpicFightSwingMagicCompat
                     .resolveSwingMagicTriggerHand(player, InteractionHand.OFF_HAND);
             helper.assertTrue(resolvedHand == InteractionHand.MAIN_HAND,
                     "Epic Fight mirrored offhand swing should use the mainhand Gauntlet but resolved " + resolvedHand);
 
             helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSwingMagicCompat
+                    EpicFightSwingMagicCompat
                             .triggerSwingMagicFromAttackPhase(player, InteractionHand.OFF_HAND, -1, 0),
                     "Epic Fight mirrored offhand attack should trigger the mainhand Gauntlet Swingcast"
             );
             helper.assertTrue(ItemStack.isSameItemSameTags(magicData.getPlayerCastingItem(), gauntlet),
                     "Epic Fight mirrored Gauntlet Swingcast should cast with the mainhand Gauntlet stack");
-            helper.assertTrue(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND.equals(magicData.getCastingEquipmentSlot()),
+            helper.assertTrue(SpellSelectionManager.MAINHAND.equals(magicData.getCastingEquipmentSlot()),
                     "Epic Fight mirrored Gauntlet Swingcast should mark the mainhand casting slot");
         });
     }
 
     static void scrollcasterGauntletEpicFightFallbackIgnoresUnadjustedGauntlet(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            if (!ModList.get().isLoaded(jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat.MOD_ID)) {
+            if (!ModList.get().isLoaded(EpicFightCompat.MOD_ID)) {
                 return;
             }
 
@@ -3662,7 +3724,7 @@ public class ApprenticeCodexGameTestScenarios {
             player.setItemInHand(InteractionHand.MAIN_HAND, gauntlet);
             player.setItemInHand(InteractionHand.OFF_HAND, fallbackStaff);
 
-            var resolvedHand = jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSwingMagicCompat
+            var resolvedHand = EpicFightSwingMagicCompat
                     .resolveAvailableSwingMagicTriggerHand(player, InteractionHand.MAIN_HAND);
             helper.assertTrue(resolvedHand == InteractionHand.OFF_HAND,
                     "Epic Fight timed swing trigger should fall back from an unadjusted mainhand Gauntlet to the offhand Swingcast item but resolved "
@@ -3829,7 +3891,7 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(magicData != null,
                     "Revolvercast Staff cooldown failure test could not resolve player magic data");
             magicData.setMana(1000.0F);
-            io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, magicMissile, CastSource.SWORD);
+            MagicHelper.MAGIC_MANAGER.addCooldown(player, magicMissile, CastSource.SWORD);
 
             helper.assertFalse(((RevolvercastStaff) staff.getItem()).tryTriggerSpellOnSwing(player, InteractionHand.MAIN_HAND, true),
                     "Revolvercast Staff should fail to swing-cast a spell that is on cooldown");
@@ -3964,7 +4026,7 @@ public class ApprenticeCodexGameTestScenarios {
             var modifiers = staff.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
             assertSingleModifierAmount(
                     helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    modifiers.get(AttributeRegistry.SPELL_POWER.get()),
                     AttributeModifier.Operation.MULTIPLY_BASE,
                     0.10D,
                     "Revolvercast Staff general spell power modifier changed"
@@ -3977,20 +4039,20 @@ public class ApprenticeCodexGameTestScenarios {
             modifiers = staff.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
             assertSingleModifierAmount(
                     helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get()),
+                    modifiers.get(AttributeRegistry.FIRE_SPELL_POWER.get()),
                     AttributeModifier.Operation.MULTIPLY_BASE,
                     0.15D,
                     "Fire rune should add Revolvercast Staff fire spell power"
             );
             assertSingleModifierAmount(
                     helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    modifiers.get(AttributeRegistry.SPELL_POWER.get()),
                     AttributeModifier.Operation.MULTIPLY_BASE,
                     0.05D,
                     "Fire-tuned Revolvercast Staff should retain reduced general spell power"
             );
             helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
+                    SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
                     "Revolvercast Staff should reject Arcane Anvil spell imbuing"
             );
             var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
@@ -4029,7 +4091,7 @@ public class ApprenticeCodexGameTestScenarios {
             var creativePlayer = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
                     "scrollcaster_gauntlet_creative_block_attack_test");
 
-            creativePlayer.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+            creativePlayer.gameMode.changeGameModeForPlayer(GameType.CREATIVE);
 
             helper.assertTrue(gauntlet.getItem().canAttackBlock(state, helper.getLevel(), pos, survivalPlayer),
                     "Scrollcaster Gauntlet should keep normal block attacks outside creative mode");
@@ -4329,7 +4391,7 @@ public class ApprenticeCodexGameTestScenarios {
             var menu = new GrindstoneMenu(
                     0,
                     player.getInventory(),
-                    net.minecraft.world.inventory.ContainerLevelAccess.create(
+                    ContainerLevelAccess.create(
                             helper.getLevel(),
                             helper.absolutePos(grindstonePos)
                     )
@@ -4378,7 +4440,7 @@ public class ApprenticeCodexGameTestScenarios {
 
             var schoolOrder = new LinkedHashMap<ResourceLocation, Integer>();
             var orderIndex = 0;
-            for (var schoolType : io.redspace.ironsspellbooks.api.registry.SchoolRegistry.REGISTRY.get().getValues()) {
+            for (var schoolType : SchoolRegistry.REGISTRY.get().getValues()) {
                 schoolOrder.putIfAbsent(schoolType.getId(), orderIndex++);
             }
 
@@ -4406,7 +4468,7 @@ public class ApprenticeCodexGameTestScenarios {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "zenith_staff_power_test");
             player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(ItemRegistry.ZENITH_STAFF.get()));
 
-            var firePowerAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get());
+            var firePowerAttribute = player.getAttribute(AttributeRegistry.FIRE_SPELL_POWER.get());
             helper.assertTrue(firePowerAttribute != null, "Zenith Staff test player is missing fire spell power attribute");
             firePowerAttribute.addTransientModifier(new AttributeModifier(
                     ZENITH_STAFF_SCHOOL_POWER_TEST_MODIFIER_ID,
@@ -4527,7 +4589,7 @@ public class ApprenticeCodexGameTestScenarios {
                         player,
                         magicData,
                         mysticShieldSpell,
-                        jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter
+                        ProtectionSpellSupporter
                                 .applyManaCostDiscount(mysticShieldSpell.getManaCost(1), player),
                         "ProtectionSpellSupporter Mystic Shield"
                 );
@@ -4666,7 +4728,7 @@ public class ApprenticeCodexGameTestScenarios {
     static void nonLootableApprenticeSpellsAreExcludedFromDefaultSpellFilter(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var blockedSpells = getNonLootableApprenticeSpells();
-            var defaultSpellFilter = new io.redspace.ironsspellbooks.loot.SpellFilter();
+            var defaultSpellFilter = new SpellFilter();
             var applicableSpells = defaultSpellFilter.getApplicableSpells();
 
             for (var blockedSpell : blockedSpells) {
@@ -4690,7 +4752,7 @@ public class ApprenticeCodexGameTestScenarios {
     static void isekaiTravelGuidebookStartsWithTwoFixedSpellsAndNoAttributes(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.ISEKAI_TRAVEL_GUIDEBOOK.get());
-            var item = (io.redspace.ironsspellbooks.item.UniqueSpellBook) stack.getItem();
+            var item = (UniqueSpellBook) stack.getItem();
             item.initializeSpellContainer(stack);
 
             helper.assertTrue(ISpellContainer.isSpellContainer(stack),
@@ -4703,18 +4765,18 @@ public class ApprenticeCodexGameTestScenarios {
 
             var firstSpell = spellContainer.getSpellAtIndex(0);
             var secondSpell = spellContainer.getSpellAtIndex(1);
-            helper.assertTrue(firstSpell != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
+            helper.assertTrue(firstSpell != SpellData.EMPTY,
                     "Isekai Travel Guidebook first spell is empty");
-            helper.assertTrue(secondSpell != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
+            helper.assertTrue(secondSpell != SpellData.EMPTY,
                     "Isekai Travel Guidebook second spell is empty");
             helper.assertTrue(firstSpell.getSpell() == SpellRegistry.HEALING_BLOOM.get(),
                     "Isekai Travel Guidebook first spell mismatch: " + firstSpell.getSpell().getSpellResource());
             helper.assertTrue(secondSpell.getSpell() == SpellRegistry.COMPANION_TRUNK.get(),
                     "Isekai Travel Guidebook second spell mismatch: " + secondSpell.getSpell().getSpellResource());
 
-            var pig = helper.spawn(net.minecraft.world.entity.EntityType.PIG, new BlockPos(0, 2, 0));
-            var slotContext = new top.theillusivec4.curios.api.SlotContext(
-                    io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
+            var pig = helper.spawn(EntityType.PIG, new BlockPos(0, 2, 0));
+            var slotContext = new SlotContext(
+                    Curios.SPELLBOOK_SLOT,
                     pig,
                     0,
                     false,
@@ -4746,7 +4808,7 @@ public class ApprenticeCodexGameTestScenarios {
                     item,
                     slotContext,
                     stack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get(),
+                    AttributeRegistry.MAX_MANA.get(),
                     expected.maxMana(),
                     AttributeModifier.Operation.ADDITION,
                     "Spell-stained Runic Tablet max mana default config mismatch"
@@ -4756,7 +4818,7 @@ public class ApprenticeCodexGameTestScenarios {
                     item,
                     slotContext,
                     stack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get(),
+                    AttributeRegistry.SPELL_POWER.get(),
                     expected.generalSpellPower(),
                     AttributeModifier.Operation.MULTIPLY_BASE,
                     "Spell-stained Runic Tablet general spell power default config mismatch"
@@ -4766,7 +4828,7 @@ public class ApprenticeCodexGameTestScenarios {
                     item,
                     slotContext,
                     stack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get(),
+                    AttributeRegistry.COOLDOWN_REDUCTION.get(),
                     expected.cooldownReduction(),
                     AttributeModifier.Operation.MULTIPLY_BASE,
                     "Spell-stained Runic Tablet cooldown reduction default config mismatch"
@@ -4776,7 +4838,7 @@ public class ApprenticeCodexGameTestScenarios {
                     item,
                     slotContext,
                     stack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get(),
+                    AttributeRegistry.CAST_TIME_REDUCTION.get(),
                     expected.castTimeReduction(),
                     AttributeModifier.Operation.MULTIPLY_BASE,
                     "Spell-stained Runic Tablet cast time reduction should not start below duplicate threshold"
@@ -4821,7 +4883,7 @@ public class ApprenticeCodexGameTestScenarios {
                         item,
                         slotContext,
                         stack,
-                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get(),
+                        AttributeRegistry.MAX_MANA.get(),
                         -2.0D,
                         AttributeModifier.Operation.ADDITION,
                         "Spell-stained Runic Tablet negative max mana config mismatch"
@@ -4831,7 +4893,7 @@ public class ApprenticeCodexGameTestScenarios {
                         item,
                         slotContext,
                         stack,
-                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get(),
+                        AttributeRegistry.SPELL_POWER.get(),
                         -0.08D,
                         AttributeModifier.Operation.MULTIPLY_BASE,
                         "Spell-stained Runic Tablet negative general spell power config mismatch"
@@ -4841,7 +4903,7 @@ public class ApprenticeCodexGameTestScenarios {
                         item,
                         slotContext,
                         stack,
-                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.COOLDOWN_REDUCTION.get(),
+                        AttributeRegistry.COOLDOWN_REDUCTION.get(),
                         -0.25D,
                         AttributeModifier.Operation.MULTIPLY_BASE,
                         "Spell-stained Runic Tablet negative cooldown reduction config mismatch"
@@ -4851,7 +4913,7 @@ public class ApprenticeCodexGameTestScenarios {
                         item,
                         slotContext,
                         stack,
-                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get(),
+                        AttributeRegistry.CAST_TIME_REDUCTION.get(),
                         -0.50D,
                         AttributeModifier.Operation.MULTIPLY_BASE,
                         "Spell-stained Runic Tablet negative cast time reduction config mismatch"
@@ -4926,7 +4988,7 @@ public class ApprenticeCodexGameTestScenarios {
             var expectedUpgradeData = createUpgradeData(
                     helper.getLevel().registryAccess(),
                     explorersCodexStack,
-                    io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.MANA,
+                    UpgradeOrbTypeRegistry.MANA,
                     EquipmentSlot.OFFHAND.getName()
             );
             EnchantmentHelper.setEnchantments(Map.of(Enchantments.UNBREAKING, 1), explorersCodexStack);
@@ -5149,7 +5211,7 @@ public class ApprenticeCodexGameTestScenarios {
 
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "archivists_grimoire_locked_slot_test");
             player.setItemInHand(InteractionHand.MAIN_HAND, grimoireStack);
-            var menu = new jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoireMenu(
+            var menu = new ArchivistsGrimoireMenu(
                     0,
                     player.getInventory(),
                     InteractionHand.MAIN_HAND
@@ -5279,7 +5341,7 @@ public class ApprenticeCodexGameTestScenarios {
             var grimoireStack = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
             var spellbookTag = TagKey.create(
                     Registries.ITEM,
-                    ResourceLocation.fromNamespaceAndPath("curios", io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT)
+                    ResourceLocation.fromNamespaceAndPath("curios", Curios.SPELLBOOK_SLOT)
             );
             helper.assertTrue(grimoireStack.is(spellbookTag),
                     "Archivist's Grimoire should be tagged for the Curios spellbook slot");
@@ -5287,9 +5349,9 @@ public class ApprenticeCodexGameTestScenarios {
                     "Archivist's Grimoire should remain upgradeable via explicit whitelist entry");
 
             var item = (ArchivistsGrimoire) ItemRegistry.ARCHIVISTS_GRIMOIRE.get();
-            var slotContext = new top.theillusivec4.curios.api.SlotContext(
-                    io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
-                    helper.spawn(net.minecraft.world.entity.EntityType.PIG, new BlockPos(0, 2, 0)),
+            var slotContext = new SlotContext(
+                    Curios.SPELLBOOK_SLOT,
+                    helper.spawn(EntityType.PIG, new BlockPos(0, 2, 0)),
                     0,
                     false,
                     true
@@ -5299,15 +5361,15 @@ public class ApprenticeCodexGameTestScenarios {
                     item,
                     slotContext,
                     grimoireStack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get(),
+                    AttributeRegistry.MAX_MANA.get(),
                     200.0D,
                     AttributeModifier.Operation.ADDITION,
                     "Archivist's Grimoire spellbook-slot max mana bonus regression"
             );
 
-            var wrongSlotContext = new top.theillusivec4.curios.api.SlotContext(
+            var wrongSlotContext = new SlotContext(
                     CuriosSlotConstants.CHARM,
-                    helper.spawn(net.minecraft.world.entity.EntityType.PIG, new BlockPos(0, 2, 1)),
+                    helper.spawn(EntityType.PIG, new BlockPos(0, 2, 1)),
                     0,
                     false,
                     true
@@ -5317,7 +5379,7 @@ public class ApprenticeCodexGameTestScenarios {
                     item,
                     wrongSlotContext,
                     grimoireStack,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get(),
+                    AttributeRegistry.MAX_MANA.get(),
                     0.0D,
                     AttributeModifier.Operation.ADDITION,
                     "Archivist's Grimoire should not add spellbook max mana outside the spellbook slot"
@@ -5341,10 +5403,10 @@ public class ApprenticeCodexGameTestScenarios {
             ArchivistsGrimoire.setSelectedRow(grimoireStack, 3);
 
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "archivists_grimoire_selection_test");
-            equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT, grimoireStack);
+            equipCurio(player, Curios.SPELLBOOK_SLOT, grimoireStack);
 
-            var manager = new io.redspace.ironsspellbooks.api.magic.SpellSelectionManager(player);
-            var spellbookOptions = manager.getSpellsForSlot(io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT);
+            var manager = new SpellSelectionManager(player);
+            var spellbookOptions = manager.getSpellsForSlot(Curios.SPELLBOOK_SLOT);
             helper.assertTrue(spellbookOptions.size() == 2,
                     "Archivist's Grimoire should expose exactly the two spells in the selected row but got " + spellbookOptions.size());
             helper.assertTrue(spellbookOptions.stream().anyMatch(option ->
@@ -5603,7 +5665,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static void multicastEchoStaffCreativeCastSkipsFinalCooldown(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multicast_echo_staff_creative_cooldown_test");
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+        player.gameMode.changeGameModeForPlayer(GameType.CREATIVE);
         var staffStack = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
         var spell = SpellRegistry.SHOCK.get();
         var spellLevel = 1;
@@ -5623,12 +5685,12 @@ public class ApprenticeCodexGameTestScenarios {
                 MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player))
         );
         helper.runAtTickTime(4, () -> {
-            var originalCreativeCooldown = io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.get();
+            var originalCreativeCooldown = ServerConfigs.CREATIVE_COOLDOWN.get();
             try {
-                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(false);
+                ServerConfigs.CREATIVE_COOLDOWN.set(false);
                 MulticastEchoStaffCastHelper.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
             } finally {
-                io.redspace.ironsspellbooks.config.ServerConfigs.CREATIVE_COOLDOWN.set(originalCreativeCooldown);
+                ServerConfigs.CREATIVE_COOLDOWN.set(originalCreativeCooldown);
             }
             var magicData = MagicData.getPlayerMagicData(player);
             helper.assertFalse(magicData.getPlayerCooldowns().isOnCooldown(spell),
@@ -5831,7 +5893,7 @@ public class ApprenticeCodexGameTestScenarios {
         var manaCost = spell.getManaCost(spellLevel);
         var initialMana = manaCost * 3.0F;
         player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
-        var maxMana = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get());
+        var maxMana = player.getAttribute(AttributeRegistry.MAX_MANA.get());
         if (maxMana != null) {
             maxMana.setBaseValue(initialMana);
         }
@@ -5890,7 +5952,7 @@ public class ApprenticeCodexGameTestScenarios {
         var manaCost = spell.getManaCost(spellLevel);
         var initialMana = manaCost * 3.0F;
         player.setItemInHand(InteractionHand.MAIN_HAND, staffStack);
-        var maxMana = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get());
+        var maxMana = player.getAttribute(AttributeRegistry.MAX_MANA.get());
         if (maxMana != null) {
             maxMana.setBaseValue(initialMana);
         }
@@ -6263,7 +6325,7 @@ public class ApprenticeCodexGameTestScenarios {
                 spellLevel,
                 spell.getEffectiveCastTime(spellLevel, player),
                 CastSource.SPELLBOOK,
-                io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+                SpellSelectionManager.MAINHAND
         );
         magicData.setPlayerCastingItem(staffStack);
         spell.onServerPreCast(level, spellLevel, player, magicData);
@@ -6328,12 +6390,12 @@ public class ApprenticeCodexGameTestScenarios {
 
         var magicData = MagicData.getPlayerMagicData(player);
         helper.assertTrue(magicData != null, "Circuit Heat Staff config test could not resolve player mana data");
-        io.redspace.ironsspellbooks.api.magic.MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, CastSource.SPELLBOOK);
+        MagicHelper.MAGIC_MANAGER.addCooldown(player, spell, CastSource.SPELLBOOK);
         return new CircuitHeatStaffBypassTestContext(player, staffStack, magicData, spell);
     }
 
     static void postCircuitHeatStaffSpellOnCastEvent(CircuitHeatStaffBypassTestContext context, int manaCost) {
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new SpellOnCastEvent(
+        MinecraftForge.EVENT_BUS.post(new SpellOnCastEvent(
                 context.player(),
                 context.spell().getSpellId(),
                 1,
@@ -6425,7 +6487,7 @@ public class ApprenticeCodexGameTestScenarios {
 
         helper.runAtTickTime(1, () -> helper.setBlock(relativeAnchorPos.below(), Blocks.AIR));
         helper.runAtTickTime(3, () -> {
-            var blooms = level.getEntitiesOfClass(HealingBloomEntity.class, new net.minecraft.world.phys.AABB(anchorPos).inflate(1.5));
+            var blooms = level.getEntitiesOfClass(HealingBloomEntity.class, new AABB(anchorPos).inflate(1.5));
             helper.assertTrue(!blooms.isEmpty(),
                     "Healing Bloom should remain as a dead entity for a short time instead of silently disappearing when its root is lost");
             helper.assertTrue(blooms.stream().allMatch(entity -> !entity.isAlive() || entity.isDeadOrDying()),
@@ -6736,7 +6798,7 @@ public class ApprenticeCodexGameTestScenarios {
             var recast = magicData.getPlayerRecasts().getRecastInstance(spell.getSpellId());
             helper.assertTrue(recast != null, "Archer Multiple should create a recast instance on initial cast");
             magicData.getPlayerRecasts().removeRecast(recast,
-                    io.redspace.ironsspellbooks.capabilities.magic.RecastResult.TIMEOUT);
+                    RecastResult.TIMEOUT);
 
             helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(spell),
                     "Archer Multiple timeout should remove the active recast");
@@ -6777,7 +6839,7 @@ public class ApprenticeCodexGameTestScenarios {
             // Iron'sのSummonManagerはCOUNTERSPELL時にrecastを復元するが、Archer Multipleは
             // 小型で個別解除が困難な4本を一括解除できる対抗手段として、意図的に保護対象外とする。
             magicData.getPlayerRecasts().removeRecast(recast,
-                    io.redspace.ironsspellbooks.capabilities.magic.RecastResult.COUNTERSPELL);
+                    RecastResult.COUNTERSPELL);
 
             helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(spell),
                     "Archer Multiple should intentionally consume its recast instead of restoring it like SummonManager summons");
@@ -6842,7 +6904,7 @@ public class ApprenticeCodexGameTestScenarios {
         var spell = SpellRegistry.ARCHER_MULTIPLE.get();
         var magicData = MagicData.getPlayerMagicData(player);
 
-        var removalStarted = new java.util.concurrent.atomic.AtomicBoolean(false);
+        var removalStarted = new AtomicBoolean(false);
 
         helper.runAtTickTime(1, () -> castArcherMultiple(helper, player, 1));
         helper.succeedWhen(() -> {
@@ -6850,7 +6912,7 @@ public class ApprenticeCodexGameTestScenarios {
                 var bows = getOwnedArcherMultipleBows(helper, player);
                 helper.assertTrue(bows.size() == 4,
                         "Archer Multiple should summon all bows before the removal test starts");
-                bows.forEach(bow -> bow.remove(net.minecraft.world.entity.Entity.RemovalReason.DISCARDED));
+                bows.forEach(bow -> bow.remove(Entity.RemovalReason.DISCARDED));
                 removalStarted.set(true);
             }
             helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(spell),
@@ -7438,7 +7500,7 @@ public class ApprenticeCodexGameTestScenarios {
             int invulnerableTicks = supported ? 20 : 15;
             int activeTicks = supported ? 22 : 25;
             var expectedTooltip = Component.translatable("ui.irons_spellbooks.effect_length",
-                    io.redspace.ironsspellbooks.api.util.Utils.timeFromTicks(invulnerableTicks, 1));
+                    Utils.timeFromTicks(invulnerableTicks, 1));
             helper.assertTrue(spell.getUniqueInfo(1, player).get(0).equals(expectedTooltip),
                     "MirageAvoidance tooltip must show the equipped invulnerability duration");
             var manaEvent = new SpellOnCastEvent(player, spell.getSpellId(), 1, spell.getManaCost(1),
@@ -7901,7 +7963,7 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     private static AutoTurretEntity getSingleLivingAutoTurret(GameTestHelper helper, FakePlayer owner) {
-        var turrets = new java.util.ArrayList<AutoTurretEntity>();
+        var turrets = new ArrayList<AutoTurretEntity>();
         for (var entity : helper.getLevel().getAllEntities()) {
             if (entity instanceof AutoTurretEntity turret
                     && turret.isAlive()
@@ -8031,7 +8093,7 @@ public class ApprenticeCodexGameTestScenarios {
         var staff = createDurationBoundFieldOverseer(helper, owner, 1, anchorPos, 200);
         var savedStaff = new CompoundTag();
         staff.saveWithoutId(savedStaff);
-        staff.remove(net.minecraft.world.entity.Entity.RemovalReason.UNLOADED_TO_CHUNK);
+        staff.remove(Entity.RemovalReason.UNLOADED_TO_CHUNK);
 
         FieldOverseerManager.cancel(owner);
         var magicData = MagicData.getPlayerMagicData(owner);
@@ -8054,7 +8116,7 @@ public class ApprenticeCodexGameTestScenarios {
         var staff = createDurationBoundFieldOverseer(helper, owner, 1, anchorPos, 200);
         var magicData = MagicData.getPlayerMagicData(owner);
 
-        staff.remove(net.minecraft.world.entity.Entity.RemovalReason.KILLED);
+        staff.remove(Entity.RemovalReason.KILLED);
 
         helper.assertFalse(magicData.getPlayerRecasts().hasRecastForSpell(SpellRegistry.FIELD_OVERSEER.get()),
                 "Destroying FieldOverseer should remove its matching recast");
@@ -8244,7 +8306,7 @@ public class ApprenticeCodexGameTestScenarios {
             var recast = magicData.getPlayerRecasts().getRecastInstance(SpellRegistry.TOTEM_OF_PERMAFROST.get().getSpellId());
             helper.assertTrue(recast != null, "TotemOfPermafrost should have active recast data before timeout");
 
-            magicData.getPlayerRecasts().removeRecast(recast, io.redspace.ironsspellbooks.capabilities.magic.RecastResult.TIMEOUT);
+            magicData.getPlayerRecasts().removeRecast(recast, RecastResult.TIMEOUT);
 
             helper.assertTrue(getOwnedTotemOfPermafrost(helper, owner).isEmpty(),
                     "TotemOfPermafrost timeout should remove the placed totem");
@@ -8264,7 +8326,7 @@ public class ApprenticeCodexGameTestScenarios {
             var recast = magicData.getPlayerRecasts().getRecastInstance(spell.getSpellId());
             helper.assertTrue(recast != null, "TotemOfPermafrost should have active recast data before talisman timeout");
 
-            magicData.getPlayerRecasts().removeRecast(recast, io.redspace.ironsspellbooks.capabilities.magic.RecastResult.TIMEOUT);
+            magicData.getPlayerRecasts().removeRecast(recast, RecastResult.TIMEOUT);
 
             helper.assertTrue(getOwnedTotemOfPermafrost(helper, owner).isEmpty(),
                     "TotemOfPermafrost talisman timeout should still remove the placed totem");
@@ -8383,7 +8445,7 @@ public class ApprenticeCodexGameTestScenarios {
             var method = TotemOfPermafrostTotemEntity.class.getDeclaredMethod(
                     "pulse",
                     ServerLevel.class,
-                    net.minecraft.world.entity.LivingEntity.class
+                    LivingEntity.class
             );
             method.setAccessible(true);
             method.invoke(totem, helper.getLevel(), owner);
@@ -8425,8 +8487,8 @@ public class ApprenticeCodexGameTestScenarios {
         spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, magicData);
     }
 
-    private static java.util.List<TotemOfPermafrostTotemEntity> getOwnedTotemOfPermafrost(GameTestHelper helper, FakePlayer owner) {
-        var totems = new java.util.ArrayList<TotemOfPermafrostTotemEntity>();
+    private static List<TotemOfPermafrostTotemEntity> getOwnedTotemOfPermafrost(GameTestHelper helper, FakePlayer owner) {
+        var totems = new ArrayList<TotemOfPermafrostTotemEntity>();
         for (var entity : helper.getLevel().getAllEntities()) {
             if (entity instanceof TotemOfPermafrostTotemEntity totem
                     && totem.isAlive()
@@ -8662,7 +8724,7 @@ public class ApprenticeCodexGameTestScenarios {
                     spell.getSchoolType(),
                     CastSource.SPELLBOOK
             );
-            jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporterManaCostDiscountEvent.onSpellCast(manaEvent);
+            ProtectionSpellSupporterManaCostDiscountEvent.onSpellCast(manaEvent);
             var expectedManaCost = Math.max(1, Math.round(spell.getManaCost(1) * 0.5f));
             helper.assertTrue(manaEvent.getManaCost() == expectedManaCost,
                     "Protection Spell Supporter should halve Mystic Shield mana cost to "
@@ -8681,7 +8743,7 @@ public class ApprenticeCodexGameTestScenarios {
                 spellLevel,
                 spell.getEffectiveCastTime(spellLevel, player),
                 CastSource.SPELLBOOK,
-                io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+                SpellSelectionManager.MAINHAND
         );
         magicData.setPlayerCastingItem(new ItemStack(Items.STICK));
         spell.onCast(level, spellLevel, player, CastSource.SPELLBOOK, magicData);
@@ -8705,7 +8767,7 @@ public class ApprenticeCodexGameTestScenarios {
                 spellLevel,
                 spell.getEffectiveCastTime(spellLevel, player),
                 CastSource.SPELLBOOK,
-                io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+                SpellSelectionManager.MAINHAND
         );
         magicData.setPlayerCastingItem(new ItemStack(Items.STICK));
         spell.onCast(level, spellLevel, player, CastSource.SPELLBOOK, magicData);
@@ -9112,7 +9174,7 @@ public class ApprenticeCodexGameTestScenarios {
             var linearBuildEvents = new AtomicInteger();
             helper.setBlock(new BlockPos(2, 3, 1), Blocks.WATER);
 
-            java.util.function.Consumer<BlockEvent.EntityPlaceEvent> cancelListener = event -> {
+            Consumer<BlockEvent.EntityPlaceEvent> cancelListener = event -> {
                 if (event.getEntity() == wizardlampPlayer
                         && event.getPlacedBlock().is(BlockRegistry.WIZARDLAMP_LANTERN.get())) {
                     wizardlampEvents.incrementAndGet();
@@ -9657,7 +9719,7 @@ public class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var targetPos = new BlockPos(5, 3, 2);
             var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 2), "linear_build_creative_test");
-            player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+            player.gameMode.changeGameModeForPlayer(GameType.CREATIVE);
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_PLANKS, 1));
             var trunkInventory = Capabilities.getCompanionTrunkInventoryOrNull(player);
             helper.assertTrue(trunkInventory != null, "Linear Build test could not resolve Companion Trunk inventory");
@@ -10281,7 +10343,7 @@ public class ApprenticeCodexGameTestScenarios {
                     "Spectral Wing cast should apply visual MagicMobEffect before removal");
 
             player.removeEffect(EffectRegistry.SPECTRAL_WING.get());
-            jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWingFlightEvent.onPlayerTick(
+            SpectralWingFlightEvent.onPlayerTick(
                     new TickEvent.PlayerTickEvent(TickEvent.Phase.START, player)
             );
 
@@ -10484,12 +10546,12 @@ public class ApprenticeCodexGameTestScenarios {
         cancelledProjectiles.addAll(grazingProjectiles.values());
         cancelledProjectiles.addAll(centerHitProjectiles.values());
         var impactCount = new AtomicInteger();
-        java.util.function.Consumer<ProjectileImpactEvent> impactListener = event -> {
+        Consumer<ProjectileImpactEvent> impactListener = event -> {
             if (cancelledProjectiles.contains(event.getProjectile())
                     && event.getRayTraceResult() instanceof BlockHitResult) {
                 impactCount.incrementAndGet();
                 // Forge 1.20.1 が維持する旧 MOD 向けの実キャンセル経路を検証する。
-                ((net.minecraftforge.eventbus.api.Event) event).setCanceled(true);
+                ((Event) event).setCanceled(true);
             }
         };
 
@@ -10530,7 +10592,7 @@ public class ApprenticeCodexGameTestScenarios {
         testedProjectiles.addAll(stopAtCurrentProjectiles.values());
         testedProjectiles.addAll(stopWithoutDamageProjectiles.values());
         var impactCount = new AtomicInteger();
-        java.util.function.Consumer<ProjectileImpactEvent> impactListener = event -> {
+        Consumer<ProjectileImpactEvent> impactListener = event -> {
             if (!(event.getRayTraceResult() instanceof BlockHitResult)) {
                 return;
             }
@@ -10783,14 +10845,14 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    static void assertAntiMagicDiscard(GameTestHelper helper, FakePlayer caster, net.minecraft.world.entity.Entity entity, String entityName) {
+    static void assertAntiMagicDiscard(GameTestHelper helper, FakePlayer caster, Entity entity, String entityName) {
         helper.assertTrue(entity instanceof AntiMagicSusceptible,
                 entityName + " should implement AntiMagicSusceptible");
         ((AntiMagicSusceptible) entity).onAntiMagic(MagicData.getPlayerMagicData(caster));
         helper.assertTrue(entity.isRemoved(), entityName + " should be discarded by anti-magic");
     }
 
-    static void assertHealthUnchanged(GameTestHelper helper, net.minecraft.world.entity.LivingEntity target, float expectedHealth, String message) {
+    static void assertHealthUnchanged(GameTestHelper helper, LivingEntity target, float expectedHealth, String message) {
         helper.assertTrue(Math.abs(target.getHealth() - expectedHealth) < 0.001F,
                 message + ": expected=" + expectedHealth + ", actual=" + target.getHealth());
     }
@@ -10816,7 +10878,7 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
-    static void spawnCounterspellTestEntity(GameTestHelper helper, net.minecraft.world.entity.Entity entity, Vec3 localPos) {
+    static void spawnCounterspellTestEntity(GameTestHelper helper, Entity entity, Vec3 localPos) {
         var absolutePos = helper.absoluteVec(localPos);
         entity.moveTo(absolutePos.x, absolutePos.y, absolutePos.z, 0.0F, 0.0F);
         entity.setDeltaMovement(Vec3.ZERO);
@@ -10926,7 +10988,7 @@ public class ApprenticeCodexGameTestScenarios {
         helper.succeedIf(() -> {
             var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(0, 2, 0));
             var effect = EffectRegistry.NOTCHED_FROZEN.get();
-            var modifier = effect.getAttributeModifiers().get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.ICE_MAGIC_RESIST.get());
+            var modifier = effect.getAttributeModifiers().get(AttributeRegistry.ICE_MAGIC_RESIST.get());
 
             helper.assertTrue(modifier == null, "Notched Frozen should not modify ice spell resistance while disabled");
 
@@ -10960,7 +11022,7 @@ public class ApprenticeCodexGameTestScenarios {
             playerTarget.setHealth(100.0F);
 
             InscribeIceBurst.burstFromDagger(level, directOrigin, owner, owner, 10.0F);
-            InscribeIceBurst.burstChain(level, chainOrigin, owner, owner, 5.0F, new java.util.HashSet<>());
+            InscribeIceBurst.burstChain(level, chainOrigin, owner, owner, 5.0F, new HashSet<>());
 
             var directLoss = 100.0F - directTarget.getHealth();
             var chainLoss = 100.0F - chainTarget.getHealth();
@@ -11255,7 +11317,7 @@ public class ApprenticeCodexGameTestScenarios {
     static void mistFormAppliesEffectAndFixedAttributes(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "mist_form_attribute_test");
-            var spell = (jp.aquafactory.apprenticecodex.spell.mistform.MistForm) SpellRegistry.MIST_FORM.get();
+            var spell = (MistForm) SpellRegistry.MIST_FORM.get();
             spell.onCast(helper.getLevel(), 1, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
 
             var instance = player.getEffect(EffectRegistry.MIST_FORM.get());
@@ -11268,21 +11330,21 @@ public class ApprenticeCodexGameTestScenarios {
             var effect = EffectRegistry.MIST_FORM.get();
             assertMistFormModifierAmount(helper, effect, Attributes.MOVEMENT_SPEED,
                     AttributeModifier.Operation.MULTIPLY_TOTAL,
-                    jp.aquafactory.apprenticecodex.effect.MistFormEffect.MOVEMENT_SPEED_BONUS,
+                    MistFormEffect.MOVEMENT_SPEED_BONUS,
                     "Mist Form should provide fixed movement speed");
-            assertMistFormModifierAmount(helper, effect, net.minecraftforge.common.ForgeMod.STEP_HEIGHT_ADDITION.get(),
+            assertMistFormModifierAmount(helper, effect, ForgeMod.STEP_HEIGHT_ADDITION.get(),
                     AttributeModifier.Operation.ADDITION,
-                    jp.aquafactory.apprenticecodex.effect.MistFormEffect.STEP_HEIGHT_ADDITION,
+                    MistFormEffect.STEP_HEIGHT_ADDITION,
                     "Mist Form should provide fixed step assist");
             assertMistFormModifierAmount(helper, effect,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_MAGIC_RESIST.get(),
+                    AttributeRegistry.FIRE_MAGIC_RESIST.get(),
                     AttributeModifier.Operation.ADDITION,
-                    jp.aquafactory.apprenticecodex.effect.MistFormEffect.SCHOOL_RESIST_WEAKNESS,
+                    MistFormEffect.SCHOOL_RESIST_WEAKNESS,
                     "Mist Form should provide fixed fire weakness");
             assertMistFormModifierAmount(helper, effect,
-                    io.redspace.ironsspellbooks.api.registry.AttributeRegistry.HOLY_MAGIC_RESIST.get(),
+                    AttributeRegistry.HOLY_MAGIC_RESIST.get(),
                     AttributeModifier.Operation.ADDITION,
-                    jp.aquafactory.apprenticecodex.effect.MistFormEffect.SCHOOL_RESIST_WEAKNESS,
+                    MistFormEffect.SCHOOL_RESIST_WEAKNESS,
                     "Mist Form should provide fixed holy weakness");
         });
     }
@@ -11327,7 +11389,7 @@ public class ApprenticeCodexGameTestScenarios {
             player.hurtMarked = false;
             player.setDeltaMovement(0.12D, -0.7D, -0.08D);
 
-            jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
+            MistFormEvents.onPlayerTick(
                     new TickEvent.PlayerTickEvent(TickEvent.Phase.START, player)
             );
 
@@ -11352,7 +11414,7 @@ public class ApprenticeCodexGameTestScenarios {
             placeAbsoluteFluidTestBasin(helper.getLevel(), waterSupportPos, Blocks.WATER.defaultBlockState());
             waterWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
             waterWalker.setDeltaMovement(0.1D, -0.2D, 0.0D);
-            jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
+            MistFormEvents.onPlayerTick(
                     new TickEvent.PlayerTickEvent(TickEvent.Phase.START, waterWalker)
             );
             helper.assertTrue(waterWalker.onGround() && waterWalker.getDeltaMovement().y == 0.0D,
@@ -11368,7 +11430,7 @@ public class ApprenticeCodexGameTestScenarios {
             sneakingWalker.setShiftKeyDown(true);
             sneakingWalker.setOnGround(false);
             sneakingWalker.setDeltaMovement(0.0D, -0.2D, 0.0D);
-            jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
+            MistFormEvents.onPlayerTick(
                     new TickEvent.PlayerTickEvent(TickEvent.Phase.START, sneakingWalker)
             );
             helper.assertFalse(sneakingWalker.onGround(),
@@ -11378,7 +11440,7 @@ public class ApprenticeCodexGameTestScenarios {
             placeAbsoluteFluidTestBasin(helper.getLevel(), lavaWalker.blockPosition().below(), Blocks.LAVA.defaultBlockState());
             lavaWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
             lavaWalker.setDeltaMovement(0.0D, -0.2D, 0.0D);
-            jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
+            MistFormEvents.onPlayerTick(
                     new TickEvent.PlayerTickEvent(TickEvent.Phase.START, lavaWalker)
             );
             helper.assertTrue(lavaWalker.onGround() && !lavaWalker.isInLava(),
@@ -11389,7 +11451,7 @@ public class ApprenticeCodexGameTestScenarios {
                     Blocks.WATER.defaultBlockState().setValue(LiquidBlock.LEVEL, 1));
             flowingWaterWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
             flowingWaterWalker.setDeltaMovement(0.1D, -0.2D, 0.0D);
-            jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
+            MistFormEvents.onPlayerTick(
                     new TickEvent.PlayerTickEvent(TickEvent.Phase.START, flowingWaterWalker)
             );
             helper.assertTrue(flowingWaterWalker.onGround()
@@ -11402,7 +11464,7 @@ public class ApprenticeCodexGameTestScenarios {
             placeAbsoluteFluidTestBasin(helper.getLevel(), swimmer.blockPosition(), Blocks.WATER.defaultBlockState());
             swimmer.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
             swimmer.setDeltaMovement(0.0D, 0.2D, 0.0D);
-            jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
+            MistFormEvents.onPlayerTick(
                     new TickEvent.PlayerTickEvent(TickEvent.Phase.START, swimmer)
             );
             helper.assertFalse(swimmer.onGround(),
@@ -11415,7 +11477,7 @@ public class ApprenticeCodexGameTestScenarios {
             placeAbsoluteFluidTestBasin(helper.getLevel(), cooldownWalker.blockPosition(), Blocks.WATER.defaultBlockState());
             cooldownWalker.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
             cooldownWalker.tickCount = 100;
-            helper.assertFalse(jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.canStandOnFluid(cooldownWalker),
+            helper.assertFalse(MistFormEvents.canStandOnFluid(cooldownWalker),
                     "Mist Form should disable liquid standing immediately after touching liquid");
 
             helper.getLevel().setBlock(cooldownWalker.blockPosition(), Blocks.AIR.defaultBlockState(), 3);
@@ -11424,10 +11486,10 @@ public class ApprenticeCodexGameTestScenarios {
             var cooldownSafePos = Vec3.atBottomCenterOf(cooldownWalker.blockPosition().above(2));
             cooldownWalker.setPos(cooldownSafePos.x, cooldownSafePos.y, cooldownSafePos.z);
             cooldownWalker.tickCount = 120;
-            helper.assertFalse(jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.canStandOnFluid(cooldownWalker),
+            helper.assertFalse(MistFormEvents.canStandOnFluid(cooldownWalker),
                     "Mist Form should keep liquid standing disabled for 20 ticks after leaving liquid");
             cooldownWalker.tickCount = 121;
-            helper.assertTrue(jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.canStandOnFluid(cooldownWalker),
+            helper.assertTrue(MistFormEvents.canStandOnFluid(cooldownWalker),
                     "Mist Form should re-enable liquid standing after the 20 tick liquid-contact delay");
             helper.succeed();
         });
@@ -11483,14 +11545,14 @@ public class ApprenticeCodexGameTestScenarios {
             helper.getLevel().setBlock(
                     waterloggedTrapdoorPos,
                     Blocks.OAK_TRAPDOOR.defaultBlockState()
-                            .setValue(net.minecraft.world.level.block.TrapDoorBlock.WATERLOGGED, true),
+                            .setValue(TrapDoorBlock.WATERLOGGED, true),
                     3
             );
             player.addEffect(new MobEffectInstance(EffectRegistry.MIST_FORM.get(), 200, 0, false, false, true));
             player.setDeltaMovement(0.0D, -0.2D, 0.0D);
 
             var yBeforeTick = player.getY();
-            jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents.onPlayerTick(
+            MistFormEvents.onPlayerTick(
                     new TickEvent.PlayerTickEvent(TickEvent.Phase.START, player)
             );
 
@@ -11541,7 +11603,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static void assertMistFormModifierAmount(
             GameTestHelper helper,
-            net.minecraft.world.effect.MobEffect effect,
+            MobEffect effect,
             Attribute attribute,
             AttributeModifier.Operation operation,
             double expectedAmount,
@@ -11611,14 +11673,14 @@ public class ApprenticeCodexGameTestScenarios {
     record MistFormMovementRestrictionSample(String name, BlockState state, Vec3 motionMultiplier) {
     }
 
-    static net.minecraft.world.entity.monster.Zombie createTargetingZombie(
+    static Zombie createTargetingZombie(
             GameTestHelper helper,
             BlockPos pos,
             Player target,
             String name
     ) {
         var level = helper.getLevel();
-        var zombie = new net.minecraft.world.entity.monster.Zombie(EntityType.ZOMBIE, level);
+        var zombie = new Zombie(EntityType.ZOMBIE, level);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         zombie.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         zombie.setCustomName(Component.literal(name));
@@ -11638,7 +11700,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static FakePlayer createHarvestMoonPlayer(GameTestHelper helper, BlockPos pos, ItemStack mainHandStack) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "harvest_moon_test"));
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         player.setItemInHand(InteractionHand.MAIN_HAND, mainHandStack.copy());
@@ -11647,7 +11709,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static FakePlayer createEquipmentTestPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         return player;
@@ -11679,7 +11741,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static FakePlayer createEquipmentTestPlayer(ServerLevel level, BlockPos absolutePos, String profileName) {
         var player = new FakePlayer(level, new GameProfile(UUID.randomUUID(), profileName));
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var absoluteVec = Vec3.atBottomCenterOf(absolutePos);
         player.setPos(absoluteVec.x, absoluteVec.y, absoluteVec.z);
         return player;
@@ -11756,13 +11818,13 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static void equipCurio(FakePlayer player, String slotId, ItemStack stack) {
-        var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+        var curiosInventory = CuriosApi.getCuriosInventory(player)
                 .orElseThrow(() -> new IllegalStateException("Missing curios inventory for curio equip test"));
         curiosInventory.setEquippedCurio(slotId, 0, stack);
     }
 
     static void assertManaShieldCharmEquipped(GameTestHelper helper, ServerPlayer player, String context) {
-        var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+        var curiosInventory = CuriosApi.getCuriosInventory(player)
                 .orElseThrow(() -> new IllegalStateException("Missing curios inventory for Mana Shield Charm " + context + " test"));
         helper.assertTrue(curiosInventory.isEquipped(ItemRegistry.MANA_SHIELD_CHARM.get()),
                 "Mana Shield Charm should be recognized as equipped in Curios during " + context + " test");
@@ -11770,36 +11832,36 @@ public class ApprenticeCodexGameTestScenarios {
                 "Mana Shield Charm should be discoverable via findFirstCurio during " + context + " test");
     }
 
-    static net.minecraftforge.event.entity.living.LivingAttackEvent postLivingAttackEventForGameTest(
+    static LivingAttackEvent postLivingAttackEventForGameTest(
             ServerPlayer player,
-            net.minecraft.world.damagesource.DamageSource source,
+            DamageSource source,
             float amount
     ) {
-        var event = new net.minecraftforge.event.entity.living.LivingAttackEvent(player, source, amount);
+        var event = new LivingAttackEvent(player, source, amount);
         MinecraftForge.EVENT_BUS.post(event);
         return event;
     }
 
-    static net.minecraftforge.event.entity.living.LivingFallEvent postLivingFallEventForGameTest(
+    static LivingFallEvent postLivingFallEventForGameTest(
             ServerPlayer player,
             float distance,
             float damageMultiplier
     ) {
-        var event = new net.minecraftforge.event.entity.living.LivingFallEvent(player, distance, damageMultiplier);
+        var event = new LivingFallEvent(player, distance, damageMultiplier);
         MinecraftForge.EVENT_BUS.post(event);
         return event;
     }
 
     static void equipRingCurio(FakePlayer player, ItemStack ringStack) {
-        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.RING_SLOT, ringStack);
+        equipCurio(player, Curios.RING_SLOT, ringStack);
     }
 
     static void equipNecklaceCurio(FakePlayer player, ItemStack necklaceStack) {
-        equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, necklaceStack);
+        equipCurio(player, Curios.NECKLACE_SLOT, necklaceStack);
     }
 
     static void tickEquippedAbsorptionAmplifyAmulet(FakePlayer player) {
-        var slotResult = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+        var slotResult = CuriosApi.getCuriosInventory(player)
                 .resolve()
                 .flatMap(inventory -> inventory.findFirstCurio(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get()))
                 .orElseThrow(() -> new IllegalStateException("Missing equipped Absorption Amplify Amulet for GameTest"));
@@ -11815,10 +11877,10 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static ItemStack getEquippedAutocastAmulet(FakePlayer player) {
-        return top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+        return CuriosApi.getCuriosInventory(player)
                 .map(inventory -> inventory.findCurios(stack -> stack.getItem() instanceof AutocastAmulet).stream()
                         .findFirst()
-                        .map(top.theillusivec4.curios.api.SlotResult::stack)
+                        .map(SlotResult::stack)
                         .orElseThrow(() -> new IllegalStateException("Missing equipped Autocast Amulet for GameTest")))
                 .orElseThrow(() -> new IllegalStateException("Missing curios inventory for Autocast Amulet GameTest"));
     }
@@ -11849,7 +11911,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static void invokeTouchDigDestroyBlock(TouchDigSpell spell, Level level, BlockPos pos, Player player) {
         try {
-            var method = TouchDigSpell.class.getDeclaredMethod("doDestroyBlock", Level.class, BlockPos.class, net.minecraft.world.entity.LivingEntity.class);
+            var method = TouchDigSpell.class.getDeclaredMethod("doDestroyBlock", Level.class, BlockPos.class, LivingEntity.class);
             method.setAccessible(true);
             method.invoke(spell, level, pos, player);
         } catch (ReflectiveOperationException exception) {
@@ -11882,7 +11944,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static FakePlayer createAssistWingsPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         return player;
@@ -11896,7 +11958,7 @@ public class ApprenticeCodexGameTestScenarios {
         var connection = new Connection(PacketFlow.SERVERBOUND);
         new EmbeddedChannel(connection);
         new ServerGamePacketListenerImpl(server, connection, player);
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         return player;
@@ -11976,7 +12038,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static FakePlayer createExtractPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         return player;
@@ -11989,7 +12051,7 @@ public class ApprenticeCodexGameTestScenarios {
             String profileName
     ) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 2, 0)));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         player.setItemInHand(InteractionHand.MAIN_HAND, mainHandStack.copy());
@@ -12065,7 +12127,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static FakePlayer createSenseEvilPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         return player;
@@ -12073,14 +12135,14 @@ public class ApprenticeCodexGameTestScenarios {
 
     static FakePlayer createSenseEvilPlayer(ServerLevel level, BlockPos absolutePos, String profileName) {
         var player = new FakePlayer(level, new GameProfile(UUID.randomUUID(), profileName));
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var absoluteVec = Vec3.atBottomCenterOf(absolutePos);
         player.setPos(absoluteVec.x, absoluteVec.y, absoluteVec.z);
         level.addFreshEntity(player);
         return player;
     }
 
-    static net.minecraft.world.entity.LivingEntity spawnPositionedZombie(ServerLevel level, Vec3 targetCenter) {
+    static LivingEntity spawnPositionedZombie(ServerLevel level, Vec3 targetCenter) {
         forceLoadChunk(level, BlockPos.containing(targetCenter));
         var zombie = EntityType.ZOMBIE.create(level);
         if (zombie == null) {
@@ -12111,9 +12173,9 @@ public class ApprenticeCodexGameTestScenarios {
         level.getChunk(chunkX, chunkZ);
     }
 
-    static double getSenseEvilRange(SenseEvil spell, net.minecraft.world.entity.LivingEntity caster, int spellLevel) {
+    static double getSenseEvilRange(SenseEvil spell, LivingEntity caster, int spellLevel) {
         try {
-            var method = SenseEvil.class.getDeclaredMethod("getRange", int.class, net.minecraft.world.entity.LivingEntity.class);
+            var method = SenseEvil.class.getDeclaredMethod("getRange", int.class, LivingEntity.class);
             method.setAccessible(true);
             return (double) method.invoke(spell, spellLevel, caster);
         } catch (ReflectiveOperationException exception) {
@@ -12126,10 +12188,10 @@ public class ApprenticeCodexGameTestScenarios {
             SenseEvil spell,
             ServerLevel level,
             int spellLevel,
-            net.minecraft.world.entity.LivingEntity caster
+            LivingEntity caster
     ) {
         try {
-            var method = SenseEvil.class.getDeclaredMethod("collectHighlights", ServerLevel.class, int.class, net.minecraft.world.entity.LivingEntity.class);
+            var method = SenseEvil.class.getDeclaredMethod("collectHighlights", ServerLevel.class, int.class, LivingEntity.class);
             method.setAccessible(true);
             return (List<SenseEvilHighlightsPacket.TargetData>) method.invoke(spell, level, spellLevel, caster);
         } catch (ReflectiveOperationException exception) {
@@ -12151,7 +12213,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static FakePlayer createHealingBloomPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         return player;
@@ -12172,8 +12234,8 @@ public class ApprenticeCodexGameTestScenarios {
         spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, magicData);
     }
 
-    static java.util.List<HealingBloomEntity> getOwnedHealingBlooms(GameTestHelper helper, FakePlayer owner) {
-        var blooms = new java.util.ArrayList<HealingBloomEntity>();
+    static List<HealingBloomEntity> getOwnedHealingBlooms(GameTestHelper helper, FakePlayer owner) {
+        var blooms = new ArrayList<HealingBloomEntity>();
         for (var entity : helper.getLevel().getAllEntities()) {
             if (entity instanceof HealingBloomEntity bloom
                     && bloom.isAlive()
@@ -12198,7 +12260,7 @@ public class ApprenticeCodexGameTestScenarios {
     ) {
         helper.assertTrue(expected.getBowUuids().equals(actual.getBowUuids()),
                 "Archer Multiple " + transport + " should preserve bow UUIDs");
-        helper.assertTrue(java.util.Objects.equals(expected.getDimension(), actual.getDimension()),
+        helper.assertTrue(Objects.equals(expected.getDimension(), actual.getDimension()),
                 "Archer Multiple " + transport + " should preserve the summon dimension");
     }
 
@@ -12234,7 +12296,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static FakePlayer createArcherMultiplePlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         // 独自lifecycleがownerとrecastの整合性をlevel上でも検証するため、
@@ -12244,9 +12306,9 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static void equipGreaterConjurersTalisman(FakePlayer player) {
-        var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+        var curiosInventory = CuriosApi.getCuriosInventory(player)
                 .orElseThrow(() -> new IllegalStateException("Missing curios inventory for Greater Conjurer's Talisman test"));
-        curiosInventory.setEquippedCurio(io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, 0,
+        curiosInventory.setEquippedCurio(Curios.NECKLACE_SLOT, 0,
                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.GREATER_CONJURERS_TALISMAN.get()));
     }
 
@@ -12266,7 +12328,7 @@ public class ApprenticeCodexGameTestScenarios {
         );
     }
 
-    static <T extends jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity> List<T> getOwnedSummonWeapons(
+    static <T extends SummonWeaponEntity> List<T> getOwnedSummonWeapons(
             GameTestHelper helper,
             FakePlayer owner,
             Class<T> weaponType
@@ -12283,7 +12345,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static FakePlayer createCompanionTrunkPlayer(GameTestHelper helper, BlockPos pos) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "companion_trunk_test"));
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         return player;
@@ -12343,7 +12405,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static FakePlayer createPersonalShelfPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         // owner lookup と openers の close 対象探索が server 側の player list / level lookup を使うため、
@@ -12381,12 +12443,12 @@ public class ApprenticeCodexGameTestScenarios {
         spell.onCast(helper.getLevel(), spellLevel, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
     }
 
-    static jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity getSingleExtractProjectile(
+    static ExtractPotionProjectileEntity getSingleExtractProjectile(
             GameTestHelper helper,
             FakePlayer owner
     ) {
         var projectiles = helper.getLevel().getEntitiesOfClass(
-                jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity.class,
+                ExtractPotionProjectileEntity.class,
                 new AABB(owner.position(), owner.position()).inflate(16.0),
                 projectile -> projectile.getOwner() == owner
         );
@@ -12933,8 +12995,8 @@ public class ApprenticeCodexGameTestScenarios {
 
     static void assertCurioModifierAmount(
             GameTestHelper helper,
-            top.theillusivec4.curios.api.type.capability.ICurioItem item,
-            top.theillusivec4.curios.api.SlotContext slotContext,
+            ICurioItem item,
+            SlotContext slotContext,
             ItemStack stack,
             Attribute attribute,
             double expectedAmount,
@@ -12951,7 +13013,7 @@ public class ApprenticeCodexGameTestScenarios {
     static void assertSpellStainedRunicTabletSchoolPower(
             GameTestHelper helper,
             SpellStainedRunicTablet item,
-            top.theillusivec4.curios.api.SlotContext slotContext,
+            SlotContext slotContext,
             ItemStack stack,
             AbstractSpell spell,
             double expectedAmount
@@ -12970,7 +13032,7 @@ public class ApprenticeCodexGameTestScenarios {
     static void assertSpellStainedRunicTabletSchoolPower(
             GameTestHelper helper,
             SpellStainedRunicTablet item,
-            top.theillusivec4.curios.api.SlotContext slotContext,
+            SlotContext slotContext,
             ItemStack stack,
             AbstractSpell spell,
             double expectedAmount,
@@ -13130,7 +13192,7 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static List<EquippedArmorStack> findElementMaidenDynamicBonusTargets(Player player) {
-        var result = new java.util.ArrayList<EquippedArmorStack>();
+        var result = new ArrayList<EquippedArmorStack>();
         for (var slot : List.of(EquipmentSlot.CHEST, EquipmentSlot.HEAD, EquipmentSlot.LEGS, EquipmentSlot.FEET)) {
             var stack = player.getItemBySlot(slot);
             if (!stack.isEmpty() && stack.getItem() instanceof ElementMaidenRobeItem) {
@@ -13234,10 +13296,10 @@ public class ApprenticeCodexGameTestScenarios {
         return false;
     }
 
-    static top.theillusivec4.curios.api.SlotContext createSpellbookSlotContext(GameTestHelper helper) {
-        return new top.theillusivec4.curios.api.SlotContext(
-                io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
-                helper.spawn(net.minecraft.world.entity.EntityType.PIG, new BlockPos(0, 2, 0)),
+    static SlotContext createSpellbookSlotContext(GameTestHelper helper) {
+        return new SlotContext(
+                Curios.SPELLBOOK_SLOT,
+                helper.spawn(EntityType.PIG, new BlockPos(0, 2, 0)),
                 0,
                 false,
                 true
@@ -13274,15 +13336,15 @@ public class ApprenticeCodexGameTestScenarios {
     ) {
         var modifiers = stack.getAttributeModifiers(EquipmentSlot.MAINHAND);
         var globalSpellPower = sumModifierAmount(
-                modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                modifiers.get(AttributeRegistry.SPELL_POWER.get()),
                 AttributeModifier.Operation.MULTIPLY_BASE
         );
         var fireSpellPower = sumModifierAmount(
-                modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get()),
+                modifiers.get(AttributeRegistry.FIRE_SPELL_POWER.get()),
                 AttributeModifier.Operation.MULTIPLY_BASE
         );
         var iceSpellPower = sumModifierAmount(
-                modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.ICE_SPELL_POWER.get()),
+                modifiers.get(AttributeRegistry.ICE_SPELL_POWER.get()),
                 AttributeModifier.Operation.MULTIPLY_BASE
         );
 
@@ -13310,8 +13372,8 @@ public class ApprenticeCodexGameTestScenarios {
 
     static void assertCastingMoveSpeedModifierAmount(
             GameTestHelper helper,
-            net.minecraft.world.entity.ai.attributes.AttributeInstance attributeInstance,
-            @org.jetbrains.annotations.Nullable UUID excludedModifierId,
+            AttributeInstance attributeInstance,
+            @Nullable UUID excludedModifierId,
             double expectedAmount,
             String message
     ) {
@@ -13326,7 +13388,7 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static void assertUpgradeable(GameTestHelper helper, ItemStack stack, String message) {
-        helper.assertTrue(stack.is(io.redspace.ironsspellbooks.util.ModTags.CAN_BE_UPGRADED),
+        helper.assertTrue(stack.is(ModTags.CAN_BE_UPGRADED),
                 message + " (missing upgrade whitelist tag on " + ForgeRegistries.ITEMS.getKey(stack.getItem()) + ")");
         helper.assertTrue(Utils.canBeUpgraded(stack),
                 message + " (Utils.canBeUpgraded returned false for " + ForgeRegistries.ITEMS.getKey(stack.getItem()) + ")");
@@ -13335,45 +13397,45 @@ public class ApprenticeCodexGameTestScenarios {
     static UpgradeData createUpgradeData(
             RegistryAccess registryAccess,
             ItemStack stack,
-            net.minecraft.resources.ResourceKey<io.redspace.ironsspellbooks.item.armor.UpgradeOrbType> upgradeKey,
+            ResourceKey<UpgradeOrbType> upgradeKey,
             String slotName
     ) {
-        io.redspace.ironsspellbooks.api.backwards_compat.UpgradeTypeCache.doCache(registryAccess);
-        var upgradeRegistry = registryAccess.registryOrThrow(io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.UPGRADE_ORB_REGISTRY_KEY);
+        UpgradeTypeCache.doCache(registryAccess);
+        var upgradeRegistry = registryAccess.registryOrThrow(UpgradeOrbTypeRegistry.UPGRADE_ORB_REGISTRY_KEY);
         var upgradeHolder = upgradeRegistry.getHolder(upgradeKey)
                 .orElseThrow(() -> new IllegalStateException("Missing upgrade orb type: " + upgradeKey.location()));
-        var upgradeData = new UpgradeData(java.util.Map.of(upgradeHolder, 1), slotName);
+        var upgradeData = new UpgradeData(Map.of(upgradeHolder, 1), slotName);
         UpgradeData.set(stack, upgradeData);
         return upgradeData;
     }
 
     @Nullable
-    static net.minecraft.resources.ResourceKey<io.redspace.ironsspellbooks.item.armor.UpgradeOrbType> findUpgradeKeyForPowerAttribute(
+    static ResourceKey<UpgradeOrbType> findUpgradeKeyForPowerAttribute(
             Attribute spellPowerAttribute
     ) {
-        if (Objects.equals(spellPowerAttribute, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get())) {
-            return io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.FIRE_SPELL_POWER;
+        if (Objects.equals(spellPowerAttribute, AttributeRegistry.FIRE_SPELL_POWER.get())) {
+            return UpgradeOrbTypeRegistry.FIRE_SPELL_POWER;
         }
-        if (Objects.equals(spellPowerAttribute, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.ICE_SPELL_POWER.get())) {
-            return io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.ICE_SPELL_POWER;
+        if (Objects.equals(spellPowerAttribute, AttributeRegistry.ICE_SPELL_POWER.get())) {
+            return UpgradeOrbTypeRegistry.ICE_SPELL_POWER;
         }
-        if (Objects.equals(spellPowerAttribute, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.LIGHTNING_SPELL_POWER.get())) {
-            return io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.LIGHTNING_SPELL_POWER;
+        if (Objects.equals(spellPowerAttribute, AttributeRegistry.LIGHTNING_SPELL_POWER.get())) {
+            return UpgradeOrbTypeRegistry.LIGHTNING_SPELL_POWER;
         }
-        if (Objects.equals(spellPowerAttribute, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.HOLY_SPELL_POWER.get())) {
-            return io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.HOLY_SPELL_POWER;
+        if (Objects.equals(spellPowerAttribute, AttributeRegistry.HOLY_SPELL_POWER.get())) {
+            return UpgradeOrbTypeRegistry.HOLY_SPELL_POWER;
         }
-        if (Objects.equals(spellPowerAttribute, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.ENDER_SPELL_POWER.get())) {
-            return io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.ENDER_SPELL_POWER;
+        if (Objects.equals(spellPowerAttribute, AttributeRegistry.ENDER_SPELL_POWER.get())) {
+            return UpgradeOrbTypeRegistry.ENDER_SPELL_POWER;
         }
-        if (Objects.equals(spellPowerAttribute, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.BLOOD_SPELL_POWER.get())) {
-            return io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.BLOOD_SPELL_POWER;
+        if (Objects.equals(spellPowerAttribute, AttributeRegistry.BLOOD_SPELL_POWER.get())) {
+            return UpgradeOrbTypeRegistry.BLOOD_SPELL_POWER;
         }
-        if (Objects.equals(spellPowerAttribute, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.EVOCATION_SPELL_POWER.get())) {
-            return io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.EVOCATION_SPELL_POWER;
+        if (Objects.equals(spellPowerAttribute, AttributeRegistry.EVOCATION_SPELL_POWER.get())) {
+            return UpgradeOrbTypeRegistry.EVOCATION_SPELL_POWER;
         }
-        if (Objects.equals(spellPowerAttribute, io.redspace.ironsspellbooks.api.registry.AttributeRegistry.NATURE_SPELL_POWER.get())) {
-            return io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.NATURE_SPELL_POWER;
+        if (Objects.equals(spellPowerAttribute, AttributeRegistry.NATURE_SPELL_POWER.get())) {
+            return UpgradeOrbTypeRegistry.NATURE_SPELL_POWER;
         }
         return null;
     }
@@ -13425,7 +13487,7 @@ public class ApprenticeCodexGameTestScenarios {
     }
 
     static void postSpellOnCast(ServerPlayer player, AbstractSpell spell, int spellLevel) {
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new SpellOnCastEvent(
+        MinecraftForge.EVENT_BUS.post(new SpellOnCastEvent(
                 player,
                 spell.getSpellId(),
                 spellLevel,
@@ -13443,7 +13505,7 @@ public class ApprenticeCodexGameTestScenarios {
             double expectedAmount,
             String message
     ) {
-        var attribute = jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(spell.getSchoolType());
+        var attribute = MagicTools.resolveSchoolPowerAttribute(spell.getSchoolType());
         helper.assertTrue(attribute != null, "Could not resolve school spell power attribute for " + spell.getSpellId());
         var actualAmount = sumModifierAmount(
                 stack.getAttributeModifiers(slot).get(attribute),
@@ -13455,7 +13517,7 @@ public class ApprenticeCodexGameTestScenarios {
                         + ", modifiers=" + describeModifiers(stack.getAttributeModifiers(slot)));
     }
 
-    static String describeModifiers(com.google.common.collect.Multimap<Attribute, AttributeModifier> modifiers) {
+    static String describeModifiers(Multimap<Attribute, AttributeModifier> modifiers) {
         return modifiers.entries().stream()
                 .map(entry -> ForgeRegistries.ATTRIBUTES.getKey(entry.getKey()) + "="
                         + entry.getValue().getAmount() + "@" + entry.getValue().getOperation())
@@ -13465,8 +13527,8 @@ public class ApprenticeCodexGameTestScenarios {
     static void placeAndAssertBlockEntity(
             GameTestHelper helper,
             BlockPos pos,
-            net.minecraft.world.level.block.Block block,
-            net.minecraft.world.level.block.entity.BlockEntityType<?> expectedType
+            Block block,
+            BlockEntityType<?> expectedType
     ) {
         helper.setBlock(pos, block);
         helper.assertBlockPresent(block, pos);
@@ -13524,7 +13586,7 @@ public class ApprenticeCodexGameTestScenarios {
                 var storedFluidList = new ListTag();
                 var storedFluidTag = new CompoundTag();
                 var storedPotion = PotionUtils.setPotion(new ItemStack(Items.POTION),
-                        net.minecraft.world.item.alchemy.Potions.REGENERATION);
+                        Potions.REGENERATION);
                 storedFluidTag.put("Item", storedPotion.save(new CompoundTag()));
                 storedFluidTag.putInt("Amount", storedFluidAmount);
                 storedFluidList.add(storedFluidTag);
@@ -13535,7 +13597,7 @@ public class ApprenticeCodexGameTestScenarios {
             if (insertInventoryFlask) {
                 var flask = createFilledSpellcastersFlask(
                         PotionUtils.setPotion(new ItemStack(Items.POTION),
-                                net.minecraft.world.item.alchemy.Potions.REGENERATION),
+                                Potions.REGENERATION),
                         1,
                         0
                 );
@@ -13557,8 +13619,8 @@ public class ApprenticeCodexGameTestScenarios {
             GameTestHelper helper,
             RecipeManager recipeManager,
             ResourceLocation recipeId,
-            net.minecraft.world.item.crafting.RecipeSerializer<?> expectedSerializer,
-            net.minecraft.world.item.crafting.RecipeType<?> expectedType
+            RecipeSerializer<?> expectedSerializer,
+            RecipeType<?> expectedType
     ) {
         var recipe = recipeManager.byKey(recipeId).orElse(null);
         helper.assertTrue(recipe != null, "Missing recipe: " + recipeId);
@@ -13592,9 +13654,9 @@ public class ApprenticeCodexGameTestScenarios {
             String message
     ) {
         var recipe = recipeManager.byKey(recipeId).orElse(null);
-        helper.assertTrue(recipe instanceof net.minecraft.world.item.crafting.ShapedRecipe,
+        helper.assertTrue(recipe instanceof ShapedRecipe,
                 "Expected shaped recipe for " + recipeId);
-        if (!(recipe instanceof net.minecraft.world.item.crafting.ShapedRecipe shapedRecipe)) {
+        if (!(recipe instanceof ShapedRecipe shapedRecipe)) {
             return;
         }
 
@@ -13670,7 +13732,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static void assertVillageHouseTemplateLoadsWithRequiredBlocks(
             GameTestHelper helper,
-            net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager structureTemplateManager,
+            StructureTemplateManager structureTemplateManager,
             ResourceLocation structureId,
             ResourceLocation expectedVillagerPool,
             BlockPos expectedLootChestPos
@@ -13845,7 +13907,7 @@ public class ApprenticeCodexGameTestScenarios {
             ResourceLocation lootTableId,
             LootParams lootParams,
             int attempts,
-            java.util.function.Consumer<ItemStack> stackConsumer
+            Consumer<ItemStack> stackConsumer
     ) {
         var lootTable = helper.getLevel().getServer().getLootData().getLootTable(lootTableId);
         for (var i = 0; i < attempts; i++) {
@@ -13892,7 +13954,7 @@ public class ApprenticeCodexGameTestScenarios {
                 "Scrollcaster Gauntlet offhand use should cast through the offhand when main hand does not consume use but got "
                         + result.getResult());
         helper.assertTrue(magicData.isCasting(), "Scrollcaster Gauntlet offhand use should start casting");
-        helper.assertTrue(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.OFFHAND.equals(magicData.getCastingEquipmentSlot()),
+        helper.assertTrue(SpellSelectionManager.OFFHAND.equals(magicData.getCastingEquipmentSlot()),
                 "Scrollcaster Gauntlet offhand use should mark the offhand casting slot but got "
                         + magicData.getCastingEquipmentSlot());
         helper.assertTrue(ItemStack.isSameItemSameTags(magicData.getPlayerCastingItem(), gauntlet),
@@ -13916,7 +13978,7 @@ public class ApprenticeCodexGameTestScenarios {
         magicData.setMana(100.0F);
 
         var result = gauntlet.getItem().use(helper.getLevel(), player, InteractionHand.OFF_HAND);
-        helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.PASS,
+        helper.assertTrue(result.getResult() == InteractionResult.PASS,
                 "Scrollcaster Gauntlet offhand use should defer when main hand is a spell item but got "
                         + result.getResult());
         helper.assertFalse(magicData.isCasting(),
@@ -13981,17 +14043,17 @@ public class ApprenticeCodexGameTestScenarios {
         return spellData.getSpell();
     }
 
-    static ItemStack createInstantManaPotion(net.minecraft.world.item.alchemy.Potion potion) {
+    static ItemStack createInstantManaPotion(Potion potion) {
         return PotionUtils.setPotion(new ItemStack(Items.POTION), potion);
     }
 
-    static FluidStack createIronsManaPotionFluid(net.minecraft.world.item.alchemy.Potion potion, int amountMb) {
-        var fluid = io.redspace.ironsspellbooks.fluids.PotionFluid.from(PotionUtils.setPotion(new ItemStack(Items.POTION), potion));
+    static FluidStack createIronsManaPotionFluid(Potion potion, int amountMb) {
+        var fluid = PotionFluid.from(PotionUtils.setPotion(new ItemStack(Items.POTION), potion));
         fluid.setAmount(amountMb);
         return fluid;
     }
 
-    static FluidStack createCreateManaPotionFluid(net.minecraft.world.item.alchemy.Potion potion, int amountMb) {
+    static FluidStack createCreateManaPotionFluid(Potion potion, int amountMb) {
         var createPotion = ForgeRegistries.FLUIDS.getValue(ResourceLocation.fromNamespaceAndPath("create", "potion"));
         if (createPotion == null) {
             return FluidStack.EMPTY;
@@ -14006,7 +14068,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static void assertPotionEffect(
             GameTestHelper helper,
-            net.minecraft.world.item.alchemy.Potion potion,
+            Potion potion,
             String expectedPotionId,
             int expectedDuration,
             int expectedAmplifier
@@ -14088,7 +14150,7 @@ public class ApprenticeCodexGameTestScenarios {
         return new SpellCalibrationBenchMenu(
                 0,
                 player.getInventory(),
-                net.minecraft.world.inventory.ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos))
+                ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos))
         );
     }
 
@@ -14226,7 +14288,7 @@ public class ApprenticeCodexGameTestScenarios {
 
     static void fillSpellContainerToActiveCount(
             GameTestHelper helper,
-            io.redspace.ironsspellbooks.api.spells.ISpellContainerMutable mutable,
+            ISpellContainerMutable mutable,
             int targetActiveCount
     ) {
         for (var spell : io.redspace.ironsspellbooks.api.registry.SpellRegistry.getEnabledSpells()) {
@@ -14313,7 +14375,7 @@ public class ApprenticeCodexGameTestScenarios {
     static void runAutocastAmuletServerTick(FakePlayer player, int tickCount) {
         player.tickCount = tickCount;
         AutocastAmuletAutoCastEvent.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
-        jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletCastEvent.onPlayerTick(
+        AutocastAmuletCastEvent.onPlayerTick(
                 new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player)
         );
     }
@@ -14325,7 +14387,7 @@ public class ApprenticeCodexGameTestScenarios {
             int expectedLevel,
             String message
     ) {
-        helper.assertTrue(spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
+        helper.assertTrue(spellData != SpellData.EMPTY,
                 message + " (spell data is empty)");
         helper.assertTrue(spellData.getSpell() == expectedSpell,
                 message + " (spell mismatch: " + spellData.getSpell().getSpellResource() + ")");
@@ -14343,7 +14405,7 @@ public class ApprenticeCodexGameTestScenarios {
             String message
     ) {
         var spellData = spellContainer.getSpellAtIndex(index);
-        helper.assertTrue(spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
+        helper.assertTrue(spellData != SpellData.EMPTY,
                 message + " (spell slot is empty at index " + index + ")");
         helper.assertTrue(spellData.getSpell() == expectedSpell,
                 message + " (spell mismatch: " + spellData.getSpell().getSpellResource() + ")");

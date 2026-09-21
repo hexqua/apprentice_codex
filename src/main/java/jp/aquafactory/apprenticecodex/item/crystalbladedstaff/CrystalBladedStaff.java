@@ -15,14 +15,18 @@ import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -71,8 +75,8 @@ public class CrystalBladedStaff extends AbstractSwingMagicItem implements GeoIte
                 "CrystalBladedStaff",
                 ATTACK_DAMAGE,
                 ATTACK_SPEED,
-                bonus(net.minecraftforge.common.ForgeMod.ENTITY_REACH, ENTITY_REACH_BONUS, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADDITION, "entity_reach"),
-                bonus(AttributeRegistry.SPELL_POWER, SPELL_POWER_BONUS, net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.MULTIPLY_BASE, "spell_power")
+                bonus(ForgeMod.ENTITY_REACH, ENTITY_REACH_BONUS, AttributeModifier.Operation.ADDITION, "entity_reach"),
+                bonus(AttributeRegistry.SPELL_POWER, SPELL_POWER_BONUS, AttributeModifier.Operation.MULTIPLY_BASE, "spell_power")
         );
         GeoItem.registerSyncedAnimatable(this);
     }
@@ -85,7 +89,7 @@ public class CrystalBladedStaff extends AbstractSwingMagicItem implements GeoIte
     }
 
     @Override
-    public void onCraftedBy(@NotNull ItemStack stack, @NotNull Level level, @NotNull net.minecraft.world.entity.player.Player player) {
+    public void onCraftedBy(@NotNull ItemStack stack, @NotNull Level level, @NotNull Player player) {
         super.onCraftedBy(stack, level, player);
         initializeSpellContainer(stack);
     }
@@ -230,18 +234,18 @@ public class CrystalBladedStaff extends AbstractSwingMagicItem implements GeoIte
         ));
     }
 
-    private static int resolveOrbCount(net.minecraft.server.level.ServerLevel serverLevel, int totalHitMobCount) {
+    private static int resolveOrbCount(ServerLevel serverLevel, int totalHitMobCount) {
         var random = serverLevel.random;
         var baseOrbCount = random.nextInt(MAX_ORB_COUNT - MIN_ORB_COUNT + 1) + MIN_ORB_COUNT;
         var orbPenalty = Math.max(0, totalHitMobCount - 1);
         return Math.max(1, baseOrbCount - orbPenalty);
     }
 
-    private static net.minecraft.world.phys.Vec3 randomScatterVector(double rx, double ry, double rz) {
+    private static Vec3 randomScatterVector(double rx, double ry, double rz) {
         var horizontalAngle = rx * Math.PI * 2.0;
         var horizontalSpeed = 0.16 + ry * 0.14;
         var verticalSpeed = 0.12 + rz * 0.14;
-        return new net.minecraft.world.phys.Vec3(
+        return new Vec3(
                 Math.cos(horizontalAngle) * horizontalSpeed,
                 verticalSpeed,
                 Math.sin(horizontalAngle) * horizontalSpeed

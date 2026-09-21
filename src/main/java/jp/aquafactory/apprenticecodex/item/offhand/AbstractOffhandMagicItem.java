@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -213,7 +214,7 @@ public abstract class AbstractOffhandMagicItem extends Item
     }
 
     @Override
-    public java.util.Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
+    public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
         return ALL_ATTRIBUTE_ENCHANTMENTS;
     }
 

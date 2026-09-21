@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -18,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 public class ManaSlashProjectileRenderer extends EntityRenderer<ManaSlashProjectileEntity> {
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/entity/mana_slash.png");
-    private static final net.minecraft.client.renderer.RenderType RENDER_TYPE =
+    private static final RenderType RENDER_TYPE =
             ApprenticeRenderTypes.entityAdditiveGlowNoCull("mana_slash_additive", TEXTURE);
 
     private static final float BASE_RED = 0.30f;

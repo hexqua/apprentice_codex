@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
@@ -23,6 +25,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LadderBlock;
 import net.minecraft.world.phys.Vec3;
 
+import net.minecraftforge.common.util.FakePlayer;
 import java.util.function.Consumer;
 
 final class JumpcastCharmGameTestScenarios extends ApprenticeCodexGameTestScenarios {
@@ -172,7 +175,7 @@ final class JumpcastCharmGameTestScenarios extends ApprenticeCodexGameTestScenar
                     1,
                     activeSpell.getEffectiveCastTime(1, player),
                     CastSource.SPELLBOOK,
-                    io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND
+                    SpellSelectionManager.MAINHAND
             );
             magicData.setPlayerCastingItem(new ItemStack(Items.STICK));
 
@@ -216,7 +219,7 @@ final class JumpcastCharmGameTestScenarios extends ApprenticeCodexGameTestScenar
     private static void assertBlockedContextDoesNotCast(
             GameTestHelper helper,
             String profileName,
-            Consumer<net.minecraftforge.common.util.FakePlayer> configurePlayer
+            Consumer<FakePlayer> configurePlayer
     ) {
         var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.SHOCK.get();
         var player = createJumpcastPlayer(helper, profileName, spell, 1);
@@ -235,10 +238,10 @@ final class JumpcastCharmGameTestScenarios extends ApprenticeCodexGameTestScenar
                 "Jumpcast Charm should not add cooldown in blocked context " + profileName);
     }
 
-    private static net.minecraftforge.common.util.FakePlayer createJumpcastPlayer(
+    private static FakePlayer createJumpcastPlayer(
             GameTestHelper helper,
             String profileName,
-            io.redspace.ironsspellbooks.api.spells.AbstractSpell spell,
+            AbstractSpell spell,
             int spellLevel
     ) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), profileName);
@@ -253,7 +256,7 @@ final class JumpcastCharmGameTestScenarios extends ApprenticeCodexGameTestScenar
 
     private static MagicData magicData(
             GameTestHelper helper,
-            net.minecraftforge.common.util.FakePlayer player,
+            FakePlayer player,
             String label
     ) {
         var magicData = MagicData.getPlayerMagicData(player);

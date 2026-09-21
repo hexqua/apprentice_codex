@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.SpellExtractionHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -145,7 +146,7 @@ final class SpellExtractionGameTestScenarios {
     }
 
     private static SpellcasterWorkbenchMenu createExtractionMenu(
-            net.minecraft.world.entity.player.Player player,
+            Player player,
             ItemStack target,
             int shardCount
     ) {
@@ -157,7 +158,7 @@ final class SpellExtractionGameTestScenarios {
 
     private static void assertBlockReason(
             GameTestHelper helper,
-            net.minecraft.world.entity.player.Player player,
+            Player player,
             ItemStack target,
             SpellExtractionHelper.BlockReason expected
     ) {

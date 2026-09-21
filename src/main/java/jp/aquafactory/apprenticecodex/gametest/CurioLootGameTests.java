@@ -16,6 +16,8 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -25,7 +27,9 @@ import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -51,7 +55,7 @@ public class CurioLootGameTests {
             helper.assertTrue(pool.get("rolls").getAsInt() == 1, "Curio loot must roll once");
             var entries = pool.getAsJsonArray("entries");
             helper.assertTrue(entries.size() == 14, "Curio loot must contain exactly fourteen items");
-            var seen = new java.util.HashSet<String>();
+            var seen = new HashSet<String>();
             int weight = 0;
             for (var element : entries) {
                 var entry = element.getAsJsonObject();
@@ -134,9 +138,9 @@ public class CurioLootGameTests {
                     var params = new LootParams.Builder(helper.getLevel())
                             .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(helper.absolutePos(BlockPos.ZERO)))
                             .create(LootContextParamSets.CHEST);
-                    var context = new net.minecraft.world.level.storage.loot.LootContext.Builder(params)
+                    var context = new LootContext.Builder(params)
                             .withOptionalRandomSeed(12345L).create(ResourceLocation.parse(id));
-                    var original = new java.util.ArrayList<ItemStack>();
+                    var original = new ArrayList<ItemStack>();
                     table.getRandomItemsRaw(context, original::add);
                     // rawにはIron's自身のmodifierも含まれないため、元テーブルの報酬は先頭部分と比較する。
                     helper.assertTrue(all.size() >= original.size() + 1, "Base rewards and chunk bonus must be present");
@@ -159,22 +163,22 @@ public class CurioLootGameTests {
             helper.assertTrue(count.get("type").getAsString().equals("minecraft:uniform")
                     && count.get("min").getAsInt() == 2 && count.get("max").getAsInt() == 3, "Special vault counts must be uniformly two or three");
         }
-        var stacks = new java.util.ArrayList<ItemStack>();
+        var stacks = new ArrayList<ItemStack>();
         for (int i = 0; i < 9; i++) stacks.add(new ItemStack(i == 4
                 ? io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get() : ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.get()));
         var manager = helper.getLevel().getRecipeManager();
         var input = ApprenticeCodexGameTestScenarios.createCraftingContainer(stacks.toArray(ItemStack[]::new));
-        var recipe = manager.getRecipeFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING, input, helper.getLevel());
+        var recipe = manager.getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel());
         helper.assertTrue(recipe.isPresent(), "Silver ring crafting recipe must match");
         var output = recipe.orElseThrow().assemble(input, helper.getLevel().registryAccess());
         helper.assertTrue(output.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()) && output.getCount() == 1,
                 "Recipe must produce one original silver ring");
         stacks.set(0, ItemStack.EMPTY);
-        helper.assertTrue(manager.getRecipeFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING,
+        helper.assertTrue(manager.getRecipeFor(RecipeType.CRAFTING,
                 ApprenticeCodexGameTestScenarios.createCraftingContainer(stacks.toArray(ItemStack[]::new)), helper.getLevel()).isEmpty(), "Seven chunks must not craft a ring");
         stacks.set(0, new ItemStack(ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.get()));
         stacks.set(4, ItemStack.EMPTY);
-        helper.assertTrue(manager.getRecipeFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING,
+        helper.assertTrue(manager.getRecipeFor(RecipeType.CRAFTING,
                 ApprenticeCodexGameTestScenarios.createCraftingContainer(stacks.toArray(ItemStack[]::new)), helper.getLevel()).isEmpty(), "Mithril scrap must be required");
         helper.assertTrue(manager.getRecipeFor(RecipeRegistry.GRIND_RUNNER_RECIPE_TYPE.get(),
                 new SimpleContainer(new ItemStack(ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.get())), helper.getLevel()).isEmpty(),

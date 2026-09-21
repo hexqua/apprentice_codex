@@ -18,7 +18,6 @@ import jp.aquafactory.apprenticecodex.spell.catchflame.CatchFlameImpactEntity;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -42,6 +41,7 @@ import net.minecraftforge.event.level.BlockEvent;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 final class CatchFlameGameTestScenarios {
     private static final float VALUE_EPSILON = 1.0E-4F;
@@ -305,7 +305,7 @@ final class CatchFlameGameTestScenarios {
         aimAt(caster, Vec3.atCenterOf(smokerPosition));
         var interactionEvents = new AtomicInteger();
 
-        java.util.function.Consumer<PlayerInteractEvent.RightClickBlock> cancelListener = event -> {
+        Consumer<PlayerInteractEvent.RightClickBlock> cancelListener = event -> {
             if (event.getEntity() == caster && event.getPos().equals(smokerPosition)) {
                 interactionEvents.incrementAndGet();
                 event.setCanceled(true);
@@ -380,7 +380,7 @@ final class CatchFlameGameTestScenarios {
         aimAt(caster, Vec3.atBottomCenterOf(helper.absolutePos(firePosition)));
         var placeEvents = new AtomicInteger();
 
-        java.util.function.Consumer<BlockEvent.EntityPlaceEvent> cancelListener = event -> {
+        Consumer<BlockEvent.EntityPlaceEvent> cancelListener = event -> {
             if (event.getEntity() == caster && event.getPlacedBlock().is(Blocks.FIRE)) {
                 placeEvents.incrementAndGet();
                 event.setCanceled(true);

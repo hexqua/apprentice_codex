@@ -27,6 +27,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
@@ -122,7 +123,7 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
     }
 
     @Override
-    public void onCraftedBy(@NotNull ItemStack stack, @NotNull Level level, @NotNull net.minecraft.world.entity.player.Player player) {
+    public void onCraftedBy(@NotNull ItemStack stack, @NotNull Level level, @NotNull Player player) {
         super.onCraftedBy(stack, level, player);
         initializeSpellContainer(stack);
     }
@@ -265,7 +266,7 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
                 && !player.onGround()
                 && !player.isFallFlying()
                 && !player.isInWater()
-                && !player.hasEffect(net.minecraft.world.effect.MobEffects.SLOW_FALLING);
+                && !player.hasEffect(MobEffects.SLOW_FALLING);
     }
 
     public static float calculateSmashBonusDamage(ItemStack stack, float fallDistance) {

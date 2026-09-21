@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.smashcastscepter;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -54,7 +55,7 @@ public final class SmashcastScepterClientRenderState {
         return !player.onGround()
                 && !player.isFallFlying()
                 && !player.isInWater()
-                && !player.hasEffect(net.minecraft.world.effect.MobEffects.SLOW_FALLING);
+                && !player.hasEffect(MobEffects.SLOW_FALLING);
     }
 
     private static boolean isRenderedMainHandStack(Player player, ItemStack renderingStack,

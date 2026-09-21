@@ -4,8 +4,10 @@ import com.google.common.collect.MapMaker;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowManager;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScythe;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -13,24 +15,30 @@ import yesman.epicfight.client.input.EpicFightKeyMappings;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.network.server.SPSkillExecutionFeedback;
 import yesman.epicfight.skill.Skill;
+import yesman.epicfight.skill.SkillBuilder;
+import yesman.epicfight.skill.SkillCategories;
 import yesman.epicfight.skill.SkillContainer;
 import yesman.epicfight.skill.modules.ChargeableSkill;
 import yesman.epicfight.skill.weaponinnate.WeaponInnateSkill;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 
+import yesman.epicfight.world.capabilities.item.CapabilityItem;
+import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public final class EpicFightSpellReapingSkill extends WeaponInnateSkill implements ChargeableSkill {
-    private static final java.util.UUID LISTENER_ID = java.util.UUID.fromString("a21a6768-dfe6-4d34-b839-e4d20f536472");
+    private static final UUID LISTENER_ID = UUID.fromString("a21a6768-dfe6-4d34-b839-e4d20f536472");
     // Entity.equalsはID比較なので、統合serverのclient/server実体が等価になる。
     // weakKeysは参照同一性で比較し、両sideの状態分離と切断後の解放を両立する。
     private final Map<Player, Holding> holdings = new MapMaker().weakKeys().makeMap();
 
-    public EpicFightSpellReapingSkill(yesman.epicfight.skill.SkillBuilder<EpicFightSpellReapingSkill> builder) { super(builder); }
+    public EpicFightSpellReapingSkill(SkillBuilder<EpicFightSpellReapingSkill> builder) { super(builder); }
 
-    public static yesman.epicfight.skill.SkillBuilder<EpicFightSpellReapingSkill> builder() {
-        return new yesman.epicfight.skill.SkillBuilder<EpicFightSpellReapingSkill>()
-                .setCategory(yesman.epicfight.skill.SkillCategories.WEAPON_INNATE)
+    public static SkillBuilder<EpicFightSpellReapingSkill> builder() {
+        return new SkillBuilder<EpicFightSpellReapingSkill>()
+                .setCategory(SkillCategories.WEAPON_INNATE)
                 .setActivateType(Skill.ActivateType.HELD).setResource(Skill.Resource.NONE);
     }
 
@@ -38,7 +46,7 @@ public final class EpicFightSpellReapingSkill extends WeaponInnateSkill implemen
     public void onInitiate(SkillContainer container) {
         super.onInitiate(container);
         container.getExecutor().getEventListener().addEventListener(
-                yesman.epicfight.world.entity.eventlistener.PlayerEventListener.EventType.ACTION_EVENT_SERVER, LISTENER_ID, event -> {
+                PlayerEventListener.EventType.ACTION_EVENT_SERVER, LISTENER_ID, event -> {
             if (container.getExecutor().isHoldingSkill(this)
                     && !event.getAnimation().equals(Animations.STEEL_WHIRLWIND_CHARGING)) abort(container.getExecutor());
         });
@@ -59,7 +67,7 @@ public final class EpicFightSpellReapingSkill extends WeaponInnateSkill implemen
     @Override
     public void onRemoved(SkillContainer container) {
         abort(container.getExecutor());
-        container.getExecutor().getEventListener().removeListener(yesman.epicfight.world.entity.eventlistener.PlayerEventListener.EventType.ACTION_EVENT_SERVER, LISTENER_ID);
+        container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.ACTION_EVENT_SERVER, LISTENER_ID);
         super.onRemoved(container);
     }
 
@@ -78,11 +86,11 @@ public final class EpicFightSpellReapingSkill extends WeaponInnateSkill implemen
     }
 
     @Override
-    public java.util.List<net.minecraft.network.chat.Component> getTooltipOnItem(
-            ItemStack stack, yesman.epicfight.world.capabilities.item.CapabilityItem cap, PlayerPatch<?> patch) {
-        return java.util.List.of(
-                net.minecraft.network.chat.Component.translatable(getTranslationKey()).withStyle(net.minecraft.ChatFormatting.WHITE),
-                net.minecraft.network.chat.Component.translatable(getTranslationKey() + ".tooltip").withStyle(net.minecraft.ChatFormatting.DARK_GRAY));
+    public List<Component> getTooltipOnItem(
+            ItemStack stack, CapabilityItem cap, PlayerPatch<?> patch) {
+        return List.of(
+                Component.translatable(getTranslationKey()).withStyle(ChatFormatting.WHITE),
+                Component.translatable(getTranslationKey() + ".tooltip").withStyle(ChatFormatting.DARK_GRAY));
     }
 
     @Override

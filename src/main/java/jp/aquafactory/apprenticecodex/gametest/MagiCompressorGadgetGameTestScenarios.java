@@ -12,8 +12,10 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.fml.ModList;
 
 import java.util.List;
@@ -191,7 +193,7 @@ final class MagiCompressorGadgetGameTestScenarios extends ApprenticeCodexGameTes
         });
     }
 
-    private static net.minecraftforge.common.util.FakePlayer createGadgetTestPlayer(
+    private static FakePlayer createGadgetTestPlayer(
             GameTestHelper helper,
             String profileName
     ) {
@@ -200,11 +202,11 @@ final class MagiCompressorGadgetGameTestScenarios extends ApprenticeCodexGameTes
         return player;
     }
 
-    private static List<ItemStack> getCreateBacktanksWithAir(net.minecraft.world.entity.LivingEntity entity) {
+    private static List<ItemStack> getCreateBacktanksWithAir(LivingEntity entity) {
         try {
             var backtankUtilClass = Class.forName(CREATE_BACKTANK_UTIL_CLASS);
             var result = backtankUtilClass
-                    .getMethod("getAllWithAir", net.minecraft.world.entity.LivingEntity.class)
+                    .getMethod("getAllWithAir", LivingEntity.class)
                     .invoke(null, entity);
             if (!(result instanceof List<?> rawStacks)) {
                 return List.of();
@@ -221,7 +223,7 @@ final class MagiCompressorGadgetGameTestScenarios extends ApprenticeCodexGameTes
 
     private static MagicData magicData(
             GameTestHelper helper,
-            net.minecraftforge.common.util.FakePlayer player,
+            FakePlayer player,
             String label
     ) {
         var magicData = MagicData.getPlayerMagicData(player);

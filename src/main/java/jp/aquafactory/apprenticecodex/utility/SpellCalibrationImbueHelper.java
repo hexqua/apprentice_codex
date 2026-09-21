@@ -1,11 +1,13 @@
 package jp.aquafactory.apprenticecodex.utility;
 
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.item.Scroll;
 import io.redspace.ironsspellbooks.item.UniqueItem;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRing;
 import jp.aquafactory.apprenticecodex.item.shield.AbstractImbueShieldItem;
@@ -267,7 +269,7 @@ public final class SpellCalibrationImbueHelper {
             return false;
         }
 
-        for (var spell : io.redspace.ironsspellbooks.api.registry.SpellRegistry.getEnabledSpells()) {
+        for (var spell : SpellRegistry.getEnabledSpells()) {
             for (var level = spell.getMinLevel(); level <= spell.getMaxLevel(); ++level) {
                 var spellData = new SpellData(spell, level);
                 if (spellImbueItem.canImbueSpell(spellData) && canPlaceSpellAtAnySlot(stack, spellData)) {
@@ -368,7 +370,7 @@ public final class SpellCalibrationImbueHelper {
             return ItemStack.EMPTY;
         }
 
-        var scrollStack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+        var scrollStack = new ItemStack(ItemRegistry.SCROLL.get());
         ISpellContainer.createScrollContainer(spellData.getSpell(), spellData.getLevel(), scrollStack);
         return scrollStack;
     }

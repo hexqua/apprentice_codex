@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter;
 
 import io.redspace.ironsspellbooks.entity.spells.shield.ShieldEntity;
+import io.redspace.ironsspellbooks.registries.EntityRegistry;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SupportedShieldPassagePacket;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
@@ -86,7 +87,7 @@ public class SupportedShieldEntity extends ShieldEntity {
     @Override
     protected @NotNull Component getTypeName() {
         // 自前でlangを持たずにベースのIron'sのシールド魔法の名前を参照する.
-        return io.redspace.ironsspellbooks.registries.EntityRegistry.SHIELD_ENTITY.get().getDescription();
+        return EntityRegistry.SHIELD_ENTITY.get().getDescription();
     }
 
     @Override

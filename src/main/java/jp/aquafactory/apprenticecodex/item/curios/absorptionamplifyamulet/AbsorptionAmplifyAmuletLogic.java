@@ -20,6 +20,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import top.theillusivec4.curios.api.SlotContext;
 
+import java.util.function.Consumer;
+
 final class AbsorptionAmplifyAmuletLogic {
     private static final long RECOVERY_INTERVAL_TICKS = 10L;
     private static final long PROC_COOLDOWN_TICKS = 20L;
@@ -180,7 +182,7 @@ final class AbsorptionAmplifyAmuletLogic {
         withState(player, AbsorptionAmplifyAmuletState::reset);
     }
 
-    private static void withState(ServerPlayer player, java.util.function.Consumer<AbsorptionAmplifyAmuletState> consumer) {
+    private static void withState(ServerPlayer player, Consumer<AbsorptionAmplifyAmuletState> consumer) {
         var spellData = Capabilities.getSpellDataOrNull(player);
         if (spellData == null) {
             return;

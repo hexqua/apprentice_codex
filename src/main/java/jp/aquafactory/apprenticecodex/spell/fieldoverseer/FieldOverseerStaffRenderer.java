@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
@@ -100,7 +101,7 @@ public class FieldOverseerStaffRenderer extends GeoEntityRenderer<FieldOverseerS
                                       float red, float green, float blue, float alpha) {
         poseStack.pushPose();
         if (bone.isTrackingMatrices()) {
-            var poseState = new org.joml.Matrix4f(poseStack.last().pose());
+            var poseState = new Matrix4f(poseStack.last().pose());
             bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, modelRenderTranslations));
             bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, entityRenderTranslations));
         }

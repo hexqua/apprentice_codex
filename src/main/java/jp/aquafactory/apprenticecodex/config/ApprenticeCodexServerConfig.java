@@ -1,10 +1,12 @@
 package jp.aquafactory.apprenticecodex.config;
 
+import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.block.ArcanumInAJarServerConfig;
 import jp.aquafactory.apprenticecodex.config.block.AlchemyBrewerServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.HoverrideBroomServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellReaperScytheServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
@@ -66,7 +68,7 @@ public final class ApprenticeCodexServerConfig {
     private ApprenticeCodexServerConfig() {
     }
 
-    public static jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig quickcastCartridge() {
+    public static QuickcastCartridgeServerConfig quickcastCartridge() {
         return ITEMS_CONFIG.quickcastCartridgeConfig;
     }
 
@@ -296,11 +298,11 @@ public final class ApprenticeCodexServerConfig {
         return BLOCKS_CONFIG.apprenticeDeskDisableNonJobSiteFeatures();
     }
 
-    public static java.util.List<String> apprenticeDeskSpellCraftBlacklist() {
+    public static List<String> apprenticeDeskSpellCraftBlacklist() {
         return BLOCKS_CONFIG.apprenticeDeskSpellCraftBlacklist();
     }
 
-    public static int apprenticeDeskInkMaxUses(io.redspace.ironsspellbooks.api.spells.SpellRarity rarity) {
+    public static int apprenticeDeskInkMaxUses(SpellRarity rarity) {
         return BLOCKS_CONFIG.apprenticeDeskInkMaxUses(rarity);
     }
 
@@ -317,19 +319,19 @@ public final class ApprenticeCodexServerConfig {
             boolean returnGlassBottle
     ) {
         var previousCommon = apprenticeDeskInkMaxUses(
-                io.redspace.ironsspellbooks.api.spells.SpellRarity.COMMON
+                SpellRarity.COMMON
         );
         var previousUncommon = apprenticeDeskInkMaxUses(
-                io.redspace.ironsspellbooks.api.spells.SpellRarity.UNCOMMON
+                SpellRarity.UNCOMMON
         );
         var previousRare = apprenticeDeskInkMaxUses(
-                io.redspace.ironsspellbooks.api.spells.SpellRarity.RARE
+                SpellRarity.RARE
         );
         var previousEpic = apprenticeDeskInkMaxUses(
-                io.redspace.ironsspellbooks.api.spells.SpellRarity.EPIC
+                SpellRarity.EPIC
         );
         var previousLegendary = apprenticeDeskInkMaxUses(
-                io.redspace.ironsspellbooks.api.spells.SpellRarity.LEGENDARY
+                SpellRarity.LEGENDARY
         );
         var previousReturnGlassBottle = apprenticeDeskReturnGlassBottleWhenInkDepleted();
 

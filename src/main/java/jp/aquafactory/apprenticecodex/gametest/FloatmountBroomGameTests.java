@@ -5,6 +5,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
@@ -2792,7 +2793,7 @@ public final class FloatmountBroomGameTests {
         return target;
     }
 
-    private static void installBubbleColumn(net.minecraft.server.level.ServerLevel level, BlockPos bottom, int height) {
+    private static void installBubbleColumn(ServerLevel level, BlockPos bottom, int height) {
         level.setBlockAndUpdate(bottom.below(), Blocks.SOUL_SAND.defaultBlockState());
         for (var offset = 0; offset < height; ++offset) {
             level.setBlockAndUpdate(
@@ -2802,7 +2803,7 @@ public final class FloatmountBroomGameTests {
         }
     }
 
-    private static void installWaterColumn(net.minecraft.server.level.ServerLevel level, BlockPos bottom, int height) {
+    private static void installWaterColumn(ServerLevel level, BlockPos bottom, int height) {
         for (var offset = 0; offset < height; ++offset) {
             level.setBlockAndUpdate(bottom.above(offset), Blocks.WATER.defaultBlockState());
         }
@@ -2977,7 +2978,7 @@ public final class FloatmountBroomGameTests {
         }
     }
 
-    private static ItemStack createBroomScroll(io.redspace.ironsspellbooks.api.spells.AbstractSpell spell) {
+    private static ItemStack createBroomScroll(AbstractSpell spell) {
         var scroll = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
         ISpellContainer.createScrollContainer(spell, 1, scroll);
         return scroll;
@@ -3147,19 +3148,19 @@ public final class FloatmountBroomGameTests {
         player.stopRiding();
     }
 
-    private static int countDroppedBrooms(GameTestHelper helper, net.minecraft.world.phys.Vec3 center) {
+    private static int countDroppedBrooms(GameTestHelper helper, Vec3 center) {
         return droppedBrooms(helper, center)
                 .stream().mapToInt(item -> item.getItem().getCount()).sum();
     }
 
-    private static ItemEntity findDroppedBroom(GameTestHelper helper, net.minecraft.world.phys.Vec3 center) {
+    private static ItemEntity findDroppedBroom(GameTestHelper helper, Vec3 center) {
         var drops = droppedBrooms(helper, center);
         helper.assertTrue(drops.size() == 1, "Expected exactly one dropped broom item entity");
         return drops.get(0);
     }
 
-    private static java.util.List<ItemEntity> droppedBrooms(GameTestHelper helper,
-                                                             net.minecraft.world.phys.Vec3 center) {
+    private static List<ItemEntity> droppedBrooms(GameTestHelper helper,
+                                                             Vec3 center) {
         return helper.getLevel().getEntitiesOfClass(ItemEntity.class, AABB.ofSize(center, 4.0D, 4.0D, 4.0D),
                 item -> item.getItem().is(ItemRegistry.FLOATMOUNT_BROOM.get()));
     }

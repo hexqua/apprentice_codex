@@ -116,7 +116,7 @@ public class MysticShieldShieldEntity extends Entity implements TraceableEntity 
             }
         }
 
-        if (ownerUuid != null && level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+        if (ownerUuid != null && level() instanceof ServerLevel serverLevel) {
             var entity = serverLevel.getEntity(ownerUuid);
             if (entity instanceof LivingEntity livingEntity) {
                 owner = livingEntity;

@@ -1,10 +1,12 @@
 package jp.aquafactory.apprenticecodex.compat.epicfight;
 
 import com.mojang.datafixers.util.Pair;
+import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepterAttackEvent;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
+import net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.server.level.ServerPlayer;
@@ -196,14 +198,14 @@ public final class EpicFightSmashcastScepterCompat {
         player.setDeltaMovement(movement);
         player.hasImpulse = true;
         player.hurtMarked = true;
-        player.connection.send(new net.minecraft.network.protocol.game.ClientboundSetEntityMotionPacket(player));
+        player.connection.send(new ClientboundSetEntityMotionPacket(player));
         playerpatch.playAnimationSynchronized(Animations.BIPED_DEMOLITION_LEAP, 0.0F);
         player.serverLevel().playSound(
                 null,
                 player.getX(),
                 player.getY(),
                 player.getZ(),
-                io.redspace.ironsspellbooks.registries.SoundRegistry.GUST_CAST.get(),
+                SoundRegistry.GUST_CAST.get(),
                 SoundSource.PLAYERS,
                 0.8F,
                 1.05F

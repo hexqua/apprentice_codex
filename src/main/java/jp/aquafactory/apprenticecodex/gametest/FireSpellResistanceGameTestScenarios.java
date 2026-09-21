@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.effect.ThermalProcessing;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
@@ -10,6 +11,7 @@ import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrower
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -95,8 +97,8 @@ final class FireSpellResistanceGameTestScenarios {
     private static void assertDamageApplied(
             GameTestHelper helper,
             Mob target,
-            net.minecraft.world.damagesource.DamageSource source,
-            io.redspace.ironsspellbooks.api.spells.AbstractSpell spell,
+            DamageSource source,
+            AbstractSpell spell,
             String message
     ) {
         var initialHealth = target.getHealth();

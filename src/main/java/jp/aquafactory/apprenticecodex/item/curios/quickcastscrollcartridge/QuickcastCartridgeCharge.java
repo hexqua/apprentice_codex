@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.QuickcastCartridgeChargeState;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncQuickcastCartridgePacket;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
@@ -131,7 +132,7 @@ public final class QuickcastCartridgeCharge {
                 state.recoveryUntil(), state.recoveryDuration(), runtime.reloadUntil, runtime.reloadDuration);
         if (!force && !completed && snapshot.equals(runtime.last)) return;
         runtime.last = snapshot;
-        jp.aquafactory.apprenticecodex.network.Networks.sendToPlayer(player, new SyncQuickcastCartridgePacket(snapshot.equipped(),
+        Networks.sendToPlayer(player, new SyncQuickcastCartridgePacket(snapshot.equipped(),
                 snapshot.available(), snapshot.reserved(), now(player), snapshot.recoveryUntil(),
                 snapshot.recoveryDuration(), snapshot.reloadUntil(), snapshot.reloadDuration(), completed));
     }

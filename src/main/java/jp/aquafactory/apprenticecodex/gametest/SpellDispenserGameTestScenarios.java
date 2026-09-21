@@ -8,7 +8,10 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.entity.spells.fire_breath.FireBreathProjectile;
 import io.redspace.ironsspellbooks.entity.spells.fireball.SmallMagicFireball;
+import io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile;
 import io.redspace.ironsspellbooks.entity.spells.spectral_hammer.SpectralHammer;
+import io.redspace.ironsspellbooks.fluids.PotionFluid;
+import io.redspace.ironsspellbooks.registries.PotionRegistry;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenser;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserBlockEntity;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserCastAnchorMode;
@@ -35,6 +38,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.server.level.ServerLevel;
@@ -45,7 +49,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -64,6 +71,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 final class SpellDispenserGameTestScenarios {
     private static final String CREATE_GAMETEST_HOOKS_CLASS =
@@ -309,10 +317,10 @@ final class SpellDispenserGameTestScenarios {
                 0.0F,
                 false
         );
-        var spawnedProjectiles = new ArrayList<io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile>();
-        java.util.function.Consumer<EntityJoinLevelEvent> projectileListener = event -> {
+        var spawnedProjectiles = new ArrayList<MagicMissileProjectile>();
+        Consumer<EntityJoinLevelEvent> projectileListener = event -> {
             if (event.getLevel() == level
-                    && event.getEntity() instanceof io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProjectile projectile) {
+                    && event.getEntity() instanceof MagicMissileProjectile projectile) {
                 spawnedProjectiles.add(projectile);
             }
         };
@@ -732,26 +740,26 @@ final class SpellDispenserGameTestScenarios {
             var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
             var itemHandler = blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.UP).resolve().orElse(null);
             var manaFlask = createFilledSpellcastersFlask(
-                    createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()),
+                    createInstantManaPotion(PotionRegistry.INSTANT_MANA_ONE.get()),
                     1,
                     0
             );
             var alchemistsManaFlask = createFilledAlchemistsFlask(
                     PotionUtils.setPotion(
                             new ItemStack(Items.SPLASH_POTION),
-                            io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()
+                            PotionRegistry.INSTANT_MANA_ONE.get()
                     ),
                     1,
                     0
             );
-            var nonManaPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), net.minecraft.world.item.alchemy.Potions.HEALING);
+            var nonManaPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.HEALING);
             var nonManaFlask = createFilledSpellcastersFlask(nonManaPotion, 1, 0);
 
             helper.assertTrue(itemHandler != null, "Spell Dispenser item capability was not exposed for flask slot validation");
             helper.assertTrue(
                     itemHandler != null && itemHandler.isItemValid(
                             SpellDispenserBlockEntity.FLASK_SLOT_START,
-                            createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get())
+                            createInstantManaPotion(PotionRegistry.INSTANT_MANA_ONE.get())
                     ),
                     "Spell Dispenser flask slot rejected a mana potion"
             );
@@ -804,15 +812,15 @@ final class SpellDispenserGameTestScenarios {
         helper.succeedIf(() -> {
             var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
             var fluidHandler = blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, Direction.UP).resolve().orElse(null);
-            var partialManaFluid = createIronsManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(), 100);
-            var remainingPartialManaFluid = createIronsManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(), 150);
-            var strongerManaFluid = createIronsManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_TWO.get(), 250);
+            var partialManaFluid = createIronsManaPotionFluid(PotionRegistry.INSTANT_MANA_ONE.get(), 100);
+            var remainingPartialManaFluid = createIronsManaPotionFluid(PotionRegistry.INSTANT_MANA_ONE.get(), 150);
+            var strongerManaFluid = createIronsManaPotionFluid(PotionRegistry.INSTANT_MANA_TWO.get(), 250);
             var splashPotion = PotionUtils.setPotion(
                     new ItemStack(Items.SPLASH_POTION),
-                    io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()
+                    PotionRegistry.INSTANT_MANA_ONE.get()
             );
-            var splashManaFluid = io.redspace.ironsspellbooks.fluids.PotionFluid.from(splashPotion);
-            var healingFluid = createIronsManaPotionFluid(net.minecraft.world.item.alchemy.Potions.HEALING, 250);
+            var splashManaFluid = PotionFluid.from(splashPotion);
+            var healingFluid = createIronsManaPotionFluid(Potions.HEALING, 250);
 
             blockEntity.setCurrentMana(950);
             helper.assertTrue(fluidHandler != null, "Spell Dispenser fluid capability was not exposed");
@@ -837,7 +845,7 @@ final class SpellDispenserGameTestScenarios {
         helper.succeedIf(() -> {
             var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
             var fluidHandler = blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, null).resolve().orElse(null);
-            var manaFluid = createIronsManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(), 250);
+            var manaFluid = createIronsManaPotionFluid(PotionRegistry.INSTANT_MANA_ONE.get(), 250);
 
             blockEntity.setCurrentMana(850);
             helper.assertTrue(fluidHandler != null, "Spell Dispenser fluid capability was not exposed");
@@ -854,7 +862,7 @@ final class SpellDispenserGameTestScenarios {
         helper.succeedIf(() -> {
             var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
             var fluidHandler = blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, Direction.NORTH).resolve().orElse(null);
-            var manaFluid = createIronsManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(), 500);
+            var manaFluid = createIronsManaPotionFluid(PotionRegistry.INSTANT_MANA_ONE.get(), 500);
 
             blockEntity.setCurrentMana(950);
             helper.assertTrue(fluidHandler != null, "Spell Dispenser fluid capability was not exposed");
@@ -875,7 +883,7 @@ final class SpellDispenserGameTestScenarios {
         helper.succeedIf(() -> {
             var original = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
             var fluidHandler = original.getCapability(ForgeCapabilities.FLUID_HANDLER, Direction.SOUTH).resolve().orElse(null);
-            var manaFluid = createIronsManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(), 250);
+            var manaFluid = createIronsManaPotionFluid(PotionRegistry.INSTANT_MANA_ONE.get(), 250);
 
             original.setCurrentMana(950);
             helper.assertTrue(fluidHandler != null && fluidHandler.fill(manaFluid, IFluidHandler.FluidAction.EXECUTE) == 250,
@@ -898,7 +906,7 @@ final class SpellDispenserGameTestScenarios {
         helper.succeedIf(() -> {
             var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
             var fluidHandler = blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, Direction.WEST).resolve().orElse(null);
-            var manaFluid = createCreateManaPotionFluid(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get(), 250);
+            var manaFluid = createCreateManaPotionFluid(PotionRegistry.INSTANT_MANA_ONE.get(), 250);
 
             blockEntity.setCurrentMana(850);
             helper.assertTrue(!manaFluid.isEmpty(), "Create potion fluid was not registered");
@@ -961,7 +969,7 @@ final class SpellDispenserGameTestScenarios {
     static void creativeSpellDispenserIgnoresOwnerProfileNbt(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var ownerProfile = createSpellDispenserOwnerProfile("creative_spell_dispenser_owner_nbt_test");
-            var originalTag = new net.minecraft.nbt.CompoundTag();
+            var originalTag = new CompoundTag();
             SpellDispenserBlockEntity.saveOwnerProfile(originalTag, ownerProfile);
 
             var creative = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.CREATIVE_SPELL_DISPENSER.get().defaultBlockState());
@@ -1052,7 +1060,7 @@ final class SpellDispenserGameTestScenarios {
         helper.succeedIf(() -> {
             var survivalPlayer = createSpellDispenserPlacer(helper, new BlockPos(0, 2, 0), "creative_spell_dispenser_menu_survival");
             var creativePlayer = createSpellDispenserPlacer(helper, new BlockPos(0, 2, 0), "creative_spell_dispenser_menu_creative");
-            creativePlayer.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+            creativePlayer.gameMode.changeGameModeForPlayer(GameType.CREATIVE);
 
             helper.assertFalse(
                     SpellDispenserVariant.canUseCreativeVariant(survivalPlayer),
@@ -1104,8 +1112,8 @@ final class SpellDispenserGameTestScenarios {
             helper.assertTrue(blockEntity instanceof SpellDispenserBlockEntity, "Spell Dispenser block entity was not created");
             var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
 
-            var overflowPotion = createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_THREE.get());
-            var fittingPotion = createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_TWO.get());
+            var overflowPotion = createInstantManaPotion(PotionRegistry.INSTANT_MANA_THREE.get());
+            var fittingPotion = createInstantManaPotion(PotionRegistry.INSTANT_MANA_TWO.get());
             spellDispenser.setCurrentMana(780);
             spellDispenser.getInventory().setStackInSlot(SpellDispenserBlockEntity.FLASK_SLOT_START, overflowPotion.copy());
             spellDispenser.getInventory().setStackInSlot(SpellDispenserBlockEntity.FLASK_SLOT_START + 1, fittingPotion.copy());
@@ -1141,7 +1149,7 @@ final class SpellDispenserGameTestScenarios {
             var spellDispenser = (SpellDispenserBlockEntity) blockEntity;
 
             var glowEnergyFlask = createFilledSpellcastersFlask(
-                    createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()),
+                    createInstantManaPotion(PotionRegistry.INSTANT_MANA_ONE.get()),
                     1,
                     1
             );
@@ -1436,7 +1444,7 @@ final class SpellDispenserGameTestScenarios {
             var mountedInventory = new ItemStackHandler(SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT);
             var externalInventory = new ItemStackHandler(2);
             externalInventory.setStackInSlot(0,
-                    createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()));
+                    createInstantManaPotion(PotionRegistry.INSTANT_MANA_ONE.get()));
 
             var harness = createSpellDispenserMovementHarness(
                     level,
@@ -1468,7 +1476,7 @@ final class SpellDispenserGameTestScenarios {
             var castPos = new BlockPos(0, 1, 0);
             var mountedInventory = new ItemStackHandler(SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT);
             var externalInventory = new ItemStackHandler(2);
-            var manaPotion = createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get());
+            var manaPotion = createInstantManaPotion(PotionRegistry.INSTANT_MANA_ONE.get());
             externalInventory.setStackInSlot(0, manaPotion.copy());
 
             var harness = createSpellDispenserMovementHarness(
@@ -1550,7 +1558,7 @@ final class SpellDispenserGameTestScenarios {
             var blockEntity = new SpellDispenserBlockEntity(BlockPos.ZERO, BlockRegistry.SPELL_DISPENSER.get().defaultBlockState());
             var itemHandler = blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, Direction.UP).resolve().orElse(null);
             var filledFlask = createFilledSpellcastersFlask(
-                    createInstantManaPotion(io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()),
+                    createInstantManaPotion(PotionRegistry.INSTANT_MANA_ONE.get()),
                     1,
                     0
             );
@@ -1732,7 +1740,7 @@ final class SpellDispenserGameTestScenarios {
     }
     private static FakePlayer createSpellDispenserPlacer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         return player;
@@ -1785,17 +1793,17 @@ final class SpellDispenserGameTestScenarios {
         );
     }
 
-    private static ItemStack createInstantManaPotion(net.minecraft.world.item.alchemy.Potion potion) {
+    private static ItemStack createInstantManaPotion(Potion potion) {
         return PotionUtils.setPotion(new ItemStack(Items.POTION), potion);
     }
 
-    private static FluidStack createIronsManaPotionFluid(net.minecraft.world.item.alchemy.Potion potion, int amountMb) {
-        var fluid = io.redspace.ironsspellbooks.fluids.PotionFluid.from(PotionUtils.setPotion(new ItemStack(Items.POTION), potion));
+    private static FluidStack createIronsManaPotionFluid(Potion potion, int amountMb) {
+        var fluid = PotionFluid.from(PotionUtils.setPotion(new ItemStack(Items.POTION), potion));
         fluid.setAmount(amountMb);
         return fluid;
     }
 
-    private static FluidStack createCreateManaPotionFluid(net.minecraft.world.item.alchemy.Potion potion, int amountMb) {
+    private static FluidStack createCreateManaPotionFluid(Potion potion, int amountMb) {
         var createPotion = ForgeRegistries.FLUIDS.getValue(ResourceLocation.fromNamespaceAndPath("create", "potion"));
         if (createPotion == null) {
             return FluidStack.EMPTY;

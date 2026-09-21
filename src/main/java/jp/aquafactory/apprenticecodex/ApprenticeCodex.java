@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex;
 
+import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
+import jp.aquafactory.apprenticecodex.event.ManaSoulTransducerConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.UndyingEmblemConfigSyncEvents;
 
 import com.mojang.logging.LogUtils;
@@ -18,6 +20,7 @@ import jp.aquafactory.apprenticecodex.event.SoulstainedSteelSwingcastStaffConfig
 import jp.aquafactory.apprenticecodex.event.SpellgunConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.client.ClientModBusEvents;
 import jp.aquafactory.apprenticecodex.item.broom.BroomCurioSupport;
+import jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScytheConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.registry.*;
 import net.minecraftforge.api.distmarker.Dist;
@@ -41,7 +44,7 @@ public class ApprenticeCodex
         context.registerConfig(ModConfig.Type.SERVER, ApprenticeCodexServerConfig.SPEC);
 
         var bus = context.getModEventBus();
-        jp.aquafactory.apprenticecodex.event.ManaSoulTransducerConfigSyncEvents.register(bus);
+        ManaSoulTransducerConfigSyncEvents.register(bus);
         UndyingEmblemConfigSyncEvents.register(bus);
         SpellRegistry.register(bus);
         EntityRegistry.register(bus);
@@ -64,8 +67,8 @@ public class ApprenticeCodex
         CreativeTabRegistry.register(bus);
         CreateCompat.register(bus);
         EpicFightCompat.register(bus);
-        jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge.register(bus);
-        jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScytheConfigSyncEvents.register(bus);
+        MalumSpellReaperScytheBridge.register(bus);
+        SpellReaperScytheConfigSyncEvents.register(bus);
         CodexSpellStateTypeRegister.register();
         IronSwingcastStaffConfigSyncEvents.register(bus);
         HighTierSwingcastStaffConfigSyncEvents.register(bus);

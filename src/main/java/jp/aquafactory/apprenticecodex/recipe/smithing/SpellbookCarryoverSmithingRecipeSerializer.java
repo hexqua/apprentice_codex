@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.recipe.smithing;
 
 import com.google.gson.JsonObject;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -34,6 +35,6 @@ public final class SpellbookCarryoverSmithingRecipeSerializer implements RecipeS
         recipe.getTemplate().toNetwork(buffer);
         recipe.getBase().toNetwork(buffer);
         recipe.getAddition().toNetwork(buffer);
-        buffer.writeItem(recipe.getResultItem(net.minecraft.core.RegistryAccess.EMPTY));
+        buffer.writeItem(recipe.getResultItem(RegistryAccess.EMPTY));
     }
 }

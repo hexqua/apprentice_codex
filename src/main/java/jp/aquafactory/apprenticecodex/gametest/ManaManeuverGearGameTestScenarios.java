@@ -16,14 +16,19 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LadderBlock;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.util.FakePlayer;
 
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import java.util.UUID;
 
 final class ManaManeuverGearGameTestScenarios extends ApprenticeCodexGameTestScenarios {
@@ -344,7 +349,7 @@ final class ManaManeuverGearGameTestScenarios extends ApprenticeCodexGameTestSce
         });
     }
 
-    private static net.minecraftforge.event.entity.living.LivingAttackEvent postFallDamage(
+    private static LivingAttackEvent postFallDamage(
             GameTestHelper helper,
             FakePlayer player,
             float damage,
@@ -374,7 +379,7 @@ final class ManaManeuverGearGameTestScenarios extends ApprenticeCodexGameTestSce
                 return true;
             }
         };
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 2, 0)));
         player.setPos(absolutePos.x + 0.2D, absolutePos.y, absolutePos.z);
         equipCurio(player, CuriosSlotConstants.FEET, new ItemStack(ItemRegistry.MANA_MANEUVER_GEAR.get()));
@@ -389,16 +394,16 @@ final class ManaManeuverGearGameTestScenarios extends ApprenticeCodexGameTestSce
         // ForgeのFakePlayerは常時無敵なので、残ダメージの実適用を確認できるプレイヤーを使う。
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName)) {
             @Override
-            public boolean isInvulnerableTo(net.minecraft.world.damagesource.DamageSource source) {
+            public boolean isInvulnerableTo(DamageSource source) {
                 return false;
             }
         };
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var position = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 2, 0)));
         player.setPos(position.x, position.y, position.z);
         // GameTestServerは専用サーバー判定がfalseのため、スポーン直後の落下無敵も解除する。
-        net.minecraftforge.fml.util.ObfuscationReflectionHelper.setPrivateValue(
-                net.minecraft.server.level.ServerPlayer.class, player, 0, "f_8921_");
+        ObfuscationReflectionHelper.setPrivateValue(
+                ServerPlayer.class, player, 0, "f_8921_");
         equipCurio(player, CuriosSlotConstants.FEET, new ItemStack(ItemRegistry.MANA_MANEUVER_GEAR.get()));
         player.setOnGround(false);
         ManaManeuverGearManager.clear(player);

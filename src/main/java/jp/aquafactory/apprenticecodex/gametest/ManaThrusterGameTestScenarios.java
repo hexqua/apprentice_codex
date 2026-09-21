@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LadderBlock;
 import net.minecraft.world.phys.Vec3;
 
+import net.minecraftforge.common.util.FakePlayer;
 import java.util.function.Consumer;
 
 final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenarios {
@@ -256,7 +257,7 @@ final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenari
     private static void assertDisabledPlayerContextDoesNotThrust(
             GameTestHelper helper,
             String profileName,
-            Consumer<net.minecraftforge.common.util.FakePlayer> configurePlayer
+            Consumer<FakePlayer> configurePlayer
     ) {
         var player = createManaThrusterTestPlayer(helper, profileName);
         var magicData = magicData(helper, player, profileName);
@@ -278,7 +279,7 @@ final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenari
                         + magicData.getMana());
     }
 
-    private static net.minecraftforge.common.util.FakePlayer createManaThrusterTestPlayer(
+    private static FakePlayer createManaThrusterTestPlayer(
             GameTestHelper helper,
             String profileName
     ) {
@@ -290,7 +291,7 @@ final class ManaThrusterGameTestScenarios extends ApprenticeCodexGameTestScenari
 
     private static MagicData magicData(
             GameTestHelper helper,
-            net.minecraftforge.common.util.FakePlayer player,
+            FakePlayer player,
             String label
     ) {
         var magicData = MagicData.getPlayerMagicData(player);

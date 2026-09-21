@@ -1,8 +1,13 @@
 package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.network.packet.ClientElementalBowCancelPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientInterruptCartridgeReloadPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePacket;
+import jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SupportedShieldPassagePacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearSlidePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearJumpPacket;
 import jp.aquafactory.apprenticecodex.network.packet.AtelierStationFluidEffectPacket;
@@ -36,6 +41,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ManaManeuverGearFallEffectP
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncQuickcastCartridgePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSpellReaperScytheConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowOverheatPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEquipmentSpellTimingConfigPacket;
@@ -119,26 +125,26 @@ public final class Networks {
         CHANNEL.registerMessage(nextPacketId++, SyncManaSoulTransducerConfigPacket.class,
                 SyncManaSoulTransducerConfigPacket::encode, SyncManaSoulTransducerConfigPacket::decode,
                 SyncManaSoulTransducerConfigPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        CHANNEL.registerMessage(nextPacketId++, jp.aquafactory.apprenticecodex.network.packet.SyncQuickcastCartridgePacket.class,
-                jp.aquafactory.apprenticecodex.network.packet.SyncQuickcastCartridgePacket::encode, jp.aquafactory.apprenticecodex.network.packet.SyncQuickcastCartridgePacket::decode, jp.aquafactory.apprenticecodex.network.packet.SyncQuickcastCartridgePacket::handle,
+        CHANNEL.registerMessage(nextPacketId++, SyncQuickcastCartridgePacket.class,
+                SyncQuickcastCartridgePacket::encode, SyncQuickcastCartridgePacket::decode, SyncQuickcastCartridgePacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        CHANNEL.registerMessage(nextPacketId++, jp.aquafactory.apprenticecodex.network.packet.ClientInterruptCartridgeReloadPacket.class,
-                jp.aquafactory.apprenticecodex.network.packet.ClientInterruptCartridgeReloadPacket::encode, jp.aquafactory.apprenticecodex.network.packet.ClientInterruptCartridgeReloadPacket::decode, jp.aquafactory.apprenticecodex.network.packet.ClientInterruptCartridgeReloadPacket::handle,
+        CHANNEL.registerMessage(nextPacketId++, ClientInterruptCartridgeReloadPacket.class,
+                ClientInterruptCartridgeReloadPacket::encode, ClientInterruptCartridgeReloadPacket::decode, ClientInterruptCartridgeReloadPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER));
-        CHANNEL.registerMessage(nextPacketId++, jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket.class,
-                jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket::encode, jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket::decode, jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket::handle,
+        CHANNEL.registerMessage(nextPacketId++, LightningArrowImpactPacket.class,
+                LightningArrowImpactPacket::encode, LightningArrowImpactPacket::decode, LightningArrowImpactPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        CHANNEL.registerMessage(nextPacketId++, jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket.class,
-                jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket::encode, jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket::decode, jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket::handle,
+        CHANNEL.registerMessage(nextPacketId++, SyncElementalBowCastPacket.class,
+                SyncElementalBowCastPacket::encode, SyncElementalBowCastPacket::decode, SyncElementalBowCastPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        CHANNEL.registerMessage(nextPacketId++, jp.aquafactory.apprenticecodex.network.packet.ClientElementalBowCancelPacket.class,
-                jp.aquafactory.apprenticecodex.network.packet.ClientElementalBowCancelPacket::encode, jp.aquafactory.apprenticecodex.network.packet.ClientElementalBowCancelPacket::decode, jp.aquafactory.apprenticecodex.network.packet.ClientElementalBowCancelPacket::handle,
+        CHANNEL.registerMessage(nextPacketId++, ClientElementalBowCancelPacket.class,
+                ClientElementalBowCancelPacket::encode, ClientElementalBowCancelPacket::decode, ClientElementalBowCancelPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER));
 
-        CHANNEL.registerMessage(nextPacketId++, jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePacket.class,
-                jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePacket::encode,
-                jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePacket::decode,
-                jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePacket::handle,
+        CHANNEL.registerMessage(nextPacketId++, ClientQuickcastCartridgePacket.class,
+                ClientQuickcastCartridgePacket::encode,
+                ClientQuickcastCartridgePacket::decode,
+                ClientQuickcastCartridgePacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(nextPacketId++, ScytheRecallEffectPacket.class, ScytheRecallEffectPacket::encode,
                 ScytheRecallEffectPacket::decode, ScytheRecallEffectPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));

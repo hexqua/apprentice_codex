@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.type.ICuriosMenu;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
+import top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler;
 import top.theillusivec4.curios.common.inventory.CurioSlot;
 
 public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu implements ICuriosMenu {
@@ -118,7 +119,7 @@ public final class SpellcasterAccessoryCaseMenu extends AbstractContainerMenu im
         }
 
         var visibleSlotCount = curiosHandler.getCurios().values().stream()
-                .filter(top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler::isVisible)
+                .filter(ICurioStacksHandler::isVisible)
                 .mapToInt(handler -> handler.getStacks().getSlots())
                 .sum();
         if (visibleSlotCount == 0) {

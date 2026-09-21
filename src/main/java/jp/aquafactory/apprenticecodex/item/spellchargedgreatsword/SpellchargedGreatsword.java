@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.spellchargedgreatsword;
 
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
@@ -13,6 +14,7 @@ import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.SpellchargedGreatswordRenderer;
 import jp.aquafactory.apprenticecodex.utility.PersistentGameTimeSanitizer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -30,6 +32,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tier;
@@ -91,12 +94,12 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     private static final String TAG_OVERCHARGE_FADE_START_GAME_TIME = "SpellchargedGreatswordOverchargeFadeStartGameTime";
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK =
-            new ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD);
+            new ItemStack(Items.DIAMOND_SWORD);
     private static final String MALUM_NAMESPACE = "malum";
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
-            net.minecraft.core.registries.Registries.ITEM,
+            Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
     );
     private static final Set<ResourceLocation> EXTRA_ENCHANTMENTS = Set.of(
@@ -221,7 +224,7 @@ public final class SpellchargedGreatsword extends SwordItem implements GeoItem, 
     }
 
     public static double computeChargeGainTicks(AbstractSpell spell, int spellLevel) {
-        if (spell == null || spell == io.redspace.ironsspellbooks.api.registry.SpellRegistry.none()) {
+        if (spell == null || spell == SpellRegistry.none()) {
             return 0.0D;
         }
 

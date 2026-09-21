@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.harvestmoon;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import jp.aquafactory.apprenticecodex.block.comfortberrybush.ComfortBerryBushBlock;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -22,6 +23,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 final class HarvestMoonTargetCollector {
@@ -98,10 +100,10 @@ final class HarvestMoonTargetCollector {
             return null;
         }
 
-        if (block instanceof jp.aquafactory.apprenticecodex.block.comfortberrybush.ComfortBerryBushBlock) {
-            if (state.hasProperty(jp.aquafactory.apprenticecodex.block.comfortberrybush.ComfortBerryBushBlock.AGE)
-                    && state.getValue(jp.aquafactory.apprenticecodex.block.comfortberrybush.ComfortBerryBushBlock.AGE)
-                    >= jp.aquafactory.apprenticecodex.block.comfortberrybush.ComfortBerryBushBlock.MAX_AGE) {
+        if (block instanceof ComfortBerryBushBlock) {
+            if (state.hasProperty(ComfortBerryBushBlock.AGE)
+                    && state.getValue(ComfortBerryBushBlock.AGE)
+                    >= ComfortBerryBushBlock.MAX_AGE) {
                 visited.add(pos.asLong());
                 return new HarvestMoonAction.RightClickCropAction(pos, HarvestMoonAction.ManualHarvestKind.NONE);
             }
@@ -180,7 +182,7 @@ final class HarvestMoonTargetCollector {
     }
 
     private static HarvestMoonAction createChorusAction(ServerLevel level, BlockPos startPos, LongOpenHashSet visited) {
-        var cluster = new java.util.LinkedHashSet<BlockPos>();
+        var cluster = new LinkedHashSet<BlockPos>();
         var queue = new ArrayDeque<BlockPos>();
         queue.add(startPos.immutable());
         visited.add(startPos.asLong());

@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.spell.lightningarrow;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
 /** 標準の速度パケットは各軸3.9で切り詰められるため、軌道を独立して同期する。 */
@@ -20,7 +21,7 @@ public record LightningArrowFlight(Vec3 origin, Vec3 direction, double speed, do
     }
 
     public Vec3 point(double distance) {
-        return origin.add(direction.scale(net.minecraft.util.Mth.clamp(distance, 0.0, range)));
+        return origin.add(direction.scale(Mth.clamp(distance, 0.0, range)));
     }
 
     public CompoundTag encode() {

@@ -9,6 +9,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.ArrayList;
 import java.util.function.Supplier;
 
 public record SyncChargecastCatalystbookConfigPacket(ChargecastCatalystbookServerConfig.Values values) {
@@ -27,7 +28,7 @@ public record SyncChargecastCatalystbookConfigPacket(ChargecastCatalystbookServe
         var spellPowerMultiplier = buffer.readDouble();
         var silverRingCastTimeBonusFactor = buffer.readDouble();
         var spellDenylistSize = buffer.readVarInt();
-        var spellDenylist = new java.util.ArrayList<ResourceLocation>(spellDenylistSize);
+        var spellDenylist = new ArrayList<ResourceLocation>(spellDenylistSize);
         for (var index = 0; index < spellDenylistSize; ++index) {
             spellDenylist.add(buffer.readResourceLocation());
         }

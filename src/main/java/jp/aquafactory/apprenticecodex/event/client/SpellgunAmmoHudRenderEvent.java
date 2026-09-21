@@ -10,6 +10,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
@@ -72,7 +73,7 @@ public final class SpellgunAmmoHudRenderEvent {
     @Nullable
     private static AmmoHudEntry resolveAmmoDisplay(
             ItemStack weaponStack,
-            net.minecraft.world.entity.player.Player player,
+            Player player,
             float partialTick
     ) {
         if (weaponStack.getItem() instanceof AbstractSpellGunItem spellGunItem) {

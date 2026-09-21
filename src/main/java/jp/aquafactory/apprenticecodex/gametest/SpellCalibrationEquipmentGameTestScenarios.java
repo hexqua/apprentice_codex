@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
@@ -10,7 +11,10 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
+import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
+import io.redspace.ironsspellbooks.item.Scroll;
+import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchMenu;
 import jp.aquafactory.apprenticecodex.entity.broom.BroomSpellSelectionEvents;
@@ -43,6 +47,7 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.callbroom.CallBroomSpellSelectionEvents;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
+import jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator;
 import jp.aquafactory.apprenticecodex.utility.SpellSelectionStackResolver;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -80,7 +85,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             var stack = createInitializedPresetStack(item);
             var spellContainer = ISpellContainer.get(stack);
 
-            helper.assertFalse(item instanceof io.redspace.ironsspellbooks.item.UniqueItem,
+            helper.assertFalse(item instanceof UniqueItem,
                     "Photon Siphon should not block external imbue as a UniqueItem");
             helper.assertTrue(spellContainer != null, "Photon Siphon default spell container is null");
             assertSpellData(helper, spellContainer, 0, SpellRegistry.MANA_CHARGE.get(), 1, true,
@@ -222,7 +227,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     "Mithril Freecast Staff should reject scroll placement");
             var mithrilItem = (MithrilFreecastStaff) mithrilFreecastStaff.getItem();
             helper.assertTrue(mithrilItem.getAttributeModifiers(EquipmentSlot.MAINHAND, mithrilFreecastStaff)
-                            .get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()).stream()
+                            .get(AttributeRegistry.SPELL_POWER.get()).stream()
                             .anyMatch(modifier -> modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE
                                     && Math.abs(modifier.getAmount() - 0.10D) < 0.000001D),
                     "Uncalibrated Mithril Freecast Staff should grant +10% generic spell power");
@@ -233,12 +238,12 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             );
             var tunedMithrilModifiers = mithrilItem.getAttributeModifiers(EquipmentSlot.MAINHAND, mithrilFreecastStaff);
             helper.assertTrue(tunedMithrilModifiers
-                            .get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()).stream()
+                            .get(AttributeRegistry.SPELL_POWER.get()).stream()
                             .anyMatch(modifier -> modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE
                                     && Math.abs(modifier.getAmount() - 0.05D) < 0.000001D),
                     "Fire-tuned Mithril Freecast Staff should retain +5% generic spell power");
             helper.assertTrue(tunedMithrilModifiers
-                            .get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get()).stream()
+                            .get(AttributeRegistry.FIRE_SPELL_POWER.get()).stream()
                             .anyMatch(modifier -> modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE
                                     && Math.abs(modifier.getAmount() - 0.15D) < 0.000001D),
                     "Fire-tuned Mithril Freecast Staff should grant +15% fire spell power");
@@ -443,13 +448,13 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
                     helper.assertTrue(
                             rule.conflicts(representative, representative)
                                     == (rule.duplicatePolicy()
-                                    != jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule.DuplicatePolicy.REPEATABLE),
+                                    != CalibrationAdjustmentRule.DuplicatePolicy.REPEATABLE),
                             "Calibration duplicate policy should match its conflict rule: " + rule.displayId()
                     );
                     helper.assertTrue(
                             rule.constraintDisplay().translationKey().isEmpty()
                                     == (rule.duplicatePolicy()
-                                    == jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule.DuplicatePolicy.REPEATABLE),
+                                    == CalibrationAdjustmentRule.DuplicatePolicy.REPEATABLE),
                             "Only repeatable calibration rules should omit constraint text: " + rule.displayId()
                     );
                 }
@@ -688,7 +693,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertTrue(populatedItems.get(2).is(slotUpgrade.getItem()),
                     "Calibration tooltip should preserve adjustment slot order");
             helper.assertTrue(populatedItems.stream()
-                            .noneMatch(stack -> stack.getItem() instanceof io.redspace.ironsspellbooks.item.Scroll),
+                            .noneMatch(stack -> stack.getItem() instanceof Scroll),
                     "Calibration tooltip should not include Scrollcaster Gauntlet scroll slots");
         });
     }
@@ -1082,7 +1087,7 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             helper.assertFalse(stack.getItem() instanceof RestrictedSpellImbuableItem,
                     "Mithril Freecast Staff should not expose the restricted imbue API");
             helper.assertTrue(
-                    jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
+                    SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(stack, scrollStack),
                     "Mithril Freecast Staff should reject Arcane Anvil spell imbuing"
             );
         });
@@ -1177,9 +1182,9 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
             var grimoire = new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get());
             ArchivistsGrimoire.setUpgradeCount(grimoire, 1);
             new ArchivistsGrimoire.ScrollInventory(grimoire).setStackInSlot(0, createSpellScroll(SpellRegistry.BOUND_BOW.get()));
-            equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT, grimoire);
+            equipCurio(player, Curios.SPELLBOOK_SLOT, grimoire);
             magicData.getSyncedData().setSpellSelection(new SpellSelection(
-                    io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
+                    Curios.SPELLBOOK_SLOT,
                     0
             ));
             magicData.getPlayerCooldowns().removeCooldown(SpellRegistry.BOUND_BOW.get().getSpellId());

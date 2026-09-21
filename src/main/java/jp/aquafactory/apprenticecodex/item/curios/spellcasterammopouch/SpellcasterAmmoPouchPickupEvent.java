@@ -5,6 +5,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -47,7 +48,7 @@ public final class SpellcasterAmmoPouchPickupEvent {
         }
 
         pickedUpStack.setCount(pickedUpCount);
-        net.minecraftforge.event.ForgeEventFactory.firePlayerItemPickupEvent(player, itemEntity, pickedUpStack);
+        ForgeEventFactory.firePlayerItemPickupEvent(player, itemEntity, pickedUpStack);
         player.take(itemEntity, pickedUpCount);
         if (entityStack.isEmpty()) {
             itemEntity.discard();

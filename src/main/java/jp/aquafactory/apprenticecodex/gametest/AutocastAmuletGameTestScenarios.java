@@ -6,21 +6,34 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
+import io.redspace.ironsspellbooks.compat.Curios;
+import io.redspace.ironsspellbooks.config.ServerConfigs;
+import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
+import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletCastEvent;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletMobEffectCondition;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfile;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 
+import net.minecraft.world.level.GameType;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,12 +51,12 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             var continuousSpell = SpellRegistry.MANA_CHARGE.get();
             var necklaceTag = TagKey.create(
                     Registries.ITEM,
-                    ResourceLocation.fromNamespaceAndPath("curios", io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT)
+                    ResourceLocation.fromNamespaceAndPath("curios", Curios.NECKLACE_SLOT)
             );
 
             helper.assertFalse(ISpellContainer.isSpellContainer(stack),
                     "Autocast Amulet should not expose Iron's SpellContainer by default");
-            helper.assertTrue(jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(
+            helper.assertTrue(SpellGunSpellValidator.isUnsupportedArcaneAnvilSpell(
                             stack,
                             createSpellScroll(apprenticeSpell)
                     ),
@@ -150,7 +163,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             magicData.getSyncedData().learnSpell(spell, false);
             magicData.setMana(200.0F);
 
-            try (var ignored = jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
+            try (var ignored = AutocastAmuletSpellProfileManager
                     .useProfilesForGameTest(Map.of())) {
                 runAutocastAmuletServerTick(player, 20);
             }
@@ -174,16 +187,16 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             var fortifyEffectId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "fortify");
             var profiles = Map.of(
                     chargeSpell.getSpellResource(),
-                    new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfile(
-                            List.of(new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletMobEffectCondition(
+                    new AutocastAmuletSpellProfile(
+                            List.of(new AutocastAmuletMobEffectCondition(
                                     chargeEffectId,
                                     60
                             )),
                             Optional.of(0.5F)
                     ),
                     fortifySpell.getSpellResource(),
-                    new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfile(
-                            List.of(new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletMobEffectCondition(
+                    new AutocastAmuletSpellProfile(
+                            List.of(new AutocastAmuletMobEffectCondition(
                                     fortifyEffectId,
                                     0
                             )),
@@ -191,32 +204,32 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
                     )
             );
 
-            try (var ignored = jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
+            try (var ignored = AutocastAmuletSpellProfileManager
                     .useProfilesForGameTest(profiles)) {
-                helper.assertFalse(jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
+                helper.assertFalse(AutocastAmuletSpellProfileManager
                                 .canCastWithWisdomShard(player, chargeData),
                         "Wisdom Shard profile should require every configured condition");
 
                 player.setHealth(player.getMaxHealth() * 0.5F);
                 player.addEffect(new MobEffectInstance(
-                        io.redspace.ironsspellbooks.registries.MobEffectRegistry.CHARGED.get(),
+                        MobEffectRegistry.CHARGED.get(),
                         61
                 ));
-                helper.assertFalse(jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
+                helper.assertFalse(AutocastAmuletSpellProfileManager
                                 .canCastWithWisdomShard(player, chargeData),
                         "Wisdom Shard mob effect profile should reject one tick above the threshold");
 
-                player.removeEffect(io.redspace.ironsspellbooks.registries.MobEffectRegistry.CHARGED.get());
+                player.removeEffect(MobEffectRegistry.CHARGED.get());
                 player.addEffect(new MobEffectInstance(
-                        io.redspace.ironsspellbooks.registries.MobEffectRegistry.CHARGED.get(),
+                        MobEffectRegistry.CHARGED.get(),
                         60
                 ));
-                helper.assertTrue(jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
+                helper.assertTrue(AutocastAmuletSpellProfileManager
                                 .canCastWithWisdomShard(player, chargeData),
                         "Wisdom Shard mob effect profile should accept exactly the configured threshold");
 
-                player.removeEffect(io.redspace.ironsspellbooks.registries.MobEffectRegistry.FORTIFY.get());
-                helper.assertTrue(jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletSpellProfileManager
+                player.removeEffect(MobEffectRegistry.FORTIFY.get());
+                helper.assertTrue(AutocastAmuletSpellProfileManager
                                 .canCastWithWisdomShard(player, fortifyData),
                         "Wisdom Shard mob effect profile should treat missing effects as 0 ticks");
             }
@@ -454,7 +467,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
         var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "autocast_amulet_creative_mana_test");
 
         helper.runAtTickTime(1, () -> {
-            player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.CREATIVE);
+            player.gameMode.changeGameModeForPlayer(GameType.CREATIVE);
             var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
             var item = (AutocastAmulet) ItemRegistry.AUTOCAST_AMULET.get();
             var stack = item.getDefaultInstance();
@@ -509,7 +522,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
                     player,
                     CastSource.SWORD
             );
-            var ironsSwordCooldown = io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
+            var ironsSwordCooldown = MagicManager.getEffectiveSpellCooldown(
                     spell,
                     player,
                     CastSource.SWORD
@@ -520,17 +533,17 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
                     player,
                     CastSource.SWORD
             );
-            jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletCastEvent.onSpellCooldownAdded(cooldownEvent);
+            AutocastAmuletCastEvent.onSpellCooldownAdded(cooldownEvent);
             helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldown,
                     "Autocast Amulet cooldown event should ignore the sword cooldown multiplier but got "
                             + cooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
             helper.assertTrue(cooldownEvent.getEffectiveCooldown() != ironsSwordCooldown,
                     "Autocast Amulet cooldown event should differ from Iron's sword multiplier path");
 
-            var originalSwordCooldownMultiplier = io.redspace.ironsspellbooks.config.ServerConfigs.SWORDS_CD_MULTIPLIER.get();
+            var originalSwordCooldownMultiplier = ServerConfigs.SWORDS_CD_MULTIPLIER.get();
             try {
-                io.redspace.ironsspellbooks.config.ServerConfigs.SWORDS_CD_MULTIPLIER.set(0.0D);
-                var zeroMultiplierSwordCooldown = io.redspace.ironsspellbooks.capabilities.magic.MagicManager.getEffectiveSpellCooldown(
+                ServerConfigs.SWORDS_CD_MULTIPLIER.set(0.0D);
+                var zeroMultiplierSwordCooldown = MagicManager.getEffectiveSpellCooldown(
                         spell,
                         player,
                         CastSource.SWORD
@@ -541,7 +554,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
                         player,
                         CastSource.SWORD
                 );
-                jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletCastEvent.onSpellCooldownAdded(
+                AutocastAmuletCastEvent.onSpellCooldownAdded(
                         zeroMultiplierCooldownEvent
                 );
                 helper.assertTrue(zeroMultiplierSwordCooldown == 0,
@@ -551,7 +564,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
                         "Autocast Amulet cooldown event should restore cooldown even with a zero sword multiplier but got "
                                 + zeroMultiplierCooldownEvent.getEffectiveCooldown() + " / expected " + expectedCooldown);
             } finally {
-                io.redspace.ironsspellbooks.config.ServerConfigs.SWORDS_CD_MULTIPLIER.set(originalSwordCooldownMultiplier);
+                ServerConfigs.SWORDS_CD_MULTIPLIER.set(originalSwordCooldownMultiplier);
             }
         });
     }
@@ -593,7 +606,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
     }
     static void autocastAmuletNotificationControllerSchedulesCastAndThresholds(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var controller = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
+            var controller = new AutocastAmuletNotificationController();
             var spellId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "greater_heal");
             var icon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/greater_heal.png");
 
@@ -602,7 +615,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             var active = controller.getActiveNotification();
             helper.assertTrue(active != null, "Autocast Amulet notification controller should show the cast notification immediately");
             if (active != null) {
-                helper.assertTrue(active.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.CAST,
+                helper.assertTrue(active.type() == AutocastAmuletNotificationController.NotificationType.CAST,
                         "Autocast Amulet cast notification should use the CAST kind");
                 helper.assertTrue(active.displaySeconds() == 65,
                         "Autocast Amulet cast notification should display the rounded cooldown seconds");
@@ -625,7 +638,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
     }
     static void autocastAmuletNotificationControllerSkipsUnreachedThresholds(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var controller = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
+            var controller = new AutocastAmuletNotificationController();
             var spellId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "charge");
             var icon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/charge.png");
 
@@ -645,7 +658,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
 
     static void autocastAmuletNotificationControllerSkipsCooldownsUnderFiveSeconds(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var controller = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
+            var controller = new AutocastAmuletNotificationController();
             var spellId = ResourceLocation.fromNamespaceAndPath("apprenticecodex", "arcane_blast");
             var icon = ResourceLocation.fromNamespaceAndPath("apprenticecodex", "textures/spells/arcane_blast.png");
 
@@ -661,7 +674,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             controller.queueCooldownCast(1L, spellId, icon, 100);
             var active = controller.getActiveNotification();
             helper.assertTrue(active != null
-                            && active.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.CAST
+                            && active.type() == AutocastAmuletNotificationController.NotificationType.CAST
                             && active.displaySeconds() == 5,
                     "Autocast Amulet cooldowns of 5 seconds should still create a cast notification");
         });
@@ -669,7 +682,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
 
     static void autocastAmuletNotificationControllerQueuesInOrderAndKeepsDelayedLabel(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var controller = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
+            var controller = new AutocastAmuletNotificationController();
             var healId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "greater_heal");
             var healIcon = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "textures/spells/greater_heal.png");
             var chargeId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "charge");
@@ -693,7 +706,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             controller.advance(60L);
             var manaLow = controller.getActiveNotification();
             helper.assertTrue(manaLow != null
-                            && manaLow.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.MANA_LOW
+                            && manaLow.type() == AutocastAmuletNotificationController.NotificationType.MANA_LOW
                             && "MP!".equals(manaLow.displayText()),
                     "Autocast Amulet mana-low notification should use the dedicated minimal overlay text");
 
@@ -701,14 +714,14 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             controller.advance(100L);
             var stillBlockedByQueue = controller.getActiveNotification();
             helper.assertTrue(stillBlockedByQueue != null
-                            && stillBlockedByQueue.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.CAST
+                            && stillBlockedByQueue.type() == AutocastAmuletNotificationController.NotificationType.CAST
                             && stillBlockedByQueue.spellId().equals(delayedId),
                     "Autocast Amulet threshold notification should wait until earlier queued notifications finish");
 
             controller.advance(130L);
             var delayedThreshold = controller.getActiveNotification();
             helper.assertTrue(delayedThreshold != null
-                            && delayedThreshold.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.THRESHOLD
+                            && delayedThreshold.type() == AutocastAmuletNotificationController.NotificationType.THRESHOLD
                             && "60s".equals(delayedThreshold.displayText()),
                     "Autocast Amulet delayed threshold notification should keep the original 60 second label");
         });
@@ -716,7 +729,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
 
     static void autocastAmuletNotificationControllerUpdatesRemainingCounts(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var linearController = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
+            var linearController = new AutocastAmuletNotificationController();
             var linearId = ResourceLocation.fromNamespaceAndPath("apprenticecodex", "linear_build");
             var luminousDeviceId = ResourceLocation.fromNamespaceAndPath("apprenticecodex", "luminous_device");
             var castId = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "greater_heal");
@@ -740,11 +753,11 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
 
             var activeLinear = linearController.getActiveNotification();
             helper.assertTrue(activeLinear != null
-                            && activeLinear.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.ITEM_REMAINING
+                            && activeLinear.type() == AutocastAmuletNotificationController.NotificationType.ITEM_REMAINING
                             && "9".equals(activeLinear.displayText()),
                     "Linear Build remaining notification should update the active entry and refresh its display duration");
 
-            var queuedController = new jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController();
+            var queuedController = new AutocastAmuletNotificationController();
             queuedController.queueCooldownCast(0L, castId, castIcon, 1200);
             queuedController.updateRemainingCount(
                     1L,
@@ -766,7 +779,7 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
             queuedController.advance(30L);
             var queuedRemaining = queuedController.getActiveNotification();
             helper.assertTrue(queuedRemaining != null
-                            && queuedRemaining.type() == jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletNotificationController.NotificationType.MANA_REMAINING
+                            && queuedRemaining.type() == AutocastAmuletNotificationController.NotificationType.MANA_REMAINING
                             && queuedRemaining.itemIcon().is(io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE.get())
                             && "80".equals(queuedRemaining.displayText()),
                     "Remaining notification should show the latest queued mana value after earlier notifications finish");
@@ -790,10 +803,10 @@ final class AutocastAmuletGameTestScenarios extends ApprenticeCodexGameTestScena
 
     private static int expectedAutocastCooldownWithoutSwordMultiplier(
             AbstractSpell spell,
-            net.minecraft.world.entity.player.Player player,
+            Player player,
             CastSource castSource
     ) {
-        return jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper.getEffectiveSpellCooldownWithoutSwordMultiplier(
+        return WeaponImbueCooldownHelper.getEffectiveSpellCooldownWithoutSwordMultiplier(
                 spell,
                 player,
                 castSource

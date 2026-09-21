@@ -2,19 +2,25 @@ package jp.aquafactory.apprenticecodex.item.spellreaperscythe;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
+import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.event.ItemAttributeModifierEvent;
@@ -107,7 +113,7 @@ public final class ScytheThrowManager {
     public static void launchNormal(Player player, ItemStack stack, double distance) {
         if (!Double.isFinite(distance)) return;
         launch(player.level(), player, stack, player.getInventory().selected,
-                net.minecraft.util.Mth.clamp(distance, 2.5D, 10.0D), ScytheThrowEntity.Mode.NORMAL,
+                Mth.clamp(distance, 2.5D, 10.0D), ScytheThrowEntity.Mode.NORMAL,
                 ApprenticeCodexServerConfig.spellReaperScytheConfig().throwManaCost());
     }
 
@@ -138,8 +144,8 @@ public final class ScytheThrowManager {
         mark(stack, entity.getUUID());
         pay(player, cost);
         level.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-                jp.aquafactory.apprenticecodex.registry.SoundRegistry.SCYTHE_THROW.get(),
-                net.minecraft.sounds.SoundSource.PLAYERS, 0.8f, 1f);
+                SoundRegistry.SCYTHE_THROW.get(),
+                SoundSource.PLAYERS, 0.8f, 1f);
     }
 
     public static boolean canPay(Player player, int cost) {
@@ -152,8 +158,8 @@ public final class ScytheThrowManager {
         if (cost == 0 || player.getAbilities().instabuild) return;
         var data = MagicData.getPlayerMagicData(player);
         data.setMana(Math.max(0, data.getMana() - cost));
-        if (player instanceof ServerPlayer server && !(server instanceof net.minecraftforge.common.util.FakePlayer)) {
-            io.redspace.ironsspellbooks.setup.PacketDistributor.sendToPlayer(server, new SyncManaPacket(data));
+        if (player instanceof ServerPlayer server && !(server instanceof FakePlayer)) {
+            PacketDistributor.sendToPlayer(server, new SyncManaPacket(data));
         }
     }
 
@@ -213,7 +219,7 @@ public final class ScytheThrowManager {
     @SubscribeEvent public static void logout(PlayerEvent.PlayerLoggedOutEvent event) { abort(event.getEntity()); }
     @SubscribeEvent public static void dimension(PlayerEvent.PlayerChangedDimensionEvent event) { abort(event.getEntity()); }
     @SubscribeEvent public static void clone(PlayerEvent.Clone event) { abort(event.getOriginal()); }
-    @SubscribeEvent public static void stopped(net.minecraftforge.event.server.ServerStoppedEvent event) {
+    @SubscribeEvent public static void stopped(ServerStoppedEvent event) {
         ACTIVE.clear();
         CHARGES.clear();
     }

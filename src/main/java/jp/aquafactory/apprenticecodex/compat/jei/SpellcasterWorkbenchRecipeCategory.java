@@ -1,16 +1,21 @@
 package jp.aquafactory.apprenticecodex.compat.jei;
 
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public final class SpellcasterWorkbenchRecipeCategory extends AbstractApprenticeCodexRecipeCategory<SpellcasterWorkbenchRecipe> {
     public static final ResourceLocation ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_RECIPE_ID =
@@ -81,8 +86,8 @@ public final class SpellcasterWorkbenchRecipeCategory extends AbstractApprentice
     @Override
     public void draw(
             @NotNull SpellcasterWorkbenchRecipe recipe,
-            @NotNull mezz.jei.api.gui.ingredient.IRecipeSlotsView recipeSlotsView,
-            @NotNull net.minecraft.client.gui.GuiGraphics guiGraphics,
+            @NotNull IRecipeSlotsView recipeSlotsView,
+            @NotNull GuiGraphics guiGraphics,
             double mouseX,
             double mouseY
     ) {
@@ -104,16 +109,16 @@ public final class SpellcasterWorkbenchRecipeCategory extends AbstractApprentice
         }
     }
 
-    private static java.util.List<ItemStack> createDisplayedIngredientStacks(
+    private static List<ItemStack> createDisplayedIngredientStacks(
             SpellcasterWorkbenchRecipe recipe,
             SpellcasterWorkbenchRecipe.SizedIngredient sizedIngredient
     ) {
         if (recipe.getRequiredSpell() != null) {
             var scroll = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
             if (sizedIngredient.ingredient().test(scroll)) {
-                var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(recipe.getRequiredSpell());
+                var spell = SpellRegistry.getSpell(recipe.getRequiredSpell());
                 ISpellContainer.createScrollContainer(spell, recipe.getMinimumSpellLevel(), scroll);
-                return java.util.List.of(scroll.copyWithCount(sizedIngredient.count()));
+                return List.of(scroll.copyWithCount(sizedIngredient.count()));
             }
         }
         return copyIngredientStacks(sizedIngredient.ingredient(), sizedIngredient.count());

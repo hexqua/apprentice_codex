@@ -29,9 +29,6 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.ParrycastBucklerRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -42,6 +39,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -66,9 +64,11 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class ParrycastBuckler extends AbstractImbueShieldItem
         implements GeoItem, IJeiInfoItem, SpellCalibrationAdjustmentTarget, AttributeEnchantmentPolicy {
@@ -431,7 +431,7 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
     }
 
     @Override
-    public @NotNull java.util.Optional<net.minecraft.world.inventory.tooltip.TooltipComponent> getTooltipImage(
+    public @NotNull Optional<TooltipComponent> getTooltipImage(
             @NotNull ItemStack stack
     ) {
         return createCalibrationAdjustmentTooltip(stack);
@@ -449,7 +449,7 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
 
     public static boolean hasSilverRing(ItemStack stack) { return hasAdjustment(stack, MithrilFreecastStaff::isSilverRing); }
     public static boolean hasWisdomShard(ItemStack stack) { return hasAdjustment(stack, s -> s.is(ItemRegistry.WISDOM_SHARD.get())); }
-    private static boolean hasAdjustment(ItemStack stack, java.util.function.Predicate<ItemStack> predicate) {
+    private static boolean hasAdjustment(ItemStack stack, Predicate<ItemStack> predicate) {
         for (int i = 0; i < CALIBRATION_ADJUSTMENT_SLOT_COUNT; i++) if (predicate.test(readCalibrationAdjustment(stack, i))) return true;
         return false;
     }

@@ -7,6 +7,8 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.*;
@@ -17,6 +19,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
@@ -63,7 +66,7 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
                 "Disabling the selected slot must select the first usable scroll");
         helper.assertFalse(QuickcastScrollCartridge.getCalibrationScroll(stack, 3).isEmpty(),
                 "Disabled scroll contents must be retained");
-        var restored = ItemStack.of(stack.save(new net.minecraft.nbt.CompoundTag()));
+        var restored = ItemStack.of(stack.save(new CompoundTag()));
         helper.assertTrue(QuickcastScrollCartridge.getSelectedSpellData(restored).getSpell() == instant,
                 "Selection must survive item serialization");
         helper.assertFalse(QuickcastScrollCartridge.getCalibrationScroll(restored, 3).isEmpty(),
@@ -276,7 +279,7 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
         equipCurio(player, "back", stack);
         var magic = MagicData.getPlayerMagicData(player);
         // 他の発動元が既に作成した再詠唱状態を模し、開始時に回数を補充しないことを確認する。
-        var recast = new io.redspace.ironsspellbooks.capabilities.magic.RecastInstance(
+        var recast = new RecastInstance(
                 spell.getSpellId(), 1, 3, 200, CastSource.SPELLBOOK, null);
         magic.getPlayerRecasts().forceAddRecast(recast);
         int remainingBefore = recast.getRemainingRecasts();
@@ -291,7 +294,7 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
                     "Cartridge cast must decrement the existing recast normally");
         } finally {
             Utils.serverSideCancelCast(player);
-            magic.getPlayerRecasts().removeAll(io.redspace.ironsspellbooks.capabilities.magic.RecastResult.DEATH);
+            magic.getPlayerRecasts().removeAll(RecastResult.DEATH);
             QuickcastCartridgeCasting.clear(player);
         }
         helper.succeed();

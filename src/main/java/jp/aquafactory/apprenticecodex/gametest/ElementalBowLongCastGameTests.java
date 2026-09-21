@@ -1,11 +1,24 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import com.mojang.authlib.GameProfile;
+import io.netty.channel.embedded.EmbeddedChannel;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
+import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.compat.Curios;
+import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
+import io.redspace.ironsspellbooks.spells.fire.FireArrowSpell;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.curios.spellcastparryingring.SpellCastParryingRingDefenseEvent;
 import jp.aquafactory.apprenticecodex.item.elementalbow.*;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAimCastData;
@@ -14,17 +27,32 @@ import net.minecraft.core.BlockPos;
 
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 @GameTestHolder(ApprenticeCodex.MODID)
@@ -35,8 +63,8 @@ public final class ElementalBowLongCastGameTests {
 
     @GameTest(template = TEMPLATE, timeoutTicks = 100)
     public static void damagePreservesBowDrawAndRingNeverParries(GameTestHelper h) {
-        var players = new java.util.ArrayList<FakePlayer>();
-        var spells = java.util.List.of(SpellRegistry.LUNAR_AIM.get(),
+        var players = new ArrayList<FakePlayer>();
+        var spells = List.of(SpellRegistry.LUNAR_AIM.get(),
                 io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
         try (var config = useDamageTestConfig(h)) {
             for (var spell : spells) for (var hand : InteractionHand.values()) {
@@ -44,16 +72,16 @@ public final class ElementalBowLongCastGameTests {
                 players.add(player);
                 // 毒の初期時刻による中断回避と無敵時間が、被弾検証を隠さないようにする。
                 player.tickCount = 10;
-                BowGameTestSupport.equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.RING_SLOT,
+                BowGameTestSupport.equipCurio(player, Curios.RING_SLOT,
                         new ItemStack(ItemRegistry.SPELL_CAST_PARRYING_RING.get()));
-                h.assertTrue(jp.aquafactory.apprenticecodex.item.curios.spellcastparryingring.SpellCastParryingRingDefenseEvent.isEquippedBy(player),
+                h.assertTrue(SpellCastParryingRingDefenseEvent.isEquippedBy(player),
                         "Bow damage test must equip the ring");
                 var stack = player.getItemInHand(hand);
                 h.assertTrue(stack.getItem().use(h.getLevel(), player, hand).getResult().consumesAction(),
                         "Magic bow draw must start");
                 hitBowFromFront(h, player);
                 h.assertTrue(player.isUsingItem(), "Damage at draw start must preserve bow use");
-                if (spell.getCastType() == io.redspace.ironsspellbooks.api.spells.CastType.LONG) {
+                if (spell.getCastType() == CastType.LONG) {
                     h.assertTrue(ElementalBowPendingCast.isManagedCast(player), "Damage must preserve managed LONG casting");
                 }
                 assertUnspent(h, player, stack);
@@ -107,10 +135,10 @@ public final class ElementalBowLongCastGameTests {
         });
     }
 
-    private static jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig.GameTestConfigOverride useDamageTestConfig(GameTestHelper h) {
+    private static ApprenticeCodexServerConfig.GameTestConfigOverride useDamageTestConfig(GameTestHelper h) {
         var config = BowGameTestSupport.useElementalBowSpellConfig(h);
         var previous = ElementalBowModeManager.createSnapshot();
-        var definitions = new java.util.ArrayList<>(previous);
+        var definitions = new ArrayList<>(previous);
         // 標準プロファイルは LONG のため、データパックで追加可能な INSTANT も同じ操作で検証する。
         definitions.add(new ElementalBowModeDefinition(
                 io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get().getSpellResource(), 20));
@@ -141,13 +169,13 @@ public final class ElementalBowLongCastGameTests {
                 player.tickCount = 10;
                 // レジストリ全体を変更せず、被ダメージ経路にも override を持つ同一の魔法を渡す。
                 var magic = new MagicData(player) {
-                    @Override public io.redspace.ironsspellbooks.api.spells.SpellData getCastingSpell() {
-                        return new io.redspace.ironsspellbooks.api.spells.SpellData(spell, 1);
+                    @Override public SpellData getCastingSpell() {
+                        return new SpellData(spell, 1);
                     }
                 };
                 // Iron's 3.16.3 の Forge 版は attachment ではなく LivingEntity の追加fieldへ保持する。
                 try {
-                    var field = net.minecraft.world.entity.LivingEntity.class.getDeclaredField("irons_spellbooks$magicData");
+                    var field = LivingEntity.class.getDeclaredField("irons_spellbooks$magicData");
                     field.setAccessible(true);
                     field.set(player, magic);
                 } catch (ReflectiveOperationException exception) {
@@ -163,7 +191,7 @@ public final class ElementalBowLongCastGameTests {
                     h.assertTrue(ElementalBowPendingCast.release(player, stack, spell, 1, 20), "Damaged probe must release");
                     h.assertTrue(spell.casts == 1 && spell.cancelled == 0, "Protected probe must cast without cancellation");
                     // 弓の所持だけでは通常詠唱の中断やリング防御を変更しない。
-                    magic.initiateCast(spell, 1, 20, io.redspace.ironsspellbooks.api.spells.CastSource.SPELLBOOK, "mainhand");
+                    magic.initiateCast(spell, 1, 20, CastSource.SPELLBOOK, "mainhand");
                     hitBowFromFront(h, player);
                     h.assertFalse(magic.isCasting(), "Ordinary casting while holding a bow must still be interrupted");
                 } finally {
@@ -176,12 +204,12 @@ public final class ElementalBowLongCastGameTests {
                 var defenderMagic = MagicData.getPlayerMagicData(defender);
                 try {
                     defender.tickCount = 10;
-                    BowGameTestSupport.equipCurio(defender, io.redspace.ironsspellbooks.compat.Curios.RING_SLOT,
+                    BowGameTestSupport.equipCurio(defender, Curios.RING_SLOT,
                             new ItemStack(ItemRegistry.SPELL_CAST_PARRYING_RING.get()));
-                    h.assertTrue(jp.aquafactory.apprenticecodex.item.curios.spellcastparryingring.SpellCastParryingRingDefenseEvent.isEquippedBy(defender),
+                    h.assertTrue(SpellCastParryingRingDefenseEvent.isEquippedBy(defender),
                             "Ordinary casting control must equip the ring");
                     defenderMagic.getSyncedData();
-                    defenderMagic.initiateCast(spell, 1, 20, io.redspace.ironsspellbooks.api.spells.CastSource.SPELLBOOK, "mainhand");
+                    defenderMagic.initiateCast(spell, 1, 20, CastSource.SPELLBOOK, "mainhand");
                     var attacker = EntityType.ZOMBIE.create(h.getLevel());
                     attacker.setPos(defender.position().add(defender.getLookAngle().scale(3)));
                     float health = defender.getHealth();
@@ -204,22 +232,22 @@ public final class ElementalBowLongCastGameTests {
             var spell = SpellRegistry.LUNAR_AIM.get();
             var caster = player(h, InteractionHand.MAIN_HAND, spell);
             var observer = player(h, InteractionHand.MAIN_HAND, spell);
-            var packets = new java.util.ArrayList<jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket>();
-            var connection = new net.minecraft.network.Connection(net.minecraft.network.protocol.PacketFlow.SERVERBOUND) {
-                @Override public void send(net.minecraft.network.protocol.Packet<?> packet) {
+            var packets = new ArrayList<SyncElementalBowCastPacket>();
+            var connection = new Connection(PacketFlow.SERVERBOUND) {
+                @Override public void send(Packet<?> packet) {
                     var cast = ForgePacketTestSupport.decode(packet,
-                            jp.aquafactory.apprenticecodex.network.Networks.class, "CHANNEL",
-                            new jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket(caster.getUUID(), spell.getSpellId(), true),
-                            jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket::decode);
+                            Networks.class, "CHANNEL",
+                            new SyncElementalBowCastPacket(caster.getUUID(), spell.getSpellId(), true),
+                            SyncElementalBowCastPacket::decode);
                     if (cast != null) packets.add(cast);
                 }
             };
-            var channel = new io.netty.channel.embedded.EmbeddedChannel(connection);
+            var channel = new EmbeddedChannel(connection);
             var previous = observer.connection;
-            new net.minecraft.server.network.ServerGamePacketListenerImpl(h.getLevel().getServer(), connection, observer);
+            new ServerGamePacketListenerImpl(h.getLevel().getServer(), connection, observer);
             try {
                 begin(h, caster, InteractionHand.MAIN_HAND);
-                MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.entity.player.PlayerEvent.StartTracking(observer, caster));
+                MinecraftForge.EVENT_BUS.post(new PlayerEvent.StartTracking(observer, caster));
                 h.assertTrue(packets.size() == 1 && packets.get(0).active()
                                 && packets.get(0).playerId().equals(caster.getUUID())
                                 && packets.get(0).spellId().equals(spell.getSpellId()),
@@ -227,16 +255,16 @@ public final class ElementalBowLongCastGameTests {
                 packets.clear();
                 // 終了を観測できなかった後の再追跡で、過去の弓詠唱を再送しない。
                 ElementalBowPendingCast.cancel(caster);
-                MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.entity.player.PlayerEvent.StartTracking(observer, caster));
+                MinecraftForge.EVENT_BUS.post(new PlayerEvent.StartTracking(observer, caster));
                 h.assertTrue(packets.isEmpty(), "Tracking after cancellation must not restore a finished bow cast");
                 begin(h, caster, InteractionHand.MAIN_HAND);
                 caster.stopUsingItem();
-                MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.entity.player.PlayerEvent.StartTracking(observer, caster));
+                MinecraftForge.EVENT_BUS.post(new PlayerEvent.StartTracking(observer, caster));
                 h.assertTrue(packets.isEmpty(), "Invalid pending state must not be sent before the next cleanup tick");
                 ElementalBowPendingCast.cancel(caster);
                 var magic = MagicData.getPlayerMagicData(caster);
-                magic.initiateCast(spell, 1, 20, io.redspace.ironsspellbooks.api.spells.CastSource.SPELLBOOK, "mainhand");
-                MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.entity.player.PlayerEvent.StartTracking(observer, caster));
+                magic.initiateCast(spell, 1, 20, CastSource.SPELLBOOK, "mainhand");
+                MinecraftForge.EVENT_BUS.post(new PlayerEvent.StartTracking(observer, caster));
                 h.assertTrue(packets.isEmpty(), "Ordinary casting must not be synchronized as a bow cast");
                 magic.resetCastingState();
             } finally {
@@ -280,7 +308,7 @@ public final class ElementalBowLongCastGameTests {
         target.setNoAi(true);
         target.setNoGravity(true);
         target.setPos(player.position().add(0, 0, 5));
-        target.addEffect(new MobEffectInstance(io.redspace.ironsspellbooks.registries.MobEffectRegistry.GUIDING_BOLT.get(), 200));
+        target.addEffect(new MobEffectInstance(MobEffectRegistry.GUIDING_BOLT.get(), 200));
         h.getLevel().addFreshEntity(target);
         begin(h, player, hand);
         var captured = magic.getAdditionalCastData();
@@ -415,7 +443,7 @@ public final class ElementalBowLongCastGameTests {
         try (var config = BowGameTestSupport.useElementalBowSpellConfig(h)) {
             var player = player(h, InteractionHand.MAIN_HAND, SpellRegistry.LUNAR_AIM.get());
             var magic = MagicData.getPlayerMagicData(player);
-            Consumer<io.redspace.ironsspellbooks.api.events.SpellPreCastEvent> veto = event -> {
+            Consumer<SpellPreCastEvent> veto = event -> {
                 if (event.getEntity() == player) event.setCanceled(true);
             };
             MinecraftForge.EVENT_BUS.addListener(veto);
@@ -426,7 +454,7 @@ public final class ElementalBowLongCastGameTests {
                 assertUnspent(h, player, player.getMainHandItem());
             } finally { MinecraftForge.EVENT_BUS.unregister(veto); }
             var existing = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get();
-            magic.initiateCast(existing, 1, 20, io.redspace.ironsspellbooks.api.spells.CastSource.SPELLBOOK, "mainhand");
+            magic.initiateCast(existing, 1, 20, CastSource.SPELLBOOK, "mainhand");
             var data = new LunarAimCastData(null, h.getLevel().dimension());
             magic.setAdditionalCastData(data);
             h.assertFalse(player.getMainHandItem().getItem().use(h.getLevel(), player, InteractionHand.MAIN_HAND)
@@ -463,39 +491,39 @@ public final class ElementalBowLongCastGameTests {
         h.succeed();
     }
 
-    private static final class LifecycleSpell extends io.redspace.ironsspellbooks.spells.fire.FireArrowSpell {
+    private static final class LifecycleSpell extends FireArrowSpell {
         int starts, ticks, casts, completions, cancelled;
         boolean scoped = true;
 
         @Override
-        public boolean canBeInterrupted(net.minecraft.world.entity.player.Player player) {
+        public boolean canBeInterrupted(Player player) {
             return true;
         }
 
         @Override
-        public void onServerPreCast(net.minecraft.world.level.Level level, int spellLevel,
-                                    net.minecraft.world.entity.LivingEntity entity, MagicData magic) {
+        public void onServerPreCast(Level level, int spellLevel,
+                                    LivingEntity entity, MagicData magic) {
             starts++;
             scoped &= ElementalBowCasting.isActive((FakePlayer) entity, this);
         }
 
         @Override
-        public void onServerCastTick(net.minecraft.world.level.Level level, int spellLevel,
-                                     net.minecraft.world.entity.LivingEntity entity, MagicData magic) {
+        public void onServerCastTick(Level level, int spellLevel,
+                                     LivingEntity entity, MagicData magic) {
             ticks++;
             scoped &= ElementalBowCasting.isActive((FakePlayer) entity, this);
         }
 
         @Override
-        public void onCast(net.minecraft.world.level.Level level, int spellLevel, net.minecraft.world.entity.LivingEntity entity,
-                           io.redspace.ironsspellbooks.api.spells.CastSource source, MagicData magic) {
+        public void onCast(Level level, int spellLevel, LivingEntity entity,
+                           CastSource source, MagicData magic) {
             casts++;
             scoped &= ElementalBowCasting.isActive((FakePlayer) entity, this);
         }
 
         @Override
-        public void onServerCastComplete(net.minecraft.world.level.Level level, int spellLevel,
-                                         net.minecraft.world.entity.LivingEntity entity, MagicData magic, boolean wasCancelled) {
+        public void onServerCastComplete(Level level, int spellLevel,
+                                         LivingEntity entity, MagicData magic, boolean wasCancelled) {
             completions++;
             if (wasCancelled) cancelled++;
             scoped &= ElementalBowCasting.isActive((FakePlayer) entity, this);
@@ -509,21 +537,21 @@ public final class ElementalBowLongCastGameTests {
     }
 
     private static FakePlayer damageablePlayer(GameTestHelper h, InteractionHand hand, AbstractSpell spell) {
-        var player = new FakePlayer(h.getLevel(), new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "bow_damage")) {
-            @Override public boolean isInvulnerableTo(net.minecraft.world.damagesource.DamageSource source) {
+        var player = new FakePlayer(h.getLevel(), new GameProfile(UUID.randomUUID(), "bow_damage")) {
+            @Override public boolean isInvulnerableTo(DamageSource source) {
                 return false;
             }
         };
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         // FakePlayer の無敵と生成直後の保護を解除し、通常のダメージ経路を通す。
         try {
-            var field = net.minecraft.server.level.ServerPlayer.class.getDeclaredField("spawnInvulnerableTime");
+            var field = ServerPlayer.class.getDeclaredField("spawnInvulnerableTime");
             field.setAccessible(true);
             field.setInt(player, 0);
         } catch (ReflectiveOperationException exception) {
             throw new IllegalStateException("Failed to disable spawn protection for GameTest", exception);
         }
-        player.setPos(h.absoluteVec(net.minecraft.world.phys.Vec3.atBottomCenterOf(new BlockPos(2, 300, 2))));
+        player.setPos(h.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(2, 300, 2))));
         // Curios のスロット初期化は entity の world 参加時に行われる。
         h.getLevel().addFreshEntity(player);
         return preparePlayer(h, hand, spell, player);

@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
@@ -282,7 +283,7 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, 
     }
 
     static boolean isScroll(ItemStack stack) {
-        return stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+        return stack.is(ItemRegistry.SCROLL.get());
     }
 
     public static int getUpgradeCount(ItemStack stack) {

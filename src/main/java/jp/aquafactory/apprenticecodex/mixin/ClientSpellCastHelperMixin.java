@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookClientCastIntent;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookStartSoundContext;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowClientCastState;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
@@ -27,6 +28,7 @@ import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShieldClientEffectState;
 import jp.aquafactory.apprenticecodex.utility.SpellSelectionStackResolver;
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -64,7 +66,7 @@ public abstract class ClientSpellCastHelperMixin {
         }
 
         var spell = SpellRegistry.getSpell(spellId);
-        if (jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowClientCastState.matches(castingEntityId, spellId)) {
+        if (ElementalBowClientCastState.matches(castingEntityId, spellId)) {
             // server の Player.playSound は本人を除外するため、本人の開始音は client 前処理で再生する。
             // 他プレイヤーの client 前処理ではローカル再生されず、server 配信との二重再生にはならない。
             spell.onClientPreCast(player.level(), spellLevel, player, player.getUsedItemHand(), null);
@@ -162,7 +164,7 @@ public abstract class ClientSpellCastHelperMixin {
             )
     )
     private static AnimationHolder redirectSpellGunCastFinishAnimation(AbstractSpell spell, UUID castingEntityId, String spellId, boolean cancelled) {
-        if (jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowClientCastState.matches(castingEntityId, spellId)) {
+        if (ElementalBowClientCastState.matches(castingEntityId, spellId)) {
             return AnimationHolder.pass();
         }
         var minecraft = Minecraft.getInstance();
@@ -213,7 +215,7 @@ public abstract class ClientSpellCastHelperMixin {
     )
     private static void handleClientBoundOnCastFinished(UUID castingEntityId, String spellId, boolean cancelled, CallbackInfo ci) {
         // 完了/キャンセルの区別なく preview をここで落とし、残留を防ぐ。
-        ClientPlacementPreviewManager.finishPreview(net.minecraft.resources.ResourceLocation.tryParse(spellId));
+        ClientPlacementPreviewManager.finishPreview(ResourceLocation.tryParse(spellId));
     }
 
     @Inject(
@@ -232,7 +234,7 @@ public abstract class ClientSpellCastHelperMixin {
     private static void apprentice_codex$runClientPreCast(
             AbstractSpell spell,
             int spellLevel,
-            net.minecraft.world.entity.player.Player player,
+            Player player,
             InteractionHand hand,
             boolean suppressFocusStaffbowStartSound,
             boolean suppressChargecastStartSound
@@ -255,7 +257,7 @@ public abstract class ClientSpellCastHelperMixin {
     private static void apprentice_codex$runClientPreCastWithoutChargecastSound(
             AbstractSpell spell,
             int spellLevel,
-            net.minecraft.world.entity.player.Player player,
+            Player player,
             InteractionHand hand,
             boolean suppressFocusStaffbowStartSound
     ) {
@@ -270,7 +272,7 @@ public abstract class ClientSpellCastHelperMixin {
     }
 
     @Unique
-    private static ItemStack apprentice_codex$resolveCastingStack(net.minecraft.world.entity.player.Player player, String castingSlot) {
+    private static ItemStack apprentice_codex$resolveCastingStack(Player player, String castingSlot) {
         if (SpellSelectionManager.MAINHAND.equals(castingSlot)) {
             return player.getMainHandItem();
         }
@@ -336,7 +338,7 @@ public abstract class ClientSpellCastHelperMixin {
     }
 
     @Unique
-    private static ItemStack apprentice_codex$resolveSpellAnimationStack(net.minecraft.world.entity.player.Player player,
+    private static ItemStack apprentice_codex$resolveSpellAnimationStack(Player player,
                                                                          ItemStack castingStack,
                                                                          AbstractSpell spell,
                                                                          String castingSlot,

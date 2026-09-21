@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.totemofpermafrost;
 
+import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.TotemOfPermafrostPulsePacket;
@@ -160,7 +161,7 @@ public class TotemOfPermafrostTotemEntity extends PathfinderMob implements GeoEn
         AudioTools.playSoundFromPosition(
                 level,
                 position(),
-                io.redspace.ironsspellbooks.registries.SoundRegistry.ICE_CAST.get(),
+                SoundRegistry.ICE_CAST.get(),
                 SoundSource.PLAYERS,
                 0.75f,
                 1.0f,
