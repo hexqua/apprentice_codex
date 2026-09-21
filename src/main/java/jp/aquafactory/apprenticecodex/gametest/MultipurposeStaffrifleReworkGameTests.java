@@ -23,6 +23,7 @@ import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeSt
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleRateLimiter;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleRecoil;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleScrollStorage;
+import jp.aquafactory.apprenticecodex.item.spellgun.RifleSpellTooltipData;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
@@ -234,6 +235,14 @@ public final class MultipurposeStaffrifleReworkGameTests extends ApprenticeCodex
                 "Equipped spellbook must provide the selected wheel spell");
         helper.assertTrue(MultipurposeStaffrifle.resolveCastSpellData(player, stack).getLevel() == 1,
                 "Wheel spell must not receive the rifle's Transcendence");
+        var beforeTooltip = stack.copy();
+        var tooltip = RifleSpellTooltipData.read(stack, player, lookup);
+        helper.assertTrue(tooltip.castSource() == CastSource.SPELLBOOK && tooltip.selectedSpell().getLevel() == 1,
+                "Wisdom tooltip must retain the book source and must not add rifle Transcendence");
+        helper.assertTrue(tooltip.slots().size() == 1 && !tooltip.slots().getFirst().usable(),
+                "Wisdom tooltip must retain the disabled internal scroll");
+        helper.assertTrue(ItemStack.isSameItemSameComponents(beforeTooltip, stack),
+                "Wisdom tooltip must not mutate the rifle");
         helper.assertTrue(new SpellSelectionManager(player).getAllSpells().size() == 1, "Stored spell must not be added to wheel");
         player.getInventory().add(new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 2));
         helper.assertTrue(rifle.tryTriggerSelectedSpell(player, false), "Wheel INSTANT must cast at zero mana");

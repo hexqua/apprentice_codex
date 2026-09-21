@@ -456,6 +456,9 @@ public final class MultipurposeStaffrifle extends Item
                                 @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, level, lines, flag);
         appendMultipurposeStaffrifleHelpTooltip(stack, lines);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RifleSpellTooltipClientHelper.append(stack, lines);
+        }
     }
 
     private static void playSuccessfulFireEffects(ServerPlayer player, AbstractSpell spell, boolean aiming) {
