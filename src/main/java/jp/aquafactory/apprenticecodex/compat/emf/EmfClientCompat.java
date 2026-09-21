@@ -15,6 +15,10 @@ public final class EmfClientCompat {
     }
 
     public static void register() throws Exception {
+        // 全体のpause/resume操作は他MODの停止状態も解除し得るため、独立した条件として追加する。
+        // モデル・テクスチャは置換せず、ライフルから呼び出した一人称の手描画だけを対象にする。
+        EMFAnimationApi.registerPauseCondition(entity -> entity instanceof Player player
+                && EmfCompat.isRenderingSpellrifleHand(player));
         // EMF は評価中の描画対象を共有コンテキストで公開するため、モデル評価の都度その乗り物を判定する。
         EMFAnimationApi.registerSingletonAnimationVariable(
                 ApprenticeCodex.MODID,
