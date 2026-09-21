@@ -103,7 +103,7 @@ public final class RevolvercastStaffPendingAdvance {
                 return null;
             }
 
-            // Iron's は詠唱中の SpellContainer 更新を装備変更として扱う場合があるため、完了後の tick まで遅延する。
+            // 完了通知時にはまだ詠唱状態が残るため、選択の更新は次の tick まで遅延する。
             if (RevolvercastStaff.advanceToNextValidScrollIndex(stack)
                     && stack.getItem() instanceof RevolvercastStaff revolvercastStaff) {
                 revolvercastStaff.triggerRevolveAnimationIfPossible(player, stack);

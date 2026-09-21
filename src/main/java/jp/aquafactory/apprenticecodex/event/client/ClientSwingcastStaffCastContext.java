@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffClientRenderState;
+import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -96,7 +97,7 @@ public final class ClientSwingcastStaffCastContext {
     }
 
     private static boolean matchesPendingSpell(ItemStack stack, PendingContext pending, AbstractSpell spell) {
-        if (stack.getItem() instanceof MithrilFreecastStaff) {
+        if (stack.getItem() instanceof MithrilFreecastStaff || stack.getItem() instanceof RevolvercastStaff) {
             return Objects.equals(pending.spellId(), spell.getSpellId());
         }
 
@@ -107,6 +108,11 @@ public final class ClientSwingcastStaffCastContext {
     private static String resolvePendingSpellId(ItemStack stack) {
         if (stack.getItem() instanceof MithrilFreecastStaff) {
             return MithrilFreecastStaffClientRenderState.resolveSelectedSpellId();
+        }
+        if (stack.getItem() instanceof RevolvercastStaff) {
+            // 本体コンテナは持たず、成功後には次のスクロールへ回転するため、攻撃入力時の魔法を保持する。
+            var selected = RevolvercastStaff.getSelectedSpellData(stack);
+            return selected == SpellData.EMPTY ? null : selected.getSpell().getSpellId();
         }
 
         return null;

@@ -78,6 +78,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
     private final ContainerLevelAccess access;
     private final HolderLookup.Provider lookupProvider;
+    private final boolean clientSide;
     private final ItemStackHandler gauntletInventory = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -93,6 +94,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         super(MenuRegistry.SPELL_CALIBRATION_BENCH.get(), containerId);
         this.access = access;
         this.lookupProvider = playerInventory.player.level().registryAccess();
+        this.clientSide = playerInventory.player.level().isClientSide;
 
         addSlot(new GauntletSlot(gauntletInventory, 0, GAUNTLET_SLOT_X, GAUNTLET_SLOT_Y));
         var adjustmentContainer = new AdjustmentContainer();
@@ -333,7 +335,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
                     "item.apprenticecodex.spellgun.tooltip.restrict_restrict_by_specific.elemental_bow"));
         }
         if (hasRevolvercastStaff()) {
-            return ((RevolvercastStaff) getGauntletStack().getItem()).getImbueRestrictionTooltipLines(getGauntletStack());
+            return ((RevolvercastStaff) getGauntletStack().getItem()).getScrollRestrictionTooltipLines(getGauntletStack());
         }
         if (hasParrycastBuckler()) {
             return ((ParrycastBuckler) getGauntletStack().getItem())
@@ -436,8 +438,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         } else if (hasChargecastCatalystbook()) {
             ChargecastCatalystbook.refreshSelectedSpellContainer(gauntletStack);
         } else if (hasRevolvercastStaff()) {
+            if (!clientSide) RevolvercastStaff.discardLegacySpellContainer(gauntletStack);
             RevolvercastStaff.refreshResolvedCalibrationSchool(gauntletStack);
-            RevolvercastStaff.refreshSelectedSpellContainer(gauntletStack);
+            RevolvercastStaff.normalizeSelectedScrollIndex(gauntletStack);
         } else if (hasMithrilFreecastStaff()) {
             MithrilFreecastStaff.refreshResolvedCalibrationSchool(gauntletStack);
         } else if (hasMagiAgentSuit()) {

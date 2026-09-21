@@ -3840,7 +3840,7 @@ public class ApprenticeCodexGameTestScenarios {
                     0,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
             );
-            RevolvercastStaff.refreshSelectedSpellContainer(staff);
+            RevolvercastStaff.normalizeSelectedScrollIndex(staff);
             helper.assertFalse(ISpellContainer.isSpellContainer(staff),
                     "Empty Revolvercast Staff should not expose a spell container");
 
@@ -3852,25 +3852,22 @@ public class ApprenticeCodexGameTestScenarios {
 
             helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 0,
                     "First enabled Revolvercast Staff scroll should become selected");
-            var spellContainer = ISpellContainer.get(staff);
-            helper.assertTrue(spellContainer != null, "Selected Revolvercast Staff spell container is null");
-            helper.assertTrue(spellContainer.isSpellWheel(),
-                    "Selected Revolvercast Staff spell should be visible to Iron's spell wheel");
-            assertSpellData(helper, spellContainer, 0, magicMissile, 1, false,
+            helper.assertFalse(ISpellContainer.isSpellContainer(staff), "Revolver must not project a host container");
+            helper.assertTrue(RevolvercastStaff.getSelectedSpellData(staff).getSpell() == magicMissile,
                     "Initial Revolvercast Staff selected spell mismatch");
 
             helper.assertTrue(RevolvercastStaff.advanceToNextValidScrollIndex(staff),
                     "Revolvercast Staff should advance to the next valid scroll");
             helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 2,
                     "Revolvercast Staff should skip empty scroll slots while advancing");
-            assertSpellData(helper, ISpellContainer.get(staff), 0, heal, 1, false,
+            helper.assertTrue(RevolvercastStaff.getSelectedSpellData(staff).getSpell() == heal,
                     "Advanced Revolvercast Staff selected spell mismatch");
 
             RevolvercastStaff.setCalibrationScroll(staff, 3, createSpellScroll(fireball));
             RevolvercastStaff.setCalibrationScroll(staff, 2, ItemStack.EMPTY);
             helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 3,
                     "Invalid Revolvercast Staff index should normalize to the next valid scroll");
-            assertSpellData(helper, ISpellContainer.get(staff), 0, fireball, 1, false,
+            helper.assertTrue(RevolvercastStaff.getSelectedSpellData(staff).getSpell() == fireball,
                     "Normalized Revolvercast Staff selected spell mismatch");
 
             RevolvercastStaff.setCalibrationScroll(staff, 3, ItemStack.EMPTY);
@@ -4071,9 +4068,9 @@ public class ApprenticeCodexGameTestScenarios {
             );
             var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
             var heal = SpellRegistry.ARCANE_BLAST.get();
-            helper.assertTrue(staff.canImbueSpell(magicMissile, 1),
+            helper.assertTrue(RevolvercastStaff.canSwingCastSpell(stack, magicMissile),
                     "Revolvercast Staff should accept instant spells by default");
-            helper.assertFalse(staff.canImbueSpell(heal, 1),
+            helper.assertFalse(RevolvercastStaff.canSwingCastSpell(stack, heal),
                     "Revolvercast Staff should reject long spells without Silver Ring");
             SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     stack,
@@ -4082,7 +4079,7 @@ public class ApprenticeCodexGameTestScenarios {
             );
             helper.assertTrue(RevolvercastStaff.canSwingCastSpell(stack, heal),
                     "Silver Ring should enable Revolvercast Staff long swing-cast support");
-            helper.assertFalse(staff.canImbueSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get(), 1),
+            helper.assertFalse(RevolvercastStaff.canSwingCastSpell(stack, io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get()),
                     "Revolvercast Staff should reject continuous spells");
 
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
