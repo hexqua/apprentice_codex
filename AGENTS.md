@@ -49,12 +49,12 @@
 ./gradlew.bat runGameTestServerEpicFight
 ./gradlew.bat runGameTestServerMalumEpicFight
 ```
-- 開発クライアント:
+- 開発クライアント（人間による手動確認用）:
 ```powershell
 .\scripts\use-java.ps1
 ./gradlew.bat runClient
 ```
-- optional MOD 付き開発クライアント:
+- optional MOD 付き開発クライアント（人間による手動確認用）:
 ```powershell
 .\scripts\use-java.ps1
 ./gradlew.bat runClientCompat
@@ -65,7 +65,7 @@
 ./gradlew.bat runClientEpicFightController
 ./gradlew.bat runClientCompatEasyBetter
 ```
-- 一時的な optional MOD 追加:
+- 手動確認時の一時的な optional MOD 追加:
 ```powershell
 ./gradlew.bat runClient "-PdevRuntimeMods=create,malum"
 ```
@@ -78,7 +78,7 @@
 Get-ChildItem build\libs\*.jar
 ```
 - `runClient` は GUI を起動するため、CI やヘッドレス環境では実行しない。
-- `runGameTestServer` はサーバー側の登録、データ読込、レシピ、生成まわりの検証に使う。renderer / screen など client 専用の起動不良は別途 `runClient` で確認する。
+- `runGameTestServer` はサーバー側の登録、データ読込、レシピ、生成まわりの検証に使う。renderer / screen など client 専用の起動・挙動は、人間が対応する `runClient...` 構成で確認する。
 - `runGameTestServer` は専用 world `run/codex_gametest_clean` を毎回初期化してから起動する。通常の手動確認用 `run/world` は削除しない。
 - `runGameTestServerCompat` は Farmer's Delight / Create / Botania / Lodestone / Malum 連携の確認に使う。
 - `runGameTestServerEasyMagic` は Puzzles Lib / Easy Magic 連携の確認に使う。
@@ -95,6 +95,15 @@ Get-ChildItem build\libs\*.jar
 - Better Combat と Epic Fight は干渉が大きいため、通常確認では同時投入しない。
 - optional MOD の runtime 切替は Gradle の実行構成または `-PdevRuntimeMods=...` で行う。`build.gradle` の `runtimeOnly` コメントアウト解除運用は使わない。
 - 通常確認で `clean` は付けない。必要時のみ `./gradlew.bat clean build` を使う。
+
+### クライアント検証の分担
+- Codex の通常の自動検証は `build` と影響範囲に対応する `runGameTestServer...` までとする。必要な `runData`、静的解析、IDE Inspection は実施する。
+- Codex は通常の検証として `runClient...` を起動しない。IDE 実行構成や直接起動など同等の経路も対象とし、Computer Use その他の GUI 操作による Minecraft client の自動検証を追加しない。
+- クライアント挙動は人間が確認する。自動検証の成功だけで client の表示・操作を確認済みとしない。
+- ユーザーが client の起動・自動操作を明示的に依頼した場合は、その範囲で実施できる。起動の依頼だけでは自動操作まで許可されたと扱わない。それ以外で例外が必要な場合は、具体的な問題、通常の検証で解決できない理由、実行範囲を示し、了承を得てから実施する。
+- UI を変更した、GameTest では描画を確認できない、GUI 操作ツールが利用できるという事情だけで、例外を提案しない。
+- 今回の変更で client の表示・入力・描画・アニメーション・音声、optional MOD 連携、client 専用の起動など人間の確認が必要な場合、または作業中に必要と判断した client 確認シナリオが残った場合は、`.codex/skills/report-client-verification` を使用し、最終報告へ引き継ぐ。無関係な変更に定型の手動確認を要求しない。
+- 必要な自動検証とローカルレビューを終え、確認シナリオを出力した時点で人間へ引き渡してよい。人間確認が未実施または結果未把握であることだけを理由に、自動操作や作業継続へ進まない。確認状態は明示するが、人間に所定の報告・証跡提出・ステータス更新を義務付けない。
 
 ## 4. コーディング規約
 - クラス/インターフェースは `PascalCase`、メソッド/フィールド/ローカル変数は `camelCase`、定数は `UPPER_SNAKE_CASE` を使用する。
@@ -115,16 +124,16 @@ Get-ChildItem build\libs\*.jar
 5. コード、リソース、依存、datagen に影響する変更では `./gradlew.bat build` を成功させる。このビルドには明らかな文字化けと UTF-8 BOM の検査も含める。ドキュメントのみの変更では省略してよいが、最終報告に理由を残す。
 6. サーバー側の登録、データ読込、レシピ、生成、GameTest 対象構造に影響する変更では `./gradlew.bat runGameTestServer` を成功させる。
 7. `main` からの backport では、影響範囲にかかわらず Java 17 で `./gradlew.bat runGameTestServer` と `./gradlew.bat build` を成功させる。
-8. optional MOD 連携に影響する変更では、対象に応じて特殊 GameTest / client 構成を追加実行する。
+8. optional MOD 連携に影響する変更では、対象に応じて特殊 GameTest を追加実行する。client 構成は上記の分担に従い、人間の手動確認に使用する。
    - Create / Botania / Lodestone / Malum / Farmer's Delight: `./gradlew.bat runGameTestServerCompat`
    - EasyMagic / エンチャントメニュー: `./gradlew.bat runGameTestServerEasyMagic`
    - Better Combat / offhand / weapon_attributes: `./gradlew.bat runGameTestServerBetterCombat`
    - Malum + Better Combat / 大鎌コンボ切替: `./gradlew.bat runGameTestServerMalumBetterCombat`
    - Epic Fight / mixin / capabilities / item_skins: `./gradlew.bat runGameTestServerEpicFight`
    - Malum + Epic Fight / 大鎌インネイト・Ascension: `./gradlew.bat runGameTestServerMalumEpicFight`
-   - client 側の連携確認: 対応する `runClient...` 構成
-   - 組み合わせバランス確認: `./gradlew.bat runClientCompatEasyBetter`
-9. client 専用 UI、renderer、screen、入力操作に影響する変更では必要に応じて `./gradlew.bat runClient` で確認する。
+   - client 側の連携確認（人間による手動確認）: 対応する `runClient...` 構成
+   - 組み合わせバランス確認（人間による手動確認）: `./gradlew.bat runClientCompatEasyBetter`
+9. client 専用 UI、renderer、screen、入力操作などに影響する変更では、`.codex/skills/report-client-verification` を使い、人間向けの確認シナリオを最終報告に含める。
 10. コミット前に `.codex/skills/review-local-change` を使い、未コミット差分を変更せずにレビューする。
 11. コミットはレビューしやすく、移植元と1.20.1固有補正を追跡しやすい粒度に分け、無関係な整形や広域整理を混ぜない。
 12. 機能としてコミット列が完成したら `.codex/skills/review-feature-branch` を使い、`1.20.1-main` との差分全体をレビューしてから PR を作成する。
