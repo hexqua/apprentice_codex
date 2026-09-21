@@ -13,7 +13,6 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.resources.PlayerSkin;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -101,7 +100,8 @@ final class SpellrifleFirstPersonArmsLayer<T extends Item & GeoItem> extends Geo
         int direction = mainArm == HumanoidArm.RIGHT ? 1 : -1;
         // 両銃のアンカーは銃の中央にあり、左手用の表示変換も適用済み。腕と開き角度だけを左右交換する。
         renderArm(gripTransform, player, playerRenderer, mainArm, GRIP_PITCH, direction * GRIP_YAW, buffers, packedLight);
-        if (!player.isUsingItem() || player.getUsedItemHand() != InteractionHand.OFF_HAND) {
+        // オフハンドのアイテム描画と支持手が重なり、腕が増えて見えるのを防ぐ。
+        if (player.getOffhandItem().isEmpty()) {
             renderArm(supportTransform, player, playerRenderer, mainArm.getOpposite(), SUPPORT_PITCH,
                     direction * SUPPORT_YAW, buffers, packedLight);
         }
