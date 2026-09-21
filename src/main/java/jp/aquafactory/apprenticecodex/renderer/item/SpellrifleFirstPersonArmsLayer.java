@@ -27,8 +27,8 @@ import software.bernie.geckolib.renderer.GeoItemRenderer;
 import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
 import software.bernie.geckolib.util.RenderUtil;
 
-import java.util.stream.Stream;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 final class SpellrifleFirstPersonArmsLayer<T extends Item & GeoItem> extends GeoRenderLayer<T> {
     private static final String GRIP_ANCHOR = "grip_hand_anchor";
@@ -59,7 +59,7 @@ final class SpellrifleFirstPersonArmsLayer<T extends Item & GeoItem> extends Geo
     public void renderForBone(PoseStack poseStack, T animatable, GeoBone bone, RenderType renderType,
                               MultiBufferSource buffers, VertexConsumer buffer, float partialTick,
                               int packedLight, int packedOverlay) {
-        if (perspective.get() != ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
+        if (!perspective.get().firstPerson()
                 || bone.isHidden() || (!GRIP_ANCHOR.equals(bone.getName()) && !SUPPORT_ANCHOR.equals(bone.getName()))) {
             return;
         }
@@ -87,8 +87,9 @@ final class SpellrifleFirstPersonArmsLayer<T extends Item & GeoItem> extends Geo
         if (buffer == null || player == null || player != minecraft.getCameraEntity()
                 || ClientItemRenderContext.getRenderingEntity() != player
                 || !minecraft.options.getCameraType().isFirstPerson()
-                || player.getMainArm() != HumanoidArm.RIGHT || player.isInvisible() || player.isSpectator()
-                || perspective.get() != ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
+                || player.isInvisible() || player.isSpectator()
+                || perspective.get() != (player.getMainArm() == HumanoidArm.RIGHT
+                    ? ItemDisplayContext.FIRST_PERSON_RIGHT_HAND : ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
                 || SpellrifleCastAnimationVisibility.ownsArms(player, partialTick)) {
             return;
         }
@@ -96,14 +97,18 @@ final class SpellrifleFirstPersonArmsLayer<T extends Item & GeoItem> extends Geo
             return;
         }
         // 通常パスの終了後に描くことで、発光再描画と銃の頂点バッファから腕を分離する。
-        renderArm(gripTransform, player, playerRenderer, HumanoidArm.RIGHT, GRIP_PITCH, buffers, packedLight);
+        var mainArm = player.getMainArm();
+        int direction = mainArm == HumanoidArm.RIGHT ? 1 : -1;
+        // 両銃のアンカーは銃の中央にあり、左手用の表示変換も適用済み。腕と開き角度だけを左右交換する。
+        renderArm(gripTransform, player, playerRenderer, mainArm, GRIP_PITCH, direction * GRIP_YAW, buffers, packedLight);
         if (!player.isUsingItem() || player.getUsedItemHand() != InteractionHand.OFF_HAND) {
-            renderArm(supportTransform, player, playerRenderer, HumanoidArm.LEFT, SUPPORT_PITCH, buffers, packedLight);
+            renderArm(supportTransform, player, playerRenderer, mainArm.getOpposite(), SUPPORT_PITCH,
+                    direction * SUPPORT_YAW, buffers, packedLight);
         }
     }
 
     private static void renderArm(@Nullable ArmTransform transform, LocalPlayer player, PlayerRenderer renderer,
-                                  HumanoidArm arm, float pitch, MultiBufferSource buffers, int light) {
+                                  HumanoidArm arm, float pitch, float yaw, MultiBufferSource buffers, int light) {
         if (transform == null) {
             return;
         }
@@ -124,7 +129,7 @@ final class SpellrifleFirstPersonArmsLayer<T extends Item & GeoItem> extends Geo
             poseStack.last().pose().set(transform.pose());
             poseStack.last().normal().set(transform.normal());
             // 手中心はアンカーに残し、肩側を銃の左右下方へ開いてADSでも輪郭を見せる。
-            poseStack.mulPose(Axis.YP.rotationDegrees(arm == HumanoidArm.RIGHT ? GRIP_YAW : SUPPORT_YAW));
+            poseStack.mulPose(Axis.YP.rotationDegrees(yaw));
             poseStack.mulPose(Axis.ZP.rotationDegrees(180));
             poseStack.mulPose(Axis.XP.rotationDegrees(pitch));
             poseStack.scale(ARM_SCALE, ARM_SCALE, ARM_SCALE);
