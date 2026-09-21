@@ -88,7 +88,7 @@ public final class FullautoEchoGameTests extends ApprenticeCodexGameTestScenario
         var rifle = (FullautoRapidcastSpellrifle) stack.getItem();
         helper.assertTrue(rifle.trySetCalibrationAdjustment(stack, 0, new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get()), player.registryAccess()),
                 "Echo staff must be accepted");
-        player.getInventory().add(new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 64));
+        player.getInventory().add(new ItemStack(ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get(), 64));
         var magic = MagicData.getPlayerMagicData(player);
         magic.setSyncedData(new SyncedSpellData(player));
         magic.setMana(10000);
@@ -241,7 +241,7 @@ public final class FullautoEchoGameTests extends ApprenticeCodexGameTestScenario
             var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.SHOCK.get();
             magic.getPlayerRecasts().addRecast(new RecastInstance(spell.getSpellId(), 1, 2, 100, CastSource.SWORD, null), magic);
             magic.setMana(0);
-            player.getInventory().items.stream().filter(stack -> stack.is(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get()))
+            player.getInventory().items.stream().filter(stack -> stack.is(ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get()))
                     .forEach(stack -> stack.setCount(0));
             helper.assertTrue(start(player, spell), "Recasts must remain possible without mana or ammunition");
             finishInstant(player, spell);

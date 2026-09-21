@@ -1,0 +1,30 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_diamond_spellcaster_gun",
+  "criteria": {
+    "crafted_fullauto_rapidcast_spellrifle": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:fullauto_rapidcast_spellrifle"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_fullauto_rapidcast_spellrifle.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:fullauto_rapidcast_spellrifle"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_fullauto_rapidcast_spellrifle.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_fullauto_rapidcast_spellrifle"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
