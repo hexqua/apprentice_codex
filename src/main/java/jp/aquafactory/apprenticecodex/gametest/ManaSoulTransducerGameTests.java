@@ -57,7 +57,8 @@ public final class ManaSoulTransducerGameTests {
                     h.getLevel(), recipeId, malumItem("runic_brooch", 1),
                     java.util.List.of(malumItem("fused_consciousness", 1), malumItem("mnemonic_fragment", 8),
                             malumItem("malignant_pewter_plating", 4)),
-                    new net.minecraft.world.item.ItemStack(jp.aquafactory.apprenticecodex.registry.ItemRegistry.MANA_SOUL_TRANSDUCER.get()));
+                    new net.minecraft.world.item.ItemStack(jp.aquafactory.apprenticecodex.registry.ItemRegistry.MANA_SOUL_TRANSDUCER.get()),
+                    java.util.Map.of("aerial_spirit", 16, "aqueous_spirit", 16, "arcane_spirit", 64, "eldritch_spirit", 64));
         } else {
             h.assertFalse(h.getLevel().getRecipeManager().byKey(recipeId).isPresent(), "Malum recipe must be conditional");
         }

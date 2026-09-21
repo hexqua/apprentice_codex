@@ -24,6 +24,14 @@ public final class MalumGameTestHooks {
             List<ItemStack> extras,
             ItemStack expectedOutput
     ) {
+        assertSpiritInfusionRecipe(level, recipeId, input, extras, expectedOutput,
+                java.util.Map.of("arcane_spirit", 16, "wicked_spirit", 16));
+    }
+
+    public static void assertSpiritInfusionRecipe(
+            Level level, ResourceLocation recipeId, ItemStack input, List<ItemStack> extras,
+            ItemStack expectedOutput, java.util.Map<String, Integer> expectedSpiritCosts
+    ) {
         try {
             var recipeClass = Class.forName(SPIRIT_INFUSION_RECIPE);
             Recipe<?> recipe = level.getRecipeManager().byKey(recipeId)
@@ -56,8 +64,9 @@ public final class MalumGameTestHooks {
 
             Field spiritsField = recipeClass.getField("spirits");
             var spirits = (List<?>) spiritsField.get(recipe);
-            assertSpiritCost(spirits, "arcane_spirit", 16, recipeId);
-            assertSpiritCost(spirits, "wicked_spirit", 16, recipeId);
+            for (var cost : expectedSpiritCosts.entrySet()) {
+                assertSpiritCost(spirits, cost.getKey(), cost.getValue(), recipeId);
+            }
         } catch (ReflectiveOperationException exception) {
             throw new IllegalStateException("Malum Spirit Infusion GameTest hook failed for " + recipeId, exception);
         }
