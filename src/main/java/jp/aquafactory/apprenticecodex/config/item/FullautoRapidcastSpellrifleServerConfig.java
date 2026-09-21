@@ -43,14 +43,14 @@ public final class FullautoRapidcastSpellrifleServerConfig {
     public static FullautoRapidcastSpellrifleServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("FullautoRapidcastSpellrifle");
         var cooldownBypassThresholdTicks = builder
-                .comment("Cooldowns at or below this value are removed for Fullauto Rapidcast Spellrifle special casts. 100 ticks = 5 seconds.")
+                .comment("Spells with an unmodified cooldown at or below this value skip cooldown for Fullauto Rapidcast Spellrifle casts. Ignores weapon multipliers, player reductions and cast time. 100 ticks = 5 seconds.")
                 .defineInRange("cooldownBypassThresholdTicks", 20 * 5, 0, 72000);
         var cooldownReductionTicks = builder
                 .comment("Cooldown ticks subtracted from longer Fullauto Rapidcast Spellrifle special casts. 200 ticks = 10 seconds.")
                 .defineInRange("cooldownReductionTicks", 20 * 10, 0, 72000);
         var reducedCooldownMinimumTicks = builder
-                .comment("Minimum cooldown after Fullauto Rapidcast Spellrifle special cast reduction. 20 ticks = 1 second.")
-                .defineInRange("reducedCooldownMinimumTicks", 20, 0, 72000);
+                .comment("Minimum cooldown after Fullauto Rapidcast Spellrifle special cast reduction. 10 ticks = 0.5 seconds.")
+                .defineInRange("reducedCooldownMinimumTicks", 10, 0, 72000);
         var adsFullAutoIntervalTicks = builder
                 .comment("Minimum server-side interval between full-auto special cast attempts, both hip fire and ADS.")
                 .defineInRange("adsFullAutoIntervalTicks", 3, 1, 72000);

@@ -277,11 +277,11 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
     public static void fullautoRapidcastSpellrifleSpecialCooldownPolicyMatchesDefaults(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (FullautoRapidcastSpellrifle) ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get();
-            helper.assertTrue(item.resolveSpecialCooldownTicks(20 * 5) == 0,
+            helper.assertTrue(item.resolveSpecialCooldownTicks(20 * 5, 20 * 5, 0) == 0,
                     "Fullauto Rapidcast Spellrifle should remove cooldowns at the default bypass threshold");
-            helper.assertTrue(item.resolveSpecialCooldownTicks(101) == 20,
+            helper.assertTrue(item.resolveSpecialCooldownTicks(101, 101, 0) == 10,
                     "Fullauto Rapidcast Spellrifle should not reduce longer cooldowns below the default minimum");
-            helper.assertTrue(item.resolveSpecialCooldownTicks(20 * 60) == 20 * 50,
+            helper.assertTrue(item.resolveSpecialCooldownTicks(20 * 60, 20 * 60, 0) == 20 * 50,
                     "Fullauto Rapidcast Spellrifle should subtract the default 10 seconds from long cooldowns");
         });
     }
@@ -469,8 +469,10 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
                     CastSource.SWORD
             );
             FullautoRapidcastSpellrifleCastEvent.onSpellCooldownAdded(cooldownEvent);
-            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == 0,
-                    "Fullauto Rapidcast Spellrifle instant cast should bypass cooldowns at the threshold: "
+            helper.assertTrue(spell.getSpellCooldown() > ApprenticeCodexServerConfig.fullautoRapidcastSpellrifleCooldownBypassThresholdTicks(),
+                    "This fixture must exceed the unmodified cooldown threshold");
+            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == 10,
+                    "A reduced effective cooldown at the threshold must use subtraction, not bypass: "
                             + cooldownEvent.getEffectiveCooldown());
         });
     }
@@ -549,8 +551,8 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
         } catch (Exception exception) {
             throw new IllegalStateException("Failed to close LONG test context", exception);
         }
-        var expected = rifle.resolveSpecialCooldownTicks(100 + spell.getEffectiveCastTime(1, player));
-        helper.assertTrue(event.getEffectiveCooldown() == expected && expected >= 20,
+        var expected = rifle.resolveSpecialCooldownTicks(spell.getSpellCooldown(), 100, spell.getEffectiveCastTime(1, player));
+        helper.assertTrue(event.getEffectiveCooldown() == expected && expected >= 10,
                 "LONG cast duration must be added before bypass and reduction");
         var castSpeed = player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION);
         var originalSpeed = castSpeed.getBaseValue();
@@ -558,7 +560,7 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
         try (var ignored = FullautoRapidcastSpellrifleCastContext.open(player.getUUID(), stack, spell, false)) {
             var fasterEvent = new SpellCooldownAddedEvent.Pre(1000, spell, player, CastSource.SWORD);
             FullautoRapidcastSpellrifleCastEvent.onSpellCooldownAdded(fasterEvent);
-            helper.assertTrue(fasterEvent.getEffectiveCooldown() == rifle.resolveSpecialCooldownTicks(1000 + spell.getEffectiveCastTime(1, player)),
+            helper.assertTrue(fasterEvent.getEffectiveCooldown() == rifle.resolveSpecialCooldownTicks(spell.getSpellCooldown(), 1000, spell.getEffectiveCastTime(1, player)),
                     "LONG surcharge must respect effective cast speed");
         } catch (Exception exception) {
             throw new IllegalStateException("Failed to close cast speed test context", exception);

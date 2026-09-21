@@ -384,16 +384,8 @@ public final class FullautoRapidcastSpellrifle extends Item
         return EmptyCasingReturnPolicy.shouldReturnEmptyCasing(player);
     }
 
-    public int resolveSpecialCooldownTicks(int originalCooldownTicks) {
-        var cooldown = Math.max(0, originalCooldownTicks);
-        if (cooldown <= ApprenticeCodexServerConfig.fullautoRapidcastSpellrifleCooldownBypassThresholdTicks()) {
-            return 0;
-        }
-
-        return Math.max(
-                ApprenticeCodexServerConfig.fullautoRapidcastSpellrifleReducedCooldownMinimumTicks(),
-                cooldown - ApprenticeCodexServerConfig.fullautoRapidcastSpellrifleCooldownReductionTicks()
-        );
+    public int resolveSpecialCooldownTicks(int baseCooldownTicks, int effectiveCooldownTicks, int castTimeTicks) {
+        return FullautoCooldownPolicy.resolve(baseCooldownTicks, effectiveCooldownTicks, castTimeTicks);
     }
 
     public static boolean isAdsUse(@Nullable LivingEntity entity) {

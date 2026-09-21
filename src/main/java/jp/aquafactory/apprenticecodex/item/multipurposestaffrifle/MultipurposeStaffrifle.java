@@ -259,7 +259,8 @@ public final class MultipurposeStaffrifle extends Item
             return false;
         }
 
-        var spellData = resolveCastSpellData(player, stack);
+        var castSelection = resolveCastSelection(player, stack);
+        var spellData = castSelection.spellData();
         // 使用不可の魔法も注入済みとして扱い、未注入とは異なるエラーを表示する。
         if (!hasWisdomShard(stack, player.level().registryAccess())
                 && (spellData == SpellData.EMPTY || spellData.getSpell() == SpellRegistry.none())) {
@@ -324,7 +325,7 @@ public final class MultipurposeStaffrifle extends Item
                         spellLevel,
                         player.level(),
                         player,
-                        CastSource.SWORD,
+                        castSelection.castSource(),
                         true,
                         SpellSelectionManager.MAINHAND
                 );
@@ -655,12 +656,20 @@ public final class MultipurposeStaffrifle extends Item
     }
 
     public static SpellData resolveCastSpellData(Player player, ItemStack stack) {
+        return resolveCastSelection(player, stack).spellData();
+    }
+
+    public record CastSelection(SpellData spellData, CastSource castSource) {}
+
+    public static CastSelection resolveCastSelection(Player player, ItemStack stack) {
         if (hasWisdomShard(stack, player.level().registryAccess())) {
             var selection = new SpellSelectionManager(player).getSelection();
-            return selection == null ? SpellData.EMPTY : selection.spellData;
+            return selection == null ? new CastSelection(SpellData.EMPTY, CastSource.SPELLBOOK)
+                    : new CastSelection(selection.spellData, selection.getCastSource());
         }
         var data = getSelectedSpellData(stack, player.level().registryAccess());
-        return data == SpellData.EMPTY ? data : new SpellData(data.getSpell(), resolveImbuedSpellLevel(stack, data));
+        return new CastSelection(data == SpellData.EMPTY ? data
+                : new SpellData(data.getSpell(), resolveImbuedSpellLevel(stack, data)), CastSource.SWORD);
     }
 
     public static boolean hasWisdomShard(ItemStack stack, HolderLookup.Provider lookup) {

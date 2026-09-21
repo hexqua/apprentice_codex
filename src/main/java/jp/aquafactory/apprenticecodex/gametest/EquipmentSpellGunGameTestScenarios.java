@@ -743,8 +743,8 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             var longSpell = SpellRegistry.MANTIS_LEAP.get();
             helper.assertTrue(longSpell.getEffectiveCastTime(1, player) > 0,
                     "Diamond Spellcaster Gun cooldown test requires a long spell cast time");
-            assertSpellgunCooldownAdjustment(helper, player, new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()), longSpell, 200, 200,
-                    "Diamond Spellcaster Gun should keep the original cooldown without adding cast time");
+            assertSpellgunCooldownAdjustment(helper, player, new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()), longSpell, 200, 200 + longSpell.getEffectiveCastTime(1, player),
+                    "Diamond Spellcaster Gun should add effective cast time to the cooldown");
         });
     }
 
