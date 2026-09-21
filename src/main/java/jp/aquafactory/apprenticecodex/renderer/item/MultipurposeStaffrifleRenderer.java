@@ -3,11 +3,14 @@ package jp.aquafactory.apprenticecodex.renderer.item;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.model.MultipurposeStaffrifleModel;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -15,6 +18,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
@@ -51,7 +55,6 @@ public final class MultipurposeStaffrifleRenderer extends GeoItemRenderer<Multip
             return;
         }
 
-        float runeBrightness = resolveRuneBarrelBrightness(partialTick);
         var runeColor = resolveRuneBarrelColor();
         renderGlowPass(model, poseStack, bufferSource, animatable, GlowPass.RUNE_BARREL, RUNE_BARREL_RENDER_TYPE,
                 partialTick, runeColor.red() * runeBrightness, runeColor.green() * runeBrightness,
@@ -201,8 +204,30 @@ public final class MultipurposeStaffrifleRenderer extends GeoItemRenderer<Multip
         return 0.9F + 0.1F * Mth.sin(time * Mth.TWO_PI / 40.0F);
     }
 
-    private static GlowColor resolveRuneBarrelColor() {
-        return new GlowColor(1.0F, 1.0F, 1.0F);
+    private @Nullable Integer resolveRuneBarrelColor() {
+        var level = Minecraft.getInstance().level;
+        if (level == null || this.currentItemStack == null || this.currentItemStack.isEmpty()) {
+            return null;
+        }
+
+        var stack = this.currentItemStack;
+        SpellData data;
+        if (MultipurposeStaffrifle.hasWisdomShard(stack, level.registryAccess())) {
+            var player = Minecraft.getInstance().player;
+            if (player == null) {
+                return null;
+            }
+            // WisdomShard 装着時は格納スクロールよりスペルホイールの選択を優先する。
+            data = MultipurposeStaffrifle.resolveCastSpellData(player, stack);
+        } else {
+            data = MultipurposeStaffrifle.getSelectedSpellData(stack, level.registryAccess());
+        }
+        if (data == SpellData.EMPTY || data.getSpell() == SpellRegistry.none()) {
+            return null;
+        }
+
+        var school = data.getSpell().getSchoolType();
+        return school == null ? null : MagicTools.resolveSchoolTintColor(school);
     }
 
     private static float resolveEmitterBrightness(float partialTick) {
