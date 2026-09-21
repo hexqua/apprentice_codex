@@ -310,7 +310,8 @@ public final class MultipurposeStaffrifle extends Item
             return false;
         }
 
-        var spellData = resolveCastSpellData(player, stack);
+        var castSelection = resolveCastSelection(player, stack);
+        var spellData = castSelection.spellData();
         // 使用不可の魔法も注入済みとして扱い、未注入とは異なるエラーを表示する。
         if (!hasWisdomShard(stack, player.level().registryAccess())
                 && (spellData == SpellData.EMPTY || spellData.getSpell() == SpellRegistry.none())) {
@@ -375,7 +376,7 @@ public final class MultipurposeStaffrifle extends Item
                         spellLevel,
                         player.level(),
                         player,
-                        CastSource.SWORD,
+                        castSelection.castSource(),
                         true,
                         SpellSelectionManager.MAINHAND
                 );

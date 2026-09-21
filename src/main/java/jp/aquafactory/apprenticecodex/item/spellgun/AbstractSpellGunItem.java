@@ -842,6 +842,10 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
     }
 
+    public final boolean addsInstantCastTimeToCooldown() {
+        return this instanceof DiamondSpellcasterGun || this instanceof MalignantSpellcasterGun;
+    }
+
     private List<Component> collectSpellGunAbilityTooltipSection() {
         var translatedLines = new ArrayList<Component>();
         translatedLines.add(ImbueTooltipHelper.translatableGray(
@@ -872,6 +876,10 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             translatedLines.add(ImbueTooltipHelper.translatableGray(
                     "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_long_to_instant"
             ));
+        }
+        if (addsInstantCastTimeToCooldown()) {
+            translatedLines.add(ImbueTooltipHelper.translatableGray(
+                    "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.ability_extend_cooldown"));
         }
         if (spellGunConfig.tooltipIgnoreMaxMana()) {
             translatedLines.add(ImbueTooltipHelper.translatableGray(

@@ -246,7 +246,8 @@ public final class MultipurposeStaffrifleReworkGameTests extends ApprenticeCodex
         helper.assertTrue(new SpellSelectionManager(player).getAllSpells().size() == 1, "Stored spell must not be added to wheel");
         player.getInventory().add(new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 2));
         helper.assertTrue(rifle.tryTriggerSelectedSpell(player, false), "Wheel INSTANT must cast at zero mana");
-        spell.castSpell(helper.getLevel(), magic.getCastingSpellLevel(), player, CastSource.SWORD, true);
+        helper.assertTrue(magic.getCastSource() == CastSource.SPELLBOOK, "Wisdom must use the selected source for actual casting");
+        spell.castSpell(helper.getLevel(), magic.getCastingSpellLevel(), player, magic.getCastSource(), true);
         magic.resetCastingState();
         MultipurposeStaffrifleRateLimiter.clear(player);
         setWheelSpell(wheelStack, SpellRegistry.FIREBALL_SPELL.get());

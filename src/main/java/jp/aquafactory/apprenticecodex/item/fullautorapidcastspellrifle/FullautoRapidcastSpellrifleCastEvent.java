@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunRecastCompletion;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFullautoRapidcastSpellrifleFireEffectPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -74,9 +75,20 @@ public final class FullautoRapidcastSpellrifleCastEvent {
         if (multiplier != 1.0D) event.setManaCost(FullautoEchoCasting.scaleMana(event.getManaCost(), multiplier));
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onSpellCooldownAdded(SpellCooldownAddedEvent.Pre event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+
+        // Boots等の装備短縮を終えてから、詠唱時間と銃の固定量短縮を一度だけ反映する。
+        var completion = SpellgunRecastCompletion.find(player, event.getSpell());
+        if (completion != null && completion.cooldown() != null) {
+            var policy = completion.cooldown();
+            if (policy.fullauto()) {
+                event.setEffectiveCooldown(FullautoCooldownPolicy.resolve(event.getSpell().getSpellCooldown(),
+                        event.getEffectiveCooldown(), policy.castTime()));
+            }
             return;
         }
 
@@ -94,14 +106,13 @@ public final class FullautoRapidcastSpellrifleCastEvent {
             return;
         }
 
-        var cooldown = event.getEffectiveCooldown();
+        var castTime = 0;
         var spell = event.getSpell();
         if (spell.getCastType() == CastType.LONG
                 && FullautoRapidcastSpellrifle.hasSilverRing(castingItem, player.level().registryAccess())) {
-            // 即時化する前の実効詠唱時間を加算し、その合計で踏み倒しを判定する。
-            cooldown += spell.getEffectiveCastTime(Math.max(1, magicData.getCastingSpellLevel()), player);
+            castTime = spell.getEffectiveCastTime(Math.max(1, magicData.getCastingSpellLevel()), player);
         }
-        event.setEffectiveCooldown(staffrifle.resolveSpecialCooldownTicks(cooldown));
+        event.setEffectiveCooldown(staffrifle.resolveSpecialCooldownTicks(spell.getSpellCooldown(), event.getEffectiveCooldown(), castTime));
         FullautoRapidcastSpellrifleCastContext.clearPendingIfMatches(player.getUUID(), castingItem, event.getSpell());
     }
 

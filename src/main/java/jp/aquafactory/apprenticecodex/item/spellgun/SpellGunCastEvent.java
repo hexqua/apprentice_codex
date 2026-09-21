@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
+import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
@@ -67,6 +68,12 @@ public final class SpellGunCastEvent {
             return;
         }
 
+        var completion = SpellgunRecastCompletion.find(player, event.getSpell());
+        if (completion != null && completion.cooldown() != null) {
+            // 別の武器を構えていても、遅延CDへその武器の固定CDや短縮を適用しない。
+            return;
+        }
+
         var magicData = MagicData.getPlayerMagicData(player);
         if (magicData == null) {
             return;
@@ -89,11 +96,27 @@ public final class SpellGunCastEvent {
 
         var adjustedCooldown = spellGunItem.getAdjustedCooldownTicks(event.getEffectiveCooldown());
         if (adjustedCooldown == null) {
-            // Iron's のイベント値は詠唱時間を含まないため、調整なしの Diamond はその値を維持する。
             return;
         }
 
         event.setEffectiveCooldown(adjustedCooldown);
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onInstantCastTimeCooldownAdded(SpellCooldownAddedEvent.Pre event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        var completion = SpellgunRecastCompletion.find(player, event.getSpell());
+        if (completion != null && completion.cooldown() != null) {
+            var policy = completion.cooldown();
+            if (!policy.fullauto()) event.setEffectiveCooldown(event.getEffectiveCooldown() + policy.castTime());
+            return;
+        }
+        var magic = MagicData.getPlayerMagicData(player);
+        if (magic == null || !(magic.getPlayerCastingItem().getItem() instanceof AbstractSpellGunItem gun)
+                || !gun.addsInstantCastTimeToCooldown() || event.getSpell().getCastType() != CastType.LONG) return;
+        // 装備によるCD短縮が加算分を吸収しないよう、魔法の実効CDを確定してから加える。
+        event.setEffectiveCooldown(event.getEffectiveCooldown()
+                + event.getSpell().getEffectiveCastTime(Math.max(1, magic.getCastingSpellLevel()), player));
     }
 
     public static boolean hasAmmo(Player player, Inventory inventory, Item ammoItem) {

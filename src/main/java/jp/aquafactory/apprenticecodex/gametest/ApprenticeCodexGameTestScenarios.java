@@ -13012,6 +13012,7 @@ public class ApprenticeCodexGameTestScenarios {
                 CastSource.SWORD
         );
         SpellGunCastEvent.onSpellCooldownAdded(cooldownEvent);
+        SpellGunCastEvent.onInstantCastTimeCooldownAdded(cooldownEvent);
         helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldownTicks,
                 message + ": expected " + expectedCooldownTicks + " but got " + cooldownEvent.getEffectiveCooldown());
     }
