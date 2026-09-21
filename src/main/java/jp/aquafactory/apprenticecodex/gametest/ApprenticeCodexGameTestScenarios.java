@@ -14292,7 +14292,7 @@ public class ApprenticeCodexGameTestScenarios {
         var item = stack.getItem();
         if (item instanceof AbstractSpellGunItem spellGunItem) {
             spellGunItem.repairPresetSpellContainerStateIfNeeded(stack);
-        } else if (item instanceof AbstractRightClickMagicWeaponItem magicWeaponItem) {
+        } else if (item instanceof AbstractImbuedMagicWeaponItem magicWeaponItem) {
             magicWeaponItem.repairPresetSpellContainerStateIfNeeded(stack);
         } else if (item instanceof AbstractImbueShieldItem imbueShieldItem) {
             imbueShieldItem.repairPresetSpellContainerStateIfNeeded(stack);

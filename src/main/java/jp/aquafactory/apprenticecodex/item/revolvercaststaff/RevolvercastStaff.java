@@ -71,8 +71,26 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
+import jp.aquafactory.apprenticecodex.item.AbstractImbuedMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
+import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
+import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
+import jp.aquafactory.apprenticecodex.item.SchoolRuneSpellPowerTuning;
+import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
+import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
+import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
+import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
+import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 
-public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
+public final class RevolvercastStaff extends AbstractImbuedMagicWeaponItem
         implements GeoItem, CastAnimationOverrideItem, IJeiInfoItem, SwingTriggeredMagicItem,
         RestrictedSpellImbuableItem, ArcaneAnvilImbueBlockItem, StoredSpellCalibrationImbueTarget,
         SpellCalibrationAdjustmentTarget, AttributeEnchantmentPolicy {

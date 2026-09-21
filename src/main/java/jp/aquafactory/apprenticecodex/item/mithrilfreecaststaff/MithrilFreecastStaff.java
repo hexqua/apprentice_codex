@@ -108,7 +108,6 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
     public MithrilFreecastStaff() {
         super(
                 new Item.Properties().stacksTo(1).rarity(Rarity.RARE),
-                true,
                 ENCHANTMENT_VALUE,
                 ITEM_KEY,
                 DISPLAYED_ATTACK_DAMAGE,
@@ -188,23 +187,14 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     @Override
-    public @NotNull ItemStack getDefaultInstance() {
-        var stack = super.getDefaultInstance();
-        initializeSpellContainer(stack);
-        return stack;
-    }
-
-    @Override
-    public void onCraftedBy(@NotNull ItemStack stack, @NotNull Level level, @NotNull Player player) {
-        super.onCraftedBy(stack, level, player);
-        initializeSpellContainer(stack);
-    }
-
-    @Override
     public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity,
                               int slotId, boolean isSelected) {
         super.inventoryTick(stack, level, entity, slotId, isSelected);
-        initializeSpellContainer(stack);
+        if (!level.isClientSide) {
+            // この武器はホイール選択だけを使うため、旧コンテナは魔法の有無を問わず破棄する。
+            ISpellContainer.remove(stack);
+            PresetSpellContainerStateHelper.discardRememberedStateIfPresent(stack);
+        }
     }
 
     @Override
@@ -231,10 +221,6 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
         var stack = player.getItemInHand(hand);
         if (!isSameItem(stack) || (!bypassChargeCheck && !isFullyChargedAttack(player))) {
             return false;
-        }
-
-        if (!ISpellContainer.isSpellContainer(stack)) {
-            initializeSpellContainer(stack);
         }
 
         var selectionOption = new SpellSelectionManager(player).getSelection();
