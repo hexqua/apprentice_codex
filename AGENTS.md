@@ -107,6 +107,11 @@ Get-ChildItem build\libs\*.jar
 
 ## 4. コーディング規約
 - クラス/インターフェースは `PascalCase`、メソッド/フィールド/ローカル変数は `camelCase`、定数は `UPPER_SNAKE_CASE` を使用する。
+- Java コード中の型参照には import と単純クラス名を使用し、不要な完全修飾クラス名（FQCN）を使用しない。
+- FQCN は、同名の型や識別子との名前衝突により、import では参照先を一意に指定できない箇所に限って使用する。import の追加を避けるため、差分を小さく見せるため、または参照先を明示するためだけに使用しない。
+- この FQCN 規則は Java コード中の型参照を対象とする。package / import 宣言や、設定・リフレクション等で必要なクラス名文字列は対象外とする。
+- Java ファイルの変更後は import を整理し、未使用の import を削除する。無関係なファイルの一括整形は行わない。
+- 不要な FQCN は IDEA の `UnnecessaryFullyQualifiedName` Inspection で確認する。共有設定では `ERROR` として扱うが、Gradle の build による強制は現時点では行わない。ビルド検査の有無にかかわらず、この規約を守る。
 - レジストリ名、リソース ID、JSON ファイル名は `snake_case` を使用し、`apprenticecodex` 名前空間を前提にする。
 - 追加要素の登録処理は既存の `registry` パッケージ構成に合わせ、初期化時に一元登録する。
 - データ駆動で表現できる内容は `src/generated/resources` と datagen を優先し、ハードコードを最小化する。
