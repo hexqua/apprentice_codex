@@ -469,12 +469,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     }
 
     final boolean shouldReturnEmptyCasing(Player player) {
-        var emptyCasingReturnChance = SpellcasterAmmoPouch.applyEmptyCasingReturnChanceBonus(
-                EMPTY_CASING_RETURN_CHANCE,
-                player
-        );
-        return emptyCasingReturnChance > 0.0F
-                && player.getRandom().nextFloat() < emptyCasingReturnChance;
+        return EmptyCasingReturnPolicy.shouldReturnEmptyCasing(player);
     }
 
     public boolean shouldOverrideSpellGunCastStartAnimation(ItemStack stack, @Nullable AbstractSpell spell) {

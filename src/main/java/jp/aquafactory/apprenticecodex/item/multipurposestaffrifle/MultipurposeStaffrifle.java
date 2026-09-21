@@ -426,15 +426,11 @@ public final class MultipurposeStaffrifle extends Item
     }
 
     public float resolveEmptyCasingReturnChance(Player player) {
-        return SpellcasterAmmoPouch.isEquippedBy(player)
-                ? EQUIPPED_AMMO_POUCH_EMPTY_CASING_RETURN_CHANCE
-                : BASE_EMPTY_CASING_RETURN_CHANCE;
+        return EmptyCasingReturnPolicy.resolveReturnChance(player);
     }
 
     public boolean shouldReturnEmptyCasing(Player player) {
-        var emptyCasingReturnChance = resolveEmptyCasingReturnChance(player);
-        return emptyCasingReturnChance > 0.0F
-                && player.getRandom().nextFloat() < emptyCasingReturnChance;
+        return EmptyCasingReturnPolicy.shouldReturnEmptyCasing(player);
     }
 
     public static boolean isAdsUse(@Nullable LivingEntity entity) {

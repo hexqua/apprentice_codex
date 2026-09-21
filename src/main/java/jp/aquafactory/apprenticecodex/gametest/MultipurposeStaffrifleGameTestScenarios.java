@@ -141,12 +141,12 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
             var roundItem = (SpellcasterRoundItem) ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get();
             helper.assertTrue(roundItem.getEmptyCasingItem() == ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get(),
                     "Multi-purpose Spell Round should return Empty Multi-purpose Spell Casing");
-            helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.0F,
-                    "Multipurpose Staffrifle should not return empty casings without Spellcaster Ammo Pouch");
+            helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.2F,
+                    "Multipurpose Staffrifle should use 20% empty casing return chance without Spellcaster Ammo Pouch");
 
             equipCurio(player, CuriosSlotConstants.BELT, new ItemStack(ItemRegistry.SPELLCASTER_AMMO_POUCH.get()));
-            helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.2F,
-                    "Multipurpose Staffrifle should use 20% empty casing return chance with Spellcaster Ammo Pouch");
+            helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.9F,
+                    "Multipurpose Staffrifle should use 90% empty casing return chance with Spellcaster Ammo Pouch");
         });
     }
     static void multipurposeStaffrifleRecastSkipsAmmoConsumption(GameTestHelper helper) {

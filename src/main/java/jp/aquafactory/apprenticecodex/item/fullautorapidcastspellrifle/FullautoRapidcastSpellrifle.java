@@ -34,7 +34,7 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
-import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
+import jp.aquafactory.apprenticecodex.item.ammo.EmptyCasingReturnPolicy;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.ImmediateSneakSelectionUiItem;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
@@ -137,8 +137,6 @@ public final class FullautoRapidcastSpellrifle extends Item
     private static final int MUZZLE_RHOMBUS_LIFETIME = 8;
     private static final int MUZZLE_SPARK_LIFETIME = 10;
     private static final int ENCHANTMENT_VALUE = 15;
-    private static final float BASE_EMPTY_CASING_RETURN_CHANCE = 0.0F;
-    private static final float EQUIPPED_AMMO_POUCH_EMPTY_CASING_RETURN_CHANCE = 0.2F;
     private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
             AttributeEnchantmentType.ALACRITY,
             AttributeEnchantmentType.REFLUX,
@@ -378,15 +376,11 @@ public final class FullautoRapidcastSpellrifle extends Item
     }
 
     public float resolveEmptyCasingReturnChance(Player player) {
-        return SpellcasterAmmoPouch.isEquippedBy(player)
-                ? EQUIPPED_AMMO_POUCH_EMPTY_CASING_RETURN_CHANCE
-                : BASE_EMPTY_CASING_RETURN_CHANCE;
+        return EmptyCasingReturnPolicy.resolveReturnChance(player);
     }
 
     public boolean shouldReturnEmptyCasing(Player player) {
-        var emptyCasingReturnChance = resolveEmptyCasingReturnChance(player);
-        return emptyCasingReturnChance > 0.0F
-                && player.getRandom().nextFloat() < emptyCasingReturnChance;
+        return EmptyCasingReturnPolicy.shouldReturnEmptyCasing(player);
     }
 
     public int resolveSpecialCooldownTicks(int originalCooldownTicks) {
