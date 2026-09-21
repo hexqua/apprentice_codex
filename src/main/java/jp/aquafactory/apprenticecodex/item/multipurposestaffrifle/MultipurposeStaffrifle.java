@@ -105,7 +105,7 @@ public final class MultipurposeStaffrifle extends Item
             CalibrationAdjustmentRule.repeatable("slot_upgrade", MultipurposeStaffrifle::isSlotUpgrade,
                             CalibrationAdjustmentHint.specificItem(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE))
                     .withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(2)),
-            CalibrationAdjustmentRule.repeatable("wisdom_shard", candidate -> candidate.is(ItemRegistry.WISDOM_SHARD.get()),
+            CalibrationAdjustmentRule.unique("wisdom_shard", candidate -> candidate.is(ItemRegistry.WISDOM_SHARD.get()),
                             CalibrationAdjustmentHint.specificItem(ItemRegistry.WISDOM_SHARD))
                     .withEffectLines(CalibrationAdjustmentEffects.switchImbueToSelected()),
             CalibrationAdjustmentRule.unique("spyglass", candidate -> candidate.is(Items.SPYGLASS),
