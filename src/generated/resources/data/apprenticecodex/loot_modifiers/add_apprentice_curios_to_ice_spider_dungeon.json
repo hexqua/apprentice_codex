@@ -3,12 +3,12 @@
   "conditions": [
     {
       "condition": "forge:loot_table_id",
-      "loot_table_id": "irons_spellbooks:chests/catacombs/crypt_loot"
+      "loot_table_id": "irons_spellbooks:chests/ice_spider_den/dungeon"
     },
     {
-      "base_chance": 0.23076923076923078,
+      "base_chance": 0.05,
       "condition": "apprenticecodex:apprentice_curio_loot_chance"
     }
   ],
-  "key": "apprenticecodex:chests/catacombs_crypt_curio_bonus"
+  "key": "apprenticecodex:chests/ice_spider_dungeon_curio_bonus"
 }

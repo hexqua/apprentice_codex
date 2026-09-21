@@ -6,7 +6,7 @@
       "loot_table_id": "irons_spellbooks:chests/mountain_tower/mountain_tower"
     },
     {
-      "base_chance": 0.06923076923076922,
+      "base_chance": 0.15,
       "condition": "apprenticecodex:apprentice_curio_loot_chance"
     }
   ],

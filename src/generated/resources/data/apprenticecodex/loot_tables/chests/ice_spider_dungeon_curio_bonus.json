@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "entries": [
+        {
+          "type": "minecraft:loot_table",
+          "name": "apprenticecodex:magic_items/basic_curios_bonus"
+        }
+      ],
+      "rolls": 1
+    }
+  ]
+}

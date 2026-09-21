@@ -47,6 +47,15 @@ public final class RecipeGenerator extends RecipeProvider {
     @SuppressWarnings("DataFlowIssue")
     @Override
     protected void buildRecipes(@NotNull Consumer<FinishedRecipe> recipeWriter) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
+                .pattern("CCC")
+                .pattern("CMC")
+                .pattern("CCC")
+                .define('C', ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.get())
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
+                .unlockedBy(getHasName(ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.get()), has(ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.get()))
+                .save(recipeWriter, ResourceLocation.fromNamespaceAndPath("apprenticecodex", "silver_ring_from_mana_enveloped_silver_chunk"));
+
         var waterPotion = PotionUtils.setPotion(new ItemStack(Items.POTION), Potions.WATER);
 
         ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ItemRegistry.CRUDE_INK.get())
