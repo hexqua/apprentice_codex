@@ -14,7 +14,7 @@ import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record ClientMultipurposeStaffrifleCastPacket(
-        boolean adsFullAuto,
+        boolean aiming,
         BlockTargetData targetData
 ) implements CustomPacketPayload {
     public static final Type<ClientMultipurposeStaffrifleCastPacket> TYPE =
@@ -28,15 +28,15 @@ public record ClientMultipurposeStaffrifleCastPacket(
     }
 
     public static void encode(ClientMultipurposeStaffrifleCastPacket packet, FriendlyByteBuf buffer) {
-        buffer.writeBoolean(packet.adsFullAuto());
+        buffer.writeBoolean(packet.aiming());
         packet.targetData().writeToBuffer(buffer);
     }
 
     public static ClientMultipurposeStaffrifleCastPacket decode(FriendlyByteBuf buffer) {
-        var adsFullAuto = buffer.readBoolean();
+        var aiming = buffer.readBoolean();
         var targetData = new BlockTargetData();
         targetData.readFromBuffer(buffer);
-        return new ClientMultipurposeStaffrifleCastPacket(adsFullAuto, targetData);
+        return new ClientMultipurposeStaffrifleCastPacket(aiming, targetData);
     }
 
     public static void handle(ClientMultipurposeStaffrifleCastPacket packet, IPayloadContext context) {
@@ -47,7 +47,7 @@ public record ClientMultipurposeStaffrifleCastPacket(
 
             var mainHandItem = sender.getMainHandItem().getItem();
             if (mainHandItem instanceof MultipurposeStaffrifle staffrifle) {
-                var casted = staffrifle.tryTriggerSelectedSpell(sender, packet.adsFullAuto(), packet.targetData());
+                var casted = staffrifle.tryTriggerSelectedSpell(sender, packet.aiming(), packet.targetData());
                 if (casted && ModList.get().isLoaded(EpicFightSwingMagicCompat.MOD_ID)) {
                     EpicFightSwingMagicCompat.playStaffrifleShotAnimation(sender);
                 }

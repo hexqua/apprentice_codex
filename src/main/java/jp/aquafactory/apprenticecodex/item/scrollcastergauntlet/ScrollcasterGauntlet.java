@@ -102,7 +102,7 @@ import jp.aquafactory.apprenticecodex.item.RightClickSpellItemHelper;
 import jp.aquafactory.apprenticecodex.item.SchoolRuneSpellPowerTuning;
 import jp.aquafactory.apprenticecodex.item.SneakSelectionView;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
-import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.SwingTriggeredMagicItem;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
@@ -149,26 +149,19 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
 
     @Override
-    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
-            @NotNull ItemStack targetStack,
-            int slot,
-            @NotNull SpellData spellData
-    ) {
-        return evaluateCalibrationImbue(targetStack, slot, spellData, serializationLookup());
+    public boolean acceptsCalibrationSpell(@NotNull SpellData spellData) {
+        return SpellCalibrationImbueTarget.isValidCalibrationSpell(spellData);
     }
 
     @Override
-    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
-            @NotNull ItemStack targetStack,
-            int slot,
-            @NotNull SpellData spellData,
-            @NotNull HolderLookup.Provider lookupProvider
-    ) {
-        if (slot < 0 || slot >= getEnabledCalibrationScrollSlotCount(targetStack, lookupProvider)
-                || spellData == SpellData.EMPTY || spellData.getSpell() == null) {
-            return SpellCalibrationImbueState.REJECTED;
-        }
-        return SpellCalibrationImbueState.ACCEPTED_USABLE;
+    public boolean isCalibrationSlotAvailable(@NotNull ItemStack targetStack, int slot) {
+        return isCalibrationSlotAvailable(targetStack, slot, serializationLookup());
+    }
+
+    @Override
+    public boolean isCalibrationSlotAvailable(@NotNull ItemStack targetStack, int slot,
+                                             @NotNull HolderLookup.Provider lookupProvider) {
+        return slot >= 0 && slot < getEnabledCalibrationScrollSlotCount(targetStack, lookupProvider);
     }
 
     private static final String MALUM_NAMESPACE = "malum";

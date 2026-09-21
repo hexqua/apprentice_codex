@@ -2609,8 +2609,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void multipurposeStaffrifleSpecialCooldownPolicyMatchesDefaults(GameTestHelper helper) {
-        MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleSpecialCooldownPolicyMatchesDefaults(helper);
+    public static void multipurposeStaffriflePreservesNormalCooldown(GameTestHelper helper) {
+        MultipurposeStaffrifleGameTestScenarios.multipurposeStaffriflePreservesNormalCooldown(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -2629,8 +2629,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void multipurposeStaffrifleKeepsNormalManaCost(GameTestHelper helper) {
-        MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleKeepsNormalManaCost(helper);
+    public static void multipurposeStaffrifleCastsAtZeroMana(GameTestHelper helper) {
+        MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleCastsAtZeroMana(helper);
     }
 
     @GameTest(template = TEMPLATE)

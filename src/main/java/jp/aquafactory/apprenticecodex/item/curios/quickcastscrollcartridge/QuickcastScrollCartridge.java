@@ -153,6 +153,16 @@ public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoIte
         return data == null ? SpellData.EMPTY : data;
     }
 
+    public static ScrollSlotTooltipData getScrollTooltipData(ItemStack stack) {
+        var entries = new ArrayList<ScrollSlotTooltipData.Entry>();
+        for (int slot = 0; slot < 4; slot++) {
+            var scroll = getCalibrationScroll(stack, slot);
+            if (scroll.isEmpty()) continue;
+            entries.add(new ScrollSlotTooltipData.Entry(slot, scroll, readSpell(stack, slot), isSelectable(stack, slot)));
+        }
+        return new ScrollSlotTooltipData(getSelectedSpellData(stack), getSelectedScrollIndex(stack), entries);
+    }
+
     public static int getSelectedScrollIndex(ItemStack stack) {
         var tag = getCalibrationTag(stack);
         int selected = tag != null && tag.contains(SELECTED_SCROLL_INDEX_TAG)
@@ -186,10 +196,13 @@ public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoIte
     }
 
     @Override
-    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
-            @NotNull ItemStack stack, int slot, @NotNull SpellData data) {
-        return slot >= 0 && slot < getEnabledCalibrationScrollSlotCount(stack) && data != SpellData.EMPTY
-                ? SpellCalibrationImbueState.ACCEPTED_USABLE : SpellCalibrationImbueState.REJECTED;
+    public boolean acceptsCalibrationSpell(@NotNull SpellData spellData) {
+        return SpellCalibrationImbueTarget.isValidCalibrationSpell(spellData);
+    }
+
+    @Override
+    public boolean isCalibrationSlotAvailable(@NotNull ItemStack targetStack, int slot) {
+        return slot >= 0 && slot < getEnabledCalibrationScrollSlotCount(targetStack);
     }
 
     @Override

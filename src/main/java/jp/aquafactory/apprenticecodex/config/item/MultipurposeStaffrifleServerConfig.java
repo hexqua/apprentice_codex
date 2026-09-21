@@ -1,75 +1,37 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
+import java.util.List;
+import java.util.Objects;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-import java.util.List;
-import java.util.Objects;
-
 public final class MultipurposeStaffrifleServerConfig {
-    private final ModConfigSpec.IntValue cooldownBypassThresholdTicks;
-    private final ModConfigSpec.IntValue cooldownReductionTicks;
-    private final ModConfigSpec.IntValue reducedCooldownMinimumTicks;
-    private final ModConfigSpec.IntValue adsFullAutoIntervalTicks;
+    private final ModConfigSpec.DoubleValue adsMovementSpeedMultiplier;
     private final ModConfigSpec.ConfigValue<List<? extends String>> spellDenylist;
     private List<String> spellDenylistOverride;
 
     private MultipurposeStaffrifleServerConfig(
-            ModConfigSpec.IntValue cooldownBypassThresholdTicks,
-            ModConfigSpec.IntValue cooldownReductionTicks,
-            ModConfigSpec.IntValue reducedCooldownMinimumTicks,
-            ModConfigSpec.IntValue adsFullAutoIntervalTicks,
+            ModConfigSpec.DoubleValue adsMovementSpeedMultiplier,
             ModConfigSpec.ConfigValue<List<? extends String>> spellDenylist
     ) {
-        this.cooldownBypassThresholdTicks = cooldownBypassThresholdTicks;
-        this.cooldownReductionTicks = cooldownReductionTicks;
-        this.reducedCooldownMinimumTicks = reducedCooldownMinimumTicks;
-        this.adsFullAutoIntervalTicks = adsFullAutoIntervalTicks;
+        this.adsMovementSpeedMultiplier = adsMovementSpeedMultiplier;
         this.spellDenylist = spellDenylist;
     }
 
     public static MultipurposeStaffrifleServerConfig define(ModConfigSpec.Builder builder) {
         builder.push("MultipurposeStaffrifle");
-        var cooldownBypassThresholdTicks = builder
-                .comment("Cooldowns at or below this value are removed for Multipurpose Staffrifle special casts. 200 ticks = 10 seconds.")
-                .defineInRange("cooldownBypassThresholdTicks", 20 * 10, 0, 72000);
-        var cooldownReductionTicks = builder
-                .comment("Cooldown ticks subtracted from longer Multipurpose Staffrifle special casts. 600 ticks = 30 seconds.")
-                .defineInRange("cooldownReductionTicks", 20 * 30, 0, 72000);
-        var reducedCooldownMinimumTicks = builder
-                .comment("Minimum cooldown after Multipurpose Staffrifle special cast reduction. 200 ticks = 10 seconds.")
-                .defineInRange("reducedCooldownMinimumTicks", 20 * 10, 0, 72000);
-        var adsFullAutoIntervalTicks = builder
-                .comment("Minimum server-side interval between ADS full-auto special cast attempts.")
-                .defineInRange("adsFullAutoIntervalTicks", 3, 1, 72000);
+        var adsMovementSpeedMultiplier = builder
+                .comment("Movement speed multiplier while aiming Multipurpose Staffrifle. 0 disables movement; 1 applies no slowdown.")
+                .defineInRange("adsMovementSpeedMultiplier", 0.7D, 0.0D, 1.0D);
         var spellDenylist = builder
                 .comment("Additional spell IDs blocked only for Multipurpose Staffrifle special casts. Entries use \"modid:path\".")
                 .defineListAllowEmpty("spellDenylist", List.<String>of(), MultipurposeStaffrifleServerConfig::isSpellId);
         builder.pop();
 
         return new MultipurposeStaffrifleServerConfig(
-                cooldownBypassThresholdTicks,
-                cooldownReductionTicks,
-                reducedCooldownMinimumTicks,
-                adsFullAutoIntervalTicks,
+                adsMovementSpeedMultiplier,
                 spellDenylist
         );
-    }
-
-    public int cooldownBypassThresholdTicks() {
-        return cooldownBypassThresholdTicks.get();
-    }
-
-    public int cooldownReductionTicks() {
-        return cooldownReductionTicks.get();
-    }
-
-    public int reducedCooldownMinimumTicks() {
-        return reducedCooldownMinimumTicks.get();
-    }
-
-    public int adsFullAutoIntervalTicks() {
-        return adsFullAutoIntervalTicks.get();
     }
 
     public boolean isSpellDenied(ResourceLocation spellId) {
@@ -82,6 +44,10 @@ public final class MultipurposeStaffrifleServerConfig {
             }
         }
         return false;
+    }
+
+    public double adsMovementSpeedMultiplier() {
+        return adsMovementSpeedMultiplier.get();
     }
 
     public List<String> spellDenylist() {

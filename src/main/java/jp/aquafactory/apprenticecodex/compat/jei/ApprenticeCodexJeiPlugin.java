@@ -7,6 +7,8 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarConfigState;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoEchoConfigState;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.recipe.alchemybrewer.AlchemyBrewerRecipe;
 import jp.aquafactory.apprenticecodex.recipe.alchemybrewer.AlchemyBrewerModifierRecipe;
 import jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe;
@@ -73,6 +75,8 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
     private static final ResourceLocation PLUGIN_UID =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "jei_plugin");
     private static final Set<String> EN_US_TRANSLATION_KEYS = loadEnUsTranslationKeys();
+    private final Runnable fullautoEchoConfigChangeListener = this::refreshFullautoEchoRecipe;
+    private @Nullable SpellCalibrationAdjustmentJeiRecipe registeredFullautoEchoRecipe;
     private final Runnable arcanumInAJarConfigChangeListener = this::refreshArcanumInAJarRecipe;
     private @Nullable IJeiRuntime jeiRuntime;
     private @Nullable ArcanumInAJarConfigState.Values registeredArcanumInAJarSettings;
@@ -115,7 +119,7 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         registerCustomRecipes(registration);
         registration.addRecipes(
                 ApprenticeCodexJeiRecipeTypes.SPELL_CALIBRATION_ADJUSTMENT,
-                collectSpellCalibrationAdjustmentJeiRecipes()
+                collectSpellCalibrationAdjustmentJeiRecipes(false)
         );
         registration.addRecipes(
                 ApprenticeCodexJeiRecipeTypes.MANA_TRANSCRIPTION,
@@ -203,6 +207,9 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
     @Override
     public void onRuntimeAvailable(@NotNull IJeiRuntime jeiRuntime) {
         this.jeiRuntime = jeiRuntime;
+        FullautoEchoConfigState.removeChangeListener(fullautoEchoConfigChangeListener);
+        FullautoEchoConfigState.addChangeListener(fullautoEchoConfigChangeListener);
+        refreshFullautoEchoRecipe();
         ArcanumInAJarConfigState.removeChangeListener(arcanumInAJarConfigChangeListener);
         ArcanumInAJarConfigState.addChangeListener(arcanumInAJarConfigChangeListener);
         refreshArcanumInAJarRecipe();
@@ -216,9 +223,34 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
     @Override
     public void onRuntimeUnavailable() {
         ArcanumInAJarConfigState.removeChangeListener(arcanumInAJarConfigChangeListener);
+        FullautoEchoConfigState.removeChangeListener(fullautoEchoConfigChangeListener);
+        registeredFullautoEchoRecipe = null;
         jeiRuntime = null;
         registeredArcanumInAJarSettings = null;
         registeredArcanumInAJarRecipe = null;
+    }
+
+    private void refreshFullautoEchoRecipe() {
+        if (jeiRuntime == null) return;
+        var manager = jeiRuntime.getRecipeManager();
+        if (!FullautoEchoConfigState.enabled()) {
+            if (registeredFullautoEchoRecipe != null) {
+                manager.hideRecipes(ApprenticeCodexJeiRecipeTypes.SPELL_CALIBRATION_ADJUSTMENT,
+                        List.of(registeredFullautoEchoRecipe));
+            }
+            return;
+        }
+        if (registeredFullautoEchoRecipe == null) {
+            var recipes = collectSpellCalibrationAdjustmentJeiRecipes(true);
+            if (recipes.isEmpty()) return;
+            registeredFullautoEchoRecipe = recipes.getFirst();
+            manager.addRecipes(ApprenticeCodexJeiRecipeTypes.SPELL_CALIBRATION_ADJUSTMENT,
+                    List.of(registeredFullautoEchoRecipe));
+        } else {
+            // 説明はSupplierで最新倍率を参照する。OFF/ONで同じレシピを重複登録しない。
+            manager.unhideRecipes(ApprenticeCodexJeiRecipeTypes.SPELL_CALIBRATION_ADJUSTMENT,
+                    List.of(registeredFullautoEchoRecipe));
+        }
     }
 
     private void refreshArcanumInAJarRecipe() {
@@ -346,7 +378,7 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         return recipes;
     }
 
-    private static List<SpellCalibrationAdjustmentJeiRecipe> collectSpellCalibrationAdjustmentJeiRecipes() {
+    private static List<SpellCalibrationAdjustmentJeiRecipe> collectSpellCalibrationAdjustmentJeiRecipes(boolean echoOnly) {
         var recipes = new ArrayList<SpellCalibrationAdjustmentJeiRecipe>();
         BuiltInRegistries.ITEM.stream()
                 .sorted(Comparator.comparing(item -> BuiltInRegistries.ITEM.getKey(item).toString()))
@@ -357,6 +389,9 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
 
                     var targetStack = item.getDefaultInstance().copyWithCount(1);
                     for (var rule : target.getCalibrationAdjustmentProfile(targetStack).rules()) {
+                        boolean echoRule = item instanceof FullautoRapidcastSpellrifle
+                                && rule.displayId().equals(FullautoRapidcastSpellrifle.ECHO_ADJUSTMENT_ID);
+                        if (echoRule != echoOnly) continue;
                         var clientLevel = Minecraft.getInstance().level;
                         var candidates = clientLevel == null
                                 ? rule.collectDisplayCandidates()

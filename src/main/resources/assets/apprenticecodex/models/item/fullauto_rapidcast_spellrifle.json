@@ -1,0 +1,81 @@
+{
+  "credit": "Made with Blockbench",
+  "parent": "builtin/entity",
+  "texture_size": [
+    64,
+    64
+  ],
+  "display": {
+    "thirdperson_righthand": {
+      "translation": [
+        0,
+        0.5,
+        -1.25
+      ]
+    },
+    "thirdperson_lefthand": {
+      "translation": [
+        0,
+        0.5,
+        -1.25
+      ]
+    },
+    "firstperson_righthand": {
+      "translation": [
+        2,
+        -1,
+        0
+      ],
+      "scale": [
+        1.25,
+        1.25,
+        1.25
+      ]
+    },
+    "firstperson_lefthand": {
+      "translation": [
+        2,
+        -1,
+        0
+      ],
+      "scale": [
+        1.25,
+        1.25,
+        1.25
+      ]
+    },
+    "gui": {
+      "rotation": [
+        90,
+        -45,
+        90
+      ],
+      "translation": [
+        0,
+        -1,
+        0
+      ],
+      "scale": [
+        0.7,
+        0.7,
+        0.7
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        -90,
+        0
+      ]
+    }
+  },
+  "textures": {
+    "particle": "apprenticecodex:item/fullauto_rapidcast_spellrifle"
+  },
+  "overrides": [
+    {
+      "predicate": { "apprenticecodex:ads": 1 },
+      "model": "apprenticecodex:item/fullauto_rapidcast_spellrifle_ads"
+    }
+  ]
+}

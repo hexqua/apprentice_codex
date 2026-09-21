@@ -387,12 +387,13 @@ dependencies {
     // GeckoLib.
     implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
 
-    // Curios APIをコンパイル時にも参照する.
+    // Curios API.
     compileOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}"
-
-    // ISS前提MOD(2026/1/21時点それぞれ最新,動作確認用のみなのでruntimeOnly)
     runtimeOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}"
-    runtimeOnly "maven.modrinth:playeranimator:HJZB6bmA"
+
+    // playerAnimator.
+    compileOnly "maven.modrinth:playeranimator:${playeranimator_modrinth_version_id}"
+    runtimeOnly "maven.modrinth:playeranimator:${playeranimator_modrinth_version_id}"
 
     // Create.
     // Create 連携のコンパイル用.

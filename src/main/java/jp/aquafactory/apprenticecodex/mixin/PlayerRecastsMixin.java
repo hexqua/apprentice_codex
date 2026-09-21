@@ -1,5 +1,8 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.capabilities.magic.PlayerRecasts;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
@@ -7,6 +10,8 @@ import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowCastManager;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaffCastContext;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunRecastCooldown;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunRecastCompletion;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -15,6 +20,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Map;
 
@@ -28,6 +34,27 @@ public abstract class PlayerRecastsMixin {
     @Final
     @Nullable
     private ServerPlayer serverPlayer;
+
+    @Inject(method = "addRecast", at = @At("HEAD"))
+    private void apprenticecodex$retainGunCooldown(RecastInstance recastInstance, MagicData magicData,
+                                                   CallbackInfoReturnable<Boolean> cir) {
+        var previous = recastLookup.get(recastInstance.getSpellId());
+        // 登録後は魔法が再詠唱用の短い詠唱時間を返すため、初回の時間は登録前に取得する。
+        if (serverPlayer != null && (previous == null || previous.getRemainingRecasts() <= 0 || previous.getTicksRemaining() <= 0)) {
+            ((SpellgunRecastCooldown.Holder) recastInstance).apprenticecodex$setCooldown(
+                    SpellgunRecastCooldown.capture(serverPlayer, magicData, recastInstance));
+        }
+    }
+
+    @WrapMethod(method = "triggerRecastComplete")
+    private void apprenticecodex$restoreGunCooldown(RecastInstance recastInstance, RecastResult recastResult, Operation<Void> original) {
+        if (serverPlayer == null) {
+            original.call(recastInstance, recastResult);
+            return;
+        }
+        // 削除後はlookupから取得できないため、完了処理の呼び出し全体で元のRecastを保持する。
+        SpellgunRecastCompletion.run(serverPlayer, recastInstance, () -> original.call(recastInstance, recastResult));
+    }
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void apprenticecodex$preserveChargedCastRecastTicks(int actualTicks, CallbackInfo ci) {

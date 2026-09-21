@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "tag": "minecraft:buttons"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_ingot"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "S": {
+      "item": "irons_spellbooks:divine_soulshard"
+    },
+    "W": {
+      "item": "irons_spellbooks:weapon_parts"
+    }
+  },
+  "pattern": [
+    "MWS",
+    " MR",
+    " BM"
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:fullauto_rapidcast_spellrifle"
+  }
+}

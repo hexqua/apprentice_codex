@@ -21,6 +21,11 @@ public final class CalibrationAdjustmentEffects {
                 Component.translatable(KEY_PREFIX + "force_spell_school_2", percentage(manaMultiplier - 1.0D)));
     }
 
+    public static List<Component> gainEchoCast(double manaMultiplier) {
+        return List.of(Component.translatable(KEY_PREFIX + "gain_echo_cast_1"),
+                Component.translatable(KEY_PREFIX + "gain_echo_cast_2", percentage(manaMultiplier - 1.0D)));
+    }
+
     public static List<Component> separateCooldown() {
         return List.of(Component.translatable(KEY_PREFIX + "separate_cooldown_1"),
                 Component.translatable(KEY_PREFIX + "separate_cooldown_2"));
@@ -95,6 +100,10 @@ public final class CalibrationAdjustmentEffects {
         return line("add_long_support");
     }
 
+    public static List<Component> removeRecoil() {
+        return line("remove_recoil");
+    }
+
     public static List<Component> addAllSupport() {
         return line("add_all_support");
     }
@@ -105,6 +114,16 @@ public final class CalibrationAdjustmentEffects {
 
     public static List<Component> changeImbueToSelected() {
         return line("change_imbue_to_select");
+    }
+
+    public static List<Component> switchImbueToSelected() {
+        return List.of(Component.translatable(KEY_PREFIX + "switch_imbue_to_select_1"),
+                Component.translatable(KEY_PREFIX + "switch_imbue_to_select_2"));
+    }
+
+    public static List<Component> spyglassScope() {
+        return List.of(Component.translatable(KEY_PREFIX + "spyglass_scope_1"),
+                Component.translatable(KEY_PREFIX + "spyglass_scope_2"));
     }
 
     public static List<Component> adaptAutocastSituation() {

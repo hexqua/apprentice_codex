@@ -545,7 +545,7 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_diamond_spellcaster_gun.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_diamond_spellcaster_gun.description"),
                         null,
-                        AdvancementType.GOAL,
+                        AdvancementType.TASK,
                         true,
                         true,
                         false)
@@ -574,12 +574,25 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_multipurpose_staffrifle.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_multipurpose_staffrifle.description"),
                         null,
-                        AdvancementType.CHALLENGE,
+                        AdvancementType.GOAL,
                         true,
                         true,
                         false)
                 .addCriterion("crafted_multipurpose_staffrifle", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.getId()))
                 .save(saver, advancementId("craft_multipurpose_staffrifle"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(diamondGun)
+                .display(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_fullauto_rapidcast_spellrifle.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_fullauto_rapidcast_spellrifle.description"),
+                        null,
+                        AdvancementType.CHALLENGE,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_fullauto_rapidcast_spellrifle", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.getId()))
+                .save(saver, advancementId("craft_fullauto_rapidcast_spellrifle"), existingFileHelper);
 
         Advancement.Builder.advancement()
                 .parent(ironGun)

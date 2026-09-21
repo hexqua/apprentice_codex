@@ -5,21 +5,21 @@
     "B": {
       "tag": "minecraft:buttons"
     },
-    "L": {
-      "item": "irons_spellbooks:cooldown_upgrade_orb"
-    },
     "M": {
-      "item": "irons_spellbooks:mithril_ingot"
+      "item": "irons_spellbooks:mithril_scrap"
     },
     "R": {
       "item": "minecraft:redstone"
+    },
+    "S": {
+      "item": "apprenticecodex:spellstained_diamond"
     },
     "W": {
       "item": "irons_spellbooks:weapon_parts"
     }
   },
   "pattern": [
-    "MWL",
+    "MWS",
     " MR",
     " BM"
   ],

@@ -72,6 +72,7 @@ import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.item.offhand.CopperSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.DiamondSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.ExplorersCane;
@@ -234,6 +235,8 @@ public final class ItemRegistry {
             ITEMS.register("empty_spell_dominator_casing", () -> new SpellcasterRoundItem());
     public static final DeferredHolder<Item, Item> EMPTY_MULTI_PURPOSE_SPELL_CASING =
             ITEMS.register("empty_multi_purpose_spell_casing", () -> new SpellcasterRoundItem());
+    public static final DeferredHolder<Item, Item> EMPTY_FULLAUTO_SPELL_CASTING_CASING =
+            ITEMS.register("empty_fullauto_spell_casting_casing", () -> new SpellcasterRoundItem());
     public static final DeferredHolder<Item, Item> RAPID_SPELLCASTER_ROUND =
             ITEMS.register("rapid_spellcaster_round",
                     () -> new SpellcasterRoundItem(EMPTY_RAPID_SPELLCASTER_CASING));
@@ -251,10 +254,10 @@ public final class ItemRegistry {
                     () -> new SpellcasterRoundItem(EMPTY_SPELL_DOMINATOR_CASING));
     public static final DeferredHolder<Item, Item> MULTI_PURPOSE_SPELL_ROUND =
             ITEMS.register("multi_purpose_spell_round",
-                    () -> new SpellcasterRoundItem(
-                            EMPTY_MULTI_PURPOSE_SPELL_CASING,
-                            "item.apprenticecodex.multi_purpose_spell_round.desc"
-                    ));
+                    () -> new SpellcasterRoundItem(EMPTY_MULTI_PURPOSE_SPELL_CASING));
+    public static final DeferredHolder<Item, Item> FULLAUTO_SPELL_CASTING_ROUND =
+            ITEMS.register("fullauto_spell_casting_round",
+                    () -> new SpellcasterRoundItem(EMPTY_FULLAUTO_SPELL_CASTING_CASING));
     public static final DeferredHolder<Item, Item> SPELL_INVOKE_CARD =
             ITEMS.register("spell_invoke_card", SpellInvokeCard::new);
     public static final DeferredHolder<Item, Item> SPELL_AUTONOMY_CARD =
@@ -451,6 +454,8 @@ public final class ItemRegistry {
             ITEMS.register("smashcast_scepter", SmashcastScepter::new);
     public static final DeferredHolder<Item, Item> MULTIPURPOSE_STAFFRIFLE =
             ITEMS.register("multipurpose_staffrifle", MultipurposeStaffrifle::new);
+    public static final DeferredHolder<Item, Item> FULLAUTO_RAPIDCAST_SPELLRIFLE =
+            ITEMS.register("fullauto_rapidcast_spellrifle", FullautoRapidcastSpellrifle::new);
     public static final DeferredHolder<Item, Item> SCROLLCASTER_GAUNTLET =
             ITEMS.register("scrollcaster_gauntlet", ScrollcasterGauntlet::new);
     public static final DeferredHolder<Item, Item> CHARGECAST_CATALYSTBOOK =

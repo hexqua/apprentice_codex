@@ -129,12 +129,14 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get());
         output.accept(ItemRegistry.SPELL_DOMINATOR_ROUND.get());
         output.accept(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get());
+        output.accept(ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get());
         output.accept(ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get());
         output.accept(ItemRegistry.EMPTY_BASIC_SPELLCASTER_CASING.get());
         output.accept(ItemRegistry.EMPTY_ARCANE_SPELLCASTER_CASING.get());
         output.accept(ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get());
         output.accept(ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get());
         output.accept(ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get());
+        output.accept(ItemRegistry.EMPTY_FULLAUTO_SPELL_CASTING_CASING.get());
         addCreateRoundMaterialsToTab(output);
     }
 
@@ -178,6 +180,7 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.SMASHCAST_SCEPTER.get());
         output.accept(ItemRegistry.FOCUS_STAFFBOW.get());
         output.accept(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+        output.accept(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
         output.accept(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
 
         output.accept(ItemRegistry.CRYSTAL_BLADED_STAFF.get());

@@ -9,7 +9,7 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
-import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
@@ -164,16 +164,13 @@ public abstract class AbstractBroomItem extends Item implements GeoItem, ICurioI
     }
 
     @Override
-    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
-            @NotNull ItemStack targetStack,
-            int slot,
-            @NotNull SpellData spellData
-    ) {
-        if (slot < 0 || slot >= getEnabledCalibrationScrollSlotCount(targetStack)
-                || spellData == SpellData.EMPTY || spellData.getSpell() == null) {
-            return SpellCalibrationImbueState.REJECTED;
-        }
-        return SpellCalibrationImbueState.ACCEPTED_USABLE;
+    public boolean acceptsCalibrationSpell(@NotNull SpellData spellData) {
+        return SpellCalibrationImbueTarget.isValidCalibrationSpell(spellData);
+    }
+
+    @Override
+    public boolean isCalibrationSlotAvailable(@NotNull ItemStack targetStack, int slot) {
+        return slot >= 0 && slot < getEnabledCalibrationScrollSlotCount(targetStack);
     }
 
     @Override

@@ -47,33 +47,33 @@ public final class MulticastEchoStaffAttackHandler {
     }
 
     public static void runRepeatedCast(ServerPlayer caster, AbstractSpell spell, Runnable castAction) {
-        var profile = resolveActiveProfile(spell);
-        if (profile == null) {
+        try (var ignored = openCast(caster, spell, AttackOrigin.STAFF)) {
             castAction.run();
-            return;
         }
+    }
 
+    // 開始前生成・即時化の完了処理も同じコンテキストに含め、遅延攻撃へ設定元を引き継ぐ。
+    public static CastScope openCast(ServerPlayer caster, AbstractSpell spell, AttackOrigin origin) {
+        var profile = resolveActiveProfile(spell, origin);
         var previousContext = ACTIVE_CAST.get();
-        ACTIVE_CAST.set(new CastContext(caster.getUUID(), spell.getSpellResource(), profile));
-        try {
-            castAction.run();
-        } finally {
+        ACTIVE_CAST.set(profile == null ? null : new CastContext(caster.getUUID(), spell.getSpellResource(), profile));
+        return () -> {
             if (previousContext == null) {
                 ACTIVE_CAST.remove();
             } else {
                 ACTIVE_CAST.set(previousContext);
             }
-        }
+        };
     }
 
     // Projectile以外は明示登録する。術者が同じだけの通常攻撃を追加詠唱に巻き込まない。
     public static void trackWeaponAttack(Entity entity) {
         var context = ACTIVE_CAST.get();
-        if (context == null || !(entity.level() instanceof ServerLevel level)
+        if (context == null || entity == null || !(entity.level() instanceof ServerLevel level)
                 || context.profile().trackingLifetimeTicks() <= 0) {
             return;
         }
-        TRACKED_WEAPON_ATTACKS.put(entity, new TrackedProjectile(context.casterId(), context.spellId(),
+        TRACKED_WEAPON_ATTACKS.putIfAbsent(entity, new TrackedProjectile(context.casterId(), context.spellId(),
                 level.dimension(), context.profile(), level.getGameTime() + context.profile().trackingLifetimeTicks()));
     }
 
@@ -110,7 +110,7 @@ public final class MulticastEchoStaffAttackHandler {
             TRACKED_WEAPON_ATTACKS.remove(entity);
             return null;
         }
-        return ApprenticeCodexServerConfig.multicastEchoStaffAttackProfilesEnabled() ? tracked : null;
+        return tracked.profile().origin().enabled() ? tracked : null;
     }
 
     public static CombatDamageAdjustment adjustCombatDamage(Entity target, float baseAmount, DamageSource source) {
@@ -127,12 +127,9 @@ public final class MulticastEchoStaffAttackHandler {
         return new CombatDamageAdjustment(adjustedAmount, false, 0);
     }
 
-    private static @Nullable MulticastEchoStaffAttackProfile resolveActiveProfile(AbstractSpell spell) {
-        if (!ApprenticeCodexServerConfig.multicastEchoStaffAttackProfilesEnabled()) {
-            return null;
-        }
-
-        return MulticastEchoStaffAttackProfileManager.getProfile(spell).orElse(null);
+    private static @Nullable ConfiguredProfile resolveActiveProfile(AbstractSpell spell, AttackOrigin origin) {
+        return origin.enabled() ? MulticastEchoStaffAttackProfileManager.getProfile(spell)
+                .map(profile -> new ConfiguredProfile(profile, origin)).orElse(null) : null;
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -205,16 +202,13 @@ public final class MulticastEchoStaffAttackHandler {
         }
     }
 
-    private static @Nullable MulticastEchoStaffAttackProfile resolveProfileForDamage(
+    private static @Nullable ConfiguredProfile resolveProfileForDamage(
             DamageSource source,
             @Nullable ResourceLocation spellId
     ) {
-        if (!ApprenticeCodexServerConfig.multicastEchoStaffAttackProfilesEnabled()) {
-            return null;
-        }
-
         var activeContext = ACTIVE_CAST.get();
         if (activeContext != null
+                && activeContext.profile().origin().enabled()
                 && activeContext.profile().directDamageTracking()
                 && (spellId == null || activeContext.spellId().equals(spellId))
                 && isSourceFromCaster(source, activeContext.casterId())) {
@@ -234,6 +228,7 @@ public final class MulticastEchoStaffAttackHandler {
             }
         }
         if (tracked == null
+                || !tracked.profile().origin().enabled()
                 || (spellId != null && !tracked.spellId().equals(spellId))
                 || !isSourceFromCaster(source, tracked.casterId())) {
             return null;
@@ -252,9 +247,9 @@ public final class MulticastEchoStaffAttackHandler {
         return directEntity != null && casterId.equals(directEntity.getUUID());
     }
 
-    private static float applyRepeatDamageMultiplier(float amount, MulticastEchoStaffAttackProfile profile) {
+    private static float applyRepeatDamageMultiplier(float amount, ConfiguredProfile profile) {
         var multiplier = Math.max(0.0D, profile.repeatDamageMultiplier())
-                * Math.max(0.0D, ApprenticeCodexServerConfig.multicastEchoStaffRepeatDamageMultiplier());
+                * Math.max(0.0D, profile.origin().damageMultiplier());
         return (float) (amount * multiplier);
     }
 
@@ -274,10 +269,38 @@ public final class MulticastEchoStaffAttackHandler {
         }
     }
 
+    public interface CastScope extends AutoCloseable {
+        @Override
+        void close();
+    }
+
+    public enum AttackOrigin {
+        STAFF, RIFLE;
+
+        public boolean enabled() {
+            return this == STAFF ? ApprenticeCodexServerConfig.multicastEchoStaffAttackProfilesEnabled()
+                    : ApprenticeCodexServerConfig.fullautoRapidcastSpellrifleEchoCastEnabled();
+        }
+
+        public double damageMultiplier() {
+            return this == STAFF ? ApprenticeCodexServerConfig.multicastEchoStaffRepeatDamageMultiplier()
+                    : ApprenticeCodexServerConfig.fullautoRapidcastSpellrifleEchoCastDamageMultiplier();
+        }
+    }
+
+    private record ConfiguredProfile(MulticastEchoStaffAttackProfile definition, AttackOrigin origin) {
+        double repeatDamageMultiplier() { return definition.repeatDamageMultiplier(); }
+        boolean ignoreIframe() { return definition.ignoreIframe(); }
+        boolean projectileTracking() { return definition.projectileTracking(); }
+        boolean directDamageTracking() { return definition.directDamageTracking(); }
+        int trackingLifetimeTicks() { return definition.trackingLifetimeTicks(); }
+        int postHitIframeTicks() { return definition.postHitIframeTicks(); }
+    }
+
     private record CastContext(
             UUID casterId,
             ResourceLocation spellId,
-            MulticastEchoStaffAttackProfile profile
+            ConfiguredProfile profile
     ) {
     }
 
@@ -285,7 +308,7 @@ public final class MulticastEchoStaffAttackHandler {
             UUID casterId,
             ResourceLocation spellId,
             ResourceKey<Level> dimension,
-            MulticastEchoStaffAttackProfile profile,
+            ConfiguredProfile profile,
             long expireGameTime
     ) {
     }

@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "107";
+    private static final String PROTOCOL_VERSION = "113";
 
     private Networks() {
     }
@@ -22,6 +22,12 @@ public final class Networks {
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar(PROTOCOL_VERSION);
+        registrar.playToClient(SyncFullautoEchoConfigPacket.TYPE,
+                SyncFullautoEchoConfigPacket.STREAM_CODEC, SyncFullautoEchoConfigPacket::handle);
+        registrar.playToServer(ClientMultipurposeStaffrifleAdsPacket.TYPE,
+                ClientMultipurposeStaffrifleAdsPacket.STREAM_CODEC, ClientMultipurposeStaffrifleAdsPacket::handle);
+        registrar.playToServer(ClientFullautoRapidcastSpellrifleAdsPacket.TYPE,
+                ClientFullautoRapidcastSpellrifleAdsPacket.STREAM_CODEC, ClientFullautoRapidcastSpellrifleAdsPacket::handle);
         registrar.playToClient(SyncChargedTwinBladeStaffConfigPacket.TYPE,
                 SyncChargedTwinBladeStaffConfigPacket.STREAM_CODEC, SyncChargedTwinBladeStaffConfigPacket::handle);
         registrar.playToClient(SyncChargedStaffRiptidePacket.TYPE,
@@ -128,6 +134,11 @@ public final class Networks {
                 ClientMultipurposeStaffrifleCastPacket.TYPE,
                 ClientMultipurposeStaffrifleCastPacket.STREAM_CODEC,
                 ClientMultipurposeStaffrifleCastPacket::handle
+        );
+        registrar.playToServer(
+                ClientFullautoRapidcastSpellrifleCastPacket.TYPE,
+                ClientFullautoRapidcastSpellrifleCastPacket.STREAM_CODEC,
+                ClientFullautoRapidcastSpellrifleCastPacket::handle
         );
         registrar.playToServer(
                 ClientSpellgunCastPacket.TYPE,
@@ -385,6 +396,11 @@ public final class Networks {
                 SyncAutocastAmuletProfileSpellIdsPacket::handle
         );
         registrar.playToClient(
+                SyncEchoProfileSpellIdsPacket.TYPE,
+                SyncEchoProfileSpellIdsPacket.STREAM_CODEC,
+                SyncEchoProfileSpellIdsPacket::handle
+        );
+        registrar.playToClient(
                 SyncRemainingCountNotificationPacket.TYPE,
                 SyncRemainingCountNotificationPacket.STREAM_CODEC,
                 SyncRemainingCountNotificationPacket::handle
@@ -430,9 +446,19 @@ public final class Networks {
                 SyncPhotonSiphonCombatStatePacket::handle
         );
         registrar.playToClient(
+                SpellrifleMuzzleParticlePacket.TYPE,
+                SpellrifleMuzzleParticlePacket.STREAM_CODEC,
+                SpellrifleMuzzleParticlePacket::handle
+        );
+        registrar.playToClient(
                 SyncMultipurposeStaffrifleFireEffectPacket.TYPE,
                 SyncMultipurposeStaffrifleFireEffectPacket.STREAM_CODEC,
                 SyncMultipurposeStaffrifleFireEffectPacket::handle
+        );
+        registrar.playToClient(
+                SyncFullautoRapidcastSpellrifleFireEffectPacket.TYPE,
+                SyncFullautoRapidcastSpellrifleFireEffectPacket.STREAM_CODEC,
+                SyncFullautoRapidcastSpellrifleFireEffectPacket::handle
         );
         registrar.playToClient(
                 SyncSmashcastScepterReadyStatePacket.TYPE,
