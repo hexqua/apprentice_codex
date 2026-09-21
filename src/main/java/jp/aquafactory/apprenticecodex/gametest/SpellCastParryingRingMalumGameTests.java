@@ -12,20 +12,20 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 public final class SpellCastParryingRingMalumGameTests {
     private SpellCastParryingRingMalumGameTests() {}
 
-    @GameTest(template = "gametest/basic_floor")
+    @GameTest(template = "gametest/basic_floor", batch = "apprenticecodex.malum_staff_parrying")
     public static void staffWindowsAndCancellation(GameTestHelper helper) {
         // optional 型は登録時に解決せず、Malum 導入時だけテスト本体を読み込む。
         if (MalumStaffChargeBridge.isAvailable()) SpellCastParryingRingMalumScenarios.windows(helper);
         helper.succeed();
     }
 
-    @GameTest(template = "gametest/basic_floor")
+    @GameTest(template = "gametest/basic_floor", batch = "apprenticecodex.malum_staff_parrying")
     public static void staffDefenseBoundaries(GameTestHelper helper) {
         if (MalumStaffChargeBridge.isAvailable()) SpellCastParryingRingMalumScenarios.defense(helper);
         helper.succeed();
     }
 
-    @GameTest(template = "gametest/basic_floor")
+    @GameTest(template = "gametest/basic_floor", batch = "apprenticecodex.malum_staff_parrying")
     public static void staffCooldownRejectionAndRelease(GameTestHelper helper) {
         if (MalumStaffChargeBridge.isAvailable()) SpellCastParryingRingMalumScenarios.release(helper);
         helper.succeed();

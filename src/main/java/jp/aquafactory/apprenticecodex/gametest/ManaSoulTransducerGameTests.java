@@ -14,7 +14,7 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 public final class ManaSoulTransducerGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
     private ManaSoulTransducerGameTests() {}
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE, batch = "apprenticecodex.mana_soul_transducer")
     public static void transferUsesPositiveBonusesAndSoftCap(GameTestHelper h) {
         for (double rate : new double[]{0, 0.8, 1}) {
             close(h, ManaSoulTransducerLogic.durationModifier(0.5, rate), 0);
@@ -26,7 +26,7 @@ public final class ManaSoulTransducerGameTests {
         h.assertTrue(ManaSoulTransducerLogic.chargeTicks(20, 1000000, 1) == 1, "Minimum charge must be one tick");
         h.succeed();
     }
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE, batch = "apprenticecodex.mana_soul_transducer")
     public static void soulConversionIsAlwaysDisabled(GameTestHelper h) {
         var spell = SpellRegistry.SOUL_CONVERSION.get();
         h.assertFalse(spell.getDefaultConfig().enabled, "Default config must disable Soul Conversion");
@@ -37,12 +37,12 @@ public final class ManaSoulTransducerGameTests {
         } finally { spell.getDefaultConfig().enabled = false; }
         h.succeed();
     }
-    @GameTest(template = TEMPLATE, batch = "apprenticecodex.malum_compat")
+    @GameTest(template = TEMPLATE, batch = "apprenticecodex.mana_soul_transducer")
     public static void legacyStaffPayments(GameTestHelper h) {
         if (MalumStaffChargeBridge.isAvailable()) ManaSoulTransducerMalumScenarios.payments(h);
         h.succeed();
     }
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE, batch = "apprenticecodex.mana_soul_transducer")
     public static void researchMarkersAndRecipe(GameTestHelper h) {
         h.assertTrue(SpellRegistry.ECHO_CAST.get() instanceof jp.aquafactory.apprenticecodex.spell.HiddenFromEldritchResearch,
                 "Echo Cast must be hidden from research");

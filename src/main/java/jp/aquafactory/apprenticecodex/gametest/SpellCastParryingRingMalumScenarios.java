@@ -54,7 +54,7 @@ final class SpellCastParryingRingMalumScenarios {
                     player.releaseUsingItem();
                     h.assertTrue(MalumPlayerDataCapability.getCapability(player).reserveStaffChargeHandler.chargeCount == 0, "Incomplete charge cancellation must remain free");
                     h.assertFalse(attack(player, source), "Canceled charge must not parry");
-                    player.discard();
+                    discardPlayer(player);
                 }
             }
         }
@@ -65,7 +65,7 @@ final class SpellCastParryingRingMalumScenarios {
             var player = player(h, com.sammy.malum.registry.common.item.ItemRegistry.MNEMONIC_HEX_STAFF.get(), InteractionHand.MAIN_HAND, false);
             start(h, player, InteractionHand.MAIN_HAND);
             h.assertFalse(attack(player, front(h, player)), "Staff without ring must not parry");
-            player.discard();
+            discardPlayer(player);
             player = player(h, com.sammy.malum.registry.common.item.ItemRegistry.MNEMONIC_HEX_STAFF.get(), InteractionHand.MAIN_HAND, true);
             start(h, player, InteractionHand.MAIN_HAND);
             h.assertTrue(attack(player, front(h, player)), "Equipped ring must parry staff charging");
@@ -83,7 +83,7 @@ final class SpellCastParryingRingMalumScenarios {
             player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.BOW));
             player.startUsingItem(InteractionHand.MAIN_HAND);
             h.assertFalse(attack(player, front(h, player)), "Ordinary bow must not gain staff parrying");
-            player.discard();
+            discardPlayer(player);
         }
     }
 
@@ -98,8 +98,17 @@ final class SpellCastParryingRingMalumScenarios {
             start(h, player, InteractionHand.MAIN_HAND);
             player.releaseUsingItem();
             h.assertFalse(attack(player, front(h, player)), "Released staff must not parry");
-            player.discard();
+            discardPlayer(player);
         }
+    }
+
+    private static void discardPlayer(StaffPlayer player) {
+        // 実際のreleaseUsingで生成した弾を残すと、近隣テストの振動・damage判定に干渉する。
+        for (var entity : player.serverLevel().getAllEntities()) {
+            if (entity instanceof net.minecraft.world.entity.projectile.Projectile projectile
+                    && projectile.getOwner() == player) projectile.discard();
+        }
+        player.discard();
     }
 
     private static List<Item> staffs() {

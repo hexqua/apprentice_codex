@@ -92,6 +92,11 @@ final class ManaSoulTransducerMalumScenarios {
             staff.releaseUsing(stack, h.getLevel(), player, staff.getUseDuration(stack) - 100);
             h.assertTrue(mana.getMana() == 160 && charges.chargeCount == 0, "Unequipped shot must use Malum reserves");
         }
+        // 実射で生成した飛翔体を次のbatchへ持ち越さない。
+        for (var entity : h.getLevel().getAllEntities()) {
+            if (entity instanceof net.minecraft.world.entity.projectile.Projectile projectile
+                    && projectile.getOwner() == player) projectile.discard();
+        }
         player.discard();
     }
 }
