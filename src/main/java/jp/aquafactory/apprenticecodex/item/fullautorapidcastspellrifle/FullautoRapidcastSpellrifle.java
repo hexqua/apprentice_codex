@@ -402,7 +402,7 @@ public final class FullautoRapidcastSpellrifle extends Item
     }
 
     public static boolean isAdsUse(@Nullable LivingEntity entity) {
-        if (entity == null || entity.isSprinting() || !entity.isUsingItem() || entity.getUsedItemHand() != InteractionHand.MAIN_HAND) {
+        if (entity == null || !entity.isUsingItem() || entity.getUsedItemHand() != InteractionHand.MAIN_HAND) {
             return false;
         }
 

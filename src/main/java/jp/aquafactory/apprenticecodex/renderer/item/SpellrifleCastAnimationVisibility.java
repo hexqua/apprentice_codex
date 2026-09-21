@@ -5,11 +5,11 @@ import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationAccess;
 import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
 import net.minecraft.client.player.AbstractClientPlayer;
 
-final class SpellrifleCastAnimationVisibility {
+public final class SpellrifleCastAnimationVisibility {
     private SpellrifleCastAnimationVisibility() {
     }
 
-    static boolean ownsArms(AbstractClientPlayer player, float partialTick) {
+    public static boolean ownsArms(AbstractClientPlayer player, float partialTick) {
         // 銃の発射も詠唱状態になるため、通信上の詠唱フラグではなく実際の描画レイヤーを調べる。
         var casting = PlayerAnimationAccess.getPlayerAssociatedData(player).get(SpellAnimations.ANIMATION_RESOURCE);
         return FirstPersonMode.isFirstPersonPass()

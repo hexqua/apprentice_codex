@@ -40,6 +40,7 @@ public final class FullautoRapidcastSpellrifleClientFireEffectState {
             recoilPlayer = new WeakReference<>(player);
             recoilLevel = new WeakReference<>(minecraft.level);
         }
+        SpellrifleSprintState.onShot();
         lastFireGameTime = resolveGameTime();
         if (FullautoRapidcastSpellrifle.hasRecoveryRune(player.getMainHandItem(), minecraft.level.registryAccess())) {
             recoil = new FullautoRapidcastSpellrifleRecoil();

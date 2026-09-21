@@ -39,6 +39,7 @@ public final class MultipurposeStaffrifleClientFireEffectState {
             recoilPlayer = new WeakReference<>(player);
             recoilLevel = new WeakReference<>(minecraft.level);
         }
+        SpellrifleSprintState.onShot();
         lastFireGameTime = resolveGameTime();
         if (MultipurposeStaffrifle.hasRecoveryRune(player.getMainHandItem(), minecraft.level.registryAccess())) {
             recoil = new MultipurposeStaffrifleRecoil();
