@@ -23,6 +23,7 @@ import software.bernie.geckolib.util.RenderUtils;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class MoonLightKatanaRenderer extends GeoEntityRenderer<MoonLightKatanaEntity> {
     private static final String TRAIL_TIP_BONE = "trail_tip";
@@ -38,7 +39,7 @@ public class MoonLightKatanaRenderer extends GeoEntityRenderer<MoonLightKatanaEn
     private Vec3 trailRootBonePosition;
     private Vec3 scabbardTopBonePosition;
     private Vec3 scabbardBottomBonePosition;
-    private final Map<java.util.UUID, Long> lastChargeParticleTick = new HashMap<>();
+    private final Map<UUID, Long> lastChargeParticleTick = new HashMap<>();
     private boolean renderingScabbardBase;
 
     public MoonLightKatanaRenderer(EntityRendererProvider.Context pContext) {

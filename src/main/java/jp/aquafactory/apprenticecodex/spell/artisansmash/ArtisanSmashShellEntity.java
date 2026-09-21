@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatOwnerResolver;
 import jp.aquafactory.apprenticecodex.utility.CombatOwnerUuidHolder;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -214,7 +215,7 @@ public class ArtisanSmashShellEntity extends ThrowableProjectile implements Anti
         setSpinDirection(level().random.nextBoolean() ? 1 : -1);
         var normalized = normalizeOrFallback(direction);
         setDeltaMovement(normalized.scale(speed));
-        var yawPitch = jp.aquafactory.apprenticecodex.utility.RotationTools.calculateYawPitchByDirection(normalized);
+        var yawPitch = RotationTools.calculateYawPitchByDirection(normalized);
         setYRot(yawPitch.yaw());
         setXRot(yawPitch.pitch());
         setRot(getYRot(), getXRot());

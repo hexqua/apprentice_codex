@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.registry;
 
+import com.mojang.datafixers.types.Type;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.atelierstation.AtelierStationBlockEntity;
 import jp.aquafactory.apprenticecodex.block.alchemybrewer.AlchemyBrewerBlockEntity;
@@ -22,12 +23,13 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
+import java.util.Arrays;
 import java.util.function.Supplier;
 
 @SuppressWarnings("DataFlowIssue")
 public final class BlockEntityRegistry {
     // 1.20.1Forgeだと入れるものがないらしいのでnullに(合わせて警告握りつぶし)
-    private static final com.mojang.datafixers.types.Type<?> NO_DFU = null;
+    private static final Type<?> NO_DFU = null;
 
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES =
             DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, ApprenticeCodex.MODID);
@@ -39,7 +41,7 @@ public final class BlockEntityRegistry {
         return BLOCK_ENTITY_TYPES.register(id,
                 () -> BlockEntityType.Builder.of(
                         factory,
-                        java.util.Arrays.stream(blocks)
+                        Arrays.stream(blocks)
                                 .map(Supplier::get)
                                 .toArray(Block[]::new)
                 ).build(NO_DFU));

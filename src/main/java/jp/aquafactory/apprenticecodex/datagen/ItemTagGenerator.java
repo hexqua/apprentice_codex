@@ -12,6 +12,7 @@ import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraft.data.tags.TagsProvider;
@@ -31,7 +32,7 @@ import java.util.concurrent.CompletableFuture;
 
 public final class ItemTagGenerator extends ItemTagsProvider {
     private static TagKey<Item> createTag(String namespace, String path) {
-        return TagKey.create(net.minecraft.core.registries.Registries.ITEM, ResourceLocation.fromNamespaceAndPath(namespace, path));
+        return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(namespace, path));
     }
 
     private static final TagKey<Item> IRONS_STAFF = createTag("irons_spellbooks", "staff");
@@ -360,7 +361,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 net.minecraft.world.item.Items.SPECTRAL_ARROW,
                 net.minecraft.world.item.Items.TIPPED_ARROW
         );
-        tag(net.minecraft.tags.ItemTags.ARROWS).add(ItemRegistry.ANTI_MANA_ARROW.get());
+        tag(ItemTags.ARROWS).add(ItemRegistry.ANTI_MANA_ARROW.get());
         tag(TagRegistry.Items.SPELLCASTER_WORKBENCH_EXTRACTABLE).add(
                 ItemRegistry.ENCHANTED_CIRCLET.get(),
                 ItemRegistry.ENCHANTRESS_ROBE.get(),

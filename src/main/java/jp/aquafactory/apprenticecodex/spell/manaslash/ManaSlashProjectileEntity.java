@@ -29,6 +29,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
@@ -100,7 +101,7 @@ public class ManaSlashProjectileEntity extends Projectile implements AntiMagicSu
 
         if (!level().isClientSide) {
             var blockHit = findBlockCollision(getDeltaMovement());
-            if (blockHit != null && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, blockHit)) {
+            if (blockHit != null && !ForgeEventFactory.onProjectileImpact(this, blockHit)) {
                 onHitBlock(blockHit);
             }
 

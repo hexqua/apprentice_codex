@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import jp.aquafactory.apprenticecodex.spell.shock.ShockBoltRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -22,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 public final class LightningArrowRenderer extends EntityRenderer<LightningArrowEntity> {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
             ApprenticeCodex.MODID, "textures/entity/lightning_arrow_arrow.png");
-    private static final net.minecraft.client.renderer.RenderType TRAIL = ApprenticeRenderTypes.entityAdditiveGlowNoCull(
+    private static final RenderType TRAIL = ApprenticeRenderTypes.entityAdditiveGlowNoCull(
             "shock_bolt_additive", ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/shock_bolt.png"));
 
     public LightningArrowRenderer(EntityRendererProvider.Context context) {
@@ -56,7 +57,7 @@ public final class LightningArrowRenderer extends EntityRenderer<LightningArrowE
             if (segmentHit.getType() == HitResult.Type.BLOCK) point = segmentHit.getLocation();
             var ageDistance = distance - (previousDistance + nextDistance) * 0.5
                     + flight.speed() * entity.visualStopAge(partialTick);
-            var alpha = (float) net.minecraft.util.Mth.clamp(1 - ageDistance / (flight.speed() * LightningArrowEntity.TRAIL_TICKS), 0, 1);
+            var alpha = (float) Mth.clamp(1 - ageDistance / (flight.speed() * LightningArrowEntity.TRAIL_TICKS), 0, 1);
             var scroll = -(entity.tickCount + partialTick) * 0.45F + (float) previousDistance;
             var camera = entityRenderDispatcher.camera.getPosition();
             ShockBoltRenderer.drawSegment(origin, pose, consumer, camera, previous.subtract(origin), point.subtract(origin),

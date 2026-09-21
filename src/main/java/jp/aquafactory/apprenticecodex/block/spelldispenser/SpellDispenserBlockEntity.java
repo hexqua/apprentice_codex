@@ -7,16 +7,19 @@ import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
@@ -32,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class SpellDispenserBlockEntity extends net.minecraft.world.level.block.entity.BlockEntity
+public final class SpellDispenserBlockEntity extends BlockEntity
         implements MenuProvider, SpellDispenserManaHelper.ManaAccess {
     public static final int SPELL_SLOT_INDEX = 0;
     public static final int FLASK_SLOT_START = 1;
@@ -361,7 +364,7 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
                 continue;
             }
 
-            net.minecraft.world.Containers.dropItemStack(level, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), stack.copy());
+            Containers.dropItemStack(level, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), stack.copy());
             inventory.setStackInSlot(slot, ItemStack.EMPTY);
         }
     }
@@ -545,7 +548,7 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
         if (tag == null) {
             return null;
         }
-        if (!tag.hasUUID(OWNER_UUID_TAG) || !tag.contains(OWNER_NAME_TAG, net.minecraft.nbt.Tag.TAG_STRING)) {
+        if (!tag.hasUUID(OWNER_UUID_TAG) || !tag.contains(OWNER_NAME_TAG, Tag.TAG_STRING)) {
             return null;
         }
         return normalizeOwnerProfile(new GameProfile(tag.getUUID(OWNER_UUID_TAG), tag.getString(OWNER_NAME_TAG)));
@@ -561,7 +564,7 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
     }
 
     public static int readCurrentMana(@Nullable CompoundTag tag) {
-        if (tag == null || !tag.contains(CURRENT_MANA_TAG, net.minecraft.nbt.Tag.TAG_INT)) {
+        if (tag == null || !tag.contains(CURRENT_MANA_TAG, Tag.TAG_INT)) {
             return SpellDispenserManaHelper.MAX_MANA;
         }
         return SpellDispenserManaHelper.clampMana(tag.getInt(CURRENT_MANA_TAG));
@@ -579,7 +582,7 @@ public final class SpellDispenserBlockEntity extends net.minecraft.world.level.b
     }
 
     public static @NotNull FluidStack readManaPotionFluid(@Nullable CompoundTag tag) {
-        if (tag == null || !tag.contains(MANA_POTION_FLUID_TAG, net.minecraft.nbt.Tag.TAG_COMPOUND)) {
+        if (tag == null || !tag.contains(MANA_POTION_FLUID_TAG, Tag.TAG_COMPOUND)) {
             return FluidStack.EMPTY;
         }
 

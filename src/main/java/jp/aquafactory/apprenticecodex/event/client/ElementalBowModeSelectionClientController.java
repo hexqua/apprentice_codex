@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderGuiEvent;
@@ -16,6 +17,7 @@ import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ElementalBowModeSelectionClientController {
@@ -114,7 +116,7 @@ public final class ElementalBowModeSelectionClientController {
         renderSelectionHud(event.getGuiGraphics(), minecraft.font, event.getWindow().getGuiScaledWidth(), event.getWindow().getGuiScaledHeight(), activeState);
     }
 
-    private static void openSelection(net.minecraft.world.entity.player.Player player, InteractionHand hand) {
+    private static void openSelection(Player player, InteractionHand hand) {
         var stack = player.getItemInHand(hand);
         var views = ElementalBow.getAvailableSelectionViews(player, stack);
         if (views.isEmpty()) {
@@ -124,7 +126,7 @@ public final class ElementalBowModeSelectionClientController {
         activeState = new ActiveSelectionState(hand, views, findInitialSelectionIndex(views));
     }
 
-    private static void refreshActiveState(net.minecraft.world.entity.player.Player player) {
+    private static void refreshActiveState(Player player) {
         if (activeState == null) {
             return;
         }
@@ -144,7 +146,7 @@ public final class ElementalBowModeSelectionClientController {
         activeState = new ActiveSelectionState(activeState.hand(), refreshedViews, selectedIndex);
     }
 
-    private static void confirmSelection(net.minecraft.world.entity.player.Player player, boolean continueUse) {
+    private static void confirmSelection(Player player, boolean continueUse) {
         if (activeState == null) {
             return;
         }
@@ -170,7 +172,7 @@ public final class ElementalBowModeSelectionClientController {
     }
 
     @Nullable
-    private static InteractionHand resolveSelectionHand(net.minecraft.world.entity.player.Player player) {
+    private static InteractionHand resolveSelectionHand(Player player) {
         if (player.getMainHandItem().getItem() instanceof ElementalBow) {
             return InteractionHand.MAIN_HAND;
         }
@@ -183,7 +185,7 @@ public final class ElementalBowModeSelectionClientController {
         return null;
     }
 
-    private static boolean isValidHeldBow(net.minecraft.world.entity.player.Player player, InteractionHand hand) {
+    private static boolean isValidHeldBow(Player player, InteractionHand hand) {
         return player.getItemInHand(hand).getItem() instanceof ElementalBow;
     }
 
@@ -200,7 +202,7 @@ public final class ElementalBowModeSelectionClientController {
         for (int index = 0; index < views.size(); index++) {
             var viewSelection = views.get(index).selection();
             if (viewSelection.shotMode().equals(selectionKey.shotMode())
-                    && java.util.Objects.equals(viewSelection.selectionId(), selectionKey.selectionId())) {
+                    && Objects.equals(viewSelection.selectionId(), selectionKey.selectionId())) {
                 return index;
             }
         }

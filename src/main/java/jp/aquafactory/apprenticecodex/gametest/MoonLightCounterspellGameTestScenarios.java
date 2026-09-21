@@ -21,6 +21,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 
+import net.minecraftforge.common.util.FakePlayer;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -176,7 +177,7 @@ final class MoonLightCounterspellGameTestScenarios {
         });
     }
 
-    private static MagicData preparePlayerCounterspellState(net.minecraftforge.common.util.FakePlayer target) {
+    private static MagicData preparePlayerCounterspellState(FakePlayer target) {
         var magicData = MagicData.getPlayerMagicData(target);
         var interruptedSpell = SpellRegistry.MOON_LIGHT.get();
         magicData.initiateCast(interruptedSpell, 1, 60, CastSource.SPELLBOOK, "gametest");

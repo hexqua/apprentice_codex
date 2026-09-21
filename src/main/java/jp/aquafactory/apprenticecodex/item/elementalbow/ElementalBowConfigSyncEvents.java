@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowConfigPacke
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
+import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -42,7 +43,7 @@ public final class ElementalBowConfigSyncEvents {
     }
 
     @SubscribeEvent
-    public static void onDatapackSync(net.minecraftforge.event.OnDatapackSyncEvent event) {
+    public static void onDatapackSync(OnDatapackSyncEvent event) {
         if (event.getPlayer() != null) syncToPlayer(event.getPlayer());
         else syncToAllPlayers();
     }

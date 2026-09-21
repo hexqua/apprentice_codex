@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.mixin;
 import jp.aquafactory.apprenticecodex.accessor.ArcaneCinderFurnaceAccess;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
@@ -58,7 +59,7 @@ public abstract class AbstractFurnaceBlockEntityMixin implements ArcaneCinderFur
     )
     private static void apprenticeCodex$consumeArcaneCinderFaster(
             Level level,
-            net.minecraft.core.BlockPos pos,
+            BlockPos pos,
             BlockState state,
             AbstractFurnaceBlockEntity blockEntity,
             CallbackInfo ci
@@ -89,7 +90,7 @@ public abstract class AbstractFurnaceBlockEntityMixin implements ArcaneCinderFur
     )
     private static void apprenticeCodex$trackConsumedFuel(
             Level level,
-            net.minecraft.core.BlockPos pos,
+            BlockPos pos,
             BlockState state,
             AbstractFurnaceBlockEntity blockEntity,
             CallbackInfo ci
@@ -116,7 +117,7 @@ public abstract class AbstractFurnaceBlockEntityMixin implements ArcaneCinderFur
     )
     private static void apprenticeCodex$advanceArcaneCinderCookingProgress(
             Level level,
-            net.minecraft.core.BlockPos pos,
+            BlockPos pos,
             BlockState state,
             AbstractFurnaceBlockEntity blockEntity,
             CallbackInfo ci

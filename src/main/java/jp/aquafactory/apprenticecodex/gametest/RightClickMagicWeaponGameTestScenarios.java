@@ -7,6 +7,9 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.Utils;
 
+import io.redspace.ironsspellbooks.item.UniqueItem;
+import net.minecraft.world.InteractionResult;
+import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import java.util.ArrayList;
 
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
@@ -72,7 +75,7 @@ final class RightClickMagicWeaponGameTestScenarios extends ApprenticeCodexGameTe
                     "Smashcast Scepter should join Travel Optics reversal tag");
             helper.assertFalse(stack.is(IRONS_STAFF),
                     "Smashcast Scepter should not join Iron's staff tag");
-            helper.assertFalse(stack.getItem() instanceof io.redspace.ironsspellbooks.item.UniqueItem,
+            helper.assertFalse(stack.getItem() instanceof UniqueItem,
                     "Smashcast Scepter should not block external imbue as a UniqueItem");
             helper.assertFalse(stack.getItem() instanceof ManaBypassSpellItem,
                     "Smashcast Scepter should consume normal spell mana");
@@ -195,7 +198,7 @@ final class RightClickMagicWeaponGameTestScenarios extends ApprenticeCodexGameTe
             var epicFightFallDistance = 4.0F;
             var expectedEpicFightBonus = SmashcastScepter.calculateSmashBonusDamage(epicFightStack, epicFightFallDistance);
             var damageSource = player.damageSources().playerAttack(player);
-            var firstEpicFightDamage = new net.minecraftforge.event.entity.living.LivingDamageEvent(target, damageSource, 1.0F);
+            var firstEpicFightDamage = new LivingDamageEvent(target, damageSource, 1.0F);
             SmashcastScepterAttackEvent.registerEpicFightSmashcastImpact(
                     player,
                     target,
@@ -205,7 +208,7 @@ final class RightClickMagicWeaponGameTestScenarios extends ApprenticeCodexGameTe
             assertClose(helper, firstEpicFightDamage.getAmount(), 1.0F + expectedEpicFightBonus, 1.0E-6D,
                     "Epic Fight Smashcast should apply bonus damage to the first target");
 
-            var duplicateEpicFightDamage = new net.minecraftforge.event.entity.living.LivingDamageEvent(target, damageSource, 1.0F);
+            var duplicateEpicFightDamage = new LivingDamageEvent(target, damageSource, 1.0F);
             SmashcastScepterAttackEvent.registerEpicFightSmashcastImpact(
                     player,
                     target,
@@ -215,7 +218,7 @@ final class RightClickMagicWeaponGameTestScenarios extends ApprenticeCodexGameTe
             assertClose(helper, duplicateEpicFightDamage.getAmount(), 1.0F, 1.0E-6D,
                     "Epic Fight Smashcast should not apply duplicate bonus damage to the same target in one tick");
 
-            var secondEpicFightDamage = new net.minecraftforge.event.entity.living.LivingDamageEvent(secondTarget, damageSource, 1.0F);
+            var secondEpicFightDamage = new LivingDamageEvent(secondTarget, damageSource, 1.0F);
             SmashcastScepterAttackEvent.registerEpicFightSmashcastImpact(
                     player,
                     secondTarget,
@@ -393,7 +396,7 @@ final class RightClickMagicWeaponGameTestScenarios extends ApprenticeCodexGameTe
         magicData.setMana(100.0F);
 
         var result = mainhandStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-        helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.PASS,
+        helper.assertTrue(result.getResult() == InteractionResult.PASS,
                 "Right click magic weapon should pass to supported offhand use item " + offhandStack
                         + " but got " + result.getResult());
         helper.assertFalse(magicData.isCasting(),

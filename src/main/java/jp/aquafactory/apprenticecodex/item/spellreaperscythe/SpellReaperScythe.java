@@ -12,6 +12,9 @@ import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
 import jp.aquafactory.apprenticecodex.renderer.item.SpellReaperScytheRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.ChatFormatting;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.UseAnim;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -43,12 +46,13 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class SpellReaperScythe extends SwordItem
         implements GeoItem, IPresetSpellContainer, SpellSlotUpgradeableItem, TranscendencePolicy, WisdomPolicy {
-    static final java.util.UUID BASE_DAMAGE_ID = BASE_ATTACK_DAMAGE_UUID;
-    static final java.util.UUID BASE_SPEED_ID = BASE_ATTACK_SPEED_UUID;
+    static final UUID BASE_DAMAGE_ID = BASE_ATTACK_DAMAGE_UUID;
+    static final UUID BASE_SPEED_ID = BASE_ATTACK_SPEED_UUID;
     public static final int DURABILITY = 2031;
     public static final int ENCHANTMENT_VALUE = 15;
     public static final double DISPLAY_ATTACK_DAMAGE = 10.0D;
@@ -148,7 +152,7 @@ public final class SpellReaperScythe extends SwordItem
             @NotNull InteractionHand hand
     ) {
         var stack = player.getItemInHand(hand);
-        if (net.minecraftforge.fml.ModList.get().isLoaded("epicfight")) {
+        if (ModList.get().isLoaded("epicfight")) {
             // ガード入力はEpic Fightに任せ、大鎌固有の使用経路だけを無効化する.
             // 大鎌固有機能は戦闘モードのインネイトスキル側で処理する.
             return InteractionResultHolder.pass(stack);
@@ -167,11 +171,11 @@ public final class SpellReaperScythe extends SwordItem
     public int getUseDuration(@NotNull ItemStack stack) { return 72000; }
 
     @Override
-    public net.minecraft.world.item.@NotNull UseAnim getUseAnimation(@NotNull ItemStack stack) { return net.minecraft.world.item.UseAnim.BOW; }
+    public @NotNull UseAnim getUseAnimation(@NotNull ItemStack stack) { return UseAnim.BOW; }
 
     @Override
-    public void releaseUsing(@NotNull ItemStack stack, @NotNull Level level, net.minecraft.world.entity.LivingEntity entity, int remaining) {
-        if (!net.minecraftforge.fml.ModList.get().isLoaded("epicfight") && entity instanceof Player player) {
+    public void releaseUsing(@NotNull ItemStack stack, @NotNull Level level, LivingEntity entity, int remaining) {
+        if (!ModList.get().isLoaded("epicfight") && entity instanceof Player player) {
             ScytheThrowManager.release(level, player, stack);
         }
     }
@@ -184,7 +188,7 @@ public final class SpellReaperScythe extends SwordItem
             @NotNull TooltipFlag flag
     ) {
         super.appendHoverText(stack, context, lines, flag);
-        if (net.minecraftforge.fml.ModList.get().isLoaded("epicfight")) {
+        if (ModList.get().isLoaded("epicfight")) {
             appendEpicFightHoverText(stack, lines);
             return;
         }

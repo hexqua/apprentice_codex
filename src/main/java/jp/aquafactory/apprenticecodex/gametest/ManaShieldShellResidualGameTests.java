@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import com.sammy.malum.common.capability.MalumPlayerDataCapability;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
@@ -21,6 +22,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.common.MinecraftForge;
@@ -99,7 +101,7 @@ public class ManaShieldShellResidualGameTests extends ApprenticeCodexGameTestSce
             player.setItemSlot(EquipmentSlot.CHEST, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_COAT.get()));
             player.setItemSlot(EquipmentSlot.LEGS, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_LEGGINGS.get()));
             player.setItemSlot(EquipmentSlot.FEET, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()));
-            var protection = net.minecraft.world.item.enchantment.Enchantments.ALL_DAMAGE_PROTECTION;
+            var protection = Enchantments.ALL_DAMAGE_PROTECTION;
             for (var armor : player.getArmorSlots()) armor.enchant(protection, 4);
             player.doTick();
             equipShell(player);
@@ -229,7 +231,7 @@ public class ManaShieldShellResidualGameTests extends ApprenticeCodexGameTestSce
             var control = player(helper, "shell_ward_control");
             for (var subject : new ServerPlayer[]{player, control}) {
                 subject.getAttribute(com.sammy.malum.registry.common.AttributeRegistry.SOUL_WARD_CAP.get()).setBaseValue(20);
-                com.sammy.malum.common.capability.MalumPlayerDataCapability.getCapability(subject).soulWardHandler.soulWard = 20;
+                MalumPlayerDataCapability.getCapability(subject).soulWardHandler.soulWard = 20;
             }
             equipShell(player);
             MagicData.getPlayerMagicData(player).setMana(100);
@@ -242,8 +244,8 @@ public class ManaShieldShellResidualGameTests extends ApprenticeCodexGameTestSce
                     EnchantmentHelper.getDamageProtection(player.getArmorSlots(), source));
             control.hurt(source, 12 * (reduced - 2) / reduced);
             player.hurt(source, 12);
-            var ward = com.sammy.malum.common.capability.MalumPlayerDataCapability.getCapability(player).soulWardHandler;
-            var controlWard = com.sammy.malum.common.capability.MalumPlayerDataCapability.getCapability(control).soulWardHandler;
+            var ward = MalumPlayerDataCapability.getCapability(player).soulWardHandler;
+            var controlWard = MalumPlayerDataCapability.getCapability(control).soulWardHandler;
             helper.assertTrue(ward.soulWard < 20 && Math.abs(ward.soulWard - controlWard.soulWard) < 0.001,
                     "Soul Ward must process proportional Shell residual like an ordinary hit: actual="
                             + ward.soulWard + ", control=" + controlWard.soulWard);
@@ -264,7 +266,7 @@ public class ManaShieldShellResidualGameTests extends ApprenticeCodexGameTestSce
     private static ServerPlayer player(GameTestHelper helper, String name) {
         var player = createAssistWingsRider(helper, new BlockPos(2, 2, 2), name);
         var chest = new ItemStack(Items.IRON_CHESTPLATE);
-        chest.enchant(net.minecraft.world.item.enchantment.Enchantments.ALL_DAMAGE_PROTECTION, 4);
+        chest.enchant(Enchantments.ALL_DAMAGE_PROTECTION, 4);
         player.setItemSlot(EquipmentSlot.CHEST, chest);
         // 装備属性とスポーン無敵を実プレイ相当へ進めてからhurt経路を検証する。
         for (int tick = 0; tick < 61; tick++) player.tick();

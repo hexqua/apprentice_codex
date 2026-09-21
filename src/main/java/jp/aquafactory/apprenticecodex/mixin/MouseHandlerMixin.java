@@ -1,13 +1,14 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
 import jp.aquafactory.apprenticecodex.spell.remoteeye.RemoteEyeClientController;
+import net.minecraft.client.MouseHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-@Mixin(value = net.minecraft.client.MouseHandler.class, priority = 1100)
+@Mixin(value = MouseHandler.class, priority = 1100)
 public abstract class MouseHandlerMixin {
 
     // vanilla側の感度計算や tutorial.onMouse は維持したまま、

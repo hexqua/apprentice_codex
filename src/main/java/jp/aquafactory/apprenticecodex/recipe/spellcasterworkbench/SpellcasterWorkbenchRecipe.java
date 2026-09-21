@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench;
 
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceUpgrade;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
@@ -171,7 +172,7 @@ public final class SpellcasterWorkbenchRecipe implements Recipe<Container> {
             return !LuminousDevice.hasUpgrade(stack, luminousDeviceUpgrade);
         }
         if (requiredSpell != null
-                && stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get())) {
+                && stack.is(ItemRegistry.SCROLL.get())) {
             return isRequiredSpellScroll(stack);
         }
         return true;
@@ -228,7 +229,7 @@ public final class SpellcasterWorkbenchRecipe implements Recipe<Container> {
         }
         for (var slot : matchedSlots) {
             var stack = container.getItem(slot);
-            if (!stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get())
+            if (!stack.is(ItemRegistry.SCROLL.get())
                     || !ISpellContainer.isSpellContainer(stack)) {
                 continue;
             }
@@ -241,7 +242,7 @@ public final class SpellcasterWorkbenchRecipe implements Recipe<Container> {
 
     private boolean isRequiredSpellScroll(ItemStack stack) {
         if (requiredSpell == null
-                || !stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get())
+                || !stack.is(ItemRegistry.SCROLL.get())
                 || !ISpellContainer.isSpellContainer(stack)) {
             return false;
         }

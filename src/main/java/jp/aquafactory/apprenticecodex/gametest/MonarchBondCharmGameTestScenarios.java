@@ -3,7 +3,9 @@ package jp.aquafactory.apprenticecodex.gametest;
 import io.redspace.ironsspellbooks.api.events.SpellHealEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.capabilities.magic.SummonManager;
 import io.redspace.ironsspellbooks.damage.SpellDamageSource;
@@ -28,6 +30,10 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 
+import net.minecraftforge.eventbus.api.EventPriority;
+import top.theillusivec4.curios.api.CuriosApi;
+import java.util.function.Consumer;
+
 
 final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private static final float EPSILON = 1.0E-4F;
@@ -35,7 +41,7 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
     }
 
     static void spellHealOverflowIsReservedNearestFirst(GameTestHelper helper) {
-        helper.succeedIf(() -> {
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
             var wearer = createWearer(helper, "monarch_bond_spell_heal");
             wearer.setHealth(wearer.getMaxHealth() - 2.0F);
             var nearest = createManagedSummon(helper, wearer, new BlockPos(2, 2, 0), 6.0F);
@@ -52,6 +58,7 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
             MinecraftForge.EVENT_BUS.post(new SpellHealEvent(wearer, nearest, 100.0F, SchoolRegistry.HOLY.get()));
             assertHealth(helper, next, nextHealth,
                     "Healing a summon directly should not distribute from the wearer");
+            helper.succeed();
         });
     }
 
@@ -92,7 +99,7 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
             var wearer = createWearer(helper, "monarch_bond_greater_heal");
             var first = createManagedSummon(helper, wearer, new BlockPos(2, 2, 0), 3.0F);
             var second = createManagedSummon(helper, wearer, new BlockPos(4, 2, 0), 9.0F);
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GREATER_HEAL_SPELL.get();
+            var spell = SpellRegistry.GREATER_HEAL_SPELL.get();
 
             MinecraftForge.EVENT_BUS.post(new SpellOnCastEvent(
                     wearer,
@@ -116,7 +123,7 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
             wearer.setHealth(wearer.getMaxHealth());
             var summon = createManagedSummon(helper, wearer, new BlockPos(2, 2, 0), 5.0F);
             var victim = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(4, 2, 0));
-            var evocationSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get();
+            var evocationSpell = SpellRegistry.MAGIC_ARROW_SPELL.get();
             var source = SpellDamageSource.source(wearer, evocationSpell).setLifestealPercent(0.5F);
 
             MinecraftForge.EVENT_BUS.post(
@@ -142,35 +149,37 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
 
     private static void verifyLifestealEvent(GameTestHelper helper, boolean canceled, boolean equipped,
                                             float expectedWearerHealing, float expectedSummonMissingHealth) {
-        var wearer = createWearer(helper, "monarch_lifesteal_" + canceled + "_" + equipped);
-        if (!equipped) {
-            equipCurio(wearer, CuriosSlotConstants.CHARM, ItemStack.EMPTY);
-        }
-        wearer.setHealth(wearer.getMaxHealth() - 2.0F);
-        var summon = createManagedSummon(helper, wearer, new BlockPos(2, 2, 0), 10.0F);
-        var victim = helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(4, 2, 0));
-        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get();
-        var source = SpellDamageSource.source(wearer, spell).setLifestealPercent(0.5F);
-        var event = new LivingHurtEvent(victim, source, 20.0F);
-        java.util.function.Consumer<LivingHurtEvent> modifier = current -> {
-            if (current == event) {
-                current.setAmount(8.0F);
-                current.setCanceled(canceled);
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
+            var wearer = createWearer(helper, "monarch_lifesteal_" + canceled + "_" + equipped);
+            if (!equipped) {
+                equipCurio(wearer, CuriosSlotConstants.CHARM, ItemStack.EMPTY);
             }
-        };
-        MinecraftForge.EVENT_BUS.addListener(net.minecraftforge.eventbus.api.EventPriority.HIGH, false,
-                LivingHurtEvent.class, modifier);
-        try {
-            // 実際のIron'sハンドラとMixinを通し、先行分配への回帰も検出する。
-            MinecraftForge.EVENT_BUS.post(event);
-            assertHealth(helper, wearer, wearer.getMaxHealth() - 2.0F + expectedWearerHealing,
-                    "Iron's lifesteal must respect preceding damage changes");
-            assertHealth(helper, summon, summon.getMaxHealth() - expectedSummonMissingHealth,
-                    "Overflow must match the executed lifesteal and pre-heal missing health");
-        } finally {
-            MinecraftForge.EVENT_BUS.unregister(modifier);
-        }
-        helper.succeed();
+            wearer.setHealth(wearer.getMaxHealth() - 2.0F);
+            var summon = createManagedSummon(helper, wearer, new BlockPos(2, 2, 0), 10.0F);
+            var victim = helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(4, 2, 0));
+            var spell = SpellRegistry.MAGIC_ARROW_SPELL.get();
+            var source = SpellDamageSource.source(wearer, spell).setLifestealPercent(0.5F);
+            var event = new LivingHurtEvent(victim, source, 20.0F);
+            Consumer<LivingHurtEvent> modifier = current -> {
+                if (current == event) {
+                    current.setAmount(8.0F);
+                    current.setCanceled(canceled);
+                }
+            };
+            MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGH, false,
+                    LivingHurtEvent.class, modifier);
+            try {
+                // 実際のIron'sハンドラとMixinを通し、先行分配への回帰も検出する。
+                MinecraftForge.EVENT_BUS.post(event);
+                assertHealth(helper, wearer, wearer.getMaxHealth() - 2.0F + expectedWearerHealing,
+                        "Iron's lifesteal must respect preceding damage changes");
+                assertHealth(helper, summon, summon.getMaxHealth() - expectedSummonMissingHealth,
+                        "Overflow must match the executed lifesteal and pre-heal missing health");
+            } finally {
+                MinecraftForge.EVENT_BUS.unregister(modifier);
+            }
+            helper.succeed();
+        });
     }
 
     static void codexManagedEntitiesExposeMonarchBondHealingTarget(GameTestHelper helper) {
@@ -284,32 +293,34 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
             float expectedStaffMana,
             float expectedOwnerMana
     ) {
-        var profileName = equipCharm
-                ? "monarch_bond_field_overseer_extended"
-                : "monarch_bond_field_overseer_base";
-        var owner = createEquipmentTestPlayer(helper, new BlockPos(16, 2, 0), profileName);
-        if (equipCharm) {
-            equipCurio(owner, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MONARCH_BOND_CHARM.get()));
-        }
-        var manaRegen = owner.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get());
-        if (manaRegen != null) {
-            manaRegen.setBaseValue(0.0D);
-        }
-        var ownerMagicData = MagicData.getPlayerMagicData(owner);
-        ownerMagicData.setMana(20.0F);
-        var anchorPos = helper.absolutePos(new BlockPos(0, 2, 0));
-        helper.setBlock(new BlockPos(0, 1, 0), Blocks.STONE);
-        var staff = createFieldOverseerTestEntity(helper, owner, anchorPos, 100.0F, 40);
-        helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(0, 2, 3));
+        GameTestFixtureSupport.whenEntityChunksReady(helper, new BlockPos(-4, 0, -4), new BlockPos(20, 0, 8), () -> {
+            var profileName = equipCharm
+                    ? "monarch_bond_field_overseer_extended"
+                    : "monarch_bond_field_overseer_base";
+            var owner = createEquipmentTestPlayer(helper, new BlockPos(16, 2, 0), profileName);
+            if (equipCharm) {
+                equipCurio(owner, CuriosSlotConstants.CHARM, new ItemStack(ItemRegistry.MONARCH_BOND_CHARM.get()));
+            }
+            var manaRegen = owner.getAttribute(AttributeRegistry.MANA_REGEN.get());
+            if (manaRegen != null) {
+                manaRegen.setBaseValue(0.0D);
+            }
+            var ownerMagicData = MagicData.getPlayerMagicData(owner);
+            ownerMagicData.setMana(20.0F);
+            var anchorPos = helper.absolutePos(new BlockPos(0, 2, 0));
+            helper.setBlock(new BlockPos(0, 1, 0), Blocks.STONE);
+            var staff = createFieldOverseerTestEntity(helper, owner, anchorPos, 100.0F, 40);
+            helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(0, 2, 3));
 
-        helper.runAtTickTime(55, () -> {
-            helper.assertTrue(Math.abs(staff.getCurrentMana() - expectedStaffMana) <= EPSILON,
-                    "Field Overseer mana transfer range should depend on Monarch Bond: expected="
-                            + expectedStaffMana + ", actual=" + staff.getCurrentMana());
-            helper.assertTrue(Math.abs(ownerMagicData.getMana() - expectedOwnerMana) <= EPSILON,
-                    "Field Overseer should only drain mana within its effective transfer range: expected="
-                            + expectedOwnerMana + ", actual=" + ownerMagicData.getMana());
-            helper.succeed();
+            helper.runAfterDelay(55, () -> {
+                helper.assertTrue(Math.abs(staff.getCurrentMana() - expectedStaffMana) <= EPSILON,
+                        "Field Overseer mana transfer range should depend on Monarch Bond: expected="
+                                + expectedStaffMana + ", actual=" + staff.getCurrentMana());
+                helper.assertTrue(Math.abs(ownerMagicData.getMana() - expectedOwnerMana) <= EPSILON,
+                        "Field Overseer should only drain mana within its effective transfer range: expected="
+                                + expectedOwnerMana + ", actual=" + ownerMagicData.getMana());
+                helper.succeed();
+            });
         });
     }
 
@@ -354,7 +365,7 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
     }
 
     private static void tickCharmAtRestockInterval(FakePlayer wearer) {
-        var slotResult = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(wearer).resolve()
+        var slotResult = CuriosApi.getCuriosInventory(wearer).resolve()
                 .flatMap(inventory -> inventory.findFirstCurio(ItemRegistry.MONARCH_BOND_CHARM.get()))
                 .orElseThrow(() -> new IllegalStateException("Missing equipped Monarch Bond Charm for GameTest"));
         wearer.tickCount = 20;

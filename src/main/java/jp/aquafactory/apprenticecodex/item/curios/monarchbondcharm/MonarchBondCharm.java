@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
@@ -14,6 +15,7 @@ import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MonarchBondCharm extends Item implements ICurioItem{
@@ -27,14 +29,14 @@ public class MonarchBondCharm extends Item implements ICurioItem{
 
     @Override
     public void curioTick(SlotContext slotContext, ItemStack stack) {
-        if (slotContext.entity() instanceof net.minecraft.server.level.ServerPlayer wearer) {
+        if (slotContext.entity() instanceof ServerPlayer wearer) {
             MonarchBondAutoRestock.tick(wearer);
         }
     }
 
     @Override
     public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
-        var result = new java.util.ArrayList<>(tooltips);
+        var result = new ArrayList<>(tooltips);
         result.add(Component.empty());
         result.add(Component.translatable("curios.modifiers." + slotIdentifier).withStyle(ChatFormatting.GOLD));
         result.add(Component.literal(" ")

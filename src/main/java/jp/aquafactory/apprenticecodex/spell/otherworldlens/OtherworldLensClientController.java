@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.event.TickEvent;
@@ -75,7 +76,7 @@ public final class OtherworldLensClientController {
         suppressUntilCastEnds = true;
     }
 
-    private static boolean isCastingOtherworldLens(net.minecraft.world.entity.player.Player player) {
+    private static boolean isCastingOtherworldLens(Player player) {
         var spellData = ClientMagicData.getSyncedSpellData(player);
         return spellData.isCasting()
                 && SpellRegistry.OTHERWORLD_LENS.get().getSpellId().equals(spellData.getCastingSpellId());

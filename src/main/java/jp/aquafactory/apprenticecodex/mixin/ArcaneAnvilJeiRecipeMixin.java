@@ -1,7 +1,10 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.jei.ArcaneAnvilJeiRecipe;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import net.minecraft.world.item.Item;
@@ -51,17 +54,17 @@ public abstract class ArcaneAnvilJeiRecipeMixin {
 
         // Iron's Spells 側の JEI 実装は canImbue だけを見るため、
         // 銃ごとの個別制限をここで再適用して実プレイ時の判定と表示を一致させる。
-        for (var spell : io.redspace.ironsspellbooks.api.registry.SpellRegistry.getEnabledSpells()) {
+        for (var spell : SpellRegistry.getEnabledSpells()) {
             for (int level = spell.getMinLevel(); level <= spell.getMaxLevel(); level++) {
                 if (!spellImbueItem.canImbueSpell(spell, level)) {
                     continue;
                 }
 
-                var scrollStack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+                var scrollStack = new ItemStack(ItemRegistry.SCROLL.get());
                 ISpellContainer.createScrollContainer(spell, level, scrollStack);
                 rightInputs.add(scrollStack);
 
-                outputs.add(spellImbueItem.createArcaneAnvilImbueResult(new ItemStack(leftItem), new io.redspace.ironsspellbooks.api.spells.SpellData(spell, level)));
+                outputs.add(spellImbueItem.createArcaneAnvilImbueResult(new ItemStack(leftItem), new SpellData(spell, level)));
             }
         }
 

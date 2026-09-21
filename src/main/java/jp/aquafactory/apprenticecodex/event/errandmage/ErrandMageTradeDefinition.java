@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -37,7 +38,7 @@ public record ErrandMageTradeDefinition(
             return null;
         }
 
-        var costs = new java.util.ArrayList<ErrandMageTradeStack>();
+        var costs = new ArrayList<ErrandMageTradeStack>();
         var costArray = GsonHelper.getAsJsonArray(json, "costs");
         for (var costIndex = 0; costIndex < costArray.size(); costIndex++) {
             var cost = ErrandMageTradeStack.parse(

@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.spellreaperscythe;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
@@ -18,7 +19,7 @@ final class ScytheTrailRibbon {
                 var v = points[i];
                 buffer.vertex(pose, (float) v.x, (float) v.y, (float) v.z)
                         .color((color >> 16) & 255, (color >> 8) & 255, color & 255,
-                                (int) (255 * net.minecraft.util.Mth.clamp(alphas[i], 0, 1))).endVertex();
+                                (int) (255 * Mth.clamp(alphas[i], 0, 1))).endVertex();
             }
         }
     }
@@ -46,7 +47,7 @@ final class ScytheTrailRibbon {
                     var v = points[i];
                     buffer.vertex(pose, (float) v.x, (float) v.y, (float) v.z)
                             .color((color >> 16) & 255, (color >> 8) & 255, color & 255,
-                                    (int) (255 * net.minecraft.util.Mth.clamp(alphas[i], 0, 1))).endVertex();
+                                    (int) (255 * Mth.clamp(alphas[i], 0, 1))).endVertex();
                 }
             }
         }

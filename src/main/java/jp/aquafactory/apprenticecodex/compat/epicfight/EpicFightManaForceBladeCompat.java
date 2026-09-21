@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeGuardLogic;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.Projectile;
@@ -140,7 +141,7 @@ public final class EpicFightManaForceBladeCompat {
         );
     }
 
-    private static float resolveGuardKnockback(net.minecraft.world.damagesource.DamageSource damageSource) {
+    private static float resolveGuardKnockback(DamageSource damageSource) {
         if (damageSource instanceof EpicFightDamageSource epicfightDamageSource) {
             return 0.25F + Math.min(epicfightDamageSource.calculateImpact() * 0.1F, 1.0F);
         }
@@ -148,7 +149,7 @@ public final class EpicFightManaForceBladeCompat {
         return 0.25F;
     }
 
-    private static float resolveGuardImpact(net.minecraft.world.damagesource.DamageSource damageSource) {
+    private static float resolveGuardImpact(DamageSource damageSource) {
         if (damageSource instanceof EpicFightDamageSource epicfightDamageSource) {
             return epicfightDamageSource.calculateImpact();
         }

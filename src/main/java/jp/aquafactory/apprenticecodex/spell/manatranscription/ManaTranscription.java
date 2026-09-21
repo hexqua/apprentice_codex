@@ -36,6 +36,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -371,7 +372,7 @@ public class ManaTranscription extends AbstractSpell {
             operationItemSnapshot = operationItemReference.copy();
             if (selected != null) {
                 selectedEnchantment = selected.enchantment();
-                selectedEnchantmentId = net.minecraftforge.registries.ForgeRegistries.ENCHANTMENTS
+                selectedEnchantmentId = ForgeRegistries.ENCHANTMENTS
                         .getKey(selected.enchantment());
                 selectedLevel = selected.level();
             }

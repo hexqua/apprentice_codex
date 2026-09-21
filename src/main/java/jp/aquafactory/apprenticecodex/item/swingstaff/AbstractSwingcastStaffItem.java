@@ -135,7 +135,7 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem
     }
 
     @Override
-    public void onCraftedBy(@NotNull ItemStack stack, @NotNull Level level, @NotNull net.minecraft.world.entity.player.Player player) {
+    public void onCraftedBy(@NotNull ItemStack stack, @NotNull Level level, @NotNull Player player) {
         super.onCraftedBy(stack, level, player);
         initializeSpellContainer(stack);
     }
@@ -395,7 +395,7 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem
     }
 
     protected static SwingcastStaffTier createTier(
-            net.minecraft.world.item.Rarity rarity,
+            Rarity rarity,
             int enchantmentValue,
             double displayedAttackDamage,
             double displayedAttackSpeed,

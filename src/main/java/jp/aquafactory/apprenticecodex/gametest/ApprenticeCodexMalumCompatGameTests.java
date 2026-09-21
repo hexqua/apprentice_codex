@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.MagicHelper;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.mixin.LivingEntityAccessor;
@@ -76,7 +77,7 @@ public final class ApprenticeCodexMalumCompatGameTests {
             offhand.enchant(replenishing, 2);
             player.setItemInHand(InteractionHand.OFF_HAND, offhand);
 
-            var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var magicMissile = SpellRegistry.MAGIC_MISSILE_SPELL.get();
             var magicData = MagicData.getPlayerMagicData(player);
             MagicHelper.MAGIC_MANAGER.addCooldown(player, magicMissile, CastSource.SWORD);
             var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(magicMissile.getSpellId());

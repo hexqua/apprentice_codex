@@ -8,6 +8,7 @@ import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -105,7 +106,7 @@ final class HeavenlyFistCrystalHarvestProcessor {
     }
 
     private static void harvestBlock(ServerLevel level, ServerPlayer owner, BlockPos pos, BlockState state,
-                                     net.minecraft.world.item.ItemStack tool) {
+                                     ItemStack tool) {
         var gameType = owner.gameMode.getGameModeForPlayer();
         if (!level.mayInteract(owner, pos)
                 || owner.blockActionRestricted(level, pos, gameType)

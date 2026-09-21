@@ -24,7 +24,7 @@ public final class ElementalBowScrollStorage {
     }
 
     public static void migrate(ItemStack stack) {
-        var data = (stack.hasTag() ? stack.getTag() : new net.minecraft.nbt.CompoundTag());
+        var data = (stack.hasTag() ? stack.getTag() : new CompoundTag());
         if (data.getCompound(ROOT).getInt("Version") >= 1) return;
         // 旧コンテナは自動生成された固定魔法。現物や無関係な component は保持する。
         ISpellContainer.remove(stack);
@@ -48,7 +48,7 @@ public final class ElementalBowScrollStorage {
 
     public static ItemStack get(ItemStack stack, int slot, HolderLookup.Provider lookup) {
         if (slot < 0 || slot >= SCROLL_SLOTS) return ItemStack.EMPTY;
-        var list = (stack.hasTag() ? stack.getTag() : new net.minecraft.nbt.CompoundTag())
+        var list = (stack.hasTag() ? stack.getTag() : new CompoundTag())
                 .getCompound(ROOT).getList("Scrolls", Tag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); i++) {
             var entry = list.getCompound(i);

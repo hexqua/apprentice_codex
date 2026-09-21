@@ -2,9 +2,12 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
+import io.redspace.ironsspellbooks.compat.Curios;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -24,6 +27,8 @@ import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
+import top.theillusivec4.curios.api.CuriosApi;
+import java.util.List;
 import java.util.UUID;
 
 @GameTestHolder(ApprenticeCodex.MODID)
@@ -161,22 +166,24 @@ public final class ApprenticeCodexServantGazeGameTests {
 
     @GameTest(template = TEMPLATE, batch = TARGETING_ISOLATED_BATCH, timeoutTicks = 100)
     public static void servantGazeConsumesManaPerHighestHealthTarget(GameTestHelper helper) {
-        var player = createPlayer(helper, "servant_gaze_targeting");
-        var magicData = MagicData.getPlayerMagicData(player);
-        magicData.setMana(20.0F);
-        var low = createZombie(helper, new BlockPos(0, 2, 4), 5.0F);
-        var middle = createZombie(helper, new BlockPos(3, 2, 1), 10.0F);
-        var high = createZombie(helper, new BlockPos(4, 2, 3), 15.0F);
-        activate(helper, player, 100, 1, 2.0F, 4.0, 10);
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
+            var player = createPlayer(helper, "servant_gaze_targeting");
+            var magicData = MagicData.getPlayerMagicData(player);
+            magicData.setMana(20.0F);
+            var low = createZombie(helper, new BlockPos(0, 2, 4), 5.0F);
+            var middle = createZombie(helper, new BlockPos(3, 2, 1), 10.0F);
+            var high = createZombie(helper, new BlockPos(4, 2, 3), 15.0F);
+            activate(helper, player, 100, 1, 2.0F, 4.0, 10);
 
-        // 対象選定後の飛翔体到達は周辺 test の負荷で前後するため、固定 tick ではなく結果成立を待つ。
-        helper.succeedWhen(() -> {
-            helper.assertTrue(magicData.getMana() == 0.0F,
-                    "Servant Gaze should consume one mana payment for each selected target");
-            helper.assertTrue(low.getHealth() == 5.0F,
-                    "Servant Gaze should leave the lower-health third target unselected when mana is insufficient");
-            helper.assertTrue(middle.getHealth() < 10.0F && high.getHealth() < 15.0F,
-                    "Servant Gaze should attack the two highest-current-health visible targets");
+            // 対象選定後の飛翔体到達は周辺 test の負荷で前後するため、固定 tick ではなく結果成立を待つ。
+            helper.succeedWhen(() -> {
+                helper.assertTrue(magicData.getMana() == 0.0F,
+                        "Servant Gaze should consume one mana payment for each selected target");
+                helper.assertTrue(low.getHealth() == 5.0F,
+                        "Servant Gaze should leave the lower-health third target unselected when mana is insufficient");
+                helper.assertTrue(middle.getHealth() < 10.0F && high.getHealth() < 15.0F,
+                        "Servant Gaze should attack the two highest-current-health visible targets");
+            });
         });
     }
 
@@ -197,7 +204,7 @@ public final class ApprenticeCodexServantGazeGameTests {
         // 構造端では従者の杖が未追跡の隣 chunk へ出るため、召喚位置も構造内に収まる中央へ置く。
         var position = helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(2, 2, 2)));
         player.setPos(position.x, position.y, position.z);
-        var manaRegen = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MANA_REGEN.get());
+        var manaRegen = player.getAttribute(AttributeRegistry.MANA_REGEN.get());
         if (manaRegen != null) manaRegen.setBaseValue(0.0D);
         helper.getLevel().addFreshEntity(player);
         return player;
@@ -214,17 +221,17 @@ public final class ApprenticeCodexServantGazeGameTests {
         return zombie;
     }
 
-    private static java.util.List<ServantGazeStaffEntity> findStaffs(GameTestHelper helper, FakePlayer player) {
+    private static List<ServantGazeStaffEntity> findStaffs(GameTestHelper helper, FakePlayer player) {
         return helper.getLevel().getEntitiesOfClass(ServantGazeStaffEntity.class,
                 new AABB(player.position(), player.position()).inflate(32.0),
                 staff -> staff.getOwner() != null && player.getUUID().equals(staff.getOwner().getUUID()));
     }
 
     private static void equipGreaterConjurersTalisman(FakePlayer player) {
-        var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+        var curiosInventory = CuriosApi.getCuriosInventory(player)
                 .orElseThrow(() -> new IllegalStateException("Missing curios inventory for Servant Gaze talisman test"));
-        curiosInventory.setEquippedCurio(io.redspace.ironsspellbooks.compat.Curios.NECKLACE_SLOT, 0,
-                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.GREATER_CONJURERS_TALISMAN.get()));
+        curiosInventory.setEquippedCurio(Curios.NECKLACE_SLOT, 0,
+                new ItemStack(ItemRegistry.GREATER_CONJURERS_TALISMAN.get()));
     }
 
     private static ServantGaze servantGaze() {

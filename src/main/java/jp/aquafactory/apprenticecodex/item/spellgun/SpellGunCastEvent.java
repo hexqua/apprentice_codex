@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.spellgun;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
@@ -16,6 +17,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+
+import java.util.List;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class SpellGunCastEvent {
@@ -38,7 +41,7 @@ public final class SpellGunCastEvent {
             return;
         }
 
-        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(event.getSpellId());
+        var spell = SpellRegistry.getSpell(event.getSpellId());
         if (!spellGunItem.supportsManaBypass(spell)) {
             return;
         }
@@ -127,7 +130,7 @@ public final class SpellGunCastEvent {
         }
     }
 
-    private static int countAmmo(java.util.List<ItemStack> stacks, Item ammoItem) {
+    private static int countAmmo(List<ItemStack> stacks, Item ammoItem) {
         var total = 0;
         for (var stack : stacks) {
             if (stack.is(ammoItem)) {
@@ -137,7 +140,7 @@ public final class SpellGunCastEvent {
         return total;
     }
 
-    private static boolean consumeOne(java.util.List<ItemStack> stacks, Item ammoItem) {
+    private static boolean consumeOne(List<ItemStack> stacks, Item ammoItem) {
         for (var stack : stacks) {
             if (!stack.is(ammoItem)) {
                 continue;

@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.Tame
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
@@ -32,7 +33,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -449,7 +449,7 @@ public class TamersPocket extends AbstractSpell {
         var y = (double) feetPos.getY();
         if (!level.getFluidState(belowPos).is(FluidTags.WATER)) {
             var supportShape = level.getBlockState(belowPos).getCollisionShape(level, belowPos);
-            y = belowPos.getY() + supportShape.max(net.minecraft.core.Direction.Axis.Y);
+            y = belowPos.getY() + supportShape.max(Direction.Axis.Y);
         }
 
         return new Vec3(feetPos.getX() + 0.5, y, feetPos.getZ() + 0.5);

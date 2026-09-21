@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.focusstaffbow;
 
+import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import com.google.common.collect.ImmutableMultimap;
@@ -24,6 +25,7 @@ import jp.aquafactory.apprenticecodex.renderer.item.FocusStaffbowRenderer;
 import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -71,7 +73,7 @@ public final class FocusStaffbow extends CastingItem
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");
     private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
-            net.minecraft.core.registries.Registries.ITEM,
+            Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
     );
     private static final Set<ResourceLocation> ALLOWED_MAGIC_ITEM_ENCHANTMENTS = Set.of(
@@ -414,7 +416,7 @@ public final class FocusStaffbow extends CastingItem
         if (cooldown != null && cooldown.getCooldownRemaining() > 0.0F) {
             return false;
         }
-        if (spell.getCastType() == io.redspace.ironsspellbooks.api.spells.CastType.CONTINUOUS
+        if (spell.getCastType() == CastType.CONTINUOUS
                 && !FocusStaffbowClientConfigState.continuousFocusedCastEnabled()) {
             return false;
         }

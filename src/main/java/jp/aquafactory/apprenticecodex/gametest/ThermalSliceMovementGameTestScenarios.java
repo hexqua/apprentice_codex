@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.spell.thermalslice.ThermalSliceKatanaEntit
 import jp.aquafactory.apprenticecodex.spell.thermalslice.ThermalSliceMovementEvent;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MoverType;
@@ -18,6 +19,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.TickEvent;
 
+import java.util.Objects;
 import java.util.UUID;
 
 final class ThermalSliceMovementGameTestScenarios {
@@ -167,7 +169,7 @@ final class ThermalSliceMovementGameTestScenarios {
     }
 
     private static ThermalSliceState getState(FakePlayer player) {
-        return java.util.Objects.requireNonNull(Capabilities.getSpellDataOrNull(player))
+        return Objects.requireNonNull(Capabilities.getSpellDataOrNull(player))
                 .get(CodexSpellStateTypeRegister.THERMAL_SLICE_STATE);
     }
 
@@ -179,14 +181,14 @@ final class ThermalSliceMovementGameTestScenarios {
         return player;
     }
 
-    private static ThermalSliceKatanaEntity createWeapon(net.minecraft.server.level.ServerLevel level, FakePlayer owner) {
+    private static ThermalSliceKatanaEntity createWeapon(ServerLevel level, FakePlayer owner) {
         var weapon = new ThermalSliceKatanaEntity(EntityRegistry.THERMAL_SLICE_KATANA.get(), level, owner);
         weapon.setDamage(4.0F);
         level.addFreshEntity(weapon);
         return weapon;
     }
 
-    private static Zombie createZombie(net.minecraft.server.level.ServerLevel level, Vec3 position) {
+    private static Zombie createZombie(ServerLevel level, Vec3 position) {
         var zombie = EntityType.ZOMBIE.create(level);
         if (zombie == null) {
             throw new IllegalStateException("Failed to create Thermal Slice movement test zombie");

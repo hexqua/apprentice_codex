@@ -29,6 +29,7 @@ import net.minecraft.world.level.block.SugarCaneBlock;
 import net.minecraft.world.level.block.SweetBerryBushBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -340,7 +341,7 @@ public interface HarvestMoonAction {
 
             var beforeIds = captureNearbyItemIds(level, createDropBox(pos));
             level.setBlock(pos, resetState, Block.UPDATE_ALL);
-            level.gameEvent(player, net.minecraft.world.level.gameevent.GameEvent.BLOCK_CHANGE, pos);
+            level.gameEvent(player, GameEvent.BLOCK_CHANGE, pos);
             level.playSound(
                     null,
                     pos,

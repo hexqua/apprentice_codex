@@ -11,7 +11,9 @@ import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconSummoning;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -22,50 +24,52 @@ public final class InstantSearchBrazierGameTestScenarios {
     }
 
     static void useCreatesConfiguredSingleOfferBeaconAndRefundsBeforeSearch(GameTestHelper helper) {
-        try (var ignored = ApprenticeCodexServerConfig
-                .useInstantSearchBrazierInitialRangeOverrideForGameTest(777)) {
-            var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
-                    helper,
-                    new BlockPos(0, 2, 0),
-                    "instant_search_brazier_use_test"
-            );
-            var heldStack = new ItemStack(ItemRegistry.INSTANT_SEARCH_BRAZIER.get(), 2);
-            player.setItemInHand(InteractionHand.MAIN_HAND, heldStack);
-            player.setXRot(90.0F);
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
+            try (var ignored = ApprenticeCodexServerConfig
+                    .useInstantSearchBrazierInitialRangeOverrideForGameTest(777)) {
+                var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
+                        helper,
+                        new BlockPos(0, 2, 0),
+                        "instant_search_brazier_use_test"
+                );
+                var heldStack = new ItemStack(ItemRegistry.INSTANT_SEARCH_BRAZIER.get(), 2);
+                player.setItemInHand(InteractionHand.MAIN_HAND, heldStack);
+                player.setXRot(90.0F);
 
-            var useResult = heldStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(useResult.getResult().consumesAction(),
-                    "Instant Search Brazier use should succeed");
-            helper.assertTrue(heldStack.getCount() == 1,
-                    "Instant Search Brazier should consume exactly one item on successful use");
+                var useResult = heldStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+                helper.assertTrue(useResult.getResult().consumesAction(),
+                        "Instant Search Brazier use should succeed");
+                helper.assertTrue(heldStack.getCount() == 1,
+                        "Instant Search Brazier should consume exactly one item on successful use");
 
-            var beacon = findSingleBeacon(helper, player.getBoundingBox().inflate(16.0D));
-            helper.assertTrue(beacon.getInitialRange() == 777,
-                    "Instant Search Brazier should use the configured initial range");
-            helper.assertTrue(beacon.getAdditionalRangePerItem() == 0,
-                    "Instant Search Brazier should keep additional range fixed at zero");
-            helper.assertTrue(SearchBeaconRefundManager.hasPending(player),
-                    "Using an Instant Search Brazier should persist its pending refund");
+                var beacon = findSingleBeacon(helper, player.getBoundingBox().inflate(16.0D));
+                helper.assertTrue(beacon.getInitialRange() == 777,
+                        "Instant Search Brazier should use the configured initial range");
+                helper.assertTrue(beacon.getAdditionalRangePerItem() == 0,
+                        "Instant Search Brazier should keep additional range fixed at zero");
+                helper.assertTrue(SearchBeaconRefundManager.hasPending(player),
+                        "Using an Instant Search Brazier should persist its pending refund");
 
-            heldStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(heldStack.getCount() == 1,
-                    "Using a second Instant Search Brazier should not consume it while one is active");
+                heldStack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+                helper.assertTrue(heldStack.getCount() == 1,
+                        "Using a second Instant Search Brazier should not consume it while one is active");
 
-            var dropPos = beacon.blockPosition();
-            beacon.discard();
-            var refundedCount = helper.getLevel().getEntitiesOfClass(
-                            ItemEntity.class,
-                            new AABB(dropPos).inflate(2.0D),
-                            item -> item.getItem().is(ItemRegistry.INSTANT_SEARCH_BRAZIER.get())
-                    ).stream()
-                    .mapToInt(item -> item.getItem().getCount())
-                    .sum();
-            helper.assertTrue(refundedCount == 1,
-                    "Removing an unstarted item-summoned Search Beacon should refund one brazier");
-            helper.assertTrue(!SearchBeaconRefundManager.hasPending(player),
-                    "Refunding an Instant Search Brazier should clear its persisted refund");
-        }
-        helper.succeed();
+                var dropPos = beacon.blockPosition();
+                beacon.discard();
+                var refundedCount = helper.getLevel().getEntitiesOfClass(
+                                ItemEntity.class,
+                                new AABB(dropPos).inflate(2.0D),
+                                item -> item.getItem().is(ItemRegistry.INSTANT_SEARCH_BRAZIER.get())
+                        ).stream()
+                        .mapToInt(item -> item.getItem().getCount())
+                        .sum();
+                helper.assertTrue(refundedCount == 1,
+                        "Removing an unstarted item-summoned Search Beacon should refund one brazier");
+                helper.assertTrue(!SearchBeaconRefundManager.hasPending(player),
+                        "Refunding an Instant Search Brazier should clear its persisted refund");
+            }
+            helper.succeed();
+        });
     }
 
     static void searchStartStopsBrazierRefundAndRejectsAdditionalOffer(GameTestHelper helper) {
@@ -176,7 +180,7 @@ public final class InstantSearchBrazierGameTestScenarios {
         );
         helper.assertTrue(beacon != null, "Instant Search Brazier test should summon a Search Beacon");
 
-        beacon.remove(net.minecraft.world.entity.Entity.RemovalReason.UNLOADED_TO_CHUNK);
+        beacon.remove(Entity.RemovalReason.UNLOADED_TO_CHUNK);
         helper.assertTrue(countBraziersInInventory(player) == 1,
                 "Unloading a Search Beacon should return its brazier to the online owner");
         helper.assertTrue(!SearchBeaconRefundManager.hasPending(player),
@@ -218,7 +222,7 @@ public final class InstantSearchBrazierGameTestScenarios {
         helper.succeed();
     }
 
-    private static int countBraziersInInventory(net.minecraft.server.level.ServerPlayer player) {
+    private static int countBraziersInInventory(ServerPlayer player) {
         return player.getInventory().items.stream()
                 .filter(stack -> stack.is(ItemRegistry.INSTANT_SEARCH_BRAZIER.get()))
                 .mapToInt(ItemStack::getCount)

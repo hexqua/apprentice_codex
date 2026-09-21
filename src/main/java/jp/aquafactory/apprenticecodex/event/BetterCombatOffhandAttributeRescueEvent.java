@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.event;
 
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandSpellSelectionRescueCompat;
@@ -52,7 +53,7 @@ public final class BetterCombatOffhandAttributeRescueEvent {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onSpellSelection(io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.SpellSelectionEvent event) {
+    public static void onSpellSelection(SpellSelectionManager.SpellSelectionEvent event) {
         if (!ModList.get().isLoaded(BETTER_COMBAT_MOD_ID)) {
             return;
         }

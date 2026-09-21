@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatDualWieldi
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatSpellReaperScytheCompat;
 import net.bettercombat.api.WeaponAttributes;
 import net.bettercombat.logic.PlayerAttackHelper;
+import net.bettercombat.logic.WeaponRegistry;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
@@ -27,7 +28,7 @@ public abstract class BetterCombatPlayerAttackHelperMixin {
             Player player,
             int comboCount
     ) {
-        var originalAttributes = net.bettercombat.logic.WeaponRegistry.getAttributes(stack);
+        var originalAttributes = WeaponRegistry.getAttributes(stack);
         // ItemStackだけを見るWeaponRegistry層では装備中Curioを判定できないため、Playerを持つ攻撃選択時に差し替える。
         return BetterCombatSpellReaperScytheCompat.resolveAttackAttributes(player, stack, originalAttributes);
     }

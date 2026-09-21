@@ -51,6 +51,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -511,11 +512,11 @@ public final class MultipurposeStaffrifle extends Item
         }
     }
 
-    private static Vec3 createMuzzleParticleOffset(net.minecraft.util.RandomSource random, Vec3 look, double radius) {
+    private static Vec3 createMuzzleParticleOffset(RandomSource random, Vec3 look, double radius) {
         return look.scale(random.nextDouble() * 0.08D).add(createRandomSpread(random, radius));
     }
 
-    private static Vec3 createRandomSpread(net.minecraft.util.RandomSource random, double radius) {
+    private static Vec3 createRandomSpread(RandomSource random, double radius) {
         return new Vec3(
                 (random.nextDouble() - 0.5D) * radius,
                 (random.nextDouble() - 0.5D) * radius,

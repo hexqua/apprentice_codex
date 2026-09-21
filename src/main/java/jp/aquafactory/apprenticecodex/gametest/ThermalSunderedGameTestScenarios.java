@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.thermalslice.ThermalSlice;
 import jp.aquafactory.apprenticecodex.spell.thermalslice.ThermalSliceKatanaEntity;
+import jp.aquafactory.apprenticecodex.spell.thermalslice.ThermalSunderedLogic;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -25,6 +26,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 
 final class ThermalSunderedGameTestScenarios {
     private static final double ATTRIBUTE_EPSILON = 1.0E-6D;
@@ -125,7 +127,7 @@ final class ThermalSunderedGameTestScenarios {
         var effectHolder = EffectRegistry.THERMAL_SUNDERED.get();
         target.addEffect(new MobEffectInstance(effectHolder, 20, 4, false, true, true));
 
-        jp.aquafactory.apprenticecodex.spell.thermalslice.ThermalSunderedLogic
+        ThermalSunderedLogic
                 .applyFromThermalSlice(target, 0);
         var refreshed = getThermalSundered(target);
         helper.assertTrue(refreshed != null
@@ -143,7 +145,7 @@ final class ThermalSunderedGameTestScenarios {
 
         // Forge のダメージ確定直前イベントで無効化された場合は延長しない。
         for (var cancel : new boolean[]{true, false}) {
-            java.util.function.Consumer<LivingDamageEvent> rejectDamage = event -> {
+            Consumer<LivingDamageEvent> rejectDamage = event -> {
                 if (event.getEntity() == target) {
                     if (cancel) {
                         event.setCanceled(true);
@@ -191,7 +193,7 @@ final class ThermalSunderedGameTestScenarios {
             String ownerName,
             Vec3 ownerPosition,
             EntityType<T> targetType,
-            java.util.function.Consumer<T> setup
+            Consumer<T> setup
     ) {
         var owner = createPlayer(helper, ownerName, ownerPosition);
         owner.setYRot(0.0F);

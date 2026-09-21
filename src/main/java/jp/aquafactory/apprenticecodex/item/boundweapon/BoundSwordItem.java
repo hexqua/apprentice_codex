@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.boundweapon;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.spell.boundsword.BoundSwordClientTooltip;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
@@ -13,6 +14,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tiers;
@@ -48,7 +50,7 @@ public class BoundSwordItem extends SwordItem {
     }
 
     public static ItemStack create(UUID instanceId, float displayDamage, EquipmentSlot equipmentSlot) {
-        var stack = new ItemStack(jp.aquafactory.apprenticecodex.registry.ItemRegistry.BOUND_SWORD.get());
+        var stack = new ItemStack(ItemRegistry.BOUND_SWORD.get());
         stack.getOrCreateTag().putUUID(INSTANCE_ID_TAG, instanceId);
         stack.getOrCreateTag().putFloat(DISPLAY_DAMAGE_TAG, displayDamage);
         if (equipmentSlot == EquipmentSlot.OFFHAND) {
@@ -144,7 +146,7 @@ public class BoundSwordItem extends SwordItem {
 
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-        return enchantment.canApplyAtEnchantingTable(new ItemStack(net.minecraft.world.item.Items.GOLDEN_SWORD));
+        return enchantment.canApplyAtEnchantingTable(new ItemStack(Items.GOLDEN_SWORD));
     }
 
     @Override

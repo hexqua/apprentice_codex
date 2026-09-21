@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.spell.otherworldlens;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -37,7 +38,7 @@ public final class OtherworldLensBlock extends Block {
 
     @Override
     @SuppressWarnings("deprecation")
-    public void onPlace(@NotNull BlockState state, @NotNull net.minecraft.world.level.Level level,
+    public void onPlace(@NotNull BlockState state, @NotNull Level level,
                         @NotNull BlockPos pos, @NotNull BlockState oldState, boolean movedByPiston) {
         super.onPlace(state, level, pos, oldState, movedByPiston);
         if (!level.isClientSide) {

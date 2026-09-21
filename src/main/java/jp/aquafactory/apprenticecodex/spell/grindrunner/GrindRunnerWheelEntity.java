@@ -26,6 +26,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -794,7 +795,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         }
 
         try {
-            var method = createRecipe.getClass().getMethod("rollResults", net.minecraft.util.RandomSource.class);
+            var method = createRecipe.getClass().getMethod("rollResults", RandomSource.class);
             var rolled = copyItemStacks(method.invoke(createRecipe, level.random));
             return rolled == null ? Optional.empty() : Optional.of(rolled);
         } catch (NoSuchMethodException ignored) {
@@ -815,7 +816,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         }
 
         try {
-            var method = processingOutput.getClass().getMethod("rollOutput", net.minecraft.util.RandomSource.class);
+            var method = processingOutput.getClass().getMethod("rollOutput", RandomSource.class);
             return copyItemStack(method.invoke(processingOutput, level.random));
         } catch (NoSuchMethodException ignored) {
             // no-op

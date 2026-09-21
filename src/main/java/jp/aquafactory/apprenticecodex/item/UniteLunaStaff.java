@@ -9,6 +9,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
@@ -41,7 +42,7 @@ public class UniteLunaStaff extends AbstractSwingMagicItem implements GeoItem, U
                 "UniteLunaStaff",
                 ATTACK_DAMAGE,
                 ATTACK_SPEED,
-                bonus(net.minecraftforge.common.ForgeMod.ENTITY_REACH, ENTITY_REACH_BONUS, AttributeModifier.Operation.ADDITION, "entity_reach"),
+                bonus(ForgeMod.ENTITY_REACH, ENTITY_REACH_BONUS, AttributeModifier.Operation.ADDITION, "entity_reach"),
                 bonus(AttributeRegistry.SPELL_POWER, SPELL_POWER_BONUS, AttributeModifier.Operation.MULTIPLY_BASE, "spell_power"),
                 bonus(AttributeRegistry.HOLY_SPELL_POWER, HOLY_SPELL_POWER_BONUS, AttributeModifier.Operation.MULTIPLY_BASE, "holy_spell_power")
         );

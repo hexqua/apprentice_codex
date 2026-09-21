@@ -1,9 +1,12 @@
 package jp.aquafactory.apprenticecodex.item.spellreaperscythe;
 
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import jp.aquafactory.apprenticecodex.model.SpellReaperScytheModel;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
+import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -54,7 +57,7 @@ public final class ScytheThrowRenderer extends GeoEntityRenderer<ScytheThrowEnti
         // 当フレームの実アンカー間を補間する。独立した回転式では方向・位相がずれるため使わない。
         while (history.nextSample <= time) {
             double delta = time - previous.time;
-            double t = delta <= 0 ? 1 : net.minecraft.util.Mth.clamp((history.nextSample - previous.time) / delta, 0, 1);
+            double t = delta <= 0 ? 1 : Mth.clamp((history.nextSample - previous.time) / delta, 0, 1);
             history.samples.addLast(new Sample(history.nextSample, previous.center.lerp(center, t),
                     previous.tip.lerp(current.tip, t), previous.top.lerp(current.top, t), previous.bottom.lerp(current.bottom, t)));
             history.nextSample += 0.25;
@@ -74,8 +77,8 @@ public final class ScytheThrowRenderer extends GeoEntityRenderer<ScytheThrowEnti
     }
 
     @Override
-    public void renderRecursively(PoseStack pose, ScytheThrowEntity entity, software.bernie.geckolib.cache.object.GeoBone bone,
-                                  RenderType renderType, MultiBufferSource buffers, com.mojang.blaze3d.vertex.VertexConsumer buffer,
+    public void renderRecursively(PoseStack pose, ScytheThrowEntity entity, GeoBone bone,
+                                  RenderType renderType, MultiBufferSource buffers, VertexConsumer buffer,
                                   boolean reRender, float partialTick, int light, int overlay, float red, float green, float blue, float alpha) {
         boolean anchor = bone.getName().equals("anchor_tip") || bone.getName().equals("anchor_top") || bone.getName().equals("anchor_bottom");
         if (anchor) bone.setTrackingMatrices(true);
@@ -93,7 +96,7 @@ public final class ScytheThrowRenderer extends GeoEntityRenderer<ScytheThrowEnti
     }
 
     private static void drawSegment(ScytheThrowEntity entity, PoseStack pose,
-                                    com.mojang.blaze3d.vertex.VertexConsumer buffer, Vec3 center,
+                                    VertexConsumer buffer, Vec3 center,
                                     double time, double lifetime, int arm, Sample from, Sample to) {
         float fadeA = (float) Math.max(0, 1 - (time - from.time) / lifetime);
         float fadeB = (float) Math.max(0, 1 - (time - to.time) / lifetime);

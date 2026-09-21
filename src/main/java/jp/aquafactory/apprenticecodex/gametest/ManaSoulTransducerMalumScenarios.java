@@ -3,28 +3,34 @@ package jp.aquafactory.apprenticecodex.gametest;
 import com.sammy.malum.common.capability.MalumPlayerDataCapability;
 import com.sammy.malum.common.item.curiosities.weapons.staff.AbstractStaffItem;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumStaffChargeBridge;
+import jp.aquafactory.apprenticecodex.item.curios.manasoultransducer.ManaSoulTransducerLogic;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameType;
 import net.minecraftforge.registries.ForgeRegistries;
+import team.lodestar.lodestone.registry.common.LodestoneAttributeRegistry;
+import top.theillusivec4.curios.api.CuriosApi;
 
 final class ManaSoulTransducerMalumScenarios {
     private ManaSoulTransducerMalumScenarios() {}
     static void payments(GameTestHelper h) {
         var player = ApprenticeCodexGameTestScenarios.createTrackedEquipmentTestPlayer(h, new BlockPos(1, 2, 1), "transducer_staff");
-        player.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+        player.setGameMode(GameType.SURVIVAL);
         for (var item : ForgeRegistries.ITEMS.getValues()) {
             if (!(item instanceof AbstractStaffItem staff)) continue;
             var stack = new ItemStack(staff);
             player.stopUsingItem();
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-            player.getAttribute(team.lodestar.lodestone.registry.common.LodestoneAttributeRegistry.MAGIC_DAMAGE.get()).setBaseValue(5);
+            player.getAttribute(LodestoneAttributeRegistry.MAGIC_DAMAGE.get()).setBaseValue(5);
             BowGameTestSupport.equipCurio(player, "charm", new ItemStack(ItemRegistry.MANA_SOUL_TRANSDUCER.get()));
-            player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get()).setBaseValue(1000);
+            player.getAttribute(AttributeRegistry.MAX_MANA.get()).setBaseValue(1000);
             // スロット拡張で複数装備された場合を、テスト用の二つ目のスロットで再現する。
             BowGameTestSupport.equipCurio(player, "ring", new ItemStack(ItemRegistry.MANA_SOUL_TRANSDUCER.get()));
             var mana = MagicData.getPlayerMagicData(player);
@@ -61,13 +67,13 @@ final class ManaSoulTransducerMalumScenarios {
             staff.releaseUsing(stack, h.getLevel(), player, staff.getUseDuration(stack));
             h.assertTrue(mana.getMana() == 160, "Canceled charge must not spend mana");
             h.assertTrue(stack.getDamageValue() == damage, "Canceled charge must not damage staff");
-            player.getAttribute(team.lodestar.lodestone.registry.common.LodestoneAttributeRegistry.MAGIC_DAMAGE.get()).setBaseValue(0);
+            player.getAttribute(LodestoneAttributeRegistry.MAGIC_DAMAGE.get()).setBaseValue(0);
             staff.releaseUsing(stack, h.getLevel(), player, staff.getUseDuration(stack) - 100);
             h.assertTrue(mana.getMana() == 160, "Failed shot must not spend mana");
-            player.getAttribute(team.lodestar.lodestone.registry.common.LodestoneAttributeRegistry.MAGIC_DAMAGE.get()).setBaseValue(5);
-            var castAttribute = player.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION.get());
+            player.getAttribute(LodestoneAttributeRegistry.MAGIC_DAMAGE.get()).setBaseValue(5);
+            var castAttribute = player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION.get());
             castAttribute.setBaseValue(1.5);
-            int ticks = jp.aquafactory.apprenticecodex.item.curios.manasoultransducer.ManaSoulTransducerLogic.chargeTicks(staff.chargeDuration, 1.5, 0.8);
+            int ticks = ManaSoulTransducerLogic.chargeTicks(staff.chargeDuration, 1.5, 0.8);
             mana.setMana(160);
             staff.releaseUsing(stack, h.getLevel(), player, staff.getUseDuration(stack) - ticks + 1);
             h.assertTrue(mana.getMana() == 160, "Charge below shortened boundary must not fire");
@@ -83,7 +89,7 @@ final class ManaSoulTransducerMalumScenarios {
             MalumStaffChargeBridge.clearHeldCooldowns(player);
             h.assertTrue(mana.getMana() == 80, "Same staff in both hands must only pay once");
             player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
-            var inventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player).resolve().orElseThrow();
+            var inventory = CuriosApi.getCuriosInventory(player).resolve().orElseThrow();
             var charms = inventory.getStacksHandler("charm").orElseThrow().getStacks();
             charms.setStackInSlot(0, ItemStack.EMPTY);
             BowGameTestSupport.equipCurio(player, "ring", ItemStack.EMPTY);
@@ -94,7 +100,7 @@ final class ManaSoulTransducerMalumScenarios {
         }
         // 実射で生成した飛翔体を次のbatchへ持ち越さない。
         for (var entity : h.getLevel().getAllEntities()) {
-            if (entity instanceof net.minecraft.world.entity.projectile.Projectile projectile
+            if (entity instanceof Projectile projectile
                     && projectile.getOwner() == player) projectile.discard();
         }
         player.discard();

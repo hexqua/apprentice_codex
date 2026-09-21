@@ -7,6 +7,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -31,7 +32,7 @@ import java.util.List;
 public final class ManaSiphonOrbRenderEvent {
     private static final ResourceLocation ORB_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/mana_siphon_orb.png");
-    private static final net.minecraft.client.renderer.RenderType ORB_RENDER_TYPE =
+    private static final RenderType ORB_RENDER_TYPE =
             ApprenticeRenderTypes.entityAdditiveGlowNoCull("mana_siphon_orb_additive", ORB_TEXTURE);
     private static final int MAX_ACTIVE_ORBS = 192;
     private static final float SCATTER_DURATION_TICKS = 6.0f;

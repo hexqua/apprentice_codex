@@ -20,9 +20,11 @@ import net.minecraftforge.registries.RegistryObject;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 final class EnchantmentApplicationGameTestSupport {
     static final String MALUM_MOD_ID = "malum";
@@ -188,8 +190,8 @@ final class EnchantmentApplicationGameTestSupport {
     private static Set<ResourceLocation> getRegisteredEnchantmentIds() {
         return getRegisteredEnchantments().stream()
                 .map(ForgeRegistries.ENCHANTMENTS::getKey)
-                .filter(java.util.Objects::nonNull)
-                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     static boolean isDurabilityTargetEnchantment(Enchantment enchantment) {

@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.mixin;
 
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatSpellReaperScytheCompat;
 import jp.aquafactory.apprenticecodex.item.spellchargedgreatsword.SpellchargedGreatsword;
+import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowManager;
 import net.bettercombat.api.AttributesContainer;
 import net.bettercombat.api.WeaponAttributes;
 import net.bettercombat.logic.WeaponRegistry;
@@ -13,6 +14,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Map;
@@ -35,7 +37,7 @@ public abstract class BetterCombatWeaponRegistryMixin {
     )
     private static void apprenticecodex$registerAdditionalAttributes(
             ResourceManager resourceManager,
-            org.spongepowered.asm.mixin.injection.callback.CallbackInfo callback
+            CallbackInfo callback
     ) {
         apprenticecodex$registerAdditionalAttributes(SPELLCHARGED_GREATSWORD_CHARGED_ATTRIBUTES);
         apprenticecodex$registerAdditionalAttributes(BetterCombatSpellReaperScytheCompat.NO_SWEEP_ATTRIBUTES);
@@ -63,7 +65,7 @@ public abstract class BetterCombatWeaponRegistryMixin {
             ItemStack stack,
             CallbackInfoReturnable<WeaponAttributes> callback
     ) {
-        if (stack != null && jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowManager.isThrown(stack)) {
+        if (stack != null && ScytheThrowManager.isThrown(stack)) {
             callback.setReturnValue(null);
             return;
         }

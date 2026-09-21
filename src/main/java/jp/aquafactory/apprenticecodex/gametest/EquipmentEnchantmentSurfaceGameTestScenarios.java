@@ -1,13 +1,25 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
+import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
+import io.redspace.ironsspellbooks.item.UniqueItem;
+import jp.aquafactory.apprenticecodex.gametest.malum.MalumGameTestHooks;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScythe;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.ToolActions;
 import java.util.Objects;
 import static jp.aquafactory.apprenticecodex.gametest.EnchantmentApplicationGameTestSupport.*;
@@ -72,6 +84,8 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.Set;
+
 final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private static final TagKey<Item> FORGE_BERRIES = ItemTags.create(
             ResourceLocation.fromNamespaceAndPath("forge", "berries")
@@ -130,9 +144,9 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
     static void reflectcastShieldKeepsExpectedItemContract(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.REFLECTCAST_SHIELD.get());
-            var item = (jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield) stack.getItem();
+            var item = (ReflectcastShield) stack.getItem();
             helper.assertTrue(item.getEnchantmentValue(stack)
-                            == jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield.ENCHANTMENT_VALUE,
+                            == ReflectcastShield.ENCHANTMENT_VALUE,
                     "Reflectcast Shield enchantment value should be 22");
             helper.assertFalse(stack.is(MALUM_SOUL_HUNTER_WEAPON),
                     "Reflectcast Shield should stay outside malum:soul_hunter_weapon");
@@ -168,7 +182,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             GameTestHelper helper,
             Item item,
             ArmorItem.Type armorType,
-            net.minecraft.world.entity.ai.attributes.Attribute magicProficiency
+            Attribute magicProficiency
     ) {
         var stack = new ItemStack(item);
         var modifiers = stack.getAttributeModifiers(armorType.getSlot()).get(magicProficiency);
@@ -193,7 +207,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
     }
 
     private static void assertSoulcollectorSpiritInfusion(
-            net.minecraft.world.level.Level level,
+            Level level,
             String path,
             String malumInputPath,
             Item result
@@ -205,7 +219,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             throw new AssertionError("Malum Soul Hunter recipe ingredients are not registered");
         }
 
-        jp.aquafactory.apprenticecodex.gametest.malum.MalumGameTestHooks.assertSpiritInfusionRecipe(
+        MalumGameTestHooks.assertSpiritInfusionRecipe(
                 level,
                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "malum/spirit_infusion/" + path),
                 new ItemStack(malumInput),
@@ -252,7 +266,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     "scrollcaster_gauntlet_offhand_empty_selection_test");
             emptyPlayer.setItemInHand(InteractionHand.OFF_HAND, emptyGauntlet);
             var emptyResult = emptyGauntlet.getItem().use(helper.getLevel(), emptyPlayer, InteractionHand.OFF_HAND);
-            helper.assertTrue(emptyResult.getResult() == net.minecraft.world.InteractionResult.PASS,
+            helper.assertTrue(emptyResult.getResult() == InteractionResult.PASS,
                     "Scrollcaster Gauntlet offhand use without a selected scroll should pass but got "
                             + emptyResult.getResult());
         });
@@ -300,7 +314,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         magicData.setMana(100.0F);
 
         var result = gauntlet.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-        helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.PASS,
+        helper.assertTrue(result.getResult() == InteractionResult.PASS,
                 "Scrollcaster Gauntlet mainhand use should pass to supported offhand use item "
                         + offhandStack + " but got " + result.getResult());
         helper.assertFalse(magicData.isCasting(),
@@ -358,7 +372,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         });
     }
 
-    private static java.util.Set<ResourceLocation> expectedSpellReaperScytheEnchantments(ItemStack stack) {
+    private static Set<ResourceLocation> expectedSpellReaperScytheEnchantments(ItemStack stack) {
         var result = new LinkedHashSet<>(collectAllowedEnchantments(e -> e.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD))));
         result.add(ForgeRegistries.ENCHANTMENTS.getKey(EnchantmentRegistry.WISDOM.get()));
         result.add(ForgeRegistries.ENCHANTMENTS.getKey(EnchantmentRegistry.TRANSCENDENCE.get()));
@@ -587,7 +601,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         SpellchargedGreatsword.addCharge(staleLevelStack,
                 level.getGameTime() - SpellchargedGreatsword.DECAY_DELAY_TICKS - 100L, 400.0D);
         var staleResult = item.use(level, player, InteractionHand.MAIN_HAND);
-        helper.assertTrue(staleResult.getResult() == net.minecraft.world.InteractionResult.PASS,
+        helper.assertTrue(staleResult.getResult() == InteractionResult.PASS,
                 "Spellcharged Greatsword should not start overcharge activation after charge fully decays");
 
         var stack = new ItemStack(item);
@@ -597,7 +611,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         var decayedCharge = SpellchargedGreatsword.getEffectiveChargeTicks(stack, level.getGameTime());
 
         var result = item.use(level, player, InteractionHand.MAIN_HAND);
-        helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.CONSUME,
+        helper.assertTrue(result.getResult() == InteractionResult.CONSUME,
                 "Spellcharged Greatsword overcharge activation use should consume interaction");
         item.onUseTick(
                 level,
@@ -623,7 +637,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                 "Spellcharged Greatsword should enter overcharge when activation hold is released");
 
         var overchargedUse = item.use(level, player, InteractionHand.MAIN_HAND);
-        helper.assertTrue(overchargedUse.getResult() == net.minecraft.world.InteractionResult.PASS,
+        helper.assertTrue(overchargedUse.getResult() == InteractionResult.PASS,
                 "Spellcharged Greatsword overcharge mode should not provide a right-click function");
         helper.succeed();
     }
@@ -893,7 +907,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                 "spellcharged_greatsword_continuous_refresh_test");
         var magicData = MagicData.getPlayerMagicData(player);
         helper.assertTrue(magicData != null, "Spellcharged Greatsword continuous test could not resolve magic data");
-        magicData.setSyncedData(new io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData(player));
+        magicData.setSyncedData(new SyncedSpellData(player));
 
         var greatsword = new ItemStack(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
         SpellchargedGreatsword.addCharge(greatsword, helper.getLevel().getGameTime(), 400.0D);
@@ -1058,7 +1072,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         );
         return (boolean) compatClass.getMethod(
                 "hasExpectedSpellchargedGreatswordSkills",
-                net.minecraft.server.level.ServerPlayer.class,
+                ServerPlayer.class,
                 ItemStack.class
         ).invoke(null, player, stack);
     }
@@ -1070,7 +1084,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         );
         return (boolean) compatClass.getMethod(
                 "setSweepingEdgeCharge",
-                net.minecraft.server.level.ServerPlayer.class,
+                ServerPlayer.class,
                 int.class
         ).invoke(null, player, stack);
     }
@@ -1081,7 +1095,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         );
         return ((Number) compatClass.getMethod(
                 "getSweepingEdgeCharge",
-                net.minecraft.server.level.ServerPlayer.class
+                ServerPlayer.class
         ).invoke(null, player)).intValue();
     }
 
@@ -1139,7 +1153,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
         );
         eventClass.getMethod("onPlayerTick", TickEvent.PlayerTickEvent.class).invoke(
                 null,
-                new TickEvent.PlayerTickEvent(TickEvent.Phase.END, (net.minecraft.world.entity.player.Player) player)
+                new TickEvent.PlayerTickEvent(TickEvent.Phase.END, (Player) player)
         );
     }
 
@@ -1209,15 +1223,15 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             );
             assertSingleModifierAmount(
                     helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    modifiers.get(AttributeRegistry.SPELL_POWER.get()),
                     AttributeModifier.Operation.MULTIPLY_BASE,
                     0.10D,
                     "Scrollcaster Gauntlet spell power should ignore Surge"
             );
-            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
+            var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
             helper.assertTrue(imbuedSchool != null,
                     "Scrollcaster Gauntlet test could not resolve the selected spell school");
-            var attunementAttribute = jp.aquafactory.apprenticecodex.utility.MagicTools
+            var attunementAttribute = MagicTools
                     .resolveSchoolPowerAttribute(imbuedSchool);
             helper.assertTrue(attunementAttribute != null,
                     "Scrollcaster Gauntlet test could not resolve the Attunement spell power attribute: " + imbuedSchool.getId());
@@ -1227,8 +1241,8 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
     }
     static void apprenticeMageRobeKeepsExpectedAttributeBonuses(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
-            var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
+            var maxManaAttribute = AttributeRegistry.MAX_MANA.get();
+            var spellPowerAttribute = AttributeRegistry.SPELL_POWER.get();
             var expectedSpellPower = ApprenticeCodexServerConfig.apprenticeMageRobeSpellPowerBonusPerPiece();
             var pieces = Map.of(
                     ArmorItem.Type.HELMET, (ApprenticeMageRobeItem) ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
@@ -1259,9 +1273,9 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
     }
     static void enchantressRobeKeepsExpectedAttributeBonusesAndImbueSurface(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
-            var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
-            var lightningSpellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.LIGHTNING_SPELL_POWER.get();
+            var maxManaAttribute = AttributeRegistry.MAX_MANA.get();
+            var spellPowerAttribute = AttributeRegistry.SPELL_POWER.get();
+            var lightningSpellPowerAttribute = AttributeRegistry.LIGHTNING_SPELL_POWER.get();
             var expectedSpellPower = ApprenticeCodexServerConfig.enchantressRobeSpellPowerBonusPerPiece();
             var pieces = Map.of(
                     ArmorItem.Type.HELMET, (EnchantressRobeItem) ItemRegistry.ENCHANTRESS_HAT.get(),
@@ -1306,17 +1320,17 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             item.initializeSpellContainer(stack);
             ISpellContainer.createImbuedContainer(io.redspace.ironsspellbooks.api.registry.SpellRegistry.BALL_LIGHTNING_SPELL.get(), 1, stack);
 
-            var imbuedSchool = jp.aquafactory.apprenticecodex.utility.MagicTools.getImbuedSpellSchool(stack);
+            var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
             helper.assertTrue(imbuedSchool != null,
                     "Enchantress Robe chestplate test could not resolve imbued school");
             var imbuedSpellPowerAttribute =
-                    jp.aquafactory.apprenticecodex.utility.MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
+                    MagicTools.resolveSchoolPowerAttribute(imbuedSchool);
             helper.assertTrue(imbuedSpellPowerAttribute != null,
                     "Enchantress Robe chestplate test could not resolve school spell power attribute");
 
             var modifiers = item.getAttributeModifiers(EquipmentSlot.CHEST, stack);
             var globalSpellPowerBonus = sumModifierAmount(
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    modifiers.get(AttributeRegistry.SPELL_POWER.get()),
                     AttributeModifier.Operation.MULTIPLY_BASE
             );
             var expectedGlobalSpellPower = ApprenticeCodexServerConfig.enchantressRobeSpellPowerBonusPerPiece();
@@ -1333,8 +1347,8 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
     }
     static void chromaticMagiaDressKeepsExpectedStatsAndImbueSurface(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
-            var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
+            var maxManaAttribute = AttributeRegistry.MAX_MANA.get();
+            var spellPowerAttribute = AttributeRegistry.SPELL_POWER.get();
             var expectedSpellPower = ApprenticeCodexServerConfig.chromaticMagiaDressSpellPowerBonusPerPiece();
             var pieces = Map.of(
                     ArmorItem.Type.HELMET, (ChromaticMagiaDressItem) ItemRegistry.CHROMATIC_MAGIA_DRESS_HAT.get(),
@@ -1384,8 +1398,8 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
     }
     static void elementMaidenRobeKeepsExpectedStatsAndImbueSurface(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
-            var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
+            var maxManaAttribute = AttributeRegistry.MAX_MANA.get();
+            var spellPowerAttribute = AttributeRegistry.SPELL_POWER.get();
             var expectedSpellPower = ApprenticeCodexServerConfig.elementMaidenRobeSpellPowerBonus();
             var pieces = Map.of(
                     ArmorItem.Type.HELMET, (ElementMaidenRobeItem) ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get(),
@@ -1400,7 +1414,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                 var stack = new ItemStack(item);
                 item.initializeSpellContainer(stack);
 
-                helper.assertTrue(item instanceof io.redspace.ironsspellbooks.item.UniqueItem,
+                helper.assertTrue(item instanceof UniqueItem,
                         "Element Maiden Robe " + armorType + " should be a unique item");
                 helper.assertTrue(stack.getRarity() == Rarity.EPIC,
                         "Element Maiden Robe " + armorType + " rarity should be epic");
@@ -1448,9 +1462,9 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
 
     static void magiAgentSuitKeepsExpectedStatsImbueAndCalibrationRune(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
-            var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
-            var fireSpellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get();
+            var maxManaAttribute = AttributeRegistry.MAX_MANA.get();
+            var spellPowerAttribute = AttributeRegistry.SPELL_POWER.get();
+            var fireSpellPowerAttribute = AttributeRegistry.FIRE_SPELL_POWER.get();
             var expectedSpellPower = ApprenticeCodexServerConfig.magiAgentSuitSpellPowerBonus();
             var expectedSchoolSpellPower = ApprenticeCodexServerConfig.magiAgentSuitSchoolSpellPowerBonus();
             var pieces = Map.of(
@@ -1552,11 +1566,11 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                         SchoolRegistry.ICE.get(), 3
                 ), 0.20D);
                 assertElementMaidenSchoolPowerBonusAmount(helper, directBonuses,
-                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get(),
+                        AttributeRegistry.FIRE_SPELL_POWER.get(),
                         0.14D,
                         "Element Maiden Robe should distribute empty slots to the strongest spellbook school");
                 assertElementMaidenSchoolPowerBonusAmount(helper, directBonuses,
-                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.ICE_SPELL_POWER.get(),
+                        AttributeRegistry.ICE_SPELL_POWER.get(),
                         0.06D,
                         "Element Maiden Robe should keep lower spellbook school share");
 
@@ -1565,7 +1579,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                 player.setItemSlot(EquipmentSlot.CHEST, new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get()));
                 player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(ItemRegistry.ELEMENT_MAIDEN_ROBE_RIBBON.get()));
 
-                equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
+                equipCurio(player, Curios.SPELLBOOK_SLOT,
                         createElementMaidenRobeSchoolPowerSpellbook(helper,
                                 io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get()));
 
@@ -1591,15 +1605,15 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                         SchoolRegistry.NATURE.get(), 1
                 ), 0.20D);
                 assertElementMaidenSchoolPowerBonusAmount(helper, directBonuses,
-                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.FIRE_SPELL_POWER.get(),
+                        AttributeRegistry.FIRE_SPELL_POWER.get(),
                         0.09D,
                         "Element Maiden Robe should split empty slots between tied strongest schools");
                 assertElementMaidenSchoolPowerBonusAmount(helper, directBonuses,
-                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.ICE_SPELL_POWER.get(),
+                        AttributeRegistry.ICE_SPELL_POWER.get(),
                         0.09D,
                         "Element Maiden Robe should split empty slots between tied strongest schools");
                 assertElementMaidenSchoolPowerBonusAmount(helper, directBonuses,
-                        io.redspace.ironsspellbooks.api.registry.AttributeRegistry.NATURE_SPELL_POWER.get(),
+                        AttributeRegistry.NATURE_SPELL_POWER.get(),
                         0.02D,
                         "Element Maiden Robe should floor smaller spellbook school shares to 1% units");
             }
@@ -1619,7 +1633,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                         "Element Maiden Robe should ignore spell containers outside the Curios spellbook slot");
             }
 
-            equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
+            equipCurio(player, Curios.SPELLBOOK_SLOT,
                     createElementMaidenRobeSchoolPowerSpellbook(helper, fire));
             try (var ignored = ApprenticeCodexServerConfig.useElementMaidenRobeSchoolSpellPowerBonusOverrideForGameTest(0.0D)) {
                 ElementMaidenRobeSchoolPowerBonusEvents.refresh(player);
@@ -1643,7 +1657,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                 inventory.setStackInSlot(0, createSpellScroll(fire));
                 inventory.setStackInSlot(ArchivistsGrimoire.COLUMN_COUNT, createSpellScroll(ice));
                 ArchivistsGrimoire.setSelectedRow(grimoireStack, 0);
-                equipCurio(archivistsPlayer, io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT, grimoireStack);
+                equipCurio(archivistsPlayer, Curios.SPELLBOOK_SLOT, grimoireStack);
 
                 var firstArchivistsBonuses = ElementMaidenRobeSchoolPowerBonusEvents.refresh(archivistsPlayer);
                 helper.assertTrue(!firstArchivistsBonuses.isEmpty(),
@@ -1666,7 +1680,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                 helper.assertTrue(mutable.addSpellAtIndex(fire, 1, 0, false),
                         "Failed to prepare Ender Grimoire fire spell");
                 enderData.setSpellContainer(mutable.toImmutable());
-                equipCurio(enderPlayer, io.redspace.ironsspellbooks.compat.Curios.SPELLBOOK_SLOT,
+                equipCurio(enderPlayer, Curios.SPELLBOOK_SLOT,
                         new ItemStack(ItemRegistry.ENDER_GRIMOIRE.get()));
 
                 var enderBonuses = ElementMaidenRobeSchoolPowerBonusEvents.refresh(enderPlayer);
@@ -1679,8 +1693,8 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
     }
     static void stealthRuneArmorKeepsExpectedAttributeBonusesAndImbueSurface(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var maxManaAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get();
-            var spellPowerAttribute = io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get();
+            var maxManaAttribute = AttributeRegistry.MAX_MANA.get();
+            var spellPowerAttribute = AttributeRegistry.SPELL_POWER.get();
             var expectedSpellPower = ApprenticeCodexServerConfig.stealthRuneArmorSpellPowerBonusPerPiece();
             var pieces = Map.of(
                     ArmorItem.Type.HELMET, (StealthRuneArmorItem) ItemRegistry.STEALTH_RUNE_ARMOR_HEAD.get(),

@@ -57,6 +57,7 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, NonDamageableAnvilMergeItem,
@@ -405,7 +406,7 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
         return manaCost * (20 / MagicManager.CONTINUOUS_CAST_TICK_INTERVAL) + "/s";
     }
 
-    private static void restoreCooldown(java.util.Map<String, CooldownInstance> cooldowns, String spellId, CooldownInstance cooldown) {
+    private static void restoreCooldown(Map<String, CooldownInstance> cooldowns, String spellId, CooldownInstance cooldown) {
         cooldowns.put(spellId, cooldown);
     }
 

@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.spellsideedge;
 
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.SpellSideEdgeRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -27,7 +28,7 @@ public final class SpellSideEdge extends AbstractSpellSideEdgeItem {
 
     @Override
     public boolean isValidRepairItem(@NotNull ItemStack toRepair, @NotNull ItemStack repair) {
-        return repair.is(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get());
+        return repair.is(ItemRegistry.ARCANE_INGOT.get());
     }
 
     @Override

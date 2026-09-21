@@ -18,6 +18,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
@@ -36,6 +37,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
@@ -125,7 +127,7 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         }
 
         var hitResult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
-        if (hitResult.getType() != HitResult.Type.MISS && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitResult)) {
+        if (hitResult.getType() != HitResult.Type.MISS && !ForgeEventFactory.onProjectileImpact(this, hitResult)) {
             onHit(hitResult);
             if (impacted) {
                 return;
@@ -192,7 +194,7 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         }
     }
 
-    private void finishImpact(Vec3 impactPosition, Vec3 impactForward, net.minecraft.sounds.SoundEvent impactSound) {
+    private void finishImpact(Vec3 impactPosition, Vec3 impactForward, SoundEvent impactSound) {
         var impactRotation = calculateImpactRotation(impactForward);
         setPos(impactPosition.x, impactPosition.y, impactPosition.z);
         setDeltaMovement(Vec3.ZERO);

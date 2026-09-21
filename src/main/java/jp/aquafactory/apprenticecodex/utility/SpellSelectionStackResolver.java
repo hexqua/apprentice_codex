@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.utility;
 
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import jp.aquafactory.apprenticecodex.item.armor.EndgameArmorSpellSelectionEvents;
+import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastCartridgeCasting;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -20,8 +21,8 @@ public final class SpellSelectionStackResolver {
             return ItemStack.EMPTY;
         }
 
-        if (jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastCartridgeCasting.SLOT.equals(slot)) {
-            return jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastCartridgeCasting.findEquipped(player);
+        if (QuickcastCartridgeCasting.SLOT.equals(slot)) {
+            return QuickcastCartridgeCasting.findEquipped(player);
         }
         if (SpellSelectionManager.MAINHAND.equals(slot)) {
             return player.getMainHandItem();

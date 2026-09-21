@@ -8,9 +8,13 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserMenu;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +31,7 @@ public final class SpellDispenserInteractionBehaviour extends MovingInteractionB
             return true;
         }
 
-        var serverPlayer = (net.minecraft.server.level.ServerPlayer) player;
+        var serverPlayer = (ServerPlayer) player;
         var contraption = contraptionEntity.getContraption();
         var mountedInventory = contraption.getStorage().getAllItemStorages().get(localPos);
         var blockInfo = contraption.getBlocks().get(localPos);
@@ -50,7 +54,7 @@ public final class SpellDispenserInteractionBehaviour extends MovingInteractionB
             }
 
             @Override
-            public net.minecraft.world.inventory.AbstractContainerMenu createMenu(int containerId, net.minecraft.world.entity.player.@NotNull Inventory inventory, @NotNull Player menuPlayer) {
+            public AbstractContainerMenu createMenu(int containerId, @NotNull Inventory inventory, @NotNull Player menuPlayer) {
                 return SpellDispenserMenu.createMounted(
                         containerId,
                         inventory,
@@ -74,7 +78,7 @@ public final class SpellDispenserInteractionBehaviour extends MovingInteractionB
             buffer.writeVarInt(SpellDispenserBlockEntity.readCurrentMana(blockInfo.nbt()));
             buffer.writeBoolean(variant.isCreative());
             for (var slot = 0; slot < SpellDispenserBlockEntity.INVENTORY_SLOT_COUNT; ++slot) {
-                var stack = slot < mountedInventory.getSlots() ? mountedInventory.getStackInSlot(slot).copy() : net.minecraft.world.item.ItemStack.EMPTY;
+                var stack = slot < mountedInventory.getSlots() ? mountedInventory.getStackInSlot(slot).copy() : ItemStack.EMPTY;
                 buffer.writeItem(stack);
             }
         });

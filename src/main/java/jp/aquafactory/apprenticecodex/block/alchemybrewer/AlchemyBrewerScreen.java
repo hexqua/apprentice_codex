@@ -11,6 +11,8 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.world.effect.MobEffectUtil;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
@@ -21,6 +23,7 @@ import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public final class AlchemyBrewerScreen extends AbstractContainerScreen<AlchemyBrewerMenu> {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/gui/alchemy_brewer.png");
@@ -61,7 +64,7 @@ public final class AlchemyBrewerScreen extends AbstractContainerScreen<AlchemyBr
 
     private void renderGauge(GuiGraphics gui, AlchemyBrewerMenu brewer) {
         if (!brewer.isProcessing() || brewer.getTotalTicks() <= 0) return;
-        int height = net.minecraft.util.Mth.clamp((int) ((long) brewer.getElapsedTicks() * GAUGE_HEIGHT / brewer.getTotalTicks()), 0, GAUGE_HEIGHT);
+        int height = Mth.clamp((int) ((long) brewer.getElapsedTicks() * GAUGE_HEIGHT / brewer.getTotalTicks()), 0, GAUGE_HEIGHT);
         if (height > 0) gui.blit(TEXTURE, leftPos + GAUGE_X, topPos + GAUGE_Y + GAUGE_HEIGHT - height,
                 0, 166 + GAUGE_HEIGHT - height, GAUGE_WIDTH, height);
     }
@@ -100,7 +103,7 @@ public final class AlchemyBrewerScreen extends AbstractContainerScreen<AlchemyBr
         if (isHovering(BUTTON_X, BUTTON_Y, BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY)) {
             boolean enabled = brewer.isAutoBrewing();
             var key = "container.apprenticecodex.alchemy_brewer.auto_brew_button." + (enabled ? "enabled" : "disabled");
-            gui.renderTooltip(font, java.util.List.of(
+            gui.renderTooltip(font, List.of(
                     Component.translatable(key).getVisualOrderText(),
                     Component.translatable(key + ".hint").withStyle(ChatFormatting.GRAY).getVisualOrderText()), mouseX, mouseY);
             return;
@@ -147,7 +150,7 @@ public final class AlchemyBrewerScreen extends AbstractContainerScreen<AlchemyBr
             }
             if (!effect.endsWithin(20)) {
                 effectLine = Component.translatable("potion.withDuration", effectLine,
-                        net.minecraft.world.effect.MobEffectUtil.formatDuration(effect, 1.0F));
+                        MobEffectUtil.formatDuration(effect, 1.0F));
             }
             effectLine.withStyle(effect.getEffect().getCategory().getTooltipFormatting());
             lines.add(Component.literal("- ").withStyle(ChatFormatting.GRAY).append(effectLine));

@@ -2,8 +2,10 @@ package jp.aquafactory.apprenticecodex.compat.jei;
 
 import jp.aquafactory.apprenticecodex.recipe.grindrunner.GrindRunnerRecipe;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -54,8 +56,8 @@ public final class GrindRunnerRecipeCategory extends AbstractApprenticeCodexReci
     @Override
     public void draw(
             @NotNull GrindRunnerRecipe recipe,
-            @NotNull mezz.jei.api.gui.ingredient.IRecipeSlotsView recipeSlotsView,
-            @NotNull net.minecraft.client.gui.GuiGraphics guiGraphics,
+            @NotNull IRecipeSlotsView recipeSlotsView,
+            @NotNull GuiGraphics guiGraphics,
             double mouseX,
             double mouseY
     ) {

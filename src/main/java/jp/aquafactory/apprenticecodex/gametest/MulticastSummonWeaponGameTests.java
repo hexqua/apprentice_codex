@@ -1,10 +1,12 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfile;
@@ -19,6 +21,7 @@ import jp.aquafactory.apprenticecodex.spell.shiden.Shiden;
 import jp.aquafactory.apprenticecodex.spell.shiden.ShidenKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaEntity;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
@@ -27,9 +30,14 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TraceableEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
@@ -37,6 +45,7 @@ import net.minecraftforge.common.util.FakePlayer;
 import com.mojang.authlib.GameProfile;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -49,12 +58,12 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
     private static final String BATCH = "apprenticecodex.multicast_echo_staff_isolated";
 
     private static final class EchoPlayer extends FakePlayer {
-        private final java.util.List<Component> messages = new java.util.ArrayList<>();
+        private final List<Component> messages = new ArrayList<>();
 
         private EchoPlayer(GameTestHelper helper, String name) {
             super(helper.getLevel(), new GameProfile(UUID.randomUUID(), name));
-            gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
-            getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get()).setBaseValue(20000);
+            gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
+            getAttribute(AttributeRegistry.MAX_MANA.get()).setBaseValue(20000);
         }
 
         @Override
@@ -65,7 +74,7 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
 
     private static EchoPlayer createEchoPlayer(GameTestHelper helper, BlockPos pos, String name) {
         var player = new EchoPlayer(helper, name);
-        player.setPos(helper.absoluteVec(net.minecraft.world.phys.Vec3.atBottomCenterOf(pos)));
+        player.setPos(helper.absoluteVec(Vec3.atBottomCenterOf(pos)));
         return player;
     }
 
@@ -117,7 +126,7 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
         // 横に構える銃の射出高と散弾を受けられる標的にし、命中判定の境界から倍率検証を分離する。
         // 1.20.1にはscale属性がないため、手動tick検証中に固定する標的の当たり判定を2倍にする。
         var targetWidth = target.getBbWidth();
-        target.setBoundingBox(new net.minecraft.world.phys.AABB(
+        target.setBoundingBox(new AABB(
                 target.getX() - targetWidth, target.getY(), target.getZ() - targetWidth,
                 target.getX() + targetWidth, target.getY() + target.getBbHeight() * 2, target.getZ() + targetWidth));
         target.getAttribute(Attributes.MAX_HEALTH).setBaseValue(1000);
@@ -127,7 +136,7 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
         var initialHealth = target.getHealth();
         var magic = MagicData.getPlayerMagicData(player);
         magic.setMana(10000);
-        var weapons = new java.util.ArrayList<SummonWeaponEntity>();
+        var weapons = new ArrayList<SummonWeaponEntity>();
         try {
             // 散弾の拡散を固定し、通常発動と追加発動の命中条件をそろえる。
             helper.getLevel().getRandom().setSeed(451);
@@ -158,8 +167,8 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
                     "Weapon must deal actual damage: " + spell.getSpellId() + " repeated=" + repeated
                             + " target=" + target.getBoundingBox() + " weapon=" + weapon.position()
                             + " eye=" + weapon.getEyePosition() + " look=" + weapon.getLookAngle()
-                            + " aim=" + jp.aquafactory.apprenticecodex.utility.RaycastTools.raycastFromEye(player, 8, 1, e -> e == target)
-                            + " ray=" + jp.aquafactory.apprenticecodex.utility.RaycastTools.raycast(weapon, weapon.getLookAngle(), 8, 0.25, e -> e == target));
+                            + " aim=" + RaycastTools.raycastFromEye(player, 8, 1, e -> e == target)
+                            + " ray=" + RaycastTools.raycast(weapon, weapon.getLookAngle(), 8, 0.25, e -> e == target));
             helper.assertTrue(weapon.isRemoved(), "Weapon must expire after attacking: " + spell.getSpellId());
             if (weapon instanceof HiganbanaKatanaEntity katana) {
                 helper.assertTrue(katana.getRemainingSlashCount() == 0, "Higanbana must finish all four slashes");
@@ -266,8 +275,8 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
         var magic = MagicData.getPlayerMagicData(player);
         var broken = new Shiden() {
             @Override
-            protected void prepareWeaponForRelease(net.minecraft.world.level.Level level, int spellLevel,
-                                                   net.minecraft.world.entity.LivingEntity entity, MagicData data, @NotNull ShidenKatanaEntity weapon) {
+            protected void prepareWeaponForRelease(Level level, int spellLevel,
+                                                   LivingEntity entity, MagicData data, @NotNull ShidenKatanaEntity weapon) {
                 throw new IllegalStateException("Expected test failure during weapon preparation");
             }
         };
@@ -290,7 +299,7 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
         var weapon = ((AbstractSummonWeaponSpell<?>) spell).onCastNoWeapon(helper.getLevel(), 1, player, MagicData.getPlayerMagicData(player));
         var target = spawnPositionedZombie(helper.getLevel(), player.position().add(0, 0, 3));
         var source = CombatTools.getDamageSource(helper.getLevel(), weapon, player,
-                jp.aquafactory.apprenticecodex.damage.DamageTypes.SHIDEN);
+                DamageTypes.SHIDEN);
         var profile = new MulticastEchoStaffAttackProfile(0.25, true, true, true, 2, 1);
         try (var config = ApprenticeCodexServerConfig.useMulticastEchoStaffAttackConfigOverrideForGameTest(true, 1.0);
              var profiles = MulticastEchoStaffAttackProfileManager.useProfilesForGameTest(Map.of(spell.getSpellResource(), profile))) {

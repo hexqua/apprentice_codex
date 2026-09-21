@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.shield;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.event.KnockbackControlEvent;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeEvents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -83,7 +84,7 @@ public final class ImbueShieldBlockCastEvent {
         event.setShieldTakesDamage(false);
         applyBulwarkDurability(event.getOriginalBlockedDamage(), player, shieldStack, player.getUsedItemHand());
         BulwarkGreatshieldRuntime.tryRecoverMana(player);
-        jp.aquafactory.apprenticecodex.event.KnockbackControlEvent.markIgnoreKnockbackThisTick(player);
+        KnockbackControlEvent.markIgnoreKnockbackThisTick(player);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

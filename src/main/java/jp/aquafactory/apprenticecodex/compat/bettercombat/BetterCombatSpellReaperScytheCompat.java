@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.compat.bettercombat;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
+import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowManager;
 import jp.aquafactory.apprenticecodex.mixin.BetterCombatWeaponRegistryAccessor;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.bettercombat.api.WeaponAttributes;
@@ -23,7 +24,7 @@ public final class BetterCombatSpellReaperScytheCompat {
             ItemStack stack,
             WeaponAttributes originalAttributes
     ) {
-        if (jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowManager.isThrown(stack)) return null;
+        if (ScytheThrowManager.isThrown(stack)) return null;
         if (!stack.is(ItemRegistry.SPELL_REAPER_SCYTHE.get())
                 || !MalumSpellReaperScytheBridge.shouldUseNoSweepCombo(player)) {
             return originalAttributes;

@@ -8,6 +8,8 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.item.UniqueItem;
+import io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceSpellLevelEvent;
@@ -27,6 +29,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -34,6 +37,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -43,6 +47,8 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.fml.ModList;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.UUID;
 
 final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenarios {
@@ -59,7 +65,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
                     "Spell Side Edge durability should be 1561 but got " + stack.getMaxDamage());
             helper.assertTrue(item.getEnchantmentValue(stack) == 22,
                     "Spell Side Edge enchantability should be 22 but got " + item.getEnchantmentValue(stack));
-            helper.assertTrue(item instanceof io.redspace.ironsspellbooks.item.UniqueItem,
+            helper.assertTrue(item instanceof UniqueItem,
                     "Spell Side Edge should be a UniqueItem");
 
             var spellContainer = ISpellContainer.get(stack);
@@ -92,7 +98,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_side_edge_use_test");
             player.setItemInHand(InteractionHand.MAIN_HAND, stack.copy());
             var useResult = stack.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(useResult.getResult() == net.minecraft.world.InteractionResult.PASS,
+            helper.assertTrue(useResult.getResult() == InteractionResult.PASS,
                     "Spell Side Edge should keep vanilla sword right-click behavior but got "
                             + useResult.getResult());
         });
@@ -241,13 +247,13 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
         helper.succeedIf(() -> {
             var stack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.ARTIFICER_STAFF.get());
             var upgradeRegistry = helper.getLevel().registryAccess().registryOrThrow(
-                    io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.UPGRADE_ORB_REGISTRY_KEY
+                    UpgradeOrbTypeRegistry.UPGRADE_ORB_REGISTRY_KEY
             );
             var upgradeHolder = upgradeRegistry.getHolderOrThrow(
-                    io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry.MANA
+                    UpgradeOrbTypeRegistry.MANA
             );
             var upgradeData = new UpgradeData(
-                    java.util.Map.of(upgradeHolder, 3),
+                    Map.of(upgradeHolder, 3),
                     EquipmentSlot.MAINHAND.getName()
             );
             UpgradeData.set(stack, upgradeData);
@@ -771,7 +777,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
         });
     }
 
-    private static void equipSpellSideEdgePair(net.minecraft.world.entity.player.Player player) {
+    private static void equipSpellSideEdgePair(Player player) {
         var mainhand = ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance();
         player.setItemInHand(InteractionHand.MAIN_HAND, mainhand);
         player.setItemInHand(InteractionHand.OFF_HAND, SpellSideEdgeMirror.create(UUID.randomUUID(), mainhand));
@@ -786,7 +792,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
             double amount,
             AttributeModifier.Operation operation
     ) {
-        return new AttributeModifier(UUID.nameUUIDFromBytes(name.getBytes(java.nio.charset.StandardCharsets.UTF_8)),
+        return new AttributeModifier(UUID.nameUUIDFromBytes(name.getBytes(StandardCharsets.UTF_8)),
                 name, amount, operation);
     }
 
@@ -800,7 +806,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
         return stack;
     }
 
-    private static MagicData resolveMagicData(GameTestHelper helper, net.minecraft.world.entity.player.Player player) {
+    private static MagicData resolveMagicData(GameTestHelper helper, Player player) {
         var magicData = MagicData.getPlayerMagicData(player);
         helper.assertTrue(magicData != null, "Edge Dancer test could not resolve player magic data");
         return magicData;

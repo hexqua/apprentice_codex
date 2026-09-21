@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.recipe.smithing;
 
+import io.redspace.ironsspellbooks.item.consumables.SimpleElixir;
 import jp.aquafactory.apprenticecodex.item.flask.AbstractPotionFlaskItem;
 import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
@@ -17,6 +18,7 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.SmithingRecipe;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.common.ForgeHooks;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.stream.Stream;
@@ -135,7 +137,7 @@ public final class AlchemistsFlaskSmithingRecipe implements SmithingRecipe {
 
     @Override
     public boolean isIncomplete() {
-        return Stream.of(template, base, addition).anyMatch(net.minecraftforge.common.ForgeHooks::hasNoElements);
+        return Stream.of(template, base, addition).anyMatch(ForgeHooks::hasNoElements);
     }
 
     private static boolean canConvertStoredItem(ItemStack baseStack) {
@@ -154,7 +156,7 @@ public final class AlchemistsFlaskSmithingRecipe implements SmithingRecipe {
             return converted;
         }
 
-        if (storedItem.getItem() instanceof io.redspace.ironsspellbooks.item.consumables.SimpleElixir) {
+        if (storedItem.getItem() instanceof SimpleElixir) {
             var converted = storedItem.copy();
             converted.setCount(1);
             return converted;

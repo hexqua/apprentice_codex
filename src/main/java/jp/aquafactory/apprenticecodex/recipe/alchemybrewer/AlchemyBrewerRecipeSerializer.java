@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.recipe.alchemybrewer;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -37,7 +38,7 @@ public final class AlchemyBrewerRecipeSerializer implements RecipeSerializer<Alc
     private static ResourceLocation readResourceLocation(JsonObject json, String field) {
         var value = GsonHelper.getAsString(json, field);
         var id = ResourceLocation.tryParse(value);
-        if (id == null) throw new com.google.gson.JsonParseException("Invalid resource location in " + field + ": " + value);
+        if (id == null) throw new JsonParseException("Invalid resource location in " + field + ": " + value);
         return id;
     }
 }

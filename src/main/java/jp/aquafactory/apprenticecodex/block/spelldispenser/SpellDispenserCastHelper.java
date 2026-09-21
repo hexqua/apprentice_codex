@@ -24,6 +24,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -1152,7 +1153,7 @@ public final class SpellDispenserCastHelper {
 
         private final CapturingFakePlayer player;
 
-        private CapturingFakePlayerNetHandler(net.minecraft.server.MinecraftServer server, CapturingFakePlayer player) {
+        private CapturingFakePlayerNetHandler(MinecraftServer server, CapturingFakePlayer player) {
             super(server, DUMMY_CONNECTION, player);
             this.player = player;
         }

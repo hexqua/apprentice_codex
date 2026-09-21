@@ -15,6 +15,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
@@ -30,6 +31,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 
@@ -380,7 +382,7 @@ public class UniteLunaMoonEntity extends Projectile implements AntiMagicSuscepti
     private boolean moveWithImpactCheck(double speed) {
         setDeltaMovement(movementDirection.scale(speed));
         var hitResult = findImpactResult(getDeltaMovement());
-        if (hitResult != null && !net.minecraftforge.event.ForgeEventFactory.onProjectileImpact(this, hitResult)) {
+        if (hitResult != null && !ForgeEventFactory.onProjectileImpact(this, hitResult)) {
             onHit(hitResult);
         }
         if (isRemoved() || getPhase() == PHASE_BURST) {
@@ -575,7 +577,7 @@ public class UniteLunaMoonEntity extends Projectile implements AntiMagicSuscepti
         }
     }
 
-    private Vec3 createBurstShellOffset(net.minecraft.util.RandomSource random) {
+    private Vec3 createBurstShellOffset(RandomSource random) {
         var halfExtent = getBurstCubeSize() * 0.5f;
         var shellExtent = halfExtent * Mth.lerp(random.nextFloat(), 0.82f, 1.0f);
         var face = random.nextInt(6);

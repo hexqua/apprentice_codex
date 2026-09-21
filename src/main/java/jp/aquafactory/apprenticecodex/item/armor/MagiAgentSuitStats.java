@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.armor;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.sounds.SoundEvent;
@@ -32,7 +33,7 @@ public final class MagiAgentSuitStats {
     private static final float KNOCKBACK_RESISTANCE = 0.0F;
     private static final SoundEvent EQUIP_SOUND = SoundRegistry.VANILLA_ARMOR_EQUIP_ROBE.get();
     private static final Supplier<Ingredient> REPAIR_INGREDIENT =
-            () -> Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.MAGIC_CLOTH.get());
+            () -> Ingredient.of(ItemRegistry.MAGIC_CLOTH.get());
 
     private static final Map<ArmorItem.Type, Integer> BASE_DURABILITY = Map.of(
             ArmorItem.Type.HELMET, 11,

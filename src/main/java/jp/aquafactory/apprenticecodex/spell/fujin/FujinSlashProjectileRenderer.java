@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -19,7 +20,7 @@ public class FujinSlashProjectileRenderer extends EntityRenderer<FujinSlashProje
     private static final float SECONDARY_INTENSITY = 0.5F;
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/entity/fujin_slash.png");
-    private static final net.minecraft.client.renderer.RenderType RENDER_TYPE =
+    private static final RenderType RENDER_TYPE =
             ApprenticeRenderTypes.entityAdditiveGlowNoCull("fujin_slash_additive", TEXTURE);
 
     public FujinSlashProjectileRenderer(EntityRendererProvider.Context context) {

@@ -23,6 +23,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -44,6 +45,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 public final class AlchemyBrewerBlockEntity extends BlockEntity {
     public static final int TANK_CAPACITY_MB = 1000;
@@ -231,7 +233,7 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
         var nextPotion = candidate == null ? null : candidate.result;
         var nextAmount = candidate == null ? 0 : candidate.amountMb;
         var nextTotalTicks = candidate == null ? 0 : candidate.totalTicks;
-        if (java.util.Objects.equals(previewPotion, nextPotion)
+        if (Objects.equals(previewPotion, nextPotion)
                 && previewAmountMb == nextAmount
                 && previewTotalTicks == nextTotalTicks) return;
         previewPotion = nextPotion;
@@ -463,7 +465,7 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
         if (tag.contains("Inventory", Tag.TAG_COMPOUND)) inventory.deserializeNBT(tag.getCompound("Inventory"));
         autoBrewing = tag.getBoolean("AutoBrewing");
         tankPotion = tag.contains("TankPotion", Tag.TAG_STRING) ? ResourceLocation.tryParse(tag.getString("TankPotion")) : null;
-        tankAmountMb = net.minecraft.util.Mth.clamp(tag.getInt("TankAmountMb"), 0, TANK_CAPACITY_MB);
+        tankAmountMb = Mth.clamp(tag.getInt("TankAmountMb"), 0, TANK_CAPACITY_MB);
         activeJob = tag.contains("ActiveJob", Tag.TAG_COMPOUND) ? Job.load(tag.getCompound("ActiveJob")) : null;
     }
 
@@ -549,8 +551,8 @@ public final class AlchemyBrewerBlockEntity extends BlockEntity {
                 if (!stack.isEmpty()) reserved.add(stack);
             }
             int total = tag.getInt("TotalTicks");
-            return new Job(base, modifier, result, net.minecraft.util.Mth.clamp(tag.getInt("AmountMb"), 250, 1000), total,
-                    net.minecraft.util.Mth.clamp(tag.getInt("ElapsedTicks"), 0, total), reserved);
+            return new Job(base, modifier, result, Mth.clamp(tag.getInt("AmountMb"), 250, 1000), total,
+                    Mth.clamp(tag.getInt("ElapsedTicks"), 0, total), reserved);
         }
     }
 

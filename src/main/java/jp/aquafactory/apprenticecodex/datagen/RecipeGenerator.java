@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.advancements.Advancement;
@@ -1741,7 +1742,7 @@ public final class RecipeGenerator extends RecipeProvider {
 
         @Override
         public void serializeRecipeData(JsonObject json) {
-            var conditions = new com.google.gson.JsonArray();
+            var conditions = new JsonArray();
             var modLoadedCondition = new JsonObject();
             modLoadedCondition.addProperty("type", "forge:mod_loaded");
             modLoadedCondition.addProperty("modid", "malum");
@@ -1753,7 +1754,7 @@ public final class RecipeGenerator extends RecipeProvider {
             json.addProperty("itemIdRegex", "");
             json.addProperty("modIdRegex", "");
 
-            var inputArray = new com.google.gson.JsonArray();
+            var inputArray = new JsonArray();
             for (var input : inputs) {
                 inputArray.add(ForgeRegistries.ITEMS.getKey(input).toString());
             }
@@ -1764,7 +1765,7 @@ public final class RecipeGenerator extends RecipeProvider {
             repairMaterialJson.addProperty("count", repairMaterialCount);
             json.add("repairMaterial", repairMaterialJson);
 
-            var spiritArray = new com.google.gson.JsonArray();
+            var spiritArray = new JsonArray();
             for (var spirit : spirits) {
                 spiritArray.add(spirit.toJson());
             }
@@ -1795,14 +1796,14 @@ public final class RecipeGenerator extends RecipeProvider {
 
         @Override
         public void serializeRecipeData(JsonObject json) {
-            var conditions = new com.google.gson.JsonArray();
+            var conditions = new JsonArray();
             var modLoaded = new JsonObject();
             modLoaded.addProperty("type", "forge:mod_loaded");
             modLoaded.addProperty("modid", "malum");
             conditions.add(modLoaded);
             json.add("conditions", conditions);
 
-            var pattern = new com.google.gson.JsonArray();
+            var pattern = new JsonArray();
             pattern.add("HAH");
             pattern.add(" S ");
             pattern.add(" S ");
@@ -1839,9 +1840,9 @@ public final class RecipeGenerator extends RecipeProvider {
             var hasIngot = new JsonObject();
             hasIngot.addProperty("trigger", "minecraft:inventory_changed");
             var hasIngotConditions = new JsonObject();
-            var predicates = new com.google.gson.JsonArray();
+            var predicates = new JsonArray();
             var predicate = new JsonObject();
-            var items = new com.google.gson.JsonArray();
+            var items = new JsonArray();
             items.add("malum:soul_stained_steel_ingot");
             predicate.add("items", items);
             predicates.add(predicate);
@@ -1857,15 +1858,15 @@ public final class RecipeGenerator extends RecipeProvider {
             criteria.add("has_the_recipe", hasRecipe);
             root.add("criteria", criteria);
 
-            var requirements = new com.google.gson.JsonArray();
-            var alternatives = new com.google.gson.JsonArray();
+            var requirements = new JsonArray();
+            var alternatives = new JsonArray();
             alternatives.add("has_soul_stained_steel_ingot");
             alternatives.add("has_the_recipe");
             requirements.add(alternatives);
             root.add("requirements", requirements);
 
             var rewards = new JsonObject();
-            var recipes = new com.google.gson.JsonArray();
+            var recipes = new JsonArray();
             recipes.add(id.toString());
             rewards.add("recipes", recipes);
             root.add("rewards", rewards);
@@ -1873,12 +1874,12 @@ public final class RecipeGenerator extends RecipeProvider {
             var condition = new JsonObject();
             condition.addProperty("type", "forge:mod_loaded");
             condition.addProperty("modid", "malum");
-            var conditions = new com.google.gson.JsonArray();
+            var conditions = new JsonArray();
             conditions.add(condition);
             var entry = new JsonObject();
             entry.add("conditions", conditions);
             entry.add("advancement", root);
-            var advancements = new com.google.gson.JsonArray();
+            var advancements = new JsonArray();
             advancements.add(entry);
             var conditionalRoot = new JsonObject();
             conditionalRoot.add("advancements", advancements);
@@ -1906,7 +1907,7 @@ public final class RecipeGenerator extends RecipeProvider {
 
         @Override
         public void serializeRecipeData(JsonObject json) {
-            var conditions = new com.google.gson.JsonArray();
+            var conditions = new JsonArray();
             var modLoadedCondition = new JsonObject();
             modLoadedCondition.addProperty("type", "forge:mod_loaded");
             modLoadedCondition.addProperty("modid", "malum");
@@ -1915,7 +1916,7 @@ public final class RecipeGenerator extends RecipeProvider {
 
             json.addProperty("type", "malum:spirit_infusion");
 
-            var extraItemsJson = new com.google.gson.JsonArray();
+            var extraItemsJson = new JsonArray();
             for (var extraItem : extraItems) {
                 extraItemsJson.add(extraItem.toJson());
             }
@@ -1923,7 +1924,7 @@ public final class RecipeGenerator extends RecipeProvider {
             json.add("input", itemStackJson(input, 1));
             json.add("output", itemStackJson(output, 1));
 
-            var spiritArray = new com.google.gson.JsonArray();
+            var spiritArray = new JsonArray();
             for (var spirit : spirits) {
                 spiritArray.add(spirit.toJson());
             }

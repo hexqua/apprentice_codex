@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
+import io.redspace.ironsspellbooks.entity.spells.shield.ShieldRenderer;
 import io.redspace.ironsspellbooks.render.SpellBookCurioRenderer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.antimanaarrow.AntiManaArrowRenderer;
@@ -24,6 +25,7 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentTooltip;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
 import jp.aquafactory.apprenticecodex.item.magicitem.client.WoodenWandClientRenderState;
 import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
+import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowRenderer;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticle;
 import jp.aquafactory.apprenticecodex.particle.AdditiveRhombusParticle;
 import jp.aquafactory.apprenticecodex.particle.ImpactTremorBlockParticle;
@@ -47,6 +49,7 @@ import jp.aquafactory.apprenticecodex.renderer.curio.CircletCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.MagiCompressorGadgetCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.ManaManeuverGearCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.ManaThrusterCurioRenderer;
+import jp.aquafactory.apprenticecodex.renderer.curio.QuickcastScrollCartridgeCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.SpellcasterAmmoPouchCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.SpellcasterQuiverCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.extrudedsprite.ExtrudedSpriteManager;
@@ -84,6 +87,7 @@ import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingRenderer;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterLauncherRenderer;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileRenderer;
 import jp.aquafactory.apprenticecodex.spell.fieldoverseer.FieldOverseerStaffRenderer;
+import jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrowRenderer;
 import jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAimArrowRenderer;
 import jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowRenderer;
 import jp.aquafactory.apprenticecodex.spell.servantgaze.ServantGazeProjectileRenderer;
@@ -186,7 +190,7 @@ public final class ClientModBusEvents {
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.SPELLCASTER_AMMO_POUCH.get(), SpellcasterAmmoPouchCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.SPELLCASTER_QUIVER.get(), SpellcasterQuiverCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.QUICKCAST_SCROLL_CARTRIDGE.get(),
-                jp.aquafactory.apprenticecodex.renderer.curio.QuickcastScrollCartridgeCurioRenderer::new));
+                QuickcastScrollCartridgeCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.FLOATMOUNT_BROOM.get(), BroomCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.HOVERRIDE_BROOM.get(), BroomCurioRenderer::new));
         event.enqueueWork(() -> CuriosRendererRegistry.register(ItemRegistry.ASHEN_CIRCLET.get(), AshenCircletCurioRenderer::new));
@@ -354,8 +358,8 @@ public final class ClientModBusEvents {
 
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(EntityRegistry.LIGHTNING_ARROW.get(),
-                jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrowRenderer::new);
-        event.registerEntityRenderer(EntityRegistry.SUPPORTED_SHIELD.get(), io.redspace.ironsspellbooks.entity.spells.shield.ShieldRenderer::new);
+                LightningArrowRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.SUPPORTED_SHIELD.get(), ShieldRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.ALCHEMY_BREWER.get(), AlchemyBrewerBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.ATELIER_STATION.get(), AtelierStationBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(BlockEntityRegistry.ARCANUM_IN_A_JAR.get(), ArcanumInAJarBlockEntityRenderer::new);
@@ -368,7 +372,7 @@ public final class ClientModBusEvents {
         event.registerBlockEntityRenderer(BlockEntityRegistry.RIFT_HOLE.get(), RiftHoleBlockEntityRenderer::new);
 
         event.registerEntityRenderer(EntityRegistry.SKY_EDGE_PROJECTILE.get(), SkyEdgeProjectileRenderer::new);
-        event.registerEntityRenderer(EntityRegistry.SCYTHE_THROW.get(), jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.SCYTHE_THROW.get(), ScytheThrowRenderer::new);
         event.registerEntityRenderer(EntityRegistry.INSCRIBE_ICE_DAGGER.get(), InscribeIceDaggerRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ANCHOR_BLINK_DAGGER.get(), AnchorBlinkDaggerRenderer::new);
         event.registerEntityRenderer(EntityRegistry.MANA_FORCE_BLADE_PROJECTILE.get(), ManaForceBladeProjectileRenderer::new);

@@ -12,11 +12,15 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.common.util.FakePlayer;
+import yesman.epicfight.gameasset.EpicFightSkills;
 import yesman.epicfight.skill.Skill;
 import yesman.epicfight.skill.SkillContainer;
 import yesman.epicfight.skill.SkillSlots;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
+
+import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
+import java.util.UUID;
 
 // optional型はGameTest入口クラスから分離し、Epic Fightがある場合だけ読み込む。
 final class ScytheEpicFightTestHelper {
@@ -122,10 +126,10 @@ final class ScytheEpicFightTestHelper {
             ScytheThrowManager.launchNormal(c.player, c.player.getMainHandItem(), 10);
             var thrown = ScytheThrowManager.active(c.player);
             var combo = c.patch.getSkill(SkillSlots.BASIC_ATTACK);
-            combo.setSkill(yesman.epicfight.gameasset.EpicFightSkills.BASIC_ATTACK);
+            combo.setSkill(EpicFightSkills.BASIC_ATTACK);
             // 標準はResource.NONE。プレイヤー限定の消費イベントでスタミナ設定時の拒否経路も通す。
-            c.patch.getEventListener().addEventListener(yesman.epicfight.world.entity.eventlistener.PlayerEventListener.EventType.SKILL_CONSUME_EVENT,
-                    java.util.UUID.fromString("becc574b-2c73-4c38-bc61-7a7d924c47f6"),
+            c.patch.getEventListener().addEventListener(PlayerEventListener.EventType.SKILL_CONSUME_EVENT,
+                    UUID.fromString("becc574b-2c73-4c38-bc61-7a7d924c47f6"),
                     event -> {
                         if (event.getSkill() == combo.getSkill()) {
                             event.setResourceType(Skill.Resource.STAMINA);

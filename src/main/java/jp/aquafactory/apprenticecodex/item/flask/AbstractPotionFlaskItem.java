@@ -37,6 +37,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -962,7 +963,7 @@ public abstract class AbstractPotionFlaskItem extends Item {
     }
 
     protected static int getEnchantmentLevel(ItemStack stack,
-                                             net.minecraftforge.registries.RegistryObject<Enchantment> enchantment) {
+                                             RegistryObject<Enchantment> enchantment) {
         return enchantment.isPresent() ? stack.getEnchantmentLevel(enchantment.get()) : 0;
     }
 

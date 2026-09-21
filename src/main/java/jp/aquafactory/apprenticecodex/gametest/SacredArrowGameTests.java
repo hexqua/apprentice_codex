@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
+import io.redspace.ironsspellbooks.util.ModTags;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.*;
 import jp.aquafactory.apprenticecodex.spell.sacredarrow.*;
@@ -14,6 +15,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.util.FakePlayer;
@@ -68,9 +70,9 @@ public final class SacredArrowGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void searchBoundsAlliesAndDirectCast(GameTestHelper h) {
         // 射程境界はtemplateの強制読込範囲を越える。検索対象を登録する前にchunkを準備する。
-        var addedChunks = new java.util.HashSet<Long>();
+        var addedChunks = new HashSet<Long>();
         for (int x : new int[]{49, 51}) {
-            var pos = new net.minecraft.world.level.ChunkPos(h.absolutePos(new BlockPos(x, 0, 2)));
+            var pos = new ChunkPos(h.absolutePos(new BlockPos(x, 0, 2)));
             if (!h.getLevel().getForcedChunks().contains(pos.toLong())) {
                 addedChunks.add(pos.toLong());
                 h.getLevel().setChunkForced(pos.x, pos.z, true);
@@ -94,7 +96,7 @@ public final class SacredArrowGameTests {
                     h.assertTrue(target.getUUID().equals(selected), "Inside the 48 block AABB must lock: selected=" + selected
                             + ", alive=" + target.isAlive() + ", removed=" + target.isRemoved()
                             + ", valid=" + SacredArrowEntity.isLiveTarget(target, s.owner)
-                            + ", visible=" + h.getLevel().getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class,
+                            + ", visible=" + h.getLevel().getEntitiesOfClass(LivingEntity.class,
                                     s.owner.getBoundingBox().inflate(48)).contains(target)
                             + ", registered=" + (h.getLevel().getEntity(target.getUUID()) == target)
                             + ", marked=" + target.hasEffect(EffectRegistry.SACRED_SIGN.get())
@@ -115,7 +117,7 @@ public final class SacredArrowGameTests {
                 h.succeed();
             } finally {
                 for (long chunk : addedChunks) {
-                    var pos = new net.minecraft.world.level.ChunkPos(chunk);
+                    var pos = new ChunkPos(chunk);
                     h.getLevel().setChunkForced(pos.x, pos.z, false);
                 }
             }
@@ -227,7 +229,7 @@ public final class SacredArrowGameTests {
                     arrow.discard();
                 }
             } finally { h.getLevel().setBlockAndUpdate(block, previous); }
-            h.assertTrue(EntityRegistry.SACRED_ARROW.get().is(io.redspace.ironsspellbooks.util.ModTags.GUIDING_BOLT_IMMUNE), "Both arrow modes must be immune to Guided steering");
+            h.assertTrue(EntityRegistry.SACRED_ARROW.get().is(ModTags.GUIDING_BOLT_IMMUNE), "Both arrow modes must be immune to Guided steering");
             target.addEffect(new MobEffectInstance(EffectRegistry.SACRED_SIGN.get(), 300));
             h.assertTrue(target.isCurrentlyGlowing(), "Sacred Sign must enable glowing");
             target.addEffect(new MobEffectInstance(MobEffects.GLOWING, 300));

@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.spellreaperscythe;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.client.Minecraft;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -15,7 +16,7 @@ import java.util.List;
 public final class ScytheRecallRenderEvent {
     private record Trail(Vec3 from, Vec3 to, long time, int color, boolean narrow, float yaw) {}
     private static final List<Trail> TRAILS = new ArrayList<>();
-    private static net.minecraft.client.multiplayer.ClientLevel world;
+    private static ClientLevel world;
     private ScytheRecallRenderEvent() {}
     public static void add(Vec3 from, Vec3 to, int color, boolean narrow, float yaw) {
         var level = Minecraft.getInstance().level;

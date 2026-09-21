@@ -28,6 +28,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraftforge.common.ForgeHooks;
 import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("deprecation")
@@ -80,11 +81,11 @@ public class ComfortBerryBushBlock extends BushBlock implements BonemealableBloc
         int age = state.getValue(AGE);
         if (age < MAX_AGE
                 && level.getRawBrightness(pos.above(), 0) >= 9
-                && net.minecraftforge.common.ForgeHooks.onCropsGrowPre(level, pos, state, random.nextInt(6) == 0)) {
+                && ForgeHooks.onCropsGrowPre(level, pos, state, random.nextInt(6) == 0)) {
             var grown = state.setValue(AGE, age + 1);
             level.setBlock(pos, grown, 2);
             level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(grown));
-            net.minecraftforge.common.ForgeHooks.onCropsGrowPost(level, pos, state);
+            ForgeHooks.onCropsGrowPost(level, pos, state);
         }
     }
 

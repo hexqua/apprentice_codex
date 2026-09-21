@@ -10,8 +10,10 @@ import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -43,6 +45,7 @@ import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -96,7 +99,7 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
     private boolean reservesInstantBrazier;
     private boolean resetsSpellCooldownOnCancel;
     private String targetLabel = "";
-    private @Nullable net.minecraft.resources.ResourceLocation ignoredOfferItemId;
+    private @Nullable ResourceLocation ignoredOfferItemId;
     private int ignoredOfferUntilTick;
     private @Nullable SearchBeaconSearchService.SearchSession searchSession;
     private @Nullable SearchBeaconSearchService.SearchResult searchResult;
@@ -361,7 +364,7 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
             return;
         }
 
-        var result = searchResult != null ? searchResult : new SearchBeaconSearchService.SearchResult(java.util.List.of());
+        var result = searchResult != null ? searchResult : new SearchBeaconSearchService.SearchResult(List.of());
         if (result.isEmpty()) {
             sendOwnerActionBar(Component.translatable(
                     "ui.apprenticecodex.search_beacon.entity.not_found",
@@ -747,11 +750,11 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
     }
 
     @Override
-    public void readAdditionalSaveData(@NotNull net.minecraft.nbt.CompoundTag compoundTag) {
+    public void readAdditionalSaveData(@NotNull CompoundTag compoundTag) {
     }
 
     @Override
-    public void addAdditionalSaveData(@NotNull net.minecraft.nbt.CompoundTag compoundTag) {
+    public void addAdditionalSaveData(@NotNull CompoundTag compoundTag) {
     }
 
     @Override

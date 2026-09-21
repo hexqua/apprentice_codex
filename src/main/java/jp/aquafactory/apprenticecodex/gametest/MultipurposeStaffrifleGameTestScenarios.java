@@ -3,6 +3,8 @@ package jp.aquafactory.apprenticecodex.gametest;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 
 import java.util.ArrayList;
@@ -48,7 +50,7 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
                     "Multipurpose Staffrifle should not add attack speed modifiers");
             assertSingleModifierAmount(
                     helper,
-                    modifiers.get(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.SPELL_POWER.get()),
+                    modifiers.get(AttributeRegistry.SPELL_POWER.get()),
                     AttributeModifier.Operation.MULTIPLY_BASE,
                     0.10D,
                     "Multipurpose Staffrifle spell power modifier changed"
@@ -149,7 +151,7 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
             var ammoStack = new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 1);
             player.getInventory().add(ammoStack);
 
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var spell = SpellRegistry.MAGIC_MISSILE_SPELL.get();
             var magicData = MagicData.getPlayerMagicData(player);
             magicData.setPlayerCastingItem(stack);
             try (var ignored = MultipurposeStaffrifleCastContext.open(player.getUUID(), stack, spell, true)) {
@@ -183,7 +185,7 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
             helper.assertFalse(stack.getItem() instanceof ManaBypassSpellItem,
                     "Multipurpose Staffrifle should not bypass mana consumption");
 
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var spell = SpellRegistry.MAGIC_MISSILE_SPELL.get();
             var manaCost = spell.getManaCost(1);
             var magicData = MagicData.getPlayerMagicData(player);
             magicData.setPlayerCastingItem(stack);
@@ -229,7 +231,7 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
             player.getInventory().add(new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 1));
 
-            var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
+            var spell = SpellRegistry.MAGIC_MISSILE_SPELL.get();
             var magicData = MagicData.getPlayerMagicData(player);
             magicData.setPlayerCastingItem(stack);
             MultipurposeStaffrifleCastContext.rememberPending(

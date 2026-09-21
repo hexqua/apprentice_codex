@@ -1,8 +1,10 @@
 package jp.aquafactory.apprenticecodex.spell.servantgaze;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
+import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.entity.PersistentSummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
@@ -150,7 +152,7 @@ public class ServantGazeStaffEntity extends PersistentSummonWeaponEntity impleme
             projectile.shoot(direction.x, direction.y, direction.z, projectile.getSpeed(), 0.0F);
             level.addFreshEntity(projectile);
             level.playSound(null, start.x, start.y, start.z,
-                    io.redspace.ironsspellbooks.registries.SoundRegistry.ENDER_CAST.get(),
+                    SoundRegistry.ENDER_CAST.get(),
                     SoundSource.PLAYERS, 2.0F, 0.9F + level.random.nextFloat() * 0.2F);
             return;
         }
@@ -236,7 +238,7 @@ public class ServantGazeStaffEntity extends PersistentSummonWeaponEntity impleme
         if (!level().isClientSide && !isRemoved()) {
             var owner = resolvePlayerOwner();
             if (owner != null) ServantGazeManager.cancel(owner,
-                    io.redspace.ironsspellbooks.capabilities.magic.RecastResult.COUNTERSPELL);
+                    RecastResult.COUNTERSPELL);
             else discardForLifecycle();
         }
     }

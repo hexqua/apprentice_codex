@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.spell.combustionjet.CombustionJetWaveEntit
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import net.minecraft.world.entity.monster.Zombie;
@@ -262,7 +263,7 @@ final class CombustionJetGameTestScenarios {
         return zombie;
     }
 
-    private static void discardAll(net.minecraft.world.entity.Entity... entities) {
+    private static void discardAll(Entity... entities) {
         for (var entity : entities) {
             entity.discard();
         }

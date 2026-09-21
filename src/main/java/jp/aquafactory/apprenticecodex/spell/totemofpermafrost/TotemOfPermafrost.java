@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.ClientPlacementPreviewData;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetCaptureSpell;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
@@ -24,6 +25,7 @@ import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -190,7 +192,7 @@ public class TotemOfPermafrost extends AbstractSpell implements IClientBlockTarg
                     AudioTools.playSoundFromEntity(
                             serverLevel,
                             totem,
-                            jp.aquafactory.apprenticecodex.registry.SoundRegistry.VANILLA_INSCRIBE_MANA.get(),
+                            SoundRegistry.VANILLA_INSCRIBE_MANA.get(),
                             SoundSource.PLAYERS,
                             0.9f,
                             1.0f,
@@ -230,7 +232,7 @@ public class TotemOfPermafrost extends AbstractSpell implements IClientBlockTarg
 
         var targetData = new BlockTargetData();
         var hitPos = castData.position.below();
-        targetData.setTarget(hitPos, net.minecraft.core.Direction.UP, castData.position.getCenter(), castData.position, net.minecraft.core.Direction.DOWN);
+        targetData.setTarget(hitPos, Direction.UP, castData.position.getCenter(), castData.position, Direction.DOWN);
         return PlacementHelper.resolve(level, targetData, TotemOfPermafrostTotemEntity::makePlacementAabb);
     }
 

@@ -1,9 +1,18 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import com.google.common.collect.Multimap;
 import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.api.config.SpellConfigManager;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
+import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowScrollStorage;
+import net.minecraft.world.level.GameType;
+import net.minecraftforge.event.OnDatapackSyncEvent;
+import top.theillusivec4.curios.api.CuriosApi;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -78,7 +87,7 @@ final class BowGameTestSupport {
 
     static FakePlayer createEquipmentTestPlayer(GameTestHelper helper, BlockPos pos, String profileName) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), profileName));
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
         player.setPos(absolutePos.x, absolutePos.y, absolutePos.z);
         return player;
@@ -86,7 +95,7 @@ final class BowGameTestSupport {
 
     static FakePlayer createEquipmentTestPlayer(ServerLevel level, BlockPos absolutePos, String profileName) {
         var player = new FakePlayer(level, new GameProfile(UUID.randomUUID(), profileName));
-        player.gameMode.changeGameModeForPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         var absoluteVec = Vec3.atBottomCenterOf(absolutePos);
         player.setPos(absoluteVec.x, absoluteVec.y, absoluteVec.z);
         return player;
@@ -154,12 +163,12 @@ final class BowGameTestSupport {
     }
 
     static void equipCurio(FakePlayer player, String slotId, ItemStack stack) {
-        var curiosInventory = top.theillusivec4.curios.api.CuriosApi.getCuriosInventory(player)
+        var curiosInventory = CuriosApi.getCuriosInventory(player)
                 .orElseThrow(() -> new IllegalStateException("Missing curios inventory for curio equip test"));
         curiosInventory.setEquippedCurio(slotId, 0, stack);
     }
 
-    static <T extends jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity> List<T> getOwnedSummonWeapons(
+    static <T extends SummonWeaponEntity> List<T> getOwnedSummonWeapons(
             GameTestHelper helper,
             FakePlayer owner,
             Class<T> weaponType
@@ -223,7 +232,7 @@ final class BowGameTestSupport {
     }
 
     static void setElementalBowShotSelection(ItemStack stack, String shotMode, @Nullable ResourceLocation selectionId) {
-        jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowScrollStorage.migrate(stack);
+        ElementalBowScrollStorage.migrate(stack);
         if ("magic".equals(shotMode)) prepareElementalBowScrolls(stack);
         var resolvedSelectionId = "magic".equals(shotMode) ? elementalBowSlotId(selectionId) : selectionId;
         { var tag = stack.getOrCreateTag();
@@ -311,7 +320,7 @@ final class BowGameTestSupport {
                 .sum();
     }
 
-    static String describeModifiers(com.google.common.collect.Multimap<Attribute, AttributeModifier> modifiers) {
+    static String describeModifiers(Multimap<Attribute, AttributeModifier> modifiers) {
         return modifiers.entries().stream()
                 .map(entry -> ForgeRegistries.ATTRIBUTES.getKey(entry.getKey()) + "="
                         + entry.getValue().getAmount() + "@" + entry.getValue().getOperation())
@@ -319,7 +328,7 @@ final class BowGameTestSupport {
     }
 
     static ItemStack createSpellScroll(AbstractSpell spell) {
-        var stack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+        var stack = new ItemStack(ItemRegistry.SCROLL.get());
         ISpellContainer.createScrollContainer(spell, 1, stack);
         return stack;
     }
@@ -345,7 +354,7 @@ final class BowGameTestSupport {
             int expectedLevel,
             String message
     ) {
-        helper.assertTrue(spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
+        helper.assertTrue(spellData != SpellData.EMPTY,
                 message + " (spell data is empty)");
         helper.assertTrue(spellData.getSpell() == expectedSpell,
                 message + " (spell mismatch: " + spellData.getSpell().getSpellResource() + ")");
@@ -363,7 +372,7 @@ final class BowGameTestSupport {
             String message
     ) {
         var spellData = spellContainer.getSpellAtIndex(index);
-        helper.assertTrue(spellData != io.redspace.ironsspellbooks.api.spells.SpellData.EMPTY,
+        helper.assertTrue(spellData != SpellData.EMPTY,
                 message + " (spell slot is empty at index " + index + ")");
         helper.assertTrue(spellData.getSpell() == expectedSpell,
                 message + " (spell mismatch: " + spellData.getSpell().getSpellResource() + ")");
@@ -377,13 +386,13 @@ final class BowGameTestSupport {
         setElementalBowShotSelection(stack, "magic", ResourceLocation.tryParse((mode.contains(":") ? mode : "irons_spellbooks:" + mode)));
     }
 
-    static jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig.GameTestConfigOverride useElementalBowSpellConfig(GameTestHelper helper) {
-        var previous = io.redspace.ironsspellbooks.api.config.SpellConfigManager.INSTANCE;
-        io.redspace.ironsspellbooks.api.config.SpellConfigManager.INSTANCE = new io.redspace.ironsspellbooks.api.config.SpellConfigManager();
-        io.redspace.ironsspellbooks.api.config.SpellConfigManager.INSTANCE.handleServerConfigUpdate();
-        io.redspace.ironsspellbooks.api.config.SpellConfigManager.onDatapackSync(
-                new net.minecraftforge.event.OnDatapackSyncEvent(helper.getLevel().getServer().getPlayerList(), null));
-        return () -> io.redspace.ironsspellbooks.api.config.SpellConfigManager.INSTANCE = previous;
+    static ApprenticeCodexServerConfig.GameTestConfigOverride useElementalBowSpellConfig(GameTestHelper helper) {
+        var previous = SpellConfigManager.INSTANCE;
+        SpellConfigManager.INSTANCE = new SpellConfigManager();
+        SpellConfigManager.INSTANCE.handleServerConfigUpdate();
+        SpellConfigManager.onDatapackSync(
+                new OnDatapackSyncEvent(helper.getLevel().getServer().getPlayerList(), null));
+        return () -> SpellConfigManager.INSTANCE = previous;
     }
 
     static ResourceLocation elementalBowSlotId(ResourceLocation school) {
@@ -399,12 +408,12 @@ final class BowGameTestSupport {
     static void prepareElementalBowScrolls(ItemStack stack) {
         var lookup = ElementalBow.serializationLookup();
         var item = (ElementalBow) stack.getItem();
-        var upgrade = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get());
+        var upgrade = new ItemStack(ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get());
         item.trySetCalibrationAdjustment(stack, 0, upgrade);
         item.trySetCalibrationAdjustment(stack, 1, upgrade);
-        var spells = List.of(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_ARROW_SPELL.get(),
-                io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_ARROW_SPELL.get(),
-                io.redspace.ironsspellbooks.api.registry.SpellRegistry.POISON_ARROW_SPELL.get());
+        var spells = List.of(SpellRegistry.FIRE_ARROW_SPELL.get(),
+                SpellRegistry.MAGIC_ARROW_SPELL.get(),
+                SpellRegistry.POISON_ARROW_SPELL.get());
         for (int i = 0; i < spells.size(); i++) {
             if (ElementalBow.getCalibrationScroll(stack, i, lookup).isEmpty()) {
                 var scroll = createSpellScroll(spells.get(i));

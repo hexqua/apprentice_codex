@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -9,21 +10,28 @@ import jp.aquafactory.apprenticecodex.config.item.SpellReaperScytheServerConfig.
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowManager;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -34,11 +42,11 @@ public final class ScytheReboundGameTests {
         var p = new FakePlayer(h.getLevel(), new GameProfile(UUID.randomUUID(), "rebound_test"));
         p.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         // 1.20.1 の構造配置が整地しない高さまで、最大 32 ブロックの縦経路を明示的に空ける。
-        for (int y = 20; y <= 55; y++) h.setBlock(new net.minecraft.core.BlockPos(2, y, 2), net.minecraft.world.level.block.Blocks.AIR);
+        for (int y = 20; y <= 55; y++) h.setBlock(new BlockPos(2, y, 2), Blocks.AIR);
         p.setPos(h.absoluteVec(new Vec3(2.5, 20, 2.5)));
         p.setYRot(0); p.setXRot(-90);
         p.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(10);
-        p.getAttribute(io.redspace.ironsspellbooks.api.registry.AttributeRegistry.MAX_MANA.get()).setBaseValue(10000);
+        p.getAttribute(AttributeRegistry.MAX_MANA.get()).setBaseValue(10000);
         p.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.SPELL_REAPER_SCYTHE.get()));
         MagicData.getPlayerMagicData(p).setMana(mana);
         return p;
@@ -46,16 +54,16 @@ public final class ScytheReboundGameTests {
 
     static void enchant(GameTestHelper h, ItemStack stack, String id, int level) {
         // 1.20.1 の ItemStack.enchant は同じ ID を追記するため、既存レベルを明示的に置換する。
-        var enchantments = net.minecraft.world.item.enchantment.EnchantmentHelper.getEnchantments(stack);
+        var enchantments = EnchantmentHelper.getEnchantments(stack);
         enchantments.put(h.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(
                 ResourceKey.create(Registries.ENCHANTMENT, ResourceLocation.fromNamespaceAndPath("malum", id))).value(), level);
-        net.minecraft.world.item.enchantment.EnchantmentHelper.setEnchantments(enchantments, stack);
+        EnchantmentHelper.setEnchantments(enchantments, stack);
     }
 
     static void use(GameTestHelper h, FakePlayer p) {
         // Entity・装備派生の共通テスト。Epic Fightの入力契約は専用GameTestで検証する。
         if (ScytheThrowManager.active(p) == null && MalumSpellReaperScytheBridge.tryTriggerAscension(
-                h.getLevel(), p, InteractionHand.MAIN_HAND, p.getMainHandItem()) != net.minecraft.world.InteractionResult.PASS) return;
+                h.getLevel(), p, InteractionHand.MAIN_HAND, p.getMainHandItem()) != InteractionResult.PASS) return;
         ScytheThrowManager.use(h.getLevel(), p, InteractionHand.MAIN_HAND);
     }
 
@@ -170,15 +178,15 @@ public final class ScytheReboundGameTests {
         if (!MalumSpellReaperScytheBridge.isAvailable()) { h.succeed(); return; }
         var p = player(h, 100);
         enchant(h, p.getMainHandItem(), "rebound", 1);
-        java.util.function.Consumer<net.minecraftforge.event.entity.EntityJoinLevelEvent> listener = event -> {
+        Consumer<EntityJoinLevelEvent> listener = event -> {
             if (event.getEntity() instanceof ScytheThrowEntity scythe && scythe.getOwner() == p) event.setCanceled(true);
         };
-        net.minecraftforge.common.MinecraftForge.EVENT_BUS.addListener(listener);
+        MinecraftForge.EVENT_BUS.addListener(listener);
         try {
             use(h, p);
             h.assertTrue(ScytheThrowManager.active(p) == null && !ScytheThrowManager.isThrown(p.getMainHandItem())
                     && MagicData.getPlayerMagicData(p).getMana() == 100, "Rejected spawn must not spend mana or leave throw state");
-        } finally { net.minecraftforge.common.MinecraftForge.EVENT_BUS.unregister(listener); }
+        } finally { MinecraftForge.EVENT_BUS.unregister(listener); }
         h.succeed();
     }
 }

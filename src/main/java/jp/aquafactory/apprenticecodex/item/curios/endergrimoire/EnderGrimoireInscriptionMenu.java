@@ -2,8 +2,10 @@ package jp.aquafactory.apprenticecodex.item.curios.endergrimoire;
 
 import io.redspace.ironsspellbooks.api.events.InscribeSpellEvent;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainerMutable;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.Scroll;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.endergrimoire.EnderGrimoireSpellbookSync;
 import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeSchoolPowerBonusEvents;
@@ -60,7 +62,7 @@ public class EnderGrimoireInscriptionMenu extends AbstractContainerMenu {
         this.scrollSlot = this.addSlot(new Slot(scrollContainer, 0, 17, 53) {
             @Override
             public boolean mayPlace(@NotNull ItemStack stack) {
-                return stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+                return stack.is(ItemRegistry.SCROLL.get());
             }
         });
         this.resultSlot = this.addSlot(new Slot(resultContainer, 1, 208, 136) {
@@ -174,7 +176,7 @@ public class EnderGrimoireInscriptionMenu extends AbstractContainerMenu {
         if (isValidSpellIndex(selectedSpellIndex)) {
             var spellData = getSpellContainer().getSpellAtIndex(selectedSpellIndex);
             if (spellData != SpellData.EMPTY && spellData.canRemove()) {
-                resultStack = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
+                resultStack = new ItemStack(ItemRegistry.SCROLL.get());
                 ISpellContainer.createScrollContainer(spellData.getSpell(), spellData.getLevel(), resultStack);
             }
         }
@@ -184,7 +186,7 @@ public class EnderGrimoireInscriptionMenu extends AbstractContainerMenu {
         }
     }
 
-    private boolean editSpellContainer(Predicate<io.redspace.ironsspellbooks.api.spells.ISpellContainerMutable> editor) {
+    private boolean editSpellContainer(Predicate<ISpellContainerMutable> editor) {
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return false;
         }

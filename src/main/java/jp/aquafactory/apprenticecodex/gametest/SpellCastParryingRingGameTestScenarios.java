@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
+import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -20,6 +21,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.Arrow;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
@@ -229,8 +231,8 @@ final class SpellCastParryingRingGameTestScenarios {
     }
 
     private static void equipRing(FakePlayer player) {
-        BowGameTestSupport.equipCurio(player, io.redspace.ironsspellbooks.compat.Curios.RING_SLOT,
-                new net.minecraft.world.item.ItemStack(ItemRegistry.SPELL_CAST_PARRYING_RING.get()));
+        BowGameTestSupport.equipCurio(player, Curios.RING_SLOT,
+                new ItemStack(ItemRegistry.SPELL_CAST_PARRYING_RING.get()));
     }
 
     private static FakePlayer createAttacker(GameTestHelper helper, LivingEntity defender, double xOffset, double yOffset,

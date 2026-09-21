@@ -2,8 +2,10 @@ package jp.aquafactory.apprenticecodex.item;
 
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -24,7 +26,7 @@ public final class ItemManaBypassCastEvent {
         RESERVED_MANA.put(player.getUUID(), borrowedMana);
     }
 
-    public static void reserveBorrowedMana(net.minecraft.world.entity.player.Player player, float borrowedMana) {
+    public static void reserveBorrowedMana(Player player, float borrowedMana) {
         if (player instanceof ServerPlayer serverPlayer) {
             reserveBorrowedMana(serverPlayer, borrowedMana);
         }
@@ -47,7 +49,7 @@ public final class ItemManaBypassCastEvent {
             return;
         }
 
-        var spell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.getSpell(event.getSpellId());
+        var spell = SpellRegistry.getSpell(event.getSpellId());
         if (!manaBypassItem.supportsManaBypass(spell)) {
             releaseBorrowedMana(player, magicData);
             return;

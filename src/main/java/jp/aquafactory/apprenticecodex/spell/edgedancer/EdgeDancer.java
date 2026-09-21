@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdge;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
@@ -166,7 +167,7 @@ public class EdgeDancer extends AbstractSpell {
     }
 
     private static boolean hasGreaterConjurersTalisman(ServerPlayer serverPlayer) {
-        return io.redspace.ironsspellbooks.registries.ItemRegistry.GREATER_CONJURERS_TALISMAN.get()
+        return ItemRegistry.GREATER_CONJURERS_TALISMAN.get()
                 .isEquippedBy(serverPlayer);
     }
 

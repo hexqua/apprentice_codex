@@ -10,6 +10,8 @@ import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
+import java.util.List;
+
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ArcaneAnvilImbueBlockTooltipEvent {
     private static final String CAN_BE_IMBUED_FRAME_KEY = "tooltip.irons_spellbooks.can_be_imbued_frame";
@@ -26,7 +28,7 @@ public final class ArcaneAnvilImbueBlockTooltipEvent {
         removeTooltipLine(event.getToolTip(), CAN_BE_IMBUED_FRAME_KEY);
     }
 
-    private static void removeTooltipLine(java.util.List<Component> tooltip, String translationKey) {
+    private static void removeTooltipLine(List<Component> tooltip, String translationKey) {
         for (var i = 0; i < tooltip.size(); i++) {
             if (!(tooltip.get(i).getContents() instanceof TranslatableContents translatableContents)) {
                 continue;

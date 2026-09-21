@@ -42,6 +42,7 @@ import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
@@ -401,7 +402,7 @@ public abstract class AbstractBroomItem extends Item implements GeoItem, ICurioI
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "main", 0, state -> {
             state.setAnimation(STATIC);
-            return software.bernie.geckolib.core.object.PlayState.CONTINUE;
+            return PlayState.CONTINUE;
         }));
     }
 

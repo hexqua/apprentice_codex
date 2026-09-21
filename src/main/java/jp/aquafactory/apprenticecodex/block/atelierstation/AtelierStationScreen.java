@@ -15,6 +15,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class AtelierStationScreen extends AbstractContainerScreen<AtelierStationMenu> {
@@ -237,7 +238,7 @@ public final class AtelierStationScreen extends AbstractContainerScreen<AtelierS
 
     private List<Component> createStoredFluidTooltip() {
         var entries = menu.getStoredFluidsForDisplay();
-        var tooltip = new java.util.ArrayList<Component>(entries.size() + 1);
+        var tooltip = new ArrayList<Component>(entries.size() + 1);
         tooltip.add(createStoredFluidSummaryLine());
         tooltip.add(Component.empty());
         for (var entry : entries) {

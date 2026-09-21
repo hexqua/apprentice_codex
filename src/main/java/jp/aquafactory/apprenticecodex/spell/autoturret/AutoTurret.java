@@ -23,6 +23,7 @@ import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -197,7 +198,7 @@ public class AutoTurret extends AbstractSpell implements IClientBlockTargetingSp
 
         var targetData = new BlockTargetData();
         var hitPos = castData.position.below();
-        targetData.setTarget(hitPos, net.minecraft.core.Direction.UP, castData.position.getCenter(), castData.position, net.minecraft.core.Direction.DOWN);
+        targetData.setTarget(hitPos, Direction.UP, castData.position.getCenter(), castData.position, Direction.DOWN);
         return AutoTurretPlacementHelper.resolve(level, targetData);
     }
 

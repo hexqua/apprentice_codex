@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.healingbloom;
 
+import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
@@ -73,7 +74,7 @@ public class HealingBloomLightBlock extends BaseEntityBlock implements EntityBlo
                                                                             @NotNull BlockEntityType<T> type) {
         return level.isClientSide ? null : createTickerHelper(
                 type,
-                jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry.HEALING_BLOOM_LIGHT.get(),
+                BlockEntityRegistry.HEALING_BLOOM_LIGHT.get(),
                 HealingBloomLightBlockEntity::serverTick
         );
     }

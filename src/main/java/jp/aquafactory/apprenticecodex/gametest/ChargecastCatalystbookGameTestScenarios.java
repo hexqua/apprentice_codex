@@ -1,12 +1,16 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.util.ModTags;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
@@ -22,9 +26,11 @@ import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell
 import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssaultRifleEntity;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
@@ -32,8 +38,10 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.List;
+import java.util.UUID;
 
 final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     private ChargecastCatalystbookGameTestScenarios() {
@@ -58,7 +66,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
                     "Chargecast Catalystbook should reject non-instant spells regardless of recast");
             helper.assertTrue(book.getItem() instanceof RestrictedSpellImbuableItem,
                     "Chargecast Catalystbook should expose the shared imbue restriction interface");
-            helper.assertTrue(jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator
+            helper.assertTrue(SpellGunSpellValidator
                             .isUnsupportedArcaneAnvilSpell(book, createSpellScroll(instant)),
                     "Arcane Anvil should not imbue Chargecast Catalystbook");
 
@@ -100,13 +108,13 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
             var selectionViews = ChargecastCatalystbook.getSelectionViews(book);
             helper.assertTrue(selectionViews.get(0).displayName().getString().endsWith(" 1"),
                     "Chargecast Catalystbook selection label should append the spell level number");
-            helper.assertTrue(java.util.Objects.equals(
+            helper.assertTrue(Objects.equals(
                             selectionViews.get(0).displayName().getStyle().getColor(),
                             firebolt.getSchoolType().getDisplayName().getStyle().getColor()
                     ),
                     "Chargecast Catalystbook selection label should use the spell school color");
             var selectionState = SneakSelectionState.open(
-                    net.minecraft.world.InteractionHand.MAIN_HAND,
+                    InteractionHand.MAIN_HAND,
                     selectionViews,
                     ChargecastCatalystbook.getSelectedScrollIndex(book)
             );
@@ -134,7 +142,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
                     "Selection refresh should follow the ItemStack rather than a stale UI cursor");
 
             ChargecastCatalystbookClientCastIntent.mark(player.getUUID(), book, instant);
-            var otherCasterId = java.util.UUID.randomUUID();
+            var otherCasterId = UUID.randomUUID();
             helper.assertFalse(ChargecastCatalystbookClientCastIntent.activateIfMatches(otherCasterId, book, instant),
                     "Another player's cast-start must not consume the local pending cast");
             helper.assertFalse(ChargecastCatalystbookClientCastIntent.isActive(otherCasterId, book, instant),
@@ -214,7 +222,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
         helper.succeedIf(() -> {
             var item = (ChargecastCatalystbook) ItemRegistry.CHARGECAST_CATALYSTBOOK.get();
             var book = item.getDefaultInstance();
-            helper.assertTrue(book.is(io.redspace.ironsspellbooks.util.ModTags.CAN_BE_UPGRADED),
+            helper.assertTrue(book.is(ModTags.CAN_BE_UPGRADED),
                     "Chargecast Catalystbook should accept upgrade orbs");
             helper.assertTrue(item.getEnchantmentValue(book) == 22,
                     "Chargecast Catalystbook enchantability should be 22");
@@ -255,7 +263,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
                     "One school rune should be accepted");
             var schoolModifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, schoolTuned);
             var firePower = MagicTools.resolveSchoolPowerAttribute(
-                    io.redspace.ironsspellbooks.api.registry.SchoolRegistry.FIRE.get()
+                    SchoolRegistry.FIRE.get()
             );
             helper.assertTrue(schoolModifiers.get(AttributeRegistry.SPELL_POWER.get()).stream().anyMatch(modifier ->
                             modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE
@@ -291,7 +299,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
             MagicData.getPlayerMagicData(player).setMana(100.0F);
 
             var result = book.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+            helper.assertTrue(result.getResult() == InteractionResult.FAIL,
                     "Chargecast Catalystbook should reject Mage Light but got " + result.getResult());
             helper.assertFalse(MagicData.getPlayerMagicData(player).isCasting(),
                     "Rejected Mage Light should not begin a managed cast");
@@ -318,7 +326,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
                 MagicData.getPlayerMagicData(player).setMana(100.0F);
 
                 var result = book.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-                helper.assertTrue(result.getResult() == net.minecraft.world.InteractionResult.FAIL,
+                helper.assertTrue(result.getResult() == InteractionResult.FAIL,
                         "Chargecast Catalystbook should reject denylisted spells but got " + result.getResult());
                 helper.assertFalse(MagicData.getPlayerMagicData(player).isCasting(),
                         "A denylisted Chargecast spell should not begin casting");
@@ -333,37 +341,39 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
     }
 
     static void lethalAssaultWaitsForChargecastCompletionBeforeFiring(GameTestHelper helper) {
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
-                "chargecast_lethal_assault_wait_test");
-        var book = new ItemStack(ItemRegistry.CHARGECAST_CATALYSTBOOK.get());
-        var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.LETHAL_ASSAULT.get();
-        ChargecastCatalystbook.setCalibrationScroll(book, 0, createSpellScroll(spell));
-        player.setItemInHand(InteractionHand.MAIN_HAND, book);
-        MagicData.getPlayerMagicData(player).setMana(1000.0F);
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
+            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
+                    "chargecast_lethal_assault_wait_test");
+            var book = new ItemStack(ItemRegistry.CHARGECAST_CATALYSTBOOK.get());
+            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.LETHAL_ASSAULT.get();
+            ChargecastCatalystbook.setCalibrationScroll(book, 0, createSpellScroll(spell));
+            player.setItemInHand(InteractionHand.MAIN_HAND, book);
+            MagicData.getPlayerMagicData(player).setMana(1000.0F);
 
-        helper.runAtTickTime(1, () -> {
-            var result = book.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            helper.assertTrue(result.getResult().consumesAction(),
-                    "Chargecast Lethal Assault should start charging but got " + result.getResult());
-        });
-        helper.runAtTickTime(12, () -> {
-            var rifles = BowGameTestSupport.getOwnedSummonWeapons(helper, player, LethalAssaultRifleEntity.class);
-            helper.assertTrue(rifles.size() == 1,
-                    "Chargecast Lethal Assault should keep one pre-cast rifle while charging");
-            helper.assertFalse(rifles.get(0).hasStartedFiringForGameTest(),
-                    "Chargecast Lethal Assault rifle should not enter its firing state before completion");
-        });
-        helper.runAtTickTime(13, () -> {
-            var magicData = MagicData.getPlayerMagicData(player);
-            ChargecastCatalystbookCastEvents.castWithPowerBonus(
-                    spell, helper.getLevel(), 1, player, CastSource.SWORD, true
-            );
-            spell.onServerCastComplete(helper.getLevel(), 1, player, magicData, false);
+            helper.runAfterDelay(1, () -> {
+                var result = book.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+                helper.assertTrue(result.getResult().consumesAction(),
+                        "Chargecast Lethal Assault should start charging but got " + result.getResult());
+            });
+            helper.runAfterDelay(12, () -> {
+                var rifles = BowGameTestSupport.getOwnedSummonWeapons(helper, player, LethalAssaultRifleEntity.class);
+                helper.assertTrue(rifles.size() == 1,
+                        "Chargecast Lethal Assault should keep one pre-cast rifle while charging");
+                helper.assertFalse(rifles.get(0).hasStartedFiringForGameTest(),
+                        "Chargecast Lethal Assault rifle should not enter its firing state before completion");
+            });
+            helper.runAfterDelay(13, () -> {
+                var magicData = MagicData.getPlayerMagicData(player);
+                ChargecastCatalystbookCastEvents.castWithPowerBonus(
+                        spell, helper.getLevel(), 1, player, CastSource.SWORD, true
+                );
+                spell.onServerCastComplete(helper.getLevel(), 1, player, magicData, false);
 
-            var rifles = BowGameTestSupport.getOwnedSummonWeapons(helper, player, LethalAssaultRifleEntity.class);
-            helper.assertTrue(rifles.size() == 1 && rifles.get(0).hasStartedFiringForGameTest(),
-                    "Chargecast Lethal Assault rifle should start firing when the charged cast completes");
-            helper.succeed();
+                var rifles = BowGameTestSupport.getOwnedSummonWeapons(helper, player, LethalAssaultRifleEntity.class);
+                helper.assertTrue(rifles.size() == 1 && rifles.get(0).hasStartedFiringForGameTest(),
+                        "Chargecast Lethal Assault rifle should start firing when the charged cast completes");
+                helper.succeed();
+            });
         });
     }
 
@@ -377,7 +387,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
         MagicData.getPlayerMagicData(player).setMana(1000.0F);
         var baseDamage = (1.0F + spell.getSpellPower(1, player) / 100.0F)
                 * ApprenticeCodexServerConfig.damageMultiplier(
-                jp.aquafactory.apprenticecodex.config.DamageMultiplierKey.HIGANBANA);
+                DamageMultiplierKey.HIGANBANA);
         var summonedPosition = new Vec3[1];
         var summonedYaw = new float[1];
 
@@ -478,7 +488,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
         magicData.getSyncedData();
         player.setItemInHand(InteractionHand.MAIN_HAND, book);
         magicData.initiateCast(externalSpell, 1, 20, CastSource.SWORD,
-                io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND);
+                SpellSelectionManager.MAINHAND);
         magicData.setPlayerCastingItem(book.copy());
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STICK));
         ChargecastCatalystbookCastEvents.onPlayerTick(
@@ -489,7 +499,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
 
         player.setItemInHand(InteractionHand.MAIN_HAND, book);
         magicData.initiateCast(internalSpell, 1, 20, CastSource.SWORD,
-                io.redspace.ironsspellbooks.api.magic.SpellSelectionManager.MAINHAND);
+                SpellSelectionManager.MAINHAND);
         magicData.setPlayerCastingItem(book.copy());
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STICK));
         ChargecastCatalystbookCastEvents.onPlayerTick(

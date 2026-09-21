@@ -36,6 +36,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -45,6 +46,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
@@ -55,6 +57,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -65,9 +68,11 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public final class ChargecastCatalystbook extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
         RestrictedSpellImbuableItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
@@ -424,7 +429,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     }
 
     @Override
-    public @NotNull java.util.Optional<net.minecraft.world.inventory.tooltip.TooltipComponent> getTooltipImage(
+    public @NotNull Optional<TooltipComponent> getTooltipImage(
             @NotNull ItemStack stack
     ) {
         return createCalibrationAdjustmentTooltip(stack);
@@ -666,7 +671,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
         if (calibration == null || !calibration.contains(SCHOOL_POWER_SCHOOL_TAG, Tag.TAG_STRING)) {
             return null;
         }
-        var id = net.minecraft.resources.ResourceLocation.tryParse(calibration.getString(SCHOOL_POWER_SCHOOL_TAG));
+        var id = ResourceLocation.tryParse(calibration.getString(SCHOOL_POWER_SCHOOL_TAG));
         return id == null ? null : SchoolRegistry.getSchool(id);
     }
 
@@ -751,7 +756,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
                 ? SpellData.EMPTY : spellData;
     }
 
-    private static boolean hasAdjustment(ItemStack stack, java.util.function.Predicate<ItemStack> predicate) {
+    private static boolean hasAdjustment(ItemStack stack, Predicate<ItemStack> predicate) {
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; ++slot) {
             if (predicate.test(CalibrationAdjustmentStorage.get(
                     stack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT
@@ -772,7 +777,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     }
 
     private static boolean matches(Enchantment enchantment,
-                                   net.minecraftforge.registries.RegistryObject<Enchantment> entry) {
+                                   RegistryObject<Enchantment> entry) {
         return entry.isPresent() && enchantment == entry.get();
     }
 

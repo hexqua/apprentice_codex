@@ -16,6 +16,7 @@ import net.minecraftforge.common.util.FakePlayer;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 final class HiganbanaGameTestScenarios {
     private static final double POSITION_EPSILON = 1.0E-6D;
@@ -91,7 +92,7 @@ final class HiganbanaGameTestScenarios {
         var initialMovement = new Vec3(0.125D, 0.0D, -0.25D);
         target.setDeltaMovement(initialMovement);
         var healEvent = new AtomicReference<SpellHealEvent>();
-        java.util.function.Consumer<SpellHealEvent> healListener = event -> {
+        Consumer<SpellHealEvent> healListener = event -> {
             if (event.getEntity() == owner && event.getTargetEntity() == owner) {
                 healEvent.set(event);
             }

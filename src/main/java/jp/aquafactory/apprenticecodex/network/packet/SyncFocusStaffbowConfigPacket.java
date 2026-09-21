@@ -9,6 +9,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -48,7 +49,7 @@ public final class SyncFocusStaffbowConfigPacket {
         var continuousFocusedCastEnabled = buffer.readBoolean();
         var arrowCatalystRequired = buffer.readBoolean();
         var arrowCatalystItemCount = buffer.readVarInt();
-        var arrowCatalystItemIds = new java.util.ArrayList<ResourceLocation>(arrowCatalystItemCount);
+        var arrowCatalystItemIds = new ArrayList<ResourceLocation>(arrowCatalystItemCount);
         for (var index = 0; index < arrowCatalystItemCount; ++index) {
             arrowCatalystItemIds.add(buffer.readResourceLocation());
         }

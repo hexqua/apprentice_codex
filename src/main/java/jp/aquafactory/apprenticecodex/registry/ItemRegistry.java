@@ -72,6 +72,7 @@ import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.spellchargedgreatsword.SpellchargedGreatsword;
+import jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScythe;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdge;
 import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeMirror;
 import jp.aquafactory.apprenticecodex.item.spellthrowablecard.SpellAutonomyCard;
@@ -453,7 +454,7 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> MANA_FORCE_BLADE_SHEATH =
             ITEMS.register("mana_force_blade_sheath", ManaForceBladeSheathItem::new);
     public static final RegistryObject<Item> SPELL_REAPER_SCYTHE =
-            ITEMS.register("spell_reaper_scythe", jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScythe::new);
+            ITEMS.register("spell_reaper_scythe", SpellReaperScythe::new);
     public static final RegistryObject<Item> SPELL_SIDE_EDGE =
             ITEMS.register("spell_side_edge", SpellSideEdge::new);
     public static final RegistryObject<Item> SPELL_SIDE_EDGE_MIRROR =

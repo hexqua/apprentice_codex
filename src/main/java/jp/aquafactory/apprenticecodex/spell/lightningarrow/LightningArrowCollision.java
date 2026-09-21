@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.LinkedHashMap;
+import java.util.Optional;
 import java.util.UUID;
 
 public final class LightningArrowCollision {
@@ -42,7 +43,7 @@ public final class LightningArrowCollision {
             if (centerDistance - projectionRadius > length + EPSILON
                     || centerDistance + projectionRadius < -EPSILON) continue;
             var expanded = box.inflate(RADIUS);
-            var intersection = expanded.contains(start) ? java.util.Optional.of(start) : expanded.clip(start, end);
+            var intersection = expanded.contains(start) ? Optional.of(start) : expanded.clip(start, end);
             if (intersection.isEmpty()) continue;
             var axisPoint = intersection.get();
             var point = new Vec3(Mth.clamp(axisPoint.x, box.minX, box.maxX),

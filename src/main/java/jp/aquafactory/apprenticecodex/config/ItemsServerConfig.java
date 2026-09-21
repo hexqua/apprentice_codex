@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.config.item.HighTierSwingcastStaffServerCo
 import jp.aquafactory.apprenticecodex.config.item.IsekaiTravelGuidebookServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.IronSwingcastStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.InstantSearchBrazierServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SoulstainedSteelSwingcastStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagicArmorServerConfig;
@@ -47,7 +48,7 @@ import net.minecraftforge.common.ForgeConfigSpec;
 import java.util.List;
 
 final class ItemsServerConfig {
-    final jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig quickcastCartridgeConfig;
+    final QuickcastCartridgeServerConfig quickcastCartridgeConfig;
     private final ArcaneCinderServerConfig arcaneCinderConfig;
     private final AbsorptionAmplifyAmuletServerConfig absorptionAmplifyAmuletConfig;
     private final ScarletThirstServerConfig scarletThirstConfig;
@@ -130,7 +131,7 @@ final class ItemsServerConfig {
             RemoteOwnerCastServerConfig remoteOwnerCastConfig,
             LuminousDeviceServerConfig luminousDeviceConfig,
             InstantSearchBrazierServerConfig instantSearchBrazierConfig,
-            jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig quickcastCartridgeConfig
+            QuickcastCartridgeServerConfig quickcastCartridgeConfig
     ) {
         this.arcaneCinderConfig = arcaneCinderConfig;
         this.absorptionAmplifyAmuletConfig = absorptionAmplifyAmuletConfig;
@@ -217,7 +218,7 @@ final class ItemsServerConfig {
         var remoteOwnerCastConfig = RemoteOwnerCastServerConfig.define(builder);
         var luminousDeviceConfig = LuminousDeviceServerConfig.define(builder);
         var instantSearchBrazierConfig = InstantSearchBrazierServerConfig.define(builder);
-        var quickcastCartridgeConfig = jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig.define(builder);
+        var quickcastCartridgeConfig = QuickcastCartridgeServerConfig.define(builder);
         builder.pop();
 
         return new ItemsServerConfig(
