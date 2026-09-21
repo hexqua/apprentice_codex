@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.renderer.item;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import jp.aquafactory.apprenticecodex.compat.emf.EmfCompat;
 import jp.aquafactory.apprenticecodex.item.ClientItemRenderContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelPart;
@@ -132,11 +133,13 @@ final class SpellrifleFirstPersonArmsLayer<T extends Item & GeoItem> extends Geo
             float handX = (arm == HumanoidArm.RIGHT ? -1 : 1) * (slim ? 5.5F : 6.0F);
             float handY = slim ? 10.5F : 10.0F;
             poseStack.translate(-handX / 16.0F, -handY / 16.0F, 0);
-            if (arm == HumanoidArm.RIGHT) {
-                renderer.renderRightHand(poseStack, buffers, light, player);
-            } else {
-                renderer.renderLeftHand(poseStack, buffers, light, player);
-            }
+            EmfCompat.renderSpellrifleHand(player, () -> {
+                if (arm == HumanoidArm.RIGHT) {
+                    renderer.renderRightHand(poseStack, buffers, light, player);
+                } else {
+                    renderer.renderLeftHand(poseStack, buffers, light, player);
+                }
+            });
         } finally {
             // PlayerRendererはsetupAnimで共有モデル全体を書き換えるため、後続の描画へ残さない。
             parts.forEach(PartState::restore);
