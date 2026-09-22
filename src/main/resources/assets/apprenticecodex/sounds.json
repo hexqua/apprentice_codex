@@ -879,5 +879,15 @@
       "minecraft:block/enchantment_table/enchant2",
       "minecraft:block/enchantment_table/enchant3"
     ]
+  },
+  "vanilla_mantle_impulse": {
+    "_apprentice_codex_note": "ベースはSoundEvents.SHULKER_SHOOT",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_mantle_impulse",
+    "sounds": [
+      "minecraft:entity/shulker/shoot1",
+      "minecraft:entity/shulker/shoot2",
+      "minecraft:entity/shulker/shoot3",
+      "minecraft:entity/shulker/shoot4"
+    ]
   }
 }

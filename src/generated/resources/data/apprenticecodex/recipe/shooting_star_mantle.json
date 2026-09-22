@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "D": {
+      "item": "apprenticecodex:spellstained_diamond"
+    },
+    "E": {
+      "item": "minecraft:elytra"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_weave"
+    },
+    "W": {
+      "item": "apprenticecodex:wind_accumulation_weave"
+    }
+  },
+  "pattern": [
+    " M ",
+    "WEW",
+    " D "
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:shooting_star_mantle"
+  }
+}

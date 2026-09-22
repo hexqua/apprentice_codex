@@ -196,7 +196,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SPELL_SIDE_EDGE.get(),
                 ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
                 ItemRegistry.SCROLLCASTER_GAUNTLET.get(),
-                ItemRegistry.CHARGECAST_CATALYSTBOOK.get()
+                ItemRegistry.CHARGECAST_CATALYSTBOOK.get(),
+                ItemRegistry.SHOOTING_STAR_MANTLE.get()
         );
         // Focus Staffbow は 1.20.1 と同様に専用魔法 enchant と互換 MOD の対象だけへ絞る。
         // Replenishing は 1.20.1 で明示的に許可していた主手魔法武器へだけ戻す。
@@ -588,7 +589,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         );
         tag(CURIOS_BACK).add(
                 ItemRegistry.QUICKCAST_SCROLL_CARTRIDGE.get(),
-                ItemRegistry.SPELLCASTER_QUIVER.get()
+                ItemRegistry.SPELLCASTER_QUIVER.get(),
+                ItemRegistry.SHOOTING_STAR_MANTLE.get()
         );
         tag(CURIOS_NECKLACE).add(
                 ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get(),
