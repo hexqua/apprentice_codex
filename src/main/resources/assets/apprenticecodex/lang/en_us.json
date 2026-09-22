@@ -1682,6 +1682,7 @@
   "item.apprenticecodex.quickcast_scroll_cartridge.cast_key": "You can also press [%1$s] to cast the selected spell.",
   "item.apprenticecodex.quickcast_scroll_cartridge.additive_slot": "Hold this item and sneak to select the spell to use.",
   "item.apprenticecodex.quickcast_scroll_cartridge": "Quickcast Scroll Cartridge",
+  "item.apprenticecodex.shooting_star_mantle": "Mantle of Shooting Star",
   "entity.apprenticecodex.bloody_arrow_arrow": "Bloody Arrow",
   "entity.apprenticecodex.bloody_arrow_orb": "Blood Orb",
   "spell.apprenticecodex.bloody_arrow": "Bloody Arrow",

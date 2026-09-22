@@ -122,6 +122,7 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> VANILLA_FEED_AMMO = reg("vanilla_feed_ammo");
     public static final RegistryObject<SoundEvent> VANILLA_CAST_BOOK = reg("vanilla_cast_book");
     public static final RegistryObject<SoundEvent> VANILLA_CRYSTALLIZE_MANA = reg("vanilla_crystallize_mana");
+    public static final RegistryObject<SoundEvent> VANILLA_MANTLE_IMPULSE = reg("vanilla_mantle_impulse");
     public static final RegistryObject<SoundEvent> SCYTHE_SPIN = reg("scythe_spin");
     public static final RegistryObject<SoundEvent> SCYTHE_THROW = reg("scythe_throw");
 

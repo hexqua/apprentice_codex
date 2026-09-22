@@ -513,6 +513,17 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(ItemRegistry.SCROLLWOVEN_PARCHMENT.get()), has(ItemRegistry.SCROLLWOVEN_PARCHMENT.get()))
                 .save(recipeWriter);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION, ItemRegistry.SHOOTING_STAR_MANTLE.get())
+                .pattern(" M ")
+                .pattern("WEW")
+                .pattern(" D ")
+                .define('E', Items.ELYTRA)
+                .define('W', ItemRegistry.WIND_ACCUMULATION_WEAVE.get())
+                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get())
+                .define('D', ItemRegistry.SPELLSTAINED_DIAMOND.get())
+                .unlockedBy(getHasName(Items.ELYTRA), has(Items.ELYTRA))
+                .save(recipeOutput);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.GRIMOIRE_MANIFEST.get())
                 .pattern(" E ")
                 .pattern("OBO")
