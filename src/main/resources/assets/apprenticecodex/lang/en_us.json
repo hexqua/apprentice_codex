@@ -1633,6 +1633,8 @@
   "subtitle.apprenticecodex.sound.vanilla_use_desk": "Desk used",
   "subtitle.apprenticecodex.sound.vanilla_inscribe_mana": "Magic is inscribed",
   "subtitle.apprenticecodex.sound.vanilla_collect_mana": "Mana gathers",
+  "subtitle.apprenticecodex.sound.vanilla_mantle_impulse": "Mantle propels wearer",
+  "subtitle.apprenticecodex.sound.vanilla_mantle_deplete": "Mantle's energy depletes",
   "subtitle.apprenticecodex.sound.vanilla_demicreator_break": "Magic link breaks",
   "subtitle.apprenticecodex.sound.vanilla_feather_hit": "Feather hits",
   "subtitle.apprenticecodex.sound.vanilla_feather_shoot": "Feather fires",
@@ -1729,5 +1731,14 @@
   "ui.apprenticecodex.soul_conversion.not_found_transducer": "No transducer can be found to act as a catalyst for your mana...",
   "ui.apprenticecodex.soul_conversion.already_fully_charged": "Staff charges are already full.",
   "ui.apprenticecodex.soul_conversion.not_installed_malum": "This spell requires Malum to be installed!",
-  "ui.apprenticecodex.soul_conversion.disabled": "Soul Conversion is disabled in this world."
+  "ui.apprenticecodex.soul_conversion.disabled": "Soul Conversion is disabled in this world.",
+  "item.apprenticecodex.shooting_star_mantle.desc_1": "Functions as an elytra, consuming the mantle's energy instead of durability.",
+  "item.apprenticecodex.shooting_star_mantle.desc_2": "Casting the spell within the mantle also allows you to hover by consuming its energy.",
+  "item.apprenticecodex.shooting_star_mantle.desc_3": "When not in use, the mantle restores its energy using the wearer's mana.",
+  "spell.apprenticecodex.wavering_star": "Wavering Star",
+  "spell.apprenticecodex.wavering_star.guide": "An innate spell exclusive to the Mantle of Shooting Star. Releases the energy stored in the mantle to hover at a fixed height. Moving lowers the height you can maintain. Attempting to jump while hovering propels you a short distance in a chosen direction. Ends when the mantle's energy runs out.",
+  "ui.apprenticecodex.wavering_star.not_found_mantle": "No mantle can be found to release its energy...",
+  "ui.apprenticecodex.wavering_star.conflict": "Interference from other magic has disabled the mantle!",
+  "ui.apprenticecodex.wavering_star.error_recovery_mode": "The mantle's energy has not fully recovered!",
+  "ui.apprenticecodex.shooting_star_mantle.depleted_energy": "The mantle's energy is depleted!"
 }

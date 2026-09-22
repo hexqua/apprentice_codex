@@ -32,6 +32,7 @@ import jp.aquafactory.apprenticecodex.config.item.FullautoRapidcastSpellrifleSer
 import jp.aquafactory.apprenticecodex.config.item.ParrycastBucklerServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.PastelStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ShootingStarMantleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.RemoteOwnerCastServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SatelliteFollowcastAmuletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ScarletThirstServerConfig;
@@ -50,6 +51,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 
 final class ItemsServerConfig {
     final QuickcastCartridgeServerConfig quickcastCartridgeConfig;
+    final ShootingStarMantleServerConfig shootingStarMantleConfig;
     private final ArcaneCinderServerConfig arcaneCinderConfig;
     private final AbsorptionAmplifyAmuletServerConfig absorptionAmplifyAmuletConfig;
     private final ScarletThirstServerConfig scarletThirstConfig;
@@ -136,7 +138,8 @@ final class ItemsServerConfig {
             RemoteOwnerCastServerConfig remoteOwnerCastConfig,
             LuminousDeviceServerConfig luminousDeviceConfig,
             InstantSearchBrazierServerConfig instantSearchBrazierConfig,
-            QuickcastCartridgeServerConfig quickcastCartridgeConfig
+            QuickcastCartridgeServerConfig quickcastCartridgeConfig,
+            ShootingStarMantleServerConfig shootingStarMantleConfig
     ) {
         this.arcaneCinderConfig = arcaneCinderConfig;
         this.absorptionAmplifyAmuletConfig = absorptionAmplifyAmuletConfig;
@@ -181,6 +184,7 @@ final class ItemsServerConfig {
         this.luminousDeviceConfig = luminousDeviceConfig;
         this.instantSearchBrazierConfig = instantSearchBrazierConfig;
         this.quickcastCartridgeConfig = quickcastCartridgeConfig;
+        this.shootingStarMantleConfig = shootingStarMantleConfig;
     }
 
     static ItemsServerConfig define(ModConfigSpec.Builder builder) {
@@ -228,6 +232,7 @@ final class ItemsServerConfig {
         var luminousDeviceConfig = LuminousDeviceServerConfig.define(builder);
         var instantSearchBrazierConfig = InstantSearchBrazierServerConfig.define(builder);
         var quickcastCartridgeConfig = QuickcastCartridgeServerConfig.define(builder);
+        var shootingStarMantleConfig = new ShootingStarMantleServerConfig(builder);
         builder.pop();
 
         return new ItemsServerConfig(
@@ -273,7 +278,8 @@ final class ItemsServerConfig {
                 remoteOwnerCastConfig,
                 luminousDeviceConfig,
                 instantSearchBrazierConfig,
-                quickcastCartridgeConfig
+                quickcastCartridgeConfig,
+                shootingStarMantleConfig
         );
     }
 

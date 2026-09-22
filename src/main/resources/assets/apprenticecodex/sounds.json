@@ -889,5 +889,12 @@
       "minecraft:entity/shulker/shoot3",
       "minecraft:entity/shulker/shoot4"
     ]
+  },
+  "vanilla_mantle_deplete": {
+    "_apprentice_codex_note": "ベースはSoundEvents.BEACON_DEACTIVATE",
+    "subtitle": "subtitle.apprenticecodex.sound.vanilla_mantle_deplete",
+    "sounds": [
+      "minecraft:block/beacon/deactivate"
+    ]
   }
 }

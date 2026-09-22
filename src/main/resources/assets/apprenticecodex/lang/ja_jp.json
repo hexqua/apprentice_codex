@@ -1303,6 +1303,7 @@
   "ui.apprenticecodex.soul_conversion.disabled": "このワールドではソウル転化が無効になっている。",
   "ui.apprenticecodex.soul_conversion.not_installed_malum": "この魔法はMalumが導入されていないと使用できない！",
   "ui.apprenticecodex.wavering_star.not_found_mantle": "魔力を放出する外套が見つからない...",
+  "ui.apprenticecodex.wavering_star.conflict": "他の魔法と干渉して外套が無効化されている！",
   "ui.apprenticecodex.wavering_star.error_recovery_mode": "外套の魔力が回復しきっていない！",
 
   "ui.apprenticecodex.common.cannot_use_offhand": "%sはオフハンドで使用できない！",
@@ -1742,6 +1743,7 @@
   "subtitle.apprenticecodex.sound.vanilla_scythe_catch": "大鎌が手元に戻る",
   "subtitle.apprenticecodex.sound.vanilla_collect_mana": "魔力が集まる",
   "subtitle.apprenticecodex.sound.vanilla_mantle_impulse": "外套で急加速する",
+  "subtitle.apprenticecodex.sound.vanilla_mantle_deplete": "外套の魔力が枯渇する",
   "subtitle.apprenticecodex.sound.echo_arrow_charge": "残響の矢が形成される",
   "subtitle.apprenticecodex.sound.echo_arrow_cast": "残響の矢が放たれる",
   "subtitle.apprenticecodex.sound.echo_arrow_volley": "残響の核が矢を放つ"
