@@ -1,10 +1,13 @@
 {
   "values": [
+    "apprenticecodex:archivists_grimoire",
     "apprenticecodex:multipurpose_staffrifle",
     "apprenticecodex:fullauto_rapidcast_spellrifle",
     "apprenticecodex:scrollcaster_gauntlet",
     "apprenticecodex:chargecast_catalystbook",
     "apprenticecodex:revolvercast_staff",
-    "apprenticecodex:elemental_bow"
+    "apprenticecodex:elemental_bow",
+    "apprenticecodex:floatmount_broom",
+    "apprenticecodex:hoverride_broom"
   ]
 }
