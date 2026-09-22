@@ -45,7 +45,8 @@ final class TranscendenceGameTestScenarios {
             var source = new SpellData(spell, spell.getMaxLevel());
             var targets = List.of(ItemRegistry.ELEMENTAL_BOW.get(), ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
                     ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get(),
-                    ItemRegistry.REVOLVERCAST_STAFF.get());
+                    ItemRegistry.REVOLVERCAST_STAFF.get(), ItemRegistry.SCROLLCASTER_GAUNTLET.get(),
+                    ItemRegistry.CHARGECAST_CATALYSTBOOK.get());
             var enchantment = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
                     .getOrThrow(Enchantments.TRANSCENDENCE);
             helper.assertTrue(enchantment.value().getMaxLevel() == 1, "New Transcendence must have a single level");

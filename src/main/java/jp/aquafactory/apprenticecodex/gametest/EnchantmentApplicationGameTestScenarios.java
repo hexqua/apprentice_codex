@@ -165,8 +165,8 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
                     "Stealth Rune non-chest armor should reject Transcendence");
 
             var scrollcaster = ItemRegistry.SCROLLCASTER_GAUNTLET.get();
-            helper.assertFalse(TranscendenceTarget.supportsDirectApplication(scrollcaster),
-                    "Scrollcaster Gauntlet should reject Transcendence");
+            helper.assertTrue(TranscendenceTarget.supportsDirectApplication(scrollcaster),
+                    "Scrollcaster Gauntlet should accept Transcendence");
             helper.assertTrue(WisdomPolicy.supportsDirectApplication(scrollcaster),
                     "Scrollcaster Gauntlet should accept Wisdom through normal enchanting");
 

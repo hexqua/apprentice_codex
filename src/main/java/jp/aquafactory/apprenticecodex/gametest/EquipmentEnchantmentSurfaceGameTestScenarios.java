@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
@@ -1558,10 +1559,11 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     "Scrollcaster Gauntlet"
             );
 
+            var expectedSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get();
             ScrollcasterGauntlet.setCalibrationScroll(
                     stack,
                     0,
-                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get())
+                    createSpellScroll(expectedSpell)
             );
             var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             stack.enchant(enchantmentLookup.getOrThrow(Enchantments.ALACRITY), 1);
@@ -1627,7 +1629,11 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     "Scrollcaster Gauntlet Tense modifier changed"
             );
 
-            var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
+            var selectedSpell = ScrollcasterGauntlet.getSelectedSpellData(stack);
+            helper.assertTrue(selectedSpell != SpellData.EMPTY
+                            && selectedSpell.getSpell() == expectedSpell,
+                    "Scrollcaster Gauntlet must expose the inserted Guiding Bolt before checking school modifiers");
+            var imbuedSchool = selectedSpell.getSpell().getSchoolType();
             helper.assertTrue(imbuedSchool != null,
                     "Scrollcaster Gauntlet test could not resolve the selected spell school");
             var attunementAttribute = MagicTools

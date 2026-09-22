@@ -10,7 +10,6 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
-import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
@@ -20,6 +19,11 @@ import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceHelper;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
+import jp.aquafactory.apprenticecodex.item.ScrollSlotTooltipData;
+import jp.aquafactory.apprenticecodex.item.StoredScrollClientTooltip;
+import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
@@ -66,6 +70,8 @@ import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.fml.ModList;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -108,7 +114,7 @@ import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.offhand.OffhandMagicModifierHelper;
 
-public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
+public final class ScrollcasterGauntlet extends Item implements GeoItem, UniqueItem, TranscendenceTarget,
         ItemTransformPreservingCastAnimationItem, ArcaneAnvilScrollImbueBlockItem,
         BetterCombatOffhandDualWieldingPolicyItem, SwingTriggeredMagicItem, PriorityOffhandUseDeferringItem, IJeiInfoItem,
         ImmediateSneakSelectionUiItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
@@ -274,6 +280,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
         var stack = player.getItemInHand(usedHand);
+        if (!level.isClientSide) discardLegacySpellContainer(stack);
         if (usedHand == InteractionHand.MAIN_HAND && shouldPrioritizeOffhandUse(player)) {
             return InteractionResultHolder.pass(stack);
         }
@@ -309,17 +316,11 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     @Override
-    public void initializeSpellContainer(ItemStack stack) {
-        refreshSelectedSpellContainer(stack);
-    }
-
-    @Override
     public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity, int slotId, boolean isSelected) {
         super.inventoryTick(stack, level, entity, slotId, isSelected);
-        var lookupProvider = level.registryAccess();
-        if (hasAnyCalibrationScroll(stack, lookupProvider)
-                && !isCurrentSelectedSpellContainer(stack, lookupProvider)) {
-            refreshSelectedSpellContainer(stack, lookupProvider);
+        if (!level.isClientSide) {
+            discardLegacySpellContainer(stack);
+            normalizeSelectedScrollIndex(stack, level.registryAccess());
         }
     }
 
@@ -369,6 +370,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
                     .withStyle(ChatFormatting.GRAY));
         }
         super.appendHoverText(stack, context, lines, flag);
+        if (FMLEnvironment.dist == Dist.CLIENT) StoredScrollClientTooltip.append(stack, lines);
     }
 
     @Override
@@ -391,7 +393,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         }
 
         var lookupProvider = player.level().registryAccess();
-        refreshSelectedSpellContainer(stack, lookupProvider);
+        discardLegacySpellContainer(stack);
+        normalizeSelectedScrollIndex(stack, lookupProvider);
         var spellData = getSelectedSpellData(stack, lookupProvider);
         if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
             return false;
@@ -663,7 +666,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             @NotNull HolderLookup.Provider lookupProvider
     ) {
         refreshResolvedCalibrationSchool(targetStack, lookupProvider);
-        refreshSelectedSpellContainer(targetStack, lookupProvider);
+        normalizeSelectedScrollIndex(targetStack, lookupProvider);
     }
 
     @Override
@@ -694,7 +697,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             @NotNull HolderLookup.Provider lookupProvider
     ) {
         setCalibrationItem(gauntletStack, SCROLLS_TAG, slot, CALIBRATION_SCROLL_SLOT_COUNT, stack, lookupProvider);
-        refreshSelectedSpellContainer(gauntletStack, lookupProvider);
+        normalizeSelectedScrollIndex(gauntletStack, lookupProvider);
     }
 
     public static boolean hasAnyCalibrationScroll(@NotNull ItemStack gauntletStack) {
@@ -791,12 +794,12 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         }
 
         if (!isSelectableScrollIndex(gauntletStack, selectedScrollIndex, lookupProvider)) {
-            refreshSelectedSpellContainer(gauntletStack, lookupProvider);
+            normalizeSelectedScrollIndex(gauntletStack, lookupProvider);
             return;
         }
 
         setStoredSelectedScrollIndex(gauntletStack, selectedScrollIndex);
-        refreshSelectedSpellContainer(gauntletStack, lookupProvider);
+        normalizeSelectedScrollIndex(gauntletStack, lookupProvider);
     }
 
     public static boolean isSelectableScrollIndex(@NotNull ItemStack gauntletStack, int selectedScrollIndex) {
@@ -834,7 +837,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         var firstValidIndex = findFirstValidScrollIndex(gauntletStack, lookupProvider);
         if (firstValidIndex < 0) {
             clearSelectedScrollIndex(gauntletStack);
-            ISpellContainer.remove(gauntletStack);
             return -1;
         }
 
@@ -855,7 +857,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             return SpellData.EMPTY;
         }
 
-        return getScrollSpellData(getCalibrationScroll(gauntletStack, selectedIndex, lookupProvider));
+        return resolveScrollSpellData(gauntletStack, getCalibrationScroll(gauntletStack, selectedIndex, lookupProvider));
     }
 
     public static @NotNull CastMode getCastMode(@NotNull ItemStack gauntletStack) {
@@ -890,8 +892,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             spellData = getSelectedSpellData(gauntletStack, player.level().registryAccess());
             castSource = CastSource.SWORD;
         } else {
-            // SpellSelectionManagerの構築前に投影を直し、現在のGauntlet選択もwheel候補へ確実に含める。
-            refreshSelectedSpellContainer(gauntletStack, player.level().registryAccess());
             var selectionOption = new SpellSelectionManager(player).getSelection();
             if (selectionOption == null) {
                 return null;
@@ -951,6 +951,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             @NotNull ItemStack gauntletStack,
             @NotNull HolderLookup.Provider lookupProvider
     ) {
+        gauntletStack = gauntletStack.copy();
         if (!isValidCalibrationAccess(gauntletStack, 0, 1)) {
             return List.of();
         }
@@ -959,7 +960,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         var enabledSlotCount = getEnabledCalibrationScrollSlotCount(gauntletStack, lookupProvider);
         var views = new ArrayList<SneakSelectionView>();
         for (var slot = 0; slot < enabledSlotCount; ++slot) {
-            var spellData = getScrollSpellData(getCalibrationScroll(gauntletStack, slot, lookupProvider));
+            var spellData = resolveScrollSpellData(gauntletStack, getCalibrationScroll(gauntletStack, slot, lookupProvider));
             views.add(SneakSelectionView.forSpell(
                     slot,
                     spellData,
@@ -967,59 +968,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             ));
         }
         return List.copyOf(views);
-    }
-
-    public static void refreshSelectedSpellContainer(@NotNull ItemStack gauntletStack) {
-        refreshSelectedSpellContainer(gauntletStack, serializationLookup());
-    }
-
-    public static void refreshSelectedSpellContainer(
-            @NotNull ItemStack gauntletStack,
-            @NotNull HolderLookup.Provider lookupProvider
-    ) {
-        var spellData = getSelectedSpellData(gauntletStack, lookupProvider);
-        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
-            ISpellContainer.remove(gauntletStack);
-            return;
-        }
-
-        if (isCurrentSelectedSpellContainer(gauntletStack, spellData)) {
-            return;
-        }
-
-        // Iron's のショートカット選択とクールダウン表示に乗せるため、内部スクロールをGauntlet本体のSpell Wheelへ投影する。
-        var spellContainer = ISpellContainer.create(1, true, false).mutableCopy();
-        spellContainer.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, false);
-        ISpellContainer.set(gauntletStack, spellContainer.toImmutable());
-    }
-
-    private static boolean isCurrentSelectedSpellContainer(@NotNull ItemStack gauntletStack) {
-        return isCurrentSelectedSpellContainer(gauntletStack, serializationLookup());
-    }
-
-    private static boolean isCurrentSelectedSpellContainer(
-            @NotNull ItemStack gauntletStack,
-            @NotNull HolderLookup.Provider lookupProvider
-    ) {
-        var spellData = getSelectedSpellData(gauntletStack, lookupProvider);
-        return spellData != SpellData.EMPTY
-                && spellData.getSpell() != null
-                && isCurrentSelectedSpellContainer(gauntletStack, spellData);
-    }
-
-    private static boolean isCurrentSelectedSpellContainer(@NotNull ItemStack gauntletStack, @NotNull SpellData spellData) {
-        var current = ISpellContainer.get(gauntletStack);
-        if (current != null) {
-            var currentSpell = current.getSpellAtIndex(0);
-            return current.getMaxSpellCount() == 1
-                    && current.isSpellWheel()
-                    && !current.mustEquip()
-                    && currentSpell != SpellData.EMPTY
-                    && currentSpell.getSpell() == spellData.getSpell()
-                    && currentSpell.getLevel() == spellData.getLevel()
-                    && !currentSpell.isLocked();
-        }
-        return false;
     }
 
     public static void refreshResolvedCalibrationSchool(@NotNull ItemStack gauntletStack) {
@@ -1270,5 +1218,34 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     public record ResolvedUseSpell(@NotNull SpellData spellData, @NotNull CastSource castSource) {
+    }
+
+    public static void discardLegacySpellContainer(ItemStack stack) {
+        if (!(stack.getItem() instanceof ScrollcasterGauntlet)) return;
+        // 本体は投影にすぎないため、旧データから内部スクロールを復元しない。
+        ISpellContainer.remove(stack);
+        PresetSpellContainerStateHelper.discardRememberedStateIfPresent(stack);
+    }
+
+    private static SpellData resolveScrollSpellData(ItemStack stack, ItemStack scroll) {
+        var data = getScrollSpellData(scroll);
+        if (data == SpellData.EMPTY) return data;
+        return new SpellData(data.getSpell(),
+                TranscendenceHelper.resolveScrollSpellLevel(stack, data.getLevel()), data.isLocked());
+    }
+
+    public static ScrollSlotTooltipData getScrollTooltipData(ItemStack stack) {
+        // 表示による正規化はコピーに限り、保存中の選択やスクロールを変更しない。
+        var display = stack.copy();
+        var selected = getSelectedSpellData(display);
+        var entries = new ArrayList<ScrollSlotTooltipData.Entry>();
+        for (int slot = 0; slot < CALIBRATION_SCROLL_SLOT_COUNT; ++slot) {
+            var scroll = getCalibrationScroll(display, slot);
+            if (scroll.isEmpty()) continue;
+            var usable = isSelectableScrollIndex(display, slot);
+            entries.add(new ScrollSlotTooltipData.Entry(slot, scroll,
+                    usable ? resolveScrollSpellData(display, scroll) : getScrollSpellData(scroll), usable));
+        }
+        return new ScrollSlotTooltipData(selected, getSelectedScrollIndex(display), entries);
     }
 }
