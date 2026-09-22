@@ -25,7 +25,8 @@ public final class SpellSelectionStackResolver {
         if (QuickcastCartridgeCasting.SLOT.equals(slot)) {
             return QuickcastCartridgeCasting.findEquipped(player);
         }
-        if (ShootingStarMantleRuntime.SPELL_SLOT.equals(slot)) return ShootingStarMantleRuntime.findEquipped(player);
+        if (ShootingStarMantleRuntime.SPELL_SLOT.equals(slot)
+                || ShootingStarMantleRuntime.SCROLL_SPELL_SLOT.equals(slot)) return ShootingStarMantleRuntime.findEquipped(player);
         if (SpellSelectionManager.MAINHAND.equals(slot)) {
             return player.getMainHandItem();
         }

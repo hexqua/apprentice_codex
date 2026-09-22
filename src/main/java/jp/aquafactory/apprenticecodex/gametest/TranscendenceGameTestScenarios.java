@@ -47,7 +47,7 @@ final class TranscendenceGameTestScenarios {
                     ItemRegistry.CHARGECAST_CATALYSTBOOK.get(), ItemRegistry.ARCHIVISTS_GRIMOIRE.get(),
                     ItemRegistry.FLOATMOUNT_BROOM.get(), ItemRegistry.HOVERRIDE_BROOM.get(),
                     ItemRegistry.QUICKCAST_SCROLL_CARTRIDGE.get(), ItemRegistry.AUTOCAST_AMULET.get(),
-                    ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get());
+                    ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get(), ItemRegistry.SHOOTING_STAR_MANTLE.get());
             var enchantment = EnchantmentRegistry.TRANSCENDENCE.get();
             helper.assertTrue(enchantment.getMaxLevel() == 1, "New Transcendence must have a single level");
             for (var entry : ItemRegistry.ITEMS.getEntries()) {

@@ -15,6 +15,8 @@ import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeSt
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastScrollCartridge;
+import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleCalibration;
+import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.ShootingStarMantle;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
 import jp.aquafactory.apprenticecodex.item.armor.EndgameArmorCalibration;
@@ -234,6 +236,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     public int getEnabledScrollSlotCount() {
+        if (getGauntletStack().getItem() instanceof ShootingStarMantle) {
+            return MantleCalibration.enabledSlots(getGauntletStack(), lookupProvider);
+        }
         if (getGauntletStack().getItem() instanceof FullautoRapidcastSpellrifle) {
             return FullautoRapidcastSpellrifle.getEnabledCalibrationScrollSlotCount(getGauntletStack(), lookupProvider);
         }
@@ -395,6 +400,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     private @NotNull ItemStack getScroll(int slot) {
+        if (getGauntletStack().getItem() instanceof ShootingStarMantle) {
+            return MantleCalibration.getScroll(getGauntletStack(), slot, lookupProvider);
+        }
         if (getGauntletStack().getItem() instanceof FullautoRapidcastSpellrifle) {
             return FullautoRapidcastSpellrifleScrollStorage.get(getGauntletStack(), slot, lookupProvider);
         }
@@ -469,6 +477,10 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             return;
         }
 
+        if (getGauntletStack().getItem() instanceof ShootingStarMantle) {
+            MantleCalibration.setScroll(getGauntletStack(), slot, stack, lookupProvider);
+            return;
+        }
         if (getGauntletStack().getItem() instanceof FullautoRapidcastSpellrifle) {
             FullautoRapidcastSpellrifleScrollStorage.set(getGauntletStack(), slot, stack, lookupProvider);
             return;

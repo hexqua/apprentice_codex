@@ -49,6 +49,11 @@ public record MantleEnergy(int energy, boolean recovering, int spentTicks) {
     }
 
     public MantleEnergy recharge() {
-        return new MantleEnergy(energy + (recovering ? 10 : 2), recovering, spentTicks);
+        return recharge(false);
+    }
+
+    public MantleEnergy recharge(boolean fastRecovery) {
+        // 回復量の切り替えは枯渇ロックと独立させ、ルーンで飛行を禁止しない。
+        return new MantleEnergy(energy + (recovering || fastRecovery ? 10 : 2), recovering, spentTicks);
     }
 }

@@ -30,6 +30,7 @@ import java.util.UUID;
 
 public final class ShootingStarMantleRuntime {
     public static final String SPELL_SLOT = "apprenticecodex:shooting_star_mantle";
+    public static final String SCROLL_SPELL_SLOT = "apprenticecodex:shooting_star_mantle_scrolls";
     // 統合サーバーでもclient予測がserver状態を書き換えないよう分離する。
     private static final Map<UUID, State> SERVER = new HashMap<>();
     private static final Map<UUID, State> CLIENT = new HashMap<>();
@@ -172,7 +173,7 @@ public final class ShootingStarMantleRuntime {
             after = before.tickUse();
             if (state.hovering) {
                 player.fallDistance = 0;
-                if (state.dashTicks > 0 && --state.dashTicks == 0) player.setDeltaMovement(0, player.getDeltaMovement().y, 0);
+                if (state.dashTicks > 0 && --state.dashTicks == 0) MantleMovement.finishImpulse(player);
             }
             if (!after.usable()) {
                 if (state.dashTicks == 0) stop(player, state);
@@ -181,7 +182,8 @@ public final class ShootingStarMantleRuntime {
         } else if (!player.isFallFlying() && before.energy() < MantleEnergy.MAX) {
             if (++state.recoveryTicks >= 10) {
                 state.recoveryTicks = 0;
-                float cost = ApprenticeCodexServerConfig.shootingStarMantleRecoveryCost(before.recovering());
+                float cost = ApprenticeCodexServerConfig.shootingStarMantleRecoveryCost(
+                        before.recovering() || MantleCalibration.fastRecovery(stack));
                 if (recharge(player, stack, cost)) {
                     after = MantleEnergy.read(stack);
                     full = before.recovering() && !after.recovering();
@@ -198,7 +200,7 @@ public final class ShootingStarMantleRuntime {
         var magic = MagicData.getPlayerMagicData(player);
         if (energy.energy() == 100 || magic.getMana() < cost) return false;
         magic.setMana(magic.getMana() - cost);
-        energy.recharge().save(stack);
+        energy.recharge(MantleCalibration.fastRecovery(stack)).save(stack);
         PacketDistributor.sendToPlayer(player, new SyncManaPacket(magic));
         return true;
     }
