@@ -8,6 +8,8 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceHelper;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
@@ -50,7 +52,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiInfoItem, ArcaneAnvilImbueBlockItem,
-        StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget {
+        StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget, TranscendenceTarget {
     public static final int MIN_SPELL_SLOTS = 1;
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     public static final int MAX_SPELL_SLOTS = MIN_SPELL_SLOTS + CALIBRATION_ADJUSTMENT_SLOT_COUNT;
@@ -294,6 +296,10 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
 
     public static SpellData getSpellAtIndex(ItemStack stack, int slotIndex) {
         return getSpellDataAt(stack, slotIndex);
+    }
+
+    public static SpellData getResolvedSpellDataAt(ItemStack stack, int slot) {
+        return TranscendenceHelper.resolveScrollSpellData(stack, getSpellDataAt(stack, slot));
     }
 
     public static @NotNull SpellData getSpellDataAt(@NotNull ItemStack amuletStack, int slot) {
