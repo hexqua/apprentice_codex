@@ -27,7 +27,7 @@ public final class ArchivistsGrimoireSpellSelectionEvents {
         }
 
         for (var visibleSlot = 0; visibleSlot < ArchivistsGrimoire.COLUMN_COUNT; ++visibleSlot) {
-            var spellData = ArchivistsGrimoire.getVisibleSpell(spellbookStack, visibleSlot, player.registryAccess());
+            var spellData = ArchivistsGrimoire.getResolvedVisibleSpell(spellbookStack, visibleSlot, player.registryAccess());
             if (spellData != SpellData.EMPTY) {
                 event.addSelectionOption(spellData, Curios.SPELLBOOK_SLOT, visibleSlot);
             }

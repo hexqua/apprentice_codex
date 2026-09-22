@@ -9,12 +9,11 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceHelper;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
-import net.minecraft.util.Mth;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -105,10 +104,7 @@ public final class ElementalBowModeManager extends SimpleJsonResourceReloadListe
         public SchoolType schoolType() { return spell.getSchoolType(); }
         public ResourceLocation schoolId() { return schoolType().getId(); }
         public int resolveSpellLevel(ItemStack stack, int scrollLevel) {
-            // 表示と射撃で同じ値を使い、汎用イベントによる二重加算を避ける。
-            int bonus = Enchantments.getLevel(
-                    stack, Enchantments.TRANSCENDENCE);
-            return Mth.clamp(scrollLevel + bonus, spell.getMinLevel(), spell.getMaxLevel());
+            return TranscendenceHelper.resolveScrollSpellLevel(stack, scrollLevel);
         }
 
         public int resolveRequiredDrawTicks() {

@@ -412,8 +412,7 @@ final class ManaForceBladeGameTestScenarios extends ApprenticeCodexGameTestScena
             var requiredExtraEnchantments = registryIdSet(
                     Enchantments.SURGE,
                     Enchantments.ATTUNEMENT,
-                    Enchantments.WISDOM,
-                    Enchantments.TRANSCENDENCE
+                    Enchantments.WISDOM
             );
             addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, requiredExtraEnchantments);
             helper.assertFalse(stack.getItem() instanceof NonDamageableAnvilMergeItem,

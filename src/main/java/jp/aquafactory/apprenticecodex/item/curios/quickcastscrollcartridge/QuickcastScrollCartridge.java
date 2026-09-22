@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge;
 
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceHelper;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
 import jp.aquafactory.apprenticecodex.event.client.QuickcastCartridgeClientEvents;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.item.*;
@@ -37,7 +39,7 @@ import java.util.List;
 
 public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoItem,
         StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
-        ImmediateSneakSelectionUiItem, ArcaneAnvilScrollImbueBlockItem {
+        ImmediateSneakSelectionUiItem, ArcaneAnvilScrollImbueBlockItem, TranscendenceTarget {
     private static final String CALIBRATION_TAG = "QuickcastCartridgeCalibration";
     private static final String SCROLLS_TAG = "Scrolls";
     private static final String SLOT_TAG = "Slot";
@@ -158,9 +160,9 @@ public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoIte
         for (int slot = 0; slot < 4; slot++) {
             var scroll = getCalibrationScroll(stack, slot);
             if (scroll.isEmpty()) continue;
-            entries.add(new ScrollSlotTooltipData.Entry(slot, scroll, readSpell(stack, slot), isSelectable(stack, slot)));
+            entries.add(new ScrollSlotTooltipData.Entry(slot, scroll, TranscendenceHelper.resolveScrollSpellData(stack, readSpell(stack, slot)), isSelectable(stack, slot)));
         }
-        return new ScrollSlotTooltipData(getSelectedSpellData(stack), getSelectedScrollIndex(stack), entries);
+        return new ScrollSlotTooltipData(getResolvedSelectedSpellData(stack), getSelectedScrollIndex(stack), entries);
     }
 
     public static int getSelectedScrollIndex(ItemStack stack) {
@@ -172,6 +174,10 @@ public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoIte
             if (isSelectable(stack, i)) return i;
         }
         return -1;
+    }
+
+    public static SpellData getResolvedSelectedSpellData(ItemStack stack) {
+        return TranscendenceHelper.resolveScrollSpellData(stack, getSelectedSpellData(stack));
     }
 
     public static SpellData getSelectedSpellData(ItemStack stack) {
@@ -212,7 +218,7 @@ public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoIte
     public List<SneakSelectionView> getSneakSelectionViews(ItemStack stack) {
         var result = new ArrayList<SneakSelectionView>();
         for (int i = 0; i < getEnabledCalibrationScrollSlotCount(stack); i++) {
-            result.add(SneakSelectionView.forSpell(i, readSpell(stack, i), isSelectable(stack, i)));
+            result.add(SneakSelectionView.forSpell(i, TranscendenceHelper.resolveScrollSpellData(stack, readSpell(stack, i)), isSelectable(stack, i)));
         }
         return result;
     }

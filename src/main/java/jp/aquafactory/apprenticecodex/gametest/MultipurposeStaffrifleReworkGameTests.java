@@ -221,7 +221,7 @@ public final class MultipurposeStaffrifleReworkGameTests extends ApprenticeCodex
         var spell = SpellRegistry.MAGIC_MISSILE_SPELL.get();
         MultipurposeStaffrifleScrollStorage.set(stack, 0, SpellCalibrationImbueHelper.createScroll(new SpellData(spell, 1)), lookup);
         stack.enchant(lookup.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.TRANSCENDENCE), 1);
-        helper.assertTrue(MultipurposeStaffrifle.resolveCastSpellData(player, stack).getLevel() == Math.min(2, spell.getMaxLevel()),
+        helper.assertTrue(MultipurposeStaffrifle.resolveCastSpellData(player, stack).getLevel() == 2,
                 "Stored scroll must receive Transcendence once");
         // 両手武器でオフハンド選択を抑止する Better Combat 環境でも、装備魔法書から選択する。
         var wheelStack = createElementMaidenRobeSchoolPowerSpellbook(helper);

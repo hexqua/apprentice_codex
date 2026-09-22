@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
@@ -14,6 +16,7 @@ import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.UniteLunaStaff;
+import jp.aquafactory.apprenticecodex.item.StoredScrollCastingEvents;
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.offhand.SoulstainedSteelSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.shield.AbstractImbueShieldItem;
@@ -792,6 +795,25 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     "Better Combat Scrollcaster rescue should restore selected spell "
                             + expectedSpell.getSpellResource() + " but got " + rescuedSpell
             );
+            resolvedStack.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                    .getOrThrow(Enchantments.TRANSCENDENCE), 3);
+            var helmet = new ItemStack(Items.LEATHER_HELMET);
+            ISpellContainer.createImbuedContainer(expectedSpell, 3, helmet);
+            player.setItemSlot(EquipmentSlot.HEAD, helmet);
+            var boostedManager = new SpellSelectionManager(player);
+            helper.assertTrue(boostedManager.getSpellsForSlot(SpellSelectionManager.OFFHAND).size() == 1
+                            && boostedManager.getSpellForSlot(SpellSelectionManager.OFFHAND, 0).getLevel() == 2
+                            && boostedManager.getSpellForSlot(EquipmentSlot.HEAD.getName(), 0).getLevel() == 3,
+                    "Rescue must expose the fixed bonus independently of a higher-level duplicate");
+            var magic = MagicData.getPlayerMagicData(player);
+            magic.getSyncedData();
+            magic.initiateCast(expectedSpell, 2, 20, CastSource.SWORD, SpellSelectionManager.OFFHAND);
+            StoredScrollCastingEvents.onCastStarted(player, SpellSelectionManager.OFFHAND);
+            StoredScrollCastingEvents.validateCast(player);
+            helper.assertTrue(magic.isCasting(), "Hidden physical offhand must keep the rescued cast alive");
+            player.getInventory().offhand.set(0, ItemStack.EMPTY);
+            StoredScrollCastingEvents.validateCast(player);
+            helper.assertFalse(magic.isCasting(), "Removing physical offhand must cancel the rescued cast");
         });
     }
     static void offhandMagicItemsKeepExpectedEnchantmentSurfaces(GameTestHelper helper) {

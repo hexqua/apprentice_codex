@@ -13,6 +13,8 @@ import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceHelper;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -46,7 +48,7 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, IJeiInfoItem {
+public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, IJeiInfoItem, TranscendenceTarget {
     public static final int ROW_COUNT = 6;
     public static final int COLUMN_COUNT = 9;
     public static final int SLOT_COUNT = ROW_COUNT * COLUMN_COUNT;
@@ -183,6 +185,19 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, 
         return scrollContainer == null ? SpellData.EMPTY : scrollContainer.getSpellAtIndex(0);
     }
 
+    public static SpellData getResolvedVisibleSpell(ItemStack stack, int visibleSlot, HolderLookup.Provider registries) {
+        return resolveSpellData(stack, getVisibleSpell(stack, visibleSlot, registries));
+    }
+
+    private static SpellData resolveSpellData(ItemStack stack, SpellData data) {
+        if (data == SpellData.EMPTY) {
+            return SpellData.EMPTY;
+        }
+        // ホイールと一覧だけを補正し、取り出すスクロールの保存レベルは維持する。
+        return new SpellData(data.getSpell(), TranscendenceHelper.resolveScrollSpellLevel(stack, data.getLevel()),
+                data.isLocked());
+    }
+
     @Override
     public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, ResourceLocation id, ItemStack stack) {
         if (!Curios.SPELLBOOK_SLOT.equals(slotContext.identifier())) {
@@ -241,10 +256,11 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, 
             return visibleSpells;
         }
 
+        // ツールチップ参照では選択行を変更せず、ホイールと同じレベル補正だけを共有する。
         var inventory = new ScrollInventory(grimoireStack, registries);
         var startSlot = Math.floorMod(selectedRow, getUnlockedRowCount(grimoireStack)) * COLUMN_COUNT;
         for (var visibleSlot = 0; visibleSlot < COLUMN_COUNT; ++visibleSlot) {
-            var spellData = getSpellData(inventory.getStackInSlot(startSlot + visibleSlot));
+            var spellData = resolveSpellData(grimoireStack, getSpellData(inventory.getStackInSlot(startSlot + visibleSlot)));
             if (spellData != SpellData.EMPTY) {
                 visibleSpells.add(new VisibleSpell(visibleSlot, spellData));
             }

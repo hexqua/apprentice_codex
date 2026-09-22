@@ -118,18 +118,18 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void transcendenceResolverUsesMaximumMatchingEventLevel(GameTestHelper helper) {
-        TranscendenceGameTestScenarios.resolverUsesMaximumMatchingEventLevel(helper);
+    public static void transcendenceScrollBonusIsFixedAndPreservesLegacyData(GameTestHelper helper) {
+        TranscendenceGameTestScenarios.scrollBonusIsFixedAndPreservesLegacyData(helper);
     }
 
     @GameTest(template = TEMPLATE)
-    public static void transcendenceEventCollectsHeldArmorAndAllCuriosSlots(GameTestHelper helper) {
-        TranscendenceGameTestScenarios.eventCollectsHeldArmorAndAllCuriosSlots(helper);
+    public static void transcendenceLegacyEquipmentDoesNotModifySpellLevels(GameTestHelper helper) {
+        TranscendenceGameTestScenarios.legacyEquipmentDoesNotModifySpellLevels(helper);
     }
 
     @GameTest(template = TEMPLATE)
-    public static void transcendenceSpecialItemEffectsStayExplicit(GameTestHelper helper) {
-        TranscendenceGameTestScenarios.specialItemEffectsStayExplicit(helper);
+    public static void transcendenceInternalBonusStacksWithAffinityOnly(GameTestHelper helper) {
+        TranscendenceGameTestScenarios.internalBonusStacksWithAffinityOnly(helper);
     }
 
     @GameTest(template = TEMPLATE)
@@ -369,8 +369,8 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void imbueShieldsApplyTranscendenceAndWisdomEffects(GameTestHelper helper) {
-        BulwarkGreatshieldGameTestScenarios.imbueShieldsApplyTranscendenceAndWisdomEffects(helper);
+    public static void imbueShieldsIgnoreLegacyTranscendenceAndApplyWisdom(GameTestHelper helper) {
+        BulwarkGreatshieldGameTestScenarios.imbueShieldsIgnoreLegacyTranscendenceAndApplyWisdom(helper);
     }
 
     @GameTest(template = TEMPLATE)

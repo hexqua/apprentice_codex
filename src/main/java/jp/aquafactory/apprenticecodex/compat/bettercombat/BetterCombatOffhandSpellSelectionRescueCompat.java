@@ -16,7 +16,6 @@ public final class BetterCombatOffhandSpellSelectionRescueCompat {
         }
 
         appendOffhandMagicItemSelectionIfNeeded(event);
-        appendScrollcasterGauntletSelectionIfNeeded(event);
     }
 
     private static void appendOffhandMagicItemSelectionIfNeeded(SpellSelectionManager.SpellSelectionEvent event) {
@@ -41,25 +40,6 @@ public final class BetterCombatOffhandSpellSelectionRescueCompat {
             return;
         }
 
-        event.addSelectionOption(spellData, SpellSelectionManager.OFFHAND, 0);
-    }
-
-    private static void appendScrollcasterGauntletSelectionIfNeeded(SpellSelectionManager.SpellSelectionEvent event) {
-        if (!event.getManager().getSpellsForSlot(SpellSelectionManager.OFFHAND).isEmpty()) {
-            return;
-        }
-
-        var player = event.getEntity();
-        if (!BetterCombatScrollcasterGauntletCompat.isRescueActive(player)) {
-            return;
-        }
-
-        var spellData = BetterCombatScrollcasterGauntletCompat.getSelectedOffhandSpell(player);
-        if (spellData == SpellData.EMPTY) {
-            return;
-        }
-
-        // Scrollcaster Gauntlet は選択中スクロールだけを魔法ホルダーとして wheel に戻す。
         event.addSelectionOption(spellData, SpellSelectionManager.OFFHAND, 0);
     }
 

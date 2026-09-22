@@ -26,6 +26,10 @@ final class ElementalBowClientTooltip {
     private ElementalBowClientTooltip() {
     }
 
+    static Component modeDisplayName(ItemStack stack) {
+        return ElementalBow.getModeDisplayName(stack.copy(), Minecraft.getInstance().player);
+    }
+
     static HolderLookup.Provider lookup() {
         var level = Minecraft.getInstance().level;
         return level != null ? level.registryAccess() : RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);

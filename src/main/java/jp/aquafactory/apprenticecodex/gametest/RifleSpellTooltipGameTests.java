@@ -62,7 +62,7 @@ public final class RifleSpellTooltipGameTests {
             helper.assertTrue(data.slots().size() == maximum, "Inactive occupied slots must be included in the count");
             helper.assertTrue(data.selectedSlot() == 0 && data.castSource() == CastSource.SWORD,
                     "An inactive selection must fall back to the first usable slot with sword cooldowns");
-            helper.assertTrue(data.selectedSpell().getLevel() == Math.min(2, spell.getMaxLevel()),
+            helper.assertTrue(data.selectedSpell().getLevel() == 2,
                     "Transcendence must be applied exactly once: item=" + stack.getItem()
                             + ", actual=" + data.selectedSpell().getLevel() + ", maximum=" + spell.getMaxLevel()
                             + ", enchantment=" + Enchantments.getLevel(stack, Enchantments.TRANSCENDENCE));

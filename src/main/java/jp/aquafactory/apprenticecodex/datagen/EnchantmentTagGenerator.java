@@ -26,8 +26,8 @@ public final class EnchantmentTagGenerator extends EnchantmentTagsProvider {
                 .add(Enchantments.REFLUX, Enchantments.RESERVOIR);
         tag(Enchantments.EXCLUSIVE_ALACRITY_TENSE)
                 .add(Enchantments.ALACRITY, Enchantments.TENSE);
-        tag(Enchantments.EXCLUSIVE_SURGE_ATTUNEMENT_TRANSCENDENCE)
-                .add(Enchantments.SURGE, Enchantments.ATTUNEMENT, Enchantments.TRANSCENDENCE);
+        tag(Enchantments.EXCLUSIVE_SURGE_ATTUNEMENT)
+                .add(Enchantments.SURGE, Enchantments.ATTUNEMENT);
         tag(Enchantments.EXCLUSIVE_RED_GLOW_ENERGY)
                 .add(Enchantments.RED_ENERGY, Enchantments.GLOW_ENERGY);
         tag(Enchantments.EXCLUSIVE_SYNTHESIS)

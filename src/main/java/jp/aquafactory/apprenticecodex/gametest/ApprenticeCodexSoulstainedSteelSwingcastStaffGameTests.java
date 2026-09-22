@@ -57,7 +57,6 @@ public final class ApprenticeCodexSoulstainedSteelSwingcastStaffGameTests {
         helper.succeedIf(() -> {
             var item = (SoulstainedSteelSwingcastStaff) ItemRegistry.SOULSTAINED_STEEL_SWINGCAST_STAFF.get();
             var stack = new ItemStack(item);
-            item.initializeSpellContainer(stack);
 
             helper.assertFalse(stack.isDamageableItem(), "Soulstained Steel Swingcast Staff should have infinite durability");
             helper.assertTrue(stack.getRarity() == Rarity.COMMON,

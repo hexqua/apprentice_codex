@@ -26,7 +26,7 @@ public final class QuickcastCartridgeEvents {
     public static void onSelection(SpellSelectionManager.SpellSelectionEvent event) {
         var stack = QuickcastCartridgeCasting.findEquipped(event.getEntity());
         if (stack.isEmpty()) return;
-        var data = QuickcastScrollCartridge.getSelectedSpellData(stack);
+        var data = QuickcastScrollCartridge.getResolvedSelectedSpellData(stack);
         if (data != SpellData.EMPTY) event.addSelectionOption(data, QuickcastCartridgeCasting.SLOT, 0);
     }
 

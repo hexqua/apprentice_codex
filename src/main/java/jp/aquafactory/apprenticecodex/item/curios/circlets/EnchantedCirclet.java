@@ -5,7 +5,6 @@ import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.OffhandMagicCompatibleItem;
@@ -21,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Set;
 
 public class EnchantedCirclet extends AbstractCircletItem
-        implements NonDamageableAnvilMergeItem, OffhandMagicCompatibleItem, TranscendencePolicy,
+        implements NonDamageableAnvilMergeItem, OffhandMagicCompatibleItem,
         AttributeEnchantmentPolicy, WisdomPolicy {
     private static final String ITEM_KEY = "enchanted_circlet";
     private static final AttributeContainer[] CIRCLET_ATTRIBUTES = {

@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookCastEvents;
+import jp.aquafactory.apprenticecodex.item.StoredScrollCastingEvents;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookClientCastIntent;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookPresentationResolver;
 import jp.aquafactory.apprenticecodex.item.SneakSelectionState;
@@ -37,7 +38,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import java.util.Objects;
 import java.util.Set;
@@ -100,7 +100,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
             helper.assertTrue(ChargecastCatalystbook.getSelectedScrollIndex(book) == 3,
                     "The internal selected spell should be stored independently");
             helper.assertTrue(ChargecastCatalystbook.getSelectedSpellData(book).getSpell() == instant,
-                    "Only the selected internal spell should be projected");
+                    "Only the selected internal spell should be exposed");
 
             var firebolt = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIREBOLT_SPELL.get();
             var icicle = io.redspace.ironsspellbooks.api.registry.SpellRegistry.ICICLE_SPELL.get();
@@ -495,10 +495,9 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
         magicData.initiateCast(externalSpell, 1, 20, CastSource.SWORD,
                 SpellSelectionManager.MAINHAND);
         magicData.setPlayerCastingItem(book.copy());
+        StoredScrollCastingEvents.onCastStarted(player, SpellSelectionManager.MAINHAND);
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STICK));
-        ChargecastCatalystbookCastEvents.onPlayerTick(
-                new PlayerTickEvent.Post(player)
-        );
+        StoredScrollCastingEvents.validateCast(player);
         helper.assertFalse(magicData.isCasting(),
                 "Switching away should cancel a Wisdom cast borrowed from another wheel source");
 
@@ -506,12 +505,11 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
         magicData.initiateCast(internalSpell, 1, 20, CastSource.SWORD,
                 SpellSelectionManager.MAINHAND);
         magicData.setPlayerCastingItem(book.copy());
+        StoredScrollCastingEvents.onCastStarted(player, SpellSelectionManager.MAINHAND);
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STICK));
-        ChargecastCatalystbookCastEvents.onPlayerTick(
-                new PlayerTickEvent.Post(player)
-        );
-        helper.assertTrue(magicData.isCasting(),
-                "The book's own projected wheel spell should remain governed by Iron's standard cancellation");
+        StoredScrollCastingEvents.validateCast(player);
+        helper.assertFalse(magicData.isCasting(),
+                "Internal and borrowed spells must both cancel when the book is removed");
         Utils.serverSideCancelCast(player);
         helper.succeed();
     }

@@ -19,6 +19,8 @@ import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceHelper;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
@@ -41,6 +43,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -67,6 +70,7 @@ import software.bernie.geckolib.animation.PlayState;
 import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.EnumSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -80,8 +84,11 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
+import jp.aquafactory.apprenticecodex.item.ScrollSlotTooltipData;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import jp.aquafactory.apprenticecodex.item.SchoolRuneSpellPowerTuning;
-import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
@@ -92,8 +99,8 @@ import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 
 public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         implements GeoItem, CastAnimationOverrideItem, IJeiInfoItem, SwingTriggeredMagicItem,
-        RestrictedSpellImbuableItem, ArcaneAnvilImbueBlockItem, StoredSpellCalibrationImbueTarget,
-        SpellCalibrationAdjustmentTarget, AttributeEnchantmentPolicy {
+        ArcaneAnvilImbueBlockItem, StoredSpellCalibrationImbueTarget,
+        SpellCalibrationAdjustmentTarget, AttributeEnchantmentPolicy, TranscendenceTarget {
     private static final String ITEM_KEY = "revolvercast_staff";
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.revolvercast_staff.desc_";
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
@@ -168,7 +175,6 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     public RevolvercastStaff() {
         super(
                 new Item.Properties().stacksTo(1).rarity(Rarity.RARE),
-                true,
                 ENCHANTMENT_VALUE,
                 ITEM_KEY,
                 DISPLAYED_ATTACK_DAMAGE - 1.0D,
@@ -182,24 +188,12 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     @Override
-    public @NotNull ItemStack getDefaultInstance() {
-        var stack = super.getDefaultInstance();
-        initializeSpellContainer(stack);
-        return stack;
-    }
-
-    @Override
-    public void onCraftedBy(@NotNull ItemStack stack, @NotNull Level level, @NotNull Player player) {
-        super.onCraftedBy(stack, level, player);
-        initializeSpellContainer(stack);
-    }
-
-    @Override
     public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity,
                               int slotId, boolean isSelected) {
         super.inventoryTick(stack, level, entity, slotId, isSelected);
-        if (hasAnyCalibrationScroll(stack) || ISpellContainer.isSpellContainer(stack)) {
-            refreshSelectedSpellContainer(stack);
+        if (!level.isClientSide) {
+            discardLegacySpellContainer(stack);
+            normalizeSelectedScrollIndex(stack);
         }
     }
 
@@ -208,9 +202,18 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         return DIRECT_ATTRIBUTE_ENCHANTMENTS;
     }
 
+    public static void discardLegacySpellContainer(ItemStack stack) {
+        if (!(stack.getItem() instanceof RevolvercastStaff)) return;
+        // 導入時から内部スクロールが正本であり、本体コンテナは選択魔法の投影にすぎない。
+        ISpellContainer.remove(stack);
+        PresetSpellContainerStateHelper.discardRememberedStateIfPresent(stack);
+    }
+
     @Override
-    public void initializeSpellContainer(ItemStack stack) {
-        refreshSelectedSpellContainer(stack);
+    public @NotNull InteractionResultHolder<ItemStack> use(
+            @NotNull Level level, @NotNull Player player, @NotNull InteractionHand hand) {
+        if (!level.isClientSide) discardLegacySpellContainer(player.getItemInHand(hand));
+        return super.use(level, player, hand);
     }
 
     @Override
@@ -279,16 +282,6 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     @Override
-    public boolean canImbueSpell(SpellData spellData) {
-        return spellData != SpellData.EMPTY && canImbueSpell(spellData.getSpell(), spellData.getLevel());
-    }
-
-    @Override
-    public boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel) {
-        return canSwingCastSpell(spell);
-    }
-
-    @Override
     public boolean acceptsCalibrationSpell(@NotNull SpellData spellData) {
         return SpellCalibrationImbueTarget.acceptsInstantOrLong(spellData);
     }
@@ -304,11 +297,6 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     @Override
-    public void normalizeImbuedSpellContainer(ItemStack stack) {
-        refreshSelectedSpellContainer(stack);
-    }
-
-    @Override
     public boolean tryTriggerSpellOnSwing(Player player, InteractionHand hand, boolean bypassChargeCheck) {
         if (player.level().isClientSide) {
             return false;
@@ -319,7 +307,8 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
             return false;
         }
 
-        refreshSelectedSpellContainer(stack);
+        discardLegacySpellContainer(stack);
+        normalizeSelectedScrollIndex(stack);
         var spellData = getSelectedSpellData(stack);
         if (spellData == SpellData.EMPTY) {
             return false;
@@ -413,12 +402,7 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         return false;
     }
 
-    @Override
-    public List<Component> getImbueRestrictionTooltipLines() {
-        return ImbueTooltipHelper.collectCastTypeRestrictionLines(getSupportedSwingCastTypes(false));
-    }
-
-    public List<Component> getImbueRestrictionTooltipLines(ItemStack stack) {
+    public List<Component> getScrollRestrictionTooltipLines(ItemStack stack) {
         return collectRestrictTooltipSection(stack);
     }
 
@@ -445,6 +429,9 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
             ).withStyle(ChatFormatting.GRAY));
         }
         appendRevolvercastTooltip(stack, lines);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RevolvercastStaffClientTooltip.append(stack, lines);
+        }
     }
 
     public boolean hasCustomRendering() {
@@ -534,7 +521,7 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
             @NotNull HolderLookup.Provider lookupProvider
     ) {
         refreshResolvedCalibrationSchool(targetStack);
-        refreshSelectedSpellContainer(targetStack);
+        normalizeSelectedScrollIndex(targetStack);
     }
 
     @Override
@@ -548,11 +535,7 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
 
     public static void setCalibrationScroll(@NotNull ItemStack staffStack, int slot, @NotNull ItemStack stack) {
         setCalibrationItem(staffStack, SCROLLS_TAG, slot, CALIBRATION_SCROLL_SLOT_COUNT, stack);
-        refreshSelectedSpellContainer(staffStack);
-    }
-
-    public static boolean hasAnyCalibrationScroll(@NotNull ItemStack staffStack) {
-        return findFirstValidScrollIndex(staffStack) >= 0;
+        normalizeSelectedScrollIndex(staffStack);
     }
 
     @Override
@@ -605,7 +588,7 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         if (isSelectableScrollIndex(staffStack, selectedScrollIndex)) {
             setStoredSelectedScrollIndex(staffStack, selectedScrollIndex);
         }
-        refreshSelectedSpellContainer(staffStack);
+        normalizeSelectedScrollIndex(staffStack);
     }
 
     public static boolean isSelectableScrollIndex(@NotNull ItemStack staffStack, int selectedScrollIndex) {
@@ -628,7 +611,6 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         var nextValidIndex = findNextValidScrollIndex(staffStack, selectedIndex);
         if (nextValidIndex < 0) {
             clearSelectedScrollIndex(staffStack);
-            ISpellContainer.remove(staffStack);
             return -1;
         }
 
@@ -643,19 +625,16 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
 
         var selectedIndex = normalizeSelectedScrollIndex(staffStack);
         if (selectedIndex < 0) {
-            refreshSelectedSpellContainer(staffStack);
             return false;
         }
 
         var nextValidIndex = findNextValidScrollIndex(staffStack, selectedIndex);
         if (nextValidIndex < 0) {
             clearSelectedScrollIndex(staffStack);
-            ISpellContainer.remove(staffStack);
             return false;
         }
 
         setStoredSelectedScrollIndex(staffStack, nextValidIndex);
-        refreshSelectedSpellContainer(staffStack);
         return true;
     }
 
@@ -665,23 +644,29 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
             return SpellData.EMPTY;
         }
 
-        return getScrollSpellData(getCalibrationScroll(staffStack, selectedIndex));
+        return resolveScrollSpellData(staffStack, getCalibrationScroll(staffStack, selectedIndex));
     }
 
-    public static void refreshSelectedSpellContainer(@NotNull ItemStack staffStack) {
-        var spellData = getSelectedSpellData(staffStack);
-        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
-            ISpellContainer.remove(staffStack);
-            return;
-        }
+    private static SpellData resolveScrollSpellData(ItemStack staffStack, ItemStack scroll) {
+        var data = getScrollSpellData(scroll);
+        if (data == SpellData.EMPTY) return data;
+        return new SpellData(data.getSpell(),
+                TranscendenceHelper.resolveScrollSpellLevel(staffStack, data.getLevel()), data.isLocked());
+    }
 
-        if (isCurrentSelectedSpellContainer(staffStack, spellData)) {
-            return;
+    public static ScrollSlotTooltipData getScrollTooltipData(ItemStack stack) {
+        // 表示のための選択正規化で、元の保存データを変更しない。
+        var displayStack = stack.copy();
+        var selected = getSelectedSpellData(displayStack);
+        var entries = new ArrayList<ScrollSlotTooltipData.Entry>();
+        for (int slot = 0; slot < CALIBRATION_SCROLL_SLOT_COUNT; ++slot) {
+            var scroll = getCalibrationScroll(displayStack, slot);
+            if (scroll.isEmpty()) continue;
+            var usable = isSelectableScrollIndex(displayStack, slot);
+            entries.add(new ScrollSlotTooltipData.Entry(slot, scroll,
+                    usable ? resolveScrollSpellData(displayStack, scroll) : getScrollSpellData(scroll), usable));
         }
-
-        var spellContainer = ISpellContainer.create(1, true, false).mutableCopy();
-        spellContainer.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, false);
-        ISpellContainer.set(staffStack, spellContainer.toImmutable());
+        return new ScrollSlotTooltipData(selected, getSelectedScrollIndex(displayStack), entries);
     }
 
     public static void refreshResolvedCalibrationSchool(@NotNull ItemStack staffStack) {
@@ -865,16 +850,6 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
         });
     }
 
-    private static int findFirstValidScrollIndex(@NotNull ItemStack staffStack) {
-        var enabledSlotCount = getEnabledCalibrationScrollSlotCount(staffStack);
-        for (var slot = 0; slot < enabledSlotCount; ++slot) {
-            if (isCastableScrollSpell(staffStack, getCalibrationScroll(staffStack, slot))) {
-                return slot;
-            }
-        }
-        return -1;
-    }
-
     private static int findNextValidScrollIndex(@NotNull ItemStack staffStack, int currentIndex) {
         var enabledSlotCount = getEnabledCalibrationScrollSlotCount(staffStack);
         if (enabledSlotCount <= 0) {
@@ -910,22 +885,6 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
 
         var spellData = scrollContainer.getSpellAtIndex(0);
         return spellData == null ? SpellData.EMPTY : spellData;
-    }
-
-    private static boolean isCurrentSelectedSpellContainer(@NotNull ItemStack staffStack, @NotNull SpellData spellData) {
-        var current = ISpellContainer.get(staffStack);
-        if (current == null) {
-            return false;
-        }
-
-        var currentSpell = current.getSpellAtIndex(0);
-        return current.getMaxSpellCount() == 1
-                && current.isSpellWheel()
-                && !current.mustEquip()
-                && currentSpell != SpellData.EMPTY
-                && currentSpell.getSpell() == spellData.getSpell()
-                && currentSpell.getLevel() == spellData.getLevel()
-                && !currentSpell.isLocked();
     }
 
     private static void setStoredSelectedScrollIndex(@NotNull ItemStack staffStack, int selectedScrollIndex) {

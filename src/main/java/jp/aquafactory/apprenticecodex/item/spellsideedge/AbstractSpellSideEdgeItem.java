@@ -9,7 +9,6 @@ import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
@@ -52,7 +51,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 public abstract class AbstractSpellSideEdgeItem extends SwordItem
-        implements GeoItem, IPresetSpellContainer, UniqueItem, TranscendencePolicy, WisdomPolicy,
+        implements GeoItem, IPresetSpellContainer, UniqueItem, WisdomPolicy,
         AttributeEnchantmentPolicy {
     public static final float DISPLAY_ATTACK_DAMAGE = 4.0F;
     public static final int DURABILITY = 1561;
@@ -64,8 +63,7 @@ public abstract class AbstractSpellSideEdgeItem extends SwordItem
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
     private static final ItemStack SWORD_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.DIAMOND_SWORD);
     private static final Set<ResourceLocation> EXTRA_ENCHANTMENTS = Set.of(
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom"),
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "transcendence")
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom")
     );
     private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
             AttributeEnchantmentType.ALACRITY,
