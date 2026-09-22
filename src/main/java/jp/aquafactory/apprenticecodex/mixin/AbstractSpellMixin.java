@@ -20,6 +20,7 @@ import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunCastContext;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffSpellSelectionEvents;
+import jp.aquafactory.apprenticecodex.item.StoredScrollCastingEvents;
 import jp.aquafactory.apprenticecodex.network.CastDataNetworkSnapshot;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPowerHelper;
@@ -42,11 +43,12 @@ import java.util.Optional;
 @Mixin(value = AbstractSpell.class, remap = false)
 public abstract class AbstractSpellMixin {
     @Inject(method = "attemptInitiateCast", at = @At("RETURN"))
-    private void apprenticecodex$trackRevolverCast(ItemStack stack, int spellLevel, Level level, Player player,
+    private void apprenticecodex$trackStoredScrollCast(ItemStack stack, int spellLevel, Level level, Player player,
                                                   CastSource source, boolean triggerCooldown, String slot,
                                                   CallbackInfoReturnable<Boolean> cir) {
         if (cir.getReturnValueZ() && player instanceof ServerPlayer serverPlayer) {
             RevolvercastStaffSpellSelectionEvents.onCastStarted(serverPlayer, slot);
+            StoredScrollCastingEvents.onCastStarted(serverPlayer, slot);
         }
     }
 

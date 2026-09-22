@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookCastEvents;
+import jp.aquafactory.apprenticecodex.item.StoredScrollCastingEvents;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookClientCastIntent;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbookPresentationResolver;
 import jp.aquafactory.apprenticecodex.item.SneakSelectionState;
@@ -99,7 +100,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
             helper.assertTrue(ChargecastCatalystbook.getSelectedScrollIndex(book) == 3,
                     "The internal selected spell should be stored independently");
             helper.assertTrue(ChargecastCatalystbook.getSelectedSpellData(book).getSpell() == instant,
-                    "Only the selected internal spell should be projected");
+                    "Only the selected internal spell should be exposed");
 
             var firebolt = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIREBOLT_SPELL.get();
             var icicle = io.redspace.ironsspellbooks.api.registry.SpellRegistry.ICICLE_SPELL.get();
@@ -490,6 +491,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
         magicData.initiateCast(externalSpell, 1, 20, CastSource.SWORD,
                 SpellSelectionManager.MAINHAND);
         magicData.setPlayerCastingItem(book.copy());
+        StoredScrollCastingEvents.onCastStarted(player, SpellSelectionManager.MAINHAND);
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STICK));
         ChargecastCatalystbookCastEvents.onPlayerTick(
                 new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player)
@@ -501,6 +503,7 @@ final class ChargecastCatalystbookGameTestScenarios extends ApprenticeCodexGameT
         magicData.initiateCast(internalSpell, 1, 20, CastSource.SWORD,
                 SpellSelectionManager.MAINHAND);
         magicData.setPlayerCastingItem(book.copy());
+        StoredScrollCastingEvents.onCastStarted(player, SpellSelectionManager.MAINHAND);
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STICK));
         ChargecastCatalystbookCastEvents.onPlayerTick(
                 new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player)

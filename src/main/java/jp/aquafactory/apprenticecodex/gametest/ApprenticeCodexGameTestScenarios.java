@@ -3241,7 +3241,7 @@ public class ApprenticeCodexGameTestScenarios {
             );
             assertTooltipKeyAt(helper, gauntlet, 3, "item.apprenticecodex.scrollcaster_gauntlet.desc.wheel",
                     "Scrollcaster Gauntlet should describe spell-wheel casting by default");
-            ScrollcasterGauntlet.refreshSelectedSpellContainer(gauntlet);
+            ScrollcasterGauntlet.normalizeSelectedScrollIndex(gauntlet);
             helper.assertFalse(ISpellContainer.isSpellContainer(gauntlet),
                     "Empty Scrollcaster Gauntlet should not expose a spell container");
 
@@ -3263,11 +3263,8 @@ public class ApprenticeCodexGameTestScenarios {
                             magicMissile.getSchoolType().getDisplayName().getStyle().getColor()
                     ),
                     "Scrollcaster Gauntlet selection label should use the spell school color");
-            var spellContainer = ISpellContainer.get(gauntlet);
-            helper.assertTrue(spellContainer != null, "Selected Scrollcaster Gauntlet spell container is null");
-            helper.assertTrue(spellContainer.isSpellWheel(), "Selected Scrollcaster Gauntlet spell should be visible to Iron's spell wheel");
-            helper.assertFalse(spellContainer.mustEquip(), "Held Scrollcaster Gauntlet spell should not require an armor/curio slot");
-            assertSpellData(helper, spellContainer, 0, magicMissile, 1, false,
+            helper.assertFalse(ISpellContainer.isSpellContainer(gauntlet), "Gauntlet must not project a container");
+            helper.assertTrue(ScrollcasterGauntlet.getSelectedSpellData(gauntlet).getSpell() == magicMissile,
                     "Selected Scrollcaster Gauntlet spell mismatch");
             helper.assertFalse(Utils.canImbue(gauntlet),
                     "Scrollcaster Gauntlet should not be treated as Arcane Anvil imbue equipment");
@@ -3276,13 +3273,12 @@ public class ApprenticeCodexGameTestScenarios {
             ISpellContainer.createImbuedContainer(magicMissile, 1, gauntlet);
             helper.assertTrue(ISpellContainer.get(gauntlet).getSpellAtIndex(0).isLocked(),
                     "Legacy Scrollcaster Gauntlet projection setup should create a locked spell for this test");
-            ScrollcasterGauntlet.refreshSelectedSpellContainer(gauntlet);
-            assertSpellData(helper, ISpellContainer.get(gauntlet), 0, magicMissile, 1, false,
-                    "Scrollcaster Gauntlet should repair legacy locked projection spells");
+            ScrollcasterGauntlet.discardLegacySpellContainer(gauntlet);
+            helper.assertFalse(ISpellContainer.isSpellContainer(gauntlet), "Legacy projection must be discarded");
 
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 1, createSpellScroll(heal));
             ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 1);
-            assertSpellData(helper, ISpellContainer.get(gauntlet), 0, heal, 1, false,
+            helper.assertTrue(ScrollcasterGauntlet.getSelectedSpellData(gauntlet).getSpell() == heal,
                     "Changing Scrollcaster Gauntlet index should change the exposed spell");
             gauntlet = ScrollcasterGauntlet.copyWithToggledCastMode(gauntlet);
             helper.assertTrue(ScrollcasterGauntlet.getCastMode(gauntlet) == ScrollcasterGauntlet.CastMode.GAUNTLET,
@@ -3480,7 +3476,7 @@ public class ApprenticeCodexGameTestScenarios {
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 1, ItemStack.EMPTY);
             helper.assertTrue(ScrollcasterGauntlet.getSelectedScrollIndex(gauntlet) == 3,
                     "Removing the selected scroll should normalize to the first remaining scroll");
-            assertSpellData(helper, ISpellContainer.get(gauntlet), 0, magicMissile, 1, false,
+            helper.assertTrue(ScrollcasterGauntlet.getSelectedSpellData(gauntlet).getSpell() == magicMissile,
                     "Normalized Scrollcaster Gauntlet spell mismatch");
 
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 3, ItemStack.EMPTY);

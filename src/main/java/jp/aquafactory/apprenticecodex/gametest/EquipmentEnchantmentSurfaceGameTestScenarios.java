@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
 import io.redspace.ironsspellbooks.compat.Curios;
@@ -1197,7 +1198,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             ScrollcasterGauntlet.setCalibrationScroll(
                     stack,
                     0,
-                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get())
+                    createSpellScroll(expectedSpell)
             );
             stack.enchant(EnchantmentRegistry.SURGE.get(), 1);
             stack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);

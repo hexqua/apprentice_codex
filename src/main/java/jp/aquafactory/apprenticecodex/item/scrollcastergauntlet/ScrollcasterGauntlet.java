@@ -10,7 +10,6 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
-import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
@@ -85,7 +84,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
+public final class ScrollcasterGauntlet extends Item implements GeoItem, UniqueItem, TranscendenceTarget,
         ItemTransformPreservingCastAnimationItem, ArcaneAnvilScrollImbueBlockItem,
         BetterCombatOffhandDualWieldingPolicyItem, SwingTriggeredMagicItem, PriorityOffhandUseDeferringItem, IJeiInfoItem,
         ImmediateSneakSelectionUiItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
@@ -251,6 +250,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
         var stack = player.getItemInHand(usedHand);
+        if (!level.isClientSide) discardLegacySpellContainer(stack);
         if (usedHand == InteractionHand.MAIN_HAND && shouldPrioritizeOffhandUse(player)) {
             return InteractionResultHolder.pass(stack);
         }
@@ -283,11 +283,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         return casted
                 ? InteractionResultHolder.sidedSuccess(stack, level.isClientSide)
                 : InteractionResultHolder.fail(stack);
-    }
-
-    @Override
-    public void initializeSpellContainer(ItemStack stack) {
-        refreshSelectedSpellContainer(stack);
     }
 
     @Override
@@ -725,7 +720,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         var firstValidIndex = findFirstValidScrollIndex(gauntletStack);
         if (firstValidIndex < 0) {
             clearSelectedScrollIndex(gauntletStack);
-            ISpellContainer.remove(gauntletStack);
             return -1;
         }
 
@@ -1089,5 +1083,34 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     public record ResolvedUseSpell(@NotNull SpellData spellData, @NotNull CastSource castSource) {
+    }
+
+    public static void discardLegacySpellContainer(ItemStack stack) {
+        if (!(stack.getItem() instanceof ScrollcasterGauntlet)) return;
+        // 本体は投影にすぎないため、旧データから内部スクロールを復元しない。
+        ISpellContainer.remove(stack);
+        PresetSpellContainerStateHelper.discardRememberedStateIfPresent(stack);
+    }
+
+    private static SpellData resolveScrollSpellData(ItemStack stack, ItemStack scroll) {
+        var data = getScrollSpellData(scroll);
+        if (data == SpellData.EMPTY) return data;
+        return new SpellData(data.getSpell(),
+                TranscendenceHelper.resolveScrollSpellLevel(stack, data.getLevel()), data.isLocked());
+    }
+
+    public static ScrollSlotTooltipData getScrollTooltipData(ItemStack stack) {
+        // 表示による正規化はコピーに限り、保存中の選択やスクロールを変更しない。
+        var display = stack.copy();
+        var selected = getSelectedSpellData(display);
+        var entries = new ArrayList<ScrollSlotTooltipData.Entry>();
+        for (int slot = 0; slot < CALIBRATION_SCROLL_SLOT_COUNT; ++slot) {
+            var scroll = getCalibrationScroll(display, slot);
+            if (scroll.isEmpty()) continue;
+            var usable = isSelectableScrollIndex(display, slot);
+            entries.add(new ScrollSlotTooltipData.Entry(slot, scroll,
+                    usable ? resolveScrollSpellData(display, scroll) : getScrollSpellData(scroll), usable));
+        }
+        return new ScrollSlotTooltipData(selected, getSelectedScrollIndex(display), entries);
     }
 }

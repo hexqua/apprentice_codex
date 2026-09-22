@@ -436,7 +436,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             ScrollcasterGauntlet.refreshResolvedCalibrationSchool(gauntletStack);
             ScrollcasterGauntlet.refreshSelectedSpellContainer(gauntletStack);
         } else if (hasChargecastCatalystbook()) {
-            ChargecastCatalystbook.refreshSelectedSpellContainer(gauntletStack);
+            if (!clientSide) ChargecastCatalystbook.discardLegacySpellContainer(gauntletStack);
+            ChargecastCatalystbook.normalizeSelectedScrollIndex(gauntletStack);
         } else if (hasRevolvercastStaff()) {
             if (!clientSide) RevolvercastStaff.discardLegacySpellContainer(gauntletStack);
             RevolvercastStaff.refreshResolvedCalibrationSchool(gauntletStack);
