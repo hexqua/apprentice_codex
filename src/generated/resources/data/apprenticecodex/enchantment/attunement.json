@@ -3,7 +3,7 @@
   "description": {
     "translate": "enchantment.apprenticecodex.attunement"
   },
-  "exclusive_set": "#apprenticecodex:exclusive_set/surge_attunement_transcendence",
+  "exclusive_set": "#apprenticecodex:exclusive_set/surge_attunement",
   "max_cost": {
     "base": 25,
     "per_level_above_first": 11

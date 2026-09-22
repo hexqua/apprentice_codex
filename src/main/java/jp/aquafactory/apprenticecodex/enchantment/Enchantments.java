@@ -51,8 +51,8 @@ public final class Enchantments {
     public static final TagKey<Item> MANA_SHIELD_CHARM_ENCHANTABLE = itemTag("mana_shield_charm_enchantable");
     public static final TagKey<Enchantment> EXCLUSIVE_REFLUX_RESERVOIR = enchantmentTag("exclusive_set/reflux_reservoir");
     public static final TagKey<Enchantment> EXCLUSIVE_ALACRITY_TENSE = enchantmentTag("exclusive_set/alacrity_tense");
-    public static final TagKey<Enchantment> EXCLUSIVE_SURGE_ATTUNEMENT_TRANSCENDENCE =
-            enchantmentTag("exclusive_set/surge_attunement_transcendence");
+    public static final TagKey<Enchantment> EXCLUSIVE_SURGE_ATTUNEMENT =
+            enchantmentTag("exclusive_set/surge_attunement");
     public static final TagKey<Enchantment> EXCLUSIVE_RED_GLOW_ENERGY =
             enchantmentTag("exclusive_set/red_glow_energy");
     public static final TagKey<Enchantment> EXCLUSIVE_SYNTHESIS =
@@ -204,7 +204,7 @@ public final class Enchantments {
                                         EquipmentSlotGroup.HAND
                                 )
                         )
-                        .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_SURGE_ATTUNEMENT_TRANSCENDENCE))
+                        .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_SURGE_ATTUNEMENT))
         );
 
         register(
@@ -222,7 +222,7 @@ public final class Enchantments {
                                         EquipmentSlotGroup.HAND
                                 )
                         )
-                        .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_SURGE_ATTUNEMENT_TRANSCENDENCE))
+                        .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_SURGE_ATTUNEMENT))
         );
 
         register(
@@ -240,7 +240,6 @@ public final class Enchantments {
                                         EquipmentSlotGroup.HAND
                                 )
                         )
-                        .exclusiveWith(enchantmentLookup.getOrThrow(EXCLUSIVE_SURGE_ATTUNEMENT_TRANSCENDENCE))
         );
 
         register(
