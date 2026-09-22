@@ -1,8 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle;
 
-import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
-import jp.aquafactory.apprenticecodex.item.curios.manathruster.ManaThrusterFlightManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -24,16 +22,13 @@ public class ShootingStarMantle extends Item implements ICurioItem {
     }
 
     @Override
-    public void onEquip(SlotContext slotContext, ItemStack prevStack, ItemStack stack) {
-    }
+    public boolean isBarVisible(ItemStack stack) { return MantleEnergy.read(stack).energy() < MantleEnergy.MAX; }
 
     @Override
-    public void onUnequip(SlotContext slotContext, ItemStack newStack, ItemStack stack) {
-    }
+    public int getBarWidth(ItemStack stack) { return Math.round(13F * MantleEnergy.read(stack).energy() / MantleEnergy.MAX); }
 
     @Override
-    public void curioTick(SlotContext slotContext, ItemStack stack) {
-    }
+    public int getBarColor(ItemStack stack) { return MantleEnergy.read(stack).recovering() ? 0xFF4400 : 0xFFEEDD; }
 
     @Override
     public List<Component> getSlotsTooltip(List<Component> tooltips, TooltipContext context, ItemStack stack) {
