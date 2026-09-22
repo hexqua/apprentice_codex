@@ -49,7 +49,6 @@ public class AttunementEnchantment extends Enchantment {
     @Override
     protected boolean checkCompatibility(@NotNull Enchantment other) {
         return !(other instanceof SurgeEnchantment)
-                && !(other instanceof TranscendenceEnchantment)
                 && super.checkCompatibility(other);
     }
 }
