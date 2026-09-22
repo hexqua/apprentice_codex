@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
+import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleCalibration;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleMovement;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.ShootingStarMantleRuntime;
 import jp.aquafactory.apprenticecodex.network.Networks;
@@ -9,6 +11,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncMantlePacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -26,6 +29,7 @@ public final class ShootingStarMantleClient {
     private static boolean jumpHeld;
     private static long nextSequence;
     private static long pendingSequence = -1;
+    private static ItemStack selectionSnapshot = ItemStack.EMPTY;
 
     private ShootingStarMantleClient() { }
 
@@ -82,7 +86,7 @@ public final class ShootingStarMantleClient {
             // 枯渇終了では残りtickを消す前に止め、競合する飛行能力や上下速度は維持する。
             if (player == minecraft.player && state.dashTicks > 0 && packet.recovering() && packet.equipped()
                     && !ShootingStarMantleRuntime.conflict(player) && !ShootingStarMantleRuntime.invalidHoverContext(player)) {
-                player.setDeltaMovement(0, player.getDeltaMovement().y, 0);
+                MantleMovement.finishImpulse(player);
             }
             state.dashTicks = 0;
             state.lastPosition = null;
@@ -122,6 +126,12 @@ public final class ShootingStarMantleClient {
     public static void tick(ClientTickEvent.Post event) {
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
+        var equipped = player == null ? ItemStack.EMPTY : ShootingStarMantleRuntime.findEquipped(player);
+        if (player != null && !MantleCalibration.hasSameScrollSelection(selectionSnapshot, equipped, player.registryAccess())) {
+            // 通知よりCuriosの装備同期が遅れても更新する。魔力消費だけでは再構築しない。
+            ClientMagicData.updateSpellSelectionManager();
+        }
+        selectionSnapshot = equipped.copy();
         if (player != null) {
             var state = ShootingStarMantleRuntime.state(player);
             if (state.blinkTicks > 0) state.blinkTicks--;
@@ -140,5 +150,6 @@ public final class ShootingStarMantleClient {
         jumpHeld = false;
         pendingSequence = -1;
         nextSequence = 0;
+        selectionSnapshot = ItemStack.EMPTY;
     }
 }

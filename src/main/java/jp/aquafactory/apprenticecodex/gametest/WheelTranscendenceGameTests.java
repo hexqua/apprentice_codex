@@ -53,7 +53,7 @@ public final class WheelTranscendenceGameTests {
         var enchantment = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
                 .getOrThrow(Enchantments.TRANSCENDENCE);
         for (var item : List.of(ItemRegistry.ARCHIVISTS_GRIMOIRE.get(), ItemRegistry.FLOATMOUNT_BROOM.get(),
-                ItemRegistry.HOVERRIDE_BROOM.get())) {
+                ItemRegistry.HOVERRIDE_BROOM.get(), ItemRegistry.SHOOTING_STAR_MANTLE.get())) {
             var stack = new ItemStack(item);
             var book = new ItemStack(Items.ENCHANTED_BOOK);
             book.enchant(enchantment, 1);

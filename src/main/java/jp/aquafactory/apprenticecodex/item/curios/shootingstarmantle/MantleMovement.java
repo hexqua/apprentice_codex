@@ -43,9 +43,15 @@ public final class MantleMovement {
         player.setDeltaMovement(player.getDeltaMovement().multiply(0.91, 1, 0.91));
         player.fallDistance = 0;
         if (state.dashTicks > 0 && --state.dashTicks == 0) {
-            // 5tickの推進を終えた後の惰性で、指定距離を大きく超えないようにする。
-            player.setDeltaMovement(0, player.getDeltaMovement().y, 0);
+            finishImpulse(player);
         }
         player.calculateEntityAnimation(false);
+    }
+
+    public static void finishImpulse(Player player) {
+        // 通常は5tick後に停止する。氷のルーンだけは通常の移動減衰へ慣性を引き継ぐ。
+        if (!MantleCalibration.retainsDrift(ShootingStarMantleRuntime.findEquipped(player))) {
+            player.setDeltaMovement(0, player.getDeltaMovement().y, 0);
+        }
     }
 }

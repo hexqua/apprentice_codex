@@ -39,6 +39,15 @@ public final class CalibrationAdjustmentEffects {
         return line("add_spell_resist", percentage(amount));
     }
 
+    public static List<Component> forceMantleRecovery() {
+        return List.of(Component.translatable(KEY_PREFIX + "force_mantle_recovery_1"),
+                Component.translatable(KEY_PREFIX + "force_mantle_recovery_2"));
+    }
+
+    public static List<Component> changeMantleDrift() {
+        return line("change_mantle_drift");
+    }
+
     public static List<Component> addMaxMana(double amount) {
         return line("add_max_mana", Math.round(amount));
     }

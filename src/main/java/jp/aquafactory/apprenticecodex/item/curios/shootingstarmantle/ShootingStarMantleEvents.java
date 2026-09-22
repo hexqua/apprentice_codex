@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.EquipmentChangedPacket;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceHelper;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -21,8 +22,18 @@ public final class ShootingStarMantleEvents {
 
     @SubscribeEvent
     public static void selection(SpellSelectionManager.SpellSelectionEvent event) {
-        if (!ShootingStarMantleRuntime.findEquipped(event.getEntity()).isEmpty()) {
+        var stack = ShootingStarMantleRuntime.findEquipped(event.getEntity());
+        if (!stack.isEmpty()) {
             event.addSelectionOption(new SpellData(SpellRegistry.WAVERING_STAR.get(), 1), ShootingStarMantleRuntime.SPELL_SLOT, 0);
+            var lookup = event.getEntity().registryAccess();
+            int selectionIndex = 0;
+            for (int slot = 0; slot < MantleCalibration.enabledSlots(stack, lookup); slot++) {
+                var spell = MantleCalibration.readSpell(stack, slot, lookup);
+                if (spell == SpellData.EMPTY) continue;
+                // 固有魔法と分離し、Iron'sが扱うindexは空枠を除いた連番にする。
+                event.addSelectionOption(TranscendenceHelper.resolveScrollSpellData(stack, spell),
+                        ShootingStarMantleRuntime.SCROLL_SPELL_SLOT, selectionIndex++);
+            }
         }
     }
 
@@ -37,7 +48,7 @@ public final class ShootingStarMantleEvents {
                 && (event.getFrom().getItem() instanceof ShootingStarMantle || event.getTo().getItem() instanceof ShootingStarMantle)) {
             // CuriosはCustom Data更新でもこのeventを発火する。残量更新で浮遊を解除しない。
             ShootingStarMantleRuntime.refreshEquipment(player);
-            if (event.getFrom().getItem() != event.getTo().getItem()) {
+            if (!MantleCalibration.hasSameScrollSelection(event.getFrom(), event.getTo(), player.registryAccess())) {
                 PacketDistributor.sendToPlayer(player, new EquipmentChangedPacket());
             }
         }
