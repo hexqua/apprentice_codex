@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.entity.broom;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceHelper;
 import jp.aquafactory.apprenticecodex.item.broom.AbstractBroomItem;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.bus.api.EventPriority;
@@ -32,7 +33,10 @@ public final class BroomSpellSelectionEvents {
                 continue;
             }
             // Iron'sのselection indexは空の保存枠を含めず、公開中の選択肢だけで連番にする。
-            event.addSelectionOption(spellData, SPELL_SELECTION_SLOT, selectionIndex++);
+            // 装備に付属するCallBroomではなく、搭乗中の箒のスクロールだけを補正する。
+            var resolvedSpell = new SpellData(spellData.getSpell(),
+                    TranscendenceHelper.resolveScrollSpellLevel(broomStack, spellData.getLevel()), spellData.isLocked());
+            event.addSelectionOption(resolvedSpell, SPELL_SELECTION_SLOT, selectionIndex++);
         }
     }
 }
