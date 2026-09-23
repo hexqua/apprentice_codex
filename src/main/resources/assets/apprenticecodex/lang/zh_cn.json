@@ -1724,6 +1724,8 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.force_mantle_recovery_1": "加快斗篷魔力恢复速度",
   "jei.apprenticecodex.spell_calibration_bench.effect.force_mantle_recovery_2": "魔力耗尽后的恢复速度不变",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_drift": "摇曳之星保留惯性",
+  "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_blink_1": "改变摇曳之星的冲刺方式",
+  "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_blink_2": "变为附带无敌的瞬移",
   "spell.apprenticecodex.wavering_star": "摇曳之星",
   "spell.apprenticecodex.wavering_star.guide": "流星斗篷独有的潜在法术。释放斗篷中蕴含的魔力，在一定高度悬浮。移动时可维持的高度会降低。悬浮时尝试跳跃，可向指定方向进行短距离高速移动。斗篷魔力耗尽时解除。",
   "ui.apprenticecodex.wavering_star.not_found_mantle": "找不到可释放魔力的斗篷……",

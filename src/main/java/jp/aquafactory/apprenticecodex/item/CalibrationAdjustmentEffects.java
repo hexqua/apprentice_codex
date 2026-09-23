@@ -48,6 +48,11 @@ public final class CalibrationAdjustmentEffects {
         return line("change_mantle_drift");
     }
 
+    public static List<Component> changeMantleBlink() {
+        return List.of(Component.translatable(KEY_PREFIX + "change_mantle_blink_1"),
+                Component.translatable(KEY_PREFIX + "change_mantle_blink_2"));
+    }
+
     public static List<Component> addMaxMana(double amount) {
         return line("add_max_mana", Math.round(amount));
     }

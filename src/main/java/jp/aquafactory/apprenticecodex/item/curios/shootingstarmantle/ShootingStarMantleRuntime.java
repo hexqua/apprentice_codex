@@ -45,6 +45,7 @@ public final class ShootingStarMantleRuntime {
         public int movingTicks;
         public Vec3 lastPosition;
         public int dashTicks;
+        public final MantleBlink blink = new MantleBlink();
         public Vec3 dashDirection = Vec3.ZERO;
         public long lastSequence = -1;
         public int blinkTicks;
@@ -93,7 +94,8 @@ public final class ShootingStarMantleRuntime {
     public static boolean isHovering(Player player) {
         // 枯渇しても支払い済みの高速移動だけは完走する。装備・競合の制約は緩めない。
         return state(player).hovering && !findEquipped(player).isEmpty() && !conflict(player)
-                && !invalidHoverContext(player) && (state(player).dashTicks > 0 || (player.level().isClientSide
+                && !invalidHoverContext(player) && (state(player).dashTicks > 0
+                || state(player).blink.active(player.level().getGameTime()) || (player.level().isClientSide
                 ? !state(player).recovering && state(player).energy > 0 : MantleEnergy.read(findEquipped(player)).usable()));
     }
 
@@ -123,6 +125,7 @@ public final class ShootingStarMantleRuntime {
         state.hovering = !state.hovering;
         if (state.hovering) player.fallDistance = 0;
         state.dashTicks = 0;
+        state.blink.cancel();
         state.lastPosition = null;
         sync(player, false);
         return true;
@@ -141,11 +144,17 @@ public final class ShootingStarMantleRuntime {
     }
 
     private static void stop(Player player, State state) {
+        stop(player, state, false);
+    }
+
+    private static void stop(Player player, State state, boolean completed) {
         // 競合時のfallFlyingフラグは優先側へ引き継ぎ、毎tick解除しない。
         if (state.flying && !conflict(player) && player.isFallFlying()) player.stopFallFlying();
         state.flying = false;
         state.hovering = false;
         state.dashTicks = 0;
+        // 完走した描画時刻は、他playerの位置補間が追いつくまで残す。
+        if (!completed) state.blink.cancel();
         state.movingTicks = 0;
         state.lastPosition = null;
     }
@@ -165,6 +174,7 @@ public final class ShootingStarMantleRuntime {
             return;
         }
         state.flying = player.isFallFlying() && canFly(player);
+        state.blink.update(player, state);
         var before = MantleEnergy.read(stack);
         var after = before;
         boolean full = false;
@@ -176,7 +186,7 @@ public final class ShootingStarMantleRuntime {
                 if (state.dashTicks > 0 && --state.dashTicks == 0) MantleMovement.finishImpulse(player);
             }
             if (!after.usable()) {
-                if (state.dashTicks == 0) stop(player, state);
+                if (state.dashTicks == 0 && !state.blink.active(player.level().getGameTime())) stop(player, state, true);
                 if (before.usable()) notifyDepleted(player);
             }
         } else if (!player.isFallFlying() && before.energy() < MantleEnergy.MAX) {
@@ -210,7 +220,8 @@ public final class ShootingStarMantleRuntime {
         var direction = MantleMovement.direction(forward, strafe, player.getYRot());
         var stack = findEquipped(player);
         boolean accepted = sequence > state.lastSequence && sequence >= 0 && state.stack == stack
-                && isHovering(player) && state.dashTicks == 0 && MantleEnergy.read(stack).canImpulse()
+                && isHovering(player) && state.dashTicks == 0 && !state.blink.active(player.level().getGameTime())
+                && MantleEnergy.read(stack).canImpulse()
                 && direction.lengthSqr() > 0;
         state.lastSequence = Math.max(state.lastSequence, sequence);
         if (accepted) {
@@ -218,12 +229,18 @@ public final class ShootingStarMantleRuntime {
             if (MantleEnergy.read(stack).recovering()) {
                 notifyDepleted(player);
             }
-            state.dashTicks = 5;
-            state.dashDirection = direction;
-            player.setDeltaMovement(direction.x, player.getDeltaMovement().y, direction.z);
-            player.level().playSound(null, player.blockPosition(), SoundRegistry.VANILLA_MANTLE_IMPULSE.get(), SoundSource.PLAYERS, 1, 1);
+            if (MantleCalibration.usesBlink(stack)) {
+                state.blink.begin(player, sequence, direction);
+            } else {
+                state.blink.cancel();
+                state.dashTicks = 5;
+                state.dashDirection = direction;
+                player.setDeltaMovement(direction.x, player.getDeltaMovement().y, direction.z);
+                player.level().playSound(null, player.blockPosition(), SoundRegistry.VANILLA_MANTLE_IMPULSE.get(), SoundSource.PLAYERS, 1, 1);
+            }
         }
         PacketDistributor.sendToPlayer(player, packet(player, false, sequence, accepted));
+        if (accepted) sync(player, false);
         if (!accepted && !(player instanceof FakePlayer)) {
             // 拒否済みの予測移動は現在のserver位置へ戻す。通常の移動検証は維持する。
             player.connection.teleport(player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot());
@@ -235,7 +252,8 @@ public final class ShootingStarMantleRuntime {
         var stack = findEquipped(player);
         var energy = MantleEnergy.read(stack);
         var state = state(player);
-        return new SyncMantlePacket(player.getId(), !stack.isEmpty(), energy.energy(), energy.recovering(), state.hovering, blink, sequence, accepted);
+        return new SyncMantlePacket(player.getId(), !stack.isEmpty(), energy.energy(), energy.recovering(), state.hovering, blink, sequence, accepted,
+                state.blink.start(), state.blink.sequence(), state.blink.height(), state.blink.direction());
     }
 
     public static void sync(ServerPlayer player, boolean blink) {

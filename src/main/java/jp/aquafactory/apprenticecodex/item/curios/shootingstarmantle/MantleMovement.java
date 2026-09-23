@@ -31,6 +31,7 @@ public final class MantleMovement {
     }
 
     public static void travel(Player player, Vec3 input, ShootingStarMantleRuntime.State state) {
+        if (state.blink.travel(player, state)) return;
         state.movingTicks = movingTicks(state.lastPosition, player.position(), state.movingTicks);
         state.lastPosition = player.position();
         var surface = BroomSurfaceScanner.findSurfaceBelow(player.level(), player.getX(), player.getY(), player.getZ(), 16, true);

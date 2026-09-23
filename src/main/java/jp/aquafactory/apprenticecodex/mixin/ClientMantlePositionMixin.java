@@ -17,6 +17,7 @@ public abstract class ClientMantlePositionMixin {
         if (player != null) {
             // 転送・server補正の座標差を通常のXZ移動として高度低下へ持ち込まない。
             var state = ShootingStarMantleRuntime.state(player);
+            state.blink.cancel();
             state.lastPosition = null;
             state.movingTicks = 0;
         }
