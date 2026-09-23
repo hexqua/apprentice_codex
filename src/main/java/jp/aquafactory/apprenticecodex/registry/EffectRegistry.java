@@ -13,6 +13,8 @@ import jp.aquafactory.apprenticecodex.effect.Intelligence;
 import jp.aquafactory.apprenticecodex.effect.InertManaShieldEffect;
 import jp.aquafactory.apprenticecodex.effect.LongStrideMobility;
 import jp.aquafactory.apprenticecodex.effect.ManaRegeneration;
+import jp.aquafactory.apprenticecodex.effect.MantleBurningDashEffect;
+import jp.aquafactory.apprenticecodex.effect.MantleVoltStrikeEffect;
 import jp.aquafactory.apprenticecodex.effect.MistFormEffect;
 import jp.aquafactory.apprenticecodex.effect.NotchedFrozenEffect;
 import jp.aquafactory.apprenticecodex.effect.PaletteReception;
@@ -34,6 +36,11 @@ import net.minecraftforge.registries.RegistryObject;
 public final class EffectRegistry {
     public static final DeferredRegister<MobEffect> EFFECTS =
             DeferredRegister.create(ForgeRegistries.MOB_EFFECTS, ApprenticeCodex.MODID);
+
+    public static final RegistryObject<MobEffect> MANTLE_BURNING_DASH =
+            EFFECTS.register("mantle_burning_dash", MantleBurningDashEffect::new);
+    public static final RegistryObject<MobEffect> MANTLE_VOLT_STRIKE =
+            EFFECTS.register("mantle_volt_strike", MantleVoltStrikeEffect::new);
 
     public static final RegistryObject<MobEffect> ARCANE_CHARGE =
             EFFECTS.register("arcane_charge", ArcaneCharge::new);

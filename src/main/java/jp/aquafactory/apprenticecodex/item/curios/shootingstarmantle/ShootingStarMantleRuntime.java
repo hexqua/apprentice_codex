@@ -46,6 +46,7 @@ public final class ShootingStarMantleRuntime {
         public Vec3 lastPosition;
         public int dashTicks;
         public final MantleBlink blink = new MantleBlink();
+        public final MantleElementalDash elemental = new MantleElementalDash();
         public Vec3 dashDirection = Vec3.ZERO;
         public long lastSequence = -1;
         public int blinkTicks;
@@ -87,14 +88,14 @@ public final class ShootingStarMantleRuntime {
 
     public static boolean canFly(Player player) {
         var stack = findEquipped(player);
-        return !stack.isEmpty() && MantleEnergy.read(stack).usable() && !conflict(player)
+        return !stack.isEmpty() && (MantleEnergy.read(stack).usable() || state(player).elemental.paidFlight()) && !conflict(player)
                 && !state(player).hovering && !invalidHoverContext(player) && !player.hasEffect(MobEffects.LEVITATION);
     }
 
     public static boolean isHovering(Player player) {
         // 枯渇しても支払い済みの高速移動だけは完走する。装備・競合の制約は緩めない。
         return state(player).hovering && !findEquipped(player).isEmpty() && !conflict(player)
-                && !invalidHoverContext(player) && (state(player).dashTicks > 0
+                && !invalidHoverContext(player) && (state(player).elemental.paidHover() || state(player).dashTicks > 0
                 || state(player).blink.active(player.level().getGameTime()) || (player.level().isClientSide
                 ? !state(player).recovering && state(player).energy > 0 : MantleEnergy.read(findEquipped(player)).usable()));
     }
@@ -111,7 +112,7 @@ public final class ShootingStarMantleRuntime {
         if (player instanceof ServerPlayer) player.displayClientMessage(Component.translatable(key).withStyle(color), true);
     }
 
-    private static void notifyDepleted(ServerPlayer player) {
+    static void notifyDepleted(ServerPlayer player) {
         notify(player, "ui.apprenticecodex.shooting_star_mantle.depleted_energy", ChatFormatting.YELLOW);
         player.level().playSound(null, player.blockPosition(), SoundRegistry.VANILLA_MANTLE_DEPLETE.get(), SoundSource.PLAYERS, 1, 1);
     }
@@ -120,6 +121,7 @@ public final class ShootingStarMantleRuntime {
         if (castError(player) != null) return false;
         var state = state(player);
         bind(player, state, findEquipped(player));
+        state.elemental.cancel(player);
         if (player.isFallFlying()) player.stopFallFlying();
         state.flying = false;
         state.hovering = !state.hovering;
@@ -148,6 +150,7 @@ public final class ShootingStarMantleRuntime {
     }
 
     private static void stop(Player player, State state, boolean completed) {
+        state.elemental.cancel(player);
         // 競合時のfallFlyingフラグは優先側へ引き継ぎ、毎tick解除しない。
         if (state.flying && !conflict(player) && player.isFallFlying()) player.stopFallFlying();
         state.flying = false;
@@ -175,6 +178,7 @@ public final class ShootingStarMantleRuntime {
         }
         state.flying = player.isFallFlying() && canFly(player);
         state.blink.update(player, state);
+        state.elemental.tick(player);
         var before = MantleEnergy.read(stack);
         var after = before;
         boolean full = false;
@@ -186,8 +190,12 @@ public final class ShootingStarMantleRuntime {
                 if (state.dashTicks > 0 && --state.dashTicks == 0) MantleMovement.finishImpulse(player);
             }
             if (!after.usable()) {
-                if (state.dashTicks == 0 && !state.blink.active(player.level().getGameTime())) stop(player, state, true);
-                if (before.usable()) notifyDepleted(player);
+                if (state.dashTicks == 0 && !state.blink.active(player.level().getGameTime())
+                        && !state.elemental.active()) stop(player, state, true);
+                if (before.usable()) {
+                    if (state.elemental.active()) state.elemental.deferDepletion();
+                    else notifyDepleted(player);
+                }
             }
         } else if (!player.isFallFlying() && before.energy() < MantleEnergy.MAX) {
             if (++state.recoveryTicks >= 10) {
@@ -220,6 +228,7 @@ public final class ShootingStarMantleRuntime {
         var direction = MantleMovement.direction(forward, strafe, player.getYRot());
         var stack = findEquipped(player);
         boolean accepted = sequence > state.lastSequence && sequence >= 0 && state.stack == stack
+                && MantleCalibration.elementalKind(stack) == 0
                 && isHovering(player) && state.dashTicks == 0 && !state.blink.active(player.level().getGameTime())
                 && MantleEnergy.read(stack).canImpulse()
                 && direction.lengthSqr() > 0;
@@ -252,7 +261,7 @@ public final class ShootingStarMantleRuntime {
         var stack = findEquipped(player);
         var energy = MantleEnergy.read(stack);
         var state = state(player);
-        return new SyncMantlePacket(player.getId(), !stack.isEmpty(), energy.energy(), energy.recovering(), state.hovering, blink, sequence, accepted,
+        return new SyncMantlePacket(player.getId(), !stack.isEmpty(), energy.energy(), energy.recovering() && !state.elemental.defersDepletion(), state.hovering, blink, sequence, accepted,
                 state.blink.start(), state.blink.sequence(), state.blink.height(), state.blink.direction());
     }
 

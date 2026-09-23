@@ -3,6 +3,8 @@ package jp.aquafactory.apprenticecodex.network;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleAdsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMantleImpulsePacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientMantleDashInputPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncMantleDashPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMantlePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFullautoRapidcastSpellrifleAdsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFullautoRapidcastSpellrifleCastPacket;
@@ -119,7 +121,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "107";
+    private static final String PROTOCOL_VERSION = "108";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -133,6 +135,12 @@ public final class Networks {
     }
 
     public static void register() {
+        CHANNEL.registerMessage(nextPacketId++, ClientMantleDashInputPacket.class,
+                ClientMantleDashInputPacket::encode, ClientMantleDashInputPacket::decode, ClientMantleDashInputPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(nextPacketId++, SyncMantleDashPacket.class,
+                SyncMantleDashPacket::encode, SyncMantleDashPacket::decode, SyncMantleDashPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(nextPacketId++, SyncMantlePacket.class,
                 SyncMantlePacket::encode, SyncMantlePacket::decode, SyncMantlePacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));

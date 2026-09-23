@@ -89,6 +89,7 @@
     "EntityRendererMantleBlinkNameMixin",
     "ClientMantlePositionMixin",
     "LocalPlayerShootingStarMantleMixin",
+    "MantleDashRotationMixin",
     "PlayerStaffrifleScopeMixin",
     "AbstractClientPlayerStaffrifleScopeMixin",
     "ChargedStaffItemInHandRendererMixin",

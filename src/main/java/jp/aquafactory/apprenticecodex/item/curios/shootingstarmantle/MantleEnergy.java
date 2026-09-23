@@ -37,15 +37,23 @@ public record MantleEnergy(int energy, boolean recovering, int spentTicks) {
     public boolean usable() { return energy > 0 && !recovering; }
 
     public MantleEnergy tickUse() {
+        return tickUse(1);
+    }
+
+    public MantleEnergy tickUse(int rate) {
         if (!usable()) return this;
-        return spentTicks == 19 ? new MantleEnergy(energy - 1, false, 0)
-                : new MantleEnergy(energy, false, spentTicks + 1);
+        int spent = spentTicks + rate;
+        return new MantleEnergy(energy - spent / 20, false, spent % 20);
     }
 
     public boolean canImpulse() { return usable(); }
 
     public MantleEnergy impulse() {
-        return canImpulse() ? new MantleEnergy(energy - 10, false, spentTicks) : this;
+        return canImpulse() ? spend(10) : this;
+    }
+
+    public MantleEnergy spend(int cost) {
+        return new MantleEnergy(energy - Math.max(0, cost), recovering, spentTicks);
     }
 
     public MantleEnergy recharge() {
