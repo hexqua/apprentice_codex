@@ -76,10 +76,26 @@ public final class ShootingStarMantleClient {
         var minecraft = Minecraft.getInstance();
         if (minecraft.level == null || !(minecraft.level.getEntity(packet.entityId()) instanceof Player player)) return;
         var state = ShootingStarMantleRuntime.state(player);
+        boolean ownPrediction = player == minecraft.player && state.blink.start() >= 0
+                && state.blink.sequence() == packet.blinkSequence();
+        boolean olderBlink = player == minecraft.player && pendingSequence >= 0 && state.blink.start() >= 0
+                && state.blink.sequence() == pendingSequence && packet.blinkSequence() != pendingSequence
+                && packet.sequence() != pendingSequence && packet.hovering() && packet.equipped();
+        // 本人の受理応答で予測の時系列を巻き戻さない。追跡側はserverの開始時刻で再現する。
+        if (!olderBlink && packet.blinkStart() >= 0) {
+            if (!ownPrediction && (state.blink.start() != packet.blinkStart()
+                    || state.blink.sequence() != packet.blinkSequence())) {
+                state.blink.accept(packet.blinkStart(), packet.blinkSequence(), packet.blinkHeight(), packet.blinkDirection());
+            }
+        } else if (!olderBlink && (player != minecraft.player || pendingSequence < 0 || packet.sequence() == pendingSequence)) {
+            state.blink.cancel();
+        }
         state.equipped = packet.equipped();
         state.energy = packet.energy();
         state.recovering = packet.recovering();
-        state.hovering = packet.hovering();
+        boolean finishPredictedBlink = ownPrediction && packet.blinkStart() >= 0 && packet.equipped()
+                && packet.recovering() && state.blink.active(player.level().getGameTime());
+        state.hovering = packet.hovering() || finishPredictedBlink;
         if (packet.blink()) state.blinkTicks = 20;
         if (!packet.hovering()) {
             // serverの終了通知が予測の最終tickより先に届くと、travel側の減速処理を通らない。
@@ -97,6 +113,7 @@ public final class ShootingStarMantleClient {
             pendingSequence = -1;
             if (!packet.accepted()) {
                 state.dashTicks = 0;
+                state.blink.cancel();
                 player.setDeltaMovement(0, player.getDeltaMovement().y, 0);
             }
         }
@@ -109,11 +126,17 @@ public final class ShootingStarMantleClient {
         boolean jump = input.jumping;
         var state = ShootingStarMantleRuntime.state(player);
         if (ShootingStarMantleRuntime.isHovering(player)) {
-            if (jump && !jumpHeld && state.dashTicks == 0 && pendingSequence < 0 && !state.recovering
+            if (jump && !jumpHeld && state.dashTicks == 0 && !state.blink.active(player.level().getGameTime())
+                    && pendingSequence < 0 && !state.recovering
                     && Minecraft.getInstance().screen == null) {
                 pendingSequence = nextSequence++;
                 state.dashDirection = MantleMovement.direction(input.forwardImpulse, input.leftImpulse, player.getYRot());
-                state.dashTicks = 5;
+                if (MantleCalibration.usesBlink(ShootingStarMantleRuntime.findEquipped(player))) {
+                    state.blink.begin(player, pendingSequence, state.dashDirection);
+                } else {
+                    state.blink.cancel();
+                    state.dashTicks = 5;
+                }
                 Networks.sendToServer(new ClientMantleImpulsePacket(pendingSequence, input.forwardImpulse, input.leftImpulse));
             }
             // 通常ジャンプ・エリトラ開始へ同じ押下を渡さない。
@@ -134,10 +157,12 @@ public final class ShootingStarMantleClient {
         selectionSnapshot = equipped.copy();
         if (player != null) {
             var state = ShootingStarMantleRuntime.state(player);
+            state.blink.update(player, state);
             if (state.blinkTicks > 0) state.blinkTicks--;
             if (state.hovering && !ShootingStarMantleRuntime.isHovering(player)) {
                 state.hovering = false;
                 state.dashTicks = 0;
+                if (state.blink.active(player.level().getGameTime())) state.blink.cancel();
             }
         }
         tickWingAnimations(minecraft);

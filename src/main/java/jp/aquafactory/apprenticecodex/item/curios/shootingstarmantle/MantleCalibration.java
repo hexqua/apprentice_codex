@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceHelper;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHint;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
@@ -46,8 +47,13 @@ public final class MantleCalibration {
                     CalibrationAdjustmentHint.specificItem(ItemRegistry.COOLDOWN_RUNE))
                     .withEffectLines(CalibrationAdjustmentEffects.forceMantleRecovery()),
             CalibrationAdjustmentRule.unique("ice_rune", stack -> stack.is(ItemRegistry.ICE_RUNE.get()),
-                    CalibrationAdjustmentHint.specificItem(ItemRegistry.ICE_RUNE))
-                    .withEffectLines(CalibrationAdjustmentEffects.changeMantleDrift()));
+                    CalibrationAdjustmentHint.specificItem(ItemRegistry.ICE_RUNE), CalibrationAdjustmentHints.schoolRuneConstraint())
+                    .withExclusiveGroup("school_rune")
+                    .withEffectLines(CalibrationAdjustmentEffects.changeMantleDrift()),
+            CalibrationAdjustmentRule.unique("ender_rune", stack -> stack.is(ItemRegistry.ENDER_RUNE.get()),
+                    CalibrationAdjustmentHint.specificItem(ItemRegistry.ENDER_RUNE), CalibrationAdjustmentHints.schoolRuneConstraint())
+                    .withExclusiveGroup("school_rune")
+                    .withEffectLines(CalibrationAdjustmentEffects.changeMantleBlink()));
 
     private MantleCalibration() { }
 
@@ -79,6 +85,10 @@ public final class MantleCalibration {
 
     public static boolean retainsDrift(ItemStack stack) {
         return hasAdjustment(stack, ItemRegistry.ICE_RUNE.get());
+    }
+
+    public static boolean usesBlink(ItemStack stack) {
+        return hasAdjustment(stack, ItemRegistry.ENDER_RUNE.get());
     }
 
     public static ItemStack getScroll(ItemStack stack, int slot, HolderLookup.Provider lookup) {

@@ -81,7 +81,10 @@ public final class CalibrationAdjustmentProfile {
             if (existingSlot == slot) {
                 continue;
             }
-            if (matchedRule.conflicts(candidate, existingAdjustment.apply(existingSlot))) {
+            var existing = existingAdjustment.apply(existingSlot);
+            var existingRule = existing.isEmpty() ? null
+                    : rules.stream().filter(rule -> rule.accepts(existing)).findFirst().orElse(null);
+            if (matchedRule.conflicts(candidate, existing) || matchedRule.sharesExclusiveGroup(existingRule)) {
                 return false;
             }
         }

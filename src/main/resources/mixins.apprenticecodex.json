@@ -99,6 +99,8 @@
     "UtilsMixin"
   ],
   "client": [
+    "EntityRenderDispatcherMantleBlinkMixin",
+    "EntityRendererMantleBlinkNameMixin",
     "ClientMantlePositionMixin",
     "LocalPlayerShootingStarMantleMixin",
     "PlayerStaffrifleScopeMixin",
