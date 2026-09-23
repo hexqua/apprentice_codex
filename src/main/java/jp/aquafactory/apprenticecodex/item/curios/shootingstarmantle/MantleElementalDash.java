@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.mixin.LivingEntityAccessor;
@@ -71,6 +72,23 @@ public final class MantleElementalDash {
         return kind == FIRE ? SpellRegistry.BURNING_DASH_SPELL.get() : SpellRegistry.VOLT_STRIKE_SPELL.get();
     }
 
+    private static int resolveLevel(Player player, int kind) {
+        var target = spell(kind);
+        int highest = 0;
+        for (var option : new SpellSelectionManager(player).getAllSpells()) {
+            var data = option.spellData;
+            if (data.getSpell() != target || data.getLevel() < 1) continue;
+            // 通常詠唱と同じ順序で、候補ごとにAffinity等のレベル補正を一度だけ適用する。
+            highest = Math.max(highest, target.getLevelFor(data.getLevel(), player));
+        }
+        // 対象魔法がないときはAffinityだけで外套の基礎Lvを引き上げない。
+        return Math.max(1, highest);
+    }
+
+    private static double hoverSpeed(float spellPower) {
+        return Math.max(1, (15.0 + spellPower) / 15.0);
+    }
+
     public static Holder<MobEffect> effect(int kind) {
         return kind == FIRE ? EffectRegistry.MANTLE_BURNING_DASH : EffectRegistry.MANTLE_VOLT_STRIKE;
     }
@@ -130,7 +148,7 @@ public final class MantleElementalDash {
         hover = state.hovering;
         kind = selected;
         var spell = spell(kind);
-        level = 1;
+        level = resolveLevel(player, kind);
         int duration = hover ? 5 : 15;
         end = now + duration;
         contactPosition = player.position();
@@ -145,7 +163,7 @@ public final class MantleElementalDash {
         float power = spell.getSpellPower(level, player);
         Vec3 impulse;
         if (hover) {
-            impulse = direction.scale(2);
+            impulse = direction.scale(hoverSpeed(power));
         } else {
             impulse = direction.multiply(3, 1, 3).normalize();
             if (!hover) impulse = impulse.add(0, .25, 0);
@@ -260,10 +278,10 @@ public final class MantleElementalDash {
         if (active() || normalDash(player)) return;
         kind = selected;
         hover = true;
-        level = 1;
+        level = resolveLevel(player, selected);
         end = player.level().getGameTime() + 5;
         motion = MantleMovement.direction(forwardInput, strafeInput, player.getYRot())
-                .scale(2);
+                .scale(hoverSpeed(spell(selected).getSpellPower(level, player)));
         player.setDeltaMovement(motion.x, player.getDeltaMovement().y, motion.z);
     }
 }

@@ -2,17 +2,27 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.config.SpellConfigManager;
+import io.redspace.ironsspellbooks.api.item.curios.AffinityData;
+import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleCalibration;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleElementalDash;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleEnergy;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.ShootingStarMantle;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.ShootingStarMantleRuntime;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.AfterBatch;
 import net.minecraft.gametest.framework.BeforeBatch;
 import net.minecraft.gametest.framework.GameTest;
@@ -28,14 +38,17 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import top.theillusivec4.curios.api.CuriosApi;
 
 import static io.redspace.ironsspellbooks.registries.ItemRegistry.ENDER_RUNE;
 import static io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE;
 import static io.redspace.ironsspellbooks.registries.ItemRegistry.ICE_RUNE;
 import static io.redspace.ironsspellbooks.registries.ItemRegistry.LIGHTNING_RUNE;
+import static io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -85,12 +98,137 @@ public final class MantleElementalDashGameTests {
     }
 
     @GameTest(batch = BATCH, template = TEMPLATE)
+    public static void missingSpellKeepsLevelOneDespiteAffinity(GameTestHelper helper) {
+        for (var rune : List.of(FIRE_RUNE.get(), LIGHTNING_RUNE.get())) {
+            var player = player(helper, "mantle_missing_spell_" + rune, rune, true);
+            var spell = rune == FIRE_RUNE.get() ? SpellRegistry.BURNING_DASH_SPELL.get() : SpellRegistry.VOLT_STRIKE_SPELL.get();
+            var ring = new ItemStack(ItemRegistry.ENCHANTED_CIRCLET.get());
+            AffinityData.setAffinityData(ring, spell, 2);
+            CuriosApi.getCuriosInventory(player).orElseThrow().setEquippedCurio("head", 0, ring);
+            var dash = ShootingStarMantleRuntime.state(player).elemental;
+            dash.input(player, 0, true, 1, 0);
+            helper.assertTrue(dash.level() == 1 && Math.abs(dash.motion().horizontalDistance() - 16.0 / 15) < .001,
+                    "Affinity without a selectable target spell must keep the level-one dash");
+            ShootingStarMantleRuntime.clear(player);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(batch = BATCH, template = TEMPLATE)
+    public static void mantleScrollUsesTranscendenceAffinityAndSpellPower(GameTestHelper helper) {
+        var player = player(helper, "mantle_resolved_fire", FIRE_RUNE.get(), true);
+        var stack = ShootingStarMantleRuntime.findEquipped(player);
+        var mantle = (ShootingStarMantle) stack.getItem();
+        var spell = SpellRegistry.BURNING_DASH_SPELL.get();
+        helper.assertTrue(mantle.trySetCalibrationAdjustment(stack, 1, new ItemStack(ItemRegistry.SCROLLWOVEN_PARCHMENT.get())),
+                "Mantle scroll slot must be enabled");
+        var scroll = new ItemStack(SCROLL.get());
+        ISpellContainer.createScrollContainer(spell, 4, scroll);
+        MantleCalibration.setScroll(stack, 0, scroll, player.registryAccess());
+        var enchantment = player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.TRANSCENDENCE);
+        stack.enchant(enchantment, 1);
+        var ring = new ItemStack(ItemRegistry.ENCHANTED_CIRCLET.get());
+        AffinityData.setAffinityData(ring, spell, 2);
+        CuriosApi.getCuriosInventory(player).orElseThrow().setEquippedCurio("head", 0, ring);
+        player.getAttribute(AttributeRegistry.SPELL_POWER).setBaseValue(1.2);
+        player.getAttribute(AttributeRegistry.FIRE_SPELL_POWER).setBaseValue(1.4);
+        var dash = ShootingStarMantleRuntime.state(player).elemental;
+        dash.input(player, 0, true, 1, 0);
+        helper.assertTrue(dash.level() == 7, "Stored level, Transcendence and Affinity must each apply once");
+        helper.assertTrue(Math.abs(dash.motion().horizontalDistance() - (15 + 7 * 1.2 * 1.4) / 15) < .001,
+                "Fire hover speed must use the resolved level and both power attributes");
+        helper.assertTrue(dash.packet(player).level() == 7 && dash.packet(player).motion().equals(dash.motion()),
+                "Resolved level and speed must be synchronized together");
+        ShootingStarMantleRuntime.clear(player);
+        helper.succeed();
+    }
+
+    @GameTest(batch = BATCH, template = TEMPLATE)
+    public static void lightningUsesHighestEffectiveWheelOption(GameTestHelper helper) {
+        var player = player(helper, "mantle_wheel_lightning", LIGHTNING_RUNE.get(), true);
+        var spell = SpellRegistry.VOLT_STRIKE_SPELL.get();
+        var ring = new ItemStack(ItemRegistry.ENCHANTED_CIRCLET.get());
+        AffinityData.setAffinityData(ring, spell, 2);
+        CuriosApi.getCuriosInventory(player).orElseThrow().setEquippedCurio("head", 0, ring);
+        Consumer<SpellSelectionManager.SpellSelectionEvent> listener = event -> {
+            if (event.getEntity() != player) return;
+            event.addSelectionOption(new SpellData(spell, 3), "mantle_test_low", 0);
+            event.addSelectionOption(new SpellData(spell, 7), "mantle_test_high", 0);
+        };
+        NeoForge.EVENT_BUS.addListener(listener);
+        try {
+            player.getAttribute(AttributeRegistry.LIGHTNING_SPELL_POWER).setBaseValue(1.4);
+            var dash = ShootingStarMantleRuntime.state(player).elemental;
+            dash.input(player, 0, true, 1, 0);
+            helper.assertTrue(dash.level() == 9, "Highest wheel option must include Affinity exactly once");
+            helper.assertTrue(Math.abs(dash.motion().horizontalDistance() - (15 + 9 * 1.4) / 15) < .001,
+                    "Lightning speed must follow the selected effective spell level");
+            var start = player.position();
+            var target = helper.spawn(EntityType.PIG, new BlockPos(1, 3, 2));
+            target.setNoAi(true);
+            target.setPos(start.add(0, 0, .9));
+            player.setPos(start.add(dash.motion()));
+            var effect = player.getEffect(MantleElementalDash.effect(MantleElementalDash.LIGHTNING));
+            helper.assertTrue(effect != null && !effect.getEffect().value().applyEffectTick(player, effect.getAmplifier())
+                    && target.getHealth() < target.getMaxHealth(), "Variable-speed sweep must hit a target between endpoints");
+        } finally {
+            NeoForge.EVENT_BUS.unregister(listener);
+            ShootingStarMantleRuntime.clear(player);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(batch = BATCH, template = TEMPLATE)
+    public static void hoverHasFiveBlockFloorAtZeroSpellPower(GameTestHelper helper) {
+        var player = player(helper, "mantle_hover_floor", FIRE_RUNE.get(), true);
+        player.getAttribute(AttributeRegistry.SPELL_POWER).setBaseValue(0);
+        var dash = ShootingStarMantleRuntime.state(player).elemental;
+        dash.input(player, 0, true, 1, 0);
+        helper.assertTrue(dash.level() == 1 && Math.abs(dash.motion().horizontalDistance() - 1) < .001,
+                "Zero spell power must retain the five-block hover movement");
+        ShootingStarMantleRuntime.clear(player);
+        helper.succeed();
+    }
+
+    @GameTest(batch = BATCH, template = TEMPLATE)
+    public static void highLevelFireFlightKeepsUpstreamAcceleration(GameTestHelper helper) {
+        var base = player(helper, "mantle_flight_base", FIRE_RUNE.get(), false);
+        var boosted = player(helper, "mantle_flight_boosted", FIRE_RUNE.get(), false);
+        boosted.getAttribute(AttributeRegistry.SPELL_POWER).setBaseValue(1.2);
+        boosted.getAttribute(AttributeRegistry.FIRE_SPELL_POWER).setBaseValue(1.4);
+        var spell = SpellRegistry.BURNING_DASH_SPELL.get();
+        Consumer<SpellSelectionManager.SpellSelectionEvent> listener = event -> {
+            if (event.getEntity() == boosted) event.addSelectionOption(new SpellData(spell, 10), "mantle_flight_test", 0);
+        };
+        NeoForge.EVENT_BUS.addListener(listener);
+        try {
+            for (var player : List.of(base, boosted)) {
+                player.setOnGround(false);
+                player.startFallFlying();
+                ShootingStarMantleRuntime.tick(player);
+            }
+            var baseDash = ShootingStarMantleRuntime.state(base).elemental;
+            var boostedDash = ShootingStarMantleRuntime.state(boosted).elemental;
+            helper.assertTrue(baseDash.level() == 1 && boostedDash.level() == 10,
+                    "Flight must use the matching selectable spell level");
+            helper.assertTrue(boostedDash.motion().length() > baseDash.motion().length() * 1.8,
+                    "High-level fire flight must keep upstream spell-power acceleration without a cap");
+        } finally {
+            NeoForge.EVENT_BUS.unregister(listener);
+            ShootingStarMantleRuntime.clear(base);
+            ShootingStarMantleRuntime.clear(boosted);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(batch = BATCH, template = TEMPLATE)
     public static void fireHoverUsesInputAndStopsWithoutRepeating(GameTestHelper helper) {
         var player = player(helper, "mantle_fire_input", FIRE_RUNE.get(), true);
         player.setYRot(0);
         var dash = ShootingStarMantleRuntime.state(player).elemental;
         dash.input(player, 0, true, 0, 1);
-        helper.assertTrue(dash.level() == 1 && dash.motion().x == 2 && Math.abs(dash.motion().z) < .001, "Fire hover must follow strafe at two blocks per tick and level one");
+        helper.assertTrue(dash.level() == 1 && Math.abs(dash.motion().x - 16.0 / 15) < .001 && Math.abs(dash.motion().z) < .001,
+                "Fire hover must follow strafe at the level-one spell-power speed");
         helper.assertTrue(energy(player) == 90 && dash.invulnerable(player), "Fire hover must cost ten and grant scoped protection");
         var effect = player.getEffect(MantleElementalDash.effect(MantleElementalDash.FIRE));
         helper.assertTrue(effect != null && effect.tick(player, () -> { }), "Protection effect must survive the activation tick");
@@ -113,13 +251,14 @@ public final class MantleElementalDashGameTests {
     }
 
     @GameTest(batch = BATCH, template = TEMPLATE)
-    public static void lightningHoverHasFixedSpeedAndNeverRepeatsOnHold(GameTestHelper helper) {
+    public static void lightningHoverUsesSpellPowerAndNeverRepeatsOnHold(GameTestHelper helper) {
         var player = player(helper, "mantle_lightning_hold", LIGHTNING_RUNE.get(), true);
         player.setYRot(0);
         var dash = ShootingStarMantleRuntime.state(player).elemental;
         player.invulnerableTime = 7;
         dash.input(player, 0, true, 1, 0);
-        helper.assertTrue(dash.level() == 1 && dash.motion().equals(new Vec3(0, 0, 2)), "Lightning must use level one and two blocks per tick");
+        helper.assertTrue(dash.level() == 1 && Math.abs(dash.motion().z - 16.0 / 15) < .001
+                && Math.abs(dash.motion().x) < .001, "Lightning must use the level-one spell-power speed");
         helper.assertTrue(dash.end() == player.level().getGameTime() + 5 && energy(player) == 90, "Lightning must last five ticks and cost ten");
         helper.assertTrue(player.invulnerableTime == 7 && dash.invulnerable(player), "Hover protection must preserve preexisting hurt cooldown");
         helper.runAfterDelay(5, () -> {
@@ -129,7 +268,8 @@ public final class MantleElementalDashGameTests {
             helper.assertTrue(player.getDeltaMovement().horizontalDistanceSqr() == 0 && energy(player) == 90, "Natural expiry must stop without another charge");
             dash.input(player, 2, false, 0, 0);
             dash.input(player, 3, true, 0, -1);
-            helper.assertTrue(dash.level() == 1 && dash.motion().x == -2 && energy(player) == 80, "Fresh press must sample direction without gaining levels");
+            helper.assertTrue(dash.level() == 1 && Math.abs(dash.motion().x + 16.0 / 15) < .001 && energy(player) == 80,
+                    "Fresh press must sample direction without gaining levels");
             ShootingStarMantleRuntime.clear(player);
             helper.succeed();
         });
