@@ -32,6 +32,7 @@ public final class MantleMovement {
 
     public static void travel(Player player, Vec3 input, ShootingStarMantleRuntime.State state) {
         if (state.blink.travel(player, state)) return;
+        if (state.elemental.travel(player, state)) return;
         state.movingTicks = movingTicks(state.lastPosition, player.position(), state.movingTicks);
         state.lastPosition = player.position();
         var surface = BroomSurfaceScanner.findSurfaceBelow(player.level(), player.getX(), player.getY(), player.getZ(), 16, true);
@@ -47,6 +48,11 @@ public final class MantleMovement {
             finishImpulse(player);
         }
         player.calculateEntityAnimation(false);
+    }
+
+    public static double hoverVertical(Player player, ShootingStarMantleRuntime.State state) {
+        var surface = BroomSurfaceScanner.findSurfaceBelow(player.level(), player.getX(), player.getY(), player.getZ(), 16, true);
+        return vertical(player.getDeltaMovement().y, player.getY(), surface.map(BroomSurfaceScanner.Surface::y).orElse(Double.NaN), state.movingTicks);
     }
 
     public static void finishImpulse(Player player) {

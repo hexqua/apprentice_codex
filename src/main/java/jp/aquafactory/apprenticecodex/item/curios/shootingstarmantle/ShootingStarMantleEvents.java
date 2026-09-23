@@ -24,6 +24,9 @@ public final class ShootingStarMantleEvents {
     @SubscribeEvent
     public static void damage(LivingIncomingDamageEvent event) {
         MantleBlink.cancelIncomingDamageIfInvulnerable(event);
+        if (event.getEntity() instanceof ServerPlayer player && ShootingStarMantleRuntime.state(player).elemental.invulnerable(player)) {
+            event.setCanceled(true);
+        }
     }
 
     @SubscribeEvent
@@ -80,6 +83,7 @@ public final class ShootingStarMantleEvents {
     public static void tracking(PlayerEvent.StartTracking event) {
         if (event.getEntity() instanceof ServerPlayer observer && event.getTarget() instanceof ServerPlayer target) {
             PacketDistributor.sendToPlayer(observer, ShootingStarMantleRuntime.packet(target, false, -1, false));
+            PacketDistributor.sendToPlayer(observer, ShootingStarMantleRuntime.state(target).elemental.packet(target));
         }
     }
 

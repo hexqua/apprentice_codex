@@ -7,11 +7,14 @@ import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleMovem
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.ShootingStarMantleRuntime;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMantleImpulsePacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientMantleDashInputPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncMantleDashPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMantlePacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -28,6 +31,8 @@ public final class ShootingStarMantleClient {
     private static final Map<Player, WingAnimation> WING_ANIMATIONS = new WeakHashMap<>();
     private static boolean jumpHeld;
     private static long nextSequence;
+    private static long nextDashSequence;
+    private static boolean sentDashInput;
     private static long pendingSequence = -1;
     private static ItemStack selectionSnapshot = ItemStack.EMPTY;
 
@@ -119,14 +124,38 @@ public final class ShootingStarMantleClient {
         }
     }
 
+    public static void acceptDash(SyncMantleDashPacket packet) {
+        var minecraft = Minecraft.getInstance();
+        if (minecraft.level == null || !(minecraft.level.getEntity(packet.entityId()) instanceof Player player)) return;
+        var dash = ShootingStarMantleRuntime.state(player).elemental;
+        if (dash.accept(packet) && player == minecraft.player) {
+            // BurningDashの通常cast packetを使わず、serverの決定した速度を一度だけ適用する。
+            var motion = packet.motion();
+            player.setDeltaMovement(packet.kind() != 0 && packet.hover()
+                    ? new Vec3(motion.x, player.getDeltaMovement().y, motion.z) : motion);
+        }
+    }
+
     @SubscribeEvent
     public static void input(MovementInputUpdateEvent event) {
         var player = event.getEntity();
         var input = event.getInput();
         boolean jump = input.jumping;
         var state = ShootingStarMantleRuntime.state(player);
+        boolean elemental = MantleCalibration.elementalKind(ShootingStarMantleRuntime.findEquipped(player)) != 0;
+        if (elemental || sentDashInput) {
+            boolean usableInput = elemental && Minecraft.getInstance().screen == null;
+            if (usableInput && jump && !jumpHeld && ShootingStarMantleRuntime.isHovering(player)
+                    && !state.recovering && state.energy > 0) {
+                state.elemental.predictHover(player, MantleCalibration.elementalKind(ShootingStarMantleRuntime.findEquipped(player)),
+                        input.forwardImpulse, input.leftImpulse);
+            }
+            Networks.sendToServer(new ClientMantleDashInputPacket(nextDashSequence++, usableInput && jump,
+                    usableInput ? input.forwardImpulse : 0, usableInput ? input.leftImpulse : 0));
+            sentDashInput = elemental;
+        }
         if (ShootingStarMantleRuntime.isHovering(player)) {
-            if (jump && !jumpHeld && state.dashTicks == 0 && !state.blink.active(player.level().getGameTime())
+            if (!elemental && jump && !jumpHeld && state.dashTicks == 0 && !state.blink.active(player.level().getGameTime())
                     && pendingSequence < 0 && !state.recovering
                     && Minecraft.getInstance().screen == null) {
                 pendingSequence = nextSequence++;
@@ -175,6 +204,8 @@ public final class ShootingStarMantleClient {
         jumpHeld = false;
         pendingSequence = -1;
         nextSequence = 0;
+        nextDashSequence = 0;
+        sentDashInput = false;
         selectionSnapshot = ItemStack.EMPTY;
     }
 }

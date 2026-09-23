@@ -17,6 +17,7 @@ public abstract class ServerMantleFloatingMixin {
     @Inject(method = "teleport(DDDFFLjava/util/Set;)V", at = @At("HEAD"))
     private void apprenticecodex$cancelBlinkOnTeleport(CallbackInfo ci) {
         var state = ShootingStarMantleRuntime.state(player);
+        state.elemental.cancel(player);
         if (state.blink.start() >= 0) {
             state.blink.cancel();
             state.lastPosition = null;
