@@ -1737,6 +1737,8 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_dash_2": "同时改变摇曳之星的快速移动方式",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_strike_1": "改变摇曳之星的冲刺方式",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_strike_2": "变为特殊的伏特打击",
+  "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_firework_1": "飞行时自动使用烟花火箭",
+  "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_firework_2": "个人物品栏中需要有烟花火箭",
   "spell.apprenticecodex.wavering_star": "摇曳之星",
   "spell.apprenticecodex.wavering_star.guide": "流星斗篷独有的潜在法术。释放斗篷中蕴含的魔力，在一定高度悬浮。移动时可维持的高度会降低。悬浮时尝试跳跃，可向指定方向进行短距离高速移动。斗篷魔力耗尽时解除。",
   "ui.apprenticecodex.wavering_star.not_found_mantle": "找不到可释放魔力的斗篷……",

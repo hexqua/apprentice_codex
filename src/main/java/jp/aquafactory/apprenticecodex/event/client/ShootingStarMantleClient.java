@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.ShootingSta
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMantleImpulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMantleDashInputPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientMantleFireworkInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMantleDashPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMantlePacket;
 import net.minecraft.client.Minecraft;
@@ -33,6 +34,8 @@ public final class ShootingStarMantleClient {
     private static long nextSequence;
     private static long nextDashSequence;
     private static boolean sentDashInput;
+    private static long nextFireworkSequence;
+    private static boolean sentFireworkInput;
     private static long pendingSequence = -1;
     private static ItemStack selectionSnapshot = ItemStack.EMPTY;
 
@@ -143,6 +146,12 @@ public final class ShootingStarMantleClient {
         boolean jump = input.jumping;
         var state = ShootingStarMantleRuntime.state(player);
         boolean elemental = MantleCalibration.elementalKind(ShootingStarMantleRuntime.findEquipped(player)) != 0;
+        boolean firework = MantleCalibration.usesFirework(ShootingStarMantleRuntime.findEquipped(player));
+        if (firework || sentFireworkInput) {
+            Networks.sendToServer(new ClientMantleFireworkInputPacket(nextFireworkSequence++,
+                    firework && Minecraft.getInstance().screen == null && jump));
+            sentFireworkInput = firework;
+        }
         if (elemental || sentDashInput) {
             boolean usableInput = elemental && Minecraft.getInstance().screen == null;
             if (usableInput && jump && !jumpHeld && ShootingStarMantleRuntime.isHovering(player)
@@ -206,6 +215,8 @@ public final class ShootingStarMantleClient {
         nextSequence = 0;
         nextDashSequence = 0;
         sentDashInput = false;
+        nextFireworkSequence = 0;
+        sentFireworkInput = false;
         selectionSnapshot = ItemStack.EMPTY;
     }
 }

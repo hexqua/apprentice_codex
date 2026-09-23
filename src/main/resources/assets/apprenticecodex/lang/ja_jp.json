@@ -701,6 +701,8 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_dash_2": "揺蕩う星の高速移動も変化",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_strike_1": "揺蕩う星の高速移動の挙動変更",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_strike_2": "特殊なボルトストライクに変化",
+  "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_firework_1": "飛行時にロケット花火を自動使用",
+  "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_firework_2": "個人インベントリ内に花火が必要",
   "jei.apprenticecodex.spell_calibration_bench.effect.malum.add_magic_proficiency": "%1$s +%2$d%%",
   "jei.apprenticecodex.spell_calibration_bench.effect.malum.add_soulward_1": "%1$s +%2$d",
   "jei.apprenticecodex.spell_calibration_bench.effect.malum.add_soulward_2": "%1$s +%2$d%%",

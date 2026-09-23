@@ -63,6 +63,11 @@ public final class CalibrationAdjustmentEffects {
                 Component.translatable(KEY_PREFIX + "change_mantle_strike_2"));
     }
 
+    public static List<Component> changeMantleFirework() {
+        return List.of(Component.translatable(KEY_PREFIX + "change_mantle_firework_1"),
+                Component.translatable(KEY_PREFIX + "change_mantle_firework_2"));
+    }
+
     public static List<Component> addMaxMana(double amount) {
         return line("add_max_mana", Math.round(amount));
     }

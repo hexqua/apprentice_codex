@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "115";
+    private static final String PROTOCOL_VERSION = "116";
 
     private Networks() {
     }
@@ -26,6 +26,8 @@ public final class Networks {
         registrar.playToClient(SyncMantleDashPacket.TYPE, SyncMantleDashPacket.STREAM_CODEC, SyncMantleDashPacket::handle);
         registrar.playToClient(SyncMantlePacket.TYPE, SyncMantlePacket.STREAM_CODEC, SyncMantlePacket::handle);
         registrar.playToServer(ClientMantleImpulsePacket.TYPE, ClientMantleImpulsePacket.STREAM_CODEC, ClientMantleImpulsePacket::handle);
+        registrar.playToServer(ClientMantleFireworkInputPacket.TYPE, ClientMantleFireworkInputPacket.STREAM_CODEC,
+                ClientMantleFireworkInputPacket::handle);
         registrar.playToClient(SyncFullautoEchoConfigPacket.TYPE,
                 SyncFullautoEchoConfigPacket.STREAM_CODEC, SyncFullautoEchoConfigPacket::handle);
         registrar.playToServer(ClientMultipurposeStaffrifleAdsPacket.TYPE,
