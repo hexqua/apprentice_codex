@@ -61,7 +61,11 @@ public final class MantleCalibration {
             CalibrationAdjustmentRule.unique("lightning_rune", stack -> stack.is(ItemRegistry.LIGHTNING_RUNE.get()),
                     CalibrationAdjustmentHint.specificItem(ItemRegistry.LIGHTNING_RUNE), CalibrationAdjustmentHints.schoolRuneConstraint())
                     .withExclusiveGroup("school_rune")
-                    .withEffectLines(CalibrationAdjustmentEffects.changeMantleStrike()));
+                    .withEffectLines(CalibrationAdjustmentEffects.changeMantleStrike()),
+            CalibrationAdjustmentRule.unique("evocation_rune", stack -> stack.is(ItemRegistry.EVOCATION_RUNE.get()),
+                    CalibrationAdjustmentHint.specificItem(ItemRegistry.EVOCATION_RUNE), CalibrationAdjustmentHints.schoolRuneConstraint())
+                    .withExclusiveGroup("school_rune")
+                    .withEffectLines(CalibrationAdjustmentEffects.changeMantleFirework()));
 
     private MantleCalibration() { }
 
@@ -97,6 +101,10 @@ public final class MantleCalibration {
 
     public static boolean usesBlink(ItemStack stack) {
         return hasAdjustment(stack, ItemRegistry.ENDER_RUNE.get());
+    }
+
+    public static boolean usesFirework(ItemStack stack) {
+        return hasAdjustment(stack, ItemRegistry.EVOCATION_RUNE.get());
     }
 
     public static int elementalKind(ItemStack stack) {

@@ -45,6 +45,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import top.theillusivec4.curios.api.CuriosApi;
 
 import static io.redspace.ironsspellbooks.registries.ItemRegistry.ENDER_RUNE;
+import static io.redspace.ironsspellbooks.registries.ItemRegistry.EVOCATION_RUNE;
 import static io.redspace.ironsspellbooks.registries.ItemRegistry.FIRE_RUNE;
 import static io.redspace.ironsspellbooks.registries.ItemRegistry.ICE_RUNE;
 import static io.redspace.ironsspellbooks.registries.ItemRegistry.LIGHTNING_RUNE;
@@ -75,10 +76,10 @@ public final class MantleElementalDashGameTests {
     }
 
     @GameTest(batch = BATCH, template = TEMPLATE)
-    public static void allFourSchoolRunesAreExclusive(GameTestHelper helper) {
+    public static void allFiveSchoolRunesAreExclusive(GameTestHelper helper) {
         var stack = new ItemStack(ItemRegistry.SHOOTING_STAR_MANTLE.get());
         var mantle = (ShootingStarMantle) stack.getItem();
-        var runes = List.of(FIRE_RUNE.get(), LIGHTNING_RUNE.get(), ICE_RUNE.get(), ENDER_RUNE.get());
+        var runes = List.of(FIRE_RUNE.get(), LIGHTNING_RUNE.get(), ICE_RUNE.get(), ENDER_RUNE.get(), EVOCATION_RUNE.get());
         for (var first : runes) {
             helper.assertTrue(mantle.trySetCalibrationAdjustment(stack, 0, new ItemStack(first)), "School rune must fit");
             for (var other : runes) helper.assertFalse(mantle.trySetCalibrationAdjustment(stack, 1, new ItemStack(other)), "All school runes must be mutually exclusive");

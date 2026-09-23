@@ -1731,6 +1731,8 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_dash_2": "Also changes Wavering Star's quick movement",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_strike_1": "Changes Wavering Star's dash",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_strike_2": "into a special Volt Strike",
+  "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_firework_1": "Automatically uses firework rockets in flight",
+  "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_firework_2": "Requires fireworks in personal inventory",
   "spell.apprenticecodex.wavering_star": "Wavering Star",
   "spell.apprenticecodex.wavering_star.guide": "An innate spell exclusive to the Mantle of Shooting Star. Releases the energy stored in the mantle to hover at a fixed height. Moving lowers the height you can maintain. Attempting to jump while hovering propels you a short distance in a chosen direction. Ends when the mantle's energy runs out.",
   "ui.apprenticecodex.wavering_star.not_found_mantle": "No mantle can be found to release its energy...",

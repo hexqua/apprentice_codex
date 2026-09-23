@@ -47,6 +47,7 @@ public final class ShootingStarMantleRuntime {
         public int dashTicks;
         public final MantleBlink blink = new MantleBlink();
         public final MantleElementalDash elemental = new MantleElementalDash();
+        public final MantleFireworkBoost firework = new MantleFireworkBoost();
         public Vec3 dashDirection = Vec3.ZERO;
         public long lastSequence = -1;
         public int blinkTicks;
@@ -122,6 +123,7 @@ public final class ShootingStarMantleRuntime {
         var state = state(player);
         bind(player, state, findEquipped(player));
         state.elemental.cancel(player);
+        state.firework.reset();
         if (player.isFallFlying()) player.stopFallFlying();
         state.flying = false;
         state.hovering = !state.hovering;
@@ -151,6 +153,7 @@ public final class ShootingStarMantleRuntime {
 
     private static void stop(Player player, State state, boolean completed) {
         state.elemental.cancel(player);
+        state.firework.reset();
         // 競合時のfallFlyingフラグは優先側へ引き継ぎ、毎tick解除しない。
         if (state.flying && !conflict(player) && player.isFallFlying()) player.stopFallFlying();
         state.flying = false;
@@ -179,6 +182,7 @@ public final class ShootingStarMantleRuntime {
         state.flying = player.isFallFlying() && canFly(player);
         state.blink.update(player, state);
         state.elemental.tick(player);
+        state.firework.tick(player);
         var before = MantleEnergy.read(stack);
         var after = before;
         boolean full = false;
