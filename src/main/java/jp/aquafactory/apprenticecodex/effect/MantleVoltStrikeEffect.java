@@ -40,7 +40,11 @@ public final class MantleVoltStrikeEffect extends VoltStrikeEffect {
         Vec3 displacement = current.subtract(previous);
         int samples = Math.max(1, (int) Math.ceil(displacement.length() / .2));
         // 転送等の不連続な移動を攻撃経路として採用しない。
-        if (samples > 40) { previous = current; displacement = Vec3.ZERO; samples = 1; }
+        if (samples > 40 && displacement.length() > Math.max(8, dash.motion().length() + 1)) {
+            previous = current;
+            displacement = Vec3.ZERO;
+            samples = 1;
+        }
         AABB body = player.getBoundingBox().move(previous.subtract(current));
         for (int i = 0; i <= samples; i++) {
             Vec3 offset = displacement.scale((double) i / samples);
