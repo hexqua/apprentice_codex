@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.item.curios.manamaneuvergear.ManaManeuverG
 import jp.aquafactory.apprenticecodex.item.curios.manasoultransducer.ManaSoulTransducer;
 import jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm.MonarchBondCharm;
 import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastScrollCartridge;
+import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.ShootingStarMantle;
 import jp.aquafactory.apprenticecodex.item.curios.undyingemblem.UndyingEmblem;
 import jp.aquafactory.apprenticecodex.item.pastelstaff.PastelStaff;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
@@ -358,6 +359,8 @@ public final class ItemRegistry {
             ITEMS.register("protection_spell_supporter", ProtectionSpellSupporter::new);
     public static final DeferredHolder<Item, Item> SPELLCASTER_AMMO_POUCH =
             ITEMS.register("spellcaster_ammo_pouch", SpellcasterAmmoPouch::new);
+    public static final DeferredHolder<Item, Item> SHOOTING_STAR_MANTLE =
+            ITEMS.register("shooting_star_mantle", ShootingStarMantle::new);
     public static final DeferredHolder<Item, Item> SPELLCASTER_QUIVER =
             ITEMS.register("spellcaster_quiver", SpellcasterQuiver::new);
     public static final DeferredHolder<Item, Item> QUICKCAST_SCROLL_CARTRIDGE =

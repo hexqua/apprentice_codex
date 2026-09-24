@@ -24,6 +24,7 @@ public final class CalibrationAdjustmentRule {
     }
 
     private final String displayId;
+    private final String exclusiveGroup;
     private final Predicate<ItemStack> matcher;
     private final BiPredicate<ItemStack, ItemStack> conflict;
     private final CalibrationAdjustmentHint hint;
@@ -40,7 +41,8 @@ public final class CalibrationAdjustmentRule {
             DuplicatePolicy duplicatePolicy,
             CalibrationConstraintDisplay constraintDisplay,
             Supplier<List<Component>> effectLinesSupplier,
-            BiFunction<ItemStack, HolderLookup.Provider, List<ItemStack>> displayCandidatesFactory
+            BiFunction<ItemStack, HolderLookup.Provider, List<ItemStack>> displayCandidatesFactory,
+            String exclusiveGroup
     ) {
         this.displayId = Objects.requireNonNull(displayId);
         if (displayId.isBlank()) {
@@ -53,6 +55,7 @@ public final class CalibrationAdjustmentRule {
         this.constraintDisplay = Objects.requireNonNull(constraintDisplay);
         this.effectLinesSupplier = Objects.requireNonNull(effectLinesSupplier);
         this.displayCandidatesFactory = displayCandidatesFactory;
+        this.exclusiveGroup = exclusiveGroup;
     }
 
     public static CalibrationAdjustmentRule repeatable(
@@ -68,7 +71,7 @@ public final class CalibrationAdjustmentRule {
                 DuplicatePolicy.REPEATABLE,
                 CalibrationConstraintDisplay.none(),
                 List::of,
-                null
+                null, null
         );
     }
 
@@ -94,7 +97,7 @@ public final class CalibrationAdjustmentRule {
                 DuplicatePolicy.UNIQUE_RULE,
                 constraintDisplay,
                 List::of,
-                null
+                null, null
         );
     }
 
@@ -130,7 +133,7 @@ public final class CalibrationAdjustmentRule {
                 DuplicatePolicy.UNIQUE_KEY,
                 constraintDisplay,
                 List::of,
-                null
+                null, null
         );
     }
 
@@ -148,7 +151,7 @@ public final class CalibrationAdjustmentRule {
                 duplicatePolicy,
                 constraintDisplay,
                 effectLinesSupplier,
-                displayCandidatesFactory
+                displayCandidatesFactory, exclusiveGroup
         );
     }
 
@@ -163,12 +166,25 @@ public final class CalibrationAdjustmentRule {
                 duplicatePolicy,
                 constraintDisplay,
                 effectLinesSupplier,
-                Objects.requireNonNull(displayCandidatesFactory)
+                Objects.requireNonNull(displayCandidatesFactory), exclusiveGroup
         );
     }
 
     public String displayId() {
         return displayId;
+    }
+
+    /** 効果説明を別ページに保ったまま、同じ対象装備内で排他にする。 */
+    public CalibrationAdjustmentRule withExclusiveGroup(String group) {
+        if (Objects.requireNonNull(group).isBlank()) {
+            throw new IllegalArgumentException("Calibration exclusive group must not be blank.");
+        }
+        return new CalibrationAdjustmentRule(displayId, matcher, conflict, hint, duplicatePolicy,
+                constraintDisplay, effectLinesSupplier, displayCandidatesFactory, group);
+    }
+
+    public boolean sharesExclusiveGroup(CalibrationAdjustmentRule other) {
+        return exclusiveGroup != null && other != null && exclusiveGroup.equals(other.exclusiveGroup);
     }
 
     public boolean accepts(@NotNull ItemStack stack) {

@@ -1,0 +1,30 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/root",
+  "criteria": {
+    "crafted_shooting_star_mantle": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:shooting_star_mantle"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_shooting_star_mantle.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:shooting_star_mantle"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_shooting_star_mantle.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_shooting_star_mantle"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

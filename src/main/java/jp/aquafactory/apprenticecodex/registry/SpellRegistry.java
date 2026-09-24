@@ -82,6 +82,7 @@ import jp.aquafactory.apprenticecodex.spell.rifthole.RiftHole;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdge;
 import jp.aquafactory.apprenticecodex.spell.soulconversion.SoulConversion;
 import jp.aquafactory.apprenticecodex.spell.spectralwing.SpectralWing;
+import jp.aquafactory.apprenticecodex.spell.waveringstar.WaveringStar;
 import jp.aquafactory.apprenticecodex.spell.tamerspocket.TamersPocket;
 import jp.aquafactory.apprenticecodex.spell.terraresonance.TerraResonance;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcess;
@@ -135,6 +136,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> MIRAGE_AVOIDANCE = reg("mirage_avoidance", MirageAvoidance::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ANCHOR_BLINK = reg("anchor_blink", AnchorBlink::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> SERVANT_GAZE = reg("servant_gaze", ServantGaze::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> WAVERING_STAR = reg("wavering_star", WaveringStar::new);
 
     // 召喚.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);
