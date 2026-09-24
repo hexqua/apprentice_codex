@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.config.SpellConfigManager;
 import io.redspace.ironsspellbooks.api.item.curios.AffinityData;
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
@@ -15,6 +16,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
+import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleCalibration;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleElementalDash;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleEnergy;
@@ -32,8 +34,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
@@ -431,6 +435,17 @@ public final class MantleElementalDashGameTests {
         public boolean isInvulnerableTo(DamageSource source) { return false; }
     }
 
+    private static void disableSpawnProtection(ServerPlayer player) {
+        // FakePlayerは自然tickされないため、初期の60tick保護を明示的に解除する。
+        try {
+            var protection = ServerPlayer.class.getDeclaredField("spawnInvulnerableTime");
+            protection.setAccessible(true);
+            protection.setInt(player, 0);
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Unable to disable test player spawn protection", exception);
+        }
+    }
+
     @GameTest(batch = BATCH, template = TEMPLATE)
     public static void fireFlightCompletesWithOneOrTenEnergy(GameTestHelper helper) {
         var players = List.of(player(helper, "mantle_flight_one", FIRE_RUNE.get(), false),
@@ -498,14 +513,7 @@ public final class MantleElementalDashGameTests {
     @GameTest(batch = BATCH, template = TEMPLATE)
     public static void hoverProtectionCancelsDamageOnlyWhileActive(GameTestHelper helper) {
         var player = player(helper, "mantle_hover_protection", FIRE_RUNE.get(), true);
-        // FakePlayerは自然tickされないため、初期の60tick保護を明示的に解除して実際の被ダメージを試す。
-        try {
-            var protection = ServerPlayer.class.getDeclaredField("spawnInvulnerableTime");
-            protection.setAccessible(true);
-            protection.setInt(player, 0);
-        } catch (ReflectiveOperationException exception) {
-            throw new IllegalStateException("Unable to disable test player spawn protection", exception);
-        }
+        disableSpawnProtection(player);
         var dash = ShootingStarMantleRuntime.state(player).elemental;
         player.invulnerableTime = 0;
         float health = player.getHealth();
@@ -519,6 +527,33 @@ public final class MantleElementalDashGameTests {
             ShootingStarMantleRuntime.clear(player);
             helper.succeed();
         });
+    }
+
+    @GameTest(batch = BATCH, template = TEMPLATE)
+    public static void hoverProtectionPrecedesManaShieldCost(GameTestHelper helper) {
+        for (var rune : List.of(FIRE_RUNE.get(), LIGHTNING_RUNE.get())) {
+            var player = player(helper, "mantle_hover_shield_" + rune, rune, true);
+            disableSpawnProtection(player);
+            var charm = new ItemStack(ItemRegistry.MANA_SHIELD_CHARM.get());
+            charm.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                    .getOrThrow(Enchantments.SHELL), 1);
+            ApprenticeCodexGameTestScenarios.equipCurio(player, CuriosSlotConstants.CHARM, charm);
+            var chestplate = new ItemStack(Items.IRON_CHESTPLATE);
+            player.setItemSlot(EquipmentSlot.CHEST, chestplate);
+            var magicData = MagicData.getPlayerMagicData(player);
+            helper.assertTrue(magicData != null, "Dash protection test could not resolve player mana data");
+            magicData.setMana(100);
+            player.invulnerableTime = 0;
+            float health = player.getHealth();
+            ShootingStarMantleRuntime.state(player).elemental.input(player, 0, true, 1, 0);
+            helper.assertTrue(ShootingStarMantleRuntime.state(player).elemental.invulnerable(player),
+                    "Hover dash must provide scoped protection");
+            player.hurt(player.damageSources().generic(), 3);
+            helper.assertTrue(player.getHealth() == health && magicData.getMana() == 100 && chestplate.getDamageValue() == 0,
+                    "Hover dash must cancel damage before Mana Shield spends mana or armor durability");
+            ShootingStarMantleRuntime.clear(player);
+        }
+        helper.succeed();
     }
 
     @GameTest(batch = BATCH, template = TEMPLATE)

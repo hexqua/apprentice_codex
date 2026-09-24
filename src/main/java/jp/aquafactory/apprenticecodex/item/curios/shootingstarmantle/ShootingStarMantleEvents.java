@@ -10,7 +10,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
-import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
@@ -20,14 +19,6 @@ import top.theillusivec4.curios.api.event.CurioChangeEvent;
 @EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class ShootingStarMantleEvents {
     private ShootingStarMantleEvents() { }
-
-    @SubscribeEvent
-    public static void damage(LivingIncomingDamageEvent event) {
-        MantleBlink.cancelIncomingDamageIfInvulnerable(event);
-        if (event.getEntity() instanceof ServerPlayer player && ShootingStarMantleRuntime.state(player).elemental.invulnerable(player)) {
-            event.setCanceled(true);
-        }
-    }
 
     @SubscribeEvent
     public static void selection(SpellSelectionManager.SpellSelectionEvent event) {
