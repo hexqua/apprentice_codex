@@ -677,6 +677,8 @@
   "jei.apprenticecodex.spell_calibration_bench.effect.gain_echo_cast_2": "全ての魔法のマナ消費+%s%%",
   "jei.apprenticecodex.spell_calibration_bench.effect.force_mantle_recovery_1": "外套の回復速度が高速化",
   "jei.apprenticecodex.spell_calibration_bench.effect.force_mantle_recovery_2": "枯渇時の速度は変化しない",
+  "jei.apprenticecodex.spell_calibration_bench.effect.increase_mantle_energy_1": "外套の魔力量が増加",
+  "jei.apprenticecodex.spell_calibration_bench.effect.increase_mantle_energy_2": "回復速度は変化しない",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_drift": "揺蕩う星で慣性が残る",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_blink_1": "揺蕩う星の高速移動の挙動変更",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_blink_2": "無敵を伴う転移に変化",

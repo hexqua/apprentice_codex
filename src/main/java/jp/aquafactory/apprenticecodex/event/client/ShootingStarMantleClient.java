@@ -100,6 +100,7 @@ public final class ShootingStarMantleClient {
         }
         state.equipped = packet.equipped();
         state.energy = packet.energy();
+        state.maxEnergy = packet.maxEnergy();
         state.recovering = packet.recovering();
         boolean finishPredictedBlink = ownPrediction && packet.blinkStart() >= 0 && packet.equipped()
                 && packet.recovering() && state.blink.active(player.level().getGameTime());

@@ -45,13 +45,19 @@ public class ShootingStarMantle extends Item implements ICurioItem, SpellCalibra
     }
 
     @Override
-    public boolean isBarVisible(ItemStack stack) { return MantleEnergy.read(stack).energy() < MantleEnergy.MAX; }
+    public boolean isBarVisible(@NotNull ItemStack stack) {
+        var energy = MantleEnergy.read(stack);
+        return energy.energy() < energy.maxEnergy();
+    }
 
     @Override
-    public int getBarWidth(ItemStack stack) { return Math.round(13F * MantleEnergy.read(stack).energy() / MantleEnergy.MAX); }
+    public int getBarWidth(@NotNull ItemStack stack) {
+        var energy = MantleEnergy.read(stack);
+        return Math.round(13F * energy.energy() / energy.maxEnergy());
+    }
 
     @Override
-    public int getBarColor(ItemStack stack) { return MantleEnergy.read(stack).recovering() ? 0xFF4400 : 0xFFEEDD; }
+    public int getBarColor(@NotNull ItemStack stack) { return MantleEnergy.read(stack).recovering() ? 0xFF4400 : 0xFFEEDD; }
 
     @Override
     public List<Component> getSlotsTooltip(List<Component> tooltips, TooltipContext context, ItemStack stack) {
@@ -89,6 +95,12 @@ public class ShootingStarMantle extends Item implements ICurioItem, SpellCalibra
     @Override
     public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack stack) {
         return MantleCalibration.PROFILE;
+    }
+
+    @Override
+    public void onCalibrationAdjustmentsChanged(@NotNull ItemStack stack, @NotNull HolderLookup.Provider lookup) {
+        // 最大値が下がった瞬間に保存値も切り詰め、再挿入による余剰魔力の復活を防ぐ。
+        MantleEnergy.read(stack).save(stack);
     }
 
     @Override

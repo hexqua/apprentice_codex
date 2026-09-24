@@ -1723,6 +1723,8 @@
   "item.apprenticecodex.shooting_star_mantle.desc_3": "未使用时，斗篷会消耗穿戴者的法力值恢复自身魔力。",
   "jei.apprenticecodex.spell_calibration_bench.effect.force_mantle_recovery_1": "加快斗篷魔力恢复速度",
   "jei.apprenticecodex.spell_calibration_bench.effect.force_mantle_recovery_2": "魔力耗尽后的恢复速度不变",
+  "jei.apprenticecodex.spell_calibration_bench.effect.increase_mantle_energy_1": "提高斗篷魔力上限",
+  "jei.apprenticecodex.spell_calibration_bench.effect.increase_mantle_energy_2": "恢复速度不变",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_drift": "摇曳之星保留惯性",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_blink_1": "改变摇曳之星的冲刺方式",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_blink_2": "变为附带无敌的瞬移",

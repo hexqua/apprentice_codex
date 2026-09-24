@@ -46,6 +46,9 @@ public final class MantleCalibration {
             CalibrationAdjustmentRule.unique("recovery_rune", stack -> stack.is(ItemRegistry.COOLDOWN_RUNE.get()),
                     CalibrationAdjustmentHint.specificItem(ItemRegistry.COOLDOWN_RUNE))
                     .withEffectLines(CalibrationAdjustmentEffects.forceMantleRecovery()),
+            CalibrationAdjustmentRule.unique("mana_rune", stack -> stack.is(ItemRegistry.MANA_RUNE.get()),
+                    CalibrationAdjustmentHint.specificItem(ItemRegistry.MANA_RUNE))
+                    .withEffectLines(CalibrationAdjustmentEffects.increaseMantleEnergy()),
             CalibrationAdjustmentRule.unique("ice_rune", stack -> stack.is(ItemRegistry.ICE_RUNE.get()),
                     CalibrationAdjustmentHint.specificItem(ItemRegistry.ICE_RUNE), CalibrationAdjustmentHints.schoolRuneConstraint())
                     .withExclusiveGroup("school_rune")
