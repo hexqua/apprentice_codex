@@ -205,6 +205,7 @@ public final class ShootingStarMantleClient {
             }
         }
         tickWingAnimations(minecraft);
+        if (!minecraft.isPaused()) ShootingStarMantleParticles.tick(player);
     }
 
     @SubscribeEvent
@@ -219,5 +220,6 @@ public final class ShootingStarMantleClient {
         nextFireworkSequence = 0;
         sentFireworkInput = false;
         selectionSnapshot = ItemStack.EMPTY;
+        ShootingStarMantleParticles.reset();
     }
 }
