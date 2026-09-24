@@ -19,6 +19,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
 /** 通常詠唱の追加データを占有せず、外套の突進だけを管理する。 */
 public final class MantleElementalDash {
@@ -66,6 +67,15 @@ public final class MantleElementalDash {
         return paidHover() && player.level().getGameTime() < end
                 && ShootingStarMantleRuntime.isHovering(player) && canTick(player, kind)
                 && player.hasEffect(effect(kind));
+    }
+
+    public static boolean cancelIncomingDamageIfInvulnerable(LivingIncomingDamageEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player
+                && ShootingStarMantleRuntime.state(player).elemental.invulnerable(player)) {
+            event.setCanceled(true);
+            return true;
+        }
+        return false;
     }
 
     public static AbstractSpell spell(int kind) {
