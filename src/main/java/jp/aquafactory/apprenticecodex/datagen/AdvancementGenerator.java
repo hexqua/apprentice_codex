@@ -471,6 +471,19 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                 .addCriterion("crafted_ashen_circlet", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.ASHEN_CIRCLET.getId()))
                 .save(saver, advancementId("craft_ashen_circlet"), existingFileHelper);
 
+        Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.SHOOTING_STAR_MANTLE.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_shooting_star_mantle.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_shooting_star_mantle.description"),
+                        null,
+                        AdvancementType.CHALLENGE,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_shooting_star_mantle", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SHOOTING_STAR_MANTLE.getId()))
+                .save(saver, advancementId("craft_shooting_star_mantle"), existingFileHelper);
+
         var ironGun = Advancement.Builder.advancement()
                 .parent(root)
                 .display(ItemRegistry.IRON_SPELLCASTER_GUN.get(),

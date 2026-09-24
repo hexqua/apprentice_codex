@@ -2,6 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
+    "C": {
+      "item": "minecraft:chorus_fruit"
+    },
     "D": {
       "item": "apprenticecodex:spellstained_diamond"
     },
@@ -11,14 +14,17 @@
     "M": {
       "item": "irons_spellbooks:mithril_weave"
     },
+    "S": {
+      "item": "minecraft:nether_star"
+    },
     "W": {
       "item": "apprenticecodex:wind_accumulation_weave"
     }
   },
   "pattern": [
-    " M ",
+    "CMC",
     "WEW",
-    " D "
+    "DSD"
   ],
   "result": {
     "count": 1,

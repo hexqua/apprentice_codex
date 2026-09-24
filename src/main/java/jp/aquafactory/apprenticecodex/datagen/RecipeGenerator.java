@@ -514,13 +514,15 @@ public final class RecipeGenerator extends RecipeProvider {
                 .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.TRANSPORTATION, ItemRegistry.SHOOTING_STAR_MANTLE.get())
-                .pattern(" M ")
+                .pattern("CMC")
                 .pattern("WEW")
-                .pattern(" D ")
+                .pattern("DSD")
                 .define('E', Items.ELYTRA)
                 .define('W', ItemRegistry.WIND_ACCUMULATION_WEAVE.get())
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_WEAVE.get())
                 .define('D', ItemRegistry.SPELLSTAINED_DIAMOND.get())
+                .define('S', Items.NETHER_STAR)
+                .define('C', Items.CHORUS_FRUIT)
                 .unlockedBy(getHasName(Items.ELYTRA), has(Items.ELYTRA))
                 .save(recipeOutput);
 
