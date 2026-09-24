@@ -376,6 +376,11 @@ final class EnchantmentApplicationGameTestScenarios extends ApprenticeCodexGameT
                 item + " enchanting-table surface changed for " + enchantmentId + ": "
                         + item.isPrimaryItemFor(stack, enchantment));
         if (enchantment.is(Enchantments.TRANSCENDENCE)) {
+            if (expected) {
+                // JEIは適用可否より前にisEnchantableで候補を絞るため、表示対象の取りこぼしを検知する。
+                helper.assertTrue(stack.isEnchantable(),
+                        item + " Transcendence target must be enchantable for JEI anvil recipes");
+            }
             helper.assertTrue((item.supportsEnchantment(stack, enchantment)
                             && item.isBookEnchantable(stack, createEnchantedBook(enchantment))) == expected,
                     item + " Transcendence book application must match its marker");
