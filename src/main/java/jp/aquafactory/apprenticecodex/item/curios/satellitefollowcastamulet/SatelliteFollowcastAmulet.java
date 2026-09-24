@@ -85,6 +85,11 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
     }
 
     @Override
+    public boolean isEnchantable(@NotNull ItemStack stack) {
+        return true;
+    }
+
+    @Override
     public @NotNull ItemStack getDefaultInstance() {
         var stack = super.getDefaultInstance();
         initializeSpellContainer(stack);

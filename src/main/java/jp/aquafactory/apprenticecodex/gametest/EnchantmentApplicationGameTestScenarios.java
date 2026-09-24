@@ -411,9 +411,15 @@ final class EnchantmentApplicationGameTestScenarios {
         var mismatches = new ArrayList<String>();
         for (var entry : ItemRegistry.ITEMS.getEntries()) {
             var expected = TranscendenceTarget.supportsDirectApplication(entry.get());
-            var actual = new ItemStack(entry.get()).is(TagRegistry.Items.TRANSCENDENCE_ENCHANTABLE);
+            var stack = new ItemStack(entry.get());
+            var actual = stack.is(TagRegistry.Items.TRANSCENDENCE_ENCHANTABLE);
             if (expected != actual) {
                 mismatches.add(entry.getId() + " expected=" + expected + " actual=" + actual);
+            }
+            if (expected) {
+                // JEIは適用可否より前にisEnchantableで候補を絞るため、表示対象の取りこぼしを検知する。
+                helper.assertTrue(stack.isEnchantable(),
+                        entry.getId() + " Transcendence target must be enchantable for JEI anvil recipes");
             }
         }
         helper.assertTrue(mismatches.isEmpty(),

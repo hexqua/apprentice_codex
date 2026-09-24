@@ -67,6 +67,11 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, 
     }
 
     @Override
+    public boolean isEnchantable(@NotNull ItemStack stack) {
+        return true;
+    }
+
+    @Override
     public String getJeiInfoTranslationKeyPrefix() {
         return JEI_INFO_KEY_PREFIX;
     }

@@ -60,6 +60,11 @@ public class QuickcastScrollCartridge extends Item implements ICurioItem, GeoIte
     }
 
     @Override
+    public boolean isEnchantable(@NotNull ItemStack stack) {
+        return true;
+    }
+
+    @Override
     public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
         var result = new ArrayList<>(tooltips);
         result.add(Component.empty());

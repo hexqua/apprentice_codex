@@ -71,6 +71,11 @@ public abstract class AbstractBroomItem extends Item implements GeoItem, ICurioI
     }
 
     @Override
+    public boolean isEnchantable(@NotNull ItemStack stack) {
+        return true;
+    }
+
+    @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player,
                                                            @NotNull InteractionHand hand) {
         var stack = player.getItemInHand(hand);

@@ -45,6 +45,11 @@ public class ShootingStarMantle extends Item implements ICurioItem, SpellCalibra
     }
 
     @Override
+    public boolean isEnchantable(@NotNull ItemStack stack) {
+        return true;
+    }
+
+    @Override
     public boolean isBarVisible(@NotNull ItemStack stack) {
         var energy = MantleEnergy.read(stack);
         return energy.energy() < energy.maxEnergy();

@@ -88,6 +88,11 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
     }
 
     @Override
+    public boolean isEnchantable(@NotNull ItemStack stack) {
+        return true;
+    }
+
+    @Override
     public @NotNull ItemStack getDefaultInstance() {
         var stack = super.getDefaultInstance();
         initializeSpellContainer(stack);
