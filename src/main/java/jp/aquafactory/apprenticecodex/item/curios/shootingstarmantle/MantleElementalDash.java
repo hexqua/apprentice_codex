@@ -259,8 +259,10 @@ public final class MantleElementalDash {
         state.lastPosition = player.position();
         // 通常の浮遊と同じ高さ制御を使い、突進中も地形へ追従する。
         double y = MantleMovement.hoverVertical(player, state);
+        double incomingY = player.getDeltaMovement().y;
         player.setDeltaMovement(motion.x, y, motion.z);
         player.move(MoverType.SELF, player.getDeltaMovement());
+        MantleMovement.decayExternalUpwardMotion(player, incomingY, y);
         player.fallDistance = 0;
         player.calculateEntityAnimation(false);
         return true;

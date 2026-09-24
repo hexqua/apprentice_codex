@@ -9,7 +9,10 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SpectralWingState;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.entity.broom.BroomSurfaceScanner;
+import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
+import jp.aquafactory.apprenticecodex.item.curios.manathruster.ManaThrusterFlightManager;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleEnergy;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleMovement;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.ShootingStarMantleRuntime;
@@ -21,6 +24,7 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
@@ -262,6 +266,8 @@ public final class ShootingStarMantleGameTests {
         for (int i = 0; i < 10; i++) remaining = MantleMovement.movingTicks(Vec3.ZERO, Vec3.ZERO, remaining);
         helper.assertTrue(remaining == 0, "Height must return after ten still ticks");
         helper.assertTrue(MantleMovement.vertical(-2, 100, Double.NaN, 0) >= -0.49, "Missing terrain must use slow falling");
+        helper.assertTrue(MantleMovement.vertical(0.4, 8, 0, remaining) == 0.4,
+                "External upward velocity must not be capped by the moving hover target");
         var pos = new BlockPos(1, 1, 1);
         // basic_floorの検査領域上端より高く探索するため、探索列の空気を明示する。
         for (int i = 1; i <= 7; i++) helper.setBlock(pos.above(i), Blocks.AIR);
@@ -273,6 +279,102 @@ public final class ShootingStarMantleGameTests {
                     "Ground and both fluids must be found from five blocks above their surface: block=" + block + ", surface=" + surface + ", expected=" + (absolute.getY() + 1));
         }
         helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void externalUpwardMotionDecaysAndReturnsToHoverTarget(GameTestHelper helper) {
+        var player = player(helper, "mantle_external_ascent");
+        clearAscentColumn(helper);
+        var surface = helper.absolutePos(new BlockPos(1, 0, 1)).getY() + 1;
+        player.setPos(player.getX(), surface + 6, player.getZ());
+        ShootingStarMantleRuntime.toggle(player);
+        player.setDeltaMovement(0, 0.4, 0);
+        double startY = player.getY();
+        MantleMovement.travel(player, Vec3.ZERO, ShootingStarMantleRuntime.state(player));
+        helper.assertTrue(player.getY() > startY + 0.39 && player.getDeltaMovement().y < 0.4,
+                "External ascent must move above the hover target and retain decaying momentum");
+        for (int tick = 0; tick < 12; tick++) {
+            MantleMovement.travel(player, Vec3.ZERO, ShootingStarMantleRuntime.state(player));
+        }
+        helper.assertTrue(player.getDeltaMovement().y < 0,
+                "Ascent must stop and return toward the hover target after external thrust ends");
+        ShootingStarMantleRuntime.clear(player);
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaThrusterClimbsDuringHoverAndCoastsAfterRelease(GameTestHelper helper) {
+        var player = player(helper, "mantle_thruster_ascent");
+        clearAscentColumn(helper);
+        var surface = helper.absolutePos(new BlockPos(1, 0, 1)).getY() + 1;
+        player.setPos(player.getX(), surface + 6, player.getZ());
+        ShootingStarMantleRuntime.toggle(player);
+        ApprenticeCodexGameTestScenarios.equipCurio(player, CuriosSlotConstants.FEET,
+                new ItemStack(ItemRegistry.MANA_THRUSTER.get()));
+        var magicData = MagicData.getPlayerMagicData(player);
+        helper.assertTrue(magicData != null, "Mantle and Mana Thruster test needs player mana data");
+        magicData.setMana(100);
+        player.setOnGround(false);
+        double startY = player.getY();
+        try (var ignored = ApprenticeCodexServerConfig.useManaThrusterConfigOverrideForGameTest(5.0D)) {
+            ManaThrusterFlightManager.setJumpInput(player, true);
+            for (int tick = 0; tick < 6; tick++) {
+                MantleMovement.travel(player, Vec3.ZERO, ShootingStarMantleRuntime.state(player));
+                ManaThrusterFlightManager.tickEquippedPlayer(player);
+            }
+            helper.assertTrue(player.getY() > startY + 0.5,
+                    "Mana Thruster must climb even above the mantle's stationary hover target");
+            helper.assertTrue(Math.abs(magicData.getMana() - 70) < 1.0e-4,
+                    "Mana Thruster must pay mana for every successful ascent tick");
+            ManaThrusterFlightManager.setJumpInput(player, false);
+            double releaseY = player.getY();
+            for (int tick = 0; tick < 12; tick++) {
+                MantleMovement.travel(player, Vec3.ZERO, ShootingStarMantleRuntime.state(player));
+            }
+            helper.assertTrue(player.getDeltaMovement().y < 0 && player.getY() > releaseY,
+                    "Released thrust must coast briefly, then return to slow descent");
+            helper.assertTrue(Math.abs(magicData.getMana() - 70) < 1.0e-4,
+                    "Released Mana Thruster must stop charging mana");
+        } finally {
+            ManaThrusterFlightManager.clear(player);
+            ShootingStarMantleRuntime.clear(player);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void serverAcceptsExternalAscentWhileHoverIsPaid(GameTestHelper helper) {
+        var player = serverPlayer(helper);
+        clearAscentColumn(helper);
+        CuriosApi.getCuriosInventory(player).orElseThrow().setEquippedCurio("back", 0,
+                new ItemStack(ItemRegistry.SHOOTING_STAR_MANTLE.get()));
+        ShootingStarMantleRuntime.refreshEquipment(player);
+        var surface = helper.absolutePos(new BlockPos(1, 0, 1)).getY() + 1;
+        player.setPos(player.getX(), surface + 6, player.getZ());
+        helper.getLevel().addNewPlayer(player);
+        try {
+            helper.assertTrue(ShootingStarMantleRuntime.toggle(player), "Mantle hover must activate before external ascent");
+            var startY = player.getY();
+            player.connection.resetPosition();
+            player.connection.handleMovePlayer(new ServerboundMovePlayerPacket.Pos(player.getX(), startY + 0.1, player.getZ(), false));
+            helper.assertTrue(player.getY() > startY + 0.09,
+                    "A small external upward movement must not be clamped to the hover target");
+            new MantleEnergy(1, false, 19).save(ShootingStarMantleRuntime.findEquipped(player));
+            ShootingStarMantleRuntime.tick(player);
+            helper.assertFalse(ShootingStarMantleRuntime.isHovering(player),
+                    "Server energy depletion must revoke the hover flight allowance");
+        } finally {
+            ShootingStarMantleRuntime.clear(player);
+            player.discard();
+        }
+        helper.succeed();
+    }
+
+    private static void clearAscentColumn(GameTestHelper helper) {
+        // basic_floorの天井barrierが上昇テストの経路に入らないようにする。
+        for (int y = 1; y <= 18; y++) {
+            helper.getLevel().setBlockAndUpdate(helper.absolutePos(new BlockPos(1, y, 1)), Blocks.AIR.defaultBlockState());
+        }
     }
 
     private static FakePlayer player(GameTestHelper helper, String name) {
