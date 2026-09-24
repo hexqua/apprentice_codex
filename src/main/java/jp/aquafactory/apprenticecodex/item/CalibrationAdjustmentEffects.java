@@ -44,6 +44,11 @@ public final class CalibrationAdjustmentEffects {
                 Component.translatable(KEY_PREFIX + "force_mantle_recovery_2"));
     }
 
+    public static List<Component> increaseMantleEnergy() {
+        return List.of(Component.translatable(KEY_PREFIX + "increase_mantle_energy_1"),
+                Component.translatable(KEY_PREFIX + "increase_mantle_energy_2"));
+    }
+
     public static List<Component> changeMantleDrift() {
         return line("change_mantle_drift");
     }

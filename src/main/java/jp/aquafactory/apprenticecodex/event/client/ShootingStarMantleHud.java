@@ -31,7 +31,7 @@ public final class ShootingStarMantleHud implements LayeredDraw.Layer {
         for (int i = 0; i < 10; i++) {
             int x = right - i * 8 - 9;
             blit(graphics, CONTAINER, x, y);
-            int fill = state.energy / 5 - i * 2;
+            int fill = state.energy * 20 / state.maxEnergy - i * 2;
             if (fill >= 2) blit(graphics, state.recovering ? CHARGING_FULL : FULL, x, y);
             else if (fill == 1) blit(graphics, state.recovering ? CHARGING_HALF : HALF, x, y);
             if (state.blinkTicks > 0 && state.blinkTicks / 3 % 2 == 1) blit(graphics, BLINK, x, y);

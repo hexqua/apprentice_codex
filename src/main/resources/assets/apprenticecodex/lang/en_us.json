@@ -1737,6 +1737,8 @@
   "item.apprenticecodex.shooting_star_mantle.desc_3": "When not in use, the mantle restores its energy using the wearer's mana.",
   "jei.apprenticecodex.spell_calibration_bench.effect.force_mantle_recovery_1": "Increases mantle energy recovery speed",
   "jei.apprenticecodex.spell_calibration_bench.effect.force_mantle_recovery_2": "Recovery speed after depletion is unchanged",
+  "jei.apprenticecodex.spell_calibration_bench.effect.increase_mantle_energy_1": "Increases mantle energy capacity",
+  "jei.apprenticecodex.spell_calibration_bench.effect.increase_mantle_energy_2": "Recovery speed is unchanged",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_drift": "Preserves momentum during Wavering Star",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_blink_1": "Changes Wavering Star's dash",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_blink_2": "to an invulnerable blink",

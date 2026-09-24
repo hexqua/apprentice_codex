@@ -41,6 +41,7 @@ public final class ShootingStarMantleRuntime {
         public boolean hovering;
         public boolean flying;
         public int energy = 100;
+        public int maxEnergy = MantleEnergy.MAX;
         public boolean recovering;
         public int movingTicks;
         public Vec3 lastPosition;
@@ -201,7 +202,7 @@ public final class ShootingStarMantleRuntime {
                     else notifyDepleted(player);
                 }
             }
-        } else if (!player.isFallFlying() && before.energy() < MantleEnergy.MAX) {
+        } else if (!player.isFallFlying() && before.energy() < before.maxEnergy()) {
             if (++state.recoveryTicks >= 10) {
                 state.recoveryTicks = 0;
                 float cost = ApprenticeCodexServerConfig.shootingStarMantleRecoveryCost(
@@ -220,7 +221,7 @@ public final class ShootingStarMantleRuntime {
     public static boolean recharge(ServerPlayer player, ItemStack stack, float cost) {
         var energy = MantleEnergy.read(stack);
         var magic = MagicData.getPlayerMagicData(player);
-        if (energy.energy() == 100 || magic.getMana() < cost) return false;
+        if (energy.energy() == energy.maxEnergy() || magic.getMana() < cost) return false;
         magic.setMana(magic.getMana() - cost);
         energy.recharge(MantleCalibration.fastRecovery(stack)).save(stack);
         PacketDistributor.sendToPlayer(player, new SyncManaPacket(magic));
@@ -265,7 +266,7 @@ public final class ShootingStarMantleRuntime {
         var stack = findEquipped(player);
         var energy = MantleEnergy.read(stack);
         var state = state(player);
-        return new SyncMantlePacket(player.getId(), !stack.isEmpty(), energy.energy(), energy.recovering() && !state.elemental.defersDepletion(), state.hovering, blink, sequence, accepted,
+        return new SyncMantlePacket(player.getId(), !stack.isEmpty(), energy.energy(), energy.maxEnergy(), energy.recovering() && !state.elemental.defersDepletion(), state.hovering, blink, sequence, accepted,
                 state.blink.start(), state.blink.sequence(), state.blink.height(), state.blink.direction());
     }
 

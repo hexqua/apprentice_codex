@@ -46,6 +46,7 @@ import java.util.function.Consumer;
 
 import static io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE;
 import static io.redspace.ironsspellbooks.registries.ItemRegistry.ICE_RUNE;
+import static io.redspace.ironsspellbooks.registries.ItemRegistry.MANA_RUNE;
 import static io.redspace.ironsspellbooks.registries.ItemRegistry.PROTECTION_RUNE;
 import static io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL;
 import static jp.aquafactory.apprenticecodex.registry.SpellRegistry.WAVERING_STAR;
@@ -132,6 +133,64 @@ public final class MantleCalibrationGameTests {
         mantle.trySetCalibrationAdjustment(stack, 0, ItemStack.EMPTY);
         helper.assertTrue(mantle.getAttributeModifiers(context, id, stack).get(AttributeRegistry.SPELL_RESIST).isEmpty(),
                 "Removing the rune must remove its modifier");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaRuneChangesCapacityWithoutRestoringEnergy(GameTestHelper helper) {
+        var stack = new ItemStack(ItemRegistry.SHOOTING_STAR_MANTLE.get());
+        var mantle = (ShootingStarMantle) stack.getItem();
+        helper.assertTrue(mantle.trySetCalibrationAdjustment(stack, 0, new ItemStack(MANA_RUNE.get())),
+                "Mana rune must be accepted");
+        var energy = MantleEnergy.read(stack);
+        helper.assertTrue(energy.energy() == 100 && energy.maxEnergy() == 200 && mantle.getBarWidth(stack) == 7,
+                "Inserting a rune into a new mantle must keep one hundred energy and show half capacity");
+        helper.assertFalse(mantle.trySetCalibrationAdjustment(stack, 1, new ItemStack(MANA_RUNE.get())),
+                "Duplicate mana rune must be rejected");
+        helper.assertTrue(mantle.trySetCalibrationAdjustment(stack, 1, new ItemStack(PROTECTION_RUNE.get())),
+                "Mana rune must coexist with other runes");
+        mantle.trySetCalibrationAdjustment(stack, 0, ItemStack.EMPTY);
+        new MantleEnergy(60, false, 7).save(stack);
+        mantle.trySetCalibrationAdjustment(stack, 0, new ItemStack(MANA_RUNE.get()));
+        helper.assertTrue(MantleEnergy.read(stack).energy() == 60 && MantleEnergy.read(stack).maxEnergy() == 200,
+                "Rune insertion must preserve partially spent energy");
+        new MantleEnergy(160, false, 7, 200).save(stack);
+        mantle.trySetCalibrationAdjustment(stack, 0, ItemStack.EMPTY);
+        helper.assertTrue(MantleEnergy.read(stack).energy() == 100 && MantleEnergy.read(stack).maxEnergy() == 100,
+                "Removing the rune must clamp surplus energy");
+        mantle.trySetCalibrationAdjustment(stack, 0, new ItemStack(MANA_RUNE.get()));
+        helper.assertTrue(MantleEnergy.read(stack).energy() == 100,
+                "Reinserting the rune must not restore discarded energy");
+        var restored = ItemStack.parse(helper.getLevel().registryAccess(), stack.save(helper.getLevel().registryAccess())).orElseThrow();
+        helper.assertTrue(MantleEnergy.read(restored).energy() == 100 && MantleEnergy.read(restored).maxEnergy() == 200,
+                "Capacity and current energy must survive serialization");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaRuneKeepsRecoveryAmountAndCost(GameTestHelper helper) {
+        var player = player(helper, "mantle_capacity_recovery");
+        var stack = equip(player);
+        var mantle = (ShootingStarMantle) stack.getItem();
+        mantle.trySetCalibrationAdjustment(stack, 0, new ItemStack(MANA_RUNE.get()));
+        var magic = MagicData.getPlayerMagicData(player);
+        float cost = ApprenticeCodexServerConfig.shootingStarMantleRecoveryCost(false);
+        try {
+            new MantleEnergy(198, false, 0, 200).save(stack);
+            magic.setMana(cost);
+            for (int tick = 0; tick < 9; tick++) ShootingStarMantleRuntime.tick(player);
+            helper.assertTrue(MantleEnergy.read(stack).energy() == 198 && magic.getMana() == cost,
+                    "Capacity rune must retain the ten-tick recovery interval");
+            ShootingStarMantleRuntime.tick(player);
+            helper.assertTrue(MantleEnergy.read(stack).energy() == 200 && magic.getMana() == 0,
+                    "Capacity rune must restore two energy at the original mana cost");
+            magic.setMana(cost);
+            for (int tick = 0; tick < 10; tick++) ShootingStarMantleRuntime.tick(player);
+            helper.assertTrue(MantleEnergy.read(stack).energy() == 200 && magic.getMana() == cost,
+                    "Full capacity must not consume mana");
+        } finally {
+            ShootingStarMantleRuntime.clear(player);
+        }
         helper.succeed();
     }
 
