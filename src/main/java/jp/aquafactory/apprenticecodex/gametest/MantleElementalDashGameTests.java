@@ -557,6 +557,21 @@ public final class MantleElementalDashGameTests {
     }
 
     @GameTest(batch = BATCH, template = TEMPLATE)
+    public static void elementalHoverDashPreservesExternalAscent(GameTestHelper helper) {
+        var player = player(helper, "mantle_elemental_ascent", FIRE_RUNE.get(), true);
+        var dash = ShootingStarMantleRuntime.state(player).elemental;
+        player.setDeltaMovement(0, 0.4, 0);
+        dash.input(player, 0, true, 1, 0);
+        double startY = player.getY();
+        helper.assertTrue(dash.travel(player, ShootingStarMantleRuntime.state(player)),
+                "Active elemental dash must own hover movement");
+        helper.assertTrue(player.getY() > startY + 0.39 && player.getDeltaMovement().y < 0.4,
+                "Elemental dash must preserve external ascent and let upward momentum decay");
+        ShootingStarMantleRuntime.clear(player);
+        helper.succeed();
+    }
+
+    @GameTest(batch = BATCH, template = TEMPLATE)
     public static void lightningSweepsGroundTargetBetweenEndpoints(GameTestHelper helper) {
         var player = player(helper, "mantle_lightning_sweep", LIGHTNING_RUNE.get(), true);
         player.setYRot(0);
