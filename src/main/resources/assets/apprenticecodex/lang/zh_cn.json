@@ -712,6 +712,8 @@
   "enchantment.apprenticecodex.shell": "外壳",
   "enchantment.apprenticecodex.synchronization": "同步",
   "enchantment.apprenticecodex.neutralization": "中和",
+  "enchantment.apprenticecodex.compress": "压缩",
+  "enchantment.apprenticecodex.release": "释放",
   "enchantment.apprenticecodex.reflux.desc": "提升法力值恢复速度。",
   "enchantment.apprenticecodex.reservoir.desc": "提升最大法力值。",
   "enchantment.apprenticecodex.alacrity.desc": "减少法术冷却时间。",

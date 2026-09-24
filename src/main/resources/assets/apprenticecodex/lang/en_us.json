@@ -710,6 +710,8 @@
   "enchantment.apprenticecodex.shell": "Shell",
   "enchantment.apprenticecodex.synchronization": "Synchronization",
   "enchantment.apprenticecodex.neutralization": "Neutralization",
+  "enchantment.apprenticecodex.compress": "Compress",
+  "enchantment.apprenticecodex.release": "Release",
 
   "enchantment.apprenticecodex.reflux.desc": "Increases mana regeneration rate.",
   "enchantment.apprenticecodex.reservoir.desc": "Increases maximum mana.",
