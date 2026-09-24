@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.item.curios.manasoultransducer.ManaSoulTra
 import jp.aquafactory.apprenticecodex.item.curios.manasoultransducer.ManaSoulTransducerLogic;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.utility.AdvancementTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -33,6 +34,19 @@ public final class ManaSoulTransducerGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
 
     private ManaSoulTransducerGameTests() {}
+
+    @GameTest(template = TEMPLATE)
+    public static void blackCrystalManualAdvancementLoadsWithoutDisplay(GameTestHelper helper) {
+        var advancement = helper.getLevel().getServer().getAdvancements().get(
+                AdvancementTools.MALUM_BLACK_CRYSTAL_REVEALED);
+        helper.assertTrue(advancement != null, "Missing Black Crystal manual advancement");
+        helper.assertTrue(advancement.value().display().isEmpty(),
+                "Black Crystal manual advancement must not appear in the advancement UI");
+        helper.assertTrue(advancement.value().criteria().containsKey(
+                        AdvancementTools.MALUM_BLACK_CRYSTAL_REVEALED_CRITERION),
+                "Black Crystal manual advancement must contain the criterion awarded by the packet");
+        helper.succeed();
+    }
 
     @GameTest(template = TEMPLATE)
     public static void transferUsesPositiveBonusesAndSoftCap(GameTestHelper helper) {
