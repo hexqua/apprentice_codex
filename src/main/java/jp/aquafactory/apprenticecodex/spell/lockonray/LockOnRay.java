@@ -48,8 +48,8 @@ public class LockOnRay extends AbstractSpell {
             .build();
 
     public LockOnRay() {
-        baseSpellPower = 500;
-        spellPowerPerLevel = 100;
+        baseSpellPower = 200;
+        spellPowerPerLevel = 50;
         baseManaCost = 15;
         manaCostPerLevel = 5;
         castTime = 100;
@@ -69,7 +69,7 @@ public class LockOnRay extends AbstractSpell {
     }
 
     static float getRange() {
-        return 64;
+        return 48;
     }
 
 
