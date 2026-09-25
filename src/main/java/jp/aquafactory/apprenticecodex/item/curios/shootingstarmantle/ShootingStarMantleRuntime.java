@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
+import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
@@ -10,7 +11,6 @@ import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMantlePacket;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -20,8 +20,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.common.util.FakePlayer;
+import net.minecraftforge.common.util.FakePlayer;
 import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.HashMap;
@@ -68,8 +67,7 @@ public final class ShootingStarMantleRuntime {
             if (back != null) {
                 for (int i = 0; i < back.getStacks().getSlots(); i++) {
                     var stack = back.getStacks().getStackInSlot(i);
-                    if (back.getActiveStates().size() > i && back.getActiveStates().get(i)
-                            && stack.getItem() instanceof ShootingStarMantle) return stack;
+                    if (stack.getItem() instanceof ShootingStarMantle) return stack;
                 }
             }
             return ItemStack.EMPTY;
@@ -79,7 +77,7 @@ public final class ShootingStarMantleRuntime {
     public static boolean conflict(Player player) {
         var data = Capabilities.getSpellDataOrNull(player);
         return player.getItemBySlot(EquipmentSlot.CHEST).is(Items.ELYTRA)
-                || player.hasEffect(BuiltInRegistries.MOB_EFFECT.wrapAsHolder(MobEffectRegistry.ANGEL_WINGS.get()))
+                || player.hasEffect(MobEffectRegistry.ANGEL_WINGS.get())
                 || data != null && data.get(CodexSpellStateTypeRegister.SPECTRAL_WING_STATE).active;
     }
 
@@ -253,7 +251,7 @@ public final class ShootingStarMantleRuntime {
                 player.level().playSound(null, player.blockPosition(), SoundRegistry.VANILLA_MANTLE_IMPULSE.get(), SoundSource.PLAYERS, 1, 1);
             }
         }
-        PacketDistributor.sendToPlayer(player, packet(player, false, sequence, accepted));
+        Networks.sendToPlayer(player, packet(player, false, sequence, accepted));
         if (accepted) sync(player, false);
         if (!accepted && !(player instanceof FakePlayer)) {
             // 拒否済みの予測移動は現在のserver位置へ戻す。通常の移動検証は維持する。

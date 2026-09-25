@@ -477,7 +477,7 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_shooting_star_mantle.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_shooting_star_mantle.description"),
                         null,
-                        AdvancementType.CHALLENGE,
+                        FrameType.CHALLENGE,
                         true,
                         true,
                         false)

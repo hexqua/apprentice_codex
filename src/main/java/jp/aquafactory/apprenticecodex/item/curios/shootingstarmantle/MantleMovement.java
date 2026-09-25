@@ -3,7 +3,6 @@ package jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle;
 import jp.aquafactory.apprenticecodex.entity.broom.BroomSurfaceScanner;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.MoverType;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 
@@ -37,8 +36,8 @@ public final class MantleMovement {
         if (incomingY <= 0 || usedY != incomingY) return;
         var movement = player.getDeltaMovement();
         if (movement.y > 0) {
-            // 外套のtravelではバニラの重力処理も置き換わるため、上昇慣性を次tickへ持ち越す前に減衰する。
-            player.setDeltaMovement(movement.x, movement.y * 0.98 - player.getAttributeValue(Attributes.GRAVITY), movement.z);
+            // 外套のtravelでは重力処理も置き換わる。1.20.1にはGRAVITY属性がないため、バニラの0.08で上昇慣性を減衰する。
+            player.setDeltaMovement(movement.x, movement.y * 0.98 - 0.08, movement.z);
         }
     }
 

@@ -5,7 +5,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
 
 import static io.redspace.ironsspellbooks.registries.SoundRegistry.ABYSSAL_TELEPORT;
 
@@ -120,7 +120,7 @@ public final class MantleBlink {
         return true;
     }
 
-    public static boolean cancelIncomingDamageIfInvulnerable(LivingIncomingDamageEvent event) {
+    public static boolean cancelIncomingDamageIfInvulnerable(LivingAttackEvent event) {
         if (event.getEntity() instanceof ServerPlayer player
                 && ShootingStarMantleRuntime.isHovering(player)
                 && ShootingStarMantleRuntime.state(player).blink.active(player.level().getGameTime())) {

@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MantleDashRotationMixin {
     @Inject(method = "setupRotations", at = @At("HEAD"), cancellable = true)
     private void apprenticecodex$rotateHoverDash(LivingEntity entity, PoseStack pose, float bob,
-                                               float bodyYaw, float partialTick, float scale, CallbackInfo ci) {
+                                               float bodyYaw, float partialTick, CallbackInfo ci) {
         if (!(entity instanceof Player player)) return;
         var dash = ShootingStarMantleRuntime.state(player).elemental;
         if (!dash.shouldRenderHoverDashSpin(player)) return;

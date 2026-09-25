@@ -1,29 +1,26 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.ShootingStarMantleRuntime;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
-public record ClientMantleImpulsePacket(long sequence, float forward, float strafe) implements CustomPacketPayload {
-    public static final Type<ClientMantleImpulsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "mantle_impulse"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, ClientMantleImpulsePacket> STREAM_CODEC = StreamCodec.of(
-            (buffer, packet) -> { buffer.writeLong(packet.sequence); buffer.writeFloat(packet.forward); buffer.writeFloat(packet.strafe); },
-            buffer -> new ClientMantleImpulsePacket(buffer.readLong(), buffer.readFloat(), buffer.readFloat()));
+import java.util.function.Supplier;
 
-    @Override
-    public @NotNull Type<ClientMantleImpulsePacket> type() { return TYPE; }
+public record ClientMantleImpulsePacket(long sequence, float forward, float strafe) {
+    public static void encode(ClientMantleImpulsePacket packet, FriendlyByteBuf buffer) {
+        buffer.writeLong(packet.sequence); buffer.writeFloat(packet.forward); buffer.writeFloat(packet.strafe);
+    }
 
-    public static void handle(ClientMantleImpulsePacket packet, IPayloadContext context) {
+    public static ClientMantleImpulsePacket decode(FriendlyByteBuf buffer) {
+        return new ClientMantleImpulsePacket(buffer.readLong(), buffer.readFloat(), buffer.readFloat());
+    }
+
+    public static void handle(ClientMantleImpulsePacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
+        var context = contextSupplier.get();
         context.enqueueWork(() -> {
-            if (context.player() instanceof ServerPlayer player) {
-                ShootingStarMantleRuntime.impulse(player, packet.sequence, packet.forward, packet.strafe);
-            }
+            var sender = context.getSender();
+            if (sender != null) ShootingStarMantleRuntime.impulse(sender, packet.sequence, packet.forward, packet.strafe);
         });
+        context.setPacketHandled(true);
     }
 }

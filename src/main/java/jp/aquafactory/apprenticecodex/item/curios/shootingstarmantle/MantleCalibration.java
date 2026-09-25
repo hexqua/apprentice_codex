@@ -15,14 +15,13 @@ import jp.aquafactory.apprenticecodex.item.ScrollSlotTooltipData;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -34,8 +33,6 @@ public final class MantleCalibration {
     public static final int ADJUSTMENT_SLOTS = 3;
     public static final int SCROLL_SLOTS = 3;
     private static final String ROOT = "ShootingStarMantleCalibration";
-    private static final HolderLookup.Provider FALLBACK_LOOKUP =
-            RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     public static final CalibrationAdjustmentProfile PROFILE = CalibrationAdjustmentProfile.of(
             CalibrationAdjustmentRule.repeatable("scroll_slot", stack -> stack.is(SCROLLWOVEN_PARCHMENT.get()),
                     CalibrationAdjustmentHint.specificItem(SCROLLWOVEN_PARCHMENT))
@@ -74,13 +71,14 @@ public final class MantleCalibration {
 
     static HolderLookup.Provider serializationLookup() {
         var server = ServerLifecycleHooks.getCurrentServer();
-        return server == null ? FALLBACK_LOOKUP : server.registryAccess();
+        return server == null ? RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY)
+                : server.registryAccess();
     }
 
     public static int enabledSlots(ItemStack stack, HolderLookup.Provider lookup) {
         int count = 0;
         for (int slot = 0; slot < ADJUSTMENT_SLOTS; slot++) {
-            if (CalibrationAdjustmentStorage.get(stack, slot, ADJUSTMENT_SLOTS, lookup)
+            if (CalibrationAdjustmentStorage.get(stack, slot, ADJUSTMENT_SLOTS)
                     .is(SCROLLWOVEN_PARCHMENT.get())) count++;
         }
         return count;
@@ -118,11 +116,12 @@ public final class MantleCalibration {
 
     public static ItemStack getScroll(ItemStack stack, int slot, HolderLookup.Provider lookup) {
         if (!(stack.getItem() instanceof ShootingStarMantle) || slot < 0 || slot >= SCROLL_SLOTS) return ItemStack.EMPTY;
-        var list = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag()
+        var root = stack.getTag() == null ? new CompoundTag() : stack.getTag();
+        var list = root
                 .getCompound(ROOT).getList("Scrolls", Tag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); i++) {
             var entry = list.getCompound(i);
-            if (entry.getInt("Slot") == slot) return ItemStack.parseOptional(lookup, entry.getCompound("Item"));
+            if (entry.getInt("Slot") == slot) return ItemStack.of(entry.getCompound("Item"));
         }
         return ItemStack.EMPTY;
     }
@@ -130,7 +129,8 @@ public final class MantleCalibration {
     public static void setScroll(ItemStack stack, int slot, ItemStack scroll, HolderLookup.Provider lookup) {
         if (!(stack.getItem() instanceof ShootingStarMantle) || slot < 0 || slot >= SCROLL_SLOTS) return;
         // 有効枠数とは独立させ、羊皮紙を外しても現物と元の位置を保持する。
-        CustomData.update(DataComponents.CUSTOM_DATA, stack, root -> {
+        {
+            var root = stack.getOrCreateTag();
             var calibration = root.getCompound(ROOT);
             var list = calibration.getList("Scrolls", Tag.TAG_COMPOUND);
             for (int i = list.size() - 1; i >= 0; i--) {
@@ -139,7 +139,7 @@ public final class MantleCalibration {
             if (!scroll.isEmpty()) {
                 var entry = new CompoundTag();
                 entry.putInt("Slot", slot);
-                entry.put("Item", scroll.copyWithCount(1).saveOptional(lookup));
+                entry.put("Item", scroll.copyWithCount(1).save(new CompoundTag()));
                 list.add(entry);
             }
             if (list.isEmpty()) {
@@ -148,7 +148,7 @@ public final class MantleCalibration {
                 calibration.put("Scrolls", list);
                 root.put(ROOT, calibration);
             }
-        });
+        }
     }
 
     public static SpellData readSpell(ItemStack stack, int slot, HolderLookup.Provider lookup) {
@@ -176,9 +176,9 @@ public final class MantleCalibration {
         if (before.getItem() != after.getItem()) return false;
         if (!(after.getItem() instanceof ShootingStarMantle)) return true;
         if (enabledSlots(before, lookup) != enabledSlots(after, lookup)
-                || !Objects.equals(before.get(DataComponents.ENCHANTMENTS), after.get(DataComponents.ENCHANTMENTS))) return false;
+                || !Objects.equals(EnchantmentHelper.getEnchantments(before), EnchantmentHelper.getEnchantments(after))) return false;
         for (int slot = 0; slot < SCROLL_SLOTS; slot++) {
-            if (!ItemStack.isSameItemSameComponents(getScroll(before, slot, lookup), getScroll(after, slot, lookup))) return false;
+            if (!ItemStack.isSameItemSameTags(getScroll(before, slot, lookup), getScroll(after, slot, lookup))) return false;
         }
         return true;
     }

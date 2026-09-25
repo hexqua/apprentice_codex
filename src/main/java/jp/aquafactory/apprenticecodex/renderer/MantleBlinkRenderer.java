@@ -76,7 +76,8 @@ public final class MantleBlinkRenderer {
         for (var face : faces) {
             for (int index : face) {
                 var vertex = vertices[index];
-                buffer.addVertex(pose.last(), vertex[0], vertex[1], vertex[2]).setColor(255, 255, 255, alpha);
+                buffer.vertex(pose.last().pose(), vertex[0], vertex[1], vertex[2])
+                        .color(255, 255, 255, alpha).endVertex();
             }
         }
     }

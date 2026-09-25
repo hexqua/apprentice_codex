@@ -56,7 +56,8 @@ public final class ShootingStarMantleRenderer implements ICurioRenderer {
             left.yRot = Mth.lerp(openAmount, left.yRot, 0);
             right.yRot = Mth.lerp(openAmount, right.yRot, 0);
         }
-        model.renderToBuffer(pose, buffer.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), light, OverlayTexture.NO_OVERLAY);
+        model.renderToBuffer(pose, buffer.getBuffer(RenderType.entityCutoutNoCull(TEXTURE)), light,
+                OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
         pose.popPose();
     }
 }

@@ -524,7 +524,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('S', Items.NETHER_STAR)
                 .define('C', Items.CHORUS_FRUIT)
                 .unlockedBy(getHasName(Items.ELYTRA), has(Items.ELYTRA))
-                .save(recipeOutput);
+                .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.GRIMOIRE_MANIFEST.get())
                 .pattern(" E ")

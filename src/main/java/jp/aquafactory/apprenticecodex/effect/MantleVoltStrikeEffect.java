@@ -29,7 +29,11 @@ public final class MantleVoltStrikeEffect extends VoltStrikeEffect {
     public @NotNull String getDescriptionId() { return "spell.irons_spellbooks.volt_strike"; }
 
     @Override
-    public boolean applyEffectTick(LivingEntity entity, int amplifier) {
+    public void applyEffectTick(LivingEntity entity, int amplifier) {
+        if (!tickEffect(entity, amplifier)) entity.removeEffect(this);
+    }
+
+    private boolean tickEffect(LivingEntity entity, int amplifier) {
         if (entity.level().isClientSide) return true;
         if (!MantleElementalDash.canTick(entity, MantleElementalDash.LIGHTNING)) return false;
         var player = (ServerPlayer) entity;
@@ -49,7 +53,7 @@ public final class MantleVoltStrikeEffect extends VoltStrikeEffect {
         for (int i = 0; i <= samples; i++) {
             Vec3 offset = displacement.scale((double) i / samples);
             AABB at = body.move(offset);
-            if (!player.level().noBlockCollision(player, at.deflate(.1))) {
+            if (player.level().getBlockCollisions(player, at.deflate(.1)).iterator().hasNext()) {
                 impact(player, amplifier, null, at.getCenter());
                 return false;
             }
@@ -72,7 +76,9 @@ public final class MantleVoltStrikeEffect extends VoltStrikeEffect {
         int wallSamples = Math.max(1, (int) Math.ceil(movement.length() / .2));
         wallSamples = Math.min(40, wallSamples);
         for (int i = 1; i <= wallSamples; i++) {
-            if (!player.level().noBlockCollision(player, player.getBoundingBox().move(movement.scale((double) i / wallSamples)).deflate(.1))) {
+            if (player.level().getBlockCollisions(player,
+                    player.getBoundingBox().move(movement.scale((double) i / wallSamples)).deflate(.1))
+                    .iterator().hasNext()) {
                 impact(player, amplifier, null, player.getBoundingBox().getCenter());
                 return false;
             }
@@ -100,7 +106,7 @@ public final class MantleVoltStrikeEffect extends VoltStrikeEffect {
         MagicManager.spawnParticles(world, ParticleHelper.ELECTRICITY, blast.x, blast.y, blast.z, 75, .1, .1, .1, .5, false);
         MagicManager.spawnParticles(world, new BlastwaveParticleOptions(new Vector3f(.7f, 1, 1), 8),
                 blast.x, blast.y + .15, blast.z, 1, 0, 0, 0, 0, true);
-        world.playSound(null, blast.x, blast.y, blast.z, SoundEvents.TRIDENT_THUNDER.value(), player.getSoundSource(), 4, .8f);
+        world.playSound(null, blast.x, blast.y, blast.z, SoundEvents.TRIDENT_THUNDER, player.getSoundSource(), 4, .8f);
         ShootingStarMantleRuntime.state(player).elemental.contact(player);
     }
 

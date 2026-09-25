@@ -1,12 +1,12 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 public final class ShootingStarMantleServerConfig {
-    private final ModConfigSpec.DoubleValue normalCost;
-    private final ModConfigSpec.DoubleValue recoveryCost;
+    private final ForgeConfigSpec.DoubleValue normalCost;
+    private final ForgeConfigSpec.DoubleValue recoveryCost;
 
-    public ShootingStarMantleServerConfig(ModConfigSpec.Builder builder) {
+    public ShootingStarMantleServerConfig(ForgeConfigSpec.Builder builder) {
         builder.push("ShootingStarMantle");
         normalCost = builder.comment("Mana paid in full every 10 idle ticks to restore 2 mantle energy.")
                 .defineInRange("normalRecoveryManaCost", 20D, 0D, 1000000D);

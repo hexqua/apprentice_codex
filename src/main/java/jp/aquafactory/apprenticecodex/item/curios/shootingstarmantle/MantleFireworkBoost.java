@@ -4,13 +4,12 @@ import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncRemainingCountNotificationPacket;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.projectile.FireworkRocketEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.Fireworks;
 
 import java.util.function.IntFunction;
 
@@ -69,7 +68,9 @@ public final class MantleFireworkBoost {
     }
 
     private static Source findSource(ServerPlayer player) {
-        var shelf = Capabilities.getPersonalInventory(player).orElseThrow().getHandler();
+        var shelf = player.getCapability(Capabilities.PERSONAL_INVENTORY)
+                .orElseThrow(() -> new IllegalStateException("Missing personal inventory for mantle firework"))
+                .getHandler();
         var source = findBest(shelf.getSlots(), shelf::getStackInSlot,
                 slot -> () -> shelf.extractItem(slot, 1, false));
         if (source != null) return source;
@@ -105,7 +106,9 @@ public final class MantleFireworkBoost {
 
     public static long countRockets(ServerPlayer player) {
         long total = 0;
-        var shelf = Capabilities.getPersonalInventory(player).orElseThrow().getHandler();
+        var shelf = player.getCapability(Capabilities.PERSONAL_INVENTORY)
+                .orElseThrow(() -> new IllegalStateException("Missing personal inventory for mantle firework"))
+                .getHandler();
         total += count(shelf.getSlots(), shelf::getStackInSlot);
         var ender = player.getEnderChestInventory();
         total += count(ender.getContainerSize(), ender::getItem);
@@ -126,13 +129,13 @@ public final class MantleFireworkBoost {
 
     private static boolean valid(ItemStack stack) {
         if (!stack.is(Items.FIREWORK_ROCKET) || stack.isEmpty()) return false;
-        Fireworks fireworks = stack.get(DataComponents.FIREWORKS);
-        return fireworks == null || fireworks.explosions().isEmpty();
+        var fireworks = stack.getTagElement("Fireworks");
+        return fireworks == null || fireworks.getList("Explosions", Tag.TAG_COMPOUND).isEmpty();
     }
 
     private static int duration(ItemStack stack) {
-        Fireworks fireworks = stack.get(DataComponents.FIREWORKS);
-        return fireworks == null ? 0 : fireworks.flightDuration();
+        var fireworks = stack.getTagElement("Fireworks");
+        return fireworks == null ? 0 : fireworks.getByte("Flight");
     }
 
     private record Source(ItemStack stack, Runnable extract) { }

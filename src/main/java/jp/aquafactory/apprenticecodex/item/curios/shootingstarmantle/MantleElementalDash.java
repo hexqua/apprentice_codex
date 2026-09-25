@@ -10,7 +10,6 @@ import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMantleDashPacket;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
-import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
@@ -19,7 +18,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
 
 /** 通常詠唱の追加データを占有せず、外套の突進だけを管理する。 */
 public final class MantleElementalDash {
@@ -69,7 +68,7 @@ public final class MantleElementalDash {
                 && player.hasEffect(effect(kind));
     }
 
-    public static boolean cancelIncomingDamageIfInvulnerable(LivingIncomingDamageEvent event) {
+    public static boolean cancelIncomingDamageIfInvulnerable(LivingAttackEvent event) {
         if (event.getEntity() instanceof ServerPlayer player
                 && ShootingStarMantleRuntime.state(player).elemental.invulnerable(player)) {
             event.setCanceled(true);
@@ -99,12 +98,12 @@ public final class MantleElementalDash {
         return Math.max(1, (15.0 + spellPower) / 15.0);
     }
 
-    public static Holder<MobEffect> effect(int kind) {
-        return kind == FIRE ? EffectRegistry.MANTLE_BURNING_DASH : EffectRegistry.MANTLE_VOLT_STRIKE;
+    public static MobEffect effect(int kind) {
+        return kind == FIRE ? EffectRegistry.MANTLE_BURNING_DASH.get() : EffectRegistry.MANTLE_VOLT_STRIKE.get();
     }
 
     public static boolean normalDash(LivingEntity entity) {
-        return entity.hasEffect(MobEffectRegistry.BURNING_DASH) || entity.hasEffect(MobEffectRegistry.VOLT_STRIKE);
+        return entity.hasEffect(MobEffectRegistry.BURNING_DASH.get()) || entity.hasEffect(MobEffectRegistry.VOLT_STRIKE.get());
     }
 
     public void input(ServerPlayer player, long sequence, boolean jump, float forwardInput, float strafeInput) {
@@ -243,8 +242,8 @@ public final class MantleElementalDash {
     }
 
     public static void restoreSpin(LivingEntity entity) {
-        boolean fire = entity.hasEffect(MobEffectRegistry.BURNING_DASH);
-        boolean lightning = entity.hasEffect(MobEffectRegistry.VOLT_STRIKE);
+        boolean fire = entity.hasEffect(MobEffectRegistry.BURNING_DASH.get());
+        boolean lightning = entity.hasEffect(MobEffectRegistry.VOLT_STRIKE.get());
         if (fire || lightning) {
             ((LivingEntityAccessor) entity).setLivingEntityFlagInvoker(4, true);
             if (!entity.level().isClientSide) MagicData.getPlayerMagicData(entity).getSyncedData()

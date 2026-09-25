@@ -9,14 +9,16 @@
     }
   },
   "display": {
+    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_shooting_star_mantle.description"
     },
     "frame": "challenge",
+    "hidden": false,
     "icon": {
-      "count": 1,
-      "id": "apprenticecodex:shooting_star_mantle"
+      "item": "apprenticecodex:shooting_star_mantle"
     },
+    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_shooting_star_mantle.title"
     }

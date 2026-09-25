@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.mixin;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import jp.aquafactory.apprenticecodex.renderer.MantleBlinkRenderer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.network.chat.Component;
@@ -15,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class EntityRendererMantleBlinkNameMixin {
     @Inject(method = "renderNameTag", at = @At("HEAD"), cancellable = true)
     private void apprenticecodex$hideName(Entity entity, Component name, PoseStack pose,
-            MultiBufferSource buffers, int light, float partialTick, CallbackInfo ci) {
-        if (MantleBlinkRenderer.active(entity, partialTick)) ci.cancel();
+            MultiBufferSource buffers, int light, CallbackInfo ci) {
+        if (MantleBlinkRenderer.active(entity, Minecraft.getInstance().getFrameTime())) ci.cancel();
     }
 }

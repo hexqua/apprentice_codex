@@ -1,12 +1,10 @@
 package jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle;
 
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 
 public record MantleEnergy(int energy, boolean recovering, int spentTicks, int maxEnergy) {
     public static final int MAX = 100;
@@ -30,7 +28,7 @@ public record MantleEnergy(int energy, boolean recovering, int spentTicks, int m
     }
 
     public static MantleEnergy read(ItemStack stack) {
-        var root = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        var root = stack.getTag() == null ? new CompoundTag() : stack.getTag();
         int maxEnergy = maxEnergy(stack);
         // 未使用品にルーンを入れても、保存されていなかった100を現在量として引き継ぐ。
         if (!root.contains(KEY, Tag.TAG_COMPOUND)) return new MantleEnergy(MAX, false, 0, maxEnergy);
@@ -40,13 +38,11 @@ public record MantleEnergy(int energy, boolean recovering, int spentTicks, int m
 
     public void save(ItemStack stack) {
         var bounded = new MantleEnergy(energy, recovering, spentTicks, maxEnergy(stack));
-        CustomData.update(DataComponents.CUSTOM_DATA, stack, root -> {
-            var tag = new CompoundTag();
-            tag.putInt("energy", bounded.energy);
-            tag.putBoolean("recovering", bounded.recovering);
-            tag.putInt("spent_ticks", bounded.spentTicks);
-            root.put(KEY, tag);
-        });
+        var tag = new CompoundTag();
+        tag.putInt("energy", bounded.energy);
+        tag.putBoolean("recovering", bounded.recovering);
+        tag.putInt("spent_ticks", bounded.spentTicks);
+        stack.getOrCreateTag().put(KEY, tag);
     }
 
     public boolean usable() { return energy > 0 && !recovering; }

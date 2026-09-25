@@ -16,12 +16,15 @@ public final class MantleBurningDashEffect extends BurningDashEffect {
     public @NotNull String getDescriptionId() { return "spell.irons_spellbooks.burning_dash"; }
 
     @Override
-    public boolean applyEffectTick(LivingEntity entity, int amplifier) {
-        if (entity.level().isClientSide) return true;
-        if (!MantleElementalDash.canTick(entity, MantleElementalDash.FIRE)) return false;
-        boolean remaining = super.applyEffectTick(entity, amplifier);
-        if (!remaining && entity instanceof ServerPlayer player) ShootingStarMantleRuntime.state(player).elemental.contact(player);
-        return remaining;
+    public void applyEffectTick(LivingEntity entity, int amplifier) {
+        if (entity.level().isClientSide) return;
+        if (!MantleElementalDash.canTick(entity, MantleElementalDash.FIRE)) {
+            entity.removeEffect(this);
+            return;
+        }
+        super.applyEffectTick(entity, amplifier);
+        if (!entity.hasEffect(this) && entity instanceof ServerPlayer player)
+            ShootingStarMantleRuntime.state(player).elemental.contact(player);
     }
 
     @Override

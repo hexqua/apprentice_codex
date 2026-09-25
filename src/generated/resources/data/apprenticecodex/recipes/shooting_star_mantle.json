@@ -27,7 +27,7 @@
     "DSD"
   ],
   "result": {
-    "count": 1,
-    "id": "apprenticecodex:shooting_star_mantle"
-  }
+    "item": "apprenticecodex:shooting_star_mantle"
+  },
+  "show_notification": true
 }

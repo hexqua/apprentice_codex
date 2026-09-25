@@ -5,7 +5,9 @@
       "conditions": {
         "items": [
           {
-            "items": "minecraft:elytra"
+            "items": [
+              "minecraft:elytra"
+            ]
           }
         ]
       },
@@ -20,13 +22,14 @@
   },
   "requirements": [
     [
-      "has_the_recipe",
-      "has_elytra"
+      "has_elytra",
+      "has_the_recipe"
     ]
   ],
   "rewards": {
     "recipes": [
       "apprenticecodex:shooting_star_mantle"
     ]
-  }
+  },
+  "sends_telemetry_event": false
 }

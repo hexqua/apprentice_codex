@@ -13,11 +13,10 @@ import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
@@ -25,8 +24,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
@@ -34,6 +33,7 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public class ShootingStarMantle extends Item implements ICurioItem, SpellCalibrationAdjustmentTarget,
         StoredSpellCalibrationImbueTarget, ArcaneAnvilScrollImbueBlockItem, TranscendenceTarget {
@@ -60,7 +60,7 @@ public class ShootingStarMantle extends Item implements ICurioItem, SpellCalibra
     public int getBarColor(@NotNull ItemStack stack) { return MantleEnergy.read(stack).recovering() ? 0xFF4400 : 0xFFEEDD; }
 
     @Override
-    public List<Component> getSlotsTooltip(List<Component> tooltips, TooltipContext context, ItemStack stack) {
+    public List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
         var result = new ArrayList<>(tooltips);
         if (slotIdentifier != null) {
             // Curiosっぽい共通ヘッダ.
@@ -104,6 +104,11 @@ public class ShootingStarMantle extends Item implements ICurioItem, SpellCalibra
     }
 
     @Override
+    public void onCalibrationAdjustmentsChanged(@NotNull ItemStack stack) {
+        MantleEnergy.read(stack).save(stack);
+    }
+
+    @Override
     public boolean acceptsCalibrationSpell(@NotNull SpellData spellData) {
         return SpellCalibrationImbueTarget.isValidCalibrationSpell(spellData);
     }
@@ -128,14 +133,15 @@ public class ShootingStarMantle extends Item implements ICurioItem, SpellCalibra
     }
 
     @Override
-    public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(
-            SlotContext slotContext, ResourceLocation id, ItemStack stack) {
-        var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
+    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(
+            SlotContext slotContext, UUID id, ItemStack stack) {
+        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
         builder.putAll(ICurioItem.super.getAttributeModifiers(slotContext, id, stack));
         if (MantleCalibration.hasAdjustment(stack, ItemRegistry.PROTECTION_RUNE.get())) {
             // Curiosの枠ごとのIDに従い、付け外しと調整変更で属性が確実に更新されるようにする。
-            builder.put(AttributeRegistry.SPELL_RESIST, new AttributeModifier(
-                    id.withSuffix("/mantle_spell_resist"), 0.1, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+            builder.put(AttributeRegistry.SPELL_RESIST.get(), new AttributeModifier(
+                    id, "apprenticecodex.shooting_star_mantle.spell_resist", 0.1,
+                    AttributeModifier.Operation.MULTIPLY_BASE));
         }
         return builder.build();
     }
@@ -146,7 +152,7 @@ public class ShootingStarMantle extends Item implements ICurioItem, SpellCalibra
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context,
+    public void appendHoverText(@NotNull ItemStack stack, Level context,
                                 @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
         // 魔法レベルの表示はLocalPlayerを使うため、専用サーバーでclient helperを読み込まない。

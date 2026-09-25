@@ -1,29 +1,26 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.ShootingStarMantleRuntime;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
-public record ClientMantleFireworkInputPacket(long sequence, boolean jump) implements CustomPacketPayload {
-    public static final Type<ClientMantleFireworkInputPacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "mantle_firework_input"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, ClientMantleFireworkInputPacket> STREAM_CODEC = StreamCodec.of(
-            (buffer, packet) -> { buffer.writeLong(packet.sequence); buffer.writeBoolean(packet.jump); },
-            buffer -> new ClientMantleFireworkInputPacket(buffer.readLong(), buffer.readBoolean()));
+import java.util.function.Supplier;
 
-    @Override
-    public @NotNull Type<ClientMantleFireworkInputPacket> type() { return TYPE; }
+public record ClientMantleFireworkInputPacket(long sequence, boolean jump) {
+    public static void encode(ClientMantleFireworkInputPacket packet, FriendlyByteBuf buffer) {
+        buffer.writeLong(packet.sequence); buffer.writeBoolean(packet.jump);
+    }
 
-    public static void handle(ClientMantleFireworkInputPacket packet, IPayloadContext context) {
+    public static ClientMantleFireworkInputPacket decode(FriendlyByteBuf buffer) {
+        return new ClientMantleFireworkInputPacket(buffer.readLong(), buffer.readBoolean());
+    }
+
+    public static void handle(ClientMantleFireworkInputPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
+        var context = contextSupplier.get();
         context.enqueueWork(() -> {
-            if (context.player() instanceof ServerPlayer player) ShootingStarMantleRuntime.state(player).firework
-                    .input(player, packet.sequence, packet.jump);
+            var sender = context.getSender();
+            if (sender != null) ShootingStarMantleRuntime.state(sender).firework.input(sender, packet.sequence, packet.jump);
         });
+        context.setPacketHandled(true);
     }
 }

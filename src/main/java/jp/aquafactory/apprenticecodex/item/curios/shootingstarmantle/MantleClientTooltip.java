@@ -4,8 +4,8 @@ import jp.aquafactory.apprenticecodex.item.ScrollSlotTooltipClientHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ public final class MantleClientTooltip {
     public static void append(ItemStack stack, List<Component> lines) {
         var player = Minecraft.getInstance().player;
         if (player == null) return;
-        var data = MantleCalibration.tooltipData(stack, player.registryAccess());
+        var data = MantleCalibration.tooltipData(stack, MantleCalibration.serializationLookup());
         if (data.entries().isEmpty()) return;
         lines.add(Component.empty());
         // 外套に選択状態はなく、有効な全スクロールを常時ホイールへ公開する。
