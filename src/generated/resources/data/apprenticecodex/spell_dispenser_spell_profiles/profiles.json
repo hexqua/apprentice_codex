@@ -673,6 +673,12 @@
         "owner_required": false
       },
       "spell": "apprenticecodex:wizardlamp"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
+      "spell": "apprenticecodex:lock_on_ray"
     }
   ]
 }
