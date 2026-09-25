@@ -1039,6 +1039,7 @@
   "spell.apprenticecodex.soul_conversion": "ソウル転化",
   "spell.apprenticecodex.wavering_star": "揺蕩う星",
   "spell.apprenticecodex.lock_on_ray": "ロックオンレイ",
+  "spell.apprenticecodex.quick_blink": "クイックブリンク",
 
   "spell.apprenticecodex.sky_edge.guide": "視線の先に向かって発射される武器を召喚する。発射まで時間がかかりノックバックも無いが、対象の無敵時間を無視することができる。",
   "spell.apprenticecodex.archer_multiple.guide": "自身を追従し狙った対象か近くの敵に対して攻撃を続ける魔法の弓を召喚する。大魔術師のお守りを装備していてもクールダウンの発生は抑制できない。",
@@ -1133,6 +1134,7 @@
   "spell.apprenticecodex.soul_conversion.guide": "マナソウルトランスデューサー固有の潜在魔法。純粋なマナを魂の魔術の杖で扱うエネルギーへ変換し、杖のエネルギーを即座に最大まで回復する。",
   "spell.apprenticecodex.wavering_star.guide": "流星の外套固有の潜在魔法。外套に込められた魔力を放出することで一定高度浮遊できる。移動をすると維持できる高度が下がる。浮遊中にジャンプを試みることで任意の方向に短距離の高速移動が可能。外套の魔力が尽きると解除される。",
   "spell.apprenticecodex.lock_on_ray.guide": "聖なる魔力を凝縮し、詠唱開始時に見ていた対象に必中のレーザーを連射し続ける。レーザーは地形に阻まれない。常に集中し続ける必要があり、ダメージを受けると詠唱が中断されてしまう。ノックバックは無いが、対象の無敵時間を無視することができる。",
+  "spell.apprenticecodex.quick_blink.guide": "詠唱時に入力していた方向に短距離水平に転移する。短時間であれば連続して詠唱できる。",
 
   "ui.apprenticecodex.headshot_damage_multiplier": "ヘッドショット倍率: %d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "隠密ダメージ倍率: %d%%",
