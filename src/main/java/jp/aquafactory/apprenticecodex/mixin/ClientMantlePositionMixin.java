@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.ShootingStarMantleRuntime;
-import jp.aquafactory.apprenticecodex.spell.quickblink.QuickBlinkRuntime;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
@@ -16,10 +15,8 @@ public abstract class ClientMantlePositionMixin {
     private void apprenticecodex$resetHoverPosition(ClientboundPlayerPositionPacket packet, CallbackInfo ci) {
         var player = Minecraft.getInstance().player;
         if (player != null) {
-            // 転送・server補正の座標差を通常のXZ移動として高度低下へ持ち込まない。
+            // 転送・server補正の座標差を浮遊高度制御へ持ち込まず、ブリンクは継続する。
             var state = ShootingStarMantleRuntime.state(player);
-            state.blink.cancel();
-            QuickBlinkRuntime.state(player).blink.cancel();
             state.lastPosition = null;
             state.movingTicks = 0;
         }

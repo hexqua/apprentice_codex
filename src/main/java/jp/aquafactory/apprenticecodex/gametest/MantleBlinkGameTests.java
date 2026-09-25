@@ -39,8 +39,8 @@ public final class MantleBlinkGameTests {
     @GameTest(template = TEMPLATE)
     public static void repeatedBlinkPreservesPreviousAppearanceDuringObserverInterpolation(GameTestHelper helper) {
         var blink = new MantleBlink();
-        blink.accept(100, 0, 5, new Vec3(1, 0, 0));
-        blink.accept(110, 1, 5, new Vec3(1, 0, 0));
+        blink.accept(100, 0, new Vec3(1, 0, 0));
+        blink.accept(110, 1, new Vec3(1, 0, 0));
         helper.assertTrue(blink.renderElapsed(108, 0.5F) == 8.5, "New activation must not erase the previous interpolated appearance");
         helper.assertTrue(blink.renderElapsed(110, 0.5F) == 0.5, "Observer must switch to the new disappearance when its render time arrives");
         helper.assertFalse(blink.active(108), "Rendering history must never extend server invulnerability");
@@ -113,6 +113,44 @@ public final class MantleBlinkGameTests {
     @GameTest(template = TEMPLATE)
     public static void diagonalBlinkKeepsSixBlockRange(GameTestHelper helper) {
         movement(helper, false, true);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void directHeightChangeKeepsRemainingMantleBlinkMovement(GameTestHelper helper) {
+        var player = player(helper, "mantle_blink_height_change");
+        var stack = ShootingStarMantleRuntime.findEquipped(player);
+        ((ShootingStarMantle) stack.getItem()).trySetCalibrationAdjustment(stack, 0, new ItemStack(ENDER_RUNE.get()));
+        for (int x = 0; x <= 7; x++) for (int y = 1; y <= 5; y++) {
+            helper.setBlock(new BlockPos(x, y, 0), Blocks.AIR);
+        }
+        var origin = helper.absoluteVec(new Vec3(0.5, 2, 0.5));
+        player.setPos(origin);
+        player.setYRot(-90);
+        for (int tick = 0; tick < MantleBlink.DURATION; tick++) {
+            int age = tick;
+            helper.runAtTickTime(tick + 1, () -> {
+                if (age == 0) {
+                    helper.assertTrue(ShootingStarMantleRuntime.toggle(player), "Mantle must enter hover before blinking");
+                    helper.assertTrue(ShootingStarMantleRuntime.impulse(player, 0, 1, 0), "Ender rune must start blink");
+                }
+                if (age == 1) player.setPos(player.getX(), player.getY() + 1, player.getZ());
+                var state = ShootingStarMantleRuntime.state(player);
+                ShootingStarMantleRuntime.tick(player);
+                MantleMovement.travel(player, Vec3.ZERO, state);
+                double expected = Math.min(4, Math.max(0, age - 2)) * 1.5;
+                helper.assertTrue(Math.abs(player.position().subtract(origin).horizontalDistance() - expected) < 1.0e-5,
+                        "Direct height changes must not shorten mantle blink's horizontal travel");
+                helper.assertTrue(Math.abs(player.getY() - origin.y - Math.min(age, 1)) < 1.0e-6,
+                        "Mantle blink must keep the externally assigned height: age=" + age + ", position=" + player.position()
+                                + ", origin=" + origin);
+                helper.assertTrue(state.blink.active(player.level().getGameTime()),
+                        "Direct height changes must not cancel mantle blink");
+            });
+        }
+        helper.runAtTickTime(11, () -> {
+            ShootingStarMantleRuntime.clear(player);
+            helper.succeed();
+        });
     }
 
     private static void movement(GameTestHelper helper, boolean wall, boolean diagonal) {

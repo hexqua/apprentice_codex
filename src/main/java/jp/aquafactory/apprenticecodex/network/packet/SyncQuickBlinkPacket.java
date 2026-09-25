@@ -13,15 +13,14 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
-public record SyncQuickBlinkPacket(int entityId, long start, long sequence, double height, Vec3 direction)
+public record SyncQuickBlinkPacket(int entityId, long start, long sequence, Vec3 direction)
         implements CustomPacketPayload {
     public static final Type<SyncQuickBlinkPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_quick_blink"));
     public static final StreamCodec<RegistryFriendlyByteBuf, SyncQuickBlinkPacket> STREAM_CODEC = StreamCodec.of(
             (buffer, packet) -> {
                 buffer.writeVarInt(packet.entityId); buffer.writeLong(packet.start); buffer.writeLong(packet.sequence);
-                buffer.writeDouble(packet.height); buffer.writeVec3(packet.direction);
-            }, buffer -> new SyncQuickBlinkPacket(buffer.readVarInt(), buffer.readLong(), buffer.readLong(),
-                    buffer.readDouble(), buffer.readVec3()));
+                buffer.writeVec3(packet.direction);
+            }, buffer -> new SyncQuickBlinkPacket(buffer.readVarInt(), buffer.readLong(), buffer.readLong(), buffer.readVec3()));
 
     @Override
     public @NotNull Type<SyncQuickBlinkPacket> type() { return TYPE; }

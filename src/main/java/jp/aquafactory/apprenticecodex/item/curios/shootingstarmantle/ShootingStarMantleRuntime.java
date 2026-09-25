@@ -269,7 +269,7 @@ public final class ShootingStarMantleRuntime {
         var energy = MantleEnergy.read(stack);
         var state = state(player);
         return new SyncMantlePacket(player.getId(), !stack.isEmpty(), energy.energy(), energy.maxEnergy(), energy.recovering() && !state.elemental.defersDepletion(), state.hovering, blink, sequence, accepted,
-                state.blink.start(), state.blink.sequence(), state.blink.height(), state.blink.direction());
+                state.blink.start(), state.blink.sequence(), state.blink.direction());
     }
 
     public static void sync(ServerPlayer player, boolean blink) {

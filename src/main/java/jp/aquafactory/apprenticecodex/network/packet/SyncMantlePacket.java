@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record SyncMantlePacket(int entityId, boolean equipped, int energy, int maxEnergy, boolean recovering,
                               boolean hovering, boolean blink, long sequence, boolean accepted,
-                              long blinkStart, long blinkSequence, double blinkHeight, Vec3 blinkDirection) implements CustomPacketPayload {
+                              long blinkStart, long blinkSequence, Vec3 blinkDirection) implements CustomPacketPayload {
     public static final Type<SyncMantlePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_mantle"));
     public static final StreamCodec<RegistryFriendlyByteBuf, SyncMantlePacket> STREAM_CODEC = StreamCodec.of(
             (buffer, packet) -> {
@@ -23,11 +23,11 @@ public record SyncMantlePacket(int entityId, boolean equipped, int energy, int m
                 buffer.writeVarInt(packet.maxEnergy);
                 buffer.writeBoolean(packet.recovering); buffer.writeBoolean(packet.hovering); buffer.writeBoolean(packet.blink);
                 buffer.writeLong(packet.sequence); buffer.writeBoolean(packet.accepted);
-                buffer.writeLong(packet.blinkStart); buffer.writeLong(packet.blinkSequence); buffer.writeDouble(packet.blinkHeight);
+                buffer.writeLong(packet.blinkStart); buffer.writeLong(packet.blinkSequence);
                 buffer.writeVec3(packet.blinkDirection);
             }, buffer -> new SyncMantlePacket(buffer.readVarInt(), buffer.readBoolean(), buffer.readVarInt(), buffer.readVarInt(), buffer.readBoolean(),
                     buffer.readBoolean(), buffer.readBoolean(), buffer.readLong(), buffer.readBoolean(),
-                    buffer.readLong(), buffer.readLong(), buffer.readDouble(), buffer.readVec3()));
+                    buffer.readLong(), buffer.readLong(), buffer.readVec3()));
 
     @Override
     public @NotNull Type<SyncMantlePacket> type() { return TYPE; }
