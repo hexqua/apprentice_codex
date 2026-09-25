@@ -388,6 +388,9 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
 
                     var targetStack = item.getDefaultInstance().copyWithCount(1);
                     for (var rule : target.getCalibrationAdjustmentProfile(targetStack).rules()) {
+                        boolean echoRule = item instanceof FullautoRapidcastSpellrifle
+                                && rule.displayId().equals(FullautoRapidcastSpellrifle.ECHO_ADJUSTMENT_ID);
+                        if (echoRule != echoOnly) continue;
                         var candidates = rule.collectDisplayCandidates();
                         var targetId = ForgeRegistries.ITEMS.getKey(item);
                         if (candidates.isEmpty()) {

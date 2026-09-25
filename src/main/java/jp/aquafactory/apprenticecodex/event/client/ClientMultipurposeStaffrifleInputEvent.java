@@ -96,6 +96,7 @@ public final class ClientMultipurposeStaffrifleInputEvent {
         if (event.phase != TickEvent.Phase.END) {
             return;
         }
+        MultipurposeStaffrifleClientAdsState.syncToServer();
 
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
