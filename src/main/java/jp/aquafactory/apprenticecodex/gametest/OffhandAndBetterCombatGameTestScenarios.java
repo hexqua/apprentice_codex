@@ -14,6 +14,7 @@ import io.redspace.ironsspellbooks.util.ModTags;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatOffhandAttributeRescueCompat;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScrollcasterGauntletCompat;
 import jp.aquafactory.apprenticecodex.item.UniteLunaStaff;
+import jp.aquafactory.apprenticecodex.item.StoredScrollCastingEvents;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.bettercombat.logic.PlayerAttackHelper;
 import net.bettercombat.logic.WeaponRegistry;
@@ -760,8 +761,7 @@ final class OffhandAndBetterCombatGameTestScenarios extends ApprenticeCodexGameT
                     "Better Combat Scrollcaster rescue should restore selected spell "
                             + expectedSpell.getSpellResource() + " but got " + rescuedSpell
             );
-            resolvedStack.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
-                    .getOrThrow(Enchantments.TRANSCENDENCE), 3);
+            resolvedStack.enchant(EnchantmentRegistry.TRANSCENDENCE.get(), 3);
             var helmet = new ItemStack(Items.LEATHER_HELMET);
             ISpellContainer.createImbuedContainer(expectedSpell, 3, helmet);
             player.setItemSlot(EquipmentSlot.HEAD, helmet);

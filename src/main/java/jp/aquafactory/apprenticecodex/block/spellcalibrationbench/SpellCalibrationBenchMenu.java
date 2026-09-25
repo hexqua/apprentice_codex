@@ -434,7 +434,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         if (gauntletStack.getItem() instanceof ElementalBow) ElementalBowScrollStorage.migrate(gauntletStack);
         if (hasGauntlet()) {
             ScrollcasterGauntlet.refreshResolvedCalibrationSchool(gauntletStack);
-            ScrollcasterGauntlet.refreshSelectedSpellContainer(gauntletStack);
+            if (!clientSide) ScrollcasterGauntlet.discardLegacySpellContainer(gauntletStack);
+            ScrollcasterGauntlet.normalizeSelectedScrollIndex(gauntletStack);
         } else if (hasChargecastCatalystbook()) {
             if (!clientSide) ChargecastCatalystbook.discardLegacySpellContainer(gauntletStack);
             ChargecastCatalystbook.normalizeSelectedScrollIndex(gauntletStack);

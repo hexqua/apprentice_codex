@@ -17,12 +17,12 @@ import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
 import io.redspace.ironsspellbooks.spells.fire.FireArrowSpell;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.curios.spellcastparryingring.SpellCastParryingRingDefenseEvent;
 import jp.aquafactory.apprenticecodex.item.elementalbow.*;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAimCastData;
 import jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowCastData;
@@ -76,8 +76,7 @@ public final class ElementalBowLongCastGameTests {
                 var scroll = BowGameTestSupport.createSpellScroll(spell);
                 ISpellContainer.createScrollContainer(spell, spell.getMaxLevel(), scroll);
                 ElementalBow.setCalibrationScroll(stack, 0, scroll, h.getLevel().registryAccess());
-                stack.enchant(h.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
-                        .getOrThrow(Enchantments.TRANSCENDENCE), 3);
+                stack.enchant(EnchantmentRegistry.TRANSCENDENCE.get(), 3);
                 var ring = new ItemStack(ItemRegistry.ENCHANTED_CIRCLET.get());
                 AffinityData.setAffinityData(ring, spell, 2);
                 BowGameTestSupport.equipCurio(player, "head", ring);
@@ -109,20 +108,19 @@ public final class ElementalBowLongCastGameTests {
                             castLevels[1] = event.getOriginalSpellLevel();
                         }
                     };
-                    NeoForge.EVENT_BUS.addListener(listener);
+                    MinecraftForge.EVENT_BUS.addListener(listener);
                     try {
                         float manaBefore = MagicData.getPlayerMagicData(player).getMana();
                         float expectedMana = ElementalBowRunes.baseManaCost(stack, player, profile.spell().getManaCost(expectedLevel));
-                        stack.getItem().releaseUsing(stack, h.getLevel(), player, stack.getUseDuration(player) - 30);
+                        stack.getItem().releaseUsing(stack, h.getLevel(), player, stack.getUseDuration() - 30);
                         h.assertTrue(castLevels[0] == 1 && castLevels[1] == expectedLevel,
                                 "Bow must cast once at original level plus one Transcendence and two Affinity levels");
                         h.assertTrue(Math.abs(manaBefore - MagicData.getPlayerMagicData(player).getMana() - expectedMana) < 0.01F,
                                 "Mana consumption must use the same effective level as casting");
-                        h.assertTrue(stack.getEnchantmentLevel(h.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
-                                        .getOrThrow(Enchantments.TRANSCENDENCE)) == 3,
+                        h.assertTrue(stack.getEnchantmentLevel(EnchantmentRegistry.TRANSCENDENCE.get()) == 3,
                                 "Casting must preserve legacy enchantment levels");
                     } finally {
-                        NeoForge.EVENT_BUS.unregister(listener);
+                        MinecraftForge.EVENT_BUS.unregister(listener);
                     }
                 }
                 h.succeed();

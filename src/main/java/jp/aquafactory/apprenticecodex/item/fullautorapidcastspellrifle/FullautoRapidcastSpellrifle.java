@@ -695,9 +695,7 @@ public final class FullautoRapidcastSpellrifle extends Item
     }
 
     public static int resolveImbuedSpellLevel(ItemStack stack, SpellData spellData) {
-        var spell = spellData.getSpell();
-        return Mth.clamp(spellData.getLevel() + stack.getEnchantmentLevel(EnchantmentRegistry.TRANSCENDENCE.get()),
-                spell.getMinLevel(), spell.getMaxLevel());
+        return TranscendenceHelper.resolveScrollSpellLevel(stack, spellData.getLevel());
     }
 
     public static boolean isSilverRing(ItemStack stack) {

@@ -4,12 +4,12 @@ import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.event.TickEvent;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class RevolvercastStaffClientEvents {
     private static ItemStack main = ItemStack.EMPTY;
     private static ItemStack off = ItemStack.EMPTY;
@@ -17,7 +17,8 @@ public final class RevolvercastStaffClientEvents {
     private RevolvercastStaffClientEvents() {}
 
     @SubscribeEvent
-    public static void onClientTick(ClientTickEvent.Post event) {
+    public static void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
         var player = Minecraft.getInstance().player;
         if (player == null) {
             main = off = ItemStack.EMPTY;
@@ -26,7 +27,7 @@ public final class RevolvercastStaffClientEvents {
         var newMain = snapshot(player.getMainHandItem());
         var newOff = snapshot(player.getOffhandItem());
         // 装備変更通知がインベントリ同期より先に到着しても、新しい保存データで再構築する。
-        if (!ItemStack.isSameItemSameComponents(main, newMain) || !ItemStack.isSameItemSameComponents(off, newOff)) {
+        if (!ItemStack.isSameItemSameTags(main, newMain) || !ItemStack.isSameItemSameTags(off, newOff)) {
             ClientMagicData.updateSpellSelectionManager();
         }
         main = newMain;

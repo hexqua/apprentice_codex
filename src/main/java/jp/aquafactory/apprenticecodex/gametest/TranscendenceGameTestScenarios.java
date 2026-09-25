@@ -6,18 +6,21 @@ import io.redspace.ironsspellbooks.api.item.curios.AffinityData;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendenceResolver;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendenceSpellLevelEvent;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceHelper;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.common.MinecraftForge;
 import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.List;
@@ -45,9 +48,8 @@ final class TranscendenceGameTestScenarios {
                     ItemRegistry.FLOATMOUNT_BROOM.get(), ItemRegistry.HOVERRIDE_BROOM.get(),
                     ItemRegistry.QUICKCAST_SCROLL_CARTRIDGE.get(), ItemRegistry.AUTOCAST_AMULET.get(),
                     ItemRegistry.SATELLITE_FOLLOWCAST_AMULET.get());
-            var enchantment = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
-                    .getOrThrow(Enchantments.TRANSCENDENCE);
-            helper.assertTrue(enchantment.value().getMaxLevel() == 1, "New Transcendence must have a single level");
+            var enchantment = EnchantmentRegistry.TRANSCENDENCE.get();
+            helper.assertTrue(enchantment.getMaxLevel() == 1, "New Transcendence must have a single level");
             for (var entry : ItemRegistry.ITEMS.getEntries()) {
                 var item = entry.get();
                 helper.assertTrue(TranscendenceTarget.supportsDirectApplication(item) == targets.contains(item),
@@ -68,7 +70,7 @@ final class TranscendenceGameTestScenarios {
                     }
                     helper.assertTrue(TranscendenceHelper.resolveScrollSpellLevel(stack, source.getLevel()) == expected,
                             "Repeated resolution must not accumulate a bonus");
-                    helper.assertTrue(ItemStack.isSameItemSameComponents(before, stack),
+                    helper.assertTrue(ItemStack.isSameItemSameTags(before, stack),
                             "Legacy enchantment levels must remain unchanged");
                 }
             }
@@ -143,7 +145,9 @@ final class TranscendenceGameTestScenarios {
                     "Internal Elemental Bow Transcendence should not enter event aggregation");
             var ring = new ItemStack(ItemRegistry.ENCHANTED_CIRCLET.get());
             AffinityData.setAffinityData(ring, spell, 2);
-            CuriosApi.getCuriosInventory(player).orElseThrow().setEquippedCurio(CuriosSlotConstants.HEAD, 0, ring);
+            CuriosApi.getCuriosInventory(player)
+                    .orElseThrow(() -> new IllegalStateException("Missing Curios inventory"))
+                    .setEquippedCurio(CuriosSlotConstants.HEAD, 0, ring);
             var rifle = createStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(), 3, spell);
             player.setItemInHand(InteractionHand.MAIN_HAND, rifle);
             int baseLevel = MultipurposeStaffrifle.resolveImbuedSpellLevel(rifle, new SpellData(spell, spell.getMaxLevel()));
@@ -177,7 +181,7 @@ final class TranscendenceGameTestScenarios {
             String message
     ) {
         var event = new ModifySpellLevelEvent(spell, player, 1, 1);
-        NeoForge.EVENT_BUS.post(event);
+        MinecraftForge.EVENT_BUS.post(event);
         helper.assertTrue(event.getLevel() == expectedLevel,
                 message + ": expected=" + expectedLevel + ", actual=" + event.getLevel());
     }

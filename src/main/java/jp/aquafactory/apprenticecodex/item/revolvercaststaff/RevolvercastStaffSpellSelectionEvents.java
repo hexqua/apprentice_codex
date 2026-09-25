@@ -10,19 +10,19 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent;
+import net.minecraftforge.event.TickEvent;
+import io.redspace.ironsspellbooks.setup.PacketDistributor;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class RevolvercastStaffSpellSelectionEvents {
     private static final Map<UUID, ItemStack[]> SNAPSHOTS = new HashMap<>();
     private static final Map<UUID, CastState> CASTS = new HashMap<>();
@@ -43,14 +43,14 @@ public final class RevolvercastStaffSpellSelectionEvents {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(PlayerTickEvent.Post event) {
-        if (event.getEntity() instanceof ServerPlayer player) tickPlayer(player);
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (event.phase == TickEvent.Phase.END && event.player instanceof ServerPlayer player) tickPlayer(player);
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void beforePlayerTick(PlayerTickEvent.Pre event) {
+    public static void beforePlayerTick(TickEvent.PlayerTickEvent event) {
         // 詠唱の進行・完了より先に、前 tick 以降の持ち替えと選択変更を検出する。
-        if (event.getEntity() instanceof ServerPlayer player) validateCast(player);
+        if (event.phase == TickEvent.Phase.START && event.player instanceof ServerPlayer player) validateCast(player);
     }
 
     @SubscribeEvent
@@ -68,7 +68,7 @@ public final class RevolvercastStaffSpellSelectionEvents {
             var held = player.getItemInHand(hand);
             next[index] = held.getItem() instanceof RevolvercastStaff ? held.copy() : ItemStack.EMPTY;
             var old = previous == null ? ItemStack.EMPTY : previous[index];
-            if (ItemStack.isSameItemSameComponents(old, next[index])) continue;
+            if (ItemStack.isSameItemSameTags(old, next[index])) continue;
             changed = true;
         }
         if (next[0].isEmpty() && next[1].isEmpty()) SNAPSHOTS.remove(player.getUUID());

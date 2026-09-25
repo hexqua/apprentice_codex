@@ -406,7 +406,7 @@ final class SpellSideEdgeGameTestScenarios extends ApprenticeCodexGameTestScenar
             assertSpellData(helper, ISpellContainer.get(mainhand), 0, SpellRegistry.EDGE_DANCER.get(), 1, true,
                     "Mainhand Spell Side Edge should keep Edge Dancer");
             var levelEvent = new ModifySpellLevelEvent(SpellRegistry.ANCHOR_BLINK.get(), player, 1, 1);
-            NeoForge.EVENT_BUS.post(levelEvent);
+            MinecraftForge.EVENT_BUS.post(levelEvent);
             helper.assertTrue(levelEvent.getLevel() == 1,
                     "Offhand Spell Side Edge Mirror must ignore copied Transcendence");
 

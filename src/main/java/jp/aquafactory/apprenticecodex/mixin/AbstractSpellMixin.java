@@ -21,7 +21,6 @@ import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunCastContext;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffSpellSelectionEvents;
 import jp.aquafactory.apprenticecodex.item.StoredScrollCastingEvents;
-import jp.aquafactory.apprenticecodex.network.CastDataNetworkSnapshot;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPowerHelper;
 import net.minecraft.server.level.ServerPlayer;

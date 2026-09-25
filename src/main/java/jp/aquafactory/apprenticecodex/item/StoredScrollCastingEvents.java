@@ -14,21 +14,21 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.ModList;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.TickEvent;
+import io.redspace.ironsspellbooks.setup.PacketDistributor;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 /** コンテナを持たない手持ちスクロール装備の選択と詠唱寿命を管理する。 */
-@EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class StoredScrollCastingEvents {
     private static final Map<UUID, ItemStack[]> SNAPSHOTS = new HashMap<>();
     private static final Map<UUID, CastState> CASTS = new HashMap<>();
@@ -108,8 +108,8 @@ public final class StoredScrollCastingEvents {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public static void beforeTick(PlayerTickEvent.Pre event) {
-        if (event.getEntity() instanceof ServerPlayer player) validateCast(player);
+    public static void beforeTick(TickEvent.PlayerTickEvent event) {
+        if (event.phase == TickEvent.Phase.START && event.player instanceof ServerPlayer player) validateCast(player);
     }
 
     @SubscribeEvent
@@ -118,8 +118,8 @@ public final class StoredScrollCastingEvents {
     }
 
     @SubscribeEvent
-    public static void afterTick(PlayerTickEvent.Post event) {
-        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+    public static void afterTick(TickEvent.PlayerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END || !(event.player instanceof ServerPlayer player)) return;
         validateCast(player);
         var previous = SNAPSHOTS.get(player.getUUID());
         var next = new ItemStack[2];
@@ -129,7 +129,7 @@ public final class StoredScrollCastingEvents {
             int index = hand.ordinal();
             next[index] = isTarget(held) ? held.copy() : ItemStack.EMPTY;
             var old = previous == null ? ItemStack.EMPTY : previous[index];
-            changed |= !ItemStack.isSameItemSameComponents(old, next[index]);
+            changed |= !ItemStack.isSameItemSameTags(old, next[index]);
         }
         if (next[0].isEmpty() && next[1].isEmpty()) SNAPSHOTS.remove(player.getUUID());
         else SNAPSHOTS.put(player.getUUID(), next);

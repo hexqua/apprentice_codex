@@ -9,7 +9,7 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceHelper;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -104,9 +104,7 @@ public final class ElementalBowModeManager extends SimpleJsonResourceReloadListe
         public SchoolType schoolType() { return spell.getSchoolType(); }
         public ResourceLocation schoolId() { return schoolType().getId(); }
         public int resolveSpellLevel(ItemStack stack, int scrollLevel) {
-            // 表示と射撃で同じ値を使い、汎用イベントによる二重加算を避ける。
-            int bonus = stack.getEnchantmentLevel(EnchantmentRegistry.TRANSCENDENCE.get());
-            return Mth.clamp(scrollLevel + bonus, spell.getMinLevel(), spell.getMaxLevel());
+            return TranscendenceHelper.resolveScrollSpellLevel(stack, scrollLevel);
         }
 
         public int resolveRequiredDrawTicks() {

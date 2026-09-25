@@ -10,8 +10,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import java.util.List;
 
@@ -35,7 +35,7 @@ final class RevolvercastStaffClientTooltip {
                     .withStyle(ChatFormatting.GRAY));
         } else {
             var details = TooltipsUtils.formatActiveSpellTooltip(stack, selected, CastSource.SWORD, player);
-            if (!details.isEmpty()) details.removeFirst();
+            if (!details.isEmpty()) details.remove(0);
             lines.addAll(details);
         }
         ScrollSlotTooltipClientHelper.appendHint(lines, tooltip.entries().size());

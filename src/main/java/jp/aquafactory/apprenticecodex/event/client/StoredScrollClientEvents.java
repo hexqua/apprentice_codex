@@ -6,26 +6,27 @@ import jp.aquafactory.apprenticecodex.item.StoredScrollCastingEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.event.TickEvent;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class StoredScrollClientEvents {
     private static final ItemStack[] SNAPSHOTS = {ItemStack.EMPTY, ItemStack.EMPTY};
 
     private StoredScrollClientEvents() {}
 
     @SubscribeEvent
-    public static void onTick(ClientTickEvent.Post event) {
+    public static void onTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
         var player = Minecraft.getInstance().player;
         boolean changed = false;
         for (var hand : InteractionHand.values()) {
             var held = player == null ? ItemStack.EMPTY : StoredScrollCastingEvents.resolveHeld(player, hand);
             var next = StoredScrollCastingEvents.isTarget(held) ? held.copy() : ItemStack.EMPTY;
             int index = hand.ordinal();
-            changed |= !ItemStack.isSameItemSameComponents(SNAPSHOTS[index], next);
+            changed |= !ItemStack.isSameItemSameTags(SNAPSHOTS[index], next);
             SNAPSHOTS[index] = next;
         }
         // 通知とインベントリ同期の到着順に依存せず、エンチャント変更も反映する。

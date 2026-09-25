@@ -102,7 +102,7 @@ import java.util.function.Consumer;
 
 public final class MultipurposeStaffrifle extends Item
         implements GeoItem, NonDamageableAnvilMergeItem, CastAnimationOverrideItem,
-        AttributeEnchantmentPolicy, WisdomPolicy, PlunderTarget, TranscendencePolicy,
+        AttributeEnchantmentPolicy, WisdomPolicy, PlunderTarget, TranscendenceTarget,
         StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget, ImmediateSneakSelectionUiItem, IJeiInfoItem {
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     private static final HolderLookup.Provider FALLBACK_LOOKUP = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
@@ -696,9 +696,7 @@ public final class MultipurposeStaffrifle extends Item
     }
 
     public static int resolveImbuedSpellLevel(ItemStack stack, SpellData spellData) {
-        var spell = spellData.getSpell();
-        return Mth.clamp(spellData.getLevel() + stack.getEnchantmentLevel(EnchantmentRegistry.TRANSCENDENCE.get()),
-                spell.getMinLevel(), spell.getMaxLevel());
+        return TranscendenceHelper.resolveScrollSpellLevel(stack, spellData.getLevel());
     }
 
     public static SpellData resolveCastSpellData(Player player, ItemStack stack) {

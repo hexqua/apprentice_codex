@@ -40,6 +40,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -81,8 +82,8 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.ScrollSlotTooltipData;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import jp.aquafactory.apprenticecodex.item.SchoolRuneSpellPowerTuning;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
@@ -194,6 +195,13 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     @Override
     public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
         return DIRECT_ATTRIBUTE_ENCHANTMENTS;
+    }
+
+    @Override
+    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
+        var attributeEnchantment = AttributeEnchantmentType.from(enchantment);
+        return attributeEnchantment.map(this::supportsDirectAttributeEnchantment)
+                .orElseGet(() -> super.canApplyAtEnchantingTable(stack, enchantment));
     }
 
     public static void discardLegacySpellContainer(ItemStack stack) {

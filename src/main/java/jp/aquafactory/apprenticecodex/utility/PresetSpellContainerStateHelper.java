@@ -79,7 +79,7 @@ public final class PresetSpellContainerStateHelper {
     }
 
     public static void discardRememberedStateIfPresent(ItemStack stack) {
-        var customData = stack.get(DataComponents.CUSTOM_DATA);
+        var customData = stack.getTag();
         if (customData != null && customData.contains(ROOT_TAG)) {
             clearRememberedState(stack);
         }

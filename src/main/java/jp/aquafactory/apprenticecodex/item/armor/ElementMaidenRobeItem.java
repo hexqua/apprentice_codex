@@ -58,7 +58,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class ElementMaidenRobeItem extends ArmorItem
-        implements GeoItem, IPresetSpellContainer, UniqueItem, TranscendencePolicy, AttributeEnchantmentPolicy,
+        implements GeoItem, IPresetSpellContainer, UniqueItem, AttributeEnchantmentPolicy,
         SpellCalibrationAdjustmentTarget, StoredSpellCalibrationImbueTarget, WisdomPolicy {
     private static final ResourceLocation ARMOR_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/element_maiden_robe.png");
@@ -147,9 +147,7 @@ public class ElementMaidenRobeItem extends ArmorItem
         if (ApprenticeCodex.MODID.equals(enchantmentId.getNamespace())) {
             var attributeEnchantment = AttributeEnchantmentType.from(enchantment);
             return attributeEnchantment.map(this::supportsDirectAttributeEnchantment).orElseGet(() ->
-                    (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
-                    || (hasImbueSlot() && EnchantmentRegistry.TRANSCENDENCE.isPresent()
-                    && enchantment == EnchantmentRegistry.TRANSCENDENCE.get()));
+                    EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get());
 
         }
 

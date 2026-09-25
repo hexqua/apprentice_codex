@@ -145,11 +145,6 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, Uniqu
     }
 
     @Override
-    public void initializeSpellContainer(ItemStack stack) {
-        refreshSelectedSpellContainer(stack);
-    }
-
-    @Override
     public int getEnchantmentValue(ItemStack stack) {
         return 22;
     }
@@ -564,7 +559,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, Uniqu
 
     public static void setCalibrationScroll(@NotNull ItemStack stack, int slot, @NotNull ItemStack scroll) {
         setCalibrationItem(stack, SCROLLS_TAG, slot, CALIBRATION_SCROLL_SLOT_COUNT, scroll);
-        refreshSelectedSpellContainer(stack);
+        normalizeSelectedScrollIndex(stack);
     }
 
     public static int getEnabledCalibrationScrollSlotCount(@NotNull ItemStack stack) {
@@ -611,7 +606,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, Uniqu
             return;
         }
         stack.getOrCreateTagElement(CALIBRATION_TAG).putInt(SELECTED_SCROLL_INDEX_TAG, selected);
-        refreshSelectedSpellContainer(stack);
+        normalizeSelectedScrollIndex(stack);
     }
 
     public static boolean isSelectableScrollIndex(@NotNull ItemStack stack, int selected) {

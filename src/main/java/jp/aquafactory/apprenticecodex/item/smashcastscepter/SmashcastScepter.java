@@ -360,7 +360,6 @@ public final class SmashcastScepter extends AbstractImbuedMagicWeaponItem
 
         return (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
                 || (EnchantmentRegistry.PLUNDER.isPresent() && enchantment == EnchantmentRegistry.PLUNDER.get())
-                || (EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get())
                 || MALUM_REPLENISHING.equals(enchantmentId)
                 || ALLOWED_VANILLA_ENCHANTMENTS.contains(enchantmentId);
     }

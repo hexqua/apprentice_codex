@@ -176,8 +176,8 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, 
         return scrollContainer == null ? SpellData.EMPTY : scrollContainer.getSpellAtIndex(0);
     }
 
-    public static SpellData getResolvedVisibleSpell(ItemStack stack, int visibleSlot, HolderLookup.Provider registries) {
-        return resolveSpellData(stack, getVisibleSpell(stack, visibleSlot, registries));
+    public static SpellData getResolvedVisibleSpell(ItemStack stack, int visibleSlot) {
+        return resolveSpellData(stack, getVisibleSpell(stack, visibleSlot));
     }
 
     private static SpellData resolveSpellData(ItemStack stack, SpellData data) {

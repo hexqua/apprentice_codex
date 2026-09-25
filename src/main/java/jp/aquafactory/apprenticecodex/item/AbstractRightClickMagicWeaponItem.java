@@ -6,6 +6,8 @@ import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.BlockPos;
@@ -41,6 +43,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 public abstract class AbstractRightClickMagicWeaponItem extends Item
         implements NonDamageableAnvilMergeItem, PriorityOffhandUseDeferringItem,
@@ -158,6 +161,10 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item
 
         if (isMalumSpiritPlunder(stack, enchantmentId)) {
             return true;
+        }
+
+        if (enchantment == EnchantmentRegistry.TRANSCENDENCE.get()) {
+            return this instanceof TranscendenceTarget;
         }
 
         if (ALLOWED_MAGIC_ITEM_ENCHANTMENTS.contains(enchantmentId)) {

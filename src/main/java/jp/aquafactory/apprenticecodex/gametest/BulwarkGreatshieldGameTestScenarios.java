@@ -218,7 +218,7 @@ final class BulwarkGreatshieldGameTestScenarios extends ApprenticeCodexGameTestS
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
 
         var spellLevelEvent = new ModifySpellLevelEvent(spell, player, 1, 1);
-        NeoForge.EVENT_BUS.post(spellLevelEvent);
+        MinecraftForge.EVENT_BUS.post(spellLevelEvent);
         helper.assertTrue(spellLevelEvent.getLevel() == 1,
                 itemName + " legacy Transcendence must not change the imbued spell level");
 

@@ -398,23 +398,19 @@ final class EnchantmentApplicationGameTestScenarios {
         var elementalBow = ItemRegistry.ELEMENTAL_BOW.get();
         helper.assertFalse(mithril.canApplyAtEnchantingTable(new ItemStack(mithril), transcendence),
                 "Mithril Freecast Staff should reject Transcendence");
-        helper.assertTrue(((TranscendencePolicy) mithril).transcendenceHandling()
-                        == TranscendencePolicy.Handling.DISABLED,
-                "Mithril Freecast Staff should keep Transcendence disabled");
         helper.assertTrue(revolver.canApplyAtEnchantingTable(new ItemStack(revolver), transcendence),
                 "Revolvercast Staff should accept Transcendence like Swingcast Staffs");
-        helper.assertTrue(ItemRegistry.MANA_FORCE_BLADE.get().canApplyAtEnchantingTable(
+        helper.assertFalse(ItemRegistry.MANA_FORCE_BLADE.get().canApplyAtEnchantingTable(
                         new ItemStack(ItemRegistry.MANA_FORCE_BLADE.get()), transcendence),
-                "Mana Force Blade should accept Transcendence");
-        helper.assertTrue(((TranscendencePolicy) gauntlet).supportsDirectTranscendenceApplication(),
+                "Mana Force Blade should reject Transcendence");
+        helper.assertTrue(TranscendenceTarget.supportsDirectApplication(gauntlet),
                 "Scrollcaster Gauntlet should accept Transcendence through normal enchanting");
-        helper.assertTrue(((TranscendencePolicy) elementalBow).transcendenceHandling()
-                        == TranscendencePolicy.Handling.INTERNAL,
+        helper.assertTrue(TranscendenceTarget.supportsDirectApplication(elementalBow),
                 "Elemental Bow should keep internal Transcendence handling");
 
         var mismatches = new ArrayList<String>();
         for (var entry : ItemRegistry.ITEMS.getEntries()) {
-            var expected = TranscendencePolicy.supportsDirectApplication(entry.get());
+            var expected = TranscendenceTarget.supportsDirectApplication(entry.get());
             var actual = new ItemStack(entry.get()).is(TagRegistry.Items.TRANSCENDENCE_ENCHANTABLE);
             if (expected != actual) {
                 mismatches.add(entry.getId() + " expected=" + expected + " actual=" + actual);
@@ -503,7 +499,7 @@ final class EnchantmentApplicationGameTestScenarios {
         var bulwark = ItemRegistry.BULWARK_GREATSHIELD.get();
         var bulwarkStack = new ItemStack(bulwark);
         for (var enchantment : List.of(Enchantments.UNBREAKING, EnchantmentRegistry.RESERVOIR.get(),
-                EnchantmentRegistry.REFLUX.get(), EnchantmentRegistry.TRANSCENDENCE.get(),
+                EnchantmentRegistry.REFLUX.get(),
                 EnchantmentRegistry.WISDOM.get())) {
             helper.assertTrue(bulwark.canApplyAtEnchantingTable(bulwarkStack, enchantment),
                     "Bulwark Greatshield Buckler should accept " + ForgeRegistries.ENCHANTMENTS.getKey(enchantment));
@@ -512,7 +508,7 @@ final class EnchantmentApplicationGameTestScenarios {
         var parrycast = ItemRegistry.PARRYCAST_BUCKLER.get();
         var parrycastStack = new ItemStack(parrycast);
         for (var enchantment : List.of(Enchantments.UNBREAKING, EnchantmentRegistry.TENSE.get(),
-                EnchantmentRegistry.ALACRITY.get(), EnchantmentRegistry.TRANSCENDENCE.get(),
+                EnchantmentRegistry.ALACRITY.get(),
                 EnchantmentRegistry.WISDOM.get())) {
             helper.assertTrue(parrycast.canApplyAtEnchantingTable(parrycastStack, enchantment),
                     "Parrycast Buckler should accept " + ForgeRegistries.ENCHANTMENTS.getKey(enchantment));
@@ -682,7 +678,7 @@ final class EnchantmentApplicationGameTestScenarios {
     private static Set<ResourceLocation> expectedSpellGunEnchantments(ItemStack stack) {
         var expected = registryIdSet(EnchantmentRegistry.ALACRITY, EnchantmentRegistry.REFLUX,
                 EnchantmentRegistry.RESERVOIR, EnchantmentRegistry.SURGE, EnchantmentRegistry.ATTUNEMENT,
-                EnchantmentRegistry.TENSE, EnchantmentRegistry.TRANSCENDENCE, EnchantmentRegistry.WISDOM,
+                EnchantmentRegistry.TENSE, EnchantmentRegistry.WISDOM,
                 EnchantmentRegistry.PLUNDER);
         addExpectedMalumSpiritPlunderIfPresent(stack, expected);
         return expected;
@@ -691,7 +687,7 @@ final class EnchantmentApplicationGameTestScenarios {
     private static Set<ResourceLocation> expectedOffhandEnchantments() {
         return registryIdSet(EnchantmentRegistry.ALACRITY, EnchantmentRegistry.REFLUX,
                 EnchantmentRegistry.RESERVOIR, EnchantmentRegistry.SURGE, EnchantmentRegistry.ATTUNEMENT,
-                EnchantmentRegistry.TENSE, EnchantmentRegistry.TRANSCENDENCE);
+                EnchantmentRegistry.TENSE);
     }
 
     private static Set<ResourceLocation> expectedEnchantedCircletEnchantments() {
@@ -701,7 +697,7 @@ final class EnchantmentApplicationGameTestScenarios {
     }
 
     private static Set<ResourceLocation> expectedSwingcastStaffEnchantments(ItemStack stack) {
-        return expectedSwingcastStavesEnchantments(stack, true);
+        return expectedSwingcastStavesEnchantments(stack, false);
     }
 
     private static Set<ResourceLocation> expectedMithrilFreecastStaffEnchantments(ItemStack stack) {
@@ -713,15 +709,15 @@ final class EnchantmentApplicationGameTestScenarios {
     }
 
     private static Set<ResourceLocation> expectedCrystalBladedStaffEnchantments(ItemStack stack) {
-        return expectedSwordBasedMagicWeaponEnchantments(stack, true);
+        return expectedSwordBasedMagicWeaponEnchantments(stack, false);
     }
 
     private static Set<ResourceLocation> expectedIlluminateStellarStaffEnchantments(ItemStack stack) {
-        return expectedSwordBasedMagicWeaponEnchantments(stack, true);
+        return expectedSwordBasedMagicWeaponEnchantments(stack, false);
     }
 
     private static Set<ResourceLocation> expectedUniteLunaStaffEnchantments(ItemStack stack) {
-        return expectedSwordBasedMagicWeaponEnchantments(stack, true);
+        return expectedSwordBasedMagicWeaponEnchantments(stack, false);
     }
 
     private static Set<ResourceLocation> expectedSwingcastStavesEnchantments(
@@ -755,7 +751,7 @@ final class EnchantmentApplicationGameTestScenarios {
         expected.add(ResourceLocation.withDefaultNamespace("bane_of_arthropods"));
         expected.add(ResourceLocation.withDefaultNamespace("fire_aspect"));
         expected.addAll(registryIdSet(EnchantmentRegistry.COMPRESS, EnchantmentRegistry.RELEASE,
-                EnchantmentRegistry.WISDOM, EnchantmentRegistry.PLUNDER, EnchantmentRegistry.TRANSCENDENCE));
+                EnchantmentRegistry.WISDOM, EnchantmentRegistry.PLUNDER));
         addExpectedMalumHauntedIfPresent(stack, expected);
         addExpectedMalumReplenishingIfPresent(expected);
         addExpectedMalumSpiritPlunderIfPresent(stack, expected);
@@ -782,14 +778,14 @@ final class EnchantmentApplicationGameTestScenarios {
     private static Set<ResourceLocation> expectedManaForceBladeEnchantments(ItemStack stack) {
         var expected = swordEnchantments(true);
         expected.addAll(registryIdSet(EnchantmentRegistry.SURGE, EnchantmentRegistry.ATTUNEMENT,
-                EnchantmentRegistry.WISDOM, EnchantmentRegistry.TRANSCENDENCE));
+                EnchantmentRegistry.WISDOM));
         addExpectedMalumHauntedIfPresent(stack, expected);
         return expected;
     }
 
     private static Set<ResourceLocation> expectedSpellSideEdgeEnchantments(ItemStack stack) {
         var expected = swordEnchantments(true);
-        expected.addAll(registryIdSet(EnchantmentRegistry.WISDOM, EnchantmentRegistry.TRANSCENDENCE,
+        expected.addAll(registryIdSet(EnchantmentRegistry.WISDOM,
                 EnchantmentRegistry.ALACRITY, EnchantmentRegistry.REFLUX,
                 EnchantmentRegistry.RESERVOIR, EnchantmentRegistry.TENSE));
         addExpectedMalumSpiritPlunderIfPresent(stack, expected);
@@ -841,7 +837,7 @@ final class EnchantmentApplicationGameTestScenarios {
     private static Set<ResourceLocation> expectedReflectcastShieldEnchantments() {
         var shield = new ItemStack(Items.SHIELD);
         var expected = collectAllowedEnchantments(enchantment -> enchantment.canApplyAtEnchantingTable(shield));
-        expected.addAll(registryIdSet(EnchantmentRegistry.TRANSCENDENCE, EnchantmentRegistry.WISDOM));
+        expected.addAll(registryIdSet(EnchantmentRegistry.WISDOM));
         return expected;
     }
 
@@ -869,7 +865,7 @@ final class EnchantmentApplicationGameTestScenarios {
 
     private static Set<ResourceLocation> expectedAlchemistsFlaskEnchantments() {
         return registryIdSet(EnchantmentRegistry.LARGE_MUG, EnchantmentRegistry.RED_ENERGY,
-                EnchantmentRegistry.GLOW_ENERGY, EnchantmentRegistry.TRANSCENDENCE, EnchantmentRegistry.WISDOM);
+                EnchantmentRegistry.GLOW_ENERGY, EnchantmentRegistry.WISDOM);
     }
 
     private static Set<ResourceLocation> expectedSpellchargedGreatswordEnchantments(ItemStack stack) {
@@ -891,9 +887,6 @@ final class EnchantmentApplicationGameTestScenarios {
         var expected = expectedNormalMagicArmorEnchantments(stack);
         expected.addAll(registryIdSet(EnchantmentRegistry.RESERVOIR, EnchantmentRegistry.REFLUX,
                 EnchantmentRegistry.TENSE, EnchantmentRegistry.ALACRITY));
-        if (stack.getItem() instanceof StealthRuneArmorItem armor && armor.hasImbueSlot()) {
-            expected.addAll(registryIdSet(EnchantmentRegistry.TRANSCENDENCE));
-        }
         return expected;
     }
 
@@ -904,8 +897,7 @@ final class EnchantmentApplicationGameTestScenarios {
     private static Set<ResourceLocation> expectedElementMaidenRobeEnchantments(ItemStack stack) {
         var expected = expectedNormalMagicArmorEnchantments(stack);
         if (stack.getItem() instanceof ElementMaidenRobeItem robe && robe.hasImbueSlot()) {
-            expected.addAll(registryIdSet(EnchantmentRegistry.SURGE, EnchantmentRegistry.ATTUNEMENT,
-                    EnchantmentRegistry.TRANSCENDENCE));
+            expected.addAll(registryIdSet(EnchantmentRegistry.SURGE, EnchantmentRegistry.ATTUNEMENT));
         }
         return expected;
     }

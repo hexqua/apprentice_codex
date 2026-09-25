@@ -29,7 +29,8 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public abstract class AbstractSwingMagicItem extends AbstractImbuedMagicWeaponItem
-        implements RestrictedSpellImbuableItem, CastAnimationOverrideItem, IPresetSpellContainer, SwingTriggeredMagicItem {
+        implements RestrictedSpellImbuableItem, CastAnimationOverrideItem, IPresetSpellContainer,
+        SwingTriggeredMagicItem {
 
     protected AbstractSwingMagicItem(
             Properties properties,

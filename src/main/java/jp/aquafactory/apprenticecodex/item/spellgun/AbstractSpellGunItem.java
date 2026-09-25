@@ -508,8 +508,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
     private boolean isSupportedSpellGunEnchantment(Enchantment enchantment) {
         var attributeType = AttributeEnchantmentType.from(enchantment);
         return attributeType.map(this::supportsDirectAttributeEnchantment).orElseGet(() ->
-                (EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get())
-                || (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
+                (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
                 || (EnchantmentRegistry.PLUNDER.isPresent() && enchantment == EnchantmentRegistry.PLUNDER.get()));
 
     }
