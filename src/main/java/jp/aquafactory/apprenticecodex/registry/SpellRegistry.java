@@ -49,6 +49,7 @@ import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
 import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssault;
 import jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrow;
 import jp.aquafactory.apprenticecodex.spell.linearbuild.LinearBuild;
+import jp.aquafactory.apprenticecodex.spell.lockonray.LockOnRay;
 import jp.aquafactory.apprenticecodex.spell.longstride.LongStride;
 import jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAim;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
@@ -179,6 +180,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> WIZARDLAMP = reg("wizardlamp", Wizardlamp::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> IDOL_RECONSTRUCTION = reg("idol_reconstruction", IdolReconstruction::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> SACRED_ARROW = reg("sacred_arrow", SacredArrow::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> LOCK_ON_RAY = reg("lock_on_ray", LockOnRay::new);
 
     // 氷.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> FROST_RUNE = reg("frost_rune", FrostRune::new);

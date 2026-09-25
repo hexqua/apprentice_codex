@@ -986,6 +986,7 @@
   "spell.apprenticecodex.wizardlamp": "Wizardlamp",
   "spell.apprenticecodex.call_broom": "Call Broom",
   "spell.apprenticecodex.mana_transcription": "Mana Transcription",
+  "spell.apprenticecodex.lock_on_ray": "Lock-On Ray",
 
   "spell.apprenticecodex.sky_edge.guide": "Summons a weapon that fires toward your line of sight. It has a wind-up and deals no knockback, but it can ignore the target's invulnerability frames.",
   "spell.apprenticecodex.archer_multiple.guide": "Summons a magical bow that follows you and continues attacking your chosen target or nearby enemies. The Greater Conjurer's Talisman cannot prevent this spell from entering cooldown.",
