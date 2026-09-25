@@ -464,6 +464,12 @@
     },
     {
       "profile": {
+        "cast_mode": "remote_player_geometry"
+      },
+      "spell": "apprenticecodex:lock_on_ray"
+    },
+    {
+      "profile": {
         "cast_mode": "remote_anchor_owner_magic"
       },
       "spell": "irons_spellbooks:dragon_breath"
