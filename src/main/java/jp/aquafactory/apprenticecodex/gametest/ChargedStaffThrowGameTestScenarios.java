@@ -184,7 +184,14 @@ final class ChargedStaffThrowGameTestScenarios extends ApprenticeCodexGameTestSc
         helper.succeedIf(() -> {
             var level = helper.getLevel();
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "staff_impact_position");
-            var origin = helper.absoluteVec(new Vec3(1, 100, 1));
+            var column = helper.absoluteVec(new Vec3(1, 0, 1));
+            int x = BlockPos.containing(column).getX();
+            int z = BlockPos.containing(column).getZ();
+            int highestBlock = Math.max(level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z),
+                    Math.max(level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z - 1),
+                            level.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z - 2)));
+            // 1.20.1 の GameTest 配置では固定高度に別構造物があり得るため、飛翔経路全体を露出させる。
+            var origin = new Vec3(column.x, highestBlock + 10.0D, column.z);
             // 実際の飛翔判定を通し、中央への命中とかすめる命中の両方で座標を確認する。
             for (int scenario = 0; scenario < 4; ++scenario) {
                 var target = Objects.requireNonNull(EntityType.COW.create(level));
@@ -209,7 +216,11 @@ final class ChargedStaffThrowGameTestScenarios extends ApprenticeCodexGameTestSc
                         return;
                     }
                     helper.assertTrue(event.getRayTraceResult().getLocation().distanceToSqr(originalHitPosition) < 1.0E-8D,
-                            "Impact event must receive the original flight intersection");
+                            "Impact event must receive the original flight intersection: aroundStart=" + moveTargetAroundStart
+                                    + ", alongPath=" + moveTargetAlongPath
+                                    + ", type=" + event.getRayTraceResult().getType()
+                                    + ", actual=" + event.getRayTraceResult().getLocation()
+                                    + ", expected=" + originalHitPosition);
                     if (moveTargetAroundStart) {
                         target.setPos(origin.add(0, 0, -2));
                         var bounds = target.getBoundingBox().inflate(0.3F);
