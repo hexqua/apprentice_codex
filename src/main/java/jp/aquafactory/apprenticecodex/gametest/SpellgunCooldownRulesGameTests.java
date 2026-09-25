@@ -26,10 +26,10 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Item;
-import net.neoforged.neoforge.common.ModConfigSpec;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 import java.util.Objects;
 
@@ -58,7 +58,7 @@ public final class SpellgunCooldownRulesGameTests extends ApprenticeCodexGameTes
     public static void fullautoEquipmentOrderMatchesPreview(GameTestHelper helper) throws Exception {
         var spell = new LongEquipmentSpell();
         var stack = new ItemStack(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
-        ModConfigSpec.IntValue threshold = ApprenticeCodexServerConfig.SPEC.getValues()
+        ForgeConfigSpec.IntValue threshold = ApprenticeCodexServerConfig.SPEC.getValues()
                 .get("Items.FullautoRapidcastSpellrifle.cooldownBypassThresholdTicks");
         int previousThreshold = threshold.get();
         double previousSword = ServerConfigs.SWORDS_CD_MULTIPLIER.get();
@@ -75,7 +75,7 @@ public final class SpellgunCooldownRulesGameTests extends ApprenticeCodexGameTes
                 for (double sword : new double[]{0, 0.5, 1}) {
                     ServerConfigs.SWORDS_CD_MULTIPLIER.set(sword);
                     for (double reduction : new double[]{1, 1.5}) {
-                        Objects.requireNonNull(player.getAttribute(AttributeRegistry.COOLDOWN_REDUCTION)).setBaseValue(reduction);
+                        Objects.requireNonNull(player.getAttribute(AttributeRegistry.COOLDOWN_REDUCTION.get())).setBaseValue(reduction);
                         int castTime = spell.getCastType() == CastType.LONG ? spell.getEffectiveCastTime(1, player) : 0;
                         int effective = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, CastSource.SWORD);
                         var event = new SpellCooldownAddedEvent.Pre(
@@ -84,7 +84,7 @@ public final class SpellgunCooldownRulesGameTests extends ApprenticeCodexGameTes
                         ((FullautoRapidcastSpellrifle) stack.getItem()).trySetCalibrationAdjustment(stack, 0,
                                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()), helper.getLevel().registryAccess());
                         try (var ignored = FullautoRapidcastSpellrifleCastContext.open(player.getUUID(), stack, spell, false)) {
-                            NeoForge.EVENT_BUS.post(event);
+                            MinecraftForge.EVENT_BUS.post(event);
                         }
                         int expected = FullautoCooldownPolicy.resolve(spell.getSpellCooldown(), effective, castTime);
                         helper.assertTrue(event.getEffectiveCooldown() == expected,
@@ -116,7 +116,7 @@ public final class SpellgunCooldownRulesGameTests extends ApprenticeCodexGameTes
             int castTime = spell.getEffectiveCastTime(1, player);
             var event = new SpellCooldownAddedEvent.Pre(
                     MagicManager.getEffectiveSpellCooldown(spell, player, CastSource.SWORD), spell, player, CastSource.SWORD);
-            NeoForge.EVENT_BUS.post(event);
+            MinecraftForge.EVENT_BUS.post(event);
             helper.assertTrue(event.getEffectiveCooldown() == effective + castTime,
                     "Equipment reduction must not absorb the instant cast surcharge");
             magic.resetCastingState();
@@ -147,11 +147,11 @@ public final class SpellgunCooldownRulesGameTests extends ApprenticeCodexGameTes
                 Objects.requireNonNull(policy);
                 // 再ログインと同じNBT往復後、別の武器と詠唱速度で完了させる。
                 var restored = new RecastInstance();
-                restored.deserializeNBT(helper.getLevel().registryAccess(), recast.serializeNBT(helper.getLevel().registryAccess()));
+                restored.deserializeNBT(recast.serializeNBT());
                 magic.getPlayerRecasts().forceAddRecast(restored);
                 magic.resetCastingState();
                 magic.setPlayerCastingItem(new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get()));
-                Objects.requireNonNull(player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION)).setBaseValue(1.5);
+                Objects.requireNonNull(player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION.get())).setBaseValue(1.5);
                 int effective = MagicManager.getEffectiveSpellCooldown(spell, player, CastSource.SWORD);
                 magic.getPlayerRecasts().removeRecast(restored, result);
                 int expected = policy.fullauto() ? FullautoCooldownPolicy.resolve(spell.getSpellCooldown(), effective, initialTime)
@@ -162,7 +162,7 @@ public final class SpellgunCooldownRulesGameTests extends ApprenticeCodexGameTes
                 // 完了スコープが漏れていれば、通常の魔法書CDにも武器の加算が混入する。
                 magic.setPlayerCastingItem(ItemStack.EMPTY);
                 var control = new SpellCooldownAddedEvent.Pre(200, spell, player, CastSource.SPELLBOOK);
-                NeoForge.EVENT_BUS.post(control);
+                MinecraftForge.EVENT_BUS.post(control);
                 helper.assertTrue(control.getEffectiveCooldown() == 200, "Recast completion must not leak into later casts");
             }
         }

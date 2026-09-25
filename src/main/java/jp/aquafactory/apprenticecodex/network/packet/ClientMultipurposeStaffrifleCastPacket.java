@@ -9,7 +9,7 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public record ClientMultipurposeStaffrifleCastPacket(boolean adsFullAuto, BlockTargetData targetData) {
+public record ClientMultipurposeStaffrifleCastPacket(boolean aiming, BlockTargetData targetData) {
     public static void encode(ClientMultipurposeStaffrifleCastPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBoolean(packet.aiming());
         packet.targetData().writeToBuffer(buffer);

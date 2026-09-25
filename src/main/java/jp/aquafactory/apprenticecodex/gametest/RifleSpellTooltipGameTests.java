@@ -5,7 +5,6 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleScrollStorage;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfileManager;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
@@ -13,17 +12,16 @@ import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeSt
 import jp.aquafactory.apprenticecodex.item.spellgun.RifleSpellTooltipData;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEchoProfileSpellIdsPacket;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 import java.util.List;
 
@@ -42,12 +40,13 @@ public final class RifleSpellTooltipGameTests {
             var scroll = SpellCalibrationImbueHelper.createScroll(new SpellData(spell, 1));
             if (multipurpose) MultipurposeStaffrifleScrollStorage.set(stack, 0, scroll, lookup);
             else FullautoRapidcastSpellrifleScrollStorage.set(stack, 0, scroll, lookup);
-            stack.enchant(lookup.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.TRANSCENDENCE), 1);
+            stack.enchant(EnchantmentRegistry.TRANSCENDENCE.get(), 1);
             String rootKey = multipurpose ? "MultipurposeStaffrifleCalibration" : "FullautoRapidcastSpellrifleCalibration";
             int maximum = multipurpose ? MultipurposeStaffrifleScrollStorage.MAX_SCROLL_SLOTS
                     : FullautoRapidcastSpellrifleScrollStorage.MAX_SCROLL_SLOTS;
             // 拡張を外した後の保存枠と、古い選択位置を再現する。
-            CustomData.update(DataComponents.CUSTOM_DATA, stack, root -> {
+            {
+                var root = stack.getOrCreateTag();
                 var calibration = root.getCompound(rootKey);
                 var list = calibration.getList("Scrolls", Tag.TAG_COMPOUND);
                 for (int i = 1; i < maximum; i++) {
@@ -56,7 +55,8 @@ public final class RifleSpellTooltipGameTests {
                     list.add(entry);
                 }
                 calibration.putInt("Selected", maximum - 1);
-            });
+                root.put(rootKey, calibration);
+            }
             var before = stack.copy();
             var data = RifleSpellTooltipData.read(stack, null, lookup);
             helper.assertTrue(data.slots().size() == maximum, "Inactive occupied slots must be included in the count");
@@ -65,9 +65,9 @@ public final class RifleSpellTooltipGameTests {
             helper.assertTrue(data.selectedSpell().getLevel() == Math.min(2, spell.getMaxLevel()),
                     "Transcendence must be applied exactly once: item=" + stack.getItem()
                             + ", actual=" + data.selectedSpell().getLevel() + ", maximum=" + spell.getMaxLevel()
-                            + ", enchantment=" + Enchantments.getLevel(stack, Enchantments.TRANSCENDENCE));
-            helper.assertTrue(!data.slots().getLast().usable(), "Disabled expansion slots must remain inactive");
-            helper.assertTrue(ItemStack.isSameItemSameComponents(before, stack), "Tooltip reads must not modify item components");
+                            + ", enchantment=" + stack.getEnchantmentLevel(EnchantmentRegistry.TRANSCENDENCE.get()));
+            helper.assertTrue(!data.slots().get(data.slots().size() - 1).usable(), "Disabled expansion slots must remain inactive");
+            helper.assertTrue(ItemStack.isSameItemSameTags(before, stack), "Tooltip reads must not modify item components");
             for (int i = 0; i < maximum; i++) {
                 helper.assertTrue(data.slots().get(i).index() == i, "Scroll entries must remain in slot order");
             }
@@ -84,7 +84,7 @@ public final class RifleSpellTooltipGameTests {
                         "Wisdom shard must preserve all stored entries as inactive");
                 helper.assertTrue(data.selectedSlot() == -1 && data.selectedSpell() == SpellData.EMPTY,
                         "Wisdom shard without a player selection must not select an internal scroll");
-                helper.assertTrue(ItemStack.isSameItemSameComponents(before, stack), "Wisdom tooltip reads must be read-only");
+                helper.assertTrue(ItemStack.isSameItemSameTags(before, stack), "Wisdom tooltip reads must be read-only");
             }
         }
         helper.succeed();

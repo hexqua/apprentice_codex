@@ -9,14 +9,16 @@
     }
   },
   "display": {
+    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_fullauto_rapidcast_spellrifle.description"
     },
     "frame": "challenge",
+    "hidden": false,
     "icon": {
-      "count": 1,
-      "id": "apprenticecodex:fullauto_rapidcast_spellrifle"
+      "item": "apprenticecodex:fullauto_rapidcast_spellrifle"
     },
+    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_fullauto_rapidcast_spellrifle.title"
     }

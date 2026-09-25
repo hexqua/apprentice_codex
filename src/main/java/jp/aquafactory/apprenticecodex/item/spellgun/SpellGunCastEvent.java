@@ -7,6 +7,8 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
+import jp.aquafactory.apprenticecodex.item.ammo.EmptyCasingReturnPolicy;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
@@ -17,6 +19,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.List;

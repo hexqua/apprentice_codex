@@ -28,11 +28,12 @@ import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff
 import jp.aquafactory.apprenticecodex.network.packet.SyncFullautoEchoConfigPacket;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -41,9 +42,10 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.common.ModConfigSpec;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 import java.util.List;
 import java.util.Map;
@@ -54,11 +56,11 @@ public final class FullautoEchoGameTests extends ApprenticeCodexGameTestScenario
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final String BATCH = "apprenticecodex.fullauto_echo";
 
-    private static ModConfigSpec.BooleanValue enabled() {
+    private static ForgeConfigSpec.BooleanValue enabled() {
         return ApprenticeCodexServerConfig.SPEC.getValues().get("Items.FullautoRapidcastSpellrifle.echoCastEnabled");
     }
 
-    private static ModConfigSpec.DoubleValue multiplier(String kind) {
+    private static ForgeConfigSpec.DoubleValue multiplier(String kind) {
         return ApprenticeCodexServerConfig.SPEC.getValues().get("Items.FullautoRapidcastSpellrifle.echoCast" + kind + "Multiplier");
     }
 
@@ -81,13 +83,13 @@ public final class FullautoEchoGameTests extends ApprenticeCodexGameTestScenario
 
     private static ServerPlayer player(GameTestHelper helper, String name) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(1, 30, 1), name);
-        player.getAttribute(AttributeRegistry.MAX_MANA).setBaseValue(20000);
+        player.getAttribute(AttributeRegistry.MAX_MANA.get()).setBaseValue(20000);
         player.setYRot(0);
         player.setXRot(0);
         var stack = new ItemStack(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
         var rifle = (FullautoRapidcastSpellrifle) stack.getItem();
-        helper.assertTrue(rifle.trySetCalibrationAdjustment(stack, 0, new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get()), player.registryAccess()),
+        helper.assertTrue(rifle.trySetCalibrationAdjustment(stack, 0, new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get()), player.level().registryAccess()),
                 "Echo staff must be accepted");
         player.getInventory().add(new ItemStack(ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get(), 64));
         var magic = MagicData.getPlayerMagicData(player);
@@ -103,7 +105,7 @@ public final class FullautoEchoGameTests extends ApprenticeCodexGameTestScenario
         magic.getPlayerCooldowns().getSpellCooldowns().clear();
         FullautoRapidcastSpellrifleRateLimiter.clear(player);
         FullautoRapidcastSpellrifleScrollStorage.set(stack, 0,
-                SpellCalibrationImbueHelper.createScroll(new SpellData(spell, 1)), player.registryAccess());
+                SpellCalibrationImbueHelper.createScroll(new SpellData(spell, 1)), player.level().registryAccess());
         return ((FullautoRapidcastSpellrifle) stack.getItem()).tryTriggerSelectedSpell(player, false);
     }
 
@@ -120,15 +122,15 @@ public final class FullautoEchoGameTests extends ApprenticeCodexGameTestScenario
             var stack = player.getMainHandItem();
             var rifle = (FullautoRapidcastSpellrifle) stack.getItem();
             var staff = new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get());
-            helper.assertFalse(rifle.trySetCalibrationAdjustment(stack, 1, staff, player.registryAccess()), "Duplicate staff must fail");
+            helper.assertFalse(rifle.trySetCalibrationAdjustment(stack, 1, staff, player.level().registryAccess()), "Duplicate staff must fail");
             enabled().set(false);
-            helper.assertTrue(FullautoEchoCasting.hasStaff(stack, player.registryAccess()), "Disabling must preserve the stored staff");
+            helper.assertTrue(FullautoEchoCasting.hasStaff(stack, player.level().registryAccess()), "Disabling must preserve the stored staff");
             helper.assertFalse(rifle.getCalibrationAdjustmentProfile(stack).rules().stream().anyMatch(rule -> rule.accepts(staff)),
                     "Disabled adjustment must be absent from the profile");
-            helper.assertFalse(rifle.trySetCalibrationAdjustment(stack, 1, staff, player.registryAccess()), "Disabled staff must not be insertable");
-            helper.assertTrue(rifle.trySetCalibrationAdjustment(stack, 0, ItemStack.EMPTY, player.registryAccess()), "Disabled staff must remain removable");
+            helper.assertFalse(rifle.trySetCalibrationAdjustment(stack, 1, staff, player.level().registryAccess()), "Disabled staff must not be insertable");
+            helper.assertTrue(rifle.trySetCalibrationAdjustment(stack, 0, ItemStack.EMPTY, player.level().registryAccess()), "Disabled staff must remain removable");
             enabled().set(true);
-            helper.assertTrue(rifle.trySetCalibrationAdjustment(stack, 2, staff, player.registryAccess()), "Re-enabling must restore acceptance");
+            helper.assertTrue(rifle.trySetCalibrationAdjustment(stack, 2, staff, player.level().registryAccess()), "Re-enabling must restore acceptance");
         }
         helper.succeed();
     }
@@ -179,13 +181,23 @@ public final class FullautoEchoGameTests extends ApprenticeCodexGameTestScenario
         try (var settings = Settings.defaults();
              var staffSettings = ApprenticeCodexServerConfig.useMulticastEchoStaffAttackConfigOverrideForGameTest(false, 9)) {
             var player = player(helper, "echo_damage");
-            var target = spawnPositionedZombie(helper.getLevel(), player.position().add(0, 0, 2));
+            // 1.20.1 の raycast では水平視線が足元高さの target を外すため、目線に中心を合わせる。
+            var target = spawnPositionedZombie(helper.getLevel(), player.getEyePosition().add(0, 0, 2));
             target.getAttribute(Attributes.MAX_HEALTH).setBaseValue(1000);
             target.getAttribute(Attributes.ARMOR).setBaseValue(0);
             target.getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1);
             target.setHealth(1000);
             var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.SHOCK.get();
             try {
+                // 1.20.1 の GameTest 用構造物が視線上に残るため、この fixture の射線だけ空ける。
+                for (int offset = 0; offset <= 2; offset++) {
+                    helper.getLevel().setBlockAndUpdate(BlockPos.containing(player.getEyePosition().add(0, 0, offset)),
+                            Blocks.AIR.defaultBlockState());
+                }
+                var hit = RaycastTools.raycastFromEye(player, 24, 1, entity -> CombatTools.isValidCombatTarget(entity, player));
+                helper.assertTrue(hit.hitEntity() == target,
+                        "Shock fixture target must be visible: " + hit.hitType() + ", block=" + hit.hitBlock()
+                                + ", pos=" + hit.hitPosition() + ", target=" + target.getBoundingBox());
                 float[] damage = new float[3];
                 for (int i = 0; i < 3; i++) {
                     enabled().set(i != 0);
@@ -196,7 +208,9 @@ public final class FullautoEchoGameTests extends ApprenticeCodexGameTestScenario
                     damage[i] = before - target.getHealth();
                 }
                 helper.assertTrue(damage[0] > 0 && Math.abs(damage[1] - damage[0] * 0.5F) < 0.02F
-                        && Math.abs(damage[2] - damage[1]) < 0.02F, "First and later echo hits must deal half damage through existing iframes");
+                        && Math.abs(damage[2] - damage[1]) < 0.02F,
+                        "First and later echo hits must deal half damage through existing iframes: "
+                                + damage[0] + ", " + damage[1] + ", " + damage[2]);
                 multiplier("Damage").set(0.5);
                 target.invulnerableTime = 20;
                 float before = target.getHealth();
@@ -222,7 +236,7 @@ public final class FullautoEchoGameTests extends ApprenticeCodexGameTestScenario
             var projectiles = helper.getLevel().getEntitiesOfClass(Projectile.class, player.getBoundingBox().inflate(30), p -> p.getOwner() == player);
             helper.assertTrue(!projectiles.isEmpty(), "Missile must create tracked projectiles");
             player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
-            var source = CombatTools.getDamageSource(helper.getLevel(), projectiles.getFirst(), player, DamageTypes.SHOCK);
+            var source = CombatTools.getDamageSource(helper.getLevel(), projectiles.get(0), player, DamageTypes.SHOCK);
             helper.assertTrue(MulticastEchoStaffAttackHandler.adjustCombatDamage(player, 8, source).baseAmount() == 4,
                     "Delayed projectile must retain rifle configuration after switching items");
             enabled().set(false);
@@ -266,15 +280,15 @@ public final class FullautoEchoGameTests extends ApprenticeCodexGameTestScenario
 
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void configSyncPreservesDisplayPercentagesAndResets(GameTestHelper helper) {
-        var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
+        var buffer = new FriendlyByteBuf(Unpooled.buffer());
         boolean previousEnabled = FullautoEchoConfigState.enabled();
         double previousMultiplier = FullautoEchoConfigState.manaMultiplier();
         int previousThreshold = FullautoEchoConfigState.cooldownBypassThresholdTicks();
         int previousReduction = FullautoEchoConfigState.cooldownReductionTicks();
         int previousMinimum = FullautoEchoConfigState.reducedCooldownMinimumTicks();
         try {
-            SyncFullautoEchoConfigPacket.STREAM_CODEC.encode(buffer, new SyncFullautoEchoConfigPacket(true, 2.5, 40, 60, 30));
-            var decoded = SyncFullautoEchoConfigPacket.STREAM_CODEC.decode(buffer);
+            SyncFullautoEchoConfigPacket.encode(new SyncFullautoEchoConfigPacket(true, 2.5, 40, 60, 30), buffer);
+            var decoded = SyncFullautoEchoConfigPacket.decode(buffer);
             FullautoEchoConfigState.set(decoded.enabled(), decoded.manaMultiplier(), decoded.cooldownBypassThresholdTicks(),
                     decoded.cooldownReductionTicks(), decoded.reducedCooldownMinimumTicks());
             helper.assertTrue(FullautoCooldownPolicy.resolveClient(40, 400, 20) == 0,

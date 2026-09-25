@@ -1,26 +1,17 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.ForgeConfigSpec;
-
 import java.util.List;
 import java.util.Objects;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 public final class MultipurposeStaffrifleServerConfig {
-    private final ForgeConfigSpec.IntValue cooldownBypassThresholdTicks;
-    private final ForgeConfigSpec.IntValue cooldownReductionTicks;
-    private final ForgeConfigSpec.IntValue reducedCooldownMinimumTicks;
-    private final ForgeConfigSpec.IntValue adsFullAutoIntervalTicks;
+    private final ForgeConfigSpec.DoubleValue adsMovementSpeedMultiplier;
     private final ForgeConfigSpec.ConfigValue<List<? extends String>> spellDenylist;
     private List<String> spellDenylistOverride;
 
     private MultipurposeStaffrifleServerConfig(
-            ForgeConfigSpec.IntValue cooldownBypassThresholdTicks,
-            ForgeConfigSpec.IntValue cooldownReductionTicks,
-            ForgeConfigSpec.IntValue reducedCooldownMinimumTicks,
-            ForgeConfigSpec.IntValue adsFullAutoIntervalTicks,
+            ForgeConfigSpec.DoubleValue adsMovementSpeedMultiplier,
             ForgeConfigSpec.ConfigValue<List<? extends String>> spellDenylist
     ) {
         this.adsMovementSpeedMultiplier = adsMovementSpeedMultiplier;

@@ -10,7 +10,6 @@ import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeSt
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -18,9 +17,8 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.CustomData;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -79,7 +77,7 @@ public final class SpellCalibrationAcceptanceGameTests extends ApprenticeCodexGa
                     } else {
                         MultipurposeStaffrifleScrollStorage.set(stack, 0, rejected, lookup);
                     }
-                    helper.assertTrue(ItemStack.isSameItemSameComponents(scrollSlot.getItem(),
+                    helper.assertTrue(ItemStack.isSameItemSameTags(scrollSlot.getItem(),
                             SpellCalibrationImbueHelper.createScroll(longSpell)), "Storage must reject CONTINUOUS without replacing LONG");
                 }
             } finally {
@@ -96,23 +94,24 @@ public final class SpellCalibrationAcceptanceGameTests extends ApprenticeCodexGa
         var stack = new ItemStack(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
         var scroll = SpellCalibrationImbueHelper.createScroll(new SpellData(SpellRegistry.FIRE_BREATH_SPELL.get(), 1));
         // 修正前に保存された非対応スクロールは削除せず、取り出しを保証する。
-        CustomData.update(DataComponents.CUSTOM_DATA, stack, root -> {
+        {
+            var root = stack.getOrCreateTag();
             var entry = new CompoundTag();
             entry.putInt("Slot", 0);
-            entry.put("Item", scroll.saveOptional(helper.getLevel().registryAccess()));
+            entry.put("Item", scroll.save(new CompoundTag()));
             var list = new ListTag();
             list.add(entry);
             var calibration = new CompoundTag();
             calibration.put("Scrolls", list);
             root.put("FullautoRapidcastSpellrifleCalibration", calibration);
-        });
+        }
         var menu = new SpellCalibrationBenchMenu(0, player.getInventory());
         try {
             menu.getSlot(0).set(stack);
             var slot = menu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START);
             helper.assertTrue(menu.shouldRenderMismatchCastConditionWarning(0), "Legacy CONTINUOUS must remain unusable");
             helper.assertTrue(slot.mayPickup(player), "Legacy rejected scroll must remain extractable");
-            helper.assertTrue(ItemStack.isSameItemSameComponents(slot.remove(1), scroll), "Legacy extraction must preserve scroll");
+        helper.assertTrue(ItemStack.isSameItemSameTags(slot.remove(1), scroll), "Legacy extraction must preserve scroll");
             helper.assertTrue(slot.getItem().isEmpty(), "Extracted legacy scroll must leave empty storage");
             helper.assertFalse(slot.mayPlace(scroll), "Extracted CONTINUOUS must not be reinsertable");
         } finally {

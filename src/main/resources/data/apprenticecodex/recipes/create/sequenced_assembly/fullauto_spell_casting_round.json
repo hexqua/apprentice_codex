@@ -1,8 +1,8 @@
 {
   "type": "create:sequenced_assembly",
-  "neoforge:conditions": [
+  "conditions": [
     {
-      "type": "neoforge:mod_loaded",
+      "type": "forge:mod_loaded",
       "modid": "create"
     }
   ],
@@ -12,7 +12,7 @@
   "loops": 1,
   "results": [
     {
-      "id": "apprenticecodex:fullauto_spell_casting_round"
+      "item": "apprenticecodex:fullauto_spell_casting_round"
     }
   ],
   "sequence": [
@@ -28,7 +28,7 @@
       ],
       "results": [
         {
-          "id": "apprenticecodex:incomplete_spellcaster_round"
+          "item": "apprenticecodex:incomplete_spellcaster_round"
         }
       ]
     },
@@ -44,7 +44,7 @@
       ],
       "results": [
         {
-          "id": "apprenticecodex:incomplete_spellcaster_round"
+          "item": "apprenticecodex:incomplete_spellcaster_round"
         }
       ]
     },
@@ -57,12 +57,12 @@
       ],
       "results": [
         {
-          "id": "apprenticecodex:incomplete_spellcaster_round"
+          "item": "apprenticecodex:incomplete_spellcaster_round"
         }
       ]
     }
   ],
-  "transitional_item": {
-    "id": "apprenticecodex:incomplete_spellcaster_round"
+  "transitionalItem": {
+    "item": "apprenticecodex:incomplete_spellcaster_round"
   }
 }

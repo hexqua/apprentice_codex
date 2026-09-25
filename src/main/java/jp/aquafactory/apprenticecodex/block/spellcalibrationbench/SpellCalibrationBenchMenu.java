@@ -31,6 +31,7 @@ import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
 import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
 import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -76,6 +77,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     public static final int SCROLL_MENU_SLOT_START = SCROLL_SLOT_START;
 
     private final ContainerLevelAccess access;
+    private final HolderLookup.Provider lookupProvider;
     private final ItemStackHandler gauntletInventory = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -90,6 +92,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     public SpellCalibrationBenchMenu(int containerId, Inventory playerInventory, ContainerLevelAccess access) {
         super(MenuRegistry.SPELL_CALIBRATION_BENCH.get(), containerId);
         this.access = access;
+        this.lookupProvider = playerInventory.player.level().registryAccess();
 
         addSlot(new GauntletSlot(gauntletInventory, 0, GAUNTLET_SLOT_X, GAUNTLET_SLOT_Y));
         var adjustmentContainer = new AdjustmentContainer();
@@ -229,6 +232,12 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     public int getEnabledScrollSlotCount() {
+        if (getGauntletStack().getItem() instanceof FullautoRapidcastSpellrifle) {
+            return FullautoRapidcastSpellrifle.getEnabledCalibrationScrollSlotCount(getGauntletStack(), lookupProvider);
+        }
+        if (getGauntletStack().getItem() instanceof MultipurposeStaffrifle) {
+            return MultipurposeStaffrifle.getEnabledCalibrationScrollSlotCount(getGauntletStack(), lookupProvider);
+        }
         if (getGauntletStack().getItem() instanceof ElementalBow) return ElementalBowScrollStorage.enabledSlots(getGauntletStack(), ElementalBow.serializationLookup());
         if (hasQuickcastCartridge()) return QuickcastScrollCartridge.getEnabledCalibrationScrollSlotCount(getGauntletStack());
         if (hasGauntlet()) {
@@ -304,7 +313,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
         var scrollStack = getScroll(slot);
         return !scrollStack.isEmpty()
-                && !SpellCalibrationImbueHelper.evaluateStoredScrollAt(getGauntletStack(), slot, scrollStack).isUsable();
+                && !SpellCalibrationImbueHelper.evaluateStoredScrollAt(getGauntletStack(), slot, scrollStack,
+                lookupProvider).isUsable();
     }
 
     public boolean hasTargetSpellAt(int slot) {
@@ -379,7 +389,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         if (!storedStack.isEmpty()) {
             storedStack.setCount(1);
         }
-        target.trySetCalibrationAdjustment(getGauntletStack(), slot, storedStack);
+        target.trySetCalibrationAdjustment(getGauntletStack(), slot, storedStack, lookupProvider);
     }
 
     private @NotNull ItemStack getScroll(int slot) {
@@ -558,7 +568,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             return false;
         }
         for (var slot = 0; slot < target.getCalibrationAdjustmentSlotCount(getGauntletStack()); ++slot) {
-            if (target.canPlaceCalibrationAdjustment(getGauntletStack(), slot, stack)) {
+            if (target.canPlaceCalibrationAdjustment(getGauntletStack(), slot, stack, lookupProvider)) {
                 return true;
             }
         }
@@ -623,7 +633,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         return canPersistScrollChanges()
                 && isScrollSlotEnabled(slot)
                 && isScroll(stack)
-                && SpellCalibrationImbueHelper.evaluateScrollAt(getGauntletStack(), slot, stack).canInsert();
+                && SpellCalibrationImbueHelper.evaluateScrollAt(getGauntletStack(), slot, stack,
+                lookupProvider).canInsert();
     }
 
     private boolean hasArmorImbueTarget() {
@@ -834,7 +845,8 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
             var target = getAdjustmentTarget();
             return target != null
-                    && target.canPlaceCalibrationAdjustment(getGauntletStack(), calibrationSlot, stack);
+                    && target.canPlaceCalibrationAdjustment(getGauntletStack(), calibrationSlot, stack,
+                    lookupProvider);
         }
 
         @Override

@@ -12,7 +12,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 public final class FullautoEchoCasting {
     private FullautoEchoCasting() {}
@@ -36,7 +36,7 @@ public final class FullautoEchoCasting {
         if (!(stack.getItem() instanceof FullautoRapidcastSpellrifle)) return false;
         for (int slot = 0; slot < FullautoRapidcastSpellrifle.CALIBRATION_ADJUSTMENT_SLOT_COUNT; slot++) {
             if (CalibrationAdjustmentStorage.get(stack, slot,
-                    FullautoRapidcastSpellrifle.CALIBRATION_ADJUSTMENT_SLOT_COUNT, lookup)
+                    FullautoRapidcastSpellrifle.CALIBRATION_ADJUSTMENT_SLOT_COUNT)
                     .is(ItemRegistry.MULTICAST_ECHO_STAFF.get())) return true;
         }
         return false;
@@ -46,7 +46,7 @@ public final class FullautoEchoCasting {
         return player instanceof ServerPlayer
                 && FullautoRapidcastSpellrifleCastContext.isActiveFor(player.getUUID(), stack, spell)
                 && ApprenticeCodexServerConfig.fullautoRapidcastSpellrifleEchoCastEnabled()
-                && hasStaff(stack, player.registryAccess())
+                && hasStaff(stack, player.level().registryAccess())
                 ? ApprenticeCodexServerConfig.fullautoRapidcastSpellrifleEchoCastManaCostMultiplier() : 1.0D;
     }
 
@@ -57,7 +57,7 @@ public final class FullautoEchoCasting {
     public static CastScope openAttackScope(ServerPlayer player, ItemStack stack, AbstractSpell spell) {
         if (!ApprenticeCodexServerConfig.fullautoRapidcastSpellrifleEchoCastEnabled()
                 || !FullautoRapidcastSpellrifleCastContext.isActiveFor(player.getUUID(), stack, spell)
-                || !hasStaff(stack, player.registryAccess())) return () -> {};
+                || !hasStaff(stack, player.level().registryAccess())) return () -> {};
         return MulticastEchoStaffAttackHandler.openCast(player, spell, AttackOrigin.RIFLE);
     }
 

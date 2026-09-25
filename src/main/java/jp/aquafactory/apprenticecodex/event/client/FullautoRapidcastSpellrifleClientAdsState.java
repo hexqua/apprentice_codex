@@ -7,7 +7,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientFullautoRapidcastSpel
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.LivingEntity;
-import net.neoforged.fml.ModList;
+import net.minecraftforge.fml.ModList;
 import org.jetbrains.annotations.Nullable;
 
 public final class FullautoRapidcastSpellrifleClientAdsState {

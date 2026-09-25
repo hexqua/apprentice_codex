@@ -15,7 +15,6 @@ import io.redspace.ironsspellbooks.gui.overlays.SpellSelection;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleAdsMovement;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
@@ -26,38 +25,40 @@ import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeSt
 import jp.aquafactory.apprenticecodex.item.spellgun.RifleSpellTooltipData;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.common.ModConfigSpec;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
 public final class MultipurposeStaffrifleReworkGameTests extends ApprenticeCodexGameTestScenarios {
     @GameTest(template = "gametest/basic_floor")
     public static void multipurposeAdsMovementHonorsConfigAndSprintPriority(GameTestHelper helper) {
-        ModConfigSpec.DoubleValue multiplier = ApprenticeCodexServerConfig.SPEC.getValues()
+        ForgeConfigSpec.DoubleValue multiplier = ApprenticeCodexServerConfig.SPEC.getValues()
                 .get("Items.MultipurposeStaffrifle.adsMovementSpeedMultiplier");
         double previous = multiplier.get();
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_ads_movement");
         var rifle = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
         var speed = player.getAttribute(Attributes.MOVEMENT_SPEED);
-        var otherId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "gametest_other_movement");
-        speed.addTransientModifier(new AttributeModifier(otherId, 0.2D, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+        var otherId = UUID.nameUUIDFromBytes((ApprenticeCodex.MODID + ":gametest_other_movement").getBytes(StandardCharsets.UTF_8));
+        speed.addTransientModifier(new AttributeModifier(otherId, "gametest_other_movement", 0.2D, AttributeModifier.Operation.MULTIPLY_TOTAL));
         double baseline = speed.getValue();
         try {
             player.setItemInHand(InteractionHand.MAIN_HAND, rifle);
@@ -69,7 +70,7 @@ public final class MultipurposeStaffrifleReworkGameTests extends ApprenticeCodex
                     "ADS must apply the configured multiplier once, preserving other modifiers");
             multiplier.set(0.0D);
             player.setSprinting(true);
-            MultipurposeStaffrifleAdsMovement.onPlayerTick(new PlayerTickEvent.Post(player));
+            MultipurposeStaffrifleAdsMovement.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
             helper.assertTrue(speed.getValue() == 0.0D, "Zero ADS multiplier must disable movement");
             helper.assertTrue(!player.isSprinting(), "ADS must suppress sprinting even at zero movement multiplier");
             MultipurposeStaffrifleAdsMovement.update(player, false);
@@ -81,7 +82,7 @@ public final class MultipurposeStaffrifleReworkGameTests extends ApprenticeCodex
             multiplier.set(0.7D);
             MultipurposeStaffrifleAdsMovement.update(player, true);
             player.setSprinting(true);
-            MultipurposeStaffrifleAdsMovement.onPlayerTick(new PlayerTickEvent.Post(player));
+            MultipurposeStaffrifleAdsMovement.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
             helper.assertTrue(!player.isSprinting() && Math.abs(speed.getValue() - baseline * 0.7D) < 1.0E-8D,
                     "ADS must stop sprinting and preserve configured slowdown");
             MultipurposeStaffrifleAdsMovement.update(player, false);
@@ -91,20 +92,20 @@ public final class MultipurposeStaffrifleReworkGameTests extends ApprenticeCodex
                     "ADS requests during sprint must enter ADS and stop sprinting");
             MultipurposeStaffrifleAdsMovement.update(player, false);
             player.setSprinting(true);
-            MultipurposeStaffrifleAdsMovement.onPlayerTick(new PlayerTickEvent.Post(player));
+            MultipurposeStaffrifleAdsMovement.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
             helper.assertTrue(player.isSprinting(), "Releasing ADS must allow sprinting again");
             player.setSprinting(false);
             MultipurposeStaffrifleAdsMovement.update(player, true);
             player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
             player.setItemInHand(InteractionHand.OFF_HAND, rifle);
             player.setSprinting(true);
-            MultipurposeStaffrifleAdsMovement.onPlayerTick(new PlayerTickEvent.Post(player));
+            MultipurposeStaffrifleAdsMovement.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
             MultipurposeStaffrifleAdsMovement.update(player, true);
             helper.assertTrue(player.isSprinting(), "Offhand ADS requests must not cancel sprinting");
             player.setSprinting(false);
             helper.assertTrue(Math.abs(speed.getValue() - baseline) < 1.0E-8D,
                     "Switching away must remove slowdown and offhand ADS requests must be ignored");
-            helper.assertTrue(speed.hasModifier(otherId), "Cleanup must preserve unrelated modifiers");
+            helper.assertTrue(speed.getModifier(otherId) != null, "Cleanup must preserve unrelated modifiers");
         } finally {
             multiplier.set(previous);
             MultipurposeStaffrifleAdsMovement.update(player, false);
@@ -122,7 +123,7 @@ public final class MultipurposeStaffrifleReworkGameTests extends ApprenticeCodex
         var menu = new SpellCalibrationBenchMenu(0, player.getInventory());
         menu.getSlot(0).set(stack);
         var scroll = SpellCalibrationImbueHelper.createScroll(new SpellData(SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1));
-        scroll.set(DataComponents.CUSTOM_NAME, Component.literal("Owned scroll"));
+        scroll.setHoverName(Component.literal("Owned scroll"));
         helper.assertTrue(menu.getEnabledScrollSlotCount() == 4, "Base capacity must be four");
         var upgrade = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get());
         for (var slot = 1; slot <= 3; slot++) {
@@ -141,14 +142,14 @@ public final class MultipurposeStaffrifleReworkGameTests extends ApprenticeCodex
         helper.assertFalse(rifle.isSneakSelectionUiEnabled(stack), "Wheel mode must disable local selection");
         helper.assertTrue(MultipurposeStaffrifle.getSelectedSpellData(stack, lookup) == SpellData.EMPTY,
                 "Disabled stored spell must not be available");
-        var restored = ItemStack.parseOptional(lookup, (CompoundTag) stack.saveOptional(lookup));
+        var restored = ItemStack.of(stack.save(new CompoundTag()));
         helper.assertTrue(MultipurposeStaffrifleScrollStorage.selected(restored) == 3, "Selection must survive wheel mode and serialization");
-        helper.assertTrue(ItemStack.isSameItemSameComponents(scroll, MultipurposeStaffrifleScrollStorage.get(restored, 9, lookup)),
+        helper.assertTrue(ItemStack.isSameItemSameTags(scroll, MultipurposeStaffrifleScrollStorage.get(restored, 9, lookup)),
                 "Disabled scroll components must survive serialization");
         helper.assertFalse(ISpellContainer.isSpellContainer(restored), "Rifle must not inject spells into the wheel");
         helper.assertFalse(menu.getSlot(13).mayPlace(scroll), "Disabled slot must reject new scrolls");
         helper.assertTrue(menu.getSlot(13).mayPickup(player), "Disabled scroll must remain extractable");
-        helper.assertTrue(ItemStack.isSameItemSameComponents(scroll, menu.getSlot(13).remove(1)), "Extraction must preserve components");
+        helper.assertTrue(ItemStack.isSameItemSameTags(scroll, menu.getSlot(13).remove(1)), "Extraction must preserve components");
         helper.assertTrue(MultipurposeStaffrifleScrollStorage.get(stack, 9, lookup).isEmpty(), "Extraction must remove the saved scroll");
         menu.getSlot(1).set(ItemStack.EMPTY);
         helper.assertTrue(menu.getEnabledScrollSlotCount() == 8 && rifle.getSneakSelectionIndex(stack) == 3,
@@ -182,7 +183,7 @@ public final class MultipurposeStaffrifleReworkGameTests extends ApprenticeCodex
                 "Completed LONG must not leave a pending mana or ammunition context");
         helper.assertTrue(SpellGunCastEvent.countAvailableAmmo(player, player.getInventory(), rifle.getAmmoItem(stack)) == 1,
                 "LONG must consume exactly one round");
-        var speed = player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION);
+        var speed = player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION.get());
         var original = speed.getBaseValue();
         try {
             for (var bonus : new double[]{0, 0.5}) {
@@ -220,7 +221,7 @@ public final class MultipurposeStaffrifleReworkGameTests extends ApprenticeCodex
         magic.setMana(0);
         var spell = SpellRegistry.MAGIC_MISSILE_SPELL.get();
         MultipurposeStaffrifleScrollStorage.set(stack, 0, SpellCalibrationImbueHelper.createScroll(new SpellData(spell, 1)), lookup);
-        stack.enchant(lookup.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.TRANSCENDENCE), 1);
+        stack.enchant(EnchantmentRegistry.TRANSCENDENCE.get(), 1);
         helper.assertTrue(MultipurposeStaffrifle.resolveCastSpellData(player, stack).getLevel() == Math.min(2, spell.getMaxLevel()),
                 "Stored scroll must receive Transcendence once");
         // 両手武器でオフハンド選択を抑止する Better Combat 環境でも、装備魔法書から選択する。
@@ -239,9 +240,9 @@ public final class MultipurposeStaffrifleReworkGameTests extends ApprenticeCodex
         var tooltip = RifleSpellTooltipData.read(stack, player, lookup);
         helper.assertTrue(tooltip.castSource() == CastSource.SPELLBOOK && tooltip.selectedSpell().getLevel() == 1,
                 "Wisdom tooltip must retain the book source and must not add rifle Transcendence");
-        helper.assertTrue(tooltip.slots().size() == 1 && !tooltip.slots().getFirst().usable(),
+        helper.assertTrue(tooltip.slots().size() == 1 && !tooltip.slots().get(0).usable(),
                 "Wisdom tooltip must retain the disabled internal scroll");
-        helper.assertTrue(ItemStack.isSameItemSameComponents(beforeTooltip, stack),
+        helper.assertTrue(ItemStack.isSameItemSameTags(beforeTooltip, stack),
                 "Wisdom tooltip must not mutate the rifle");
         helper.assertTrue(new SpellSelectionManager(player).getAllSpells().size() == 1, "Stored spell must not be added to wheel");
         player.getInventory().add(new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 2));
@@ -286,9 +287,9 @@ public final class MultipurposeStaffrifleReworkGameTests extends ApprenticeCodex
         rifle.trySetCalibrationAdjustment(stack, 1, new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get()), lookup);
         helper.assertTrue(MultipurposeStaffrifle.hasSpyglass(stack, lookup) && MultipurposeStaffrifle.hasRecoveryRune(stack, lookup),
                 "Scope and recoil removal must coexist");
-        stack.enchant(lookup.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SURGE), 3);
-        helper.assertTrue(rifle.getDefaultAttributeModifiers(stack).modifiers().isEmpty(), "Legacy SURGE must not restore spell power");
-        helper.assertTrue(Enchantments.getLevel(stack, Enchantments.SURGE) == 3, "Legacy enchantment data must be retained");
+        stack.enchant(EnchantmentRegistry.SURGE.get(), 3);
+        helper.assertTrue(rifle.getAttributeModifiers(EquipmentSlot.MAINHAND, stack).isEmpty(), "Legacy SURGE must not restore spell power");
+        helper.assertTrue(stack.getEnchantmentLevel(EnchantmentRegistry.SURGE.get()) == 3, "Legacy enchantment data must be retained");
         helper.succeed();
     }
 }

@@ -12,14 +12,14 @@ import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunRecastCompletion;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFullautoRapidcastSpellrifleFireEffectPacket;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.server.ServerStoppingEvent;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
+import net.minecraftforge.event.TickEvent;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class FullautoRapidcastSpellrifleCastEvent {
     private FullautoRapidcastSpellrifleCastEvent() {
     }
@@ -117,8 +117,9 @@ public final class FullautoRapidcastSpellrifleCastEvent {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(PlayerTickEvent.Post event) {
-        if (!(event.getEntity() instanceof ServerPlayer player)) {
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
+        if (!(event.player instanceof ServerPlayer player)) {
             return;
         }
 

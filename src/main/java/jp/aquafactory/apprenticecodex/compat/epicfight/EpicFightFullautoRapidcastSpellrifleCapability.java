@@ -13,7 +13,7 @@ import yesman.epicfight.world.capabilities.item.RangedWeaponCapability;
 import yesman.epicfight.world.capabilities.item.Style;
 
 public final class EpicFightFullautoRapidcastSpellrifleCapability extends RangedWeaponCapability {
-    public EpicFightFullautoRapidcastSpellrifleCapability(RangedWeaponCapability.Builder builder) {
+    public EpicFightFullautoRapidcastSpellrifleCapability(CapabilityItem.Builder builder) {
         super(builder);
     }
 

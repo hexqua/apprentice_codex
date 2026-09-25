@@ -28,7 +28,7 @@ public final class RifleSpellTooltipClientHelper {
     public static void append(ItemStack stack, List<Component> lines) {
         var player = Minecraft.getInstance().player;
         if (player == null) return;
-        var data = RifleSpellTooltipData.read(stack, player, player.registryAccess());
+        var data = RifleSpellTooltipData.read(stack, player, player.level().registryAccess());
         lines.add(Component.empty());
         if (Screen.hasControlDown() && !data.slots().isEmpty()) {
             ScrollSlotTooltipClientHelper.appendLabel(lines);
@@ -43,8 +43,8 @@ public final class RifleSpellTooltipClientHelper {
             var spell = spellData.getSpell();
             // マナは魔法の標準情報として残し、選択元の補正はクールダウンだけへ適用する。
             var details = TooltipsUtils.formatActiveSpellTooltip(stack, spellData, CastSource.SPELLBOOK, player);
-            if (!details.isEmpty()) details.removeFirst();
-            boolean echo = FullautoEchoConfigState.enabled() && FullautoEchoCasting.hasStaff(stack, player.registryAccess());
+            if (!details.isEmpty()) details.remove(0);
+            boolean echo = FullautoEchoConfigState.enabled() && FullautoEchoCasting.hasStaff(stack, player.level().registryAccess());
             if (echo) {
                 int mana = FullautoEchoCasting.scaleMana(spell.getManaCost(spell.getLevelFor(spellData.getLevel(), player)),
                         FullautoEchoConfigState.manaMultiplier());
@@ -53,7 +53,7 @@ public final class RifleSpellTooltipClientHelper {
                         || text.getKey().equals("tooltip.irons_spellbooks.mana_cost_per_second"))
                         ? TooltipsUtils.getManaCostComponent(spell.getCastType(), mana).withStyle(ChatFormatting.BLUE) : line);
                 if (!details.isEmpty() && MulticastEchoStaffAttackProfileManager.hasClientSyncedProfile(spell)) {
-                    details.getFirst().append(Component.translatable("item.apprenticecodex.common.scroll_slots.echo_supported")
+                    details.get(0).append(Component.translatable("item.apprenticecodex.common.scroll_slots.echo_supported")
                             .withStyle(ChatFormatting.GRAY));
                 }
             }

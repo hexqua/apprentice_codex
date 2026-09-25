@@ -12,7 +12,6 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
-import net.minecraft.client.resources.PlayerSkin;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -24,7 +23,7 @@ import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
 import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
-import software.bernie.geckolib.util.RenderUtil;
+import software.bernie.geckolib.util.RenderUtils;
 
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -65,7 +64,7 @@ final class SpellrifleFirstPersonArmsLayer<T extends Item & GeoItem> extends Geo
         // このフックには親と自身の変換が適用済み。空ボーンのpivotへは別途移動する。
         poseStack.pushPose();
         try {
-            RenderUtil.translateToPivotPoint(poseStack, bone);
+            RenderUtils.translateToPivotPoint(poseStack, bone);
             var transform = new ArmTransform(new Matrix4f(poseStack.last().pose()), new Matrix3f(poseStack.last().normal()));
             if (GRIP_ANCHOR.equals(bone.getName())) {
                 gripTransform = transform;
@@ -133,7 +132,7 @@ final class SpellrifleFirstPersonArmsLayer<T extends Item & GeoItem> extends Geo
             poseStack.mulPose(Axis.ZP.rotationDegrees(180));
             poseStack.mulPose(Axis.XP.rotationDegrees(pitch));
             poseStack.scale(ARM_SCALE, ARM_SCALE, ARM_SCALE);
-            boolean slim = player.getSkin().model() == PlayerSkin.Model.SLIM;
+            boolean slim = "slim".equals(player.getModelName());
             // バニラの肩pivotと腕末端の手中心との差。左右で別のスキン領域を使う。
             float handX = (arm == HumanoidArm.RIGHT ? -1 : 1) * (slim ? 5.5F : 6.0F);
             float handY = slim ? 10.5F : 10.0F;

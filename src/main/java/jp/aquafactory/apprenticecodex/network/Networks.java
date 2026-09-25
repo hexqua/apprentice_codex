@@ -1,6 +1,13 @@
 package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleAdsPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientFullautoRapidcastSpellrifleAdsPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientFullautoRapidcastSpellrifleCastPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SpellrifleMuzzleParticlePacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncEchoProfileSpellIdsPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncFullautoEchoConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncFullautoRapidcastSpellrifleFireEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientElementalBowCancelPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientInterruptCartridgeReloadPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePacket;
@@ -110,7 +117,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "105";
+    private static final String PROTOCOL_VERSION = "106";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -766,6 +773,28 @@ public final class Networks {
                 GunSpellTracerPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
+
+        CHANNEL.registerMessage(nextPacketId++, ClientMultipurposeStaffrifleAdsPacket.class,
+                ClientMultipurposeStaffrifleAdsPacket::encode, ClientMultipurposeStaffrifleAdsPacket::decode, ClientMultipurposeStaffrifleAdsPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(nextPacketId++, ClientFullautoRapidcastSpellrifleAdsPacket.class,
+                ClientFullautoRapidcastSpellrifleAdsPacket::encode, ClientFullautoRapidcastSpellrifleAdsPacket::decode, ClientFullautoRapidcastSpellrifleAdsPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(nextPacketId++, ClientFullautoRapidcastSpellrifleCastPacket.class,
+                ClientFullautoRapidcastSpellrifleCastPacket::encode, ClientFullautoRapidcastSpellrifleCastPacket::decode, ClientFullautoRapidcastSpellrifleCastPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(nextPacketId++, SpellrifleMuzzleParticlePacket.class,
+                SpellrifleMuzzleParticlePacket::encode, SpellrifleMuzzleParticlePacket::decode, SpellrifleMuzzleParticlePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(nextPacketId++, SyncEchoProfileSpellIdsPacket.class,
+                SyncEchoProfileSpellIdsPacket::encode, SyncEchoProfileSpellIdsPacket::decode, SyncEchoProfileSpellIdsPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(nextPacketId++, SyncFullautoEchoConfigPacket.class,
+                SyncFullautoEchoConfigPacket::encode, SyncFullautoEchoConfigPacket::decode, SyncFullautoEchoConfigPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(nextPacketId++, SyncFullautoRapidcastSpellrifleFireEffectPacket.class,
+                SyncFullautoRapidcastSpellrifleFireEffectPacket::encode, SyncFullautoRapidcastSpellrifleFireEffectPacket::decode, SyncFullautoRapidcastSpellrifleFireEffectPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
 
     }
 

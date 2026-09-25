@@ -555,7 +555,7 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_fullauto_rapidcast_spellrifle.title"),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_fullauto_rapidcast_spellrifle.description"),
                         null,
-                        AdvancementType.CHALLENGE,
+                        FrameType.CHALLENGE,
                         true,
                         true,
                         false)

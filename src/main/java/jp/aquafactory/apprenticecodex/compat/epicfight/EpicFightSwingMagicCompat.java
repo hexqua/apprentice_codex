@@ -190,7 +190,7 @@ public final class EpicFightSwingMagicCompat {
         var player = playerpatch.getOriginal();
         var stack = player.getMainHandItem();
         if (stack.getItem() instanceof FullautoRapidcastSpellrifle rifle) {
-            event.cancel();
+            event.setCanceled(true);
             if (rifle.tryTriggerSelectedSpell(player, false)) playStaffrifleShotAnimation(playerpatch);
             return;
         }

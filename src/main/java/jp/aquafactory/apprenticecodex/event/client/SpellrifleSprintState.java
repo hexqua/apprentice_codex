@@ -9,12 +9,12 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.event.TickEvent;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class SpellrifleSprintState {
     private static final int SHOT_HOLD_TICKS = 30;
     private static final float BLEND_PER_TICK = 0.25F;
@@ -69,7 +69,8 @@ public final class SpellrifleSprintState {
     }
 
     @SubscribeEvent
-    public static void onTick(ClientTickEvent.Post event) {
+    public static void onTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
         refreshContext();
         if (Minecraft.getInstance().isPaused()) {
             return;

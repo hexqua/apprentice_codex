@@ -139,6 +139,7 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorRende
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskScreen;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchScreen;
 import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.minecraft.resources.ResourceLocation;

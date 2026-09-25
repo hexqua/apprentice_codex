@@ -36,7 +36,7 @@ final class QuickcastCartridgeClientTooltip {
         } else {
             // 通常詠唱と同じマナ・CD条件を維持し、一覧だけ共通の折り畳み表示へ移す。
             var details = TooltipsUtils.formatActiveSpellTooltip(stack, selected, CastSource.SPELLBOOK, player);
-            if (!details.isEmpty()) details.removeFirst();
+            if (!details.isEmpty()) details.remove(0);
             lines.addAll(details);
         }
         ScrollSlotTooltipClientHelper.appendHint(lines, tooltip.entries().size());

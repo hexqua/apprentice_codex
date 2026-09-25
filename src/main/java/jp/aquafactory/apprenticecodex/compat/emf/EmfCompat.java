@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.compat.emf;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import net.minecraft.world.entity.player.Player;
+import org.jetbrains.annotations.Nullable;
 import net.minecraftforge.fml.ModList;
 
 public final class EmfCompat {

@@ -99,18 +99,33 @@ public final class ElementalBowCalibrationGameTests {
             tag.putString("ElementalBowShotMode", "magic");
             tag.putString("ElementalBowMode", ElementalBow.selectionIdForSlot(3).toString());
         }
+        var beforeTooltip = bow.copy();
+        var tooltip = ElementalBow.getScrollTooltipData(bow, helper.getLevel().registryAccess());
+        helper.assertTrue(tooltip.entries().size() == 4 && tooltip.selectedSlot() == 3,
+                "Duplicate spells must remain ordered and selected by slot in the tooltip");
+        for (int slot = 0; slot < 4; slot++) {
+            helper.assertTrue(tooltip.entries().get(slot).slot() == slot && tooltip.entries().get(slot).usable(),
+                    "Expanded scroll slots must be usable and ordered");
+        }
+        var displayed = ElementalBow.getDisplayedSpellProfile(bow.copy());
+        helper.assertTrue(tooltip.selectedSpell().getSpell() == displayed.spell()
+                        && tooltip.selectedSpell().getLevel() == displayed.spellLevel()
+                        && tooltip.entries().get(3).spell().getSpell() == displayed.spell(),
+                "Tooltip entries must use the bow profile's resolved spell");
+        helper.assertTrue(ItemStack.isSameItemSameTags(beforeTooltip, bow), "Tooltip reads must preserve bow data");
         for (int i = 1; i <= 3; i++) menu.getSlot(i).set(ItemStack.EMPTY);
         // 保存された無効な選択の正規化が、hoverから元のstackへ漏れないことも確認する。
-        CustomData.update(DataComponents.CUSTOM_DATA, bow, tag -> {
+        {
+            var tag = bow.getOrCreateTag();
             tag.putString("ElementalBowShotMode", "magic");
             tag.putString("ElementalBowMode", ElementalBow.selectionIdForSlot(3).toString());
-        });
+        }
         beforeTooltip = bow.copy();
         tooltip = ElementalBow.getScrollTooltipData(bow, helper.getLevel().registryAccess());
         helper.assertTrue(tooltip.entries().size() == 4 && !tooltip.entries().get(3).usable()
                         && tooltip.selectedSlot() == -1,
                 "Disabled stored slots must remain visible while physical mode has no selected spell");
-        helper.assertTrue(ItemStack.isSameItemSameComponents(beforeTooltip, bow), "Invalid selections must be normalized only on a copy");
+        helper.assertTrue(ItemStack.isSameItemSameTags(beforeTooltip, bow), "Invalid selections must be normalized only on a copy");
         helper.assertTrue(ElementalBow.getDisplayedSpellProfile(bow) == null, "An out-of-range selection must become physical");
         for (int i = 5; i < 8; i++) {
             helper.assertFalse(menu.getSlot(i).mayPlace(scroll), "Inactive slots must reject new scrolls");

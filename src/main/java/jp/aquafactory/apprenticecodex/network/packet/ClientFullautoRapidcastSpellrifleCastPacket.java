@@ -1,32 +1,18 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSwingMagicCompat;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.fml.ModList;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.jetbrains.annotations.NotNull;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.function.Supplier;
 
 public record ClientFullautoRapidcastSpellrifleCastPacket(
         boolean adsFullAuto,
         BlockTargetData targetData
-) implements CustomPacketPayload {
-    public static final Type<ClientFullautoRapidcastSpellrifleCastPacket> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "client_fullauto_rapidcast_spellrifle_cast"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, ClientFullautoRapidcastSpellrifleCastPacket> STREAM_CODEC =
-            StreamCodec.of((buffer, packet) -> encode(packet, buffer), ClientFullautoRapidcastSpellrifleCastPacket::decode);
-
-    @Override
-    public @NotNull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
+) {
 
     public static void encode(ClientFullautoRapidcastSpellrifleCastPacket packet, FriendlyByteBuf buffer) {
         buffer.writeBoolean(packet.adsFullAuto());
@@ -40,9 +26,11 @@ public record ClientFullautoRapidcastSpellrifleCastPacket(
         return new ClientFullautoRapidcastSpellrifleCastPacket(adsFullAuto, targetData);
     }
 
-    public static void handle(ClientFullautoRapidcastSpellrifleCastPacket packet, IPayloadContext context) {
+    public static void handle(ClientFullautoRapidcastSpellrifleCastPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
+        var context = contextSupplier.get();
         context.enqueueWork(() -> {
-            if (!(context.player() instanceof ServerPlayer sender) || sender.isSpectator()) {
+            var sender = context.getSender();
+            if (sender == null || sender.isSpectator()) {
                 return;
             }
 
@@ -54,5 +42,6 @@ public record ClientFullautoRapidcastSpellrifleCastPacket(
                 }
             }
         });
+        context.setPacketHandled(true);
     }
 }

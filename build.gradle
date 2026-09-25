@@ -368,7 +368,8 @@ dependencies {
     runtimeOnly fg.deobf("maven.modrinth:9nfaJPtX:${irons_lib_modrinth_version_id}")
     runtimeOnly fg.deobf("maven.modrinth:curios:IPQlZkz1")
     runtimeOnly fg.deobf("maven.modrinth:geckolib:HVdLnQMI")
-    runtimeOnly fg.deobf("maven.modrinth:playeranimator:xe2EVE6q")
+    compileOnly fg.deobf("maven.modrinth:playeranimator:${playeranimator_modrinth_version_id}")
+    runtimeOnly fg.deobf("maven.modrinth:playeranimator:${playeranimator_modrinth_version_id}")
 
     // Create.
     // Create 連携のコンパイル用.

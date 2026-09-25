@@ -162,6 +162,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SPELL_SIDE_EDGE.get(),
                 ItemRegistry.SPELLCHARGED_GREATSWORD.get(),
                 ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
+                ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get(),
                 ItemRegistry.SCROLLCASTER_GAUNTLET.get(),
                 ItemRegistry.ZENITH_STAFF.get()
         );

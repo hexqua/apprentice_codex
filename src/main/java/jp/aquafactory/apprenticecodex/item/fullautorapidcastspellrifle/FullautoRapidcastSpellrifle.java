@@ -1,6 +1,9 @@
 package jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle;
 
 import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
@@ -14,19 +17,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
-import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
-import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.event.client.FullautoRapidcastSpellrifleClientLookup;
+import jp.aquafactory.apprenticecodex.event.client.FullautoRapidcastSpellrifleClientAdsState;
+import jp.aquafactory.apprenticecodex.event.client.FullautoRapidcastSpellrifleClientFireEffectState;
+import jp.aquafactory.apprenticecodex.event.client.SpellrifleSprintState;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHint;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
@@ -51,17 +56,25 @@ import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.renderer.item.FullautoRapidcastSpellrifleRenderer;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.Holder;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.tags.TagKey;
+import net.minecraftforge.registries.ForgeRegistries;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -69,15 +82,14 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
-import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.Item;
@@ -87,17 +99,18 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.animation.AnimatableManager;
-import software.bernie.geckolib.animation.AnimationController;
-import software.bernie.geckolib.animation.PlayState;
-import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 public final class FullautoRapidcastSpellrifle extends Item
@@ -138,6 +151,9 @@ public final class FullautoRapidcastSpellrifle extends Item
     private static final int MUZZLE_RHOMBUS_LIFETIME = 8;
     private static final int MUZZLE_SPARK_LIFETIME = 10;
     private static final int ENCHANTMENT_VALUE = 15;
+    private static final ResourceLocation MALUM_SPIRIT_PLUNDER = ResourceLocation.fromNamespaceAndPath("malum", "spirit_plunder");
+    private static final TagKey<Item> MALUM_SOUL_HUNTER_WEAPON = TagKey.create(
+            Registries.ITEM, ResourceLocation.fromNamespaceAndPath("malum", "soul_hunter_weapon"));
     private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
             AttributeEnchantmentType.ALACRITY,
             AttributeEnchantmentType.REFLUX,
@@ -181,13 +197,13 @@ public final class FullautoRapidcastSpellrifle extends Item
     }
 
     @Override
-    public int getUseDuration(@NotNull ItemStack stack, @NotNull LivingEntity entity) {
+    public int getUseDuration(@NotNull ItemStack stack) {
         return MAX_USE_DURATION;
     }
 
     @Override
-    public @NotNull ItemAttributeModifiers getDefaultAttributeModifiers(@NotNull ItemStack stack) {
-        return buildMainhandModifiers(stack);
+    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
+        return slot == EquipmentSlot.MAINHAND ? buildMainhandModifiers(stack) : super.getAttributeModifiers(slot, stack);
     }
 
     @Override
@@ -201,13 +217,8 @@ public final class FullautoRapidcastSpellrifle extends Item
     }
 
     @Override
-    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
+    public boolean canApplyAtEnchantingTable(@NotNull ItemStack stack, @NotNull Enchantment enchantment) {
         return isSupportedStaffrifleEnchantment(stack, enchantment);
-    }
-
-    @Override
-    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
-        return supportsEnchantment(stack, enchantment);
     }
 
     @Override
@@ -216,14 +227,52 @@ public final class FullautoRapidcastSpellrifle extends Item
             return false;
         }
 
-        var enchantments = EnchantmentHelper.getEnchantmentsForCrafting(book);
+        var enchantments = EnchantmentHelper.getEnchantments(book);
         return enchantments.isEmpty() || enchantments.keySet().stream()
-                .allMatch(enchantment -> supportsEnchantment(stack, enchantment));
+                .allMatch(enchantment -> isSupportedStaffrifleEnchantment(stack, enchantment));
     }
 
     @Override
-    public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Holder<Enchantment> enchantment) {
-        return supportsEnchantment(stack, enchantment);
+    public boolean isAnvilMergeEnchantmentAllowed(ItemStack stack, Enchantment enchantment) {
+        return isSupportedStaffrifleEnchantment(stack, enchantment);
+    }
+
+    @Override
+    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+        consumer.accept(new IClientItemExtensions() {
+            private FullautoRapidcastSpellrifleRenderer renderer;
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) renderer = new FullautoRapidcastSpellrifleRenderer();
+                return renderer;
+            }
+
+            @Override
+            public HumanoidModel.ArmPose getArmPose(LivingEntity entityLiving, InteractionHand hand, ItemStack itemStack) {
+                return hand == InteractionHand.MAIN_HAND
+                        ? HumanoidModel.ArmPose.CROSSBOW_HOLD : HumanoidModel.ArmPose.ITEM;
+            }
+
+            @Override
+            public boolean applyForgeHandTransform(PoseStack poseStack, LocalPlayer player, HumanoidArm arm,
+                                                   ItemStack itemInHand, float partialTick, float equipProcess,
+                                                   float swingProcess) {
+                if (arm != player.getMainArm()) return false;
+                var recoilAmount = FullautoRapidcastSpellrifleClientFireEffectState.getRecoilAmount(partialTick);
+                if (FullautoRapidcastSpellrifleClientAdsState.shouldHandleAsAds(player)) {
+                    applyAdsHandTransform(poseStack, arm, equipProcess);
+                    applyRecoilTransform(poseStack, recoilAmount);
+                    return true;
+                }
+                var sprintAmount = SpellrifleSprintState.amount(partialTick);
+                if (recoilAmount <= 0.0F && sprintAmount <= 0.0F) return false;
+                applyNormalHandTransform(poseStack, arm, equipProcess, swingProcess);
+                applySprintTransform(poseStack, arm, sprintAmount);
+                applyRecoilTransform(poseStack, recoilAmount);
+                return true;
+            }
+        });
     }
 
     @Override
@@ -407,9 +456,9 @@ public final class FullautoRapidcastSpellrifle extends Item
     }
 
     @Override
-    public void appendHoverText(@NotNull ItemStack stack, Item.@NotNull TooltipContext context, @NotNull List<Component> lines,
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> lines,
                                 @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, context, lines, flag);
+        super.appendHoverText(stack, level, lines, flag);
         appendFullautoRapidcastSpellrifleHelpTooltip(stack, lines);
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RifleSpellTooltipClientHelper.append(stack, lines);
@@ -619,37 +668,29 @@ public final class FullautoRapidcastSpellrifle extends Item
         ).withStyle(ChatFormatting.GRAY));
     }
 
-    private ItemAttributeModifiers buildMainhandModifiers(ItemStack stack) {
+    private Multimap<Attribute, AttributeModifier> buildMainhandModifiers(ItemStack stack) {
         if (stack == null || stack.isEmpty() || !stack.isEnchanted()) {
-            return ItemAttributeModifiers.EMPTY;
+            return ImmutableMultimap.of();
         }
 
-        var base = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
-        var merged = AttributeEnchantmentResolver.resolveMergedModifiers(
-                base.build(),
-                stack,
-                "fullauto_rapidcast_spellrifle_mainhand"
-        );
-        var result = ItemAttributeModifiers.builder();
-        for (var entry : merged.entries()) {
-            result.add(entry.getKey(), entry.getValue(), EquipmentSlotGroup.MAINHAND);
+        var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
+        var prefix = "apprenticecodex.fullauto_rapidcast_spellrifle.mainhand";
+        if (!AttributeEnchantmentResolver.addModifiers(builder, stack, prefix + ".enchant", DIRECT_ATTRIBUTE_ENCHANTMENTS)) {
+            return ImmutableMultimap.of();
         }
-        return result.build();
+        return MagicAttributeModifierHelper.mergeLinearMagicModifiers(builder.build(), prefix + ".merged");
     }
 
-    private static boolean isSupportedStaffrifleEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
-        var enchantmentId = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
-        if (MalumCompatibility.isSpiritPlunderSupported(stack, enchantmentId)) {
+    private boolean isSupportedStaffrifleEnchantment(ItemStack stack, Enchantment enchantment) {
+        var enchantmentId = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+        if (MALUM_SPIRIT_PLUNDER.equals(enchantmentId) && stack.is(MALUM_SOUL_HUNTER_WEAPON)) {
             return true;
         }
-
-        return enchantment.is(Enchantments.ALACRITY)
-                || enchantment.is(Enchantments.REFLUX)
-                || enchantment.is(Enchantments.RESERVOIR)
-                || enchantment.is(Enchantments.TRANSCENDENCE)
-                || enchantment.is(Enchantments.TENSE)
-                || enchantment.is(Enchantments.WISDOM)
-                || enchantment.is(Enchantments.PLUNDER);
+        var attributeType = AttributeEnchantmentType.from(enchantment);
+        return attributeType.map(this::supportsDirectAttributeEnchantment).orElseGet(() ->
+                (EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get())
+                        || (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
+                        || (EnchantmentRegistry.PLUNDER.isPresent() && enchantment == EnchantmentRegistry.PLUNDER.get()));
     }
 
     @Override
@@ -660,7 +701,7 @@ public final class FullautoRapidcastSpellrifle extends Item
 
     public static int resolveImbuedSpellLevel(ItemStack stack, SpellData spellData) {
         var spell = spellData.getSpell();
-        return Mth.clamp(spellData.getLevel() + Enchantments.getLevel(stack, Enchantments.TRANSCENDENCE),
+        return Mth.clamp(spellData.getLevel() + stack.getEnchantmentLevel(EnchantmentRegistry.TRANSCENDENCE.get()),
                 spell.getMinLevel(), spell.getMaxLevel());
     }
 
@@ -675,7 +716,7 @@ public final class FullautoRapidcastSpellrifle extends Item
     public static boolean hasRecoveryRune(ItemStack stack, HolderLookup.Provider lookup) {
         if (!(stack.getItem() instanceof FullautoRapidcastSpellrifle)) return false;
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; slot++) {
-            if (isRecoveryRune(CalibrationAdjustmentStorage.get(stack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, lookup))) {
+            if (isRecoveryRune(CalibrationAdjustmentStorage.get(stack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT))) {
                 return true;
             }
         }
@@ -694,7 +735,7 @@ public final class FullautoRapidcastSpellrifle extends Item
 
     public static boolean hasSilverRing(ItemStack stack, HolderLookup.Provider lookup) {
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; slot++) {
-            if (isSilverRing(CalibrationAdjustmentStorage.get(stack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, lookup)))
+            if (isSilverRing(CalibrationAdjustmentStorage.get(stack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT)))
                 return true;
         }
         return false;
@@ -703,7 +744,7 @@ public final class FullautoRapidcastSpellrifle extends Item
     public static int getEnabledCalibrationScrollSlotCount(ItemStack stack, HolderLookup.Provider lookup) {
         var count = 1;
         for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; slot++) {
-            if (isSlotUpgrade(CalibrationAdjustmentStorage.get(stack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT, lookup)))
+            if (isSlotUpgrade(CalibrationAdjustmentStorage.get(stack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT)))
                 count++;
         }
         return count;
@@ -842,5 +883,52 @@ public final class FullautoRapidcastSpellrifle extends Item
         return List.of(ImbueTooltipHelper.translatableGray(hasSilverRing(stack, serializationLookup())
                 ? "item.apprenticecodex.spellgun.tooltip.restrict_restrict_not_continuous"
                 : "item.apprenticecodex.spellgun.tooltip.restrict_restrict_instant_only"));
+    }
+
+    private static void applyNormalHandTransform(PoseStack poseStack, HumanoidArm arm, float equipProcess,
+                                                 float swingProcess) {
+        applyItemArmTransform(poseStack, arm, equipProcess);
+        applyItemArmAttackTransform(poseStack, arm, swingProcess);
+    }
+
+    private static void applyItemArmTransform(PoseStack poseStack, HumanoidArm arm, float equipProcess) {
+        var side = arm == HumanoidArm.RIGHT ? 1 : -1;
+        poseStack.translate(side * 0.56F, -0.52F + equipProcess * -0.6F, -0.72F);
+    }
+
+    private static void applyItemArmAttackTransform(PoseStack poseStack, HumanoidArm arm, float swingProcess) {
+        var side = arm == HumanoidArm.RIGHT ? 1 : -1;
+        var sinSwing = Mth.sin(swingProcess * swingProcess * (float) Math.PI);
+        poseStack.mulPose(Axis.YP.rotationDegrees(side * (45.0F + sinSwing * -20.0F)));
+        var sinRootSwing = Mth.sin(Mth.sqrt(swingProcess) * (float) Math.PI);
+        poseStack.mulPose(Axis.ZP.rotationDegrees(side * sinRootSwing * -20.0F));
+        poseStack.mulPose(Axis.XP.rotationDegrees(sinRootSwing * -80.0F));
+        poseStack.mulPose(Axis.YP.rotationDegrees(side * -45.0F));
+    }
+
+    private static void applyAdsHandTransform(PoseStack poseStack, HumanoidArm arm, float equipProcess) {
+        var side = arm == HumanoidArm.RIGHT ? 1 : -1;
+        applyItemArmTransform(poseStack, arm, equipProcess);
+        poseStack.translate(side * -0.56F, 0.15F, 0.22F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(side * -2.0F));
+        poseStack.mulPose(Axis.XP.rotationDegrees(-4.0F));
+    }
+
+    private static void applySprintTransform(PoseStack poseStack, HumanoidArm arm, float amount) {
+        var side = arm == HumanoidArm.RIGHT ? 1 : -1;
+        // 銃とアンカーの手を体側へ寄せる。
+        poseStack.translate(side * -0.12F * amount, -0.10F * amount, 0.12F * amount);
+        poseStack.mulPose(Axis.YP.rotationDegrees(side * 45.0F * amount));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(side * -15.0F * amount));
+        poseStack.mulPose(Axis.XP.rotationDegrees(-10.0F * amount));
+    }
+
+    private static void applyRecoilTransform(PoseStack poseStack, float recoilAmount) {
+        if (recoilAmount <= 0.0F) return;
+        // 一人称モデルのグリップ付近を支点に銃口を跳ね上げる。
+        poseStack.translate(0, 0.015F * recoilAmount, 0.08F * recoilAmount);
+        poseStack.translate(0, -0.39F, 0.215F);
+        poseStack.mulPose(Axis.XP.rotationDegrees(3.0F * recoilAmount));
+        poseStack.translate(0, 0.39F, -0.215F);
     }
 }

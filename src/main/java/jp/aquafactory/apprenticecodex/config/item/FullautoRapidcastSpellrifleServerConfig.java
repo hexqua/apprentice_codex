@@ -4,30 +4,30 @@ import java.util.List;
 import java.util.Objects;
 
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 public final class FullautoRapidcastSpellrifleServerConfig {
-    private final ModConfigSpec.IntValue cooldownBypassThresholdTicks;
-    private final ModConfigSpec.IntValue cooldownReductionTicks;
-    private final ModConfigSpec.IntValue reducedCooldownMinimumTicks;
-    private final ModConfigSpec.IntValue adsFullAutoIntervalTicks;
-    private final ModConfigSpec.DoubleValue adsMovementSpeedMultiplier;
-    private final ModConfigSpec.ConfigValue<List<? extends String>> spellDenylist;
+    private final ForgeConfigSpec.IntValue cooldownBypassThresholdTicks;
+    private final ForgeConfigSpec.IntValue cooldownReductionTicks;
+    private final ForgeConfigSpec.IntValue reducedCooldownMinimumTicks;
+    private final ForgeConfigSpec.IntValue adsFullAutoIntervalTicks;
+    private final ForgeConfigSpec.DoubleValue adsMovementSpeedMultiplier;
+    private final ForgeConfigSpec.ConfigValue<List<? extends String>> spellDenylist;
     private List<String> spellDenylistOverride;
-    private final ModConfigSpec.BooleanValue echoCastEnabled;
-    private final ModConfigSpec.DoubleValue echoCastDamageMultiplier;
-    private final ModConfigSpec.DoubleValue echoCastManaCostMultiplier;
+    private final ForgeConfigSpec.BooleanValue echoCastEnabled;
+    private final ForgeConfigSpec.DoubleValue echoCastDamageMultiplier;
+    private final ForgeConfigSpec.DoubleValue echoCastManaCostMultiplier;
 
     private FullautoRapidcastSpellrifleServerConfig(
-            ModConfigSpec.IntValue cooldownBypassThresholdTicks,
-            ModConfigSpec.IntValue cooldownReductionTicks,
-            ModConfigSpec.IntValue reducedCooldownMinimumTicks,
-            ModConfigSpec.IntValue adsFullAutoIntervalTicks,
-            ModConfigSpec.DoubleValue adsMovementSpeedMultiplier,
-            ModConfigSpec.ConfigValue<List<? extends String>> spellDenylist,
-            ModConfigSpec.BooleanValue echoCastEnabled,
-            ModConfigSpec.DoubleValue echoCastDamageMultiplier,
-            ModConfigSpec.DoubleValue echoCastManaCostMultiplier
+            ForgeConfigSpec.IntValue cooldownBypassThresholdTicks,
+            ForgeConfigSpec.IntValue cooldownReductionTicks,
+            ForgeConfigSpec.IntValue reducedCooldownMinimumTicks,
+            ForgeConfigSpec.IntValue adsFullAutoIntervalTicks,
+            ForgeConfigSpec.DoubleValue adsMovementSpeedMultiplier,
+            ForgeConfigSpec.ConfigValue<List<? extends String>> spellDenylist,
+            ForgeConfigSpec.BooleanValue echoCastEnabled,
+            ForgeConfigSpec.DoubleValue echoCastDamageMultiplier,
+            ForgeConfigSpec.DoubleValue echoCastManaCostMultiplier
     ) {
         this.cooldownBypassThresholdTicks = cooldownBypassThresholdTicks;
         this.cooldownReductionTicks = cooldownReductionTicks;
@@ -40,7 +40,7 @@ public final class FullautoRapidcastSpellrifleServerConfig {
         this.echoCastManaCostMultiplier = echoCastManaCostMultiplier;
     }
 
-    public static FullautoRapidcastSpellrifleServerConfig define(ModConfigSpec.Builder builder) {
+    public static FullautoRapidcastSpellrifleServerConfig define(ForgeConfigSpec.Builder builder) {
         builder.push("FullautoRapidcastSpellrifle");
         var cooldownBypassThresholdTicks = builder
                 .comment("Spells with an unmodified cooldown at or below this value skip cooldown for Fullauto Rapidcast Spellrifle casts. Ignores weapon multipliers, player reductions and cast time. 100 ticks = 5 seconds.")

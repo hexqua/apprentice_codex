@@ -18,7 +18,6 @@ import java.util.Set;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
@@ -35,16 +34,17 @@ import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunCastContext;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -53,25 +53,26 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.common.ModConfigSpec;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.registries.ForgeRegistries;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
 public final class FullautoRapidcastSpellrifleGameTestScenarios extends ApprenticeCodexGameTestScenarios {
     @GameTest(template = "gametest/basic_floor")
     public static void fullautoAdsMovementHonorsConfigAndSprintPriority(GameTestHelper helper) {
-        ModConfigSpec.DoubleValue multiplier = ApprenticeCodexServerConfig.SPEC.getValues()
+        ForgeConfigSpec.DoubleValue multiplier = ApprenticeCodexServerConfig.SPEC.getValues()
                 .get("Items.FullautoRapidcastSpellrifle.adsMovementSpeedMultiplier");
         double previous = multiplier.get();
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "fullauto_ads_movement");
         var rifle = new ItemStack(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
         var speed = player.getAttribute(Attributes.MOVEMENT_SPEED);
-        var otherId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "gametest_other_movement");
-        speed.addTransientModifier(new AttributeModifier(otherId, 0.2D, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+        var otherId = UUID.nameUUIDFromBytes((ApprenticeCodex.MODID + ":gametest_other_movement").getBytes(StandardCharsets.UTF_8));
+        speed.addTransientModifier(new AttributeModifier(otherId, "gametest_other_movement", 0.2D, AttributeModifier.Operation.MULTIPLY_TOTAL));
         double baseline = speed.getValue();
         try {
             player.setItemInHand(InteractionHand.MAIN_HAND, rifle);
@@ -83,7 +84,7 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
                     "ADS must apply the configured multiplier once, preserving other modifiers");
             multiplier.set(0.0D);
             player.setSprinting(true);
-            FullautoRapidcastSpellrifleAdsMovement.onPlayerTick(new PlayerTickEvent.Post(player));
+            FullautoRapidcastSpellrifleAdsMovement.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
             helper.assertTrue(speed.getValue() == 0.0D, "Zero ADS multiplier must disable movement");
             helper.assertTrue(!player.isSprinting(), "ADS must suppress sprinting even at zero movement multiplier");
             FullautoRapidcastSpellrifleAdsMovement.update(player, false);
@@ -95,7 +96,7 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
             multiplier.set(0.7D);
             FullautoRapidcastSpellrifleAdsMovement.update(player, true);
             player.setSprinting(true);
-            FullautoRapidcastSpellrifleAdsMovement.onPlayerTick(new PlayerTickEvent.Post(player));
+            FullautoRapidcastSpellrifleAdsMovement.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
             helper.assertTrue(!player.isSprinting() && Math.abs(speed.getValue() - baseline * 0.7D) < 1.0E-8D,
                     "ADS must stop sprinting and preserve configured slowdown");
             FullautoRapidcastSpellrifleAdsMovement.update(player, false);
@@ -105,20 +106,20 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
                     "ADS requests during sprint must enter ADS and stop sprinting");
             FullautoRapidcastSpellrifleAdsMovement.update(player, false);
             player.setSprinting(true);
-            FullautoRapidcastSpellrifleAdsMovement.onPlayerTick(new PlayerTickEvent.Post(player));
+            FullautoRapidcastSpellrifleAdsMovement.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
             helper.assertTrue(player.isSprinting(), "Releasing ADS must allow sprinting again");
             player.setSprinting(false);
             FullautoRapidcastSpellrifleAdsMovement.update(player, true);
             player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
             player.setItemInHand(InteractionHand.OFF_HAND, rifle);
             player.setSprinting(true);
-            FullautoRapidcastSpellrifleAdsMovement.onPlayerTick(new PlayerTickEvent.Post(player));
+            FullautoRapidcastSpellrifleAdsMovement.onPlayerTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
             FullautoRapidcastSpellrifleAdsMovement.update(player, true);
             helper.assertTrue(player.isSprinting(), "Offhand ADS requests must not cancel sprinting");
             player.setSprinting(false);
             helper.assertTrue(Math.abs(speed.getValue() - baseline) < 1.0E-8D,
                     "Switching away must remove slowdown and offhand ADS requests must be ignored");
-            helper.assertTrue(speed.hasModifier(otherId), "Cleanup must preserve unrelated modifiers");
+            helper.assertTrue(speed.getModifier(otherId) != null, "Cleanup must preserve unrelated modifiers");
         } finally {
             multiplier.set(previous);
             FullautoRapidcastSpellrifleAdsMovement.update(player, false);
@@ -146,20 +147,20 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
         helper.assertTrue(rifle.getEnabledCalibrationScrollSlotCount(stack, lookup) == 2
                         && FullautoRapidcastSpellrifle.hasSilverRing(stack, lookup),
                 "Other adjustments must retain their effects");
-        var restored = ItemStack.parseOptional(lookup, (CompoundTag) stack.saveOptional(lookup));
+        var restored = ItemStack.of(stack.save(new CompoundTag()));
         helper.assertTrue(FullautoRapidcastSpellrifle.hasRecoveryRune(restored, lookup), "Recovery Rune must survive serialization");
         var rule = rifle.getCalibrationAdjustmentProfile(stack).rules().stream()
                 .filter(candidate -> candidate.accepts(rune)).findFirst().orElseThrow();
-        assertTranslatableKey(helper, rule.effectLines().getFirst(),
+        assertTranslatableKey(helper, rule.effectLines().get(0),
                 "jei.apprenticecodex.spell_calibration_bench.effect.remove_recoil", "JEI must explain recoil removal");
         var lines = new ArrayList<Component>();
-        rifle.appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), lines, TooltipFlag.Default.NORMAL);
+        rifle.appendHoverText(stack, helper.getLevel(), lines, TooltipFlag.Default.NORMAL);
         assertTranslatableKey(helper, lines.get(1), "item.apprenticecodex.fullauto_rapidcast_spellrifle.desc_2.no_recoil",
                 "Adjusted controls must not claim ADS reduces recoil");
         helper.assertTrue(rifle.trySetCalibrationAdjustment(stack, 2, ItemStack.EMPTY, lookup), "Recovery Rune must be removable");
         helper.assertFalse(FullautoRapidcastSpellrifle.hasRecoveryRune(stack, lookup), "Removing Recovery Rune must restore recoil");
         lines.clear();
-        rifle.appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), lines, TooltipFlag.Default.NORMAL);
+        rifle.appendHoverText(stack, helper.getLevel(), lines, TooltipFlag.Default.NORMAL);
         assertTranslatableKey(helper, lines.get(1), "item.apprenticecodex.fullauto_rapidcast_spellrifle.desc_2",
                 "Removing Recovery Rune must restore the ADS recoil description");
         helper.succeed();
@@ -230,7 +231,7 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
             var item = (FullautoRapidcastSpellrifle) stack.getItem();
-            var modifiers = toModifierMultimap(item.getDefaultAttributeModifiers(stack));
+            var modifiers = item.getAttributeModifiers(EquipmentSlot.MAINHAND, stack);
 
             helper.assertTrue(modifiers.get(Attributes.ATTACK_DAMAGE).isEmpty(),
                     "Fullauto Rapidcast Spellrifle should not add attack damage modifiers");
@@ -246,7 +247,7 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
             var tooltipLines = new ArrayList<Component>();
-            stack.getItem().appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
+            stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
 
             helper.assertTrue(tooltipLines.size() >= 4,
                     "Fullauto Rapidcast Spellrifle tooltip should include controls, spacer, and shift hint");
@@ -486,7 +487,7 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
         var menu = new SpellCalibrationBenchMenu(0, player.getInventory());
         menu.getSlot(0).set(stack);
         var scroll = SpellCalibrationImbueHelper.createScroll(new SpellData(SpellRegistry.MAGIC_MISSILE_SPELL.get(), 1));
-        scroll.set(DataComponents.CUSTOM_NAME, Component.literal("Owned scroll"));
+        scroll.setHoverName(Component.literal("Owned scroll"));
         helper.assertTrue(menu.getEnabledScrollSlotCount() == 1, "Rifle must start with one scroll slot");
         helper.assertFalse(rifle.isSneakSelectionUiEnabled(stack), "Single-slot rifle must not open selection UI");
         var upgrade = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get());
@@ -511,11 +512,11 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
         for (var slot = 5; slot < 8; slot++) {
             helper.assertFalse(menu.getSlot(slot).mayPlace(scroll), "Disabled slots must reject insertion");
             helper.assertTrue(menu.getSlot(slot).mayPickup(player), "Disabled slots must remain extractable");
-            helper.assertTrue(ItemStack.isSameItemSameComponents(scroll, menu.getSlot(slot).remove(1)), "Scroll ownership must survive shrink");
+            helper.assertTrue(ItemStack.isSameItemSameTags(scroll, menu.getSlot(slot).remove(1)), "Scroll ownership must survive shrink");
             helper.assertTrue(FullautoRapidcastSpellrifleScrollStorage.get(stack, slot - 4, lookup).isEmpty(), "Extraction must not duplicate scrolls");
         }
-        var restored = ItemStack.parseOptional(lookup, (CompoundTag) stack.saveOptional(lookup));
-        helper.assertTrue(ItemStack.isSameItemSameComponents(scroll, FullautoRapidcastSpellrifleScrollStorage.get(restored, 0, lookup)),
+        var restored = ItemStack.of(stack.save(new CompoundTag()));
+        helper.assertTrue(ItemStack.isSameItemSameTags(scroll, FullautoRapidcastSpellrifleScrollStorage.get(restored, 0, lookup)),
                 "Scroll components must survive serialization");
         helper.assertFalse(ISpellContainer.isSpellContainer(restored), "Rifle must not project spells into a spell container");
         helper.succeed();
@@ -554,7 +555,7 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
         var expected = rifle.resolveSpecialCooldownTicks(spell.getSpellCooldown(), 100, spell.getEffectiveCastTime(1, player));
         helper.assertTrue(event.getEffectiveCooldown() == expected && expected >= 10,
                 "LONG cast duration must be added before bypass and reduction");
-        var castSpeed = player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION);
+        var castSpeed = player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION.get());
         var originalSpeed = castSpeed.getBaseValue();
         castSpeed.setBaseValue(originalSpeed + 0.5);
         try (var ignored = FullautoRapidcastSpellrifleCastContext.open(player.getUUID(), stack, spell, false)) {
@@ -577,19 +578,20 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
     public static void fullautoEnchantmentsAndIndependentDenylist(GameTestHelper helper) {
         var stack = new ItemStack(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
         var rifle = (FullautoRapidcastSpellrifle) stack.getItem();
-        var enchantments = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-        var allowed = Set.of(Enchantments.ALACRITY, Enchantments.REFLUX, Enchantments.RESERVOIR, Enchantments.TENSE,
-                Enchantments.WISDOM, Enchantments.PLUNDER, Enchantments.TRANSCENDENCE);
-        enchantments.listElements().forEach(enchantment -> {
-            var id = enchantment.key().location();
-            helper.assertTrue(rifle.supportsEnchantment(stack, enchantment)
-                            == (allowed.contains(enchantment.key()) || id.toString().equals("malum:spirit_plunder")),
+        var allowed = Set.of(EnchantmentRegistry.ALACRITY.get(), EnchantmentRegistry.REFLUX.get(),
+                EnchantmentRegistry.RESERVOIR.get(), EnchantmentRegistry.TENSE.get(),
+                EnchantmentRegistry.WISDOM.get(), EnchantmentRegistry.PLUNDER.get(),
+                EnchantmentRegistry.TRANSCENDENCE.get());
+        ForgeRegistries.ENCHANTMENTS.getValues().forEach(enchantment -> {
+            var id = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+            helper.assertTrue(rifle.canApplyAtEnchantingTable(stack, enchantment)
+                            == (allowed.contains(enchantment) || id.toString().equals("malum:spirit_plunder")),
                     "Unexpected enchantment support: " + id);
         });
         var spell = SpellRegistry.MAGIC_MISSILE_SPELL.get();
-        stack.enchant(enchantments.getOrThrow(Enchantments.TRANSCENDENCE), 1);
+        stack.enchant(EnchantmentRegistry.TRANSCENDENCE.get(), 1);
         // GameTest 環境でも Iron's の設定上限を尊重する。付与そのものの成否と上限処理を分けて検証する。
-        helper.assertTrue(Enchantments.getLevel(stack, Enchantments.TRANSCENDENCE) == 1, "Transcendence must be present");
+        helper.assertTrue(stack.getEnchantmentLevel(EnchantmentRegistry.TRANSCENDENCE.get()) == 1, "Transcendence must be present");
         helper.assertTrue(FullautoRapidcastSpellrifle.resolveImbuedSpellLevel(stack, new SpellData(spell, 1)) == Math.min(2, spell.getMaxLevel()),
                 "Transcendence must add one level without exceeding the configured maximum");
         try (var ignored = ApprenticeCodexServerConfig.useFullautoRapidcastSpellrifleSpellDenylistOverrideForGameTest(List.of(spell.getSpellId()))) {

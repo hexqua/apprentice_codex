@@ -18,7 +18,7 @@ final class SpellrifleModelRecoil {
         amount(time);
         // 通常の連射間隔では到達しない上限。異常な通知密度でも履歴を増やし続けない。
         if (impulses.size() >= 16) {
-            impulses.removeFirst();
+            impulses.remove(0);
         }
         impulses.add(new Impulse(time, strength));
     }

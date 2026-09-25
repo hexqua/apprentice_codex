@@ -4,13 +4,13 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfileManager;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEchoProfileSpellIdsPacket;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
-import net.neoforged.neoforge.event.OnDatapackSyncEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
+import net.minecraftforge.event.OnDatapackSyncEvent;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class EchoProfileSyncEvents {
     private EchoProfileSyncEvents() {
     }
@@ -20,12 +20,12 @@ public final class EchoProfileSyncEvents {
         var packet = new SyncEchoProfileSpellIdsPacket(
                 MulticastEchoStaffAttackProfileManager.createProfileSpellIdSnapshot()
         );
-        for (var player : event.getRelevantPlayers().toList()) {
+        for (var player : event.getPlayers()) {
             Networks.sendToPlayer(player, packet);
         }
     }
 
-    @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+    @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
     public static final class ClientEvents {
         private ClientEvents() {
         }

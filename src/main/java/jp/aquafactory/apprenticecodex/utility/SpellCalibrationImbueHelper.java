@@ -28,6 +28,7 @@ import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.network.chat.Component;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -194,6 +195,43 @@ public final class SpellCalibrationImbueHelper {
         return isSupportedTarget(targetStack) && isValidSpellSlot(targetStack, slot)
                 ? SpellCalibrationImbueState.ACCEPTED_USABLE
                 : SpellCalibrationImbueState.REJECTED;
+    }
+
+    public static @NotNull SpellCalibrationImbueState evaluateScrollAt(
+            @NotNull ItemStack targetStack, int slot, @NotNull ItemStack scrollStack,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
+        var spellData = getScrollSpellData(scrollStack);
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+            return SpellCalibrationImbueState.REJECTED;
+        }
+        var item = targetStack.getItem();
+        if (item instanceof StoredSpellCalibrationImbueTarget storedTarget
+                && storedTarget.usesStoredCalibrationScrolls(targetStack)) {
+            return storedTarget.evaluateCalibrationImbue(targetStack, slot, spellData, lookupProvider);
+        }
+        if (!canPlaceScrollAt(targetStack, slot, scrollStack)) {
+            return SpellCalibrationImbueState.REJECTED;
+        }
+        if (item instanceof SpellCalibrationImbueTarget imbueTarget) {
+            return imbueTarget.evaluateCalibrationImbue(targetStack, slot, spellData, lookupProvider);
+        }
+        return SpellCalibrationImbueState.ACCEPTED_USABLE;
+    }
+
+    public static @NotNull SpellCalibrationImbueState evaluateStoredScrollAt(
+            @NotNull ItemStack targetStack, int slot, @NotNull ItemStack scrollStack,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
+        var spellData = getScrollSpellData(scrollStack);
+        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
+            return SpellCalibrationImbueState.REJECTED;
+        }
+        if (targetStack.getItem() instanceof SpellCalibrationImbueTarget imbueTarget) {
+            return imbueTarget.evaluateCalibrationImbue(targetStack, slot, spellData, lookupProvider);
+        }
+        return isSupportedTarget(targetStack) && isValidSpellSlot(targetStack, slot)
+                ? SpellCalibrationImbueState.ACCEPTED_USABLE : SpellCalibrationImbueState.REJECTED;
     }
 
     public static boolean canPlaceScrollAt(@NotNull ItemStack targetStack, int slot, @NotNull ItemStack scrollStack) {

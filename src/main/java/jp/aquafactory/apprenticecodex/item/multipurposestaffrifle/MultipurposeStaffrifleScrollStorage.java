@@ -4,11 +4,9 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.Scroll;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 
 /**
  * スクロール現物を保持し、無効になった枠も取り出せるよう保存枠数を固定する。
@@ -24,11 +22,11 @@ public final class MultipurposeStaffrifleScrollStorage {
         if (!(stack.getItem() instanceof MultipurposeStaffrifle) || slot < 0 || slot >= MAX_SCROLL_SLOTS) {
             return ItemStack.EMPTY;
         }
-        var list = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag()
+        var list = (stack.hasTag() ? stack.getTag() : new CompoundTag())
                 .getCompound(ROOT).getList("Scrolls", Tag.TAG_COMPOUND);
         for (var i = 0; i < list.size(); i++) {
             var entry = list.getCompound(i);
-            if (entry.getInt("Slot") == slot) return ItemStack.parseOptional(lookup, entry.getCompound("Item"));
+            if (entry.getInt("Slot") == slot) return ItemStack.of(entry.getCompound("Item"));
         }
         return ItemStack.EMPTY;
     }
@@ -38,7 +36,7 @@ public final class MultipurposeStaffrifleScrollStorage {
                 || slot < 0 || slot >= MAX_SCROLL_SLOTS) return;
         if (!scroll.isEmpty() && !rifle.evaluateCalibrationImbue(stack, slot,
                 readSpell(scroll), lookup).canInsert()) return;
-        CustomData.update(DataComponents.CUSTOM_DATA, stack, root -> {
+        { var root = stack.getOrCreateTag();
             var data = root.getCompound(ROOT);
             var list = data.getList("Scrolls", Tag.TAG_COMPOUND);
             for (var i = list.size() - 1; i >= 0; i--) {
@@ -47,12 +45,12 @@ public final class MultipurposeStaffrifleScrollStorage {
             if (!scroll.isEmpty()) {
                 var entry = new CompoundTag();
                 entry.putInt("Slot", slot);
-                entry.put("Item", scroll.copyWithCount(1).saveOptional(lookup));
+                entry.put("Item", scroll.copyWithCount(1).save(new CompoundTag()));
                 list.add(entry);
             }
             data.put("Scrolls", list);
             root.put(ROOT, data);
-        });
+        }
         rifle.normalizeSelectedScrollIndex(stack, lookup);
     }
 
@@ -67,16 +65,16 @@ public final class MultipurposeStaffrifleScrollStorage {
     }
 
     public static int selected(ItemStack stack) {
-        var data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getCompound(ROOT);
+        var data = (stack.hasTag() ? stack.getTag() : new CompoundTag()).getCompound(ROOT);
         return data.contains("Selected", Tag.TAG_INT) ? data.getInt("Selected") : -1;
     }
 
     public static void select(ItemStack stack, int index) {
         if (selected(stack) == index) return;
-        CustomData.update(DataComponents.CUSTOM_DATA, stack, root -> {
+        { var root = stack.getOrCreateTag();
             var data = root.getCompound(ROOT);
             data.putInt("Selected", index);
             root.put(ROOT, data);
-        });
+        }
     }
 }

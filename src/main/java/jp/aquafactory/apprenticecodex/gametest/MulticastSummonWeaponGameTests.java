@@ -9,7 +9,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleScrollStorage;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
@@ -45,6 +45,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import net.minecraftforge.common.util.FakePlayer;
@@ -56,6 +58,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -116,9 +119,9 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
 
     @GameTest(template = TEMPLATE, batch = BATCH, timeoutTicks = 100)
     public static void rifleEchoTracksSupportedSummonWeapons(GameTestHelper helper) {
-        ModConfigSpec.BooleanValue enabled = ApprenticeCodexServerConfig.SPEC.getValues()
+        ForgeConfigSpec.BooleanValue enabled = ApprenticeCodexServerConfig.SPEC.getValues()
                 .get("Items.FullautoRapidcastSpellrifle.echoCastEnabled");
-        ModConfigSpec.DoubleValue damage = ApprenticeCodexServerConfig.SPEC.getValues()
+        ForgeConfigSpec.DoubleValue damage = ApprenticeCodexServerConfig.SPEC.getValues()
                 .get("Items.FullautoRapidcastSpellrifle.echoCastDamageMultiplier");
         boolean oldEnabled = enabled.get();
         double oldDamage = damage.get();
@@ -146,6 +149,11 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
     }
 
     private static WeaponCastResult castAndFinishWeapon(GameTestHelper helper, AbstractSummonWeaponSpell<?> spell, boolean repeated) {
+        return castAndFinishWeapon(helper, spell, repeated, false);
+    }
+
+    private static WeaponCastResult castAndFinishWeapon(GameTestHelper helper, AbstractSummonWeaponSpell<?> spell,
+                                                       boolean repeated, boolean rifleCast) {
         // 1.20.1のGameTest原点は地下にあるため、相対高度だけでは地形に射線を遮られる。
         // 手動tickする武器の倍率検証は、地形と他テストの構造物を避けた上空で行う。
         var player = createEchoPlayer(helper, new BlockPos(1, 30, 1), "echo_weapon_matrix");
@@ -174,7 +182,7 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
         Consumer<EntityJoinLevelEvent> weaponObserver = event -> {
             if (event.getEntity() instanceof SummonWeaponEntity weapon && weapon.getOwner() == player) weapons.add(weapon);
         };
-        NeoForge.EVENT_BUS.addListener(weaponObserver);
+        MinecraftForge.EVENT_BUS.addListener(weaponObserver);
         try {
             // 散弾の拡散を固定し、通常発動と追加発動の命中条件をそろえる。
             helper.getLevel().getRandom().setSeed(451);
@@ -185,13 +193,13 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
                 player.setItemInHand(InteractionHand.MAIN_HAND, stack);
                 player.getInventory().add(new ItemStack(ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get(), 2));
                 rifle.trySetCalibrationAdjustment(stack, 0,
-                        new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()), player.registryAccess());
+                        new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()), player.level().registryAccess());
                 if (repeated) {
                     helper.assertTrue(rifle.trySetCalibrationAdjustment(stack, 1,
-                            new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get()), player.registryAccess()), "Echo adjustment must fit");
+                            new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get()), player.level().registryAccess()), "Echo adjustment must fit");
                 }
                 FullautoRapidcastSpellrifleScrollStorage.set(stack, 0,
-                        SpellCalibrationImbueHelper.createScroll(new SpellData(spell, 1)), player.registryAccess());
+                        SpellCalibrationImbueHelper.createScroll(new SpellData(spell, 1)), player.level().registryAccess());
                 helper.assertTrue(rifle.tryTriggerSelectedSpell(player, false), "Rifle weapon cast must start: " + spell.getSpellId());
                 if (spell.getCastType() == CastType.INSTANT) {
                     spell.castSpell(helper.getLevel(), magic.getCastingSpellLevel(), player, CastSource.SWORD, true);
@@ -205,7 +213,7 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
             }
             // ライフルは完了時に上流がCastDataを解放するため、生成時に捕捉した武器で追跡する。
             helper.assertTrue(!weapons.isEmpty(), "Cast must create a weapon: " + spell.getSpellId());
-            var weapon = weapons.getFirst();
+            var weapon = weapons.get(0);
             var id = weapon.getUUID();
             if (magic.getAdditionalCastData() != null) magic.getAdditionalCastData().reset();
             magic.setAdditionalCastData(null);
@@ -231,7 +239,7 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
             }
             return new WeaponCastResult(id, initialHealth - target.getHealth());
         } finally {
-            NeoForge.EVENT_BUS.unregister(weaponObserver);
+            MinecraftForge.EVENT_BUS.unregister(weaponObserver);
             ownedEntities(helper, player).forEach(Entity::discard);
             weapons.forEach(Entity::discard);
             target.discard();

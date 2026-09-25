@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.spellgun;
 
+import jp.aquafactory.apprenticecodex.item.ammo.EmptyCasingReturnPolicy;
+
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.magic.MagicData;

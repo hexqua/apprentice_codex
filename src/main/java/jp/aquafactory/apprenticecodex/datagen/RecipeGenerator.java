@@ -1037,7 +1037,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('R', Items.REDSTONE)
                 .define('B', ItemTags.BUTTONS)
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.WEAPON_PARTS.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.WEAPON_PARTS.get()))
-                .save(recipeOutput);
+                .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get())
                 .pattern("MWS")

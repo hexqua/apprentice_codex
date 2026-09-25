@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
@@ -16,19 +15,22 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
+import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
-import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.event.client.MultipurposeStaffrifleClientFireEffectState;
 import jp.aquafactory.apprenticecodex.event.client.MultipurposeStaffrifleClientAdsState;
+import jp.aquafactory.apprenticecodex.event.client.SpellrifleSprintState;
 import jp.aquafactory.apprenticecodex.item.*;
-import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunCastContext;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellrifleMuzzleParticles;
+import jp.aquafactory.apprenticecodex.item.spellgun.RifleSpellTooltipClientHelper;
+import jp.aquafactory.apprenticecodex.item.ammo.EmptyCasingReturnPolicy;
+import jp.aquafactory.apprenticecodex.event.client.MultipurposeStaffrifleClientLookup;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunSpellListManager;
-import jp.aquafactory.apprenticecodex.network.Networks;
-import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
@@ -40,6 +42,9 @@ import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.player.LocalPlayer;
@@ -74,6 +79,11 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.server.ServerLifecycleHooks;
+import net.minecraft.world.entity.Entity;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
@@ -87,13 +97,12 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class MultipurposeStaffrifle extends Item
         implements GeoItem, NonDamageableAnvilMergeItem, CastAnimationOverrideItem,
         AttributeEnchantmentPolicy, WisdomPolicy, PlunderTarget, TranscendencePolicy,
-        StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget, ImmediateSneakSelectionUiItem {
+        StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget, ImmediateSneakSelectionUiItem, IJeiInfoItem {
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     private static final HolderLookup.Provider FALLBACK_LOOKUP = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     private static final CalibrationAdjustmentProfile CALIBRATION_PROFILE = CalibrationAdjustmentProfile.of(
@@ -132,10 +141,7 @@ public final class MultipurposeStaffrifle extends Item
     private static final int MUZZLE_RHOMBUS_LIFETIME = 8;
     private static final int MUZZLE_SPARK_LIFETIME = 10;
     private static final int ENCHANTMENT_VALUE = 15;
-    private static final float BASE_EMPTY_CASING_RETURN_CHANCE = 0.0F;
-    private static final float EQUIPPED_AMMO_POUCH_EMPTY_CASING_RETURN_CHANCE = 0.2F;
-    private static final double SPELL_POWER_BONUS = 0.10D;
-    private static final UUID SPELL_POWER_MODIFIER_ID = UUID.fromString("06ad0fe5-4dc8-4d4b-933c-d0d0e6675a39");
+    private static final String JEI_INFO_KEY_PREFIX = "item.apprenticecodex.multipurpose_staffrifle";
     private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(
             AttributeEnchantmentType.ALACRITY,
             AttributeEnchantmentType.REFLUX,
@@ -144,7 +150,6 @@ public final class MultipurposeStaffrifle extends Item
     );
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private final Multimap<Attribute, AttributeModifier> baseMainhandModifiers = buildBaseMainhandModifiers();
 
     public MultipurposeStaffrifle() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE).fireResistant());
@@ -249,19 +254,24 @@ public final class MultipurposeStaffrifle extends Item
             public boolean applyForgeHandTransform(PoseStack poseStack, LocalPlayer player, HumanoidArm arm,
                                                    ItemStack itemInHand, float partialTick, float equipProcess,
                                                    float swingProcess) {
+                if (arm != player.getMainArm()) {
+                    return false;
+                }
                 var recoilAmount = MultipurposeStaffrifleClientFireEffectState.getRecoilAmount(partialTick);
                 if (MultipurposeStaffrifleClientAdsState.shouldHandleAsAds(player)) {
                     applyAdsHandTransform(poseStack, arm, equipProcess);
-                    applyRecoilTransform(poseStack, arm, recoilAmount);
+                    applyRecoilTransform(poseStack, recoilAmount);
                     return true;
                 }
 
-                if (recoilAmount <= 0.0F) {
+                var sprintAmount = SpellrifleSprintState.amount(partialTick);
+                if (recoilAmount <= 0.0F && sprintAmount <= 0.0F) {
                     return false;
                 }
 
                 applyNormalHandTransform(poseStack, arm, equipProcess, swingProcess);
-                applyRecoilTransform(poseStack, arm, recoilAmount);
+                applySprintTransform(poseStack, arm, sprintAmount);
+                applyRecoilTransform(poseStack, recoilAmount);
                 return true;
             }
         });
@@ -657,29 +667,15 @@ public final class MultipurposeStaffrifle extends Item
     }
 
     private Multimap<Attribute, AttributeModifier> buildMainhandModifiers(ItemStack stack) {
-        if (stack == null || stack.isEmpty()) {
-            return baseMainhandModifiers;
+        if (stack == null || stack.isEmpty() || !stack.isEnchanted()) {
+            return ImmutableMultimap.of();
         }
 
         var builder = ImmutableMultimap.<Attribute, AttributeModifier>builder();
-        builder.putAll(baseMainhandModifiers);
         var prefix = "apprenticecodex.multipurpose_staffrifle.mainhand";
-        if (!AttributeEnchantmentResolver.addModifiers(builder, stack, prefix + ".enchant")) {
-            return baseMainhandModifiers;
-        }
+        // 旧個体の SURGE は保持し、本体が許可する属性エンチャントだけ反映する。
+        AttributeEnchantmentResolver.addModifiers(builder, stack, prefix + ".enchant", DIRECT_ATTRIBUTE_ENCHANTMENTS);
         return MagicAttributeModifierHelper.mergeLinearMagicModifiers(builder.build(), prefix + ".merged");
-    }
-
-    private static Multimap<Attribute, AttributeModifier> buildBaseMainhandModifiers() {
-        return ImmutableMultimap.of(
-                AttributeRegistry.SPELL_POWER.get(),
-                new AttributeModifier(
-                        SPELL_POWER_MODIFIER_ID,
-                        "apprenticecodex.multipurpose_staffrifle.mainhand.spell_power",
-                        SPELL_POWER_BONUS,
-                        AttributeModifier.Operation.MULTIPLY_BASE
-                )
-        );
     }
 
     private boolean isSupportedStaffrifleEnchantment(ItemStack stack, Enchantment enchantment) {
@@ -692,10 +688,240 @@ public final class MultipurposeStaffrifle extends Item
 
         var attributeType = AttributeEnchantmentType.from(enchantment);
         return attributeType.map(this::supportsDirectAttributeEnchantment).orElseGet(() ->
-                (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
+                (EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get())
+                || (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
                 || (EnchantmentRegistry.PLUNDER.isPresent() && enchantment == EnchantmentRegistry.PLUNDER.get()));
 
     }
+
+    @Override
+    public Handling transcendenceHandling() {
+        // 本体を SpellContainer にせず、選択中スクロールに一度だけ補正する。
+        return Handling.INTERNAL;
+    }
+
+    public static int resolveImbuedSpellLevel(ItemStack stack, SpellData spellData) {
+        var spell = spellData.getSpell();
+        return Mth.clamp(spellData.getLevel() + stack.getEnchantmentLevel(EnchantmentRegistry.TRANSCENDENCE.get()),
+                spell.getMinLevel(), spell.getMaxLevel());
+    }
+
+    public static SpellData resolveCastSpellData(Player player, ItemStack stack) {
+        return resolveCastSelection(player, stack).spellData();
+    }
+
+    public record CastSelection(SpellData spellData, CastSource castSource) {}
+
+    public static CastSelection resolveCastSelection(Player player, ItemStack stack) {
+        if (hasWisdomShard(stack, player.level().registryAccess())) {
+            var selection = new SpellSelectionManager(player).getSelection();
+            return selection == null ? new CastSelection(SpellData.EMPTY, CastSource.SPELLBOOK)
+                    : new CastSelection(selection.spellData, selection.getCastSource());
+        }
+        var data = getSelectedSpellData(stack, player.level().registryAccess());
+        return new CastSelection(data == SpellData.EMPTY ? data
+                : new SpellData(data.getSpell(), resolveImbuedSpellLevel(stack, data)), CastSource.SWORD);
+    }
+
+    public static boolean hasWisdomShard(ItemStack stack, HolderLookup.Provider lookup) {
+        return hasAdjustment(stack, ItemRegistry.WISDOM_SHARD.get(), lookup);
+    }
+
+    public static boolean hasSpyglass(ItemStack stack, HolderLookup.Provider lookup) {
+        return hasAdjustment(stack, Items.SPYGLASS, lookup);
+    }
+
+    private static boolean hasAdjustment(ItemStack stack, Item item, HolderLookup.Provider lookup) {
+        if (!(stack.getItem() instanceof MultipurposeStaffrifle)) return false;
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; slot++) {
+            if (CalibrationAdjustmentStorage.get(stack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT).is(item)) return true;
+        }
+        return false;
+    }
+
+    public static boolean isSilverRing(ItemStack stack) {
+        return stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get());
+    }
+
+    private static boolean isRecoveryRune(ItemStack stack) {
+        return stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get());
+    }
+
+    public static boolean hasRecoveryRune(ItemStack stack, HolderLookup.Provider lookup) {
+        if (!(stack.getItem() instanceof MultipurposeStaffrifle)) return false;
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; slot++) {
+            if (isRecoveryRune(CalibrationAdjustmentStorage.get(stack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static HolderLookup.Provider serializationLookup() {
+        var server = ServerLifecycleHooks.getCurrentServer();
+        return server != null ? server.registryAccess()
+                : FMLEnvironment.dist == Dist.CLIENT ? MultipurposeStaffrifleClientLookup.lookup() : FALLBACK_LOOKUP;
+    }
+
+    public static boolean isSlotUpgrade(ItemStack stack) {
+        return stack.is(io.redspace.ironsspellbooks.registries.ItemRegistry.LESSER_SPELL_SLOT_UPGRADE.get());
+    }
+
+    public static boolean hasSilverRing(ItemStack stack, HolderLookup.Provider lookup) {
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; slot++) {
+            if (isSilverRing(CalibrationAdjustmentStorage.get(stack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT)))
+                return true;
+        }
+        return false;
+    }
+
+    public static int getEnabledCalibrationScrollSlotCount(ItemStack stack, HolderLookup.Provider lookup) {
+        // WisdomShardは追加枠より優先し、現物や選択位置は保存したまま無効化する。
+        if (hasWisdomShard(stack, lookup)) return 0;
+        var count = 4;
+        for (var slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; slot++) {
+            if (isSlotUpgrade(CalibrationAdjustmentStorage.get(stack, slot, CALIBRATION_ADJUSTMENT_SLOT_COUNT)))
+                count += 2;
+        }
+        return count;
+    }
+
+    public static boolean canCastSpell(ItemStack stack, AbstractSpell spell, HolderLookup.Provider lookup) {
+        return spell != null && spell != SpellRegistry.none() && spell.isEnabled()
+                && !isSpecialCastSpellDenied(spell)
+                && (spell.getCastType() == CastType.INSTANT
+                || spell.getCastType() == CastType.LONG && hasSilverRing(stack, lookup));
+    }
+
+    @Override
+    public boolean acceptsCalibrationSpell(@NotNull SpellData data) {
+        return SpellCalibrationImbueTarget.acceptsInstantOrLong(data);
+    }
+
+    @Override
+    public boolean isCalibrationSlotAvailable(@NotNull ItemStack stack, int slot) {
+        return isCalibrationSlotAvailable(stack, slot, serializationLookup());
+    }
+
+    @Override
+    public boolean isCalibrationSlotAvailable(@NotNull ItemStack stack, int slot, HolderLookup.@NotNull Provider lookup) {
+        return stack.getItem() == this && slot >= 0 && slot < getEnabledCalibrationScrollSlotCount(stack, lookup);
+    }
+
+    @Override
+    public boolean isCalibrationSpellUsable(@NotNull ItemStack stack, @NotNull SpellData data) {
+        return isCalibrationSpellUsable(stack, data, serializationLookup());
+    }
+
+    @Override
+    public boolean isCalibrationSpellUsable(@NotNull ItemStack stack, @NotNull SpellData data,
+                                            HolderLookup.@NotNull Provider lookup) {
+        return canCastSpell(stack, data.getSpell(), lookup);
+    }
+
+    @Override
+    public boolean hasAnyStoredCalibrationScroll(@NotNull ItemStack stack) {
+        for (var slot = 0; slot < MultipurposeStaffrifleScrollStorage.MAX_SCROLL_SLOTS; slot++) {
+            if (!MultipurposeStaffrifleScrollStorage.get(stack, slot, serializationLookup()).isEmpty())
+                return true;
+        }
+        return false;
+    }
+
+    @Override
+    public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack stack) {
+        return CALIBRATION_ADJUSTMENT_SLOT_COUNT;
+    }
+
+    @Override
+    public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack stack) {
+        return CALIBRATION_PROFILE;
+    }
+
+    @Override
+    public void onCalibrationAdjustmentsChanged(@NotNull ItemStack stack, HolderLookup.@NotNull Provider lookup) {
+        normalizeSelectedScrollIndex(stack, lookup);
+    }
+
+    public int normalizeSelectedScrollIndex(ItemStack stack, HolderLookup.Provider lookup) {
+        if (hasWisdomShard(stack, lookup)) return -1;
+        var selected = MultipurposeStaffrifleScrollStorage.selected(stack);
+        if (isSelectable(stack, selected, lookup)) return selected;
+        selected = -1;
+        for (var slot = 0; slot < getEnabledCalibrationScrollSlotCount(stack, lookup); slot++) {
+            if (isSelectable(stack, slot, lookup)) {
+                selected = slot;
+                break;
+            }
+        }
+        MultipurposeStaffrifleScrollStorage.select(stack, selected);
+        return selected;
+    }
+
+    private boolean isSelectable(ItemStack stack, int slot, HolderLookup.Provider lookup) {
+        return evaluateCalibrationImbue(stack, slot,
+                MultipurposeStaffrifleScrollStorage.spell(stack, slot, lookup), lookup).isUsable();
+    }
+
+    public static SpellData getSelectedSpellData(ItemStack stack, HolderLookup.Provider lookup) {
+        if (!(stack.getItem() instanceof MultipurposeStaffrifle rifle)) return SpellData.EMPTY;
+        return MultipurposeStaffrifleScrollStorage.spell(stack, rifle.normalizeSelectedScrollIndex(stack, lookup), lookup);
+    }
+
+    @Override
+    public boolean isSneakSelectionUiEnabled(ItemStack stack) {
+        return getEnabledCalibrationScrollSlotCount(stack, serializationLookup()) >= 2;
+    }
+
+    @Override
+    public ItemStack resolveSneakSelectionStack(Player player, InteractionHand hand) {
+        return hand == InteractionHand.MAIN_HAND ? player.getMainHandItem() : ItemStack.EMPTY;
+    }
+
+    @Override
+    public List<SneakSelectionView> getSneakSelectionViews(ItemStack stack) {
+        var lookup = serializationLookup();
+        var views = new ArrayList<SneakSelectionView>();
+        for (var slot = 0; slot < getEnabledCalibrationScrollSlotCount(stack, lookup); slot++) {
+            var data = MultipurposeStaffrifleScrollStorage.spell(stack, slot, lookup);
+            if (data != SpellData.EMPTY) data = new SpellData(data.getSpell(), resolveImbuedSpellLevel(stack, data));
+            views.add(SneakSelectionView.forSpell(slot, data, isSelectable(stack, slot, lookup)));
+        }
+        return views;
+    }
+
+    @Override
+    public int getSneakSelectionIndex(ItemStack stack) {
+        return normalizeSelectedScrollIndex(stack, serializationLookup());
+    }
+
+    @Override
+    public boolean isSneakSelectionIndexSelectable(ItemStack stack, int index) {
+        return isSelectable(stack, index, serializationLookup());
+    }
+
+    @Override
+    public void setSneakSelectionIndex(ItemStack stack, int index) {
+        if (isSneakSelectionIndexSelectable(stack, index))
+            MultipurposeStaffrifleScrollStorage.select(stack, index);
+    }
+
+    @Override
+    public void inventoryTick(@NotNull ItemStack stack, Level level, @NotNull Entity entity, int slot, boolean selected) {
+        if (!level.isClientSide) normalizeSelectedScrollIndex(stack, level.registryAccess());
+    }
+
+    @Override
+    public @NotNull Optional<TooltipComponent> getTooltipImage(@NotNull ItemStack stack) {
+        return createCalibrationAdjustmentTooltip(stack);
+    }
+
+    public List<Component> getImbueRestrictionTooltipLines(ItemStack stack) {
+        return List.of(ImbueTooltipHelper.translatableGray(hasSilverRing(stack, serializationLookup())
+                ? "item.apprenticecodex.spellgun.tooltip.restrict_restrict_not_continuous"
+                : "item.apprenticecodex.spellgun.tooltip.restrict_restrict_instant_only"));
+    }
+
 
     private static void applyNormalHandTransform(PoseStack poseStack, HumanoidArm arm, float equipProcess,
                                                  float swingProcess) {
@@ -726,13 +952,24 @@ public final class MultipurposeStaffrifle extends Item
         poseStack.mulPose(Axis.XP.rotationDegrees(-4.0F));
     }
 
-    private static void applyRecoilTransform(PoseStack poseStack, HumanoidArm arm, float recoilAmount) {
+    private static void applySprintTransform(PoseStack poseStack, HumanoidArm arm, float amount) {
+        var side = arm == HumanoidArm.RIGHT ? 1 : -1;
+        // 銃とアンカーの手を体側へ寄せる。
+        poseStack.translate(side * -0.12F * amount, -0.10F * amount, 0.12F * amount);
+        poseStack.mulPose(Axis.YP.rotationDegrees(side * 45.0F * amount));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(side * -15.0F * amount));
+        poseStack.mulPose(Axis.XP.rotationDegrees(-10.0F * amount));
+    }
+
+    private static void applyRecoilTransform(PoseStack poseStack, float recoilAmount) {
         if (recoilAmount <= 0.0F) {
             return;
         }
 
-        var side = arm == HumanoidArm.RIGHT ? 1 : -1;
-        poseStack.translate(side * 0.015F * recoilAmount, -0.025F * recoilAmount, 0.18F * recoilAmount);
-        poseStack.mulPose(Axis.XP.rotationDegrees(-7.0F * recoilAmount));
+        // 一人称モデルのグリップ付近を支点に銃口を跳ね上げる。
+        poseStack.translate(0, 0.015F * recoilAmount, 0.08F * recoilAmount);
+        poseStack.translate(0, -0.39F, 0.215F);
+        poseStack.mulPose(Axis.XP.rotationDegrees(3.0F * recoilAmount));
+        poseStack.translate(0, 0.39F, -0.215F);
     }
 }

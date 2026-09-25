@@ -1,36 +1,35 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
+import net.minecraftforge.network.NetworkEvent;
+import java.util.function.Supplier;
+
+import net.minecraft.network.FriendlyByteBuf;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.event.client.SpellrifleMuzzleParticleHandler;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.jetbrains.annotations.NotNull;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 
-public record SpellrifleMuzzleParticlePacket(ClientboundLevelParticlesPacket particle) implements CustomPacketPayload {
-    public static final Type<SpellrifleMuzzleParticlePacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellrifle_muzzle_particle"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, SpellrifleMuzzleParticlePacket> STREAM_CODEC =
-            ClientboundLevelParticlesPacket.STREAM_CODEC.map(SpellrifleMuzzleParticlePacket::new,
-                    SpellrifleMuzzleParticlePacket::particle);
+public record SpellrifleMuzzleParticlePacket(ClientboundLevelParticlesPacket particle) {
 
-    @Override
-    public @NotNull Type<? extends CustomPacketPayload> type() {
-        return TYPE;
+    public static void encode(SpellrifleMuzzleParticlePacket packet, FriendlyByteBuf buffer) {
+        packet.particle().write(buffer);
     }
 
-    public static void handle(SpellrifleMuzzleParticlePacket packet, IPayloadContext context) {
+    public static SpellrifleMuzzleParticlePacket decode(FriendlyByteBuf buffer) {
+        return new SpellrifleMuzzleParticlePacket(new ClientboundLevelParticlesPacket(buffer));
+    }
+
+    public static void handle(SpellrifleMuzzleParticlePacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
+        var context = contextSupplier.get();
         context.enqueueWork(() -> {
             if (FMLEnvironment.dist == Dist.CLIENT) {
                 ClientHandler.handle(packet);
             }
         });
+        context.setPacketHandled(true);
     }
 
     @OnlyIn(Dist.CLIENT)

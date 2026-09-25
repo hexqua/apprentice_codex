@@ -66,7 +66,7 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
             helper.assertTrue(tooltip.entries().get(slot).slot() == slot && tooltip.entries().get(slot).usable(),
                     "Expanded cartridge entries must be usable and ordered");
         }
-        helper.assertTrue(ItemStack.isSameItemSameComponents(beforeTooltip, stack), "Cartridge tooltip reads must be read-only");
+        helper.assertTrue(ItemStack.isSameItemSameTags(beforeTooltip, stack), "Cartridge tooltip reads must be read-only");
         item.setSneakSelectionIndex(stack, 3);
         helper.assertTrue(QuickcastScrollCartridge.getSelectedSpellData(stack).getSpell() == longSpell,
                 "Cartridge must allow selecting a long spell");
@@ -81,7 +81,7 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
         helper.assertTrue(tooltip.entries().size() == 4 && !tooltip.entries().get(3).usable()
                         && tooltip.selectedSlot() == 0 && tooltip.selectedSpell().getSpell() == instant,
                 "Disabled scrolls must count toward the foldout without remaining selected");
-        helper.assertTrue(ItemStack.isSameItemSameComponents(beforeTooltip, stack), "Inactive scroll tooltip reads must preserve components");
+        helper.assertTrue(ItemStack.isSameItemSameTags(beforeTooltip, stack), "Inactive scroll tooltip reads must preserve components");
         helper.assertTrue(QuickcastScrollCartridge.getSelectedScrollIndex(stack) == 0,
                 "Disabling the selected slot must select the first usable scroll");
         helper.assertFalse(QuickcastScrollCartridge.getCalibrationScroll(stack, 3).isEmpty(),

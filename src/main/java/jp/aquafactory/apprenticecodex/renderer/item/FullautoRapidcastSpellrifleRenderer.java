@@ -23,7 +23,7 @@ import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
-import software.bernie.geckolib.util.RenderUtil;
+import software.bernie.geckolib.util.RenderUtils;
 
 public final class FullautoRapidcastSpellrifleRenderer extends GeoItemRenderer<FullautoRapidcastSpellrifle> {
     private static final String RUNE_BARREL_BONE = "rune_barrel";
@@ -47,9 +47,9 @@ public final class FullautoRapidcastSpellrifleRenderer extends GeoItemRenderer<F
     @Override
     public void postRender(PoseStack poseStack, FullautoRapidcastSpellrifle animatable, BakedGeoModel model,
                            MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-                           int packedLight, int packedOverlay, int colour) {
+                           int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
         super.postRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick, packedLight,
-                packedOverlay, colour);
+                packedOverlay, red, green, blue, alpha);
 
         if (isReRender) {
             return;
@@ -59,23 +59,25 @@ public final class FullautoRapidcastSpellrifleRenderer extends GeoItemRenderer<F
         if (runeColor != null) {
             float runeBrightness = resolveRuneBarrelBrightness(partialTick);
             renderGlowPass(model, poseStack, bufferSource, animatable, GlowPass.RUNE_BARREL, RUNE_BARREL_RENDER_TYPE,
-                    partialTick, multiplyRgb(0xFF000000 | runeColor, runeBrightness));
+                    partialTick, ((runeColor >> 16) & 0xFF) / 255.0F * runeBrightness,
+                    ((runeColor >> 8) & 0xFF) / 255.0F * runeBrightness,
+                    (runeColor & 0xFF) / 255.0F * runeBrightness, 1.0F);
         }
 
         float emitterBrightness = resolveEmitterBrightness(partialTick);
         renderGlowPass(model, poseStack, bufferSource, animatable, GlowPass.EMITTER, EMITTER_RENDER_TYPE,
-                partialTick, multiplyRgb(colour, emitterBrightness));
+                partialTick, emitterBrightness, emitterBrightness, emitterBrightness, alpha);
 
         float chamberBrightness = resolveChamberBrightness(partialTick);
         renderGlowPass(model, poseStack, bufferSource, animatable, GlowPass.CHAMBER, CHAMBER_RENDER_TYPE,
-                partialTick, rgba(chamberBrightness, chamberBrightness, chamberBrightness, 1.0F));
+                partialTick, chamberBrightness, chamberBrightness, chamberBrightness, 1.0F);
     }
 
     @Override
     public void renderRecursively(PoseStack poseStack, FullautoRapidcastSpellrifle animatable, GeoBone bone,
                                   RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                   boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                  int colour) {
+                                  float red, float green, float blue, float alpha) {
         var runeBarrelBone = isBoneOrChildOf(bone, RUNE_BARREL_BONE);
         var emitterBone = isBoneOrChildOf(bone, EMITTER_BONE);
         var chamberBone = isBoneOrChildOf(bone, CHAMBER_BONE);
@@ -84,7 +86,7 @@ public final class FullautoRapidcastSpellrifleRenderer extends GeoItemRenderer<F
         if (this.glowPass == GlowPass.NONE && specialBone) {
             renderChildBonesOnly(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, colour
+                    packedLight, packedOverlay, red, green, blue, alpha
             );
             return;
         }
@@ -92,7 +94,7 @@ public final class FullautoRapidcastSpellrifleRenderer extends GeoItemRenderer<F
         if (this.glowPass == GlowPass.RUNE_BARREL) {
             renderGlowPassBone(
                     poseStack, animatable, bone, runeBarrelBone, renderType, bufferSource, buffer, isReRender,
-                    partialTick, packedLight, packedOverlay, colour
+                    partialTick, packedLight, packedOverlay, red, green, blue, alpha
             );
             return;
         }
@@ -100,7 +102,7 @@ public final class FullautoRapidcastSpellrifleRenderer extends GeoItemRenderer<F
         if (this.glowPass == GlowPass.EMITTER) {
             renderGlowPassBone(
                     poseStack, animatable, bone, emitterBone, renderType, bufferSource, buffer, isReRender,
-                    partialTick, packedLight, packedOverlay, colour
+                    partialTick, packedLight, packedOverlay, red, green, blue, alpha
             );
             return;
         }
@@ -108,14 +110,14 @@ public final class FullautoRapidcastSpellrifleRenderer extends GeoItemRenderer<F
         if (this.glowPass == GlowPass.CHAMBER) {
             renderGlowPassBone(
                     poseStack, animatable, bone, chamberBone, renderType, bufferSource, buffer, isReRender,
-                    partialTick, packedLight, packedOverlay, colour
+                    partialTick, packedLight, packedOverlay, red, green, blue, alpha
             );
             return;
         }
 
         super.renderRecursively(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, colour
+                packedLight, packedOverlay, red, green, blue, alpha
         );
     }
 
@@ -127,7 +129,7 @@ public final class FullautoRapidcastSpellrifleRenderer extends GeoItemRenderer<F
 
     private void renderGlowPass(BakedGeoModel model, PoseStack poseStack, MultiBufferSource bufferSource,
                                 FullautoRapidcastSpellrifle animatable, GlowPass pass, RenderType renderType,
-                                float partialTick, int colour) {
+                                float partialTick, float red, float green, float blue, float alpha) {
         this.glowPass = pass;
         try {
             // 特殊ボーンは通常パスと glint から切り離し、発光用パスだけで描画する。
@@ -141,7 +143,10 @@ public final class FullautoRapidcastSpellrifleRenderer extends GeoItemRenderer<F
                     partialTick,
                     LightTexture.FULL_BRIGHT,
                     OverlayTexture.NO_OVERLAY,
-                    colour
+                    red,
+                    green,
+                    blue,
+                    alpha
             );
         } finally {
             this.glowPass = GlowPass.NONE;
@@ -151,34 +156,34 @@ public final class FullautoRapidcastSpellrifleRenderer extends GeoItemRenderer<F
     private void renderGlowPassBone(PoseStack poseStack, FullautoRapidcastSpellrifle animatable, GeoBone bone,
                                     boolean targetBone, RenderType renderType, MultiBufferSource bufferSource,
                                     VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight,
-                                    int packedOverlay, int colour) {
+                                    int packedOverlay, float red, float green, float blue, float alpha) {
         if (targetBone) {
             super.renderRecursively(
                     poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                    packedLight, packedOverlay, colour
+                    packedLight, packedOverlay, red, green, blue, alpha
             );
             return;
         }
 
         renderChildBonesOnly(
                 poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, colour
+                packedLight, packedOverlay, red, green, blue, alpha
         );
     }
 
     private void renderChildBonesOnly(PoseStack poseStack, FullautoRapidcastSpellrifle animatable, GeoBone bone,
                                       RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                       boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                      int colour) {
+                                      float red, float green, float blue, float alpha) {
         poseStack.pushPose();
 
         if (bone.isTrackingMatrices()) {
             Matrix4f poseState = new Matrix4f(poseStack.last().pose());
-            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
         }
 
-        RenderUtil.prepMatrixForBone(poseStack, bone);
+        RenderUtils.prepMatrixForBone(poseStack, bone);
         renderChildBones(
                 poseStack,
                 animatable,
@@ -190,7 +195,10 @@ public final class FullautoRapidcastSpellrifleRenderer extends GeoItemRenderer<F
                 partialTick,
                 packedLight,
                 packedOverlay,
-                colour
+                red,
+                green,
+                blue,
+                alpha
         );
         poseStack.popPose();
     }
@@ -206,7 +214,8 @@ public final class FullautoRapidcastSpellrifleRenderer extends GeoItemRenderer<F
             return null;
         }
 
-        var data = FullautoRapidcastSpellrifle.getSelectedSpellData(this.currentItemStack, level.registryAccess());
+        var stack = this.currentItemStack;
+        var data = FullautoRapidcastSpellrifle.getSelectedSpellData(stack, level.registryAccess());
         if (data == SpellData.EMPTY || data.getSpell() == SpellRegistry.none()) {
             return null;
         }
@@ -235,7 +244,7 @@ public final class FullautoRapidcastSpellrifleRenderer extends GeoItemRenderer<F
             return 1.0F;
         }
 
-        float maxMana = (float) player.getAttributeValue(AttributeRegistry.MAX_MANA);
+        float maxMana = (float) player.getAttributeValue(AttributeRegistry.MAX_MANA.get());
         if (maxMana <= 0.0F) {
             return 1.0F;
         }
@@ -258,19 +267,7 @@ public final class FullautoRapidcastSpellrifleRenderer extends GeoItemRenderer<F
         return false;
     }
 
-    private static int multiplyRgb(int colour, float multiplier) {
-        int alpha = colour & 0xFF000000;
-        int red = Math.round(((colour >> 16) & 0xFF) * multiplier);
-        int green = Math.round(((colour >> 8) & 0xFF) * multiplier);
-        int blue = Math.round((colour & 0xFF) * multiplier);
-        return alpha | (Mth.clamp(red, 0, 255) << 16) | (Mth.clamp(green, 0, 255) << 8) | Mth.clamp(blue, 0, 255);
-    }
-
-    private static int rgba(float red, float green, float blue, float alpha) {
-        return (Mth.clamp(Math.round(alpha * 255.0F), 0, 255) << 24)
-                | (Mth.clamp(Math.round(red * 255.0F), 0, 255) << 16)
-                | (Mth.clamp(Math.round(green * 255.0F), 0, 255) << 8)
-                | Mth.clamp(Math.round(blue * 255.0F), 0, 255);
+    private record GlowColor(float red, float green, float blue) {
     }
 
     private enum GlowPass {

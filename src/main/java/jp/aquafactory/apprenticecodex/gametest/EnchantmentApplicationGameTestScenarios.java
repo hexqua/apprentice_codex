@@ -352,8 +352,7 @@ final class EnchantmentApplicationGameTestScenarios {
                         Set.of(AttributeEnchantmentType.SURGE, AttributeEnchantmentType.ATTUNEMENT)),
                 new AttributePolicyCase(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
                         Set.of(AttributeEnchantmentType.ALACRITY, AttributeEnchantmentType.REFLUX,
-                                AttributeEnchantmentType.RESERVOIR, AttributeEnchantmentType.SURGE,
-                                AttributeEnchantmentType.TENSE)),
+                                AttributeEnchantmentType.RESERVOIR, AttributeEnchantmentType.TENSE)),
                 new AttributePolicyCase(ItemRegistry.PARRYCAST_BUCKLER.get(),
                         Set.of(AttributeEnchantmentType.ALACRITY, AttributeEnchantmentType.TENSE)),
                 new AttributePolicyCase(ItemRegistry.ELEMENT_MAIDEN_ROBE_ROBE.get(),
@@ -808,8 +807,8 @@ final class EnchantmentApplicationGameTestScenarios {
 
     private static Set<ResourceLocation> expectedMultipurposeStaffrifleEnchantments(ItemStack stack) {
         var expected = registryIdSet(EnchantmentRegistry.ALACRITY, EnchantmentRegistry.REFLUX,
-                EnchantmentRegistry.RESERVOIR, EnchantmentRegistry.SURGE, EnchantmentRegistry.TENSE,
-                EnchantmentRegistry.WISDOM, EnchantmentRegistry.PLUNDER);
+                EnchantmentRegistry.RESERVOIR, EnchantmentRegistry.TRANSCENDENCE,
+                EnchantmentRegistry.TENSE, EnchantmentRegistry.WISDOM, EnchantmentRegistry.PLUNDER);
         addExpectedMalumSpiritPlunderIfPresent(stack, expected);
         return expected;
     }

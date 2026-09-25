@@ -56,9 +56,13 @@ public final class MultipurposeStaffrifleRenderer extends GeoItemRenderer<Multip
         }
 
         var runeColor = resolveRuneBarrelColor();
-        renderGlowPass(model, poseStack, bufferSource, animatable, GlowPass.RUNE_BARREL, RUNE_BARREL_RENDER_TYPE,
-                partialTick, runeColor.red() * runeBrightness, runeColor.green() * runeBrightness,
-                runeColor.blue() * runeBrightness, 1.0F);
+        if (runeColor != null) {
+            float runeBrightness = resolveRuneBarrelBrightness(partialTick);
+            renderGlowPass(model, poseStack, bufferSource, animatable, GlowPass.RUNE_BARREL, RUNE_BARREL_RENDER_TYPE,
+                    partialTick, ((runeColor >> 16) & 0xFF) / 255.0F * runeBrightness,
+                    ((runeColor >> 8) & 0xFF) / 255.0F * runeBrightness,
+                    (runeColor & 0xFF) / 255.0F * runeBrightness, 1.0F);
+        }
 
         float emitterBrightness = resolveEmitterBrightness(partialTick);
         renderGlowPass(model, poseStack, bufferSource, animatable, GlowPass.EMITTER, EMITTER_RENDER_TYPE,

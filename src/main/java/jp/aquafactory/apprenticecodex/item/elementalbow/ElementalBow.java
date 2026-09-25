@@ -87,6 +87,7 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
+import jp.aquafactory.apprenticecodex.item.ScrollSlotTooltipData;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;

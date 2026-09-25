@@ -1,7 +1,5 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
-import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.capabilities.magic.PlayerRecasts;
@@ -46,14 +44,14 @@ public abstract class PlayerRecastsMixin {
         }
     }
 
-    @WrapMethod(method = "triggerRecastComplete")
-    private void apprenticecodex$restoreGunCooldown(RecastInstance recastInstance, RecastResult recastResult, Operation<Void> original) {
-        if (serverPlayer == null) {
-            original.call(recastInstance, recastResult);
-            return;
-        }
-        // 削除後はlookupから取得できないため、完了処理の呼び出し全体で元のRecastを保持する。
-        SpellgunRecastCompletion.run(serverPlayer, recastInstance, () -> original.call(recastInstance, recastResult));
+    @Inject(method = "triggerRecastComplete", at = @At("HEAD"))
+    private void apprenticecodex$beginGunCooldown(RecastInstance recastInstance, RecastResult recastResult, CallbackInfo ci) {
+        if (serverPlayer != null) SpellgunRecastCompletion.begin(serverPlayer, recastInstance);
+    }
+
+    @Inject(method = "triggerRecastComplete", at = @At("RETURN"))
+    private void apprenticecodex$finishGunCooldown(RecastInstance recastInstance, RecastResult recastResult, CallbackInfo ci) {
+        if (serverPlayer != null) SpellgunRecastCompletion.end();
     }
 
     @Inject(method = "tick", at = @At("HEAD"))

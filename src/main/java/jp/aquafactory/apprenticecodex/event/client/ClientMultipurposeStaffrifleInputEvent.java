@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
+import net.minecraft.util.Mth;
+
 import com.mojang.blaze3d.platform.InputConstants;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;

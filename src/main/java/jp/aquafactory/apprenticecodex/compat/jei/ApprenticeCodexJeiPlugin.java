@@ -247,7 +247,7 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         if (registeredFullautoEchoRecipe == null) {
             var recipes = collectSpellCalibrationAdjustmentJeiRecipes(true);
             if (recipes.isEmpty()) return;
-            registeredFullautoEchoRecipe = recipes.getFirst();
+            registeredFullautoEchoRecipe = recipes.get(0);
             manager.addRecipes(ApprenticeCodexJeiRecipeTypes.SPELL_CALIBRATION_ADJUSTMENT,
                     List.of(registeredFullautoEchoRecipe));
         } else {

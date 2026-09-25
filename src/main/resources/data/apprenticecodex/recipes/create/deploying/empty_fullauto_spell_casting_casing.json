@@ -1,8 +1,8 @@
 {
   "type": "create:deploying",
-  "neoforge:conditions": [
+  "conditions": [
     {
-      "type": "neoforge:mod_loaded",
+      "type": "forge:mod_loaded",
       "modid": "create"
     }
   ],
@@ -17,8 +17,8 @@
   "results": [
     {
       "count": 32,
-      "id": "apprenticecodex:empty_fullauto_spell_casting_casing"
+      "item": "apprenticecodex:empty_fullauto_spell_casting_casing"
     }
   ],
-  "keep_held_item": true
+  "keepHeldItem": true
 }

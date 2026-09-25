@@ -8,12 +8,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.Mth;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RenderFrameEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.event.TickEvent;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class MultipurposeStaffrifleClientFireEffectState {
     private static final SpellrifleModelRecoil MODEL_RECOIL = new SpellrifleModelRecoil();
 
@@ -52,7 +52,8 @@ public final class MultipurposeStaffrifleClientFireEffectState {
     }
 
     @SubscribeEvent
-    public static void onRenderFrame(RenderFrameEvent.Pre event) {
+    public static void onRenderFrame(TickEvent.RenderTickEvent event) {
+        if (event.phase != TickEvent.Phase.START) return;
         applyCameraRecoil();
     }
 
@@ -87,7 +88,7 @@ public final class MultipurposeStaffrifleClientFireEffectState {
         var minecraft = Minecraft.getInstance();
         boolean ads = MultipurposeStaffrifleClientAdsState.shouldHandleAsAds(minecraft.player);
         // 描画の補間時刻で衝撃を開始し、受信したtick内の時刻による立ち上がりの飛びを避ける。
-        double time = (double) resolveGameTime() + minecraft.getTimer().getGameTimeDeltaPartialTick(true);
+        double time = (double) resolveGameTime() + minecraft.getFrameTime();
         MODEL_RECOIL.fire(time, strength * (ads ? 0.55F : 1.0F));
     }
 

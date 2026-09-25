@@ -13,17 +13,17 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket;
 import net.minecraft.util.Mth;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.ModList;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
-import net.neoforged.neoforge.client.event.InputEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.client.event.ComputeFovModifierEvent;
+import net.minecraftforge.client.event.InputEvent;
 import org.lwjgl.glfw.GLFW;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ClientFullautoRapidcastSpellrifleInputEvent {
     private static final float CLIENT_MANA_SAFE_MARGIN = 0.0001F;
     private static boolean manaShortageLocked;
@@ -89,7 +89,8 @@ public final class ClientFullautoRapidcastSpellrifleInputEvent {
     }
 
     @SubscribeEvent
-    public static void onClientTick(ClientTickEvent.Post event) {
+    public static void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
         FullautoRapidcastSpellrifleClientAdsState.syncToServer();
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;

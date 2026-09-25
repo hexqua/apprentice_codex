@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle;
 
+import net.minecraft.util.Mth;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -22,10 +24,10 @@ public final class FullautoEchoConfigState {
 
     public static void set(boolean enabled, double multiplier, int threshold, int reduction, int minimum) {
         FullautoEchoConfigState.enabled = enabled;
-        manaMultiplier = Double.isFinite(multiplier) ? Math.clamp(multiplier, 1.0D, 10.0D) : 2.0D;
-        cooldownBypassThresholdTicks = Math.clamp(threshold, 0, 72000);
-        cooldownReductionTicks = Math.clamp(reduction, 0, 72000);
-        reducedCooldownMinimumTicks = Math.clamp(minimum, 0, 72000);
+        manaMultiplier = Double.isFinite(multiplier) ? Mth.clamp(multiplier, 1.0D, 10.0D) : 2.0D;
+        cooldownBypassThresholdTicks = Mth.clamp(threshold, 0, 72000);
+        cooldownReductionTicks = Mth.clamp(reduction, 0, 72000);
+        reducedCooldownMinimumTicks = Mth.clamp(minimum, 0, 72000);
         for (var listener : LISTENERS.toArray(Runnable[]::new)) listener.run();
     }
 
