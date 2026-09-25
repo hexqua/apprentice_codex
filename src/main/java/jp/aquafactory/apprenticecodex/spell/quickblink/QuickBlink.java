@@ -3,13 +3,18 @@ package jp.aquafactory.apprenticecodex.spell.quickblink;
 import io.redspace.ironsspellbooks.api.config.DefaultConfig;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
-import io.redspace.ironsspellbooks.api.spells.*;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
-import io.redspace.ironsspellbooks.registries.SoundRegistry;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.ShootingStarMantleRuntime;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -53,7 +58,7 @@ public class QuickBlink extends AbstractSpell {
         return 5;
     }
 
-    int getRecastDurationTick() {
+    private int getRecastDurationTick() {
         return 40;
     }
 
@@ -74,7 +79,8 @@ public class QuickBlink extends AbstractSpell {
 
     @Override
     public Optional<SoundEvent> getCastFinishSound() {
-        return Optional.of(SoundRegistry.ABYSSAL_TELEPORT.get());
+        // MantleBlink が開始・出現時の音を再生するため、上流の詠唱終了音は重ねない。
+        return Optional.empty();
     }
 
     @Override
@@ -83,7 +89,22 @@ public class QuickBlink extends AbstractSpell {
     }
 
     @Override
+    public boolean checkPreCastConditions(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
+        return entity instanceof ServerPlayer player && !QuickBlinkRuntime.active(player)
+                && !ShootingStarMantleRuntime.state(player).blink.active(level.getGameTime())
+                && super.checkPreCastConditions(level, spellLevel, entity, playerMagicData);
+    }
+
+    @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
+        if (entity instanceof ServerPlayer player && !QuickBlinkRuntime.active(player)
+                && !ShootingStarMantleRuntime.state(player).blink.active(level.getGameTime())) {
+            if (!playerMagicData.getPlayerRecasts().hasRecastForSpell(this)) {
+                playerMagicData.getPlayerRecasts().addRecast(new RecastInstance(getSpellId(), spellLevel,
+                        getRecastCount(spellLevel, player), getRecastDurationTick(), castSource, null), playerMagicData);
+            }
+            QuickBlinkRuntime.begin(player, getDistance());
+        }
         super.onCast(level, spellLevel, entity, castSource, playerMagicData);
     }
 }
