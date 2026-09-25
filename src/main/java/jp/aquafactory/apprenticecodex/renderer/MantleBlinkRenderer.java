@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleBlink;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.ShootingStarMantleRuntime;
+import jp.aquafactory.apprenticecodex.spell.quickblink.QuickBlinkRuntime;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -23,10 +24,15 @@ public final class MantleBlinkRenderer {
         var minecraft = Minecraft.getInstance();
         if (player == minecraft.getCameraEntity() && minecraft.options.getCameraType().isFirstPerson()) return -1;
         var state = ShootingStarMantleRuntime.state(player);
-        if (!state.equipped || state.blink.start() < 0) return -1;
+        var mantle = state.equipped ? state.blink : null;
+        var spell = QuickBlinkRuntime.state(player).blink;
+        if ((mantle == null || mantle.start() < 0) && spell.start() < 0) return -1;
         // 他playerの通常の3tick位置補間と、消失・出現の時系列を合わせる。
         int interpolationDelay = player == minecraft.player ? 0 : 3;
-        return state.blink.renderElapsed(player.level().getGameTime() - interpolationDelay, partialTick);
+        double time = player.level().getGameTime() - interpolationDelay;
+        double mantleElapsed = mantle == null ? -1 : mantle.renderElapsed((long) time, partialTick);
+        double spellElapsed = spell.renderElapsed((long) time, partialTick);
+        return spellElapsed >= 0 && spellElapsed < MantleBlink.DURATION ? spellElapsed : mantleElapsed;
     }
 
     public static boolean active(Entity entity, float partialTick) {

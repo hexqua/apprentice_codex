@@ -20,6 +20,7 @@ public final class MantleBlink {
     private long sequence = -1;
     private double height;
     private Vec3 direction = Vec3.ZERO;
+    private double speed = SPEED;
     private boolean blocked;
     private boolean finished;
     private boolean appearanceSound;
@@ -50,17 +51,27 @@ public final class MantleBlink {
     }
 
     public void begin(Player player, long id, Vec3 movement) {
+        begin(player, id, movement, SPEED);
+    }
+
+    public void begin(Player player, long id, Vec3 movement, double speed) {
         accept(player.level().getGameTime(), id, player.getY(), movement);
+        this.speed = speed;
         player.setDeltaMovement(Vec3.ZERO);
         if (player instanceof ServerPlayer) playSound(player);
     }
 
     public void accept(long startTime, long id, double y, Vec3 movement) {
+        accept(startTime, id, y, movement, SPEED);
+    }
+
+    public void accept(long startTime, long id, double y, Vec3 movement, double speed) {
         if (sequence != id) previousStart = start;
         start = startTime;
         sequence = id;
         height = y;
         direction = movement;
+        this.speed = speed;
         blocked = false;
         finished = false;
         appearanceSound = false;
@@ -75,6 +86,15 @@ public final class MantleBlink {
     }
 
     public void update(Player player, ShootingStarMantleRuntime.State state) {
+        boolean wasFinished = finished;
+        update(player);
+        if (!wasFinished && finished) {
+            state.lastPosition = null;
+            state.movingTicks = 0;
+        }
+    }
+
+    public void update(Player player) {
         if (start < 0 || finished) return;
         double age = elapsed(player.level().getGameTime(), 0);
         if (age >= APPEAR_TICK && !appearanceSound) {
@@ -84,8 +104,6 @@ public final class MantleBlink {
         if (age >= DURATION) {
             finished = true;
             player.setDeltaMovement(Vec3.ZERO);
-            state.lastPosition = null;
-            state.movingTicks = 0;
         } else if (age >= 0) {
             // travelを実行しないserver側でも、被弾等から持ち越した速度を残さない。
             player.setDeltaMovement(Vec3.ZERO);
@@ -94,7 +112,16 @@ public final class MantleBlink {
     }
 
     public boolean travel(Player player, ShootingStarMantleRuntime.State state) {
-        update(player, state);
+        boolean moving = travel(player);
+        if (moving) {
+            state.lastPosition = null;
+            state.movingTicks = 0;
+        }
+        return moving;
+    }
+
+    public boolean travel(Player player) {
+        update(player);
         long time = player.level().getGameTime();
         if (!active(time)) return false;
         if (lastMoveTime == time) return true;
@@ -106,7 +133,7 @@ public final class MantleBlink {
         }
         if (moving(elapsed(time, 0)) && !blocked) {
             var before = player.position();
-            var movement = direction.scale(SPEED);
+            var movement = direction.scale(speed);
             // 水平衝突時のstep-upを禁止し、10tickの高度固定を維持する。
             player.setOnGround(false);
             player.setDeltaMovement(movement);
@@ -115,8 +142,6 @@ public final class MantleBlink {
         }
         player.setDeltaMovement(Vec3.ZERO);
         player.fallDistance = 0;
-        state.lastPosition = null;
-        state.movingTicks = 0;
         return true;
     }
 
