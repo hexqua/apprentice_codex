@@ -53,6 +53,7 @@ import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerEntity;
 import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssaultRifleEntity;
 import jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrowEntity;
 import jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAimArrowEntity;
+import jp.aquafactory.apprenticecodex.spell.lockonray.LockOnRayLaserEntity;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileEntity;
 import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
@@ -415,6 +416,9 @@ public final class EntityRegistry {
 
     public static final RegistryObject<EntityType<SacredArrowEntity>> SACRED_ARROW =
             regProjectile("sacred_arrow_arrow", SacredArrowEntity::new, 128, 1);
+
+    public static final RegistryObject<EntityType<LockOnRayLaserEntity>> LOCK_ON_RAY_LASER =
+            regProjectile("lock_on_ray_laser", LockOnRayLaserEntity::new, 128, 1);
 
     public static final RegistryObject<EntityType<LunarAimArrowEntity>> LUNAR_AIM_ARROW =
             regProjectile("lunar_aim_arrow", LunarAimArrowEntity::new, 128, 1);

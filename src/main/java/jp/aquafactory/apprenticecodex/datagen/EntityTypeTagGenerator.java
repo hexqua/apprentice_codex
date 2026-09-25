@@ -30,6 +30,7 @@ public final class EntityTypeTagGenerator extends TagsProvider<EntityType<?>> {
         // 通常弾も含め、Iron'sの誘導と専用のモード選択を競合させない。
         tag(ModTags.GUIDING_BOLT_IMMUNE)
                 .add(TagEntry.element(EntityRegistry.SACRED_ARROW.getId()))
+                .add(TagEntry.element(EntityRegistry.LOCK_ON_RAY_LASER.getId()))
                 .add(TagEntry.element(EntityRegistry.LUNAR_AIM_ARROW.getId()));
     }
 }
