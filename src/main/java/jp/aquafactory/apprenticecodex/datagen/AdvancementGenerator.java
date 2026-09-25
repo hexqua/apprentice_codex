@@ -41,6 +41,14 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
             @NotNull Consumer<AdvancementHolder> saver,
             @NotNull ExistingFileHelper existingFileHelper
     ) {
+        // Malumの解禁状態はclientに保存されるため、説明書専用の進捗だけをserverへ記録する。
+        Advancement.Builder.advancement()
+                .addCriterion(
+                        AdvancementTools.MALUM_BLACK_CRYSTAL_REVEALED_CRITERION,
+                        CriteriaTriggers.IMPOSSIBLE.createCriterion(new ImpossibleTrigger.TriggerInstance())
+                )
+                .save(saver, AdvancementTools.MALUM_BLACK_CRYSTAL_REVEALED, existingFileHelper);
+
         var ironsSpellbookEquipPredicate = EntityPredicate.wrap(
                 EntityPredicate.Builder.entity()
                         .subPredicate(PlayerPredicate.Builder.player()

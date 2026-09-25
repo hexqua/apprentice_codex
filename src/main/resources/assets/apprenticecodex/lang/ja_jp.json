@@ -740,6 +740,8 @@
   "enchantment.apprenticecodex.shell": "外殻",
   "enchantment.apprenticecodex.synchronization": "同期",
   "enchantment.apprenticecodex.neutralization": "中和",
+  "enchantment.apprenticecodex.compress": "圧縮",
+  "enchantment.apprenticecodex.release": "解放",
 
   "enchantment.apprenticecodex.reflux.desc": "マナの回復速度が上昇します。",
   "enchantment.apprenticecodex.reservoir.desc": "最大マナが上昇します。",

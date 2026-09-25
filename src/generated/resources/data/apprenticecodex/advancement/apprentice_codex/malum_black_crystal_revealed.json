@@ -1,0 +1,13 @@
+{
+  "criteria": {
+    "malum_black_crystal_revealed": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "malum_black_crystal_revealed"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
