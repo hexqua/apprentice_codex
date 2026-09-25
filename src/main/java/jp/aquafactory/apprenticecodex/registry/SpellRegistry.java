@@ -49,6 +49,7 @@ import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIce;
 import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssault;
 import jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrow;
 import jp.aquafactory.apprenticecodex.spell.linearbuild.LinearBuild;
+import jp.aquafactory.apprenticecodex.spell.lockonray.LockOnRay;
 import jp.aquafactory.apprenticecodex.spell.longstride.LongStride;
 import jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAim;
 import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
@@ -68,6 +69,7 @@ import jp.aquafactory.apprenticecodex.spell.paletteshift.PaletteShift;
 import jp.aquafactory.apprenticecodex.spell.personalshelf.PersonalShelf;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxCharge;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJack;
+import jp.aquafactory.apprenticecodex.spell.quickblink.QuickBlink;
 import jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrow;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeacon;
 import jp.aquafactory.apprenticecodex.spell.senseevil.SenseEvil;
@@ -137,6 +139,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ANCHOR_BLINK = reg("anchor_blink", AnchorBlink::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> SERVANT_GAZE = reg("servant_gaze", ServantGaze::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> WAVERING_STAR = reg("wavering_star", WaveringStar::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> QUICK_BLINK = reg("quick_blink", QuickBlink::new);
 
     // 召喚.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);
@@ -179,6 +182,7 @@ public final class SpellRegistry {
     public static final DeferredHolder<AbstractSpell, AbstractSpell> WIZARDLAMP = reg("wizardlamp", Wizardlamp::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> IDOL_RECONSTRUCTION = reg("idol_reconstruction", IdolReconstruction::new);
     public static final DeferredHolder<AbstractSpell, AbstractSpell> SACRED_ARROW = reg("sacred_arrow", SacredArrow::new);
+    public static final DeferredHolder<AbstractSpell, AbstractSpell> LOCK_ON_RAY = reg("lock_on_ray", LockOnRay::new);
 
     // 氷.
     public static final DeferredHolder<AbstractSpell, AbstractSpell> FROST_RUNE = reg("frost_rune", FrostRune::new);

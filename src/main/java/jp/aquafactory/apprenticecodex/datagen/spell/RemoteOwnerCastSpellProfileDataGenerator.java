@@ -134,7 +134,8 @@ public final class RemoteOwnerCastSpellProfileDataGenerator extends JsonCodecPro
                 jp.aquafactory.apprenticecodex.registry.SpellRegistry.BLOODY_ARROW,
                 jp.aquafactory.apprenticecodex.registry.SpellRegistry.SACRED_ARROW,
                 jp.aquafactory.apprenticecodex.registry.SpellRegistry.LUNAR_AIM,
-                jp.aquafactory.apprenticecodex.registry.SpellRegistry.ECHO_ARROW);
+                jp.aquafactory.apprenticecodex.registry.SpellRegistry.ECHO_ARROW,
+                jp.aquafactory.apprenticecodex.registry.SpellRegistry.LOCK_ON_RAY);
 
         putProfiles(profiles, remoteAnchorOwnerProfile(false),
                 SpellRegistry.DRAGON_BREATH_SPELL,

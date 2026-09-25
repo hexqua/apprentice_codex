@@ -15,15 +15,12 @@ public abstract class ServerMantleFloatingMixin {
     @Shadow public ServerPlayer player;
 
     @Inject(method = "teleport(DDDFFLjava/util/Set;)V", at = @At("HEAD"))
-    private void apprenticecodex$cancelBlinkOnTeleport(CallbackInfo ci) {
+    private void apprenticecodex$resetMovementOnTeleport(CallbackInfo ci) {
         var state = ShootingStarMantleRuntime.state(player);
         state.elemental.cancel(player);
-        if (state.blink.start() >= 0) {
-            state.blink.cancel();
-            state.lastPosition = null;
-            state.movingTicks = 0;
-            ShootingStarMantleRuntime.sync(player, false);
-        }
+        // 座標補正後の位置差を浮遊高度制御へ持ち込まず、ブリンクの水平移動は続ける。
+        state.lastPosition = null;
+        state.movingTicks = 0;
     }
 
     // 浮遊禁止によるkickだけを正規の浮遊中に除外し、速度・衝突の検査は残す。

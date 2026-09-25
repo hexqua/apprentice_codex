@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "118";
+    private static final String PROTOCOL_VERSION = "121";
 
     private Networks() {
     }
@@ -22,12 +22,15 @@ public final class Networks {
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar(PROTOCOL_VERSION);
+        registrar.playToClient(LockOnRayTrailPacket.TYPE, LockOnRayTrailPacket.STREAM_CODEC, LockOnRayTrailPacket::handle);
         registrar.playToServer(ClientMalumBlackCrystalRevealedPacket.TYPE,
                 ClientMalumBlackCrystalRevealedPacket.STREAM_CODEC, ClientMalumBlackCrystalRevealedPacket::handle);
         registrar.playToServer(ClientMantleDashInputPacket.TYPE, ClientMantleDashInputPacket.STREAM_CODEC, ClientMantleDashInputPacket::handle);
         registrar.playToClient(SyncMantleDashPacket.TYPE, SyncMantleDashPacket.STREAM_CODEC, SyncMantleDashPacket::handle);
         registrar.playToClient(SyncMantlePacket.TYPE, SyncMantlePacket.STREAM_CODEC, SyncMantlePacket::handle);
         registrar.playToServer(ClientMantleImpulsePacket.TYPE, ClientMantleImpulsePacket.STREAM_CODEC, ClientMantleImpulsePacket::handle);
+        registrar.playToServer(ClientQuickBlinkInputPacket.TYPE, ClientQuickBlinkInputPacket.STREAM_CODEC, ClientQuickBlinkInputPacket::handle);
+        registrar.playToClient(SyncQuickBlinkPacket.TYPE, SyncQuickBlinkPacket.STREAM_CODEC, SyncQuickBlinkPacket::handle);
         registrar.playToServer(ClientMantleFireworkInputPacket.TYPE, ClientMantleFireworkInputPacket.STREAM_CODEC,
                 ClientMantleFireworkInputPacket::handle);
         registrar.playToClient(SyncFullautoEchoConfigPacket.TYPE,

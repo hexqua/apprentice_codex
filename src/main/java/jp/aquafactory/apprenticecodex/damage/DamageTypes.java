@@ -68,6 +68,7 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> SACRED_ARROW = register("sacred_arrow");
     public static final ResourceKey<DamageType> LUNAR_AIM = register("lunar_aim");
     public static final ResourceKey<DamageType> ECHO_ARROW = register("echo_arrow");
+    public static final ResourceKey<DamageType> LOCK_ON_RAY = register("lock_on_ray");
 
     public static final ResourceKey<DamageType> HAUNTED_BONUS = register("haunted_bonus");
     public static final ResourceKey<DamageType> MANA_FORCE_BLADE = register("mana_force_blade");
@@ -149,6 +150,7 @@ public final class DamageTypes {
         context.register(SACRED_ARROW, createTemplate(SACRED_ARROW));
         context.register(LUNAR_AIM, createTemplate(LUNAR_AIM));
         context.register(ECHO_ARROW, createTemplate(ECHO_ARROW));
+        context.register(LOCK_ON_RAY, createTemplate(LOCK_ON_RAY));
 
         context.register(HAUNTED_BONUS, createTemplate(HAUNTED_BONUS));
         context.register(MANA_FORCE_BLADE, createTemplate(MANA_FORCE_BLADE));

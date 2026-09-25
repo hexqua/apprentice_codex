@@ -37,7 +37,9 @@ public final class SacredArrowGameTests {
             var data = s.preCast();
             h.assertTrue(((SacredArrowCastData) data.getAdditionalCastData()).targetId().equals(near.getUUID()), "Must select the nearest valid target across both effects, excluding self");
             near.removeEffect(MobEffectRegistry.GUIDING_BOLT);
-            near.setPos(near.position().add(50, 0, 0));
+            // 射程外への移動とチャンク非表示化を混同しないよう、同じ水平チャンク内で離す。
+            near.setPos(near.position().add(0, 50, 0));
+            h.assertTrue(h.getLevel().getEntity(near.getUUID()) == near, "Relocated target must remain loaded for the lock retention test");
             s.owner.setYRot(90);
             s.owner.setXRot(90);
             s.spell.onCast(h.getLevel(), 1, s.owner, CastSource.SPELLBOOK, data);

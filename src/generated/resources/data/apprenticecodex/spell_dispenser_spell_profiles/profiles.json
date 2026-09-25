@@ -679,6 +679,12 @@
         "owner_required": false
       },
       "spell": "apprenticecodex:echo_arrow"
+    },
+    {
+      "profile": {
+        "owner_required": false
+      },
+      "spell": "apprenticecodex:lock_on_ray"
     }
   ]
 }

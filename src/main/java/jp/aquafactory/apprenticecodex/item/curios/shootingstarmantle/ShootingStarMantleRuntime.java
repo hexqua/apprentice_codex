@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMantlePacket;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.spell.quickblink.QuickBlinkRuntime;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -235,6 +236,7 @@ public final class ShootingStarMantleRuntime {
         boolean accepted = sequence > state.lastSequence && sequence >= 0 && state.stack == stack
                 && MantleCalibration.elementalKind(stack) == 0
                 && isHovering(player) && state.dashTicks == 0 && !state.blink.active(player.level().getGameTime())
+                && !QuickBlinkRuntime.active(player)
                 && MantleEnergy.read(stack).canImpulse()
                 && direction.lengthSqr() > 0;
         state.lastSequence = Math.max(state.lastSequence, sequence);
@@ -267,7 +269,7 @@ public final class ShootingStarMantleRuntime {
         var energy = MantleEnergy.read(stack);
         var state = state(player);
         return new SyncMantlePacket(player.getId(), !stack.isEmpty(), energy.energy(), energy.maxEnergy(), energy.recovering() && !state.elemental.defersDepletion(), state.hovering, blink, sequence, accepted,
-                state.blink.start(), state.blink.sequence(), state.blink.height(), state.blink.direction());
+                state.blink.start(), state.blink.sequence(), state.blink.direction());
     }
 
     public static void sync(ServerPlayer player, boolean blink) {
