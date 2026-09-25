@@ -77,9 +77,11 @@ public final class LockOnRayGameTests {
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void rangeOcclusionAndCrystalSelection(GameTestHelper h) {
         try (var s = new Scene(h)) {
-            var target = s.zombie(64, 0);
+            // getRangeの値に合わせる.
+            var rangeTest = 48;
+            var target = s.zombie(rangeTest, 0);
             h.assertTrue(s.spell.checkPreCastConditions(h.getLevel(), 1, s.owner, s.data), "Range boundary must be selectable");
-            target.setPos(s.origin.add(67, 0, 0));
+            target.setPos(s.origin.add(rangeTest + 3, 0, 0));
             h.assertTrue(!s.spell.checkPreCastConditions(h.getLevel(), 1, s.owner, s.data), "Targets beyond range must be rejected");
             target.setPos(s.origin.add(6, 0, 0));
             var wall = BlockPos.containing(s.origin.add(3, 1, 0));
