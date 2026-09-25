@@ -322,7 +322,7 @@ final class ChargedTwinBladeStaffGameTestScenarios extends ApprenticeCodexGameTe
                 // 基礎詠唱時間ではなく、詠唱短縮を反映した時間だけ延長することを確認する。
                 var longSpell = longPayload.toSpellData().getSpell();
                 var originalCastTime = longSpell.getEffectiveCastTime(longPayload.spellLevel(), player);
-                var castTimeReduction = player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION);
+                var castTimeReduction = player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION.get());
                 helper.assertTrue(castTimeReduction != null, "Impact cast test requires the cast time reduction attribute");
                 castTimeReduction.setBaseValue(castTimeReduction.getBaseValue() + 0.5D);
                 var effectiveCastTime = longSpell.getEffectiveCastTime(longPayload.spellLevel(), player);

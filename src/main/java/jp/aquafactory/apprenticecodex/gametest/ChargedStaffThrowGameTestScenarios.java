@@ -25,6 +25,7 @@ import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
@@ -130,7 +131,10 @@ final class ChargedStaffThrowGameTestScenarios extends ApprenticeCodexGameTestSc
             // 天候は同期的に復元し、自然落雷や別テストの天候依存と競合させない。
             float rain = level.getRainLevel(1);
             float thunder = level.getThunderLevel(1);
-            var position = helper.absoluteVec(new Vec3(1, 100, 1));
+            var column = helper.absolutePos(new BlockPos(1, 0, 1));
+            var position = new Vec3(column.getX() + 0.5D,
+                    level.getHeight(Heightmap.Types.MOTION_BLOCKING, column.getX(), column.getZ()) + 2.0D,
+                    column.getZ() + 0.5D);
             var area = new AABB(BlockPos.containing(position)).inflate(8);
             var target = Objects.requireNonNull(EntityType.COW.create(level));
             target.setPos(position);
@@ -139,7 +143,9 @@ final class ChargedStaffThrowGameTestScenarios extends ApprenticeCodexGameTestSc
                 level.setRainLevel(1);
                 level.setThunderLevel(1);
                 helper.assertTrue(level.isThundering() && level.canSeeSky(BlockPos.containing(position)),
-                        "Lightning regression requires thunder and an exposed impact position");
+                        "Lightning regression requires thunder and an exposed impact position: thunder="
+                                + level.isThundering() + ", sky=" + level.canSeeSky(BlockPos.containing(position))
+                                + ", y=" + position.y);
                 int initialBolts = level.getEntitiesOfClass(LightningBolt.class, area).size();
                 for (boolean entityImpact : new boolean[]{false, true}) {
                     var projectile = new ChargedTwinBladeStaffThrownEntity(EntityRegistry.CHARGED_TWIN_BLADE_STAFF_THROWN.get(),
