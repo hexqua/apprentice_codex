@@ -1048,6 +1048,11 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
+    public static void linearBuildRecalculatesLastStairShape(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.linearBuildRecalculatesLastStairShape(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = LINEAR_BUILD_ISOLATED_BATCH)
     public static void linearBuildCreativeCopiesHeldBlockWithoutConsumingStorage(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.linearBuildCreativeCopiesHeldBlockWithoutConsumingStorage(helper);
     }
