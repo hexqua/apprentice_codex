@@ -9721,6 +9721,27 @@ public class ApprenticeCodexGameTestScenarios {
         });
     }
 
+    static void linearBuildRecalculatesLastStairShape(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var targetPos = new BlockPos(2, 3, 5);
+            var player = createEquipmentTestPlayer(helper, new BlockPos(2, 3, 1), "linear_build_last_stair_shape_test");
+            player.setYRot(0.0F);
+            player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.OAK_STAIRS, 3));
+            helper.setBlock(targetPos, Blocks.OAK_STAIRS.defaultBlockState()
+                    .setValue(StairBlock.FACING, Direction.EAST));
+
+            castLinearBuild(helper, player, targetPos, Direction.NORTH);
+
+            // 設置時は南向きで角になりうるが、東向きのコピー後は最終位置も直線になる。
+            for (var z = 2; z <= 4; ++z) {
+                var placePos = new BlockPos(2, 3, z);
+                helper.assertBlockPresent(Blocks.OAK_STAIRS, placePos);
+                helper.assertBlockProperty(placePos, StairBlock.FACING, Direction.EAST);
+                helper.assertBlockProperty(placePos, StairBlock.SHAPE, StairsShape.STRAIGHT);
+            }
+        });
+    }
+
     static void linearBuildCreativeCopiesHeldBlockWithoutConsumingStorage(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var targetPos = new BlockPos(5, 3, 2);

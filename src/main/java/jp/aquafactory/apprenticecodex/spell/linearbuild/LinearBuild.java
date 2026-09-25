@@ -463,8 +463,12 @@ public class LinearBuild extends AbstractSpell implements IClientBlockTargetingS
         copiedState = copyProperty(copiedState, sourceState, BlockStateProperties.HALF);
         copiedState = copySlabType(copiedState, sourceState);
 
-        if (copiedState != currentState && copiedState.canSurvive(level, pos)) {
-            level.setBlock(pos, copiedState, Block.UPDATE_ALL);
+        if (copiedState != currentState) {
+            // 向きや上下半分をコピーした後の隣接関係で、階段などの接続形状を決め直す。
+            var updatedState = Block.updateFromNeighbourShapes(copiedState, level, pos);
+            if (updatedState.getBlock() == currentState.getBlock() && updatedState.canSurvive(level, pos)) {
+                level.setBlock(pos, updatedState, Block.UPDATE_ALL);
+            }
         }
     }
 
