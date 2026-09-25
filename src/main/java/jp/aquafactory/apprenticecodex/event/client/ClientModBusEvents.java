@@ -997,6 +997,7 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.COMBUSTION_JET_WAVE.get(), CombustionJetWaveRenderer::new);
         event.registerEntityRenderer(EntityRegistry.BLOOD_BRAND_KUNAI.get(), BloodBrandKunaiRenderer::new);
         event.registerEntityRenderer(EntityRegistry.SACRED_ARROW.get(), SacredArrowRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.LOCK_ON_RAY_LASER.get(), NoopRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ECHO_ARROW.get(), EchoArrowRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ECHO_ARROW_CORE.get(), EchoArrowCoreRenderer::new);
         event.registerEntityRenderer(EntityRegistry.LUNAR_AIM_ARROW.get(), LunarAimArrowRenderer::new);

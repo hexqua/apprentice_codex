@@ -1750,5 +1750,9 @@
   "ui.apprenticecodex.wavering_star.not_found_mantle": "找不到可释放魔力的斗篷……",
   "ui.apprenticecodex.wavering_star.conflict": "其他魔法的干扰使斗篷失效了！",
   "ui.apprenticecodex.wavering_star.error_recovery_mode": "斗篷的魔力尚未完全恢复！",
-  "ui.apprenticecodex.shooting_star_mantle.depleted_energy": "斗篷的魔力耗尽了！"
+  "ui.apprenticecodex.shooting_star_mantle.depleted_energy": "斗篷的魔力耗尽了！",
+  "spell.apprenticecodex.lock_on_ray": "锁定射线",
+  "entity.apprenticecodex.lock_on_ray_laser": "追踪激光",
+  "spell.apprenticecodex.lock_on_ray.guide": "凝聚神圣魔力，向开始施法时注视的目标持续发射必中激光。激光不受地形阻挡。需要始终保持专注，受到伤害时施法会被打断。不造成击退，但可以无视目标的无敌帧。",
+  "death.attack.apprenticecodex.lock_on_ray": "%1$s消失了"
 }

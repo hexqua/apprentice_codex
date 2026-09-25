@@ -1758,5 +1758,8 @@
   "ui.apprenticecodex.wavering_star.not_found_mantle": "No mantle can be found to release its energy...",
   "ui.apprenticecodex.wavering_star.conflict": "Interference from other magic has disabled the mantle!",
   "ui.apprenticecodex.wavering_star.error_recovery_mode": "The mantle's energy has not fully recovered!",
-  "ui.apprenticecodex.shooting_star_mantle.depleted_energy": "The mantle's energy is depleted!"
+  "ui.apprenticecodex.shooting_star_mantle.depleted_energy": "The mantle's energy is depleted!",
+  "entity.apprenticecodex.lock_on_ray_laser": "Homing Laser",
+  "spell.apprenticecodex.lock_on_ray.guide": "Condenses holy magic into a continuous barrage of unerring lasers that home in on the target you were looking at when casting began. The lasers pass through terrain. Requires constant concentration, so taking damage interrupts the spell. Deals no knockback and bypasses the target's invulnerability frames.",
+  "death.attack.apprenticecodex.lock_on_ray": "%1$s was erased from existence"
 }
