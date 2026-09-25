@@ -68,6 +68,7 @@ import jp.aquafactory.apprenticecodex.spell.otherworldlens.OtherworldLens;
 import jp.aquafactory.apprenticecodex.spell.paletteshift.PaletteShift;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxCharge;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJack;
+import jp.aquafactory.apprenticecodex.spell.quickblink.QuickBlink;
 import jp.aquafactory.apprenticecodex.spell.remoteeye.RemoteEye;
 import jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrow;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeacon;
@@ -138,6 +139,7 @@ public final class SpellRegistry {
     public static final RegistryObject<AbstractSpell> ANCHOR_BLINK = reg("anchor_blink", AnchorBlink::new);
     public static final RegistryObject<AbstractSpell> SERVANT_GAZE = reg("servant_gaze", ServantGaze::new);
     public static final RegistryObject<AbstractSpell> WAVERING_STAR = reg("wavering_star", WaveringStar::new);
+    public static final RegistryObject<AbstractSpell> QUICK_BLINK = reg("quick_blink", QuickBlink::new);
 
     // 召喚.
     public static final RegistryObject<AbstractSpell> ARCHER_MULTIPLE = reg("archer_multiple", ArcherMultiple::new);
