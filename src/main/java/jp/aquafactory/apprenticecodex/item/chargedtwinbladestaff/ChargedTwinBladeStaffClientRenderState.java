@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -12,6 +13,13 @@ public final class ChargedTwinBladeStaffClientRenderState {
     private ChargedTwinBladeStaffClientRenderState() {
     }
 
+    public static boolean shouldUseThrowingModel(ItemStack stack, @Nullable LivingEntity entity) {
+        // 激流と中断後の維持入力には通常モデルを使い、溜め直したときだけ投擲構えへ戻す。
+        return entity != null && !entity.isAutoSpinAttack()
+                && !ChargedTwinBladeStaffRiptide.isMaintenanceInput(entity)
+                && entity.isUsingItem() && entity.getUseItem() == stack;
+    }
+
     public static boolean shouldAccelerateIdle(@Nullable ItemStack renderingStack, @Nullable ItemDisplayContext perspective) {
         if (renderingStack == null || renderingStack.isEmpty() || !(renderingStack.getItem() instanceof ChargedTwinBladeStaff)) {
             return false;
@@ -19,6 +27,10 @@ public final class ChargedTwinBladeStaffClientRenderState {
 
         var player = Minecraft.getInstance().player;
         if (player == null || !player.isUsingItem() || player.getUsedItemHand() != InteractionHand.MAIN_HAND) {
+            return false;
+        }
+
+        if (player.isAutoSpinAttack() || ChargedTwinBladeStaffRiptide.isMaintenanceInput(player)) {
             return false;
         }
 

@@ -127,6 +127,10 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         }
 
         var hitResult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
+        if (hitResult instanceof EntityHitResult entityHitResult) {
+            // イベント内で対象が移動しても、命中判定時の交点をイベントと着弾処理で共有する。
+            hitResult = new EntityHitResult(entityHitResult.getEntity(), resolveEntityImpactPosition(entityHitResult));
+        }
         if (hitResult.getType() != HitResult.Type.MISS && !ForgeEventFactory.onProjectileImpact(this, hitResult)) {
             onHit(hitResult);
             if (impacted) {
@@ -162,7 +166,8 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         var hitEntity = hitResult.getEntity();
         var owner = getOwner();
         var damageSource = damageSources().trident(this, owner == null ? this : owner);
-        var impactForward = resolveImpactForward(hitResult.getLocation());
+        var impactPosition = hitResult.getLocation();
+        var impactForward = resolveImpactForward(impactPosition);
         var damage = (float) ChargedTwinBladeStaff.resolveThrownDamage(
                 weaponStack,
                 hitEntity instanceof LivingEntity livingEntity ? livingEntity.getMobType() : MobType.UNDEFINED
@@ -179,7 +184,15 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
             }
         }
 
-        finishImpact(hitResult.getLocation().subtract(impactForward.scale(ENTITY_IMPACT_OFFSET)), impactForward, SoundEvents.TRIDENT_HIT);
+        finishImpact(impactPosition.subtract(impactForward.scale(ENTITY_IMPACT_OFFSET)), impactForward, SoundEvents.TRIDENT_HIT);
+    }
+
+    private Vec3 resolveEntityImpactPosition(EntityHitResult hitResult) {
+        // ProjectileUtil の移動判定は交点を捨てて対象の足元を返すため、同じ判定幅で交点を復元する。
+        var bounds = hitResult.getEntity().getBoundingBox().inflate(0.3F);
+        var start = position();
+        // 交点を復元できない場合も、足元へ飛ばさず杖の現在位置を使う。
+        return bounds.clip(start, start.add(getDeltaMovement())).orElse(start);
     }
 
     @Override
@@ -211,19 +224,6 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         }
 
         if (level() instanceof ServerLevel serverLevel) {
-            if (canSummonLightning(serverLevel)) {
-                var lightningBolt = EntityType.LIGHTNING_BOLT.create(serverLevel);
-                if (lightningBolt != null) {
-                    lightningBolt.moveTo(impactPosition);
-                    if (resolveOwnerPlayer(serverLevel) instanceof ServerPlayer serverPlayer) {
-                        lightningBolt.setCause(serverPlayer);
-                    }
-                    serverLevel.addFreshEntity(lightningBolt);
-                    serverLevel.playSound(null, impactPosition.x, impactPosition.y, impactPosition.z,
-                            SoundEvents.TRIDENT_THUNDER, SoundSource.PLAYERS, 5.0F, 1.0F);
-                }
-            }
-
             if (resolveOwnerPlayer(serverLevel) instanceof ServerPlayer serverPlayer) {
                 ChargedTwinBladeStaffSpellCastManager.tryCastAtImpact(
                         serverLevel,
@@ -281,12 +281,6 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         }
 
         serverLevel.sendParticles(ParticleTypes.END_ROD, getX(), getY(), getZ(), 18, 0.18D, 0.18D, 0.18D, 0.02D);
-    }
-
-    private boolean canSummonLightning(ServerLevel level) {
-        return EnchantmentHelper.hasChanneling(weaponStack)
-                && level.isThundering()
-                && level.canSeeSky(blockPosition());
     }
 
     private Vec3 resolveImpactForward(Vec3 impactPosition) {

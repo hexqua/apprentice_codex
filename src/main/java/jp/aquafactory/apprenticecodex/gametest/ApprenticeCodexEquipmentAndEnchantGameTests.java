@@ -1475,6 +1475,26 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void chargedStaffConfiguredThrowCostsAndBoundaries(GameTestHelper helper) {
+        ChargedStaffThrowGameTestScenarios.configuredCostsAndBoundaries(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedStaffThrowConfigSyncAndTooltip(GameTestHelper helper) {
+        ChargedStaffThrowGameTestScenarios.configSyncAndTooltip(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedStaffChannelingDoesNotSummonLightning(GameTestHelper helper) {
+        ChargedStaffThrowGameTestScenarios.channelingDoesNotSummonLightning(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedStaffEntityImpactKeepsHitPositionWithoutFollowing(GameTestHelper helper) {
+        ChargedStaffThrowGameTestScenarios.entityImpactKeepsHitPositionWithoutFollowing(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffThrowConsumesMana(GameTestHelper helper) {
         ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffThrowConsumesMana(helper);
     }
@@ -1487,6 +1507,36 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     @GameTest(template = TEMPLATE)
     public static void chargedTwinBladeStaffRiptideWorksOnDryGroundWithoutProjectile(GameTestHelper helper) {
         ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffRiptideWorksOnDryGroundWithoutProjectile(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedStaffRiptideUpkeepAndExhaustion(GameTestHelper helper) {
+        ChargedStaffRiptideGameTestScenarios.upkeepAndExhaustion(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedStaffRiptideIndependentCostsAndFreeUpkeep(GameTestHelper helper) {
+        ChargedStaffRiptideGameTestScenarios.independentCostsAndFreeUpkeep(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedStaffRiptideCollisionAndFreshCharge(GameTestHelper helper) {
+        ChargedStaffRiptideGameTestScenarios.collisionAndFreshCharge(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedStaffRiptideEquipmentAndCreativeBoundaries(GameTestHelper helper) {
+        ChargedStaffRiptideGameTestScenarios.equipmentAndCreativeBoundaries(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedStaffRiptideTooltipStylesAndCosts(GameTestHelper helper) {
+        ChargedStaffRiptideGameTestScenarios.tooltipStylesAndCosts(helper);
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 100)
+    public static void chargedStaffRiptideCruiseSpeedAndSteering(GameTestHelper helper) {
+        ChargedStaffRiptideGameTestScenarios.cruiseSpeedAndSteering(helper);
     }
 
     @GameTest(template = TEMPLATE)

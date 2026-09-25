@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.CatchFlameServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ChargedTwinBladeStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.LinearBuildServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
@@ -1048,6 +1049,16 @@ public final class ApprenticeCodexServerConfig {
 
     public static SpellStainedRunicTabletServerConfig.Values spellStainedRunicTabletConfig() {
         return ITEMS_CONFIG.spellStainedRunicTabletConfig();
+    }
+
+    public static ChargedTwinBladeStaffServerConfig.Values chargedTwinBladeStaffConfig() {
+        return ITEMS_CONFIG.chargedTwinBladeStaffConfig();
+    }
+
+    public static GameTestConfigOverride useChargedTwinBladeStaffConfigOverrideForGameTest(ChargedTwinBladeStaffServerConfig.Values values) {
+        var previous = ITEMS_CONFIG.chargedTwinBladeStaffConfig();
+        ITEMS_CONFIG.setChargedTwinBladeStaffConfigForGameTest(values);
+        return () -> ITEMS_CONFIG.setChargedTwinBladeStaffConfigForGameTest(previous);
     }
 
     public static SpellReaperScytheServerConfig.Values spellReaperScytheConfig() {

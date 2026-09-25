@@ -1,5 +1,8 @@
 package jp.aquafactory.apprenticecodex.compat.epicfight;
 
+import java.util.HashMap;
+import java.util.Map;
+import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffRiptide;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.UseAnim;
@@ -12,9 +15,6 @@ import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.capabilities.item.Style;
 import yesman.epicfight.world.capabilities.item.WeaponCapability;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public final class EpicFightChargedTwinBladeStaffCapability extends WeaponCapability {
     private static final Map<LivingMotion, AnimationManager.AnimationAccessor<? extends StaticAnimation>> THROW_MOTION_MODIFIERS =
@@ -36,6 +36,7 @@ public final class EpicFightChargedTwinBladeStaffCapability extends WeaponCapabi
     public LivingMotion getLivingMotion(LivingEntityPatch<?> entityPatch, InteractionHand hand) {
         var livingEntity = (LivingEntity) entityPatch.getOriginal();
         if (hand == InteractionHand.MAIN_HAND
+                && !ChargedTwinBladeStaffRiptide.isMaintenanceInput(livingEntity)
                 && livingEntity.isUsingItem()
                 && livingEntity.getUseItem().getUseAnimation() == UseAnim.SPEAR) {
             return LivingMotions.AIM;
