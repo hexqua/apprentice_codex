@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRingAttackTrigger;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientEpicFightAttackcastRingTargetsPacket;
@@ -129,6 +130,6 @@ public final class ClientSwingMagicAttackTrigger {
     }
 
     private static boolean usesDedicatedAttackPathWithoutAttackcastRingFallback(Item item) {
-        return item instanceof MultipurposeStaffrifle || item instanceof AbstractSpellGunItem;
+        return item instanceof FullautoRapidcastSpellrifle || item instanceof MultipurposeStaffrifle || item instanceof AbstractSpellGunItem;
     }
 }

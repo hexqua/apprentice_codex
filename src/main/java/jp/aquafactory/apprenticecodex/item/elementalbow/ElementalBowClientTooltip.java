@@ -5,8 +5,10 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.util.TooltipsUtils;
+import jp.aquafactory.apprenticecodex.item.ScrollSlotTooltipClientHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -32,8 +34,15 @@ final class ElementalBowClientTooltip {
     static void append(ItemStack stack, List<Component> lines) {
         var player = Minecraft.getInstance().player;
         if (player == null) return;
+        // 引き絞り時間などの既存取得処理も、元のstackを正規化しないようコピーで表示する。
+        stack = stack.copy();
+        var tooltip = ElementalBow.getScrollTooltipData(stack, lookup());
         var selected = ElementalBow.getDisplayedSpellProfile(stack);
         lines.add(Component.empty());
+        if (Screen.hasControlDown() && !tooltip.entries().isEmpty()) {
+            ScrollSlotTooltipClientHelper.appendList(lines, tooltip, player);
+            return;
+        }
         if (selected != null) {
             var data = new SpellData(selected.spell(), selected.spellLevel());
             // 常設ルーンの系統とマナを一括反映し、一時的な過熱ペナルティは表示へ反映しない。
@@ -66,23 +75,9 @@ final class ElementalBowClientTooltip {
             }
             lines.addAll(details);
         } else {
-            lines.add(Component.translatable("item.apprenticecodex.elemental_bow.tooltip.no_selected_spell")
+            lines.add(Component.translatable("item.apprenticecodex.common.scroll_slots.no_selected_spell")
                     .withStyle(ChatFormatting.GRAY));
         }
-        lines.add(Component.translatable("item.apprenticecodex.elemental_bow.tooltip.scrolls")
-                .withStyle(ChatFormatting.GRAY));
-        for (int i = 0; i < 4; i++) {
-            var scroll = ElementalBowScrollStorage.get(stack, i, lookup());
-            if (scroll.isEmpty()) continue;
-            var data = ElementalBowScrollStorage.readSpell(stack, i, lookup());
-            var mode = data == SpellData.EMPTY ? null : ElementalBowModeManager.getResolvedDefinition(data.getSpell().getSpellResource());
-            if (mode != null && data.getSpell().isEnabled() && i < ElementalBow.getEnabledCalibrationScrollSlotCount(stack)) {
-                lines.add(Component.literal((i + 1) + ": ").append(TooltipsUtils.getTitleComponent(
-                        new SpellData(mode.spell(), mode.resolveSpellLevel(stack, data.getLevel())), player)));
-            } else {
-                lines.add(Component.translatable("item.apprenticecodex.elemental_bow.tooltip.inactive", i + 1, scroll.getHoverName())
-                        .withStyle(ChatFormatting.GRAY));
-            }
-        }
+        ScrollSlotTooltipClientHelper.appendHint(lines, tooltip.entries().size());
     }
 }

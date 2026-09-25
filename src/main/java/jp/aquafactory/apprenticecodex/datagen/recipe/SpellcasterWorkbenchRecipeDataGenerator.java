@@ -121,6 +121,16 @@ public final class SpellcasterWorkbenchRecipeDataGenerator implements DataProvid
                         1
                 ),
                 recipe(
+                        "fullauto_spell_casting_round",
+                        List.of(
+                                ingredient(Items.AMETHYST_SHARD, 1),
+                                ingredient(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get(), 1),
+                                ingredient(Items.GUNPOWDER, 1)
+                        ),
+                        List.of(result(ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get(), 24)),
+                        1
+                ),
+                recipe(
                         "advanced_spellcaster_round_recycle",
                         List.of(
                                 ingredient(Items.AMETHYST_SHARD, 1),
@@ -148,6 +158,16 @@ public final class SpellcasterWorkbenchRecipeDataGenerator implements DataProvid
                                 ingredient(Items.GUNPOWDER, 1)
                         ),
                         List.of(result(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 16)),
+                        0
+                ),
+                recipe(
+                        "fullauto_spell_casting_round_recycle",
+                        List.of(
+                                ingredient(Items.AMETHYST_SHARD, 1),
+                                ingredient(ItemRegistry.EMPTY_FULLAUTO_SPELL_CASTING_CASING.get(), 24),
+                                ingredient(Items.GUNPOWDER, 1)
+                        ),
+                        List.of(result(ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get(), 24)),
                         0
                 ),
                 recipe(

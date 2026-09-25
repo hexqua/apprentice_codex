@@ -949,24 +949,47 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.multicastEchoStaffRepeatDamageMultiplier();
     }
 
-    public static int multipurposeStaffrifleCooldownBypassThresholdTicks() {
-        return ITEMS_CONFIG.multipurposeStaffrifleCooldownBypassThresholdTicks();
+    public static boolean fullautoRapidcastSpellrifleEchoCastEnabled() {
+        return ITEMS_CONFIG.fullautoRapidcastSpellrifleEchoCastEnabled();
     }
 
-    public static int multipurposeStaffrifleCooldownReductionTicks() {
-        return ITEMS_CONFIG.multipurposeStaffrifleCooldownReductionTicks();
+    public static double fullautoRapidcastSpellrifleEchoCastDamageMultiplier() {
+        return ITEMS_CONFIG.fullautoRapidcastSpellrifleEchoCastDamageMultiplier();
     }
 
-    public static int multipurposeStaffrifleReducedCooldownMinimumTicks() {
-        return ITEMS_CONFIG.multipurposeStaffrifleReducedCooldownMinimumTicks();
+    public static double fullautoRapidcastSpellrifleEchoCastManaCostMultiplier() {
+        return ITEMS_CONFIG.fullautoRapidcastSpellrifleEchoCastManaCostMultiplier();
     }
 
-    public static int multipurposeStaffrifleAdsFullAutoIntervalTicks() {
-        return ITEMS_CONFIG.multipurposeStaffrifleAdsFullAutoIntervalTicks();
+    public static int fullautoRapidcastSpellrifleCooldownBypassThresholdTicks() {
+        return ITEMS_CONFIG.fullautoRapidcastSpellrifleCooldownBypassThresholdTicks();
+    }
+
+    public static int fullautoRapidcastSpellrifleCooldownReductionTicks() {
+        return ITEMS_CONFIG.fullautoRapidcastSpellrifleCooldownReductionTicks();
+    }
+
+    public static int fullautoRapidcastSpellrifleReducedCooldownMinimumTicks() {
+        return ITEMS_CONFIG.fullautoRapidcastSpellrifleReducedCooldownMinimumTicks();
+    }
+
+    public static double fullautoRapidcastSpellrifleAdsMovementSpeedMultiplier() {
+        return ITEMS_CONFIG.fullautoRapidcastSpellrifleAdsMovementSpeedMultiplier();
+    }
+
+    public static int fullautoRapidcastSpellrifleAdsFullAutoIntervalTicks() {
+        return ITEMS_CONFIG.fullautoRapidcastSpellrifleAdsFullAutoIntervalTicks();
+    }
+
+    public static double multipurposeStaffrifleAdsMovementSpeedMultiplier() {
+        return ITEMS_CONFIG.multipurposeStaffrifleAdsMovementSpeedMultiplier();
     }
 
     public static boolean isMultipurposeStaffrifleSpellDenied(ResourceLocation spellId) {
         return ITEMS_CONFIG.isMultipurposeStaffrifleSpellDenied(spellId);
+    }
+    public static boolean isFullautoRapidcastSpellrifleSpellDenied(ResourceLocation spellId) {
+        return ITEMS_CONFIG.isFullautoRapidcastSpellrifleSpellDenied(spellId);
     }
 
     public static boolean focusStaffbowEnableContinuousFocusedCast() {
@@ -1169,6 +1192,13 @@ public final class ApprenticeCodexServerConfig {
         var previousSpellDenylist = ITEMS_CONFIG.multipurposeStaffrifleSpellDenylist();
         ITEMS_CONFIG.setMultipurposeStaffrifleSpellDenylistForGameTest(spellDenylist);
         return () -> ITEMS_CONFIG.setMultipurposeStaffrifleSpellDenylistForGameTest(previousSpellDenylist);
+    }
+    public static GameTestConfigOverride useFullautoRapidcastSpellrifleSpellDenylistOverrideForGameTest(
+            List<String> spellDenylist
+    ) {
+        var previousSpellDenylist = ITEMS_CONFIG.fullautoRapidcastSpellrifleSpellDenylist();
+        ITEMS_CONFIG.setFullautoRapidcastSpellrifleSpellDenylistForGameTest(spellDenylist);
+        return () -> ITEMS_CONFIG.setFullautoRapidcastSpellrifleSpellDenylistForGameTest(previousSpellDenylist);
     }
 
     public static GameTestConfigOverride useCraftsmansDelightGracedRainDenylistOverrideForGameTest(

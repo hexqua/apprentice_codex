@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import org.jetbrains.annotations.NotNull;
@@ -42,8 +43,25 @@ public interface SpellCalibrationAdjustmentTarget {
         return true;
     }
 
+    default boolean trySetCalibrationAdjustment(
+            @NotNull ItemStack targetStack, int slot, @NotNull ItemStack adjustment,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
+        if (!canPlaceCalibrationAdjustment(targetStack, slot, adjustment, lookupProvider)) {
+            return false;
+        }
+        CalibrationAdjustmentStorage.set(targetStack, slot, getCalibrationAdjustmentSlotCount(targetStack), adjustment);
+        onCalibrationAdjustmentsChanged(targetStack, lookupProvider);
+        return true;
+    }
+
     /** 調整内容から派生して保存する属性や選択状態がある Item だけが上書きする。 */
     default void onCalibrationAdjustmentsChanged(@NotNull ItemStack targetStack) {
+    }
+
+    default void onCalibrationAdjustmentsChanged(@NotNull ItemStack targetStack,
+                                                 @NotNull HolderLookup.Provider lookupProvider) {
+        onCalibrationAdjustmentsChanged(targetStack);
     }
 
     default @NotNull Optional<TooltipComponent> createCalibrationAdjustmentTooltip(
@@ -64,5 +82,12 @@ public interface SpellCalibrationAdjustmentTarget {
             return false;
         }
         return getCalibrationAdjustmentProfile(targetStack).canPlace(this, targetStack, slot, adjustment);
+    }
+
+    default boolean canPlaceCalibrationAdjustment(
+            @NotNull ItemStack targetStack, int slot, @NotNull ItemStack adjustment,
+            @NotNull HolderLookup.Provider lookupProvider
+    ) {
+        return canPlaceCalibrationAdjustment(targetStack, slot, adjustment);
     }
 }

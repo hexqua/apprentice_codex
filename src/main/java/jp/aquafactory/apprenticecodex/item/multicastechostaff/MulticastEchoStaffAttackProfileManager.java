@@ -16,6 +16,9 @@ import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -32,6 +35,24 @@ public final class MulticastEchoStaffAttackProfileManager extends SimpleJsonReso
     private static final Gson GSON = new GsonBuilder().create();
     private static final MulticastEchoStaffAttackProfileManager INSTANCE = new MulticastEchoStaffAttackProfileManager();
     private static volatile Map<ResourceLocation, MulticastEchoStaffAttackProfile> profiles = Map.of();
+    private static volatile Set<ResourceLocation> clientSyncedProfileSpellIds = Set.of();
+
+    public static List<ResourceLocation> createProfileSpellIdSnapshot() {
+        return profiles.keySet().stream().sorted(Comparator.comparing(ResourceLocation::toString)).toList();
+    }
+
+    public static void applyClientSyncedProfileSpellIds(Collection<ResourceLocation> ids) {
+        clientSyncedProfileSpellIds = Set.copyOf(ids);
+    }
+
+    public static void clearClientSyncedProfileSpellIds() {
+        clientSyncedProfileSpellIds = Set.of();
+    }
+
+    public static boolean hasClientSyncedProfile(AbstractSpell spell) {
+        // 統合サーバーでも同期済み集合だけを使い、別サーバーの情報を表示しない。
+        return spell != null && clientSyncedProfileSpellIds.contains(spell.getSpellResource());
+    }
 
     private MulticastEchoStaffAttackProfileManager() {
         super(GSON, DIRECTORY);

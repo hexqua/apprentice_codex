@@ -1,0 +1,24 @@
+{
+  "type": "create:deploying",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "create"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "irons_spellbooks:mithril_scrap"
+    },
+    {
+      "item": "apprenticecodex:spell_casing_mold"
+    }
+  ],
+  "results": [
+    {
+      "count": 32,
+      "item": "apprenticecodex:empty_fullauto_spell_casting_casing"
+    }
+  ],
+  "keepHeldItem": true
+}

@@ -135,6 +135,16 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         return SpellCalibrationImbueState.ACCEPTED_USABLE;
     }
 
+    @Override
+    public boolean acceptsCalibrationSpell(@NotNull SpellData spellData) {
+        return SpellCalibrationImbueTarget.isValidCalibrationSpell(spellData);
+    }
+
+    @Override
+    public boolean isCalibrationSlotAvailable(@NotNull ItemStack targetStack, int slot) {
+        return slot >= 0 && slot < getEnabledCalibrationScrollSlotCount(targetStack);
+    }
+
     private static final String MALUM_NAMESPACE = "malum";
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "spirit_plunder");

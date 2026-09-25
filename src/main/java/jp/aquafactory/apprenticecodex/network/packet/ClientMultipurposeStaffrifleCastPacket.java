@@ -9,17 +9,17 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public record ClientMultipurposeStaffrifleCastPacket(boolean adsFullAuto, BlockTargetData targetData) {
+public record ClientMultipurposeStaffrifleCastPacket(boolean aiming, BlockTargetData targetData) {
     public static void encode(ClientMultipurposeStaffrifleCastPacket packet, FriendlyByteBuf buffer) {
-        buffer.writeBoolean(packet.adsFullAuto());
+        buffer.writeBoolean(packet.aiming());
         packet.targetData().writeToBuffer(buffer);
     }
 
     public static ClientMultipurposeStaffrifleCastPacket decode(FriendlyByteBuf buffer) {
-        var adsFullAuto = buffer.readBoolean();
+        var aiming = buffer.readBoolean();
         var targetData = new BlockTargetData();
         targetData.readFromBuffer(buffer);
-        return new ClientMultipurposeStaffrifleCastPacket(adsFullAuto, targetData);
+        return new ClientMultipurposeStaffrifleCastPacket(aiming, targetData);
     }
 
     public static void handle(ClientMultipurposeStaffrifleCastPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
@@ -32,7 +32,7 @@ public record ClientMultipurposeStaffrifleCastPacket(boolean adsFullAuto, BlockT
 
             var mainHandItem = sender.getMainHandItem().getItem();
             if (mainHandItem instanceof MultipurposeStaffrifle staffrifle) {
-                var casted = staffrifle.tryTriggerSelectedSpell(sender, packet.adsFullAuto(), packet.targetData());
+                var casted = staffrifle.tryTriggerSelectedSpell(sender, packet.aiming(), packet.targetData());
                 if (casted && ModList.get().isLoaded(EpicFightSwingMagicCompat.MOD_ID)) {
                     EpicFightSwingMagicCompat.playStaffrifleShotAnimation(sender);
                 }

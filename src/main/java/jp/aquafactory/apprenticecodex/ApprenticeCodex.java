@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
 import jp.aquafactory.apprenticecodex.compat.emf.EmfCompat;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.event.ArcanumInAJarConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.FullautoEchoConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.HighTierSwingcastStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.InstantSearchBrazierConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.IronSwingcastStaffConfigSyncEvents;
@@ -77,6 +78,7 @@ public class ApprenticeCodex
         InstantSearchBrazierConfigSyncEvents.register(bus);
         SoulstainedSteelSwingcastStaffConfigSyncEvents.register(bus);
         SpellgunConfigSyncEvents.register(bus);
+        FullautoEchoConfigSyncEvents.register(bus);
         ArcanumInAJarConfigSyncEvents.register(bus);
         Networks.register();
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {

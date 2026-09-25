@@ -87,7 +87,8 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
-import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
+import jp.aquafactory.apprenticecodex.item.ScrollSlotTooltipData;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
@@ -239,10 +240,13 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
     }
 
     @Override
-    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(@NotNull ItemStack stack, int slot, @NotNull SpellData data) {
-        return slot >= 0 && slot < getEnabledCalibrationScrollSlotCount(stack)
-                && data != SpellData.EMPTY && isElementalSpell(data.getSpell())
-                ? SpellCalibrationImbueState.ACCEPTED_USABLE : SpellCalibrationImbueState.REJECTED;
+    public boolean acceptsCalibrationSpell(@NotNull SpellData data) {
+        return SpellCalibrationImbueTarget.isValidCalibrationSpell(data) && isElementalSpell(data.getSpell());
+    }
+
+    @Override
+    public boolean isCalibrationSlotAvailable(@NotNull ItemStack stack, int slot) {
+        return slot >= 0 && slot < getEnabledCalibrationScrollSlotCount(stack);
     }
 
     @Override
@@ -254,6 +258,28 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
     @Override
     public @NotNull Optional<TooltipComponent> getTooltipImage(@NotNull ItemStack stack) {
         return createCalibrationAdjustmentTooltip(stack);
+    }
+
+    public static ScrollSlotTooltipData getScrollTooltipData(ItemStack stack, HolderLookup.Provider lookup) {
+        // 選択取得の正規化は表示用コピーだけに適用する。
+        var displayStack = stack.copy();
+        var profile = getDisplayedSpellProfile(displayStack);
+        var selected = profile == null ? SpellData.EMPTY : new SpellData(profile.spell(), profile.spellLevel());
+        int selectedSlot = profile == null ? -1 : selectedScrollSlot(displayStack);
+        var entries = new ArrayList<ScrollSlotTooltipData.Entry>();
+        for (int slot = 0; slot < 4; slot++) {
+            var scroll = ElementalBowScrollStorage.get(displayStack, slot, lookup);
+            if (scroll.isEmpty()) continue;
+            var data = ElementalBowScrollStorage.readSpell(displayStack, slot, lookup);
+            var mode = data == SpellData.EMPTY ? null
+                    : ElementalBowModeManager.getResolvedDefinition(data.getSpell().getSpellResource());
+            boolean usable = mode != null && data.getSpell().isEnabled()
+                    && slot < getEnabledCalibrationScrollSlotCount(displayStack);
+            // 有効行は実際に弓から発動する魔法、無効行は保存された魔法を表示する。
+            if (usable) data = new SpellData(mode.spell(), mode.resolveSpellLevel(displayStack, data.getLevel()));
+            entries.add(new ScrollSlotTooltipData.Entry(slot, scroll, data, usable));
+        }
+        return new ScrollSlotTooltipData(selected, selectedSlot, entries);
     }
 
     public static ResourceLocation selectionIdForSlot(int slot) {

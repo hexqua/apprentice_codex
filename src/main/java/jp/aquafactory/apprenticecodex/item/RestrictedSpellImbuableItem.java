@@ -33,10 +33,14 @@ public interface RestrictedSpellImbuableItem extends SpellCalibrationImbueTarget
     }
 
     @Override
-    default @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(@NotNull ItemStack targetStack, int slot, @NotNull SpellData spellData) {
-        return canImbueSpell(spellData)
-                ? SpellCalibrationImbueState.ACCEPTED_USABLE
-                : SpellCalibrationImbueState.REJECTED;
+    default boolean acceptsCalibrationSpell(@NotNull SpellData spellData) {
+        return canImbueSpell(spellData);
+    }
+
+    @Override
+    default boolean isCalibrationSlotAvailable(@NotNull ItemStack targetStack, int slot) {
+        var container = ISpellContainer.get(targetStack);
+        return container != null && slot >= 0 && slot < container.getMaxSpellCount();
     }
 
     default List<Component> getImbueRestrictionTooltipLines() {

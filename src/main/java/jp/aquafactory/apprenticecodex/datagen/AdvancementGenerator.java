@@ -550,6 +550,19 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                 .save(saver, advancementId("craft_multipurpose_staffrifle"), existingFileHelper);
 
         Advancement.Builder.advancement()
+                .parent(diamondGun)
+                .display(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_fullauto_rapidcast_spellrifle.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_fullauto_rapidcast_spellrifle.description"),
+                        null,
+                        FrameType.CHALLENGE,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_fullauto_rapidcast_spellrifle", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.getId()))
+                .save(saver, advancementId("craft_fullauto_rapidcast_spellrifle"), existingFileHelper);
+
+        Advancement.Builder.advancement()
                 .parent(ironGun)
                 .display(ItemRegistry.SPELLCASTER_WORKBENCH.get(),
                         Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_spellcaster_workbench.title"),

@@ -14,7 +14,6 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
-import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueState;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
@@ -124,17 +123,13 @@ public class ReflectcastShield extends AbstractImbueShieldItem
     }
 
     @Override
-    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
-            @NotNull ItemStack targetStack,
-            int slot,
-            @NotNull SpellData spellData
-    ) {
-        if (slot != 0 || !canImbueSpell(spellData)) {
-            return SpellCalibrationImbueState.REJECTED;
-        }
-        return SpellCalibrationImbueState.accepted(
-                canUseConfiguredSpell(targetStack, spellData.getSpell(), spellData.getLevel())
-        );
+    public boolean isCalibrationSlotAvailable(@NotNull ItemStack targetStack, int slot) {
+        return slot == 0;
+    }
+
+    @Override
+    public boolean isCalibrationSpellUsable(@NotNull ItemStack targetStack, @NotNull SpellData spellData) {
+        return canUseConfiguredSpell(targetStack, spellData.getSpell(), spellData.getLevel());
     }
 
     public List<Component> getImbueRestrictionTooltipLines(ItemStack stack) {

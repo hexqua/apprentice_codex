@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.player.ClientSpellCastHelper;
 import io.redspace.ironsspellbooks.render.animation.AnimationHelper;
 import jp.aquafactory.apprenticecodex.event.client.ClientPlacementPreviewManager;
 import jp.aquafactory.apprenticecodex.event.client.ClientMultipurposeStaffrifleCastContext;
+import jp.aquafactory.apprenticecodex.event.client.ClientFullautoRapidcastSpellrifleCastContext;
 import jp.aquafactory.apprenticecodex.event.client.ClientSwingcastStaffCastContext;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatScrollcasterGauntletCompat;
 import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
@@ -19,6 +20,7 @@ import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCata
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowClientCastState;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientPresentationState;
@@ -89,6 +91,7 @@ public abstract class ClientSpellCastHelperMixin {
                 FocusStaffbowClientPresentationState.activatePending(castingEntityId, spellId);
         ClientSwingcastStaffCastContext.tryActivate(castingEntityId, castingStack, spell);
         ClientMultipurposeStaffrifleCastContext.tryActivate(castingEntityId, castingStack, spell);
+        ClientFullautoRapidcastSpellrifleCastContext.tryActivate(castingEntityId, castingStack, spell);
         if (player == minecraft.player && castingStack.getItem() instanceof ReflectcastShield) {
             ReflectcastShieldClientEffectState.beginLocalSuccessFlash(
                     apprentice_codex$resolveCastingHand(castingSlot),
@@ -225,6 +228,7 @@ public abstract class ClientSpellCastHelperMixin {
     private static void handleClientBoundOnCastFinishedReturn(UUID castingEntityId, String spellId, boolean cancelled, CallbackInfo ci) {
         ClientSwingcastStaffCastContext.clearFinished(castingEntityId, spellId);
         ClientMultipurposeStaffrifleCastContext.clearFinished(castingEntityId, spellId);
+        ClientFullautoRapidcastSpellrifleCastContext.clearFinished(castingEntityId, spellId);
         FocusStaffbowClientPresentationState.clear(castingEntityId);
         // 持ち替え後も cast-start で確定した識別子だけを使い、表示コードから状態を変更しない。
         ChargecastCatalystbookClientCastIntent.finishIfMatches(castingEntityId, spellId);
@@ -456,6 +460,9 @@ public abstract class ClientSpellCastHelperMixin {
         if (stack.getItem() instanceof MultipurposeStaffrifle) {
             return ClientMultipurposeStaffrifleCastContext.matches(player.getUUID(), stack, spell);
         }
+        if (stack.getItem() instanceof FullautoRapidcastSpellrifle) {
+            return ClientFullautoRapidcastSpellrifleCastContext.matches(player.getUUID(), stack, spell);
+        }
 
         return animationOverrideItem.shouldSuppressCastStartAnimation(stack, spell);
     }
@@ -473,6 +480,9 @@ public abstract class ClientSpellCastHelperMixin {
         }
         if (stack.getItem() instanceof MultipurposeStaffrifle) {
             return ClientMultipurposeStaffrifleCastContext.matches(player.getUUID(), stack, spell);
+        }
+        if (stack.getItem() instanceof FullautoRapidcastSpellrifle) {
+            return ClientFullautoRapidcastSpellrifleCastContext.matches(player.getUUID(), stack, spell);
         }
 
         return animationOverrideItem.shouldSuppressCastFinishAnimation(stack, spell);

@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.compat.epicfight;
 
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffAttackContextManager;
 import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRingAttackTrigger;
@@ -188,6 +189,11 @@ public final class EpicFightSwingMagicCompat {
         var playerpatch = event.getPlayerPatch();
         var player = playerpatch.getOriginal();
         var stack = player.getMainHandItem();
+        if (stack.getItem() instanceof FullautoRapidcastSpellrifle rifle) {
+            event.setCanceled(true);
+            if (rifle.tryTriggerSelectedSpell(player, false)) playStaffrifleShotAnimation(playerpatch);
+            return;
+        }
         if (!(stack.getItem() instanceof MultipurposeStaffrifle staffrifle)) {
             return;
         }
@@ -365,6 +371,12 @@ public final class EpicFightSwingMagicCompat {
             if (triggerHand == InteractionHand.MAIN_HAND
                     && usesDedicatedAttackPathWithoutAttackcastRingFallback(stack.getItem())) {
                 if (player instanceof ServerPlayer serverPlayer
+                        && stack.getItem() instanceof FullautoRapidcastSpellrifle rifle
+                        && rifle.tryTriggerSelectedSpell(serverPlayer, false)) {
+                    playStaffrifleShotAnimation(serverPlayer);
+                    return true;
+                }
+                if (player instanceof ServerPlayer serverPlayer
                         && stack.getItem() instanceof MultipurposeStaffrifle staffrifle
                         && staffrifle.tryTriggerSelectedSpell(serverPlayer, false)) {
                     playStaffrifleShotAnimation(serverPlayer);
@@ -405,7 +417,8 @@ public final class EpicFightSwingMagicCompat {
 
     private static void playStaffrifleShotAnimation(ServerPlayerPatch playerpatch) {
         var player = playerpatch.getOriginal();
-        if (!(player.getMainHandItem().getItem() instanceof MultipurposeStaffrifle)) {
+        if (!(player.getMainHandItem().getItem() instanceof MultipurposeStaffrifle)
+                && !(player.getMainHandItem().getItem() instanceof FullautoRapidcastSpellrifle)) {
             return;
         }
 
@@ -445,11 +458,11 @@ public final class EpicFightSwingMagicCompat {
         if (AttackcastRingAttackTrigger.canTriggerAttack(player, hand)) {
             return true;
         }
-        return stack.getItem() instanceof MultipurposeStaffrifle;
+        return stack.getItem() instanceof MultipurposeStaffrifle || stack.getItem() instanceof FullautoRapidcastSpellrifle;
     }
 
     private static boolean usesDedicatedAttackPathWithoutAttackcastRingFallback(Item item) {
-        return item instanceof MultipurposeStaffrifle || item instanceof AbstractSpellGunItem;
+        return item instanceof FullautoRapidcastSpellrifle || item instanceof MultipurposeStaffrifle || item instanceof AbstractSpellGunItem;
     }
 
     private static InteractionHand resolveAttackHand(AttackPhaseEndEvent event) {

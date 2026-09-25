@@ -33,7 +33,6 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 public class SpellcasterAmmoPouch extends Item implements ICurioItem, InventoryInsertTarget {
-    private static final float EQUIPPED_EMPTY_CASING_RETURN_CHANCE = 0.9F;
     private static final int MAX_STORED_ITEMS = 1024;
     private static final int BAR_COLOR = 0xD79C37;
     private static final String STORAGE_TAG = "AmmoPouch";
@@ -203,14 +202,6 @@ public class SpellcasterAmmoPouch extends Item implements ICurioItem, InventoryI
     @Override
     public int getBarColor(ItemStack stack) {
         return BAR_COLOR;
-    }
-
-    public static float applyEmptyCasingReturnChanceBonus(float baseChance, @Nullable LivingEntity entity) {
-        if (!isEquippedBy(entity)) {
-            return baseChance;
-        }
-
-        return Math.max(baseChance, EQUIPPED_EMPTY_CASING_RETURN_CHANCE);
     }
 
     public static boolean isEquippedBy(@Nullable LivingEntity entity) {

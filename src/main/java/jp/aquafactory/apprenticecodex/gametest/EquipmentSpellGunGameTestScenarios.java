@@ -222,16 +222,14 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                     ItemRegistry.BASIC_SPELLCASTER_ROUND.get(),
                     ItemRegistry.ARCANE_SPELLCASTER_ROUND.get(),
                     ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get(),
-                    ItemRegistry.SPELL_DOMINATOR_ROUND.get()
+                    ItemRegistry.SPELL_DOMINATOR_ROUND.get(),
+                    ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(),
+                    ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get()
             )) {
                 assertTooltipKeyAt(helper, new ItemStack(item), 0,
                         "item.apprenticecodex.common.round.desc",
                         item.getDescriptionId() + " should use the common round tooltip");
             }
-
-            assertTooltipKeyAt(helper, new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get()), 0,
-                    "item.apprenticecodex.multi_purpose_spell_round.desc",
-                    "Multi-purpose Spell Round should retain its dedicated tooltip");
 
             for (var item : List.of(
                     ItemRegistry.EMPTY_RAPID_SPELLCASTER_CASING.get(),
@@ -239,7 +237,8 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
                     ItemRegistry.EMPTY_ARCANE_SPELLCASTER_CASING.get(),
                     ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get(),
                     ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get(),
-                    ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get()
+                    ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get(),
+                    ItemRegistry.EMPTY_FULLAUTO_SPELL_CASTING_CASING.get()
             )) {
                 assertTooltipKeyAt(helper, new ItemStack(item), 0,
                         "item.apprenticecodex.common.empty_casing.desc",
@@ -706,8 +705,8 @@ final class EquipmentSpellGunGameTestScenarios extends ApprenticeCodexGameTestSc
             var longSpell = SpellRegistry.MANTIS_LEAP.get();
             helper.assertTrue(longSpell.getEffectiveCastTime(1, player) > 0,
                     "Diamond Spellcaster Gun cooldown test requires a long spell cast time");
-            assertSpellgunCooldownAdjustment(helper, player, new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()), longSpell, 200, 200,
-                    "Diamond Spellcaster Gun should keep the original cooldown without adding cast time");
+            assertSpellgunCooldownAdjustment(helper, player, new ItemStack(ItemRegistry.DIAMOND_SPELLCASTER_GUN.get()), longSpell, 200, 200 + longSpell.getEffectiveCastTime(1, player),
+                    "Diamond Spellcaster Gun should add effective cast time to the cooldown");
         });
     }
 

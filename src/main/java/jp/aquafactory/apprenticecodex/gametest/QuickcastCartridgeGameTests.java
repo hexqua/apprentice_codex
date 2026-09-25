@@ -40,6 +40,8 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
         var stack = new ItemStack(ItemRegistry.QUICKCAST_SCROLL_CARTRIDGE.get());
         var item = (QuickcastScrollCartridge) stack.getItem();
         var instant = SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        helper.assertTrue(QuickcastScrollCartridge.getScrollTooltipData(stack).entries().isEmpty(),
+                "Empty cartridges must not expose scroll entries");
         var longSpell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MANTIS_LEAP.get();
         helper.assertTrue(QuickcastScrollCartridge.getEnabledCalibrationScrollSlotCount(stack) == 1,
                 "Cartridge must start with one scroll slot");
@@ -52,7 +54,19 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
         helper.assertTrue(QuickcastScrollCartridge.getEnabledCalibrationScrollSlotCount(stack) == 4,
                 "Three upgrades must provide four scroll slots");
         QuickcastScrollCartridge.setCalibrationScroll(stack, 0, createSpellScroll(instant));
+        QuickcastScrollCartridge.setCalibrationScroll(stack, 1, createSpellScroll(instant));
+        QuickcastScrollCartridge.setCalibrationScroll(stack, 2, createSpellScroll(instant));
         QuickcastScrollCartridge.setCalibrationScroll(stack, 3, createSpellScroll(longSpell));
+        item.setSneakSelectionIndex(stack, 2);
+        var beforeTooltip = stack.copy();
+        var tooltip = QuickcastScrollCartridge.getScrollTooltipData(stack);
+        helper.assertTrue(tooltip.entries().size() == 4 && tooltip.selectedSlot() == 2,
+                "Duplicate spells must retain their selected slot in the tooltip");
+        for (int slot = 0; slot < 4; slot++) {
+            helper.assertTrue(tooltip.entries().get(slot).slot() == slot && tooltip.entries().get(slot).usable(),
+                    "Expanded cartridge entries must be usable and ordered");
+        }
+        helper.assertTrue(ItemStack.isSameItemSameTags(beforeTooltip, stack), "Cartridge tooltip reads must be read-only");
         item.setSneakSelectionIndex(stack, 3);
         helper.assertTrue(QuickcastScrollCartridge.getSelectedSpellData(stack).getSpell() == longSpell,
                 "Cartridge must allow selecting a long spell");
@@ -62,6 +76,12 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
         helper.assertTrue(menu.getSlot(SpellCalibrationBenchMenu.SCROLL_MENU_SLOT_START).mayPlace(createSpellScroll(longSpell)),
                 "Bench must accept non-instant spells");
         item.trySetCalibrationAdjustment(stack, 2, ItemStack.EMPTY);
+        beforeTooltip = stack.copy();
+        tooltip = QuickcastScrollCartridge.getScrollTooltipData(stack);
+        helper.assertTrue(tooltip.entries().size() == 4 && !tooltip.entries().get(3).usable()
+                        && tooltip.selectedSlot() == 0 && tooltip.selectedSpell().getSpell() == instant,
+                "Disabled scrolls must count toward the foldout without remaining selected");
+        helper.assertTrue(ItemStack.isSameItemSameTags(beforeTooltip, stack), "Inactive scroll tooltip reads must preserve components");
         helper.assertTrue(QuickcastScrollCartridge.getSelectedScrollIndex(stack) == 0,
                 "Disabling the selected slot must select the first usable scroll");
         helper.assertFalse(QuickcastScrollCartridge.getCalibrationScroll(stack, 3).isEmpty(),

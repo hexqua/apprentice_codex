@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import jp.aquafactory.apprenticecodex.event.client.ClientSpellgunInputEvent;
 import jp.aquafactory.apprenticecodex.event.client.ClientSwingMagicAttackTrigger;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -45,6 +46,7 @@ public final class EpicFightClientCompat {
         // RangedWeaponCapability は Find Weapon の自動判定対象外なので、アイテムクラスを明示登録する。
         ItemsPreferenceScreen.registerWeaponCategorizedItemClasses(
                 MultipurposeStaffrifle.class,
+                FullautoRapidcastSpellrifle.class,
                 AbstractSpellGunItem.class
         );
     }

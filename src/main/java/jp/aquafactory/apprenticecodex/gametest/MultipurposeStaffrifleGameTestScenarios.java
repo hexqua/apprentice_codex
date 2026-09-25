@@ -1,5 +1,11 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleScrollStorage;
+
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+
+import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
+
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
@@ -20,6 +26,7 @@ import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunCastContext;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
@@ -48,13 +55,8 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
                     "Multipurpose Staffrifle should not add attack damage modifiers");
             helper.assertTrue(modifiers.get(Attributes.ATTACK_SPEED).isEmpty(),
                     "Multipurpose Staffrifle should not add attack speed modifiers");
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(AttributeRegistry.SPELL_POWER.get()),
-                    AttributeModifier.Operation.MULTIPLY_BASE,
-                    0.10D,
-                    "Multipurpose Staffrifle spell power modifier changed"
-            );
+            helper.assertTrue(modifiers.get(AttributeRegistry.SPELL_POWER.get()).isEmpty(),
+                    "Multipurpose Staffrifle must not add spell power");
 
         });
     }
@@ -64,7 +66,7 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
             var tooltipLines = new ArrayList<Component>();
             stack.getItem().appendHoverText(stack, helper.getLevel(), tooltipLines, TooltipFlag.Default.NORMAL);
 
-            helper.assertTrue(tooltipLines.size() >= 4,
+            helper.assertTrue(tooltipLines.size() >= 5,
                     "Multipurpose Staffrifle tooltip should include controls, spacer, and shift hint");
             assertTranslatableKey(
                     helper,
@@ -78,27 +80,39 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
                     "item.apprenticecodex.multipurpose_staffrifle.desc_2",
                     "Multipurpose Staffrifle should show right-click control second"
             );
-            helper.assertTrue(tooltipLines.get(2).getString().isEmpty(),
+            assertTranslatableKey(
+                    helper,
+                    tooltipLines.get(2),
+                    "item.apprenticecodex.multipurpose_staffrifle.no_scope",
+                    "Multipurpose Staffrifle should show zoom description after controls"
+            );
+            helper.assertTrue(tooltipLines.get(3).getString().isEmpty(),
                     "Multipurpose Staffrifle should separate controls from the shift hint with a blank line");
             assertTranslatableKey(
                     helper,
-                    tooltipLines.get(3),
+                    tooltipLines.get(4),
                     "item.apprenticecodex.spellgun.tooltip.hint",
                     "Multipurpose Staffrifle should show shift hint after controls"
             );
         });
     }
-    static void multipurposeStaffrifleSpecialCooldownPolicyMatchesDefaults(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (MultipurposeStaffrifle) ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get();
-            helper.assertTrue(item.resolveSpecialCooldownTicks(20 * 10) == 0,
-                    "Multipurpose Staffrifle should remove cooldowns at the default bypass threshold");
-            helper.assertTrue(item.resolveSpecialCooldownTicks(20 * 11) == 20 * 10,
-                    "Multipurpose Staffrifle should not reduce longer cooldowns below the default minimum");
-            helper.assertTrue(item.resolveSpecialCooldownTicks(20 * 60) == 20 * 30,
-                    "Multipurpose Staffrifle should subtract the default 30 seconds from long cooldowns");
-        });
+    static void multipurposeStaffriflePreservesNormalCooldown(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_cooldown");
+        var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+        MagicData.getPlayerMagicData(player).setPlayerCastingItem(stack);
+        var spell = SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        for (var ticks : new int[]{0, 20, 200, 220, 1200}) {
+            var event = new SpellCooldownAddedEvent.Pre(ticks, spell, player, CastSource.SWORD);
+            try (var ignored = MultipurposeStaffrifleCastContext.open(player.getUUID(), stack, spell, false)) {
+                MultipurposeStaffrifleCastEvent.onSpellCooldownAdded(event);
+            } catch (Exception exception) {
+                throw new IllegalStateException("Failed to close cooldown test context", exception);
+            }
+            helper.assertTrue(event.getEffectiveCooldown() == ticks, "INSTANT cooldown must remain unchanged");
+        }
+        helper.succeed();
     }
+
 
     static void multipurposeStaffrifleRateLimitIgnoresLegacyPersistentNbt(GameTestHelper helper) {
         helper.succeedIf(() -> {
@@ -134,12 +148,12 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
             var roundItem = (SpellcasterRoundItem) ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get();
             helper.assertTrue(roundItem.getEmptyCasingItem() == ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get(),
                     "Multi-purpose Spell Round should return Empty Multi-purpose Spell Casing");
-            helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.0F,
-                    "Multipurpose Staffrifle should not return empty casings without Spellcaster Ammo Pouch");
+            helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.2F,
+                    "Multipurpose Staffrifle should use 20% empty casing return chance without Spellcaster Ammo Pouch");
 
             equipCurio(player, CuriosSlotConstants.BELT, new ItemStack(ItemRegistry.SPELLCASTER_AMMO_POUCH.get()));
-            helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.2F,
-                    "Multipurpose Staffrifle should use 20% empty casing return chance with Spellcaster Ammo Pouch");
+            helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.9F,
+                    "Multipurpose Staffrifle should use 90% empty casing return chance with Spellcaster Ammo Pouch");
         });
     }
     static void multipurposeStaffrifleRecastSkipsAmmoConsumption(GameTestHelper helper) {
@@ -223,6 +237,36 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
             }
         });
     }
+    static void multipurposeStaffrifleCastsAtZeroMana(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "multipurpose_mana");
+        var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
+        var rifle = (MultipurposeStaffrifle) stack.getItem();
+        var lookup = helper.getLevel().registryAccess();
+        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+        var magic = MagicData.getPlayerMagicData(player);
+        magic.setSyncedData(new SyncedSpellData(player));
+        magic.setMana(0);
+        var spell = SpellRegistry.MAGIC_MISSILE_SPELL.get();
+        MultipurposeStaffrifleScrollStorage.set(stack, 0,
+                SpellCalibrationImbueHelper.createScroll(new SpellData(spell, 1)), lookup);
+        helper.assertFalse(rifle.tryTriggerSelectedSpell(player, false), "Missing ammo must reject the cast");
+        player.getInventory().add(new ItemStack(ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(), 2));
+        helper.assertTrue(rifle.tryTriggerSelectedSpell(player, false), "INSTANT must initiate at zero mana");
+        // FakePlayerは通常のplayer tickを受けないため、INSTANTの完了だけ明示的に進める。
+        spell.castSpell(helper.getLevel(), magic.getCastingSpellLevel(), player, CastSource.SWORD, true);
+        helper.assertTrue(magic.getMana() == 0, "Successful cast must not consume or add mana");
+        helper.assertTrue(SpellGunCastEvent.countAvailableAmmo(player, player.getInventory(), rifle.getAmmoItem(stack)) == 1,
+                "Successful cast must consume exactly one round");
+        helper.assertFalse(SpellgunCastContext.shouldBypassManaCheck(spell, player), "Bypass must not escape the cast scope");
+        helper.assertTrue(magic.getPlayerCooldowns().isOnCooldown(spell), "Normal cooldown must be applied");
+        MultipurposeStaffrifleRateLimiter.clear(player);
+        helper.assertFalse(rifle.tryTriggerSelectedSpell(player, true), "ADS must not bypass spell cooldown");
+        helper.assertTrue(SpellGunCastEvent.countAvailableAmmo(player, player.getInventory(), rifle.getAmmoItem(stack)) == 1,
+                "Rejected cast must preserve ammunition");
+        helper.succeed();
+    }
+
+
     static void multipurposeStaffrifleInstantCastConsumesAmmoAndAppliesCooldownPolicy(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
@@ -263,8 +307,8 @@ final class MultipurposeStaffrifleGameTestScenarios extends ApprenticeCodexGameT
                     CastSource.SWORD
             );
             MultipurposeStaffrifleCastEvent.onSpellCooldownAdded(cooldownEvent);
-            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == 0,
-                    "Multipurpose Staffrifle instant cast should bypass cooldowns at the threshold: "
+            helper.assertTrue(cooldownEvent.getEffectiveCooldown() == 200,
+                    "Multipurpose Staffrifle instant cast must preserve normal cooldown: "
                             + cooldownEvent.getEffectiveCooldown());
         });
     }

@@ -162,6 +162,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SPELL_SIDE_EDGE.get(),
                 ItemRegistry.SPELLCHARGED_GREATSWORD.get(),
                 ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
+                ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get(),
                 ItemRegistry.SCROLLCASTER_GAUNTLET.get(),
                 ItemRegistry.ZENITH_STAFF.get()
         );
@@ -291,12 +292,14 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get(),
                 ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get(),
+                ItemRegistry.EMPTY_FULLAUTO_SPELL_CASTING_CASING.get(),
                 ItemRegistry.RAPID_SPELLCASTER_ROUND.get(),
                 ItemRegistry.BASIC_SPELLCASTER_ROUND.get(),
                 ItemRegistry.ARCANE_SPELLCASTER_ROUND.get(),
                 ItemRegistry.ADVANCED_SPELLCASTER_ROUND.get(),
                 ItemRegistry.SPELL_DOMINATOR_ROUND.get(),
-                ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get()
+                ItemRegistry.MULTI_PURPOSE_SPELL_ROUND.get(),
+                ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get()
         );
         // 外部 MOD が未導入でもタグ読込を失敗させず、導入時だけ光源を収納対象へ加える。
         tag(TagRegistry.Items.LUMINOUS_DEVICE_STORABLE).add(
@@ -353,7 +356,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.EMPTY_ARCANE_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_ADVANCED_SPELLCASTER_CASING.get(),
                 ItemRegistry.EMPTY_SPELL_DOMINATOR_CASING.get(),
-                ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get()
+                ItemRegistry.EMPTY_MULTI_PURPOSE_SPELL_CASING.get(),
+                ItemRegistry.EMPTY_FULLAUTO_SPELL_CASTING_CASING.get()
         );
         tag(TagRegistry.Items.SPELLCASTER_QUIVER_STORABLE).add(
                 ItemRegistry.ANTI_MANA_ARROW.get(),

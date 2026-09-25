@@ -100,6 +100,7 @@ public abstract class AbstractSummonWeaponSpell<T extends SummonWeaponEntity> ex
             if (!(playerMagicData.getAdditionalCastData() instanceof AbstractSummonWeaponSpell.SummonWeaponSpellCastData)) {
                 var castData = createCastData();
                 var summon = onCastNoWeapon(level, spellLevel, entity, playerMagicData);
+                MulticastEchoStaffAttackHandler.trackWeaponAttack(summon);
                 castData.setEntity(summon);
                 playerMagicData.setAdditionalCastData(castData);
             }
@@ -123,6 +124,7 @@ public abstract class AbstractSummonWeaponSpell<T extends SummonWeaponEntity> ex
             if (!(playerMagicData.getAdditionalCastData() instanceof AbstractSummonWeaponSpell.SummonWeaponSpellCastData)) {
                 var castData = createCastData();
                 var summon = onCastNoWeapon(level, spellLevel, entity, playerMagicData);
+                MulticastEchoStaffAttackHandler.trackWeaponAttack(summon);
                 castData.setEntity(summon);
                 playerMagicData.setAdditionalCastData(castData);
             }

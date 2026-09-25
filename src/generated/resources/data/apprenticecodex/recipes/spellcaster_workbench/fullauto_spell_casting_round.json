@@ -1,0 +1,30 @@
+{
+  "type": "apprenticecodex:spellcaster_workbench",
+  "ingredients": [
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "minecraft:amethyst_shard"
+      }
+    },
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "irons_spellbooks:mithril_scrap"
+      }
+    },
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "minecraft:gunpowder"
+      }
+    }
+  ],
+  "priority": 1,
+  "results": [
+    {
+      "count": 24,
+      "item": "apprenticecodex:fullauto_spell_casting_round"
+    }
+  ]
+}

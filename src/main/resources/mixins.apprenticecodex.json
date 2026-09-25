@@ -6,6 +6,7 @@
   "refmap": "mixins.apprenticecodex.refmap.json",
   "plugin": "jp.aquafactory.apprenticecodex.mixin.ApprenticeCodexMixinPlugin",
   "mixins": [
+    "RecastInstanceCooldownMixin",
     "LivingEntityChargedStaffRiptideMixin",
     "MonarchBondLifestealMixin",
     "LivingEntitySacredSignMixin",
@@ -81,6 +82,8 @@
     "UtilsMixin"
   ],
   "client": [
+    "PlayerStaffrifleScopeMixin",
+    "AbstractClientPlayerStaffrifleScopeMixin",
     "ChargedStaffItemInHandRendererMixin",
     "ChargedStaffPlayerRendererMixin",
     "ArrowChargeSpellLayerMixin",
@@ -97,6 +100,7 @@
     "EpicFightPatchedItemInHandLayerMixin",
     "KeyboardHandlerMixin",
     "LocalPlayerSpellcasterQuiverMixin",
+    "LocalPlayerSpellrifleSprintMixin",
     "LocalPlayerParrycastBucklerMixin",
     "MouseHandlerMixin",
     "MinecraftMixin",

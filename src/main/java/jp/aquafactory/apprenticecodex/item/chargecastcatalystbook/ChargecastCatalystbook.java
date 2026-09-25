@@ -414,18 +414,8 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     }
 
     @Override
-    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
-            @NotNull ItemStack targetStack,
-            int slot,
-            @NotNull SpellData spellData
-    ) {
-        if (slot < 0 || slot >= getEnabledCalibrationScrollSlotCount(targetStack)
-                || spellData == SpellData.EMPTY || spellData.getSpell() == null) {
-            return SpellCalibrationImbueState.REJECTED;
-        }
-        return spellData.getSpell().getCastType() == CastType.INSTANT
-                ? SpellCalibrationImbueState.ACCEPTED_USABLE
-                : SpellCalibrationImbueState.REJECTED;
+    public boolean isCalibrationSlotAvailable(@NotNull ItemStack targetStack, int slot) {
+        return slot >= 0 && slot < getEnabledCalibrationScrollSlotCount(targetStack);
     }
 
     @Override

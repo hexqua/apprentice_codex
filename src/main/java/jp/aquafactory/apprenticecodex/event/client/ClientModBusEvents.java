@@ -139,6 +139,7 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorRende
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskScreen;
 import jp.aquafactory.apprenticecodex.block.spellcasterworkbench.SpellcasterWorkbenchScreen;
 import net.minecraft.client.renderer.item.ItemProperties;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.minecraft.resources.ResourceLocation;
@@ -260,6 +261,18 @@ public final class ClientModBusEvents {
                 (stack, level, living, seed) -> ChargedTwinBladeStaffClientRenderState.shouldUseThrowingModel(stack, living) ? 1.0F : 0.0F
         ));
         event.enqueueWork(ClientModBusEvents::registerBoundBowItemProperties);
+        event.enqueueWork(() -> {
+            var adsProperty = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "ads");
+            // キー入力だけで判定すると同種のオフハンド品まで切り替わるため、描画中のstackも照合する。
+            ItemProperties.register(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(), adsProperty,
+                    (stack, level, living, seed) -> living != null && living == Minecraft.getInstance().player
+                            && living.getMainHandItem() == stack
+                            && MultipurposeStaffrifleClientAdsState.shouldHandleAsAds(living) ? 1.0F : 0.0F);
+            ItemProperties.register(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get(), adsProperty,
+                    (stack, level, living, seed) -> living != null && living == Minecraft.getInstance().player
+                            && living.getMainHandItem() == stack
+                            && FullautoRapidcastSpellrifleClientAdsState.shouldHandleAsAds(living) ? 1.0F : 0.0F);
+        });
         event.enqueueWork(() -> {
             if (ModList.get().isLoaded(ArsNouveauLuminousDeviceCompat.MOD_ID)) {
                 ArsNouveauLuminousDeviceCompat.register();

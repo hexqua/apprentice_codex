@@ -1,0 +1,35 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "apprenticecodex:fullauto_rapidcast_spellrifle"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_weapon_parts": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "irons_spellbooks:weapon_parts"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_weapon_parts",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "apprenticecodex:fullauto_rapidcast_spellrifle"
+    ]
+  },
+  "sends_telemetry_event": false
+}

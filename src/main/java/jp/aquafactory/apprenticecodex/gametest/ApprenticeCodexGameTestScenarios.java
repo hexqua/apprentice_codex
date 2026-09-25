@@ -1579,6 +1579,14 @@ public class ApprenticeCodexGameTestScenarios {
                     RecipeSerializer.SHAPELESS_RECIPE,
                     RecipeType.CRAFTING);
             var guidebookRecipeId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "isekai_travel_guidebook");
+            assertRecipeLoaded(helper, recipeManager,
+                    ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.getId(),
+                    RecipeSerializer.SHAPED_RECIPE, RecipeType.CRAFTING);
+            for (var recipePath : List.of("fullauto_spell_casting_round", "fullauto_spell_casting_round_recycle")) {
+                assertRecipeLoaded(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spellcaster_workbench/" + recipePath),
+                        RecipeRegistry.SPELLCASTER_WORKBENCH_SERIALIZER.get(), RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get());
+            }
             helper.assertTrue(recipeManager.byKey(guidebookRecipeId).isEmpty(),
                     "Isekai Travel Guidebook crafting recipe should not be loaded: " + guidebookRecipeId);
 
@@ -1657,6 +1665,9 @@ public class ApprenticeCodexGameTestScenarios {
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/deploying/empty_multi_purpose_spell_casing"),
                         ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "deploying"));
                 assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/deploying/empty_fullauto_spell_casting_casing"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "deploying"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/sequenced_assembly/rapid_spellcaster_round"),
                         ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "sequenced_assembly"));
                 assertRecipeLoadedWithSerializerId(helper, recipeManager,
@@ -1673,6 +1684,9 @@ public class ApprenticeCodexGameTestScenarios {
                         ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "sequenced_assembly"));
                 assertRecipeLoadedWithSerializerId(helper, recipeManager,
                         ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/sequenced_assembly/multi_purpose_spell_round"),
+                        ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "sequenced_assembly"));
+                assertRecipeLoadedWithSerializerId(helper, recipeManager,
+                        ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "create/sequenced_assembly/fullauto_spell_casting_round"),
                         ResourceLocation.fromNamespaceAndPath(CREATE_MOD_ID, "sequenced_assembly"));
             }
         });
@@ -12998,6 +13012,7 @@ public class ApprenticeCodexGameTestScenarios {
                 CastSource.SWORD
         );
         SpellGunCastEvent.onSpellCooldownAdded(cooldownEvent);
+        SpellGunCastEvent.onInstantCastTimeCooldownAdded(cooldownEvent);
         helper.assertTrue(cooldownEvent.getEffectiveCooldown() == expectedCooldownTicks,
                 message + ": expected " + expectedCooldownTicks + " but got " + cooldownEvent.getEffectiveCooldown());
     }

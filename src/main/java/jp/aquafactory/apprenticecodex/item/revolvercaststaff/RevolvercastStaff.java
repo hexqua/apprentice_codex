@@ -275,17 +275,18 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     }
 
     @Override
-    public @NotNull SpellCalibrationImbueState evaluateCalibrationImbue(
-            @NotNull ItemStack targetStack,
-            int slot,
-            @NotNull SpellData spellData
-    ) {
-        if (slot < 0 || slot >= getEnabledCalibrationScrollSlotCount(targetStack)
-                || spellData == SpellData.EMPTY || spellData.getSpell() == null
-                || !canSwingCastSpell(spellData.getSpell(), true)) {
-            return SpellCalibrationImbueState.REJECTED;
-        }
-        return SpellCalibrationImbueState.accepted(canSwingCastSpell(targetStack, spellData.getSpell()));
+    public boolean acceptsCalibrationSpell(@NotNull SpellData spellData) {
+        return SpellCalibrationImbueTarget.acceptsInstantOrLong(spellData);
+    }
+
+    @Override
+    public boolean isCalibrationSlotAvailable(@NotNull ItemStack targetStack, int slot) {
+        return slot >= 0 && slot < getEnabledCalibrationScrollSlotCount(targetStack);
+    }
+
+    @Override
+    public boolean isCalibrationSpellUsable(@NotNull ItemStack targetStack, @NotNull SpellData spellData) {
+        return canSwingCastSpell(targetStack, spellData.getSpell());
     }
 
     @Override
