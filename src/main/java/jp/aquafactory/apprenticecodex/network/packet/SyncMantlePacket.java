@@ -12,13 +12,13 @@ import java.util.function.Supplier;
 
 public record SyncMantlePacket(int entityId, boolean equipped, int energy, int maxEnergy, boolean recovering,
                               boolean hovering, boolean blink, long sequence, boolean accepted,
-                              long blinkStart, long blinkSequence, double blinkHeight, Vec3 blinkDirection) {
+                              long blinkStart, long blinkSequence, Vec3 blinkDirection) {
     public static void encode(SyncMantlePacket packet, FriendlyByteBuf buffer) {
                 buffer.writeVarInt(packet.entityId); buffer.writeBoolean(packet.equipped); buffer.writeVarInt(packet.energy);
                 buffer.writeVarInt(packet.maxEnergy);
                 buffer.writeBoolean(packet.recovering); buffer.writeBoolean(packet.hovering); buffer.writeBoolean(packet.blink);
                 buffer.writeLong(packet.sequence); buffer.writeBoolean(packet.accepted);
-                buffer.writeLong(packet.blinkStart); buffer.writeLong(packet.blinkSequence); buffer.writeDouble(packet.blinkHeight);
+                buffer.writeLong(packet.blinkStart); buffer.writeLong(packet.blinkSequence);
                 buffer.writeDouble(packet.blinkDirection.x);
                 buffer.writeDouble(packet.blinkDirection.y);
                 buffer.writeDouble(packet.blinkDirection.z);
@@ -27,7 +27,7 @@ public record SyncMantlePacket(int entityId, boolean equipped, int energy, int m
     public static SyncMantlePacket decode(FriendlyByteBuf buffer) {
         return new SyncMantlePacket(buffer.readVarInt(), buffer.readBoolean(), buffer.readVarInt(), buffer.readVarInt(), buffer.readBoolean(),
                 buffer.readBoolean(), buffer.readBoolean(), buffer.readLong(), buffer.readBoolean(),
-                buffer.readLong(), buffer.readLong(), buffer.readDouble(),
+                buffer.readLong(), buffer.readLong(),
                 new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble()));
     }
 

@@ -111,4 +111,37 @@ public final class QuickBlinkGameTests {
         QuickBlinkRuntime.clear(player);
         helper.succeed();
     }
+
+    @GameTest(template = TEMPLATE)
+    public static void directHeightChangeKeepsRemainingHorizontalMovement(GameTestHelper helper) {
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(helper, new BlockPos(1, 3, 1), "quick_blink_height_change");
+        for (int x = 0; x <= 7; x++) for (int y = 1; y <= 5; y++) {
+            helper.setBlock(new BlockPos(x, y, 0), Blocks.AIR);
+        }
+        var origin = helper.absoluteVec(new Vec3(0.5, 2, 0.5));
+        player.setPos(origin);
+        player.setYRot(-90);
+        for (int tick = 0; tick < MantleBlink.DURATION; tick++) {
+            int age = tick;
+            helper.runAtTickTime(tick + 1, () -> {
+                if (age == 0) {
+                    QuickBlinkRuntime.input(player, 1, 0);
+                    QuickBlinkRuntime.begin(player, 5);
+                }
+                if (age == 1) player.setPos(player.getX(), player.getY() + 1, player.getZ());
+                QuickBlinkRuntime.state(player).blink.travel(player);
+                double expected = Math.min(4, Math.max(0, age - 2)) * 1.25;
+                helper.assertTrue(Math.abs(player.position().subtract(origin).horizontalDistance() - expected) < 1.0e-5,
+                        "Direct height changes must not shorten Quick Blink's horizontal travel");
+                helper.assertTrue(Math.abs(player.getY() - origin.y - Math.min(age, 1)) < 1.0e-6,
+                        "Quick Blink must keep the externally assigned height: age=" + age + ", position=" + player.position()
+                                + ", origin=" + origin);
+                helper.assertTrue(QuickBlinkRuntime.active(player), "Direct height changes must not cancel Quick Blink");
+            });
+        }
+        helper.runAtTickTime(11, () -> {
+            QuickBlinkRuntime.clear(player);
+            helper.succeed();
+        });
+    }
 }

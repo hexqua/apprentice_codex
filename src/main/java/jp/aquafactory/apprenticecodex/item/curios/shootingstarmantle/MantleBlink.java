@@ -18,7 +18,6 @@ public final class MantleBlink {
     private long start = -1;
     private long previousStart = -1;
     private long sequence = -1;
-    private double height;
     private Vec3 direction = Vec3.ZERO;
     private double speed = SPEED;
     private boolean blocked;
@@ -28,7 +27,6 @@ public final class MantleBlink {
 
     public long start() { return start; }
     public long sequence() { return sequence; }
-    public double height() { return height; }
     public Vec3 direction() { return direction; }
 
     public double elapsed(long time, float partialTick) {
@@ -55,21 +53,20 @@ public final class MantleBlink {
     }
 
     public void begin(Player player, long id, Vec3 movement, double speed) {
-        accept(player.level().getGameTime(), id, player.getY(), movement);
+        accept(player.level().getGameTime(), id, movement);
         this.speed = speed;
         player.setDeltaMovement(Vec3.ZERO);
         if (player instanceof ServerPlayer) playSound(player);
     }
 
-    public void accept(long startTime, long id, double y, Vec3 movement) {
-        accept(startTime, id, y, movement, SPEED);
+    public void accept(long startTime, long id, Vec3 movement) {
+        accept(startTime, id, movement, SPEED);
     }
 
-    public void accept(long startTime, long id, double y, Vec3 movement, double speed) {
+    public void accept(long startTime, long id, Vec3 movement, double speed) {
         if (sequence != id) previousStart = start;
         start = startTime;
         sequence = id;
-        height = y;
         direction = movement;
         this.speed = speed;
         blocked = false;
@@ -126,11 +123,7 @@ public final class MantleBlink {
         if (!active(time)) return false;
         if (lastMoveTime == time) return true;
         lastMoveTime = time;
-        // 外部転送の高さを発動位置へ戻さない。通常の補正packetも専用Mixinで中断する。
-        if (Math.abs(player.getY() - height) > 0.01) {
-            cancel();
-            return false;
-        }
+        // 座標を直接変更された後も、残りの移動を現在位置から水平に続ける。
         if (moving(elapsed(time, 0)) && !blocked) {
             var before = player.position();
             var movement = direction.scale(speed);

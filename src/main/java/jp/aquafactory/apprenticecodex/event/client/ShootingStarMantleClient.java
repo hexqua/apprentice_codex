@@ -93,7 +93,7 @@ public final class ShootingStarMantleClient {
         if (!olderBlink && packet.blinkStart() >= 0) {
             if (!ownPrediction && (state.blink.start() != packet.blinkStart()
                     || state.blink.sequence() != packet.blinkSequence())) {
-                state.blink.accept(packet.blinkStart(), packet.blinkSequence(), packet.blinkHeight(), packet.blinkDirection());
+                state.blink.accept(packet.blinkStart(), packet.blinkSequence(), packet.blinkDirection());
             }
         } else if (!olderBlink && (player != minecraft.player || pendingSequence < 0 || packet.sequence() == pendingSequence)) {
             state.blink.cancel();

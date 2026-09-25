@@ -63,13 +63,13 @@ public final class QuickBlinkRuntime {
 
     public static SyncQuickBlinkPacket packet(ServerPlayer player) {
         var blink = state(player).blink;
-        return new SyncQuickBlinkPacket(player.getId(), blink.start(), blink.sequence(), blink.height(), blink.direction());
+        return new SyncQuickBlinkPacket(player.getId(), blink.start(), blink.sequence(), blink.direction());
     }
 
     public static void accept(Player player, SyncQuickBlinkPacket packet) {
         var blink = state(player).blink;
         if (packet.start() < 0) blink.cancel();
-        else blink.accept(packet.start(), packet.sequence(), packet.height(), packet.direction(), 5.0 / 4);
+        else blink.accept(packet.start(), packet.sequence(), packet.direction(), 5.0 / 4);
     }
 
     public static void tick(ServerPlayer player) {
@@ -81,7 +81,7 @@ public final class QuickBlinkRuntime {
         if (state != null && state.blink.start() >= 0) {
             state.blink.cancel();
             Networks.sendToTrackingEntityAndSelf(player,
-                    new SyncQuickBlinkPacket(player.getId(), -1, state.sequence, 0, Vec3.ZERO));
+                    new SyncQuickBlinkPacket(player.getId(), -1, state.sequence, Vec3.ZERO));
         }
     }
 
