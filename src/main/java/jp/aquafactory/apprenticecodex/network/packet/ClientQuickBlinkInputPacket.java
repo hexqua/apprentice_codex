@@ -1,27 +1,28 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.spell.quickblink.QuickBlinkRuntime;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
-public record ClientQuickBlinkInputPacket(float forward, float strafe) implements CustomPacketPayload {
-    public static final Type<ClientQuickBlinkInputPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "quick_blink_input"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, ClientQuickBlinkInputPacket> STREAM_CODEC = StreamCodec.of(
-            (buffer, packet) -> { buffer.writeFloat(packet.forward); buffer.writeFloat(packet.strafe); },
-            buffer -> new ClientQuickBlinkInputPacket(buffer.readFloat(), buffer.readFloat()));
+import java.util.function.Supplier;
 
-    @Override
-    public @NotNull Type<ClientQuickBlinkInputPacket> type() { return TYPE; }
+public record ClientQuickBlinkInputPacket(float forward, float strafe) {
+    public static void encode(ClientQuickBlinkInputPacket packet, FriendlyByteBuf buffer) {
+        buffer.writeFloat(packet.forward);
+        buffer.writeFloat(packet.strafe);
+    }
 
-    public static void handle(ClientQuickBlinkInputPacket packet, IPayloadContext context) {
+    public static ClientQuickBlinkInputPacket decode(FriendlyByteBuf buffer) {
+        return new ClientQuickBlinkInputPacket(buffer.readFloat(), buffer.readFloat());
+    }
+
+    public static void handle(ClientQuickBlinkInputPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
+        var context = contextSupplier.get();
         context.enqueueWork(() -> {
-            if (context.player() instanceof ServerPlayer player) QuickBlinkRuntime.input(player, packet.forward, packet.strafe);
+            if (context.getSender() != null) {
+                QuickBlinkRuntime.input(context.getSender(), packet.forward, packet.strafe);
+            }
         });
+        context.setPacketHandled(true);
     }
 }

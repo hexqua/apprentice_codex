@@ -13,16 +13,16 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class LockOnRayTrailRenderEvent {
     private static final RenderType RENDER_TYPE = ApprenticeRenderTypes.entityAdditiveGlowNoCullColorOnly(
             "lock_on_ray_trail", ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID,
@@ -41,7 +41,8 @@ public final class LockOnRayTrailRenderEvent {
     }
 
     @SubscribeEvent
-    public static void tick(ClientTickEvent.Post event) {
+    public static void tick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
         var level = Minecraft.getInstance().level;
         if (level == null) { SEGMENTS.clear(); return; }
         SEGMENTS.removeIf(segment -> segment.level != level || level.getGameTime() - segment.created > FADE_TICKS + 1);
@@ -54,7 +55,7 @@ public final class LockOnRayTrailRenderEvent {
         var level = minecraft.level;
         if (level == null) return;
         var camera = event.getCamera().getPosition();
-        double time = level.getGameTime() + event.getPartialTick().getGameTimeDeltaPartialTick(true);
+        double time = level.getGameTime() + event.getPartialTick();
         var pose = event.getPoseStack();
         pose.pushPose();
         pose.translate(-camera.x, -camera.y, -camera.z);
@@ -105,10 +106,10 @@ public final class LockOnRayTrailRenderEvent {
     private static void vertex(PoseStack.Pose pose, VertexConsumer buffer, Vec3 point, float u, float brightness) {
         // 長手方向の中央を使い、tick区間ごとのテクスチャ端で継ぎ目を作らない。
         // ONE + ONEの加算合成は頂点alphaでは暗くならないため、RGBを直接減衰させる。
-        buffer.addVertex(pose.pose(), (float) point.x, (float) point.y, (float) point.z)
-                .setColor(brightness, brightness, brightness, 1f).setUv(u, 0.5f)
-                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightTexture.FULL_BRIGHT)
-                .setNormal(pose, 0, 1, 0);
+        buffer.vertex(pose.pose(), (float) point.x, (float) point.y, (float) point.z)
+                .color(brightness, brightness, brightness, 1f).uv(u, 0.5f)
+                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BRIGHT)
+                .normal(pose.normal(), 0, 1, 0).endVertex();
     }
 
     private record Segment(ClientLevel level, LockOnRayCurve curve, long created) {}

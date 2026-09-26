@@ -6,13 +6,13 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientQuickBlinkInputPacket
 import jp.aquafactory.apprenticecodex.network.packet.SyncQuickBlinkPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
+import net.minecraftforge.event.TickEvent;
 
-@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class QuickBlinkClient {
     private static float lastForward = Float.NaN;
     private static float lastStrafe = Float.NaN;
@@ -21,7 +21,8 @@ public final class QuickBlinkClient {
     private QuickBlinkClient() { }
 
     @SubscribeEvent
-    public static void tick(ClientTickEvent.Post event) {
+    public static void tick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         if (player == null || minecraft.isPaused()) return;

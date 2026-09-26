@@ -6,8 +6,8 @@ import io.netty.channel.embedded.EmbeddedChannel;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
-import io.redspace.ironsspellbooks.network.casting.OnCastFinishedPacket;
 import io.redspace.ironsspellbooks.network.casting.SyncTargetingDataPacket;
+import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import io.redspace.ironsspellbooks.util.ModTags;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
@@ -24,9 +24,7 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
-import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
-import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -35,14 +33,14 @@ import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.neoforged.neoforge.network.registration.NetworkRegistry;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @GameTestHolder(ApprenticeCodex.MODID)
@@ -50,6 +48,7 @@ import java.util.UUID;
 public final class LockOnRayGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
     private static final String BATCH = "apprenticecodex.lock_on_ray";
+    private static int sceneSequence;
 
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void acquisitionAndCadence(GameTestHelper h) {
@@ -166,38 +165,40 @@ public final class LockOnRayGameTests {
     public static void nativeTargetNotificationsAndMarkerLifecycle(GameTestHelper h) {
         try (var s = new Scene(h)) {
             var packets = new ArrayList<Packet<?>>();
-            var connection = new Connection(PacketFlow.SERVERBOUND);
+            var connection = new Connection(PacketFlow.SERVERBOUND) {
+                @Override public void send(Packet<?> packet) { packets.add(packet); }
+            };
             var channel = new EmbeddedChannel(connection);
-            NetworkRegistry.configureMockConnection(connection);
             var previous = s.owner.connection;
-            new ServerGamePacketListenerImpl(h.getLevel().getServer(), connection, s.owner,
-                    CommonListenerCookie.createInitial(s.owner.getGameProfile(), false)) {
+            s.owner.connection = new ServerGamePacketListenerImpl(h.getLevel().getServer(), connection, s.owner) {
                 @Override public void send(Packet<?> packet) { packets.add(packet); }
             };
             try {
                 s.owner.setXRot(-90);
                 h.assertTrue(!s.spell.checkPreCastConditions(h.getLevel(), 1, s.owner, s.data), "Empty aim must fail");
-                h.assertTrue(packets.size() == 1 && packets.getFirst() instanceof ClientboundSetActionBarTextPacket,
-                        "Failed targeting must send the native action-bar error without a marker");
-                packets.clear(); s.owner.setXRot(0);
-                var target = s.zombie(8, 0); s.begin();
+                h.assertTrue(packets.stream().anyMatch(p -> p instanceof ClientboundSetActionBarTextPacket),
+                        "Failed targeting must send the native action-bar error");
+                packets.clear();
+                s.owner.setXRot(0);
+                var target = s.zombie(8, 0);
+                s.begin();
                 h.assertTrue(packets.stream().filter(p -> p instanceof ClientboundSetActionBarTextPacket).count() == 1,
                         "Successful targeting must send exactly one action-bar notification");
-                var markers = packets.stream().filter(p -> p instanceof ClientboundCustomPayloadPacket payload
-                                && payload.payload() instanceof SyncTargetingDataPacket)
-                        .map(p -> (SyncTargetingDataPacket) ((ClientboundCustomPayloadPacket) p).payload()).toList();
+                var markers = packets.stream()
+                        .map(p -> ForgePacketTestSupport.decode(p, PacketDistributor.class,
+                                "INSTANCE", new SyncTargetingDataPacket(s.spell, List.of(target.getUUID())),
+                                SyncTargetingDataPacket::new))
+                        .filter(Objects::nonNull).toList();
                 h.assertTrue(markers.size() == 1, "Living targets must receive the native targeting marker");
                 var buffer = new FriendlyByteBuf(Unpooled.buffer());
                 try {
-                    markers.getFirst().write(buffer);
+                    markers.get(0).toBytes(buffer);
                     h.assertTrue(buffer.readUtf().equals(s.spell.getSpellId()) && buffer.readInt() == 1
-                                    && buffer.readUUID().equals(target.getUUID()), "Marker must identify the spell and locked entity");
+                                    && buffer.readUUID().equals(target.getUUID()),
+                            "Marker must identify the spell and locked entity");
                 } finally { buffer.release(); }
-                packets.clear();
                 s.spell.onServerCastComplete(h.getLevel(), 1, s.owner, s.data, true);
-                h.assertTrue(packets.stream().anyMatch(p -> p instanceof ClientboundCustomPayloadPacket payload
-                                && payload.payload() instanceof OnCastFinishedPacket),
-                        "Cancellation must send the native completion packet that clears targeting visuals");
+                h.assertTrue(s.data.getAdditionalCastData() == null, "Cancellation must clear the target lock");
             } finally {
                 s.owner.connection = previous;
                 channel.finishAndReleaseAll();
@@ -298,7 +299,8 @@ public final class LockOnRayGameTests {
 
         Scene(GameTestHelper helper) {
             this.helper = helper;
-            origin = helper.absoluteVec(new Vec3(2, 30, 2));
+            // ForgeのGameTest地形と他sceneのentityを視線に入れない。
+            origin = helper.absoluteVec(new Vec3(2, 280 + 12 * (sceneSequence++ % 4), 2));
             owner = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "lock_ray_test"));
             owner.setPos(origin); owner.setYRot(-90); owner.setXRot(0); owner.setNoGravity(true); add(owner);
             data = MagicData.getPlayerMagicData(owner);

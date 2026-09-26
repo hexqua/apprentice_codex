@@ -7,7 +7,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncQuickBlinkPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +44,7 @@ public final class QuickBlinkRuntime {
         return state(player).blink.active(player.level().getGameTime());
     }
 
-    public static boolean cancelIncomingDamageIfInvulnerable(LivingIncomingDamageEvent event) {
+    public static boolean cancelIncomingDamageIfInvulnerable(LivingAttackEvent event) {
         if (event.getEntity() instanceof ServerPlayer player && active(player)) {
             event.setCanceled(true);
             return true;

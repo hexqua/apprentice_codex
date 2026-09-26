@@ -13,10 +13,9 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.damagesource.DamageContainer;
-import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -56,7 +55,7 @@ public final class QuickBlinkGameTests {
                         "Quick Blink must move five blocks over the four hidden ticks");
                 helper.assertTrue(Math.abs(player.getY() - origin.y) < 1.0e-6,
                         "Quick Blink must hold its starting height");
-                var damage = new LivingIncomingDamageEvent(player, new DamageContainer(player.damageSources().generic(), 5));
+                var damage = new LivingAttackEvent(player, player.damageSources().generic(), 5);
                 helper.assertTrue(QuickBlinkRuntime.cancelIncomingDamageIfInvulnerable(damage) && damage.isCanceled(),
                         "Quick Blink must cancel incoming damage during every phase");
             });
@@ -64,7 +63,7 @@ public final class QuickBlinkGameTests {
         helper.runAtTickTime(11, () -> {
             QuickBlinkRuntime.tick(player);
             helper.assertFalse(QuickBlinkRuntime.active(player), "Invulnerability must end after ten ticks");
-            var damage = new LivingIncomingDamageEvent(player, new DamageContainer(player.damageSources().generic(), 5));
+            var damage = new LivingAttackEvent(player, player.damageSources().generic(), 5);
             helper.assertFalse(QuickBlinkRuntime.cancelIncomingDamageIfInvulnerable(damage),
                     "Damage immunity must end with the blink");
             spell.castSpell(player.level(), 1, player, CastSource.SPELLBOOK, true);

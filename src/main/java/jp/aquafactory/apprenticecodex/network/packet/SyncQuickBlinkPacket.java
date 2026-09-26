@@ -1,38 +1,42 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.spell.quickblink.QuickBlinkClient;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.jetbrains.annotations.NotNull;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.network.NetworkEvent;
 
-public record SyncQuickBlinkPacket(int entityId, long start, long sequence, Vec3 direction)
-        implements CustomPacketPayload {
-    public static final Type<SyncQuickBlinkPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_quick_blink"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, SyncQuickBlinkPacket> STREAM_CODEC = StreamCodec.of(
-            (buffer, packet) -> {
-                buffer.writeVarInt(packet.entityId); buffer.writeLong(packet.start); buffer.writeLong(packet.sequence);
-                buffer.writeVec3(packet.direction);
-            }, buffer -> new SyncQuickBlinkPacket(buffer.readVarInt(), buffer.readLong(), buffer.readLong(), buffer.readVec3()));
+import java.util.function.Supplier;
 
-    @Override
-    public @NotNull Type<SyncQuickBlinkPacket> type() { return TYPE; }
+public record SyncQuickBlinkPacket(int entityId, long start, long sequence, Vec3 direction) {
+    public static void encode(SyncQuickBlinkPacket packet, FriendlyByteBuf buffer) {
+        buffer.writeVarInt(packet.entityId);
+        buffer.writeLong(packet.start);
+        buffer.writeLong(packet.sequence);
+        buffer.writeDouble(packet.direction.x);
+        buffer.writeDouble(packet.direction.y);
+        buffer.writeDouble(packet.direction.z);
+    }
 
-    public static void handle(SyncQuickBlinkPacket packet, IPayloadContext context) {
+    public static SyncQuickBlinkPacket decode(FriendlyByteBuf buffer) {
+        return new SyncQuickBlinkPacket(buffer.readVarInt(), buffer.readLong(), buffer.readLong(),
+                new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble()));
+    }
+
+    public static void handle(SyncQuickBlinkPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
+        var context = contextSupplier.get();
         context.enqueueWork(() -> {
             if (FMLEnvironment.dist == Dist.CLIENT) ClientHandler.handle(packet);
         });
+        context.setPacketHandled(true);
     }
 
     @OnlyIn(Dist.CLIENT)
     private static final class ClientHandler {
-        private static void handle(SyncQuickBlinkPacket packet) { QuickBlinkClient.accept(packet); }
+        private static void handle(SyncQuickBlinkPacket packet) {
+            QuickBlinkClient.accept(packet);
+        }
     }
 }

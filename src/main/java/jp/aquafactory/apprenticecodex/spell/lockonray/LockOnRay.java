@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import io.redspace.ironsspellbooks.setup.PacketDistributor;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.ChatFormatting;
@@ -31,7 +32,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -148,7 +148,7 @@ public class LockOnRay extends AbstractSpell {
                 && data.getAdditionalCastData() instanceof LockOnRayCastData cast
                 && cast.resolve(server) instanceof LivingEntity target) {
             // Iron's標準の対象表示レイヤーはLivingEntity専用。詠唱完了通知で表示も解除される。
-            PacketDistributor.sendToPlayer(player, new SyncTargetingDataPacket(target, this));
+            PacketDistributor.sendToPlayer(player, new SyncTargetingDataPacket(this, List.of(target.getUUID())));
         }
         super.onServerPreCast(level, spellLevel, caster, data);
     }

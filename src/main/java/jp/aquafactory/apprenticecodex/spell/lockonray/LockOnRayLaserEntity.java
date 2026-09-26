@@ -11,7 +11,6 @@ import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.LockOnRayTrailPacket;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -23,7 +22,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.event.EventHooks;
+import net.minecraftforge.event.ForgeEventFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -119,7 +118,7 @@ public final class LockOnRayLaserEntity extends Projectile implements AntiMagicS
             hits.sort(Comparator.comparingDouble(hit -> segmentStart.distanceToSqr(hit.getLocation())));
             for (var hit : hits) {
                 var target = CombatTools.resolutePartEntity(hit.getEntity());
-                if (!ignored.add(target.getUUID()) || EventHooks.onProjectileImpact(this, hit)) continue;
+                if (!ignored.add(target.getUUID()) || ForgeEventFactory.onProjectileImpact(this, hit)) continue;
                 var point = hit.getLocation();
                 double part = from.distanceTo(to) < 1.0e-8 ? 0 : from.distanceTo(point) / from.distanceTo(to);
                 setPos(point);
@@ -128,7 +127,7 @@ public final class LockOnRayLaserEntity extends Projectile implements AntiMagicS
                         SchoolRegistry.HOLY.get(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
                 MagicManager.spawnParticles(level(), ParticleHelper.WISP, point.x, point.y, point.z,
                         25, 0, 0, 0, 0.18, true);
-                level().playSound(null, point.x, point.y, point.z, SoundRegistry.GUIDING_BOLT_IMPACT.value(),
+                level().playSound(null, point.x, point.y, point.z, SoundRegistry.GUIDING_BOLT_IMPACT.get(),
                         SoundSource.NEUTRAL, 2, 0.9f + random.nextFloat() * 0.4f);
                 discard();
                 return (i - 1 + part) / samples;
@@ -149,7 +148,7 @@ public final class LockOnRayLaserEntity extends Projectile implements AntiMagicS
     @Override public boolean isPushedByFluid() { return false; }
     @Override public boolean shouldBeSaved() { return false; }
     @Override public void onAntiMagic(MagicData data) { if (!level().isClientSide) discard(); }
-    @Override protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {}
+    @Override protected void defineSynchedData() {}
     @Override protected void readAdditionalSaveData(@NotNull CompoundTag tag) { super.readAdditionalSaveData(tag); }
     @Override protected void addAdditionalSaveData(@NotNull CompoundTag tag) { super.addAdditionalSaveData(tag); }
 }

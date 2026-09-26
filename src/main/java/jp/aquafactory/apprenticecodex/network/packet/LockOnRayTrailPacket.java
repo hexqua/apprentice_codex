@@ -1,36 +1,45 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.event.client.LockOnRayTrailRenderEvent;
 import jp.aquafactory.apprenticecodex.spell.lockonray.LockOnRayCurve;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.network.NetworkEvent;
 
-public record LockOnRayTrailPacket(LockOnRayCurve curve) implements CustomPacketPayload {
-    public static final Type<LockOnRayTrailPacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "lock_on_ray_trail"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, LockOnRayTrailPacket> STREAM_CODEC = StreamCodec.of(
-            (buffer, packet) -> {
-                buffer.writeVec3(packet.curve.start());
-                buffer.writeVec3(packet.curve.end());
-                buffer.writeVec3(packet.curve.startTangent());
-                buffer.writeVec3(packet.curve.endTangent());
-            }, buffer -> new LockOnRayTrailPacket(new LockOnRayCurve(
-                    buffer.readVec3(), buffer.readVec3(), buffer.readVec3(), buffer.readVec3())));
+import java.util.function.Supplier;
 
-    @Override public @NotNull Type<? extends CustomPacketPayload> type() { return TYPE; }
+public record LockOnRayTrailPacket(LockOnRayCurve curve) {
+    public static void encode(LockOnRayTrailPacket packet, FriendlyByteBuf buffer) {
+        writeVec3(buffer, packet.curve.start());
+        writeVec3(buffer, packet.curve.end());
+        writeVec3(buffer, packet.curve.startTangent());
+        writeVec3(buffer, packet.curve.endTangent());
+    }
 
-    public static void handle(LockOnRayTrailPacket packet, IPayloadContext context) {
+    public static LockOnRayTrailPacket decode(FriendlyByteBuf buffer) {
+        return new LockOnRayTrailPacket(new LockOnRayCurve(
+                readVec3(buffer), readVec3(buffer), readVec3(buffer), readVec3(buffer)));
+    }
+
+    private static void writeVec3(FriendlyByteBuf buffer, Vec3 vector) {
+        buffer.writeDouble(vector.x);
+        buffer.writeDouble(vector.y);
+        buffer.writeDouble(vector.z);
+    }
+
+    private static Vec3 readVec3(FriendlyByteBuf buffer) {
+        return new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble());
+    }
+
+    public static void handle(LockOnRayTrailPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
+        var context = contextSupplier.get();
         context.enqueueWork(() -> {
             if (FMLEnvironment.dist == Dist.CLIENT) ClientHandler.handle(packet);
         });
+        context.setPacketHandled(true);
     }
 
     @OnlyIn(Dist.CLIENT)
