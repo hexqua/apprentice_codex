@@ -175,7 +175,7 @@ public final class MantleBlinkGameTests {
                     helper.assertTrue(ShootingStarMantleRuntime.toggle(player), "Blink test must enter hover");
                     player.setDeltaMovement(0.3, -0.2, 0.4);
                     helper.assertTrue(ShootingStarMantleRuntime.impulse(player, 0, 1, diagonal ? -1 : 0), "Ender rune must accept blink");
-                    helper.assertTrue(MantleEnergy.read(stack).energy() == 90, "Blink must cost the same ten energy as dash");
+                    helper.assertTrue(MantleEnergy.read(stack).energy() == 90, "Blink must cost ten energy");
                     helper.assertFalse(ShootingStarMantleRuntime.impulse(player, 1, 1, 0), "Blink must reject reentry");
                     helper.assertTrue(MantleEnergy.read(stack).energy() == 90, "Rejected input must not consume energy");
                 }

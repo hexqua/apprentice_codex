@@ -268,9 +268,10 @@ public final class MantleCalibrationGameTests {
             for (int tick = 0; tick < 6; tick++) MantleMovement.travel(player, Vec3.ZERO, state);
             helper.assertTrue(player.getX() < start.x + 2, "Ice rune must not bypass solid collisions");
             // 枯渇終了のserver経路でも、利用制限は残して水平速度だけを維持する。
-            new MantleEnergy(10, false, 0).save(stack);
+            new MantleEnergy(5, false, 0).save(stack);
             helper.assertTrue(ShootingStarMantleRuntime.toggle(player), "Mantle must enter hover before depletion");
             helper.assertTrue(ShootingStarMantleRuntime.impulse(player, 0, 1, 0), "Final impulse must be accepted");
+            helper.assertTrue(MantleEnergy.read(stack).energy() == 0, "Ice rune impulse must cost five energy");
             for (int tick = 0; tick < 5; tick++) ShootingStarMantleRuntime.tick(player);
             helper.assertTrue(MantleEnergy.read(stack).recovering() && !state.hovering && state.dashTicks == 0,
                     "Ice rune must not bypass depletion or extend propulsion");

@@ -240,11 +240,12 @@ public final class ShootingStarMantleRuntime {
                 && direction.lengthSqr() > 0;
         state.lastSequence = Math.max(state.lastSequence, sequence);
         if (accepted) {
-            MantleEnergy.read(stack).impulse().save(stack);
+            boolean blink = MantleCalibration.usesBlink(stack);
+            MantleEnergy.read(stack).impulse(blink).save(stack);
             if (MantleEnergy.read(stack).recovering()) {
                 notifyDepleted(player);
             }
-            if (MantleCalibration.usesBlink(stack)) {
+            if (blink) {
                 state.blink.begin(player, sequence, direction);
             } else {
                 state.blink.cancel();

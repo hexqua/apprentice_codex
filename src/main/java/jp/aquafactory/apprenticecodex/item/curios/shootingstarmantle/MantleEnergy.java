@@ -63,8 +63,8 @@ public record MantleEnergy(int energy, boolean recovering, int spentTicks, int m
 
     public boolean canImpulse() { return usable(); }
 
-    public MantleEnergy impulse() {
-        return canImpulse() ? spend(10) : this;
+    public MantleEnergy impulse(boolean blink) {
+        return canImpulse() ? spend(blink ? 10 : 5) : this;
     }
 
     public MantleEnergy spend(int cost) {

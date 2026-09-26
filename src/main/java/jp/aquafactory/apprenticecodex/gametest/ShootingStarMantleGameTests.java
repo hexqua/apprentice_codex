@@ -140,10 +140,10 @@ public final class ShootingStarMantleGameTests {
         var player = player(helper, "mantle_impulse");
         var stack = ShootingStarMantleRuntime.findEquipped(player);
         ShootingStarMantleRuntime.toggle(player);
-        new MantleEnergy(11, false, 0).save(stack);
+        new MantleEnergy(6, false, 0).save(stack);
         helper.assertFalse(ShootingStarMantleRuntime.impulse(player, 1, Float.NaN, 0), "Non-finite direction must be rejected");
         helper.assertTrue(ShootingStarMantleRuntime.impulse(player, 2, 100, 100), "Finite direction must be bounded and accepted");
-        helper.assertTrue(MantleEnergy.read(stack).energy() == 1, "Impulse must charge exactly ten");
+        helper.assertTrue(MantleEnergy.read(stack).energy() == 1, "Normal impulse must charge exactly five energy");
         new MantleEnergy(100, false, 0).save(stack);
         helper.assertFalse(ShootingStarMantleRuntime.impulse(player, 2, 1, 0), "Duplicate request must be rejected");
         helper.assertFalse(ShootingStarMantleRuntime.impulse(player, 3, 1, 0), "Impulse must not restart during its five ticks");
@@ -159,7 +159,7 @@ public final class ShootingStarMantleGameTests {
         var player = player(helper, "mantle_last_impulse");
         var stack = ShootingStarMantleRuntime.findEquipped(player);
         // 発動時枯渇と、通常消費が推進中に追いつく場合を同じ終了規則で検証する。
-        for (int initial : new int[]{1, 9, 10, 11}) {
+        for (int initial : new int[]{1, 4, 5, 6}) {
             new MantleEnergy(initial, false, 39).save(stack);
             MagicData.getPlayerMagicData(player).setMana(100);
             helper.assertTrue(ShootingStarMantleRuntime.toggle(player), "Usable mantle must enter hover");
