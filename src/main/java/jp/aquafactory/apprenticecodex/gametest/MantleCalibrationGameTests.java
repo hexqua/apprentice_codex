@@ -174,7 +174,7 @@ public final class MantleCalibrationGameTests {
         var mantle = (ShootingStarMantle) stack.getItem();
         mantle.trySetCalibrationAdjustment(stack, 0, new ItemStack(MANA_RUNE.get()));
         var magic = MagicData.getPlayerMagicData(player);
-        float cost = ApprenticeCodexServerConfig.shootingStarMantleRecoveryCost(false);
+        float cost = ApprenticeCodexServerConfig.shootingStarMantleRecoveryCost();
         try {
             new MantleEnergy(198, false, 0, 200).save(stack);
             magic.setMana(cost);
@@ -201,7 +201,7 @@ public final class MantleCalibrationGameTests {
         var mantle = (ShootingStarMantle) stack.getItem();
         mantle.trySetCalibrationAdjustment(stack, 0, new ItemStack(COOLDOWN_RUNE.get()));
         var magic = MagicData.getPlayerMagicData(player);
-        float cost = ApprenticeCodexServerConfig.shootingStarMantleRecoveryCost(true);
+        float cost = ApprenticeCodexServerConfig.shootingStarMantleRecoveryCost();
         try {
             for (boolean recovering : new boolean[]{false, true}) {
                 new MantleEnergy(50, recovering, 7).save(stack);
@@ -209,14 +209,14 @@ public final class MantleCalibrationGameTests {
                 for (int tick = 0; tick < 9; tick++) ShootingStarMantleRuntime.tick(player);
                 helper.assertTrue(MantleEnergy.read(stack).energy() == 50, "Fast recovery must still wait ten idle ticks");
                 ShootingStarMantleRuntime.tick(player);
-                helper.assertTrue(MantleEnergy.read(stack).energy() == 60 && magic.getMana() == 0,
-                        "Rune must use both the fast recovery amount and cost");
+                helper.assertTrue(MantleEnergy.read(stack).energy() == 65 && magic.getMana() == 0,
+                        "Rune must restore fifteen energy at the shared cost");
                 helper.assertTrue(MantleEnergy.read(stack).recovering() == recovering,
                         "Recovery rune must not change the depletion lock");
                 if (cost > 0) {
                     magic.setMana(cost - 1);
                     for (int tick = 0; tick < 10; tick++) ShootingStarMantleRuntime.tick(player);
-                    helper.assertTrue(MantleEnergy.read(stack).energy() == 60 && magic.getMana() == cost - 1,
+                    helper.assertTrue(MantleEnergy.read(stack).energy() == 65 && magic.getMana() == cost - 1,
                             "Insufficient fast-recovery mana must change neither resource");
                 }
             }
@@ -268,9 +268,10 @@ public final class MantleCalibrationGameTests {
             for (int tick = 0; tick < 6; tick++) MantleMovement.travel(player, Vec3.ZERO, state);
             helper.assertTrue(player.getX() < start.x + 2, "Ice rune must not bypass solid collisions");
             // 枯渇終了のserver経路でも、利用制限は残して水平速度だけを維持する。
-            new MantleEnergy(10, false, 0).save(stack);
+            new MantleEnergy(5, false, 0).save(stack);
             helper.assertTrue(ShootingStarMantleRuntime.toggle(player), "Mantle must enter hover before depletion");
             helper.assertTrue(ShootingStarMantleRuntime.impulse(player, 0, 1, 0), "Final impulse must be accepted");
+            helper.assertTrue(MantleEnergy.read(stack).energy() == 0, "Ice rune impulse must cost five energy");
             for (int tick = 0; tick < 5; tick++) ShootingStarMantleRuntime.tick(player);
             helper.assertTrue(MantleEnergy.read(stack).recovering() && !state.hovering && state.dashTicks == 0,
                     "Ice rune must not bypass depletion or extend propulsion");

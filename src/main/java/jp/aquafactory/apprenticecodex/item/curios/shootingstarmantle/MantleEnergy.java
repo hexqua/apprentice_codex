@@ -21,7 +21,7 @@ public record MantleEnergy(int energy, boolean recovering, int spentTicks, int m
         maxEnergy = maxEnergy == RUNE_MAX ? RUNE_MAX : MAX;
         energy = Mth.clamp(energy, 0, maxEnergy);
         recovering = energy == 0 || energy < maxEnergy && recovering;
-        spentTicks = Mth.clamp(spentTicks, 0, 19);
+        spentTicks = Mth.clamp(spentTicks, 0, 39);
     }
 
     public static int maxEnergy(ItemStack stack) {
@@ -52,19 +52,19 @@ public record MantleEnergy(int energy, boolean recovering, int spentTicks, int m
     public boolean usable() { return energy > 0 && !recovering; }
 
     public MantleEnergy tickUse() {
-        return tickUse(1);
+        return tickUse(2);
     }
 
     public MantleEnergy tickUse(int rate) {
         if (!usable()) return this;
         int spent = spentTicks + rate;
-        return new MantleEnergy(energy - spent / 20, false, spent % 20, maxEnergy);
+        return new MantleEnergy(energy - spent / 40, false, spent % 40, maxEnergy);
     }
 
     public boolean canImpulse() { return usable(); }
 
-    public MantleEnergy impulse() {
-        return canImpulse() ? spend(10) : this;
+    public MantleEnergy impulse(boolean blink) {
+        return canImpulse() ? spend(blink ? 10 : 5) : this;
     }
 
     public MantleEnergy spend(int cost) {
@@ -76,7 +76,7 @@ public record MantleEnergy(int energy, boolean recovering, int spentTicks, int m
     }
 
     public MantleEnergy recharge(boolean fastRecovery) {
-        // 回復量の切り替えは枯渇ロックと独立させ、ルーンで飛行を禁止しない。
-        return new MantleEnergy(energy + (recovering || fastRecovery ? 10 : 2), recovering, spentTicks, maxEnergy);
+        // 枯渇ロックは回復量と独立させ、満充電まで再使用を禁止する。
+        return new MantleEnergy(energy + (fastRecovery ? 15 : 10), recovering, spentTicks, maxEnergy);
     }
 }

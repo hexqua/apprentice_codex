@@ -59,13 +59,13 @@ public final class ShootingStarMantleGameTests {
     public static void persistentEnergySurvivesReloadAndModeIntervals(GameTestHelper helper) {
         var stack = new ItemStack(ItemRegistry.SHOOTING_STAR_MANTLE.get());
         helper.assertTrue(MantleEnergy.read(stack).energy() == 100 && !stack.isDamageableItem(), "New mantle must have 100 energy and no durability");
-        new MantleEnergy(1, false, 18).save(stack);
+        new MantleEnergy(1, false, 36).save(stack);
         var reloaded = ItemStack.parse(helper.getLevel().registryAccess(), stack.save(helper.getLevel().registryAccess())).orElseThrow();
         MantleEnergy.read(reloaded).tickUse().save(reloaded);
-        helper.assertTrue(MantleEnergy.read(reloaded).energy() == 1, "Nineteen active ticks must retain the last energy");
+        helper.assertTrue(MantleEnergy.read(reloaded).energy() == 1, "Partial flight consumption must survive serialization");
         var exhausted = MantleEnergy.read(reloaded).tickUse();
         exhausted.save(reloaded);
-        helper.assertTrue(exhausted.energy() == 0 && exhausted.recovering(), "Twentieth active tick must deplete and lock the mantle");
+        helper.assertTrue(exhausted.energy() == 0 && exhausted.recovering(), "Completed flight interval must deplete and lock the mantle");
         var restored = ItemStack.parse(helper.getLevel().registryAccess(), reloaded.save(helper.getLevel().registryAccess())).orElseThrow();
         helper.assertTrue(MantleEnergy.read(restored).recovering(), "Recovery lock must survive serialization");
         for (int i = 0; i < 9; i++) { exhausted = exhausted.recharge(); }
@@ -80,17 +80,17 @@ public final class ShootingStarMantleGameTests {
         var stack = ShootingStarMantleRuntime.findEquipped(player);
         var magic = MagicData.getPlayerMagicData(player);
         new MantleEnergy(99, false, 7).save(stack);
-        magic.setMana(19);
-        helper.assertFalse(ShootingStarMantleRuntime.recharge(player, stack, 20), "Insufficient mana must not partially pay");
-        helper.assertTrue(MantleEnergy.read(stack).energy() == 99 && magic.getMana() == 19, "Failed recovery must change neither resource");
-        magic.setMana(20);
-        helper.assertTrue(ShootingStarMantleRuntime.recharge(player, stack, 20), "Full cost must allow a partial final refill");
-        helper.assertTrue(magic.getMana() == 0 && MantleEnergy.read(stack).energy() == 100, "Final refill must still cost 20 mana");
+        magic.setMana(49);
+        helper.assertFalse(ShootingStarMantleRuntime.recharge(player, stack, 50), "Insufficient mana must not partially pay");
+        helper.assertTrue(MantleEnergy.read(stack).energy() == 99 && magic.getMana() == 49, "Failed recovery must change neither resource");
+        magic.setMana(50);
+        helper.assertTrue(ShootingStarMantleRuntime.recharge(player, stack, 50), "Full cost must allow a partial final refill");
+        helper.assertTrue(magic.getMana() == 0 && MantleEnergy.read(stack).energy() == 100, "Final refill must still cost 50 mana");
         new MantleEnergy(90, true, 7).save(stack);
-        magic.setMana(99);
-        helper.assertFalse(ShootingStarMantleRuntime.recharge(player, stack, 100), "Recovery mode must require its entire cost");
-        magic.setMana(100);
-        ShootingStarMantleRuntime.recharge(player, stack, 100);
+        magic.setMana(49);
+        helper.assertFalse(ShootingStarMantleRuntime.recharge(player, stack, 50), "Recovery mode must require its entire cost");
+        magic.setMana(50);
+        ShootingStarMantleRuntime.recharge(player, stack, 50);
         helper.assertTrue(MantleEnergy.read(stack).usable() && magic.getMana() == 0, "Full recovery must unlock with full payment");
         ShootingStarMantleRuntime.clear(player);
         helper.succeed();
@@ -108,9 +108,9 @@ public final class ShootingStarMantleGameTests {
         helper.assertTrue(ShootingStarMantleRuntime.isHovering(player) && MantleEnergy.read(stack).energy() == 100, "Energy data changes must not cancel hover");
         ShootingStarMantleRuntime.toggle(player);
         ShootingStarMantleRuntime.toggle(player);
-        ShootingStarMantleRuntime.tick(player);
+        for (int i = 0; i < 21; i++) ShootingStarMantleRuntime.tick(player);
         helper.assertTrue(MantleEnergy.read(stack).energy() == 99, "Toggling must not discard partial consumption");
-        new MantleEnergy(1, false, 19).save(stack);
+        new MantleEnergy(1, false, 39).save(stack);
         ShootingStarMantleRuntime.tick(player);
         helper.assertFalse(ShootingStarMantleRuntime.isHovering(player), "Depletion must stop hover immediately");
         helper.assertTrue("error_recovery_mode".equals(ShootingStarMantleRuntime.castError(player)), "Depleted mantle must reject recasting");
@@ -127,10 +127,10 @@ public final class ShootingStarMantleGameTests {
         for (int i = 0; i < 9; i++) ShootingStarMantleRuntime.tick(player);
         helper.assertTrue(MantleEnergy.read(stack).energy() == 50, "Idle recovery must wait ten ticks");
         ShootingStarMantleRuntime.tick(player);
-        helper.assertTrue(MantleEnergy.read(stack).energy() == 52, "Tenth tick must restore exactly two energy");
+        helper.assertTrue(MantleEnergy.read(stack).energy() == 60, "Tenth tick must restore exactly ten energy");
         ShootingStarMantleRuntime.toggle(player);
         for (int i = 0; i < 10; i++) ShootingStarMantleRuntime.tick(player);
-        helper.assertTrue(MantleEnergy.read(stack).energy() == 52, "Hover must not recharge");
+        helper.assertTrue(MantleEnergy.read(stack).energy() == 60, "Hover must not recharge");
         ShootingStarMantleRuntime.clear(player);
         helper.succeed();
     }
@@ -140,10 +140,10 @@ public final class ShootingStarMantleGameTests {
         var player = player(helper, "mantle_impulse");
         var stack = ShootingStarMantleRuntime.findEquipped(player);
         ShootingStarMantleRuntime.toggle(player);
-        new MantleEnergy(11, false, 0).save(stack);
+        new MantleEnergy(6, false, 0).save(stack);
         helper.assertFalse(ShootingStarMantleRuntime.impulse(player, 1, Float.NaN, 0), "Non-finite direction must be rejected");
         helper.assertTrue(ShootingStarMantleRuntime.impulse(player, 2, 100, 100), "Finite direction must be bounded and accepted");
-        helper.assertTrue(MantleEnergy.read(stack).energy() == 1, "Impulse must charge exactly ten");
+        helper.assertTrue(MantleEnergy.read(stack).energy() == 1, "Normal impulse must charge exactly five energy");
         new MantleEnergy(100, false, 0).save(stack);
         helper.assertFalse(ShootingStarMantleRuntime.impulse(player, 2, 1, 0), "Duplicate request must be rejected");
         helper.assertFalse(ShootingStarMantleRuntime.impulse(player, 3, 1, 0), "Impulse must not restart during its five ticks");
@@ -159,8 +159,8 @@ public final class ShootingStarMantleGameTests {
         var player = player(helper, "mantle_last_impulse");
         var stack = ShootingStarMantleRuntime.findEquipped(player);
         // 発動時枯渇と、通常消費が推進中に追いつく場合を同じ終了規則で検証する。
-        for (int initial : new int[]{1, 9, 10, 11}) {
-            new MantleEnergy(initial, false, 18).save(stack);
+        for (int initial : new int[]{1, 4, 5, 6}) {
+            new MantleEnergy(initial, false, 39).save(stack);
             MagicData.getPlayerMagicData(player).setMana(100);
             helper.assertTrue(ShootingStarMantleRuntime.toggle(player), "Usable mantle must enter hover");
             helper.assertTrue(ShootingStarMantleRuntime.impulse(player, initial * 10L, 1, 0), "Any positive usable energy must allow impulse");
@@ -359,7 +359,7 @@ public final class ShootingStarMantleGameTests {
             player.connection.handleMovePlayer(new ServerboundMovePlayerPacket.Pos(player.getX(), startY + 0.1, player.getZ(), false));
             helper.assertTrue(player.getY() > startY + 0.09,
                     "A small external upward movement must not be clamped to the hover target");
-            new MantleEnergy(1, false, 19).save(ShootingStarMantleRuntime.findEquipped(player));
+            new MantleEnergy(1, false, 39).save(ShootingStarMantleRuntime.findEquipped(player));
             ShootingStarMantleRuntime.tick(player);
             helper.assertFalse(ShootingStarMantleRuntime.isHovering(player),
                     "Server energy depletion must revoke the hover flight allowance");
@@ -460,7 +460,8 @@ public final class ShootingStarMantleGameTests {
         inventory.setEquippedCurio("back", 1, second);
         ShootingStarMantleRuntime.toggle(player);
         for (int i = 0; i < 20; i++) ShootingStarMantleRuntime.tick(player);
-        helper.assertTrue(MantleEnergy.read(first).energy() == 99 && MantleEnergy.read(second).energy() == 100, "Only the first mantle must be active");
+        helper.assertTrue(MantleEnergy.read(first).energy() == 100 && MantleEnergy.read(first).spentTicks() == 20
+                && MantleEnergy.read(second).energy() == 100, "Only the first mantle must be active");
         ShootingStarMantleRuntime.clear(player);
         helper.succeed();
     }

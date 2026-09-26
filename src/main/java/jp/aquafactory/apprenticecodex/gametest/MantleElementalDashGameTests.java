@@ -97,7 +97,13 @@ public final class MantleElementalDashGameTests {
         var energy = new MantleEnergy(100, false, 0);
         for (int i = 0; i < 20; i++) energy = energy.tickUse();
         helper.assertTrue(energy.energy() == 99 && energy.spentTicks() == 0, "Basic consumption must remain one per second");
-        helper.assertTrue(new MantleEnergy(1, false, 19).tickUse(2).recovering(), "Double rate must deplete without negative energy");
+        for (int i = 0; i < 39; i++) energy = energy.tickUse(1);
+        helper.assertTrue(energy.energy() == 99 && energy.spentTicks() == 39, "Hover must retain thirty-nine ticks of partial consumption");
+        energy = energy.tickUse(1);
+        helper.assertTrue(energy.energy() == 98 && energy.spentTicks() == 0, "Hover must consume one energy every forty ticks");
+        helper.assertTrue(new MantleEnergy(2, false, 39).tickUse().energy() == 1,
+                "Switching from hover to flight must preserve partial consumption");
+        helper.assertTrue(new MantleEnergy(1, false, 39).tickUse(2).recovering(), "Double rate must deplete without negative energy");
         helper.assertTrue(new MantleEnergy(2, false, 0).spend(20).energy() == 0, "Impact cost must clamp at zero");
         helper.succeed();
     }
