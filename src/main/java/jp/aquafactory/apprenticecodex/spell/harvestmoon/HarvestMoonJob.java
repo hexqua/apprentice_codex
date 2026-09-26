@@ -70,7 +70,7 @@ public final class HarvestMoonJob {
 
         var shears = new ItemStack(Items.SHEARS);
         var pos = target.blockPosition();
-        if (!target.isShearable(starter, shears, level, pos)) {
+        if (!target.isShearable(shears, level, pos)) {
             return;
         }
 
