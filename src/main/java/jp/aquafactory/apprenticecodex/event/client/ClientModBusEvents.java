@@ -17,6 +17,7 @@ import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserScreen;
 import jp.aquafactory.apprenticecodex.compat.arsnouveau.ArsNouveauLuminousDeviceCompat;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatClientCompat;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightClientCompat;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumBlackCrystalAdvancementClientBridge;
 import jp.aquafactory.apprenticecodex.compat.patchouli.PatchouliBuiltinTemplateSupport;
 import jp.aquafactory.apprenticecodex.compat.sodiumdynamiclights.SodiumDynamicLightsLuminousDeviceCompat;
 import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
@@ -173,6 +174,7 @@ public final class ClientModBusEvents {
     }
 
     private static void onClientSetup(FMLClientSetupEvent event) {
+        event.enqueueWork(MalumBlackCrystalAdvancementClientBridge::register);
         if (ModList.get().isLoaded("patchouli")) {
             event.enqueueWork(PatchouliBuiltinTemplateSupport::registerBuiltinTemplates);
         }

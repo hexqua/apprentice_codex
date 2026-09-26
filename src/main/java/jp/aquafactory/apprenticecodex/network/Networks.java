@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifl
 import jp.aquafactory.apprenticecodex.network.packet.ClientMantleImpulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMantleDashInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMantleFireworkInputPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientMalumBlackCrystalRevealedPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMantleDashPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMantlePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientFullautoRapidcastSpellrifleAdsPacket;
@@ -122,7 +123,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "110";
+    private static final String PROTOCOL_VERSION = "111";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -815,6 +816,9 @@ public final class Networks {
         CHANNEL.registerMessage(nextPacketId++, SyncFullautoRapidcastSpellrifleFireEffectPacket.class,
                 SyncFullautoRapidcastSpellrifleFireEffectPacket::encode, SyncFullautoRapidcastSpellrifleFireEffectPacket::decode, SyncFullautoRapidcastSpellrifleFireEffectPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(nextPacketId++, ClientMalumBlackCrystalRevealedPacket.class,
+                ClientMalumBlackCrystalRevealedPacket::encode, ClientMalumBlackCrystalRevealedPacket::decode,
+                ClientMalumBlackCrystalRevealedPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
 
     }
 

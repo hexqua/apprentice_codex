@@ -37,6 +37,12 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
     @SuppressWarnings("DataFlowIssue")
     @Override
     public void generate(HolderLookup.@NotNull Provider registries, @NotNull Consumer<Advancement> saver, @NotNull ExistingFileHelper existingFileHelper) {
+        // Malumの解禁状態はclientに保存されるため、説明書専用の進捗だけをserverへ記録する。
+        Advancement.Builder.advancement()
+                .addCriterion(AdvancementTools.MALUM_BLACK_CRYSTAL_REVEALED_CRITERION,
+                        new ImpossibleTrigger.TriggerInstance())
+                .save(saver, AdvancementTools.MALUM_BLACK_CRYSTAL_REVEALED, existingFileHelper);
+
         var ironsSpellbookEquipPredicate = EntityPredicate.wrap(
                 EntityPredicate.Builder.entity()
                         .subPredicate(PlayerPredicate.Builder.player()
