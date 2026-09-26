@@ -3,7 +3,7 @@ package jp.aquafactory.apprenticecodex.datagen;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
@@ -144,7 +144,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SPELL_SIDE_EDGE.get(),
                 ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get(),
                 ItemRegistry.SCROLLCASTER_GAUNTLET.get(),
-                ItemRegistry.CHARGECAST_CATALYSTBOOK.get()
+                ItemRegistry.CHARGECAST_CATALYSTBOOK.get(),
+                ItemRegistry.SHOOTING_STAR_MANTLE.get()
         );
 
         tag(createTag("malum", "scythe")).add(ItemRegistry.SPELL_REAPER_SCYTHE.get());
@@ -197,7 +198,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         // 所謂魔法武器全般を自動で登録するようにする.
         for (RegistryObject<Item> itemEntry : ItemRegistry.ITEMS.getEntries()) {
             var item = itemEntry.get();
-            if (TranscendencePolicy.supportsDirectApplication(item)) {
+            if (TranscendenceTarget.supportsDirectApplication(item)) {
                 // 1.21.1 側では enchantment JSON の supported_items / primary_items からこのタグを参照する。
                 transcendenceEnchantableTag.add(item);
             }
@@ -257,7 +258,8 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         );
         tag(CURIOS_BACK).add(
                 ItemRegistry.QUICKCAST_SCROLL_CARTRIDGE.get(),
-                ItemRegistry.SPELLCASTER_QUIVER.get()
+                ItemRegistry.SPELLCASTER_QUIVER.get(),
+                ItemRegistry.SHOOTING_STAR_MANTLE.get()
         );
         tag(CURIOS_NECKLACE).add(
                 ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get(),

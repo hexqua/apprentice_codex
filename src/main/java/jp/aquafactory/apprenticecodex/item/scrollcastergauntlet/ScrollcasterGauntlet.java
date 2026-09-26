@@ -10,7 +10,6 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
-import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
@@ -19,10 +18,12 @@ import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceHelper;
+import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.*;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
@@ -86,11 +87,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public final class ScrollcasterGauntlet extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
+public final class ScrollcasterGauntlet extends Item implements GeoItem, UniqueItem, TranscendenceTarget,
         ItemTransformPreservingCastAnimationItem, ArcaneAnvilScrollImbueBlockItem,
         BetterCombatOffhandDualWieldingPolicyItem, SwingTriggeredMagicItem, PriorityOffhandUseDeferringItem, IJeiInfoItem,
         ImmediateSneakSelectionUiItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
-        NonDamageableAnvilMergeItem, TranscendencePolicy, AttributeEnchantmentPolicy, WisdomPolicy {
+        NonDamageableAnvilMergeItem, AttributeEnchantmentPolicy, WisdomPolicy {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.scrollcaster_gauntlet.desc_";
 
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
@@ -252,6 +253,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, Player player, @NotNull InteractionHand usedHand) {
         var stack = player.getItemInHand(usedHand);
+        if (!level.isClientSide) discardLegacySpellContainer(stack);
         if (usedHand == InteractionHand.MAIN_HAND && shouldPrioritizeOffhandUse(player)) {
             return InteractionResultHolder.pass(stack);
         }
@@ -287,15 +289,10 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     @Override
-    public void initializeSpellContainer(ItemStack stack) {
-        refreshSelectedSpellContainer(stack);
-    }
-
-    @Override
     public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity, int slotId, boolean isSelected) {
         super.inventoryTick(stack, level, entity, slotId, isSelected);
-        if (hasAnyCalibrationScroll(stack) && !isCurrentSelectedSpellContainer(stack)) {
-            refreshSelectedSpellContainer(stack);
+        if (!level.isClientSide && ISpellContainer.isSpellContainer(stack)) {
+            discardLegacySpellContainer(stack);
         }
     }
 
@@ -355,7 +352,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             return false;
         }
 
-        refreshSelectedSpellContainer(stack);
+        normalizeSelectedScrollIndex(stack);
         var spellData = getSelectedSpellData(stack);
         if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
             return false;
@@ -616,7 +613,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     @Override
     public void onCalibrationAdjustmentsChanged(@NotNull ItemStack targetStack) {
         refreshResolvedCalibrationSchool(targetStack);
-        refreshSelectedSpellContainer(targetStack);
+        normalizeSelectedScrollIndex(targetStack);
     }
 
     @Override
@@ -630,7 +627,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
 
     public static void setCalibrationScroll(@NotNull ItemStack gauntletStack, int slot, @NotNull ItemStack stack) {
         setCalibrationItem(gauntletStack, SCROLLS_TAG, slot, CALIBRATION_SCROLL_SLOT_COUNT, stack);
-        refreshSelectedSpellContainer(gauntletStack);
+        normalizeSelectedScrollIndex(gauntletStack);
     }
 
     public static boolean hasAnyCalibrationScroll(@NotNull ItemStack gauntletStack) {
@@ -698,12 +695,12 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         }
 
         if (!isSelectableScrollIndex(gauntletStack, selectedScrollIndex)) {
-            refreshSelectedSpellContainer(gauntletStack);
+            normalizeSelectedScrollIndex(gauntletStack);
             return;
         }
 
         setStoredSelectedScrollIndex(gauntletStack, selectedScrollIndex);
-        refreshSelectedSpellContainer(gauntletStack);
+        normalizeSelectedScrollIndex(gauntletStack);
     }
 
     public static boolean isSelectableScrollIndex(@NotNull ItemStack gauntletStack, int selectedScrollIndex) {
@@ -726,7 +723,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         var firstValidIndex = findFirstValidScrollIndex(gauntletStack);
         if (firstValidIndex < 0) {
             clearSelectedScrollIndex(gauntletStack);
-            ISpellContainer.remove(gauntletStack);
             return -1;
         }
 
@@ -740,7 +736,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             return SpellData.EMPTY;
         }
 
-        return getScrollSpellData(getCalibrationScroll(gauntletStack, selectedIndex));
+        return resolveScrollSpellData(gauntletStack, getCalibrationScroll(gauntletStack, selectedIndex));
     }
 
     public static @NotNull CastMode getCastMode(@NotNull ItemStack gauntletStack) {
@@ -775,8 +771,8 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             spellData = getSelectedSpellData(gauntletStack);
             castSource = CastSource.SWORD;
         } else {
-            // SpellSelectionManagerの構築前に投影を直し、現在のGauntlet選択もwheel候補へ確実に含める。
-            refreshSelectedSpellContainer(gauntletStack);
+            // SpellSelectionManagerの構築前に内部スクロールの選択を正規化する。
+            normalizeSelectedScrollIndex(gauntletStack);
             var selectionOption = new SpellSelectionManager(player).getSelection();
             if (selectionOption == null) {
                 return null;
@@ -839,7 +835,7 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
         var enabledSlotCount = getEnabledCalibrationScrollSlotCount(gauntletStack);
         var views = new ArrayList<SneakSelectionView>();
         for (var slot = 0; slot < enabledSlotCount; ++slot) {
-            var spellData = getScrollSpellData(getCalibrationScroll(gauntletStack, slot));
+            var spellData = resolveScrollSpellData(gauntletStack, getCalibrationScroll(gauntletStack, slot));
             views.add(SneakSelectionView.forSpell(
                     slot,
                     spellData,
@@ -847,45 +843,6 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
             ));
         }
         return List.copyOf(views);
-    }
-
-    public static void refreshSelectedSpellContainer(@NotNull ItemStack gauntletStack) {
-        var spellData = getSelectedSpellData(gauntletStack);
-        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
-            ISpellContainer.remove(gauntletStack);
-            return;
-        }
-
-        if (isCurrentSelectedSpellContainer(gauntletStack, spellData)) {
-            return;
-        }
-
-        // Iron's のショートカット選択とクールダウン表示に乗せるため、内部スクロールをGauntlet本体のSpell Wheelへ投影する。
-        var spellContainer = ISpellContainer.create(1, true, false).mutableCopy();
-        spellContainer.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, false);
-        ISpellContainer.set(gauntletStack, spellContainer.toImmutable());
-    }
-
-    private static boolean isCurrentSelectedSpellContainer(@NotNull ItemStack gauntletStack) {
-        var spellData = getSelectedSpellData(gauntletStack);
-        return spellData != SpellData.EMPTY
-                && spellData.getSpell() != null
-                && isCurrentSelectedSpellContainer(gauntletStack, spellData);
-    }
-
-    private static boolean isCurrentSelectedSpellContainer(@NotNull ItemStack gauntletStack, @NotNull SpellData spellData) {
-        var current = ISpellContainer.get(gauntletStack);
-        if (current != null) {
-            var currentSpell = current.getSpellAtIndex(0);
-            return current.getMaxSpellCount() == 1
-                    && current.isSpellWheel()
-                    && !current.mustEquip()
-                    && currentSpell != SpellData.EMPTY
-                    && currentSpell.getSpell() == spellData.getSpell()
-                    && currentSpell.getLevel() == spellData.getLevel()
-                    && !currentSpell.isLocked();
-        }
-        return false;
     }
 
     public static void refreshResolvedCalibrationSchool(@NotNull ItemStack gauntletStack) {
@@ -1090,5 +1047,34 @@ public final class ScrollcasterGauntlet extends Item implements GeoItem, IPreset
     }
 
     public record ResolvedUseSpell(@NotNull SpellData spellData, @NotNull CastSource castSource) {
+    }
+
+    public static void discardLegacySpellContainer(ItemStack stack) {
+        if (!(stack.getItem() instanceof ScrollcasterGauntlet)) return;
+        // 本体は投影にすぎないため、旧データから内部スクロールを復元しない。
+        ISpellContainer.remove(stack);
+        PresetSpellContainerStateHelper.discardRememberedStateIfPresent(stack);
+    }
+
+    private static SpellData resolveScrollSpellData(ItemStack stack, ItemStack scroll) {
+        var data = getScrollSpellData(scroll);
+        if (data == SpellData.EMPTY) return data;
+        return new SpellData(data.getSpell(),
+                TranscendenceHelper.resolveScrollSpellLevel(stack, data.getLevel()), data.isLocked());
+    }
+
+    public static ScrollSlotTooltipData getScrollTooltipData(ItemStack stack) {
+        // 表示による正規化はコピーに限り、保存中の選択やスクロールを変更しない。
+        var display = stack.copy();
+        var selected = getSelectedSpellData(display);
+        var entries = new ArrayList<ScrollSlotTooltipData.Entry>();
+        for (int slot = 0; slot < CALIBRATION_SCROLL_SLOT_COUNT; ++slot) {
+            var scroll = getCalibrationScroll(display, slot);
+            if (scroll.isEmpty()) continue;
+            var usable = isSelectableScrollIndex(display, slot);
+            entries.add(new ScrollSlotTooltipData.Entry(slot, scroll,
+                    usable ? resolveScrollSpellData(display, scroll) : getScrollSpellData(scroll), usable));
+        }
+        return new ScrollSlotTooltipData(selected, getSelectedScrollIndex(display), entries);
     }
 }

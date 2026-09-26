@@ -94,7 +94,7 @@ public final class SatelliteFollowcastAmuletCastEvent {
         var startIndex = SatelliteFollowcastAmulet.advanceAndGetSearchStartIndex(stack, maxSpellSlots);
         for (var offset = 0; offset < maxSpellSlots; ++offset) {
             var slotIndex = (startIndex + offset) % maxSpellSlots;
-            var spellData = SatelliteFollowcastAmulet.getSpellDataAt(stack, slotIndex);
+            var spellData = SatelliteFollowcastAmulet.getResolvedSpellDataAt(stack, slotIndex);
             if (spellData == SpellData.EMPTY || !amulet.canFollowcastSpell(stack, spellData)) {
                 continue;
             }
@@ -156,6 +156,8 @@ public final class SatelliteFollowcastAmuletCastEvent {
     ) {
         var spell = spellData.getSpell();
         var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
+        // RemoteOwner は渡されたレベルをそのまま実行するため、ここでプレイヤー補正まで確定する。
+        spellData = new SpellData(spell, spellLevel, spellData.isLocked());
         if (spell.requiresLearning() && !spell.isLearned(player)) {
             return CastAttemptResult.NONE;
         }
@@ -205,7 +207,7 @@ public final class SatelliteFollowcastAmuletCastEvent {
                     player,
                     spellData,
                     FOLLOWCAST_SOURCE,
-                    RemoteOwnerCooldownPolicy.FOLLOWCAST
+                    RemoteOwnerCooldownPolicy.RESOLVED_FOLLOWCAST
             );
             return CastAttemptResult.CASTED;
         }
@@ -255,7 +257,7 @@ public final class SatelliteFollowcastAmuletCastEvent {
                 sourceStack,
                 result.continuousSession(),
                 level.getGameTime() + castDuration,
-                RemoteOwnerCooldownPolicy.FOLLOWCAST,
+                RemoteOwnerCooldownPolicy.RESOLVED_FOLLOWCAST,
                 (tickLevel, tickOwner, session) -> prepareContinuousFollowcastTick(tickOwner, session, key),
                 (finishedLevel, finishedOwner, cancelled) -> syncContinuousState(finishedOwner, key, false, 0L)
         ));

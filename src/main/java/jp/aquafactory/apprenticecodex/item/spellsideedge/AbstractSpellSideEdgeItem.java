@@ -43,7 +43,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 public abstract class AbstractSpellSideEdgeItem extends SwordItem
-        implements GeoItem, IPresetSpellContainer, UniqueItem, TranscendencePolicy, WisdomPolicy, AttributeEnchantmentPolicy {
+        implements GeoItem, IPresetSpellContainer, UniqueItem, WisdomPolicy, AttributeEnchantmentPolicy {
     public static final float DISPLAY_ATTACK_DAMAGE = 4.0F;
     public static final int DURABILITY = 1561;
     public static final int ENCHANTMENT_VALUE = 22;
@@ -61,8 +61,7 @@ public abstract class AbstractSpellSideEdgeItem extends SwordItem
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
     );
     private static final Set<ResourceLocation> EXTRA_ENCHANTMENTS = Set.of(
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom"),
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "transcendence")
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "wisdom")
     );
 
     private static final Set<AttributeEnchantmentType> DIRECT_ATTRIBUTE_ENCHANTMENTS = Set.of(

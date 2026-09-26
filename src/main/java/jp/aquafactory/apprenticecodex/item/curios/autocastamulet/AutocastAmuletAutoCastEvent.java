@@ -93,7 +93,7 @@ public final class AutocastAmuletAutoCastEvent {
                 continue;
             }
 
-            var spellData = AutocastAmulet.getSpellDataAt(slotResult.stack(), index);
+            var spellData = AutocastAmulet.getResolvedSpellDataAt(slotResult.stack(), index);
             if (spellData == SpellData.EMPTY || !autocastAmulet.canAutoCastSpell(slotResult.stack(), spellData)) {
                 continue;
             }

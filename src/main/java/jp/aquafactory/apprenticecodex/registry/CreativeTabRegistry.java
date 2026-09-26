@@ -276,6 +276,9 @@ public final class CreativeTabRegistry {
             output.accept(ItemRegistry.MAGI_COMPRESSOR_GADGET.get());
         }
 
+        // back
+        output.accept(ItemRegistry.SHOOTING_STAR_MANTLE.get());
+
         // head
         output.accept(ItemRegistry.ASHEN_CIRCLET.get());
         output.accept(ItemRegistry.ENCHANTED_CIRCLET.get());

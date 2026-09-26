@@ -3,7 +3,9 @@ package jp.aquafactory.apprenticecodex.remoteownercast;
 public enum RemoteOwnerCooldownPolicy {
     WEAPON_IMBUE(true, false, false),
     WEAPON_IMBUE_WITH_LONG_CAST_EXTENSION(true, true, false),
-    FOLLOWCAST(false, true, true);
+    FOLLOWCAST(false, true, true),
+    // プレイヤー補正済みの実行データを渡す追従詠唱用。
+    RESOLVED_FOLLOWCAST(false, true, false);
 
     private final boolean skipRecastCooldown;
     private final boolean addLongCastExtension;

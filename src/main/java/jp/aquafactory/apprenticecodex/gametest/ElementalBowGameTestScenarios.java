@@ -317,12 +317,12 @@ final class ElementalBowGameTestScenarios {
                 stack.enchant(Enchantments.FLAMING_ARROWS, 1);
                 stack.enchant(EnchantmentRegistry.TRANSCENDENCE.get(), 3);
                 setElementalBowMode(stack, "fire");
-                helper.assertTrue(ElementalBow.getDisplayedSpellProfile(stack).spellLevel() == 4,
+                helper.assertTrue(ElementalBow.getDisplayedSpellProfile(stack).spellLevel() == 2,
                         "Only Transcendence may increase the stored scroll level: " + ElementalBow.getDisplayedSpellProfile(stack));
                 var scroll = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
-                ISpellContainer.createScrollContainer(SpellRegistry.FIRE_ARROW_SPELL.get(), 9, scroll);
+                ISpellContainer.createScrollContainer(SpellRegistry.FIRE_ARROW_SPELL.get(), SpellRegistry.FIRE_ARROW_SPELL.get().getMaxLevel(), scroll);
                 ElementalBow.setCalibrationScroll(stack, 0, scroll, helper.getLevel().registryAccess());
-                helper.assertTrue(ElementalBow.getDisplayedSpellProfile(stack).spellLevel() == 10, "Level must be capped");
+                helper.assertTrue(ElementalBow.getDisplayedSpellProfile(stack).spellLevel() == SpellRegistry.FIRE_ARROW_SPELL.get().getMaxLevel() + 1, "Level must exceed the normal maximum");
                 setElementalBowShotSelection(stack, "normal", null);
                 helper.assertTrue(ElementalBow.getDisplayedSpellProfile(stack) == null, "Physical mode must hide active spell");
                 helper.assertFalse(ISpellContainer.isSpellContainer(stack), "Mode changes must never create a spell container");

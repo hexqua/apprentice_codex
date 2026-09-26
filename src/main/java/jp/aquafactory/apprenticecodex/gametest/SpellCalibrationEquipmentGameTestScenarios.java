@@ -1080,8 +1080,6 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
     static void mithrilFreecastStaffBlocksArcaneAnvilImbueViaSpellValidator(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var stack = new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
-            var item = (MithrilFreecastStaff) stack.getItem();
-            item.initializeSpellContainer(stack);
             var scrollStack = createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get());
 
             helper.assertFalse(stack.getItem() instanceof RestrictedSpellImbuableItem,
@@ -1104,7 +1102,6 @@ final class SpellCalibrationEquipmentGameTestScenarios extends ApprenticeCodexGa
 
             var staff = new ItemStack(ItemRegistry.MITHRIL_FREECAST_STAFF.get());
             var staffItem = (MithrilFreecastStaff) staff.getItem();
-            staffItem.initializeSpellContainer(staff);
             SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     staff,
                     0,

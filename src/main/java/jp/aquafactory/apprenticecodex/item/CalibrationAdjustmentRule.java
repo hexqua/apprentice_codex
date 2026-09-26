@@ -22,6 +22,7 @@ public final class CalibrationAdjustmentRule {
     }
 
     private final String displayId;
+    private final String exclusiveGroup;
     private final Predicate<ItemStack> matcher;
     private final BiPredicate<ItemStack, ItemStack> conflict;
     private final CalibrationAdjustmentHint hint;
@@ -36,7 +37,8 @@ public final class CalibrationAdjustmentRule {
             CalibrationAdjustmentHint hint,
             DuplicatePolicy duplicatePolicy,
             CalibrationConstraintDisplay constraintDisplay,
-            Supplier<List<Component>> effectLinesSupplier
+            Supplier<List<Component>> effectLinesSupplier,
+            String exclusiveGroup
     ) {
         this.displayId = Objects.requireNonNull(displayId);
         if (displayId.isBlank()) {
@@ -48,6 +50,7 @@ public final class CalibrationAdjustmentRule {
         this.duplicatePolicy = Objects.requireNonNull(duplicatePolicy);
         this.constraintDisplay = Objects.requireNonNull(constraintDisplay);
         this.effectLinesSupplier = Objects.requireNonNull(effectLinesSupplier);
+        this.exclusiveGroup = exclusiveGroup;
     }
 
     public static CalibrationAdjustmentRule repeatable(
@@ -62,7 +65,7 @@ public final class CalibrationAdjustmentRule {
                 hint,
                 DuplicatePolicy.REPEATABLE,
                 CalibrationConstraintDisplay.none(),
-                List::of
+                List::of, null
         );
     }
 
@@ -87,7 +90,7 @@ public final class CalibrationAdjustmentRule {
                 hint,
                 DuplicatePolicy.UNIQUE_RULE,
                 constraintDisplay,
-                List::of
+                List::of, null
         );
     }
 
@@ -122,7 +125,7 @@ public final class CalibrationAdjustmentRule {
                 hint,
                 DuplicatePolicy.UNIQUE_KEY,
                 constraintDisplay,
-                List::of
+                List::of, null
         );
     }
 
@@ -139,12 +142,25 @@ public final class CalibrationAdjustmentRule {
                 hint,
                 duplicatePolicy,
                 constraintDisplay,
-                effectLinesSupplier
+                effectLinesSupplier, exclusiveGroup
         );
     }
 
     public String displayId() {
         return displayId;
+    }
+
+    /** 効果説明を別ページに保ったまま、同じ対象装備内で排他にする。 */
+    public CalibrationAdjustmentRule withExclusiveGroup(String group) {
+        if (Objects.requireNonNull(group).isBlank()) {
+            throw new IllegalArgumentException("Calibration exclusive group must not be blank.");
+        }
+        return new CalibrationAdjustmentRule(displayId, matcher, conflict, hint, duplicatePolicy,
+                constraintDisplay, effectLinesSupplier, group);
+    }
+
+    public boolean sharesExclusiveGroup(CalibrationAdjustmentRule other) {
+        return exclusiveGroup != null && other != null && exclusiveGroup.equals(other.exclusiveGroup);
     }
 
     public boolean accepts(@NotNull ItemStack stack) {

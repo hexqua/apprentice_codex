@@ -3,16 +3,11 @@ package jp.aquafactory.apprenticecodex.item;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
-import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
-import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
-import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
-import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
-import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
-import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.BlockPos;
@@ -48,12 +43,11 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public abstract class AbstractRightClickMagicWeaponItem extends Item
-        implements IPresetSpellContainer, NonDamageableAnvilMergeItem, PriorityOffhandUseDeferringItem,
-        TranscendencePolicy, WisdomPolicy {
+        implements NonDamageableAnvilMergeItem, PriorityOffhandUseDeferringItem,
+        WisdomPolicy {
     private static final String VANILLA_NAMESPACE = "minecraft";
     private static final String MALUM_NAMESPACE = "malum";
     private static final ResourceLocation MALUM_SPIRIT_PLUNDER =
@@ -65,18 +59,12 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item
             ResourceLocation.fromNamespaceAndPath(MALUM_NAMESPACE, "soul_hunter_weapon")
     );
     private static final Set<ResourceLocation> ALLOWED_MAGIC_ITEM_ENCHANTMENTS = Set.of(
-            ResourceLocation.fromNamespaceAndPath("apprenticecodex", "transcendence"),
             ResourceLocation.fromNamespaceAndPath("apprenticecodex", "wisdom"),
             MALUM_REPLENISHING
     );
     private static final ItemStack DURABILITY_ENCHANTMENT_PROBE_STACK = new ItemStack(Items.ELYTRA);
     private static final UUID ATTACK_DAMAGE_MODIFIER_ID = Item.BASE_ATTACK_DAMAGE_UUID;
     private static final UUID ATTACK_SPEED_MODIFIER_ID = Item.BASE_ATTACK_SPEED_UUID;
-
-    private final Supplier<? extends AbstractSpell> configuredSpell;
-    private final int configuredSpellLevel;
-    private final boolean startsWithPresetSpell;
-    private final boolean spellWheelEnabled;
     private final int enchantmentValue;
     private final String itemKey;
     private final double attackDamage;
@@ -86,9 +74,6 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item
 
     protected AbstractRightClickMagicWeaponItem(
             Properties properties,
-            Supplier<? extends AbstractSpell> configuredSpell,
-            int configuredSpellLevel,
-            boolean spellWheelEnabled,
             int enchantmentValue,
             String itemKey,
             double attackDamage,
@@ -96,10 +81,6 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item
             List<AttributeBonus> handBonuses
     ) {
         super(properties.fireResistant());
-        this.configuredSpell = Objects.requireNonNull(configuredSpell);
-        this.configuredSpellLevel = configuredSpellLevel;
-        this.startsWithPresetSpell = true;
-        this.spellWheelEnabled = spellWheelEnabled;
         this.enchantmentValue = enchantmentValue;
         this.itemKey = normalizeKeyToken(itemKey);
         this.attackDamage = attackDamage;
@@ -110,120 +91,13 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item
 
     protected AbstractRightClickMagicWeaponItem(
             Properties properties,
-            boolean spellWheelEnabled,
-            int enchantmentValue,
-            String itemKey,
-            double attackDamage,
-            double attackSpeed,
-            List<AttributeBonus> handBonuses
-    ) {
-        super(properties.fireResistant());
-        this.configuredSpell = null;
-        this.configuredSpellLevel = 0;
-        this.startsWithPresetSpell = false;
-        this.spellWheelEnabled = spellWheelEnabled;
-        this.enchantmentValue = enchantmentValue;
-        this.itemKey = normalizeKeyToken(itemKey);
-        this.attackDamage = attackDamage;
-        this.attackSpeed = attackSpeed;
-        this.handBonuses = List.copyOf(handBonuses);
-        this.mainhandModifiers = buildBaseMainhandModifiers();
-    }
-
-    protected AbstractRightClickMagicWeaponItem(
-            Properties properties,
-            Supplier<? extends AbstractSpell> configuredSpell,
-            int configuredSpellLevel,
-            boolean spellWheelEnabled,
             int enchantmentValue,
             String itemKey,
             double attackDamage,
             double attackSpeed,
             AttributeBonus... handBonuses
     ) {
-        this(
-                properties,
-                configuredSpell,
-                configuredSpellLevel,
-                spellWheelEnabled,
-                enchantmentValue,
-                itemKey,
-                attackDamage,
-                attackSpeed,
-                List.of(handBonuses)
-        );
-    }
-
-    protected AbstractRightClickMagicWeaponItem(
-            Properties properties,
-            boolean spellWheelEnabled,
-            int enchantmentValue,
-            String itemKey,
-            double attackDamage,
-            double attackSpeed,
-            AttributeBonus... handBonuses
-    ) {
-        this(
-                properties,
-                spellWheelEnabled,
-                enchantmentValue,
-                itemKey,
-                attackDamage,
-                attackSpeed,
-                List.of(handBonuses)
-        );
-    }
-
-    @Override
-    public void initializeSpellContainer(ItemStack itemStack) {
-        if (itemStack == null || itemStack.isEmpty()) {
-            return;
-        }
-
-        if (repairPresetSpellContainerStateIfNeeded(itemStack)) {
-            return;
-        }
-
-        if (ISpellContainer.isSpellContainer(itemStack)) {
-            return;
-        }
-
-        var spellContainer = ISpellContainer.create(1, spellWheelEnabled, false).mutableCopy();
-        if (startsWithPresetSpell) {
-            InitialSpellContainerHelper.addInitialSpellIfEnabled(
-                    spellContainer,
-                    configuredSpell,
-                    configuredSpellLevel,
-                    0,
-                    true
-            );
-        }
-        ISpellContainer.set(itemStack, spellContainer.toImmutable());
-    }
-
-    public final boolean repairPresetSpellContainerStateIfNeeded(ItemStack itemStack) {
-        if (itemStack == null || itemStack.isEmpty()) {
-            return false;
-        }
-
-        Predicate<SpellData> trackedStateValidator = this instanceof RestrictedSpellImbuableItem restrictedSpellImbuableItem
-                ? restrictedSpellImbuableItem::canImbueSpell
-                : spellData -> spellData != SpellData.EMPTY && spellData.getSpell() != SpellRegistry.none();
-        if (PresetSpellContainerStateHelper.restoreIfNeeded(
-                itemStack,
-                1,
-                spellWheelEnabled,
-                false,
-                trackedStateValidator
-        )) {
-            return true;
-        }
-
-        return normalizeLegacyOverriddenSpellContainerIfNeeded(itemStack);
-    }
-
-    protected boolean normalizeLegacyOverriddenSpellContainerIfNeeded(ItemStack stack) {
-        return false;
+        this(properties, enchantmentValue, itemKey, attackDamage, attackSpeed, List.of(handBonuses));
     }
 
     @Override
@@ -287,6 +161,10 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item
 
         if (isMalumSpiritPlunder(stack, enchantmentId)) {
             return true;
+        }
+
+        if (enchantment == EnchantmentRegistry.TRANSCENDENCE.get()) {
+            return this instanceof TranscendenceTarget;
         }
 
         if (ALLOWED_MAGIC_ITEM_ENCHANTMENTS.contains(enchantmentId)) {
@@ -354,33 +232,7 @@ public abstract class AbstractRightClickMagicWeaponItem extends Item
         return OffhandUsePriorityHelper.isPriorityOffhandUseItem(player.getOffhandItem());
     }
 
-    protected final @Nullable SpellData getPrimarySpellData(ItemStack stack) {
-        if (!ISpellContainer.isSpellContainer(stack)) {
-            return null;
-        }
-
-        var spellContainer = ISpellContainer.get(stack);
-        if (spellContainer == null || spellContainer.getActiveSpellCount() <= 0) {
-            return null;
-        }
-
-        var spellData = spellContainer.getSpellAtIndex(0);
-        return spellData == SpellData.EMPTY ? null : spellData;
-    }
-
-    protected final boolean matchesConfiguredPresetSpell(@Nullable SpellData spellData) {
-        return spellData != null
-                && startsWithPresetSpell
-                && configuredSpell != null
-                && configuredSpell.get().equals(spellData.getSpell())
-                && configuredSpellLevel == spellData.getLevel();
-    }
-
     private CastResult tryCastSelectedSpell(Player player, ItemStack stack) {
-        if (!ISpellContainer.isSpellContainer(stack)) {
-            initializeSpellContainer(stack);
-        }
-
         var selectionOption = new SpellSelectionManager(player).getSelection();
         if (selectionOption == null || selectionOption.spellData == SpellData.EMPTY) {
             return CastResult.NONE;

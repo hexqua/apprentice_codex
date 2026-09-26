@@ -78,6 +78,13 @@ public final class PresetSpellContainerStateHelper {
         stack.removeTagKey(ROOT_TAG);
     }
 
+    public static void discardRememberedStateIfPresent(ItemStack stack) {
+        var customData = stack.getTag();
+        if (customData != null && customData.contains(ROOT_TAG)) {
+            clearRememberedState(stack);
+        }
+    }
+
     private static boolean matchesCurrentState(ItemStack stack, RememberedState rememberedState, Predicate<SpellData> validator) {
         if (!ISpellContainer.isSpellContainer(stack)) {
             return false;

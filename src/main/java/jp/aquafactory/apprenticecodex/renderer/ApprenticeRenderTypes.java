@@ -8,6 +8,18 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 
 public class ApprenticeRenderTypes extends RenderStateShard {
+    public static RenderType mantleBlink(boolean additive) {
+        return RenderType.create("apprenticecodex_mantle_blink_" + additive,
+                DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 1536, false, true,
+                RenderType.CompositeState.builder()
+                        .setShaderState(POSITION_COLOR_SHADER)
+                        .setTransparencyState(additive ? ADDITIVE_TRANSPARENCY : TRANSLUCENT_TRANSPARENCY)
+                        .setDepthTestState(LEQUAL_DEPTH_TEST)
+                        .setWriteMaskState(COLOR_WRITE)
+                        .setCullState(CULL)
+                        .createCompositeState(false));
+    }
+
     // lightningと同じ合成・地形遮蔽を保ち、同一平面の軌跡レイヤー間の深度競合だけを防ぐ。
     private static final RenderType SCYTHE_TRAIL = RenderType.create(
             "apprenticecodex_scythe_trail", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS,

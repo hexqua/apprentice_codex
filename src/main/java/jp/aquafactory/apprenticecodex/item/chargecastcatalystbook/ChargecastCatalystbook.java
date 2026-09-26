@@ -28,6 +28,7 @@ import jp.aquafactory.apprenticecodex.spell.IChargecastStaffbowIncompatibleSpell
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.HandStackResolver;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import jp.aquafactory.apprenticecodex.utility.ScrollcasterSchoolRuneResolver;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import net.minecraft.ChatFormatting;
@@ -74,11 +75,11 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public final class ChargecastCatalystbook extends Item implements GeoItem, IPresetSpellContainer, UniqueItem,
+public final class ChargecastCatalystbook extends Item implements GeoItem, UniqueItem, TranscendenceTarget,
         RestrictedSpellImbuableItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
         ArcaneAnvilScrollImbueBlockItem, CastAnimationOverrideItem, ImmediateSneakSelectionUiItem,
         OffhandAttributeRelocatingItem, NonDamageableAnvilMergeItem,
-        TranscendencePolicy, AttributeEnchantmentPolicy, WisdomPolicy, PlunderTarget, IJeiInfoItem {
+        AttributeEnchantmentPolicy, WisdomPolicy, PlunderTarget, IJeiInfoItem {
     private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.chargecast_catalystbook.desc_";
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     public static final int CALIBRATION_SCROLL_SLOT_COUNT = 4;
@@ -139,20 +140,8 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     }
 
     @Override
-    public @NotNull ItemStack getDefaultInstance() {
-        var stack = super.getDefaultInstance();
-        initializeSpellContainer(stack);
-        return stack;
-    }
-
-    @Override
     public String getJeiInfoTranslationKeyPrefix() {
         return JEI_INFO_KEY_PREFIX;
-    }
-
-    @Override
-    public void initializeSpellContainer(ItemStack stack) {
-        refreshSelectedSpellContainer(stack);
     }
 
     @Override
@@ -264,6 +253,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     ) {
         // CastingItemのように振る舞うため、このアイテム自体はメインハンドオフハンドのケアは行わない.
         var stack = player.getItemInHand(usedHand);
+        if (!level.isClientSide) discardLegacySpellContainer(stack);
         var magicData = MagicData.getPlayerMagicData(player);
         if (magicData != null && magicData.isCasting()) {
             if (player instanceof ServerPlayer serverPlayer) {
@@ -321,6 +311,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
             magicData = MagicData.getPlayerMagicData(serverPlayer);
             magicData.initiateCast(spell, spellLevel, duration, CastSource.SWORD, slotId);
             magicData.setPlayerCastingItem(stack);
+            StoredScrollCastingEvents.onCastStarted(serverPlayer, slotId);
             AudioTools.playSoundFromEntity(level, serverPlayer, SoundRegistry.VANILLA_CAST_BOOK.get(), SoundSource.PLAYERS);
             PacketDistributor.sendToPlayer(serverPlayer, new UpdateCastingStatePacket(
                     spell.getSpellId(), spellLevel, duration, CastSource.SWORD, slotId
@@ -345,8 +336,9 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity,
                               int slotId, boolean isSelected) {
         super.inventoryTick(stack, level, entity, slotId, isSelected);
-        if (hasAnyCalibrationScroll(stack) && !isCurrentSelectedSpellContainer(stack)) {
-            refreshSelectedSpellContainer(stack);
+        if (!level.isClientSide) {
+            discardLegacySpellContainer(stack);
+            normalizeSelectedScrollIndex(stack);
         }
     }
 
@@ -405,7 +397,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
 
     @Override
     public void normalizeImbuedSpellContainer(ItemStack stack) {
-        refreshSelectedSpellContainer(stack);
+        normalizeSelectedScrollIndex(stack);
     }
 
     @Override
@@ -433,7 +425,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     @Override
     public void onCalibrationAdjustmentsChanged(@NotNull ItemStack targetStack) {
         refreshResolvedCalibrationSchool(targetStack);
-        refreshSelectedSpellContainer(targetStack);
+        normalizeSelectedScrollIndex(targetStack);
     }
 
     @Override
@@ -567,7 +559,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
 
     public static void setCalibrationScroll(@NotNull ItemStack stack, int slot, @NotNull ItemStack scroll) {
         setCalibrationItem(stack, SCROLLS_TAG, slot, CALIBRATION_SCROLL_SLOT_COUNT, scroll);
-        refreshSelectedSpellContainer(stack);
+        normalizeSelectedScrollIndex(stack);
     }
 
     public static int getEnabledCalibrationScrollSlotCount(@NotNull ItemStack stack) {
@@ -610,11 +602,11 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
 
     public static void setSelectedScrollIndex(@NotNull ItemStack stack, int selected) {
         if (!isSelectableScrollIndex(stack, selected)) {
-            refreshSelectedSpellContainer(stack);
+            normalizeSelectedScrollIndex(stack);
             return;
         }
         stack.getOrCreateTagElement(CALIBRATION_TAG).putInt(SELECTED_SCROLL_INDEX_TAG, selected);
-        refreshSelectedSpellContainer(stack);
+        normalizeSelectedScrollIndex(stack);
     }
 
     public static boolean isSelectableScrollIndex(@NotNull ItemStack stack, int selected) {
@@ -624,14 +616,15 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
 
     public static @NotNull SpellData getSelectedSpellData(@NotNull ItemStack stack) {
         var selected = normalizeSelectedScrollIndex(stack);
-        return selected < 0 ? SpellData.EMPTY : getScrollSpellData(getCalibrationScroll(stack, selected));
+        return selected < 0 ? SpellData.EMPTY : resolveScrollSpellData(stack, getCalibrationScroll(stack, selected));
     }
 
     public static @NotNull List<SneakSelectionView> getSelectionViews(@NotNull ItemStack stack) {
+        stack = stack.copy();
         normalizeSelectedScrollIndex(stack);
         var views = new ArrayList<SneakSelectionView>();
         for (var slot = 0; slot < getEnabledCalibrationScrollSlotCount(stack); ++slot) {
-            var spellData = getScrollSpellData(getCalibrationScroll(stack, slot));
+            var spellData = resolveScrollSpellData(stack, getCalibrationScroll(stack, slot));
             views.add(SneakSelectionView.forSpell(
                     slot,
                     spellData,
@@ -639,21 +632,6 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
             ));
         }
         return List.copyOf(views);
-    }
-
-    public static void refreshSelectedSpellContainer(@NotNull ItemStack stack) {
-        var spellData = getSelectedSpellData(stack);
-        if (spellData == SpellData.EMPTY || spellData.getSpell() == null) {
-            ISpellContainer.remove(stack);
-            return;
-        }
-        if (isCurrentSelectedSpellContainer(stack, spellData)) {
-            return;
-        }
-        // Iron's のスペルホイールには、自前領域で選択中の1魔法だけを投影する。
-        var container = ISpellContainer.create(1, true, false).mutableCopy();
-        container.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, false);
-        ISpellContainer.set(stack, container.toImmutable());
     }
 
     public static @Nullable SchoolType getResolvedCalibrationSchool(ItemStack stack) {
@@ -690,7 +668,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
         }
     }
 
-    private static int normalizeSelectedScrollIndex(ItemStack stack) {
+    public static int normalizeSelectedScrollIndex(ItemStack stack) {
         var selected = getSelectedScrollIndex(stack);
         if (isSelectableScrollIndex(stack, selected)) {
             return selected;
@@ -715,22 +693,6 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
             }
         }
         return -1;
-    }
-
-    private static boolean isCurrentSelectedSpellContainer(ItemStack stack) {
-        var spellData = getSelectedSpellData(stack);
-        return spellData != SpellData.EMPTY && isCurrentSelectedSpellContainer(stack, spellData);
-    }
-
-    private static boolean isCurrentSelectedSpellContainer(ItemStack stack, SpellData spellData) {
-        var container = ISpellContainer.get(stack);
-        if (container == null) {
-            return false;
-        }
-        var current = container.getSpellAtIndex(0);
-        return container.getMaxSpellCount() == 1 && container.isSpellWheel() && !container.mustEquip()
-                && current != SpellData.EMPTY && current.getSpell() == spellData.getSpell()
-                && current.getLevel() == spellData.getLevel() && !current.isLocked();
     }
 
     private static @NotNull SpellData getScrollSpellData(ItemStack scroll) {
@@ -825,5 +787,34 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, IPres
     }
 
     public record TooltipValues(int castTimeTicks, double spellPowerMultiplier) {
+    }
+
+    public static void discardLegacySpellContainer(ItemStack stack) {
+        if (!(stack.getItem() instanceof ChargecastCatalystbook)) return;
+        // 本体は投影にすぎないため、旧データから内部スクロールを復元しない。
+        ISpellContainer.remove(stack);
+        PresetSpellContainerStateHelper.discardRememberedStateIfPresent(stack);
+    }
+
+    private static SpellData resolveScrollSpellData(ItemStack stack, ItemStack scroll) {
+        var data = getScrollSpellData(scroll);
+        if (data == SpellData.EMPTY) return data;
+        return new SpellData(data.getSpell(),
+                TranscendenceHelper.resolveScrollSpellLevel(stack, data.getLevel()), data.isLocked());
+    }
+
+    public static ScrollSlotTooltipData getScrollTooltipData(ItemStack stack) {
+        // 表示による正規化はコピーに限り、保存中の選択やスクロールを変更しない。
+        var display = stack.copy();
+        var selected = getSelectedSpellData(display);
+        var entries = new ArrayList<ScrollSlotTooltipData.Entry>();
+        for (int slot = 0; slot < CALIBRATION_SCROLL_SLOT_COUNT; ++slot) {
+            var scroll = getCalibrationScroll(display, slot);
+            if (scroll.isEmpty()) continue;
+            var usable = isSelectableScrollIndex(display, slot);
+            entries.add(new ScrollSlotTooltipData.Entry(slot, scroll,
+                    usable ? resolveScrollSpellData(display, scroll) : getScrollSpellData(scroll), usable));
+        }
+        return new ScrollSlotTooltipData(selected, getSelectedScrollIndex(display), entries);
     }
 }

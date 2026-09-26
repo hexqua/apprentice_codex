@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.item.broom;
 
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
 import jp.aquafactory.apprenticecodex.entity.broom.AbstractBroomEntity;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
@@ -51,7 +52,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public abstract class AbstractBroomItem extends Item implements GeoItem, ICurioItem,
+public abstract class AbstractBroomItem extends Item implements GeoItem, ICurioItem, TranscendenceTarget,
         StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget {
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     public static final int CALIBRATION_SCROLL_SLOT_COUNT = 3;
@@ -67,6 +68,11 @@ public abstract class AbstractBroomItem extends Item implements GeoItem, ICurioI
     protected AbstractBroomItem() {
         super(new Properties().stacksTo(1).fireResistant());
         GeoItem.registerSyncedAnimatable(this);
+    }
+
+    @Override
+    public boolean isEnchantable(@NotNull ItemStack stack) {
+        return true;
     }
 
     @Override

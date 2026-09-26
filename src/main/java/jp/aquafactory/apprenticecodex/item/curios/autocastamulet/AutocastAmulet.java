@@ -7,6 +7,8 @@ import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.compat.Curios;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceHelper;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
 import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
@@ -46,7 +48,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, ArcaneAnvilImbueBlockItem,
-        StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget {
+        StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget, TranscendenceTarget {
     public static final int MIN_SPELL_SLOTS = 1;
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     public static final int MAX_SPELL_SLOTS = MIN_SPELL_SLOTS + CALIBRATION_ADJUSTMENT_SLOT_COUNT;
@@ -83,6 +85,11 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
     public AutocastAmulet() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON));
         this.slotIdentifier = Curios.NECKLACE_SLOT;
+    }
+
+    @Override
+    public boolean isEnchantable(@NotNull ItemStack stack) {
+        return true;
     }
 
     @Override
@@ -384,6 +391,10 @@ public class AutocastAmulet extends Item implements ICurioItem, IJeiInfoItem, Ar
 
     public static boolean isEnabledSpellSlot(@NotNull ItemStack amuletStack, int slot) {
         return isValidStoredSpellAccess(amuletStack, slot) && slot < getEnabledSpellSlotCount(amuletStack);
+    }
+
+    public static SpellData getResolvedSpellDataAt(ItemStack stack, int slot) {
+        return TranscendenceHelper.resolveScrollSpellData(stack, getSpellDataAt(stack, slot));
     }
 
     public static @NotNull SpellData getSpellDataAt(@NotNull ItemStack amuletStack, int slot) {

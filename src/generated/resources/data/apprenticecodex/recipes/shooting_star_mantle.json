@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "minecraft:chorus_fruit"
+    },
+    "D": {
+      "item": "apprenticecodex:spellstained_diamond"
+    },
+    "E": {
+      "item": "minecraft:elytra"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_weave"
+    },
+    "S": {
+      "item": "minecraft:nether_star"
+    },
+    "W": {
+      "item": "apprenticecodex:wind_accumulation_weave"
+    }
+  },
+  "pattern": [
+    "CMC",
+    "WEW",
+    "DSD"
+  ],
+  "result": {
+    "item": "apprenticecodex:shooting_star_mantle"
+  },
+  "show_notification": true
+}

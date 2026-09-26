@@ -19,6 +19,8 @@ import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastS
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffCastHelper;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunCastContext;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffPendingAdvance;
+import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaffSpellSelectionEvents;
+import jp.aquafactory.apprenticecodex.item.StoredScrollCastingEvents;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPowerHelper;
 import net.minecraft.server.level.ServerPlayer;
@@ -28,6 +30,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.*;
@@ -38,6 +41,16 @@ import java.util.Optional;
 
 @Mixin(value = AbstractSpell.class, remap = false)
 public abstract class AbstractSpellMixin {
+    @Inject(method = "attemptInitiateCast", at = @At("RETURN"))
+    private void apprenticecodex$trackStoredScrollCast(ItemStack stack, int spellLevel, Level level, Player player,
+                                                  CastSource source, boolean triggerCooldown, String slot,
+                                                  CallbackInfoReturnable<Boolean> cir) {
+        if (cir.getReturnValueZ() && player instanceof ServerPlayer serverPlayer) {
+            RevolvercastStaffSpellSelectionEvents.onCastStarted(serverPlayer, slot);
+            StoredScrollCastingEvents.onCastStarted(serverPlayer, slot);
+        }
+    }
+
     @Inject(method = "onServerCastComplete", at = @At("HEAD"))
     private void apprenticecodex$finishElementalBowHold(Level level, int spellLevel, LivingEntity entity,
                                                        MagicData magicData, boolean cancelled, CallbackInfo ci) {

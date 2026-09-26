@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
+import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.ShootingStarMantleRuntime;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.SpectralWingState;
 import net.minecraft.world.effect.MobEffects;
@@ -20,6 +21,13 @@ public abstract class LivingEntitySpectralWingMixin {
     @Inject(method = "updateFallFlying", at = @At("HEAD"), cancellable = true)
     private void apprenticecodex$keepSpectralWingFlight(CallbackInfo ci) {
         if (!((Object) this instanceof Player player)) {
+            return;
+        }
+
+        // SpectralWing/AngelWings/胸エリトラとの競合はcanFlyが拒否する。
+        // 外套飛行だけは胸装備の耐久消費を経由せず維持する。
+        if (player.isFallFlying() && !player.onGround() && ShootingStarMantleRuntime.canFly(player)) {
+            ci.cancel();
             return;
         }
 

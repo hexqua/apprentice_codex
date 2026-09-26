@@ -16,7 +16,6 @@ public final class BetterCombatOffhandSpellSelectionRescueCompat {
         }
 
         appendOffhandMagicItemSelectionIfNeeded(event);
-        appendScrollcasterGauntletSelectionIfNeeded(event);
     }
 
     private static void appendOffhandMagicItemSelectionIfNeeded(SpellSelectionManager.SpellSelectionEvent event) {

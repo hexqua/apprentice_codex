@@ -12,7 +12,7 @@ import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRing;
 import jp.aquafactory.apprenticecodex.item.shield.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
-import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.AbstractImbuedMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.item.AbstractSwingMagicItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
@@ -417,7 +417,7 @@ public final class SpellCalibrationImbueHelper {
         var item = stack.getItem();
         return item instanceof RestrictedSpellImbuableItem
                 || item instanceof AbstractSpellGunItem
-                || item instanceof AbstractRightClickMagicWeaponItem
+                || item instanceof AbstractImbuedMagicWeaponItem
                 || item instanceof AbstractImbueShieldItem
                 || item instanceof MagiAgentSuitItem
                 || item instanceof ChromaticMagiaDressItem
@@ -440,7 +440,7 @@ public final class SpellCalibrationImbueHelper {
         var item = stack.getItem();
         if (item instanceof AbstractSpellGunItem spellGunItem) {
             spellGunItem.repairPresetSpellContainerStateIfNeeded(stack);
-        } else if (item instanceof AbstractRightClickMagicWeaponItem magicWeaponItem) {
+        } else if (item instanceof AbstractImbuedMagicWeaponItem magicWeaponItem) {
             magicWeaponItem.repairPresetSpellContainerStateIfNeeded(stack);
         } else if (item instanceof AbstractImbueShieldItem imbueShieldItem) {
             imbueShieldItem.repairPresetSpellContainerStateIfNeeded(stack);

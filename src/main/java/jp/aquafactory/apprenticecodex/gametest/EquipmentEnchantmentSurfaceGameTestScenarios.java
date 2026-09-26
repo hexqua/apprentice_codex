@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
 import io.redspace.ironsspellbooks.compat.Curios;
@@ -1197,7 +1198,7 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             ScrollcasterGauntlet.setCalibrationScroll(
                     stack,
                     0,
-                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.GUIDING_BOLT_SPELL.get())
+                    createSpellScroll(io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())
             );
             stack.enchant(EnchantmentRegistry.SURGE.get(), 1);
             stack.enchant(EnchantmentRegistry.ATTUNEMENT.get(), 1);
@@ -1228,7 +1229,8 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
                     0.10D,
                     "Scrollcaster Gauntlet spell power should ignore Surge"
             );
-            var imbuedSchool = MagicTools.getImbuedSpellSchool(stack);
+            var selectedSpell = ScrollcasterGauntlet.getSelectedSpellData(stack);
+            var imbuedSchool = selectedSpell == SpellData.EMPTY ? null : selectedSpell.getSpell().getSchoolType();
             helper.assertTrue(imbuedSchool != null,
                     "Scrollcaster Gauntlet test could not resolve the selected spell school");
             var attunementAttribute = MagicTools

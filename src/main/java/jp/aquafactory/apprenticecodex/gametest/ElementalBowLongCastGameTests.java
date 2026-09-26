@@ -4,11 +4,13 @@ import com.mojang.authlib.GameProfile;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
+import io.redspace.ironsspellbooks.api.item.curios.AffinityData;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
@@ -20,6 +22,7 @@ import jp.aquafactory.apprenticecodex.item.elementalbow.*;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncElementalBowCastPacket;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAimCastData;
 import jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowCastData;
@@ -60,6 +63,72 @@ import java.util.function.Consumer;
 public final class ElementalBowLongCastGameTests {
     // Forge 1.20.1 の通常地形で地下に埋まらないよう、空中検証は相対高度を220上げる。
     private static final String TEMPLATE = "gametest/basic_floor";
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 100)
+    public static void transcendenceAndAffinityApplyOnceToInstantAndLongCasts(GameTestHelper h) {
+        var players = new ArrayList<FakePlayer>();
+        try (var config = useDamageTestConfig(h)) {
+            for (var spell : List.of(SpellRegistry.LUNAR_AIM.get(),
+                    io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get())) {
+                var player = player(h, InteractionHand.MAIN_HAND, spell);
+                players.add(player);
+                var stack = player.getMainHandItem();
+                var scroll = BowGameTestSupport.createSpellScroll(spell);
+                ISpellContainer.createScrollContainer(spell, spell.getMaxLevel(), scroll);
+                ElementalBow.setCalibrationScroll(stack, 0, scroll, h.getLevel().registryAccess());
+                stack.enchant(EnchantmentRegistry.TRANSCENDENCE.get(), 3);
+                var ring = new ItemStack(ItemRegistry.ENCHANTED_CIRCLET.get());
+                AffinityData.setAffinityData(ring, spell, 2);
+                BowGameTestSupport.equipCurio(player, "head", ring);
+                h.assertTrue(ElementalBow.getDisplayedSpellProfile(stack).spellLevel() == spell.getMaxLevel() + 1,
+                        "Stored spell preview must apply only the fixed internal bonus");
+                var selectedView = ElementalBow.getAvailableSelectionViews(player, stack).stream()
+                        .filter(ElementalBow.ModeSelectionView::currentSelection).findFirst().orElseThrow();
+                var expectedDisplayLevel = Integer.toString(spell.getMaxLevel() + 3);
+                h.assertTrue(expectedDisplayLevel.equals(selectedView.badgeText())
+                                && selectedView.displayName().getString().endsWith(" " + expectedDisplayLevel),
+                        "Selection name and badge must include Transcendence and Affinity once");
+                h.assertTrue(stack.getItem().use(h.getLevel(), player, InteractionHand.MAIN_HAND).getResult().consumesAction(),
+                        "Enchanted bow must begin drawing with Affinity equipped");
+            }
+        } catch (RuntimeException | Error failure) {
+            players.forEach(player -> { ElementalBowPendingCast.cancel(player); player.discard(); });
+            throw failure;
+        }
+        h.runAfterDelay(30, () -> {
+            try (var config = useDamageTestConfig(h)) {
+                for (var player : players) {
+                    var stack = player.getMainHandItem();
+                    var profile = ElementalBow.getDisplayedSpellProfile(stack);
+                    int expectedLevel = profile.spell().getMaxLevel() + 3;
+                    int[] castLevels = {0, 0};
+                    Consumer<SpellOnCastEvent> listener = event -> {
+                        if (event.getEntity() == player) {
+                            castLevels[0]++;
+                            castLevels[1] = event.getOriginalSpellLevel();
+                        }
+                    };
+                    MinecraftForge.EVENT_BUS.addListener(listener);
+                    try {
+                        float manaBefore = MagicData.getPlayerMagicData(player).getMana();
+                        float expectedMana = ElementalBowRunes.baseManaCost(stack, player, profile.spell().getManaCost(expectedLevel));
+                        stack.getItem().releaseUsing(stack, h.getLevel(), player, stack.getUseDuration() - 30);
+                        h.assertTrue(castLevels[0] == 1 && castLevels[1] == expectedLevel,
+                                "Bow must cast once at original level plus one Transcendence and two Affinity levels");
+                        h.assertTrue(Math.abs(manaBefore - MagicData.getPlayerMagicData(player).getMana() - expectedMana) < 0.01F,
+                                "Mana consumption must use the same effective level as casting");
+                        h.assertTrue(stack.getEnchantmentLevel(EnchantmentRegistry.TRANSCENDENCE.get()) == 3,
+                                "Casting must preserve legacy enchantment levels");
+                    } finally {
+                        MinecraftForge.EVENT_BUS.unregister(listener);
+                    }
+                }
+                h.succeed();
+            } finally {
+                players.forEach(player -> { ElementalBowPendingCast.cancel(player); player.discard(); });
+            }
+        });
+    }
 
     @GameTest(template = TEMPLATE, timeoutTicks = 100)
     public static void damagePreservesBowDrawAndRingNeverParries(GameTestHelper h) {

@@ -137,6 +137,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncLinearBuildConfigPacket
 import jp.aquafactory.apprenticecodex.item.shield.AbstractImbueShieldItem;
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.AbstractImbuedMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
@@ -3241,7 +3242,7 @@ public class ApprenticeCodexGameTestScenarios {
             );
             assertTooltipKeyAt(helper, gauntlet, 3, "item.apprenticecodex.scrollcaster_gauntlet.desc.wheel",
                     "Scrollcaster Gauntlet should describe spell-wheel casting by default");
-            ScrollcasterGauntlet.refreshSelectedSpellContainer(gauntlet);
+            ScrollcasterGauntlet.normalizeSelectedScrollIndex(gauntlet);
             helper.assertFalse(ISpellContainer.isSpellContainer(gauntlet),
                     "Empty Scrollcaster Gauntlet should not expose a spell container");
 
@@ -3263,11 +3264,8 @@ public class ApprenticeCodexGameTestScenarios {
                             magicMissile.getSchoolType().getDisplayName().getStyle().getColor()
                     ),
                     "Scrollcaster Gauntlet selection label should use the spell school color");
-            var spellContainer = ISpellContainer.get(gauntlet);
-            helper.assertTrue(spellContainer != null, "Selected Scrollcaster Gauntlet spell container is null");
-            helper.assertTrue(spellContainer.isSpellWheel(), "Selected Scrollcaster Gauntlet spell should be visible to Iron's spell wheel");
-            helper.assertFalse(spellContainer.mustEquip(), "Held Scrollcaster Gauntlet spell should not require an armor/curio slot");
-            assertSpellData(helper, spellContainer, 0, magicMissile, 1, false,
+            helper.assertFalse(ISpellContainer.isSpellContainer(gauntlet), "Gauntlet must not project a container");
+            helper.assertTrue(ScrollcasterGauntlet.getSelectedSpellData(gauntlet).getSpell() == magicMissile,
                     "Selected Scrollcaster Gauntlet spell mismatch");
             helper.assertFalse(Utils.canImbue(gauntlet),
                     "Scrollcaster Gauntlet should not be treated as Arcane Anvil imbue equipment");
@@ -3276,13 +3274,12 @@ public class ApprenticeCodexGameTestScenarios {
             ISpellContainer.createImbuedContainer(magicMissile, 1, gauntlet);
             helper.assertTrue(ISpellContainer.get(gauntlet).getSpellAtIndex(0).isLocked(),
                     "Legacy Scrollcaster Gauntlet projection setup should create a locked spell for this test");
-            ScrollcasterGauntlet.refreshSelectedSpellContainer(gauntlet);
-            assertSpellData(helper, ISpellContainer.get(gauntlet), 0, magicMissile, 1, false,
-                    "Scrollcaster Gauntlet should repair legacy locked projection spells");
+            ScrollcasterGauntlet.discardLegacySpellContainer(gauntlet);
+            helper.assertFalse(ISpellContainer.isSpellContainer(gauntlet), "Legacy projection must be discarded");
 
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 1, createSpellScroll(heal));
             ScrollcasterGauntlet.setSelectedScrollIndex(gauntlet, 1);
-            assertSpellData(helper, ISpellContainer.get(gauntlet), 0, heal, 1, false,
+            helper.assertTrue(ScrollcasterGauntlet.getSelectedSpellData(gauntlet).getSpell() == heal,
                     "Changing Scrollcaster Gauntlet index should change the exposed spell");
             gauntlet = ScrollcasterGauntlet.copyWithToggledCastMode(gauntlet);
             helper.assertTrue(ScrollcasterGauntlet.getCastMode(gauntlet) == ScrollcasterGauntlet.CastMode.GAUNTLET,
@@ -3480,7 +3477,7 @@ public class ApprenticeCodexGameTestScenarios {
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 1, ItemStack.EMPTY);
             helper.assertTrue(ScrollcasterGauntlet.getSelectedScrollIndex(gauntlet) == 3,
                     "Removing the selected scroll should normalize to the first remaining scroll");
-            assertSpellData(helper, ISpellContainer.get(gauntlet), 0, magicMissile, 1, false,
+            helper.assertTrue(ScrollcasterGauntlet.getSelectedSpellData(gauntlet).getSpell() == magicMissile,
                     "Normalized Scrollcaster Gauntlet spell mismatch");
 
             ScrollcasterGauntlet.setCalibrationScroll(gauntlet, 3, ItemStack.EMPTY);
@@ -3840,7 +3837,7 @@ public class ApprenticeCodexGameTestScenarios {
                     0,
                     new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
             );
-            RevolvercastStaff.refreshSelectedSpellContainer(staff);
+            RevolvercastStaff.normalizeSelectedScrollIndex(staff);
             helper.assertFalse(ISpellContainer.isSpellContainer(staff),
                     "Empty Revolvercast Staff should not expose a spell container");
 
@@ -3852,25 +3849,22 @@ public class ApprenticeCodexGameTestScenarios {
 
             helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 0,
                     "First enabled Revolvercast Staff scroll should become selected");
-            var spellContainer = ISpellContainer.get(staff);
-            helper.assertTrue(spellContainer != null, "Selected Revolvercast Staff spell container is null");
-            helper.assertTrue(spellContainer.isSpellWheel(),
-                    "Selected Revolvercast Staff spell should be visible to Iron's spell wheel");
-            assertSpellData(helper, spellContainer, 0, magicMissile, 1, false,
+            helper.assertFalse(ISpellContainer.isSpellContainer(staff), "Revolver must not project a host container");
+            helper.assertTrue(RevolvercastStaff.getSelectedSpellData(staff).getSpell() == magicMissile,
                     "Initial Revolvercast Staff selected spell mismatch");
 
             helper.assertTrue(RevolvercastStaff.advanceToNextValidScrollIndex(staff),
                     "Revolvercast Staff should advance to the next valid scroll");
             helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 2,
                     "Revolvercast Staff should skip empty scroll slots while advancing");
-            assertSpellData(helper, ISpellContainer.get(staff), 0, heal, 1, false,
+            helper.assertTrue(RevolvercastStaff.getSelectedSpellData(staff).getSpell() == heal,
                     "Advanced Revolvercast Staff selected spell mismatch");
 
             RevolvercastStaff.setCalibrationScroll(staff, 3, createSpellScroll(fireball));
             RevolvercastStaff.setCalibrationScroll(staff, 2, ItemStack.EMPTY);
             helper.assertTrue(RevolvercastStaff.getSelectedScrollIndex(staff) == 3,
                     "Invalid Revolvercast Staff index should normalize to the next valid scroll");
-            assertSpellData(helper, ISpellContainer.get(staff), 0, fireball, 1, false,
+            helper.assertTrue(RevolvercastStaff.getSelectedSpellData(staff).getSpell() == fireball,
                     "Normalized Revolvercast Staff selected spell mismatch");
 
             RevolvercastStaff.setCalibrationScroll(staff, 3, ItemStack.EMPTY);
@@ -4071,9 +4065,9 @@ public class ApprenticeCodexGameTestScenarios {
             );
             var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
             var heal = SpellRegistry.ARCANE_BLAST.get();
-            helper.assertTrue(staff.canImbueSpell(magicMissile, 1),
+            helper.assertTrue(RevolvercastStaff.canSwingCastSpell(stack, magicMissile),
                     "Revolvercast Staff should accept instant spells by default");
-            helper.assertFalse(staff.canImbueSpell(heal, 1),
+            helper.assertFalse(RevolvercastStaff.canSwingCastSpell(stack, heal),
                     "Revolvercast Staff should reject long spells without Silver Ring");
             SpellCalibrationAdjustmentGameTestSupport.setCalibrationAdjustment(
                     stack,
@@ -4082,7 +4076,7 @@ public class ApprenticeCodexGameTestScenarios {
             );
             helper.assertTrue(RevolvercastStaff.canSwingCastSpell(stack, heal),
                     "Silver Ring should enable Revolvercast Staff long swing-cast support");
-            helper.assertFalse(staff.canImbueSpell(io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get(), 1),
+            helper.assertFalse(RevolvercastStaff.canSwingCastSpell(stack, io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get()),
                     "Revolvercast Staff should reject continuous spells");
 
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0),
@@ -14292,7 +14286,7 @@ public class ApprenticeCodexGameTestScenarios {
         var item = stack.getItem();
         if (item instanceof AbstractSpellGunItem spellGunItem) {
             spellGunItem.repairPresetSpellContainerStateIfNeeded(stack);
-        } else if (item instanceof AbstractRightClickMagicWeaponItem magicWeaponItem) {
+        } else if (item instanceof AbstractImbuedMagicWeaponItem magicWeaponItem) {
             magicWeaponItem.repairPresetSpellContainerStateIfNeeded(stack);
         } else if (item instanceof AbstractImbueShieldItem imbueShieldItem) {
             imbueShieldItem.repairPresetSpellContainerStateIfNeeded(stack);

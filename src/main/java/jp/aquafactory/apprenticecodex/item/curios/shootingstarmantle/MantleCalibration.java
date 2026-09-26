@@ -1,0 +1,185 @@
+package jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle;
+
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.item.Scroll;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceHelper;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHint;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
+import jp.aquafactory.apprenticecodex.item.ScrollSlotTooltipData;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraftforge.server.ServerLifecycleHooks;
+
+import java.util.ArrayList;
+import java.util.Objects;
+
+import static jp.aquafactory.apprenticecodex.registry.ItemRegistry.SCROLLWOVEN_PARCHMENT;
+
+/** 外套の調整とスクロールは、消費で更新される魔力から独立して保存する。 */
+public final class MantleCalibration {
+    public static final int ADJUSTMENT_SLOTS = 3;
+    public static final int SCROLL_SLOTS = 3;
+    private static final String ROOT = "ShootingStarMantleCalibration";
+    public static final CalibrationAdjustmentProfile PROFILE = CalibrationAdjustmentProfile.of(
+            CalibrationAdjustmentRule.repeatable("scroll_slot", stack -> stack.is(SCROLLWOVEN_PARCHMENT.get()),
+                    CalibrationAdjustmentHint.specificItem(SCROLLWOVEN_PARCHMENT))
+                    .withEffectLines(CalibrationAdjustmentEffects.addScrollSlot(1)),
+            CalibrationAdjustmentRule.unique("protection_rune", stack -> stack.is(ItemRegistry.PROTECTION_RUNE.get()),
+                    CalibrationAdjustmentHint.specificItem(ItemRegistry.PROTECTION_RUNE))
+                    .withEffectLines(CalibrationAdjustmentEffects.addSpellResist(0.1)),
+            CalibrationAdjustmentRule.unique("recovery_rune", stack -> stack.is(ItemRegistry.COOLDOWN_RUNE.get()),
+                    CalibrationAdjustmentHint.specificItem(ItemRegistry.COOLDOWN_RUNE))
+                    .withEffectLines(CalibrationAdjustmentEffects.forceMantleRecovery()),
+            CalibrationAdjustmentRule.unique("mana_rune", stack -> stack.is(ItemRegistry.MANA_RUNE.get()),
+                    CalibrationAdjustmentHint.specificItem(ItemRegistry.MANA_RUNE))
+                    .withEffectLines(CalibrationAdjustmentEffects.increaseMantleEnergy()),
+            CalibrationAdjustmentRule.unique("ice_rune", stack -> stack.is(ItemRegistry.ICE_RUNE.get()),
+                    CalibrationAdjustmentHint.specificItem(ItemRegistry.ICE_RUNE), CalibrationAdjustmentHints.schoolRuneConstraint())
+                    .withExclusiveGroup("school_rune")
+                    .withEffectLines(CalibrationAdjustmentEffects.changeMantleDrift()),
+            CalibrationAdjustmentRule.unique("ender_rune", stack -> stack.is(ItemRegistry.ENDER_RUNE.get()),
+                    CalibrationAdjustmentHint.specificItem(ItemRegistry.ENDER_RUNE), CalibrationAdjustmentHints.schoolRuneConstraint())
+                    .withExclusiveGroup("school_rune")
+                    .withEffectLines(CalibrationAdjustmentEffects.changeMantleBlink()),
+            CalibrationAdjustmentRule.unique("fire_rune", stack -> stack.is(ItemRegistry.FIRE_RUNE.get()),
+                    CalibrationAdjustmentHint.specificItem(ItemRegistry.FIRE_RUNE), CalibrationAdjustmentHints.schoolRuneConstraint())
+                    .withExclusiveGroup("school_rune")
+                    .withEffectLines(CalibrationAdjustmentEffects.changeMantleDash()),
+            CalibrationAdjustmentRule.unique("lightning_rune", stack -> stack.is(ItemRegistry.LIGHTNING_RUNE.get()),
+                    CalibrationAdjustmentHint.specificItem(ItemRegistry.LIGHTNING_RUNE), CalibrationAdjustmentHints.schoolRuneConstraint())
+                    .withExclusiveGroup("school_rune")
+                    .withEffectLines(CalibrationAdjustmentEffects.changeMantleStrike()),
+            CalibrationAdjustmentRule.unique("evocation_rune", stack -> stack.is(ItemRegistry.EVOCATION_RUNE.get()),
+                    CalibrationAdjustmentHint.specificItem(ItemRegistry.EVOCATION_RUNE), CalibrationAdjustmentHints.schoolRuneConstraint())
+                    .withExclusiveGroup("school_rune")
+                    .withEffectLines(CalibrationAdjustmentEffects.changeMantleFirework()));
+
+    private MantleCalibration() { }
+
+    static HolderLookup.Provider serializationLookup() {
+        var server = ServerLifecycleHooks.getCurrentServer();
+        return server == null ? RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY)
+                : server.registryAccess();
+    }
+
+    public static int enabledSlots(ItemStack stack, HolderLookup.Provider lookup) {
+        int count = 0;
+        for (int slot = 0; slot < ADJUSTMENT_SLOTS; slot++) {
+            if (CalibrationAdjustmentStorage.get(stack, slot, ADJUSTMENT_SLOTS)
+                    .is(SCROLLWOVEN_PARCHMENT.get())) count++;
+        }
+        return count;
+    }
+
+    public static boolean hasAdjustment(ItemStack stack, Item item) {
+        if (!(stack.getItem() instanceof ShootingStarMantle mantle)) return false;
+        for (int slot = 0; slot < ADJUSTMENT_SLOTS; slot++) {
+            if (mantle.getCalibrationAdjustment(stack, slot).is(item)) return true;
+        }
+        return false;
+    }
+
+    public static boolean fastRecovery(ItemStack stack) {
+        return hasAdjustment(stack, ItemRegistry.COOLDOWN_RUNE.get());
+    }
+
+    public static boolean retainsDrift(ItemStack stack) {
+        return hasAdjustment(stack, ItemRegistry.ICE_RUNE.get());
+    }
+
+    public static boolean usesBlink(ItemStack stack) {
+        return hasAdjustment(stack, ItemRegistry.ENDER_RUNE.get());
+    }
+
+    public static boolean usesFirework(ItemStack stack) {
+        return hasAdjustment(stack, ItemRegistry.EVOCATION_RUNE.get());
+    }
+
+    public static int elementalKind(ItemStack stack) {
+        if (hasAdjustment(stack, ItemRegistry.FIRE_RUNE.get())) return MantleElementalDash.FIRE;
+        if (hasAdjustment(stack, ItemRegistry.LIGHTNING_RUNE.get())) return MantleElementalDash.LIGHTNING;
+        return 0;
+    }
+
+    public static ItemStack getScroll(ItemStack stack, int slot, HolderLookup.Provider lookup) {
+        if (!(stack.getItem() instanceof ShootingStarMantle) || slot < 0 || slot >= SCROLL_SLOTS) return ItemStack.EMPTY;
+        var root = stack.getTag() == null ? new CompoundTag() : stack.getTag();
+        var list = root
+                .getCompound(ROOT).getList("Scrolls", Tag.TAG_COMPOUND);
+        for (int i = 0; i < list.size(); i++) {
+            var entry = list.getCompound(i);
+            if (entry.getInt("Slot") == slot) return ItemStack.of(entry.getCompound("Item"));
+        }
+        return ItemStack.EMPTY;
+    }
+
+    public static void setScroll(ItemStack stack, int slot, ItemStack scroll, HolderLookup.Provider lookup) {
+        if (!(stack.getItem() instanceof ShootingStarMantle) || slot < 0 || slot >= SCROLL_SLOTS) return;
+        // 有効枠数とは独立させ、羊皮紙を外しても現物と元の位置を保持する。
+        {
+            var root = stack.getOrCreateTag();
+            var calibration = root.getCompound(ROOT);
+            var list = calibration.getList("Scrolls", Tag.TAG_COMPOUND);
+            for (int i = list.size() - 1; i >= 0; i--) {
+                if (list.getCompound(i).getInt("Slot") == slot) list.remove(i);
+            }
+            if (!scroll.isEmpty()) {
+                var entry = new CompoundTag();
+                entry.putInt("Slot", slot);
+                entry.put("Item", scroll.copyWithCount(1).save(new CompoundTag()));
+                list.add(entry);
+            }
+            if (list.isEmpty()) {
+                root.remove(ROOT);
+            } else {
+                calibration.put("Scrolls", list);
+                root.put(ROOT, calibration);
+            }
+        }
+    }
+
+    public static SpellData readSpell(ItemStack stack, int slot, HolderLookup.Provider lookup) {
+        var scroll = getScroll(stack, slot, lookup);
+        if (!(scroll.getItem() instanceof Scroll)) return SpellData.EMPTY;
+        var container = ISpellContainer.get(scroll);
+        var data = container == null ? SpellData.EMPTY : container.getSpellAtIndex(0);
+        return SpellCalibrationImbueTarget.isValidCalibrationSpell(data) ? data : SpellData.EMPTY;
+    }
+
+    public static ScrollSlotTooltipData tooltipData(ItemStack stack, HolderLookup.Provider lookup) {
+        var entries = new ArrayList<ScrollSlotTooltipData.Entry>();
+        int enabled = enabledSlots(stack, lookup);
+        for (int slot = 0; slot < SCROLL_SLOTS; slot++) {
+            var scroll = getScroll(stack, slot, lookup);
+            if (scroll.isEmpty()) continue;
+            var spell = readSpell(stack, slot, lookup);
+            entries.add(new ScrollSlotTooltipData.Entry(slot, scroll,
+                    TranscendenceHelper.resolveScrollSpellData(stack, spell), slot < enabled && spell != SpellData.EMPTY));
+        }
+        return new ScrollSlotTooltipData(SpellData.EMPTY, -1, entries);
+    }
+
+    public static boolean hasSameScrollSelection(ItemStack before, ItemStack after, HolderLookup.Provider lookup) {
+        if (before.getItem() != after.getItem()) return false;
+        if (!(after.getItem() instanceof ShootingStarMantle)) return true;
+        if (enabledSlots(before, lookup) != enabledSlots(after, lookup)
+                || !Objects.equals(EnchantmentHelper.getEnchantments(before), EnchantmentHelper.getEnchantments(after))) return false;
+        for (int slot = 0; slot < SCROLL_SLOTS; slot++) {
+            if (!ItemStack.isSameItemSameTags(getScroll(before, slot, lookup), getScroll(after, slot, lookup))) return false;
+        }
+        return true;
+    }
+}

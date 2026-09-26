@@ -56,8 +56,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
+import jp.aquafactory.apprenticecodex.item.AbstractImbuedMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
+import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 
-public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
+public final class SmashcastScepter extends AbstractImbuedMagicWeaponItem
         implements GeoItem, RestrictedSpellImbuableItem, IJeiInfoItem, PlunderTarget {
     public static final double ATTACK_DAMAGE_MODIFIER = 5.0D;
     public static final double ATTACK_SPEED_MODIFIER = -3.4D;
@@ -356,7 +360,6 @@ public final class SmashcastScepter extends AbstractRightClickMagicWeaponItem
 
         return (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
                 || (EnchantmentRegistry.PLUNDER.isPresent() && enchantment == EnchantmentRegistry.PLUNDER.get())
-                || (EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get())
                 || MALUM_REPLENISHING.equals(enchantmentId)
                 || ALLOWED_VANILLA_ENCHANTMENTS.contains(enchantmentId);
     }

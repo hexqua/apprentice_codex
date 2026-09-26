@@ -6,6 +6,9 @@
   "refmap": "mixins.apprenticecodex.refmap.json",
   "plugin": "jp.aquafactory.apprenticecodex.mixin.ApprenticeCodexMixinPlugin",
   "mixins": [
+    "PlayerShootingStarMantleMixin",
+    "LivingEntityMantleTravelMixin",
+    "ServerMantleFloatingMixin",
     "RecastInstanceCooldownMixin",
     "LivingEntityChargedStaffRiptideMixin",
     "MonarchBondLifestealMixin",
@@ -82,6 +85,11 @@
     "UtilsMixin"
   ],
   "client": [
+    "EntityRenderDispatcherMantleBlinkMixin",
+    "EntityRendererMantleBlinkNameMixin",
+    "ClientMantlePositionMixin",
+    "LocalPlayerShootingStarMantleMixin",
+    "MantleDashRotationMixin",
     "PlayerStaffrifleScopeMixin",
     "AbstractClientPlayerStaffrifleScopeMixin",
     "ChargedStaffItemInHandRendererMixin",

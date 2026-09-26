@@ -15,6 +15,8 @@ import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeSt
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
 import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastScrollCartridge;
+import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleCalibration;
+import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.ShootingStarMantle;
 import jp.aquafactory.apprenticecodex.item.armor.ChromaticMagiaDressItem;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitItem;
 import jp.aquafactory.apprenticecodex.item.armor.EndgameArmorCalibration;
@@ -78,6 +80,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
 
     private final ContainerLevelAccess access;
     private final HolderLookup.Provider lookupProvider;
+    private final boolean clientSide;
     private final ItemStackHandler gauntletInventory = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -93,6 +96,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         super(MenuRegistry.SPELL_CALIBRATION_BENCH.get(), containerId);
         this.access = access;
         this.lookupProvider = playerInventory.player.level().registryAccess();
+        this.clientSide = playerInventory.player.level().isClientSide;
 
         addSlot(new GauntletSlot(gauntletInventory, 0, GAUNTLET_SLOT_X, GAUNTLET_SLOT_Y));
         var adjustmentContainer = new AdjustmentContainer();
@@ -232,6 +236,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     public int getEnabledScrollSlotCount() {
+        if (getGauntletStack().getItem() instanceof ShootingStarMantle) {
+            return MantleCalibration.enabledSlots(getGauntletStack(), lookupProvider);
+        }
         if (getGauntletStack().getItem() instanceof FullautoRapidcastSpellrifle) {
             return FullautoRapidcastSpellrifle.getEnabledCalibrationScrollSlotCount(getGauntletStack(), lookupProvider);
         }
@@ -333,7 +340,7 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
                     "item.apprenticecodex.spellgun.tooltip.restrict_restrict_by_specific.elemental_bow"));
         }
         if (hasRevolvercastStaff()) {
-            return ((RevolvercastStaff) getGauntletStack().getItem()).getImbueRestrictionTooltipLines(getGauntletStack());
+            return ((RevolvercastStaff) getGauntletStack().getItem()).getScrollRestrictionTooltipLines(getGauntletStack());
         }
         if (hasParrycastBuckler()) {
             return ((ParrycastBuckler) getGauntletStack().getItem())
@@ -393,6 +400,9 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
     }
 
     private @NotNull ItemStack getScroll(int slot) {
+        if (getGauntletStack().getItem() instanceof ShootingStarMantle) {
+            return MantleCalibration.getScroll(getGauntletStack(), slot, lookupProvider);
+        }
         if (getGauntletStack().getItem() instanceof FullautoRapidcastSpellrifle) {
             return FullautoRapidcastSpellrifleScrollStorage.get(getGauntletStack(), slot, lookupProvider);
         }
@@ -432,12 +442,15 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
         if (gauntletStack.getItem() instanceof ElementalBow) ElementalBowScrollStorage.migrate(gauntletStack);
         if (hasGauntlet()) {
             ScrollcasterGauntlet.refreshResolvedCalibrationSchool(gauntletStack);
-            ScrollcasterGauntlet.refreshSelectedSpellContainer(gauntletStack);
+            if (!clientSide) ScrollcasterGauntlet.discardLegacySpellContainer(gauntletStack);
+            ScrollcasterGauntlet.normalizeSelectedScrollIndex(gauntletStack);
         } else if (hasChargecastCatalystbook()) {
-            ChargecastCatalystbook.refreshSelectedSpellContainer(gauntletStack);
+            if (!clientSide) ChargecastCatalystbook.discardLegacySpellContainer(gauntletStack);
+            ChargecastCatalystbook.normalizeSelectedScrollIndex(gauntletStack);
         } else if (hasRevolvercastStaff()) {
+            if (!clientSide) RevolvercastStaff.discardLegacySpellContainer(gauntletStack);
             RevolvercastStaff.refreshResolvedCalibrationSchool(gauntletStack);
-            RevolvercastStaff.refreshSelectedSpellContainer(gauntletStack);
+            RevolvercastStaff.normalizeSelectedScrollIndex(gauntletStack);
         } else if (hasMithrilFreecastStaff()) {
             MithrilFreecastStaff.refreshResolvedCalibrationSchool(gauntletStack);
         } else if (hasMagiAgentSuit()) {
@@ -464,6 +477,10 @@ public final class SpellCalibrationBenchMenu extends AbstractContainerMenu {
             return;
         }
 
+        if (getGauntletStack().getItem() instanceof ShootingStarMantle) {
+            MantleCalibration.setScroll(getGauntletStack(), slot, stack, lookupProvider);
+            return;
+        }
         if (getGauntletStack().getItem() instanceof FullautoRapidcastSpellrifle) {
             FullautoRapidcastSpellrifleScrollStorage.set(getGauntletStack(), slot, stack, lookupProvider);
             return;

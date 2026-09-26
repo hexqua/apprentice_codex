@@ -245,7 +245,6 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
         var attributeType = AttributeEnchantmentType.from(enchantment);
         return attributeType.map(this::supportsDirectAttributeEnchantment).orElseGet(() ->
                 enchantment.canApplyAtEnchantingTable(SHIELD_ENCHANTMENT_PROBE)
-                        || enchantment == EnchantmentRegistry.TRANSCENDENCE.get()
                         || enchantment == EnchantmentRegistry.WISDOM.get());
 
     }

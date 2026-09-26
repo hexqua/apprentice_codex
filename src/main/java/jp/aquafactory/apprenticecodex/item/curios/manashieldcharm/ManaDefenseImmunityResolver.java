@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.item.curios.manashieldcharm;
 
 import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidanceEvents;
+import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleBlink;
+import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleElementalDash;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 
@@ -11,6 +13,8 @@ final class ManaDefenseImmunityResolver {
     static boolean cancelIfImmune(LivingAttackEvent event, ServerPlayer player) {
         // マナなどを消費する防御より先に、このMODが最終的に無効化するダメージを一箇所で解決する.
         return ManaShieldCharmLogic.cancelDuringVanillaStyleIFrame(event, player)
-                || MirageAvoidanceEvents.cancelIncomingDamageIfInvulnerable(event);
+                || MirageAvoidanceEvents.cancelIncomingDamageIfInvulnerable(event)
+                || MantleBlink.cancelIncomingDamageIfInvulnerable(event)
+                || MantleElementalDash.cancelIncomingDamageIfInvulnerable(event);
     }
 }

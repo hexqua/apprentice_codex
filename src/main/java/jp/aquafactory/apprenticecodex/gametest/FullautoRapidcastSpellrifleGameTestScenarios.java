@@ -590,10 +590,10 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios extends Apprenti
         });
         var spell = SpellRegistry.MAGIC_MISSILE_SPELL.get();
         stack.enchant(EnchantmentRegistry.TRANSCENDENCE.get(), 1);
-        // GameTest 環境でも Iron's の設定上限を尊重する。付与そのものの成否と上限処理を分けて検証する。
+        // 旧レベルを保持しつつ、魔法の通常上限を超えて固定で一段階上昇する。
         helper.assertTrue(stack.getEnchantmentLevel(EnchantmentRegistry.TRANSCENDENCE.get()) == 1, "Transcendence must be present");
-        helper.assertTrue(FullautoRapidcastSpellrifle.resolveImbuedSpellLevel(stack, new SpellData(spell, 1)) == Math.min(2, spell.getMaxLevel()),
-                "Transcendence must add one level without exceeding the configured maximum");
+        helper.assertTrue(FullautoRapidcastSpellrifle.resolveImbuedSpellLevel(stack, new SpellData(spell, 1)) == 2,
+                "Transcendence must add exactly one level beyond the configured maximum");
         try (var ignored = ApprenticeCodexServerConfig.useFullautoRapidcastSpellrifleSpellDenylistOverrideForGameTest(List.of(spell.getSpellId()))) {
             helper.assertTrue(FullautoRapidcastSpellrifle.isSpecialCastSpellDenied(spell), "New denylist must affect new rifle");
             helper.assertFalse(MultipurposeStaffrifle.isSpecialCastSpellDenied(spell),

@@ -39,6 +39,40 @@ public final class CalibrationAdjustmentEffects {
         return line("add_spell_resist", percentage(amount));
     }
 
+    public static List<Component> forceMantleRecovery() {
+        return List.of(Component.translatable(KEY_PREFIX + "force_mantle_recovery_1"),
+                Component.translatable(KEY_PREFIX + "force_mantle_recovery_2"));
+    }
+
+    public static List<Component> increaseMantleEnergy() {
+        return List.of(Component.translatable(KEY_PREFIX + "increase_mantle_energy_1"),
+                Component.translatable(KEY_PREFIX + "increase_mantle_energy_2"));
+    }
+
+    public static List<Component> changeMantleDrift() {
+        return line("change_mantle_drift");
+    }
+
+    public static List<Component> changeMantleBlink() {
+        return List.of(Component.translatable(KEY_PREFIX + "change_mantle_blink_1"),
+                Component.translatable(KEY_PREFIX + "change_mantle_blink_2"));
+    }
+
+    public static List<Component> changeMantleDash() {
+        return List.of(Component.translatable(KEY_PREFIX + "change_mantle_dash_1"),
+                Component.translatable(KEY_PREFIX + "change_mantle_dash_2"));
+    }
+
+    public static List<Component> changeMantleStrike() {
+        return List.of(Component.translatable(KEY_PREFIX + "change_mantle_strike_1"),
+                Component.translatable(KEY_PREFIX + "change_mantle_strike_2"));
+    }
+
+    public static List<Component> changeMantleFirework() {
+        return List.of(Component.translatable(KEY_PREFIX + "change_mantle_firework_1"),
+                Component.translatable(KEY_PREFIX + "change_mantle_firework_2"));
+    }
+
     public static List<Component> addMaxMana(double amount) {
         return line("add_max_mana", Math.round(amount));
     }

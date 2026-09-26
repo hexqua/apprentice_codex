@@ -6,7 +6,6 @@ import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendencePolicy;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
 import jp.aquafactory.apprenticecodex.renderer.item.SpellReaperScytheRenderer;
@@ -50,7 +49,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class SpellReaperScythe extends SwordItem
-        implements GeoItem, IPresetSpellContainer, SpellSlotUpgradeableItem, TranscendencePolicy, WisdomPolicy {
+        implements GeoItem, IPresetSpellContainer, SpellSlotUpgradeableItem, WisdomPolicy {
     static final UUID BASE_DAMAGE_ID = BASE_ATTACK_DAMAGE_UUID;
     static final UUID BASE_SPEED_ID = BASE_ATTACK_SPEED_UUID;
     public static final int DURABILITY = 2031;

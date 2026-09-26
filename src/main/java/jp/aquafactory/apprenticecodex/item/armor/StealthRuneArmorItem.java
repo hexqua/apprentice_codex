@@ -42,7 +42,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetSpellContainer,
-        WisdomPolicy, TranscendencePolicy, AttributeEnchantmentPolicy {
+        WisdomPolicy, AttributeEnchantmentPolicy {
     private static final ResourceLocation ARMOR_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/geo/stealth_rune_armor.png");
     private static final RawAnimation ANIM_IDLE = RawAnimation.begin().thenLoop("idle");
@@ -72,16 +72,6 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
 
     public boolean hasImbueSlot() {
         return armorType == Type.CHESTPLATE;
-    }
-
-    @Override
-    public boolean isTranscendenceActiveWhileHeld() {
-        return false;
-    }
-
-    @Override
-    public boolean supportsDirectTranscendenceApplication() {
-        return hasImbueSlot();
     }
 
     public static boolean isStealthRuneArmor(ItemStack stack) {
@@ -139,9 +129,7 @@ public class StealthRuneArmorItem extends ArmorItem implements GeoItem, IPresetS
         if (ApprenticeCodex.MODID.equals(enchantmentId.getNamespace())) {
             var attributeEnchantment = AttributeEnchantmentType.from(enchantment);
             return attributeEnchantment.map(this::supportsDirectAttributeEnchantment).orElseGet(() ->
-                    (EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get())
-                            || (hasImbueSlot() && EnchantmentRegistry.TRANSCENDENCE.isPresent()
-                            && enchantment == EnchantmentRegistry.TRANSCENDENCE.get()));
+                    EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get());
         }
 
         return enchantment.canApplyAtEnchantingTable(createArmorProbeStack());

@@ -211,7 +211,6 @@ public class ReflectcastShield extends AbstractImbueShieldItem
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
         return enchantment.canApplyAtEnchantingTable(SHIELD_ENCHANTMENT_PROBE)
-                || EnchantmentRegistry.TRANSCENDENCE.isPresent() && enchantment == EnchantmentRegistry.TRANSCENDENCE.get()
                 || EnchantmentRegistry.WISDOM.isPresent() && enchantment == EnchantmentRegistry.WISDOM.get();
     }
 

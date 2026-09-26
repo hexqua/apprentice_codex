@@ -53,7 +53,7 @@ public final class QuickcastCartridgeCasting {
                 || MirageAvoidanceEvents.rejectServerInputCastIfLocked(player)) return false;
         var stack = findEquipped(player);
         if (stack.isEmpty()) return false;
-        var data = QuickcastScrollCartridge.getSelectedSpellData(stack);
+        var data = QuickcastScrollCartridge.getResolvedSelectedSpellData(stack);
         if (data == SpellData.EMPTY) return false;
         var spell = data.getSpell();
         var magic = MagicData.getPlayerMagicData(player);

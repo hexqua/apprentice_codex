@@ -80,7 +80,6 @@ public final class SoulstainedSteelSwingcastStaff extends AbstractRightClickMagi
     public SoulstainedSteelSwingcastStaff() {
         super(
                 new Item.Properties().stacksTo(1).rarity(Rarity.COMMON),
-                false,
                 ENCHANTMENT_VALUE,
                 ITEM_KEY,
                 2.0D,
@@ -93,11 +92,6 @@ public final class SoulstainedSteelSwingcastStaff extends AbstractRightClickMagi
                 )
         );
         GeoItem.registerSyncedAnimatable(this);
-    }
-
-    @Override
-    public void initializeSpellContainer(ItemStack itemStack) {
-        // Mnemonic Blade専用武器のため、Iron'sのspell containerは作らない。
     }
 
     @Override

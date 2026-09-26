@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 @SuppressWarnings("RedundantMethodOverride")
 public class TranscendenceEnchantment extends Enchantment {
     private static final EnchantmentCategory MAGIC_ITEM_CATEGORY =
-            EnchantmentCategory.create("apprenticecodex_transcendence_magic", TranscendencePolicy::supportsDirectApplication);
+            EnchantmentCategory.create("apprenticecodex_transcendence_magic", TranscendenceTarget::supportsDirectApplication);
 
     public TranscendenceEnchantment() {
         super(Rarity.VERY_RARE, MAGIC_ITEM_CATEGORY,
@@ -34,7 +34,7 @@ public class TranscendenceEnchantment extends Enchantment {
 
     @Override
     public int getMaxLevel() {
-        return 3;
+        return 1;
     }
 
     @Override
@@ -54,8 +54,6 @@ public class TranscendenceEnchantment extends Enchantment {
 
     @Override
     protected boolean checkCompatibility(@NotNull Enchantment other) {
-        return !(other instanceof SurgeEnchantment)
-                && !(other instanceof AttunementEnchantment)
-                && super.checkCompatibility(other);
+        return super.checkCompatibility(other);
     }
 }
