@@ -66,8 +66,8 @@ public final class ApprenticeCodexServerConfig {
     private ApprenticeCodexServerConfig() {
     }
 
-    public static float shootingStarMantleRecoveryCost(boolean recovering) {
-        return ITEMS_CONFIG.shootingStarMantleConfig.cost(recovering);
+    public static float shootingStarMantleRecoveryCost() {
+        return ITEMS_CONFIG.shootingStarMantleConfig.cost();
     }
 
     public static QuickcastCartridgeServerConfig quickcastCartridge() {

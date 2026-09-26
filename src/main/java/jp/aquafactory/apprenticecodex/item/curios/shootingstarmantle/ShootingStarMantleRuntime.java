@@ -190,7 +190,7 @@ public final class ShootingStarMantleRuntime {
         boolean full = false;
         if (state.hovering || state.flying) {
             state.recoveryTicks = 0;
-            after = before.tickUse();
+            after = state.hovering ? before.tickUse(1) : before.tickUse();
             if (state.hovering) {
                 player.fallDistance = 0;
                 if (state.dashTicks > 0 && --state.dashTicks == 0) MantleMovement.finishImpulse(player);
@@ -206,8 +206,7 @@ public final class ShootingStarMantleRuntime {
         } else if (!player.isFallFlying() && before.energy() < before.maxEnergy()) {
             if (++state.recoveryTicks >= 10) {
                 state.recoveryTicks = 0;
-                float cost = ApprenticeCodexServerConfig.shootingStarMantleRecoveryCost(
-                        before.recovering() || MantleCalibration.fastRecovery(stack));
+                float cost = ApprenticeCodexServerConfig.shootingStarMantleRecoveryCost();
                 if (recharge(player, stack, cost)) {
                     after = MantleEnergy.read(stack);
                     full = before.recovering() && !after.recovering();

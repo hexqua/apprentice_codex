@@ -174,7 +174,7 @@ public final class MantleCalibrationGameTests {
         var mantle = (ShootingStarMantle) stack.getItem();
         mantle.trySetCalibrationAdjustment(stack, 0, new ItemStack(MANA_RUNE.get()));
         var magic = MagicData.getPlayerMagicData(player);
-        float cost = ApprenticeCodexServerConfig.shootingStarMantleRecoveryCost(false);
+        float cost = ApprenticeCodexServerConfig.shootingStarMantleRecoveryCost();
         try {
             new MantleEnergy(198, false, 0, 200).save(stack);
             magic.setMana(cost);
@@ -201,7 +201,7 @@ public final class MantleCalibrationGameTests {
         var mantle = (ShootingStarMantle) stack.getItem();
         mantle.trySetCalibrationAdjustment(stack, 0, new ItemStack(COOLDOWN_RUNE.get()));
         var magic = MagicData.getPlayerMagicData(player);
-        float cost = ApprenticeCodexServerConfig.shootingStarMantleRecoveryCost(true);
+        float cost = ApprenticeCodexServerConfig.shootingStarMantleRecoveryCost();
         try {
             for (boolean recovering : new boolean[]{false, true}) {
                 new MantleEnergy(50, recovering, 7).save(stack);
@@ -209,14 +209,14 @@ public final class MantleCalibrationGameTests {
                 for (int tick = 0; tick < 9; tick++) ShootingStarMantleRuntime.tick(player);
                 helper.assertTrue(MantleEnergy.read(stack).energy() == 50, "Fast recovery must still wait ten idle ticks");
                 ShootingStarMantleRuntime.tick(player);
-                helper.assertTrue(MantleEnergy.read(stack).energy() == 60 && magic.getMana() == 0,
-                        "Rune must use both the fast recovery amount and cost");
+                helper.assertTrue(MantleEnergy.read(stack).energy() == 65 && magic.getMana() == 0,
+                        "Rune must restore fifteen energy at the shared cost");
                 helper.assertTrue(MantleEnergy.read(stack).recovering() == recovering,
                         "Recovery rune must not change the depletion lock");
                 if (cost > 0) {
                     magic.setMana(cost - 1);
                     for (int tick = 0; tick < 10; tick++) ShootingStarMantleRuntime.tick(player);
-                    helper.assertTrue(MantleEnergy.read(stack).energy() == 60 && magic.getMana() == cost - 1,
+                    helper.assertTrue(MantleEnergy.read(stack).energy() == 65 && magic.getMana() == cost - 1,
                             "Insufficient fast-recovery mana must change neither resource");
                 }
             }

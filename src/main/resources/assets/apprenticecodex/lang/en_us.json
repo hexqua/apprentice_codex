@@ -1743,7 +1743,7 @@
   "item.apprenticecodex.shooting_star_mantle.desc_2": "Casting the spell within the mantle also allows you to hover by consuming its energy.",
   "item.apprenticecodex.shooting_star_mantle.desc_3": "When not in use, the mantle restores its energy using the wearer's mana.",
   "jei.apprenticecodex.spell_calibration_bench.effect.force_mantle_recovery_1": "Increases mantle energy recovery speed",
-  "jei.apprenticecodex.spell_calibration_bench.effect.force_mantle_recovery_2": "Recovery speed after depletion is unchanged",
+  "jei.apprenticecodex.spell_calibration_bench.effect.force_mantle_recovery_2": "Restores more energy for the same mana cost",
   "jei.apprenticecodex.spell_calibration_bench.effect.increase_mantle_energy_1": "Increases mantle energy capacity",
   "jei.apprenticecodex.spell_calibration_bench.effect.increase_mantle_energy_2": "Recovery speed is unchanged",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_drift": "Preserves momentum during Wavering Star",
