@@ -25,6 +25,7 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     private static final String REMOTE_EYE_ISOLATED_BATCH = "apprenticecodex.remote_eye_isolated";
     private static final String MIRAGE_AVOIDANCE_ISOLATED_BATCH = "apprenticecodex.mirage_avoidance_isolated";
     private static final String HARVEST_MOON_ISOLATED_BATCH = "apprenticecodex.harvest_moon_isolated";
+    private static final String HARVEST_MOON_SHEEP_SNAPSHOT_BATCH = "apprenticecodex.harvest_moon_sheep_snapshot";
     private static final String AUTO_TURRET_ISOLATED_BATCH = "apprenticecodex.auto_turret_isolated";
     private static final String FIELD_OVERSEER_ISOLATED_BATCH = "apprenticecodex.field_overseer_isolated";
     private static final String FIELD_OVERSEER_LIFECYCLE_BATCH = "apprenticecodex.field_overseer_lifecycle";
@@ -705,6 +706,21 @@ public final class ApprenticeCodexSpellBehaviorGameTests {
     @GameTest(template = TEMPLATE, batch = HARVEST_MOON_ISOLATED_BATCH)
     public static void harvestMoonResetsMatureNetherWartAndPullsDrops(GameTestHelper helper) {
         ApprenticeCodexGameTestScenarios.harvestMoonResetsMatureNetherWartAndPullsDrops(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HARVEST_MOON_ISOLATED_BATCH)
+    public static void harvestMoonWithCraftsmansDelightShearsSheepWithoutShears(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.harvestMoonWithCraftsmansDelightShearsSheepWithoutShears(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HARVEST_MOON_ISOLATED_BATCH)
+    public static void harvestMoonWithoutCraftsmansDelightDoesNotShearSheep(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.harvestMoonWithoutCraftsmansDelightDoesNotShearSheep(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = HARVEST_MOON_SHEEP_SNAPSHOT_BATCH)
+    public static void harvestMoonSheepTargetsAreFixedAtCastAndRecheckedWhenProcessed(GameTestHelper helper) {
+        ApprenticeCodexGameTestScenarios.harvestMoonSheepTargetsAreFixedAtCastAndRecheckedWhenProcessed(helper);
     }
 
     @GameTest(template = TEMPLATE, batch = HARVEST_MOON_ISOLATED_BATCH)

@@ -322,6 +322,7 @@ import net.minecraft.world.entity.npc.VillagerData;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.entity.animal.Sheep;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.InteractionResult;
@@ -330,6 +331,7 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.GrindstoneMenu;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArrowItem;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -8345,6 +8347,84 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertBlockProperty(immatureCropPos, NetherWartBlock.AGE, 2);
             helper.assertItemEntityPresent(Items.NETHER_WART, casterPos, 1.5);
             helper.assertItemEntityNotPresent(Items.NETHER_WART, matureCropPos, 1.5);
+            helper.succeed();
+        });
+    }
+
+    static void harvestMoonWithCraftsmansDelightShearsSheepWithoutShears(GameTestHelper helper) {
+        var casterPos = new BlockPos(0, 3, 0);
+        var redSheepPos = new BlockPos(3, 2, 0);
+        var blueSheepPos = new BlockPos(5, 2, 0);
+        var redSheep = helper.spawn(EntityType.SHEEP, redSheepPos);
+        var blueSheep = helper.spawn(EntityType.SHEEP, blueSheepPos);
+        redSheep.setNoAi(true);
+        blueSheep.setNoAi(true);
+        redSheep.setColor(DyeColor.RED);
+        blueSheep.setColor(DyeColor.BLUE);
+
+        var player = createHarvestMoonPlayer(helper, casterPos, new ItemStack(Items.STICK));
+        equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+        helper.runAtTickTime(1, () -> castHarvestMoon(helper, player, 1));
+        helper.runAtTickTime(3, () -> {
+            helper.assertTrue(redSheep.isSheared() && blueSheep.isSheared(),
+                    "HarvestMoon should shear every captured sheep without real shears");
+            helper.assertItemEntityPresent(Items.RED_WOOL, casterPos, 1.5);
+            helper.assertItemEntityPresent(Items.BLUE_WOOL, casterPos, 1.5);
+            helper.assertItemEntityNotPresent(Items.RED_WOOL, redSheepPos, 1.5);
+            helper.assertItemEntityNotPresent(Items.BLUE_WOOL, blueSheepPos, 1.5);
+            helper.assertTrue(player.getMainHandItem().is(Items.STICK),
+                    "HarvestMoon should restore the caster's main-hand item after virtual shearing");
+            helper.succeed();
+        });
+    }
+
+    static void harvestMoonWithoutCraftsmansDelightDoesNotShearSheep(GameTestHelper helper) {
+        var casterPos = new BlockPos(0, 3, 0);
+        var sheep = helper.spawn(EntityType.SHEEP, new BlockPos(3, 2, 0));
+        sheep.setNoAi(true);
+        var player = createHarvestMoonPlayer(helper, casterPos, new ItemStack(Items.STICK));
+
+        helper.runAtTickTime(1, () -> castHarvestMoon(helper, player, 1));
+        helper.runAtTickTime(3, () -> {
+            helper.assertTrue(!sheep.isSheared(), "HarvestMoon should not shear sheep without Craftsman's Delight");
+            helper.assertItemEntityNotPresent(Items.WHITE_WOOL, casterPos, 1.5);
+            helper.succeed();
+        });
+    }
+
+    static void harvestMoonSheepTargetsAreFixedAtCastAndRecheckedWhenProcessed(GameTestHelper helper) {
+        var casterPos = new BlockPos(0, 3, 0);
+        var adult = helper.spawn(EntityType.SHEEP, new BlockPos(3, 2, 0));
+        var alreadySheared = helper.spawn(EntityType.SHEEP, new BlockPos(5, 2, 0));
+        var baby = helper.spawn(EntityType.SHEEP, new BlockPos(7, 2, 0));
+        adult.setNoAi(true);
+        alreadySheared.setNoAi(true);
+        baby.setNoAi(true);
+        adult.setColor(DyeColor.RED);
+        alreadySheared.setColor(DyeColor.BLUE);
+        baby.setColor(DyeColor.YELLOW);
+        baby.setAge(-24000);
+
+        var player = createHarvestMoonPlayer(helper, casterPos, new ItemStack(Items.STICK));
+        equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+        var newcomer = new Sheep[1];
+        helper.runAtTickTime(1, () -> {
+            castHarvestMoon(helper, player, 1);
+            alreadySheared.setSheared(true);
+            // 詠唱後に範囲へ入ったヒツジは、ジョブの対象リストに加わらない。
+            newcomer[0] = helper.spawn(EntityType.SHEEP, new BlockPos(9, 2, 0));
+            newcomer[0].setNoAi(true);
+            newcomer[0].setColor(DyeColor.GREEN);
+        });
+        helper.runAtTickTime(3, () -> {
+            helper.assertTrue(adult.isSheared(), "HarvestMoon should shear the adult captured at cast time");
+            helper.assertTrue(alreadySheared.isSheared(), "HarvestMoon should leave sheep sheared before job execution unchanged");
+            helper.assertTrue(!baby.isSheared(), "HarvestMoon should not shear baby sheep");
+            helper.assertTrue(!newcomer[0].isSheared(), "HarvestMoon should not shear sheep entering after the cast");
+            helper.assertItemEntityPresent(Items.RED_WOOL, casterPos, 1.5);
+            helper.assertItemEntityNotPresent(Items.BLUE_WOOL, casterPos, 1.5);
+            helper.assertItemEntityNotPresent(Items.YELLOW_WOOL, casterPos, 1.5);
+            helper.assertItemEntityNotPresent(Items.GREEN_WOOL, casterPos, 1.5);
             helper.succeed();
         });
     }
