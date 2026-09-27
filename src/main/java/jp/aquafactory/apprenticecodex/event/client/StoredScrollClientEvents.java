@@ -23,9 +23,11 @@ public final class StoredScrollClientEvents {
         var player = Minecraft.getInstance().player;
         boolean changed = false;
         for (var hand : InteractionHand.values()) {
+            // 追加された手は選択同期の対象外にし、両手分のスナップショットだけを参照する。
+            if (hand != InteractionHand.MAIN_HAND && hand != InteractionHand.OFF_HAND) continue;
             var held = player == null ? ItemStack.EMPTY : StoredScrollCastingEvents.resolveHeld(player, hand);
             var next = StoredScrollCastingEvents.isTarget(held) ? held.copy() : ItemStack.EMPTY;
-            int index = hand.ordinal();
+            int index = hand == InteractionHand.MAIN_HAND ? 0 : 1;
             changed |= !ItemStack.isSameItemSameTags(SNAPSHOTS[index], next);
             SNAPSHOTS[index] = next;
         }

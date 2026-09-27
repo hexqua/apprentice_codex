@@ -64,7 +64,9 @@ public final class RevolvercastStaffSpellSelectionEvents {
         var next = new ItemStack[2];
         boolean changed = false;
         for (var hand : InteractionHand.values()) {
-            int index = hand.ordinal();
+            // 追加された手は Iron's の選択スロットへ対応付けられない。
+            if (hand != InteractionHand.MAIN_HAND && hand != InteractionHand.OFF_HAND) continue;
+            int index = hand == InteractionHand.MAIN_HAND ? 0 : 1;
             var held = player.getItemInHand(hand);
             next[index] = held.getItem() instanceof RevolvercastStaff ? held.copy() : ItemStack.EMPTY;
             var old = previous == null ? ItemStack.EMPTY : previous[index];
