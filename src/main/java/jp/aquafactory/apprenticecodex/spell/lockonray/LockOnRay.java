@@ -96,6 +96,12 @@ public class LockOnRay extends AbstractSpell {
     @Override
     public boolean canBeInterrupted(@Nullable Player player) {
         // CONTINUOUSだが被弾でキャンセルされうる.
+        // ネザライト打撃詠唱杖はアイテム効果として抵抗を持つ(mixin注入先に行かないため、こちらでも再判定する)
+        if (player != null &&
+                player.getMainHandItem().is(jp.aquafactory.apprenticecodex.registry.ItemRegistry.NETHERITE_SWINGCAST_STAFF.get())){
+            return false;
+        }
+
         return !ItemRegistry.CONCENTRATION_AMULET.get().isEquippedBy(player);
     }
 
