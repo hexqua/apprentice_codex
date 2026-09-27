@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.renderer.item;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.model.ScrollcasterGauntletModel;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -61,7 +62,11 @@ public final class ScrollcasterGauntletRenderer extends GeoItemRenderer<Scrollca
     private void renderCoreMain(PoseStack poseStack, ScrollcasterGauntlet animatable, GeoBone bone,
                                 RenderType renderType, MultiBufferSource bufferSource, float partialTick,
                                 int packedLight, int packedOverlay, int colour, ItemStack stack) {
-        var school = hasVisibleScrollSocket(stack) ? MagicTools.getImbuedSpellSchool(stack) : null;
+        // 選択位置の正規化で描画対象の ItemStack を変更しないよう、コピーから学派を読む。
+        var selectedSpell = hasVisibleScrollSocket(stack) && (Minecraft.getInstance().level != null)
+                ? ScrollcasterGauntlet.getSelectedSpellData(stack.copy(), Minecraft.getInstance().level.registryAccess())
+                : SpellData.EMPTY;
+        var school = selectedSpell == SpellData.EMPTY ? null : selectedSpell.getSpell().getSchoolType();
         if (school == null) {
             var normalBuffer = bufferSource.getBuffer(renderType);
             super.renderRecursively(
