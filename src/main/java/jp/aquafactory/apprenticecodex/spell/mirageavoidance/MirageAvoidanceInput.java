@@ -33,7 +33,7 @@ public final class MirageAvoidanceInput {
             return pendingInput.input;
         }
 
-        return sanitize(player.zza, -player.xxa);
+        return sanitize(player.zza, player.xxa);
     }
 
     public static DirectionInput sanitize(float forward, float strafe) {
@@ -41,37 +41,16 @@ public final class MirageAvoidanceInput {
         var resolvedStrafe = Float.isFinite(strafe) ? Mth.clamp(strafe, -1.0F, 1.0F) : 0.0F;
         var input = new Vec3(resolvedStrafe, 0.0D, resolvedForward);
         if (input.lengthSqr() <= INPUT_EPSILON_SQ) {
-            return DirectionInput.defaultForward();
+            return DirectionInput.defaultBackward();
         }
 
         var normalized = input.normalize();
         return new DirectionInput((float) normalized.z, (float) normalized.x);
     }
 
-    public static DirectionInput fromHorizontalMovement(Vec3 horizontalMovement, float yRot) {
-        var horizontal = new Vec3(horizontalMovement.x, 0.0D, horizontalMovement.z);
-        if (horizontal.lengthSqr() <= INPUT_EPSILON_SQ) {
-            return DirectionInput.defaultForward();
-        }
-
-        var direction = horizontal.normalize();
-        var forward = getFlatForward(yRot);
-        var right = new Vec3(-forward.z, 0.0D, forward.x);
-        return sanitize((float) direction.dot(forward), (float) direction.dot(right));
-    }
-
-    private static Vec3 getFlatForward(float yRot) {
-        var radians = yRot * Mth.DEG_TO_RAD;
-        var forward = new Vec3(-Mth.sin(radians), 0.0D, Mth.cos(radians));
-        if (forward.lengthSqr() <= INPUT_EPSILON_SQ) {
-            return new Vec3(0.0D, 0.0D, 1.0D);
-        }
-        return forward.normalize();
-    }
-
     public record DirectionInput(float forward, float strafe) {
-        private static DirectionInput defaultForward() {
-            return new DirectionInput(1.0F, 0.0F);
+        private static DirectionInput defaultBackward() {
+            return new DirectionInput(-1.0F, 0.0F);
         }
     }
 
