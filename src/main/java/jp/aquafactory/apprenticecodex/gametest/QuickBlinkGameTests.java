@@ -6,6 +6,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleBlink;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleMovement;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.spell.SpellMovementInput;
 import jp.aquafactory.apprenticecodex.spell.quickblink.QuickBlink;
 import jp.aquafactory.apprenticecodex.spell.quickblink.QuickBlinkRuntime;
 import net.minecraft.core.BlockPos;
@@ -40,7 +41,7 @@ public final class QuickBlinkGameTests {
             int age = tick;
             helper.runAtTickTime(tick + 1, () -> {
                 if (age == 0) {
-                    QuickBlinkRuntime.input(player, 1, 0);
+                    SpellMovementInput.update(player, 1, 0);
                     spell.onCast(player.level(), 1, player, CastSource.SPELLBOOK, magic);
                     var recast = magic.getPlayerRecasts().getRecastInstance(spell.getSpellId());
                     helper.assertTrue(recast != null && recast.getTotalRecasts() == 2 && recast.getTicksToLive() == 40,
@@ -83,8 +84,8 @@ public final class QuickBlinkGameTests {
         player.setPos(origin);
         player.setYRot(-90);
         helper.setBlock(new BlockPos(2, 2, 0), Blocks.STONE);
-        QuickBlinkRuntime.input(player, Float.NaN, 0);
-        QuickBlinkRuntime.input(player, 1, 0);
+        SpellMovementInput.update(player, Float.NaN, 0);
+        SpellMovementInput.update(player, 1, 0);
         QuickBlinkRuntime.begin(player, 5);
         for (int tick = 1; tick <= 8; tick++) {
             helper.runAtTickTime(tick, () -> {
@@ -103,13 +104,30 @@ public final class QuickBlinkGameTests {
     public static void noInputUsesMantleBackwardDirection(GameTestHelper helper) {
         var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(helper, new BlockPos(1, 3, 1), "quick_blink_no_input");
         player.setYRot(-90);
-        QuickBlinkRuntime.input(player, 0, 0);
+        SpellMovementInput.update(player, 0, 0);
         QuickBlinkRuntime.begin(player, 5);
         var expected = MantleMovement.direction(0, 0, -90);
         helper.assertTrue(QuickBlinkRuntime.state(player).blink.direction().distanceToSqr(expected) < 1.0e-8,
                 "No-input casting must use the mantle's backward fallback");
         QuickBlinkRuntime.clear(player);
         helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, timeoutTicks = 30)
+    public static void sharedInputRejectsInvalidValuesAndExpires(GameTestHelper helper) {
+        var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(helper,
+                new BlockPos(1, 3, 1), "spell_movement_input");
+        SpellMovementInput.update(player, 0.0F, 1.0F);
+        SpellMovementInput.update(player, Float.NaN, 0.0F);
+        helper.assertTrue(SpellMovementInput.recent(player).strafe() == 1.0F,
+                "Invalid movement input must not replace the latest valid direction");
+        helper.runAtTickTime(12, () -> {
+            var stale = SpellMovementInput.recent(player);
+            helper.assertTrue(stale.forward() == 0.0F && stale.strafe() == 0.0F,
+                    "Both spells must ignore movement input older than ten ticks");
+            SpellMovementInput.clear(player);
+            helper.succeed();
+        });
     }
 
     @GameTest(template = TEMPLATE)
@@ -125,7 +143,7 @@ public final class QuickBlinkGameTests {
             int age = tick;
             helper.runAtTickTime(tick + 1, () -> {
                 if (age == 0) {
-                    QuickBlinkRuntime.input(player, 1, 0);
+                    SpellMovementInput.update(player, 1, 0);
                     QuickBlinkRuntime.begin(player, 5);
                 }
                 if (age == 1) player.setPos(player.getX(), player.getY() + 1, player.getZ());
