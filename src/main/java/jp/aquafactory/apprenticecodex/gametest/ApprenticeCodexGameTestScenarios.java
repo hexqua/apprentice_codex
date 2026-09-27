@@ -88,6 +88,7 @@ import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsG
 import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmuletCastEvent;
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporterManaCostDiscountEvent;
+import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleMovement;
 import jp.aquafactory.apprenticecodex.loot.RandomSpellImbueHelper;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.HoverrideBroomAssistWingsJumpPacket;
@@ -8325,6 +8326,31 @@ public class ApprenticeCodexGameTestScenarios {
         MirageAvoidanceEvents.onPlayerTick(new PlayerTickEvent.Pre(player));
         helper.assertTrue(player.fallDistance == 7.0F,
                 "MirageAvoidance should not reset fall distance after the effect ends");
+
+        MirageAvoidanceInput.setPending(player, 0.0F, 0.0F);
+        spell.onCast(level, 1, player, CastSource.SPELLBOOK, magicData);
+        var noInputState = getMirageAvoidanceState(player);
+        helper.assertTrue(noInputState.movementForward < -0.99F && Math.abs(noInputState.movementStrafe) < 1.0E-4F,
+                "MirageAvoidance must use the Quick Blink backward fallback without input");
+        Capabilities.withSpellData(player, data -> data.edit(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE, s ->
+                s.startGameTime = level.getGameTime() - MirageAvoidanceEvents.FREEZE_TICKS));
+        MirageAvoidanceEvents.onPlayerTick(new PlayerTickEvent.Pre(player));
+        var expectedBackward = MantleMovement.direction(0.0F, 0.0F, player.getYRot());
+        helper.assertTrue(player.getDeltaMovement().normalize().distanceToSqr(expectedBackward) < 1.0E-8D,
+                "MirageAvoidance must slide backward without input");
+        player.setYRot(player.getYRot() + 90.0F);
+        MirageAvoidanceEvents.onPlayerTick(new PlayerTickEvent.Pre(player));
+        var expectedTurned = MantleMovement.direction(0.0F, 0.0F, player.getYRot());
+        helper.assertTrue(player.getDeltaMovement().normalize().distanceToSqr(expectedTurned) < 1.0E-8D,
+                "MirageAvoidance must keep camera steering after activation");
+        MirageAvoidanceInput.setPending(player, 0.0F, 1.0F);
+        spell.onCast(level, 1, player, CastSource.SPELLBOOK, magicData);
+        Capabilities.withSpellData(player, data -> data.edit(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE, s ->
+                s.startGameTime = level.getGameTime() - MirageAvoidanceEvents.FREEZE_TICKS));
+        MirageAvoidanceEvents.onPlayerTick(new PlayerTickEvent.Pre(player));
+        var expectedStrafe = MantleMovement.direction(0.0F, 1.0F, player.getYRot());
+        helper.assertTrue(player.getDeltaMovement().normalize().distanceToSqr(expectedStrafe) < 1.0E-8D,
+                "MirageAvoidance strafe must match Quick Blink");
         helper.succeed();
     }
 
