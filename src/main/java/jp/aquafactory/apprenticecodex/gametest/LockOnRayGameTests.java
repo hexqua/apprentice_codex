@@ -5,13 +5,18 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
 import io.redspace.ironsspellbooks.network.casting.OnCastFinishedPacket;
 import io.redspace.ironsspellbooks.network.casting.SyncTargetingDataPacket;
 import io.redspace.ironsspellbooks.util.ModTags;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfile;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRunner;
 import jp.aquafactory.apprenticecodex.spell.lockonray.LockOnRay;
 import jp.aquafactory.apprenticecodex.spell.lockonray.LockOnRayCastData;
 import jp.aquafactory.apprenticecodex.spell.lockonray.LockOnRayCurve;
@@ -32,6 +37,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
@@ -117,6 +123,50 @@ public final class LockOnRayGameTests {
         try (var s = new Scene(h)) {
             var target = s.zombie(6, 0); s.begin(); target.setHealth(0); s.castTick();
             h.assertTrue(!s.data.isCasting(), "Dying targets must cancel before entity removal");
+        }
+        h.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, batch = BATCH)
+    public static void remoteTargetRemovalCancelsOnlyItsSession(GameTestHelper h) {
+        try (var config = ApprenticeCodexServerConfig.useRemoteOwnerCastConfigOverrideForGameTest(true, List.of())) {
+            for (var reason : List.of(Entity.RemovalReason.KILLED, Entity.RemovalReason.UNLOADED_TO_CHUNK)) {
+                try (var s = new Scene(h)) {
+                    var target = s.zombie(6, 0);
+                    s.data.setMana(1000);
+                    var result = RemoteOwnerCastRunner.tryStartContinuousCast(
+                            h.getLevel(), s.owner, ItemStack.EMPTY, new SpellData(s.spell, 1),
+                            RemoteOwnerCastProfile.REMOTE_PLAYER_GEOMETRY, RemoteOwnerCastOrigin.SATELLITE_FOLLOWCAST,
+                            s.owner.getEyePosition(), s.owner.getLookAngle(), CastSource.SWORD, "mainhand", 100, false
+                    );
+                    h.assertTrue(result.handled() && result.succeeded() && result.session() != null,
+                            "Remote Lock On Ray session must start");
+                    var session = result.session();
+                    h.assertTrue(session.magicData() != s.data, "Remote cast must use independent MagicData");
+                    RemoteOwnerCastRunner.tickContinuousCast(h.getLevel(), s.owner, session);
+
+                    var otherSpell = io.redspace.ironsspellbooks.api.registry.SpellRegistry.FIRE_BREATH_SPELL.get();
+                    s.data.initiateCast(otherSpell, 1, 100, CastSource.SPELLBOOK, "mainhand");
+                    var manaBeforeRemoval = s.data.getMana();
+                    target.setRemoved(reason);
+                    h.assertFalse(RemoteOwnerCastRunner.tickContinuousCast(h.getLevel(), s.owner, session),
+                            "Removed target must stop the remote session: " + reason);
+                    h.assertTrue(session.isFinished() && !session.magicData().isCasting(),
+                            "Removed target must complete the independent cast: " + reason);
+                    h.assertTrue(s.data.isCasting() && s.data.getCastingSpell().getSpell() == otherSpell,
+                            "Remote cancellation must preserve the owner's unrelated cast: " + reason);
+                    for (int i = 0; i < 15; i++) {
+                        h.assertFalse(RemoteOwnerCastRunner.tickContinuousCast(h.getLevel(), s.owner, session),
+                                "Finished remote session must remain stopped: " + reason);
+                    }
+                    h.assertTrue(s.data.getMana() == manaBeforeRemoval,
+                            "Finished remote session must not consume additional mana: " + reason);
+                    h.assertTrue(session.consumeFinishedCooldownTicks() == 1
+                                    && session.consumeFinishedCooldownTicks() == 0,
+                            "Remote cancellation must offer one cooldown: " + reason);
+                    h.assertTrue(s.lasers().isEmpty(), "Removed target must not emit lasers: " + reason);
+                }
+            }
         }
         h.succeed();
     }
