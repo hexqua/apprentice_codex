@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMantlePacket;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.spell.quickblink.QuickBlinkRuntime;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -187,7 +188,7 @@ public final class ShootingStarMantleRuntime {
         boolean full = false;
         if (state.hovering || state.flying) {
             state.recoveryTicks = 0;
-            after = before.tickUse();
+            after = state.hovering ? before.tickUse(1) : before.tickUse();
             if (state.hovering) {
                 player.fallDistance = 0;
                 if (state.dashTicks > 0 && --state.dashTicks == 0) MantleMovement.finishImpulse(player);
@@ -203,8 +204,7 @@ public final class ShootingStarMantleRuntime {
         } else if (!player.isFallFlying() && before.energy() < before.maxEnergy()) {
             if (++state.recoveryTicks >= 10) {
                 state.recoveryTicks = 0;
-                float cost = ApprenticeCodexServerConfig.shootingStarMantleRecoveryCost(
-                        before.recovering() || MantleCalibration.fastRecovery(stack));
+                float cost = ApprenticeCodexServerConfig.shootingStarMantleRecoveryCost();
                 if (recharge(player, stack, cost)) {
                     after = MantleEnergy.read(stack);
                     full = before.recovering() && !after.recovering();
@@ -233,15 +233,17 @@ public final class ShootingStarMantleRuntime {
         boolean accepted = sequence > state.lastSequence && sequence >= 0 && state.stack == stack
                 && MantleCalibration.elementalKind(stack) == 0
                 && isHovering(player) && state.dashTicks == 0 && !state.blink.active(player.level().getGameTime())
+                && !QuickBlinkRuntime.active(player)
                 && MantleEnergy.read(stack).canImpulse()
                 && direction.lengthSqr() > 0;
         state.lastSequence = Math.max(state.lastSequence, sequence);
         if (accepted) {
-            MantleEnergy.read(stack).impulse().save(stack);
+            boolean blink = MantleCalibration.usesBlink(stack);
+            MantleEnergy.read(stack).impulse(blink).save(stack);
             if (MantleEnergy.read(stack).recovering()) {
                 notifyDepleted(player);
             }
-            if (MantleCalibration.usesBlink(stack)) {
+            if (blink) {
                 state.blink.begin(player, sequence, direction);
             } else {
                 state.blink.cancel();
@@ -265,7 +267,7 @@ public final class ShootingStarMantleRuntime {
         var energy = MantleEnergy.read(stack);
         var state = state(player);
         return new SyncMantlePacket(player.getId(), !stack.isEmpty(), energy.energy(), energy.maxEnergy(), energy.recovering() && !state.elemental.defersDepletion(), state.hovering, blink, sequence, accepted,
-                state.blink.start(), state.blink.sequence(), state.blink.height(), state.blink.direction());
+                state.blink.start(), state.blink.sequence(), state.blink.direction());
     }
 
     public static void sync(ServerPlayer player, boolean blink) {

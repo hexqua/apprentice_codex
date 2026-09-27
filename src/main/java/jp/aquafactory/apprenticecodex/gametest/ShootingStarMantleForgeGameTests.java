@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleCalib
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleBlink;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleEnergy;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleFireworkBoost;
+import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleMovement;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.ShootingStarMantle;
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.ShootingStarMantleRuntime;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
@@ -22,6 +23,8 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.world.entity.projectile.FireworkRocketEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.gametest.GameTestHolder;
@@ -41,22 +44,46 @@ public final class ShootingStarMantleForgeGameTests extends ApprenticeCodexGameT
         var stack = ShootingStarMantleRuntime.findEquipped(player);
         helper.assertTrue(MantleEnergy.read(stack).energy() == 100 && !stack.isDamageableItem(),
                 "New mantle must have 100 energy and no durability");
-        new MantleEnergy(1, false, 19).save(stack);
+        new MantleEnergy(1, false, 36).save(stack);
         var restored = ItemStack.of(stack.save(new CompoundTag()));
-        var exhausted = MantleEnergy.read(restored).tickUse();
+        var partial = MantleEnergy.read(restored).tickUse();
+        helper.assertTrue(partial.energy() == 1 && partial.spentTicks() == 38,
+                "Partial flight consumption must survive NBT serialization");
+        var exhausted = partial.tickUse();
         exhausted.save(restored);
         helper.assertTrue(MantleEnergy.read(restored).energy() == 0 && MantleEnergy.read(restored).recovering(),
                 "Depletion and recovery lock must survive NBT serialization");
-        MagicData.getPlayerMagicData(player).setMana(19);
+        MagicData.getPlayerMagicData(player).setMana(49);
         new MantleEnergy(90, true, 0).save(stack);
-        helper.assertFalse(ShootingStarMantleRuntime.recharge(player, stack, 20),
+        helper.assertFalse(ShootingStarMantleRuntime.recharge(player, stack, 50),
                 "Insufficient mana must not partially pay recovery");
         helper.assertTrue(MantleEnergy.read(stack).energy() == 90, "Failed payment must preserve energy");
-        MagicData.getPlayerMagicData(player).setMana(100);
-        helper.assertTrue(ShootingStarMantleRuntime.recharge(player, stack, 100),
+        MagicData.getPlayerMagicData(player).setMana(50);
+        helper.assertTrue(ShootingStarMantleRuntime.recharge(player, stack, 50),
                 "Full recovery cost must unlock the mantle");
         helper.assertTrue(MantleEnergy.read(stack).usable(), "Full recovery must clear the lock");
         ShootingStarMantleRuntime.clear(player);
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void hoverFlightImpulseAndRecoveryUseAdjustedRates(GameTestHelper helper) {
+        var energy = new MantleEnergy(100, false, 0);
+        for (int tick = 0; tick < 20; tick++) energy = energy.tickUse();
+        helper.assertTrue(energy.energy() == 99 && energy.spentTicks() == 0,
+                "Flight must spend one energy every twenty ticks");
+        for (int tick = 0; tick < 40; tick++) energy = energy.tickUse(1);
+        helper.assertTrue(energy.energy() == 98 && energy.spentTicks() == 0,
+                "Hover must spend one energy every forty ticks");
+        helper.assertTrue(new MantleEnergy(6, false, 0).impulse(false).energy() == 1,
+                "Normal and ice impulse must spend five energy");
+        helper.assertTrue(new MantleEnergy(11, false, 0).impulse(true).energy() == 1,
+                "Ender blink must spend ten energy");
+        helper.assertTrue(new MantleEnergy(50, false, 0).recharge(false).energy() == 60
+                        && new MantleEnergy(50, false, 0).recharge(true).energy() == 65,
+                "Normal and Recovery Rune refills must restore ten and fifteen energy");
+        helper.assertTrue(new MantleEnergy(90, true, 0).recharge(false).usable(),
+                "Depleted mantle must unlock only after reaching full energy");
         helper.succeed();
     }
 
@@ -117,14 +144,14 @@ public final class ShootingStarMantleForgeGameTests extends ApprenticeCodexGameT
         var player = equippedPlayer(helper, "mantle_impulse");
         var stack = ShootingStarMantleRuntime.findEquipped(player);
         helper.assertTrue(ShootingStarMantleRuntime.toggle(player), "Equipped mantle must enter hover");
-        new MantleEnergy(11, false, 0).save(stack);
+        new MantleEnergy(6, false, 0).save(stack);
         helper.assertFalse(ShootingStarMantleRuntime.impulse(player, 1, Float.NaN, 0),
                 "Non-finite input must be rejected");
-        helper.assertTrue(MantleEnergy.read(stack).energy() == 11, "Invalid input must not spend energy");
+        helper.assertTrue(MantleEnergy.read(stack).energy() == 6, "Invalid input must not spend energy");
         helper.assertTrue(ShootingStarMantleRuntime.impulse(player, 2, 1, 0),
                 "Finite input must be accepted");
         helper.assertTrue(MantleEnergy.read(stack).energy() == 1,
-                "Accepted impulse must spend exactly ten energy");
+                "Accepted normal impulse must spend exactly five energy");
         helper.assertFalse(ShootingStarMantleRuntime.impulse(player, 2, 1, 0),
                 "Duplicate sequence must be rejected");
         helper.assertFalse(ShootingStarMantleRuntime.impulse(player, 3, 1, 0),
@@ -201,6 +228,44 @@ public final class ShootingStarMantleForgeGameTests extends ApprenticeCodexGameT
                 "Canceled blink must not keep damage immunity");
         ShootingStarMantleRuntime.clear(player);
         helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void directHeightChangeKeepsRemainingMantleBlinkMovement(GameTestHelper helper) {
+        var player = equippedPlayer(helper, "mantle_blink_height_change");
+        var stack = ShootingStarMantleRuntime.findEquipped(player);
+        ((ShootingStarMantle) stack.getItem()).trySetCalibrationAdjustment(stack, 0,
+                new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.ENDER_RUNE.get()));
+        for (int x = 0; x <= 7; x++) for (int y = 1; y <= 5; y++) {
+            helper.setBlock(new BlockPos(x, y, 0), Blocks.AIR);
+        }
+        var origin = helper.absoluteVec(new Vec3(0.5, 2, 0.5));
+        player.setPos(origin);
+        player.setYRot(-90);
+        for (int tick = 0; tick < MantleBlink.DURATION; tick++) {
+            int age = tick;
+            helper.runAtTickTime(tick + 1, () -> {
+                if (age == 0) {
+                    helper.assertTrue(ShootingStarMantleRuntime.toggle(player), "Mantle must enter hover before blinking");
+                    helper.assertTrue(ShootingStarMantleRuntime.impulse(player, 0, 1, 0), "Ender rune must start blink");
+                }
+                if (age == 1) player.setPos(player.getX(), player.getY() + 1, player.getZ());
+                var state = ShootingStarMantleRuntime.state(player);
+                ShootingStarMantleRuntime.tick(player);
+                MantleMovement.travel(player, Vec3.ZERO, state);
+                double expected = Math.min(4, Math.max(0, age - 2)) * 1.5;
+                helper.assertTrue(Math.abs(player.position().subtract(origin).horizontalDistance() - expected) < 1.0e-5,
+                        "Direct height changes must not shorten mantle blink's horizontal travel");
+                helper.assertTrue(Math.abs(player.getY() - origin.y - Math.min(age, 1)) < 1.0e-6,
+                        "Mantle blink must keep the externally assigned height");
+                helper.assertTrue(state.blink.active(player.level().getGameTime()),
+                        "Direct height changes must not cancel mantle blink");
+            });
+        }
+        helper.runAtTickTime(11, () -> {
+            ShootingStarMantleRuntime.clear(player);
+            helper.succeed();
+        });
     }
 
     private static ItemStack rocket(int flight, int count, boolean explosion) {

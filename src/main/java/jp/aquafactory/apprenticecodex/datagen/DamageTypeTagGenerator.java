@@ -116,7 +116,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 BLOODY_ARROW,
                 SACRED_ARROW,
                 LUNAR_AIM,
-                ECHO_ARROW
+                ECHO_ARROW,
+                LOCK_ON_RAY
         );
 
         // IGNORE_ARMOR : 防御力無視、盾無視、ウィッチ抵抗(Malumは無関係)
@@ -168,6 +169,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 THERMAL_SLICE,
                 LUNAR_AIM,
                 ECHO_ARROW,
+                LOCK_ON_RAY,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC
@@ -233,6 +235,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 SACRED_ARROW,
                 LUNAR_AIM,
                 ECHO_ARROW,
+                LOCK_ON_RAY,
                 SPELL_REAPER_SCYTHE_THROW,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS,

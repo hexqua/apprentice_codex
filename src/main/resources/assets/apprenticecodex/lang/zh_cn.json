@@ -543,6 +543,7 @@
   "jei.apprenticecodex.craftsmans_delight.desc_11": "- 天堂铁拳：采掘附近从芽生方块上长出的最大结晶",
   "jei.apprenticecodex.craftsmans_delight.desc_12": "- 恩泽之雨：成长加速也会作用于生物，并促使其更快再次繁殖",
   "jei.apprenticecodex.craftsmans_delight.desc_13": "- 线性建造：施法范围增加",
+  "jei.apprenticecodex.craftsmans_delight.desc_14": "- 丰收之月：无需携带剪刀即可为范围内的绵羊剪毛。",
   "jei.apprenticecodex.protection_spell_supporter.desc_1": "物品提示中列出的法术获得以下效果：",
   "jei.apprenticecodex.protection_spell_supporter.desc_2": "- 降低法力值消耗。",
   "jei.apprenticecodex.protection_spell_supporter.desc_3": "此外，以下法术还会获得额外效果：",
@@ -949,6 +950,7 @@
   "spell.apprenticecodex.inscribe_ice": "冰霜铭刻",
   "spell.apprenticecodex.edge_dancer": "刃舞者",
   "spell.apprenticecodex.anchor_blink": "锚点闪现",
+  "spell.apprenticecodex.quick_blink": "迅捷闪现",
   "spell.apprenticecodex.divine_possession": "神降临",
   "spell.apprenticecodex.heavenly_fist": "天堂铁拳",
   "spell.apprenticecodex.mirage_avoidance": "幻影回避",
@@ -1034,6 +1036,7 @@
   "spell.apprenticecodex.inscribe_ice.guide": "生成冰匕首并呈扇形投掷，向受到伤害的生物刻入冰之魔力。第三次成功刻印时，魔力会爆裂并造成大量伤害。该爆裂还会诱发附近已刻入的冰之魔力连锁爆裂。",
   "spell.apprenticecodex.edge_dancer.guide": "法术侧刃的固有潜在法术。将主手之刃转写到副手。转写时副手持有的物品会暂时封入刃中，当刃因放手等原因自毁时会回到手上。若不存在与战斗相关的法则，则会作为战斗辅助具发挥作用，使主手之刃的攻击无视无敌帧。无法与其他炼成武器同时存在。装备高级召唤师护符后，解除转写时无论条件如何都不会进入冷却。",
   "spell.apprenticecodex.anchor_blink.guide": "法术侧逆刃的固有潜在法术。将副手匕首向前投掷并攻击。匕首刺入某处时，如果你正按住跳跃键，或在刺入后3秒内按下跳跃，即可传送到刺入位置附近。投掷匕首会结束刃舞者效果。",
+  "spell.apprenticecodex.quick_blink.guide": "施法时沿输入方向进行短距离水平闪现。短时间内可以连续施法。",
   "spell.apprenticecodex.divine_possession.guide": "元素少女法袍专属潜在法术。让司掌元素的存在降临于身，在一定时间内将最高的学派加成反映到其他所有学派。若要让该存在降临于身，必须穿戴全套元素少女服装。",
   "spell.apprenticecodex.heavenly_fist.guide": "在瞄准位置召唤紫水晶魔导拳，连同空间一并砸下。范围内的目标会暂时被压回地面。当齿轮法则生效时（安装Create模组），会尝试对砸下的拳附近的物品进行压制或压缩加工。",
   "spell.apprenticecodex.mirage_avoidance.guide": "发动后的短时间内，回避所有伤害并朝移动方向滑行。可通过转动身体来微调滑行方向。法术等级和法术威力不会改变移动距离。这是对曾守护远比这片天空更加辽阔之空的守护者所用技术的复刻。",
@@ -1724,7 +1727,7 @@
   "item.apprenticecodex.shooting_star_mantle.desc_2": "施放斗篷中蕴含的法术，还可消耗斗篷魔力进行悬浮。",
   "item.apprenticecodex.shooting_star_mantle.desc_3": "未使用时，斗篷会消耗穿戴者的法力值恢复自身魔力。",
   "jei.apprenticecodex.spell_calibration_bench.effect.force_mantle_recovery_1": "加快斗篷魔力恢复速度",
-  "jei.apprenticecodex.spell_calibration_bench.effect.force_mantle_recovery_2": "魔力耗尽后的恢复速度不变",
+  "jei.apprenticecodex.spell_calibration_bench.effect.force_mantle_recovery_2": "消耗相同法力可恢复更多斗篷魔力",
   "jei.apprenticecodex.spell_calibration_bench.effect.increase_mantle_energy_1": "提高斗篷魔力上限",
   "jei.apprenticecodex.spell_calibration_bench.effect.increase_mantle_energy_2": "恢复速度不变",
   "jei.apprenticecodex.spell_calibration_bench.effect.change_mantle_drift": "摇曳之星保留惯性",
@@ -1741,5 +1744,9 @@
   "ui.apprenticecodex.wavering_star.not_found_mantle": "找不到可释放魔力的斗篷……",
   "ui.apprenticecodex.wavering_star.conflict": "其他魔法的干扰使斗篷失效了！",
   "ui.apprenticecodex.wavering_star.error_recovery_mode": "斗篷的魔力尚未完全恢复！",
-  "ui.apprenticecodex.shooting_star_mantle.depleted_energy": "斗篷的魔力耗尽了！"
+  "ui.apprenticecodex.shooting_star_mantle.depleted_energy": "斗篷的魔力耗尽了！",
+  "spell.apprenticecodex.lock_on_ray": "锁定射线",
+  "entity.apprenticecodex.lock_on_ray_laser": "追踪激光",
+  "spell.apprenticecodex.lock_on_ray.guide": "凝聚神圣魔力，向开始施法时注视的目标持续发射必中激光。激光不受地形阻挡。需要始终保持专注，受到伤害时施法会被打断。不造成击退，但可以无视目标的无敌帧。",
+  "death.attack.apprenticecodex.lock_on_ray": "%1$s消失了"
 }
