@@ -418,11 +418,11 @@ public final class EntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<SacredArrowEntity>> SACRED_ARROW =
             regProjectile("sacred_arrow_arrow", SacredArrowEntity::new, 128, 1);
 
-    public static final DeferredHolder<EntityType<?>, EntityType<LockOnRayLaserEntity>> LOCK_ON_RAY_LASER =
-            regProjectile("lock_on_ray_laser", LockOnRayLaserEntity::new, 128, 1);
-
     public static final DeferredHolder<EntityType<?>, EntityType<LunarAimArrowEntity>> LUNAR_AIM_ARROW =
             regProjectile("lunar_aim_arrow", LunarAimArrowEntity::new, 128, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<LockOnRayLaserEntity>> LOCK_ON_RAY_LASER =
+            regProjectile("lock_on_ray_laser", LockOnRayLaserEntity::new, 128, 1);
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);
