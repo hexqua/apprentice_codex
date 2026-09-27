@@ -691,10 +691,10 @@
   "jei.apprenticecodex.spell_throwable_cards.desc_3": "可注入的法术受配置限制，可在物品详情和 JEI 中确认。",
   "jei.apprenticecodex.chargecast_catalystbook.desc_1": "刻意咏唱原本无需咏唱的法术，可在提升法术强度后发动。",
   "jei.apprenticecodex.chargecast_catalystbook.desc_2": "需要预先在专用的法术校准台中放入卷轴。",
-  "jei.apprenticecodex.spell_throwable_cards.craft_hint": "不消耗卷轴",
+  "jei.apprenticecodex.spellcaster_workbench.spell_throwable_cards.craft_hint": "不消耗卷轴",
 
-  "jei.apprenticecodex.archivists_grimoire.upgrade_hint": "槽位数增加9",
-  "jei.apprenticecodex.luminous_device.upgrade_hint": "解锁%s",
+  "jei.apprenticecodex.spellcaster_workbench.archivists_grimoire.upgrade_hint": "槽位数增加9",
+  "jei.apprenticecodex.spellcaster_workbench.luminous_device.upgrade_hint": "解锁%s",
 
   "enchantment.apprenticecodex.reflux": "回流",
   "enchantment.apprenticecodex.reservoir": "蓄能",
