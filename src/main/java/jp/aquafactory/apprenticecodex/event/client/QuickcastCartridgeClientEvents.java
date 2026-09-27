@@ -91,9 +91,8 @@ public final class QuickcastCartridgeClientEvents {
         lastSentTick = player.tickCount;
         awaitingRelease = true;
         QuickcastCartridgeClientState.interrupt();
-        var input = MirageAvoidanceClientController.captureCurrentInput();
         Networks.sendToServer(new ClientQuickcastCartridgePacket(spell.getSpell().getSpellResource(),
-                ClientBlockTargetSyncService.captureForEmbeddedCast(spell), input.forward(), input.strafe()));
+                ClientBlockTargetSyncService.captureForEmbeddedCast(spell)));
     }
 
     public static boolean sendSelectedCast(int quickSlot) {

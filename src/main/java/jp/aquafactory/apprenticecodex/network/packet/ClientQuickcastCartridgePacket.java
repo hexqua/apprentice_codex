@@ -2,7 +2,6 @@ package jp.aquafactory.apprenticecodex.network.packet;
 
 import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastCartridgeCasting;
 import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastScrollCartridge;
-import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidanceInput;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
@@ -13,20 +12,17 @@ import net.minecraftforge.network.NetworkEvent;
 
 import java.util.function.Supplier;
 
-public record ClientQuickcastCartridgePacket(ResourceLocation expectedSpell, BlockTargetData target,
-                                             float forward, float strafe) {
+public record ClientQuickcastCartridgePacket(ResourceLocation expectedSpell, BlockTargetData target) {
     public static void encode(ClientQuickcastCartridgePacket packet, FriendlyByteBuf buffer) {
         buffer.writeResourceLocation(packet.expectedSpell);
         packet.target.writeToBuffer(buffer);
-        buffer.writeFloat(packet.forward);
-        buffer.writeFloat(packet.strafe);
     }
 
     public static ClientQuickcastCartridgePacket decode(FriendlyByteBuf buffer) {
         var spell = buffer.readResourceLocation();
         var target = new BlockTargetData();
         target.readFromBuffer(buffer);
-        return new ClientQuickcastCartridgePacket(spell, target, buffer.readFloat(), buffer.readFloat());
+        return new ClientQuickcastCartridgePacket(spell, target);
     }
 
     public static void handle(ClientQuickcastCartridgePacket packet,
@@ -44,14 +40,12 @@ public record ClientQuickcastCartridgePacket(ResourceLocation expectedSpell, Blo
         if (stack.isEmpty() || player.isSpectator() || !player.isAlive()) return false;
         var spell = QuickcastScrollCartridge.getSelectedSpellData(stack);
         if (spell == SpellData.EMPTY || !spell.getSpell().getSpellResource().equals(packet.expectedSpell)) return false;
-        // 送信値は照準の補助だけに使い、魔法・レベル・コストはサーバー上の実装備から決定する。
-        MirageAvoidanceInput.setPending(player, packet.forward, packet.strafe);
+        // 送信された対象情報は照準の補助だけに使い、魔法・レベル・コストはサーバー上の実装備から決定する。
         BlockTargetingHelper.setPendingServerTarget(player, packet.expectedSpell, packet.target);
         try {
             return QuickcastCartridgeCasting.initiate(player);
         } finally {
             BlockTargetingHelper.clearPendingServerTarget(player);
-            MirageAvoidanceInput.clearPending(player);
         }
     }
 }

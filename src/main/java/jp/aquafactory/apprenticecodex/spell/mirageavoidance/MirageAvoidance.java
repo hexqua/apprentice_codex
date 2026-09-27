@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
 import jp.aquafactory.apprenticecodex.network.packet.HeavenlyFistPulsePacket;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.spell.SpellMovementInput;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -105,7 +106,9 @@ public class MirageAvoidance extends AbstractSpell {
     @Override
     public void onCast(Level level, int spellLevel, LivingEntity entity, CastSource castSource, MagicData playerMagicData) {
         if (!level.isClientSide && entity instanceof Player player) {
-            var input = MirageAvoidanceInput.consumePending(player);
+            var input = player instanceof ServerPlayer serverPlayer
+                    ? SpellMovementInput.recent(serverPlayer).normalizedOrBackward()
+                    : new SpellMovementInput.Input(-1.0F, 0.0F);
             // 発動時の装備で終了時刻を確定し、途中の付け外しでは効果を再計算しない。
             var supported = ProtectionSpellSupporter.isEquippedBy(player);
             var effectDuration = supported ? MirageAvoidanceEvents.SUPPORTED_EFFECT_DURATION_TICKS : MirageAvoidanceEvents.EFFECT_DURATION_TICKS;
