@@ -63,6 +63,7 @@ public final class StoredScrollCastingEvents {
     @SubscribeEvent
     public static void onSelection(SpellSelectionManager.SpellSelectionEvent event) {
         for (var hand : InteractionHand.values()) {
+            if (hand != InteractionHand.MAIN_HAND && hand != InteractionHand.OFF_HAND) continue;
             var stack = resolveHeld(event.getEntity(), hand);
             // 旧投影はIron'sが既に登録している。除去の同期後にイベント登録へ切り替える。
             if (!isTarget(stack) || ISpellContainer.isSpellContainer(stack)) continue;
@@ -125,8 +126,10 @@ public final class StoredScrollCastingEvents {
         var next = new ItemStack[2];
         boolean changed = false;
         for (var hand : InteractionHand.values()) {
+            // 追加された手には Iron's の選択スロットがないため、両手以外は追跡しない。
+            if (hand != InteractionHand.MAIN_HAND && hand != InteractionHand.OFF_HAND) continue;
             var held = resolveHeld(player, hand);
-            int index = hand.ordinal();
+            int index = hand == InteractionHand.MAIN_HAND ? 0 : 1;
             next[index] = isTarget(held) ? held.copy() : ItemStack.EMPTY;
             var old = previous == null ? ItemStack.EMPTY : previous[index];
             changed |= !ItemStack.isSameItemSameComponents(old, next[index]);
