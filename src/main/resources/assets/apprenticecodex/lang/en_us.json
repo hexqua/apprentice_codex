@@ -617,10 +617,10 @@
   "jei.apprenticecodex.spell_throwable_cards.desc_3": "Accepted spells are restricted by configuration and can be checked in item details and JEI.",
   "jei.apprenticecodex.chargecast_catalystbook.desc_1": "Deliberately casting spells that normally require no cast time allows them to activate with increased spell power.",
   "jei.apprenticecodex.chargecast_catalystbook.desc_2": "A scroll must be set at a dedicated Spell Calibration Bench beforehand.",
-  "jei.apprenticecodex.spell_throwable_cards.craft_hint": "Scroll is not consumed",
+  "jei.apprenticecodex.spellcaster_workbench.spell_throwable_cards.craft_hint": "Scroll is not consumed",
 
-  "jei.apprenticecodex.archivists_grimoire.upgrade_hint": "Adds 9 slots",
-  "jei.apprenticecodex.luminous_device.upgrade_hint": "Unlocks %s",
+  "jei.apprenticecodex.spellcaster_workbench.archivists_grimoire.upgrade_hint": "Adds 9 slots",
+  "jei.apprenticecodex.spellcaster_workbench.luminous_device.upgrade_hint": "Unlocks %s",
 
   "jei.apprenticecodex.spell_calibration_bench.effect.add_scroll_slot": "Scroll Slots +%d",
   "jei.apprenticecodex.spell_calibration_bench.effect.add_spell_power": "School Spell Power +%d%%",
