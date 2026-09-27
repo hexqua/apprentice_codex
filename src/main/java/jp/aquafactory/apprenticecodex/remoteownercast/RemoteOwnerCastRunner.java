@@ -266,6 +266,11 @@ public final class RemoteOwnerCastRunner {
                 spell.onServerPreCast(level, spellData.getLevel(), spellCaster, sessionMagicData);
             }
 
+            if (!sessionMagicData.isCasting()) {
+                cleanupContinuousSession(anchor, sessionMagicData);
+                return ContinuousCastStartResult.failed();
+            }
+
             if (!SpellManaAccessHelper.tryConsumeSpellMana(manaAccess, spellData)) {
                 cleanupContinuousSession(anchor, sessionMagicData);
                 return ContinuousCastStartResult.failed();
@@ -340,6 +345,10 @@ public final class RemoteOwnerCastRunner {
                 var spellCaster = resolveContinuousSpellCaster(owner, session);
                 runWithContinuousContext(owner, session,
                         () -> spell.onCast(level, spellData.getLevel(), spellCaster, session.castSource(), magicData));
+                if (!magicData.isCasting()) {
+                    finishContinuousCast(level, owner, session, true);
+                    return false;
+                }
                 syncOwnerManaForCast(session.manaAccess(), magicData);
                 bindAnchorIfNeeded(level, owner, session);
                 ChromaticMagiaDressCastEvent.recordRemoteOwnerContinuousCast(
@@ -373,6 +382,10 @@ public final class RemoteOwnerCastRunner {
             var spellCaster = resolveContinuousSpellCaster(owner, session);
             runWithContinuousContext(owner, session,
                     () -> spell.onServerCastTick(level, spellData.getLevel(), spellCaster, magicData));
+            if (!magicData.isCasting()) {
+                finishContinuousCast(level, owner, session, true);
+                return false;
+            }
         } catch (RuntimeException exception) {
             ApprenticeCodex.LOGGER.warn(
                     "Remote Owner Continuous Cast exception during tick: spell={}, origin={}",

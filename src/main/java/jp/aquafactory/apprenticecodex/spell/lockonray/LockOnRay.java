@@ -180,8 +180,14 @@ public class LockOnRay extends AbstractSpell {
 
     public static void cancel(LivingEntity caster, MagicData data) {
         clearTarget(data);
-        if (caster instanceof AbstractSpellCastingMob mob) mob.cancelCast();
-        else MagicTools.cancelCasting(caster, true);
+        if (caster instanceof AbstractSpellCastingMob mob) {
+            mob.cancelCast();
+        } else if (caster instanceof ServerPlayer player && data == MagicData.getPlayerMagicData(player)) {
+            MagicTools.cancelCasting(player, true);
+        } else {
+            // リモート詠唱の独立データから所有者の通常詠唱を中断しない。
+            data.resetCastingState();
+        }
     }
 
     private static void clearTarget(MagicData data) {
