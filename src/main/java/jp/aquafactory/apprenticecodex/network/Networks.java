@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "121";
+    private static final String PROTOCOL_VERSION = "122";
 
     private Networks() {
     }
@@ -29,7 +29,8 @@ public final class Networks {
         registrar.playToClient(SyncMantleDashPacket.TYPE, SyncMantleDashPacket.STREAM_CODEC, SyncMantleDashPacket::handle);
         registrar.playToClient(SyncMantlePacket.TYPE, SyncMantlePacket.STREAM_CODEC, SyncMantlePacket::handle);
         registrar.playToServer(ClientMantleImpulsePacket.TYPE, ClientMantleImpulsePacket.STREAM_CODEC, ClientMantleImpulsePacket::handle);
-        registrar.playToServer(ClientQuickBlinkInputPacket.TYPE, ClientQuickBlinkInputPacket.STREAM_CODEC, ClientQuickBlinkInputPacket::handle);
+        registrar.playToServer(ClientSpellMovementInputPacket.TYPE, ClientSpellMovementInputPacket.STREAM_CODEC,
+                ClientSpellMovementInputPacket::handle);
         registrar.playToClient(SyncQuickBlinkPacket.TYPE, SyncQuickBlinkPacket.STREAM_CODEC, SyncQuickBlinkPacket::handle);
         registrar.playToServer(ClientMantleFireworkInputPacket.TYPE, ClientMantleFireworkInputPacket.STREAM_CODEC,
                 ClientMantleFireworkInputPacket::handle);
@@ -200,11 +201,6 @@ public final class Networks {
                 ClientAnchorBlinkPacket.TYPE,
                 ClientAnchorBlinkPacket.STREAM_CODEC,
                 ClientAnchorBlinkPacket::handle
-        );
-        registrar.playToServer(
-                ClientMirageAvoidanceCastPacket.TYPE,
-                ClientMirageAvoidanceCastPacket.STREAM_CODEC,
-                ClientMirageAvoidanceCastPacket::handle
         );
         registrar.playToClient(
                 SyncEnderGrimoireSpellbookPacket.TYPE,
