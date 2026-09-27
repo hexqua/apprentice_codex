@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
-import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.casting.CastPacket;
 import io.redspace.ironsspellbooks.network.casting.QuickCastPacket;
 import io.redspace.ironsspellbooks.player.ClientInputEvents;
@@ -10,9 +9,6 @@ import jp.aquafactory.apprenticecodex.event.client.ClientBlockTargetSyncService;
 import jp.aquafactory.apprenticecodex.event.client.QuickcastCartridgeClientEvents;
 import jp.aquafactory.apprenticecodex.event.client.QuickcastCartridgeClientState;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowClientCastState;
-import jp.aquafactory.apprenticecodex.network.Networks;
-import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
-import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidance;
 import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidanceClientController;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
@@ -41,9 +37,7 @@ public abstract class ClientInputEventsMixin {
                 return;
             }
             QuickcastCartridgeClientState.interrupt();
-            apprentice_codex$rememberMirageAvoidanceDirection();
-            if (apprentice_codex$trySendSelectedMirageAvoidanceCast()
-                    || apprentice_codex$trySendSelectedSpellCast()) {
+            if (apprentice_codex$trySendSelectedSpellCast()) {
                 return;
             }
         }
@@ -70,9 +64,7 @@ public abstract class ClientInputEventsMixin {
                 return;
             }
             QuickcastCartridgeClientState.interrupt();
-            apprentice_codex$rememberMirageAvoidanceDirection();
-            if (apprentice_codex$trySendMirageAvoidanceQuickCast(quickCastPacket)
-                    || apprentice_codex$trySendTargetedQuickCast(quickCastPacket)) {
+            if (apprentice_codex$trySendTargetedQuickCast(quickCastPacket)) {
                 return;
             }
         }
@@ -117,45 +109,5 @@ public abstract class ClientInputEventsMixin {
 
         MirageAvoidanceClientController.showDuringEffectMessage();
         return true;
-    }
-
-    @Unique
-    private static boolean apprentice_codex$trySendSelectedMirageAvoidanceCast() {
-        var selectionManager = ClientMagicData.getSpellSelectionManager();
-        if (selectionManager == null) {
-            return false;
-        }
-
-        var spellData = selectionManager.getSelectedSpellData();
-        return apprentice_codex$trySendMirageAvoidanceCastPacket(spellData, -1);
-    }
-
-    @Unique
-    private static boolean apprentice_codex$trySendMirageAvoidanceQuickCast(QuickCastPacket quickCastPacket) {
-        var selectionManager = ClientMagicData.getSpellSelectionManager();
-        if (selectionManager == null) {
-            return false;
-        }
-
-        var quickCastSlot = ((QuickCastPacketAccessor) quickCastPacket).apprenticecodex$getSlot();
-        var spellData = selectionManager.getSpellData(quickCastSlot);
-        return apprentice_codex$trySendMirageAvoidanceCastPacket(spellData, quickCastSlot);
-    }
-
-    @Unique
-    private static boolean apprentice_codex$trySendMirageAvoidanceCastPacket(SpellData spellData, int quickCastSlot) {
-        if (spellData == SpellData.EMPTY || !(spellData.getSpell() instanceof MirageAvoidance)) {
-            return false;
-        }
-
-        var input = MirageAvoidanceClientController.captureCurrentInput();
-        Networks.sendToServer(new ClientMirageAvoidanceCastPacket(quickCastSlot, input.forward(), input.strafe()));
-        return true;
-    }
-
-    @Unique
-    private static void apprentice_codex$rememberMirageAvoidanceDirection() {
-        var input = MirageAvoidanceClientController.captureCurrentInput();
-        Networks.sendToServer(ClientMirageAvoidanceCastPacket.rememberInput(input.forward(), input.strafe()));
     }
 }

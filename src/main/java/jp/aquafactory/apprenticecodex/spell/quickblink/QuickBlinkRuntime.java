@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleBlink
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleMovement;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncQuickBlinkPacket;
+import jp.aquafactory.apprenticecodex.spell.SpellMovementInput;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
@@ -19,9 +20,6 @@ public final class QuickBlinkRuntime {
 
     public static final class State {
         public final MantleBlink blink = new MantleBlink();
-        private float forward;
-        private float strafe;
-        private long inputTime = Long.MIN_VALUE;
         private long sequence;
     }
 
@@ -29,15 +27,6 @@ public final class QuickBlinkRuntime {
 
     public static State state(Player player) {
         return (player.level().isClientSide ? CLIENT : SERVER).computeIfAbsent(player.getUUID(), key -> new State());
-    }
-
-    public static void input(ServerPlayer player, float forward, float strafe) {
-        if (!Float.isFinite(forward) || !Float.isFinite(strafe)
-                || Math.abs(forward) > 1 || Math.abs(strafe) > 1) return;
-        var state = state(player);
-        state.forward = forward;
-        state.strafe = strafe;
-        state.inputTime = player.level().getGameTime();
     }
 
     public static boolean active(Player player) {
@@ -54,9 +43,8 @@ public final class QuickBlinkRuntime {
 
     public static void begin(ServerPlayer player, double distance) {
         var state = state(player);
-        long time = player.level().getGameTime();
-        boolean fresh = state.inputTime != Long.MIN_VALUE && state.inputTime <= time && time - state.inputTime <= 10;
-        Vec3 direction = MantleMovement.direction(fresh ? state.forward : 0, fresh ? state.strafe : 0, player.getYRot());
+        var input = SpellMovementInput.recent(player);
+        Vec3 direction = MantleMovement.direction(input.forward(), input.strafe(), player.getYRot());
         state.blink.begin(player, ++state.sequence, direction, distance / 4);
         Networks.sendToTrackingEntityAndSelf(player, packet(player));
     }

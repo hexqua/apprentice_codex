@@ -84,13 +84,4 @@ public final class MirageAvoidanceClientController {
                 false
         );
     }
-
-    public static MirageAvoidanceInput.DirectionInput captureCurrentInput() {
-        var player = Minecraft.getInstance().player;
-        // 位置差分には慣性や外力も含まれるため、Quick Blink と同じ移動入力を発動時に採用する。
-        return player == null
-                ? MirageAvoidanceInput.sanitize(0.0F, 0.0F)
-                : MirageAvoidanceInput.sanitize(player.input.forwardImpulse, player.input.leftImpulse);
-    }
-
 }

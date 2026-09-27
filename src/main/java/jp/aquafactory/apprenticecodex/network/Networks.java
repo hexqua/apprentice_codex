@@ -7,7 +7,7 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientMantleDashInputPacket
 import jp.aquafactory.apprenticecodex.network.packet.ClientMantleFireworkInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMalumBlackCrystalRevealedPacket;
 import jp.aquafactory.apprenticecodex.network.packet.LockOnRayTrailPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientQuickBlinkInputPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientSpellMovementInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncQuickBlinkPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMantleDashPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMantlePacket;
@@ -39,7 +39,6 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientEpicFightAttackcastRi
 import jp.aquafactory.apprenticecodex.network.packet.ClientFocusStaffbowCancelPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientJumpcastCharmCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaManeuverGearJumpPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientMirageAvoidanceCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientOpenSpellcasterAccessoryCasePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientOpenStorageStabilizerEnderChestPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientManaThrusterInputPacket;
@@ -126,7 +125,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "115";
+    private static final String PROTOCOL_VERSION = "116";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -443,14 +442,6 @@ public final class Networks {
                 ClientAnchorBlinkPacket::encode,
                 ClientAnchorBlinkPacket::decode,
                 ClientAnchorBlinkPacket::handle,
-                Optional.of(NetworkDirection.PLAY_TO_SERVER)
-        );
-        CHANNEL.registerMessage(
-                nextPacketId++,
-                ClientMirageAvoidanceCastPacket.class,
-                ClientMirageAvoidanceCastPacket::encode,
-                ClientMirageAvoidanceCastPacket::decode,
-                ClientMirageAvoidanceCastPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER)
         );
         CHANNEL.registerMessage(
@@ -825,9 +816,9 @@ public final class Networks {
         CHANNEL.registerMessage(nextPacketId++, LockOnRayTrailPacket.class,
                 LockOnRayTrailPacket::encode, LockOnRayTrailPacket::decode,
                 LockOnRayTrailPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-        CHANNEL.registerMessage(nextPacketId++, ClientQuickBlinkInputPacket.class,
-                ClientQuickBlinkInputPacket::encode, ClientQuickBlinkInputPacket::decode,
-                ClientQuickBlinkInputPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(nextPacketId++, ClientSpellMovementInputPacket.class,
+                ClientSpellMovementInputPacket::encode, ClientSpellMovementInputPacket::decode,
+                ClientSpellMovementInputPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(nextPacketId++, SyncQuickBlinkPacket.class,
                 SyncQuickBlinkPacket::encode, SyncQuickBlinkPacket::decode,
                 SyncQuickBlinkPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));

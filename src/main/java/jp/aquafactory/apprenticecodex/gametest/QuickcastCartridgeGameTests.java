@@ -138,7 +138,7 @@ public final class QuickcastCartridgeGameTests extends ApprenticeCodexGameTestSc
             for (int remaining : new int[]{0, 50, 100}) {
                 cooldowns.clearCooldowns();
                 if (remaining > 0) cooldowns.addCooldown(spell, 100, remaining);
-                var packet = new ClientQuickcastCartridgePacket(spell.getSpellResource(), new BlockTargetData(), 0, 0);
+                var packet = new ClientQuickcastCartridgePacket(spell.getSpellResource(), new BlockTargetData());
                 helper.assertTrue(ClientQuickcastCartridgePacket.handleOnServer(packet, player),
                         "Dedicated key must start casting even on cooldown");
                 helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.SPELL_POWER.get())

@@ -59,6 +59,7 @@ import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleMovem
 import jp.aquafactory.apprenticecodex.recipe.crafting.AlchemistsFlaskTippedArrowRecipe;
 import jp.aquafactory.apprenticecodex.recipe.crafting.SpellcastersFlaskExtractRecipe;
 import jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe;
+import jp.aquafactory.apprenticecodex.spell.SpellMovementInput;
 import jp.aquafactory.apprenticecodex.spell.extract.Extract;
 import jp.aquafactory.apprenticecodex.spell.mistform.MistForm;
 import jp.aquafactory.apprenticecodex.spell.mistform.MistFormEvents;
@@ -251,7 +252,6 @@ import jp.aquafactory.apprenticecodex.spell.magelight.MageLight;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileEntity;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidanceEvents;
-import jp.aquafactory.apprenticecodex.spell.mirageavoidance.MirageAvoidanceInput;
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShield;
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldDefenseEvent;
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldProjectileEntity;
@@ -7470,8 +7470,8 @@ public class ApprenticeCodexGameTestScenarios {
         var spell = SpellRegistry.MIRAGE_AVOIDANCE.get();
         var magicData = MagicData.getPlayerMagicData(player);
 
-        MirageAvoidanceInput.setPending(player, 0.0F, -1.0F);
-        spell.onCast(level, 1, player, CastSource.SPELLBOOK, magicData);
+        SpellMovementInput.update(player, 0.0F, -1.0F);
+        spell.onCast(level, 1, player, CastSource.SCROLL, magicData);
 
         var state = getMirageAvoidanceState(player);
         helper.assertTrue(state.activeUntilGameTime == level.getGameTime() + MirageAvoidanceEvents.EFFECT_DURATION_TICKS,
@@ -7523,7 +7523,7 @@ public class ApprenticeCodexGameTestScenarios {
             helper.assertTrue(manaEvent.getManaCost() == expectedMana,
                     "MirageAvoidance mana discount must follow equipped supporter state");
 
-            MirageAvoidanceInput.setPending(player, 1.0F, 0.0F);
+            SpellMovementInput.update(player, 1.0F, 0.0F);
             spell.onCast(level, 1, player, CastSource.SPELLBOOK, MagicData.getPlayerMagicData(player));
             var castState = getMirageAvoidanceState(player);
             helper.assertTrue(castState.invulnerableUntilGameTime == level.getGameTime() + invulnerableTicks
@@ -7574,8 +7574,8 @@ public class ApprenticeCodexGameTestScenarios {
         var spell = SpellRegistry.MIRAGE_AVOIDANCE.get();
         var magicData = MagicData.getPlayerMagicData(player);
 
-        MirageAvoidanceInput.setPending(player, 1.0F, 0.0F);
-        spell.onCast(level, 1, player, CastSource.SPELLBOOK, magicData);
+        SpellMovementInput.update(player, 1.0F, 0.0F);
+        spell.onCast(level, 1, player, CastSource.SWORD, magicData);
         player.setDeltaMovement(0.3D, -0.5D, 0.2D);
         player.fallDistance = 8.0F;
 
@@ -7623,7 +7623,7 @@ public class ApprenticeCodexGameTestScenarios {
         helper.assertTrue(player.fallDistance == 7.0F,
                 "MirageAvoidance should not reset fall distance after the effect ends");
 
-        MirageAvoidanceInput.setPending(player, 0.0F, 0.0F);
+        SpellMovementInput.update(player, 0.0F, 0.0F);
         spell.onCast(level, 1, player, CastSource.SPELLBOOK, magicData);
         var noInputState = getMirageAvoidanceState(player);
         helper.assertTrue(noInputState.movementForward < -0.99F && Math.abs(noInputState.movementStrafe) < 1.0E-4F,
@@ -7639,7 +7639,7 @@ public class ApprenticeCodexGameTestScenarios {
         var expectedTurned = MantleMovement.direction(0.0F, 0.0F, player.getYRot());
         helper.assertTrue(player.getDeltaMovement().normalize().distanceToSqr(expectedTurned) < 1.0E-8D,
                 "MirageAvoidance must keep camera steering after activation");
-        MirageAvoidanceInput.setPending(player, 0.0F, 1.0F);
+        SpellMovementInput.update(player, 0.0F, 1.0F);
         spell.onCast(level, 1, player, CastSource.SPELLBOOK, magicData);
         Capabilities.withSpellData(player, data -> data.edit(CodexSpellStateTypeRegister.MIRAGE_AVOIDANCE_STATE, s ->
                 s.startGameTime = level.getGameTime() - MirageAvoidanceEvents.FREEZE_TICKS));
