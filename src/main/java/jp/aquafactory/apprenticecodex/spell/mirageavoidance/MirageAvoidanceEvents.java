@@ -5,6 +5,7 @@ import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellData;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.MirageAvoidanceState;
+import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.MantleMovement;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.utility.PersistentGameTimeSanitizer;
@@ -38,7 +39,6 @@ public final class MirageAvoidanceEvents {
     public static final int SUPPORTED_EFFECT_DURATION_TICKS = VULNERABLE_RECOVERY_START_TICK + 2;
     public static final double RUN_SPEED_PER_TICK = 0.42D;
     private static final double SLOW_FALL_SPEED = -0.08D;
-    private static final double INPUT_EPSILON_SQ = 1.0E-6D;
     private static final DustParticleOptions MIRAGE_DENSE_SMOKE =
             new DustParticleOptions(new Vector3f(0.58F, 0.22F, 0.95F), 0.85F);
     private static final DustParticleOptions MIRAGE_FAINT_SMOKE =
@@ -261,19 +261,8 @@ public final class MirageAvoidanceEvents {
     }
 
     private static Vec3 resolveCurrentDirection(Player player, MirageAvoidanceState state) {
-        var forward = getFlatForward(player.getYRot());
-        var right = new Vec3(-forward.z, 0.0D, forward.x);
-        var direction = forward.scale(state.movementForward).add(right.scale(state.movementStrafe));
-        if (direction.lengthSqr() <= INPUT_EPSILON_SQ) {
-            return forward;
-        }
-
-        return direction.normalize();
-    }
-
-    private static Vec3 getFlatForward(float yaw) {
-        var yawRad = yaw * Mth.DEG_TO_RAD;
-        return new Vec3(-Mth.sin(yawRad), 0.0D, Mth.cos(yawRad)).normalize();
+        // 方向の基準は Quick Blink と共有し、滑走中は現在の視点角へ追従させる。
+        return MantleMovement.direction(state.movementForward, state.movementStrafe, player.getYRot());
     }
 
     private static void markMovementChanged(Player player) {

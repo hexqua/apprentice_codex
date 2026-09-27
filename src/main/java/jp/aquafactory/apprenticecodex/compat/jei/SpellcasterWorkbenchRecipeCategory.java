@@ -31,9 +31,9 @@ public final class SpellcasterWorkbenchRecipeCategory extends AbstractApprentice
     public static final ResourceLocation SPELL_AUTONOMY_CARD_REWRITE_RECIPE_ID =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "spell_autonomy_card_rewrite");
     private static final Component ARCHIVISTS_GRIMOIRE_UPGRADE_HINT =
-            Component.translatable("jei.apprenticecodex.archivists_grimoire.upgrade_hint");
+            Component.translatable("jei.apprenticecodex.spellcaster_workbench.archivists_grimoire.upgrade_hint");
     private static final Component SPELL_THROWABLE_CARD_CRAFT_HINT =
-            Component.translatable("jei.apprenticecodex.spell_throwable_cards.craft_hint");
+            Component.translatable("jei.apprenticecodex.spellcaster_workbench.spell_throwable_cards.craft_hint");
     private static final int WIDTH = 134;
     private static final int HEIGHT = 56;
     private static final int[][] INPUT_POSITIONS = {
@@ -100,7 +100,7 @@ public final class SpellcasterWorkbenchRecipeCategory extends AbstractApprentice
             drawLabel(
                     guiGraphics,
                     Component.translatable(
-                            "jei.apprenticecodex.luminous_device.upgrade_hint",
+                            "jei.apprenticecodex.spellcaster_workbench.luminous_device.upgrade_hint",
                             Component.translatable(recipe.getLuminousDeviceUpgrade().translationKey())
                     ),
                     74,
