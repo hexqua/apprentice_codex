@@ -25,6 +25,10 @@ public final class DemicreatorWingsManager {
     }
 
     public static void activate(ServerPlayer player, int spellLevel, CastSource castSource, MagicData playerMagicData, DemicreatorWings spell) {
+        var spellData = Capabilities.getSpellDataOrNull(player);
+        if (player.isRemoved() || spellData == null) {
+            return;
+        }
         deactivate(player, false);
 
         var level = player.serverLevel();
@@ -41,12 +45,12 @@ public final class DemicreatorWingsManager {
         var wing = new DemicreatorWingsWingEntity(EntityRegistry.DEMICREATOR_WINGS_WING.get(), level, player);
         level.addFreshEntity(wing);
 
-        Capabilities.withSpellData(player, data -> data.edit(CodexSpellStateTypeRegister.DEMICREATOR_WINGS_STATE, state -> {
+        spellData.edit(CodexSpellStateTypeRegister.DEMICREATOR_WINGS_STATE, state -> {
             state.active = true;
             state.coreEntityId = core.getId();
             state.wingEntityId = wing.getId();
             state.grantedFlight = false;
-        }));
+        });
 
         var recastInstance = new RecastInstance(
                 spell.getSpellId(),

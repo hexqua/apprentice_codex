@@ -76,10 +76,11 @@ public final class ShootingStarMantleRuntime {
     }
 
     public static boolean conflict(Player player) {
-        var data = Capabilities.getSpellDataOrNull(player);
+        var spectralWingActive = Capabilities.readSpellStateOrDefault(player,
+                CodexSpellStateTypeRegister.SPECTRAL_WING_STATE, state -> state.active);
         return player.getItemBySlot(EquipmentSlot.CHEST).is(Items.ELYTRA)
                 || player.hasEffect(MobEffectRegistry.ANGEL_WINGS.get())
-                || data != null && data.get(CodexSpellStateTypeRegister.SPECTRAL_WING_STATE).active;
+                || spectralWingActive;
     }
 
     public static boolean invalidHoverContext(Player player) {

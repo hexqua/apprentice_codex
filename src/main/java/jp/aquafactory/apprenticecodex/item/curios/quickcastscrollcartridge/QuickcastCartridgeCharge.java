@@ -12,7 +12,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import io.redspace.ironsspellbooks.setup.PacketDistributor;
 
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -39,11 +38,13 @@ public final class QuickcastCartridgeCharge {
     public static void clearConfirmation(ServerPlayer player) { runtime(player).confirmationAt = -1; }
 
     public static void selectionChanged(ServerPlayer player) {
+        if (!Capabilities.hasWritableSpellData(player)) return;
         clearConfirmation(player);
         interruptReload(player);
     }
 
     public static void requestReload(ServerPlayer player) {
+        if (!Capabilities.hasWritableSpellData(player)) return;
         tick(player);
         var runtime = runtime(player);
         long now = now(player);
@@ -68,6 +69,7 @@ public final class QuickcastCartridgeCharge {
     }
 
     public static void interruptReload(ServerPlayer player) {
+        if (!Capabilities.hasWritableSpellData(player)) return;
         var runtime = runtime(player);
         if (runtime.reloadUntil == 0) return;
         // 境界tickに届いた入力でも、既に完了した回復は取り消さない。
@@ -79,6 +81,7 @@ public final class QuickcastCartridgeCharge {
     }
 
     public static void equipmentChanged(ServerPlayer player) {
+        if (!Capabilities.hasWritableSpellData(player)) return;
         var runtime = runtime(player);
         runtime.confirmationAt = -1;
         runtime.reloadUntil = 0;
@@ -96,6 +99,7 @@ public final class QuickcastCartridgeCharge {
     }
 
     public static void tick(ServerPlayer player) {
+        if (!Capabilities.hasWritableSpellData(player)) return;
         var runtime = runtime(player);
         var stack = QuickcastCartridgeCasting.findEquipped(player);
         if (runtime.equipped != stack || !ItemStack.isSameItemSameTags(runtime.equipmentSnapshot, stack)) {
@@ -125,6 +129,7 @@ public final class QuickcastCartridgeCharge {
     }
 
     public static void sync(ServerPlayer player, boolean completed, boolean force) {
+        if (!Capabilities.hasWritableSpellData(player)) return;
         var runtime = runtime(player);
         var state = state(player);
         var snapshot = new Snapshot(!QuickcastCartridgeCasting.findEquipped(player).isEmpty(),

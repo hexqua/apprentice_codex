@@ -46,6 +46,7 @@ public final class MantleFireworkBoost {
     }
 
     private void activate(ServerPlayer player) {
+        if (player.isRemoved()) return;
         long now = player.level().getGameTime();
         var mantle = ShootingStarMantleRuntime.findEquipped(player);
         if (lastActivation == now || !MantleCalibration.usesFirework(mantle)
@@ -68,9 +69,9 @@ public final class MantleFireworkBoost {
     }
 
     private static Source findSource(ServerPlayer player) {
-        var shelf = player.getCapability(Capabilities.PERSONAL_INVENTORY)
-                .orElseThrow(() -> new IllegalStateException("Missing personal inventory for mantle firework"))
-                .getHandler();
+        var personalInventory = Capabilities.getPersonalInventoryOrNull(player);
+        if (personalInventory == null) return null;
+        var shelf = personalInventory.getHandler();
         var source = findBest(shelf.getSlots(), shelf::getStackInSlot,
                 slot -> () -> shelf.extractItem(slot, 1, false));
         if (source != null) return source;
@@ -105,11 +106,11 @@ public final class MantleFireworkBoost {
     }
 
     public static long countRockets(ServerPlayer player) {
-        long total = 0;
-        var shelf = player.getCapability(Capabilities.PERSONAL_INVENTORY)
-                .orElseThrow(() -> new IllegalStateException("Missing personal inventory for mantle firework"))
-                .getHandler();
-        total += count(shelf.getSlots(), shelf::getStackInSlot);
+        long total = Capabilities.readOrDefault(player, Capabilities.PERSONAL_INVENTORY,
+                inventory -> {
+                    var shelf = inventory.getHandler();
+                    return count(shelf.getSlots(), shelf::getStackInSlot);
+                }, () -> 0L);
         var ender = player.getEnderChestInventory();
         total += count(ender.getContainerSize(), ender::getItem);
         var inventory = player.getInventory();

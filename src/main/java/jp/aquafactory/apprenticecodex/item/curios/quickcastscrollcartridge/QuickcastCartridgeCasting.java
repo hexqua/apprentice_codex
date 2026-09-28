@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.config.ServerConfigs;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.network.casting.CancelCastPacket;
+import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.QuickcastCartridgeChargeState;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -47,6 +48,7 @@ public final class QuickcastCartridgeCasting {
     }
 
     public static boolean initiate(ServerPlayer player) {
+        if (!Capabilities.hasWritableSpellData(player)) return false;
         QuickcastCartridgeCharge.interruptReload(player);
         QuickcastCartridgeCharge.tick(player);
         if (!player.isAlive() || player.isSpectator()
@@ -100,6 +102,7 @@ public final class QuickcastCartridgeCasting {
     }
 
     public static void validate(ServerPlayer player) {
+        if (!Capabilities.hasWritableSpellData(player)) return;
         var state = CASTS.get(player.getUUID());
         if (state == null) return;
         var magic = MagicData.getPlayerMagicData(player);
@@ -120,6 +123,7 @@ public final class QuickcastCartridgeCasting {
     }
 
     public static void beforeEffect(ServerPlayer player, AbstractSpell spell, CastSource source, MagicData magic) {
+        if (!Capabilities.hasWritableSpellData(player)) return;
         var state = CASTS.get(player.getUUID());
         if (state == null || state.consumed || state.recoveryTicks == 0 || source != CastSource.SPELLBOOK
                 || !state.spellId.equals(spell.getSpellId()) || !state.spellId.equals(magic.getCastingSpellId())

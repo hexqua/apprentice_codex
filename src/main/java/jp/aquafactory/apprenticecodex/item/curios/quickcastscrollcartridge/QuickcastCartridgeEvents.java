@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.EquipmentChangedPacket;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -33,6 +34,7 @@ public final class QuickcastCartridgeEvents {
     @SubscribeEvent
     public static void onEquipment(CurioChangeEvent event) {
         if (event.getEntity() instanceof ServerPlayer player
+                && Capabilities.hasWritableSpellData(player)
                 && (event.getFrom().getItem() instanceof QuickcastScrollCartridge
                 || event.getTo().getItem() instanceof QuickcastScrollCartridge)) {
             QuickcastCartridgeCharge.equipmentChanged(player);
@@ -44,6 +46,7 @@ public final class QuickcastCartridgeEvents {
     public static void onTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
         if (event.player instanceof ServerPlayer player) {
+            if (!Capabilities.hasWritableSpellData(player)) return;
             QuickcastCartridgeCasting.validate(player);
             QuickcastCartridgeCharge.tick(player);
         }
