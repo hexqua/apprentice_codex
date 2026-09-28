@@ -31,12 +31,21 @@ public final class Capabilities {
     }
 
     public static boolean tryWithSpellData(Entity entity, NonNullConsumer<CodexSpellData> consumer) {
-        var data = getSpellDataOrNull(entity);
-        if (entity.isRemoved() || data == null) {
+        var data = getWritableSpellDataOrNull(entity);
+        if (data == null) {
             return false;
         }
         consumer.accept(data);
         return true;
+    }
+
+    public static boolean hasWritableSpellData(Entity entity) {
+        return getWritableSpellDataOrNull(entity) != null;
+    }
+
+    private static @Nullable CodexSpellData getWritableSpellDataOrNull(Entity entity) {
+        // Forgeでは死亡・ディメンション移動で除去した旧playerにもイベントが届くため、復活したCapabilityも書き込みに使わない。
+        return entity.isRemoved() ? null : getSpellDataOrNull(entity);
     }
 
     public static void withEnderGrimoireSpellbook(Entity entity, NonNullConsumer<EnderGrimoireSpellbookData> consumer) {
