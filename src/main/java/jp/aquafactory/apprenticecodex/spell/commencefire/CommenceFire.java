@@ -172,6 +172,16 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
     }
 
     @Override
+    public void onServerCastComplete(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled) {
+        var summon = getSummonEntityFromMagicData(playerMagicData, level);
+        if (summon != null) {
+            // 即時詠唱では召喚後に一度だけ照準が設定されるため、完了時に解除する。
+            summon.clearCastingReticleEffect();
+        }
+        super.onServerCastComplete(level, spellLevel, entity, playerMagicData, cancelled);
+    }
+
+    @Override
     protected boolean onPreRecastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull CommenceFireRifleEntity weapon) {
         if (weapon.duringRecoil()) {
             if (entity instanceof ServerPlayer serverPlayer) {
