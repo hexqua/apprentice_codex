@@ -33,6 +33,7 @@ public final class QuickcastCartridgeEvents {
     @SubscribeEvent
     public static void onEquipment(CurioChangeEvent event) {
         if (event.getEntity() instanceof ServerPlayer player
+                && QuickcastCartridgeCharge.canProcess(player)
                 && (event.getFrom().getItem() instanceof QuickcastScrollCartridge
                 || event.getTo().getItem() instanceof QuickcastScrollCartridge)) {
             QuickcastCartridgeCharge.equipmentChanged(player);
@@ -44,6 +45,7 @@ public final class QuickcastCartridgeEvents {
     public static void onTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
         if (event.player instanceof ServerPlayer player) {
+            if (!QuickcastCartridgeCharge.canProcess(player)) return;
             QuickcastCartridgeCasting.validate(player);
             QuickcastCartridgeCharge.tick(player);
         }

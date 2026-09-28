@@ -12,7 +12,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import io.redspace.ironsspellbooks.setup.PacketDistributor;
 
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -23,6 +22,11 @@ public final class QuickcastCartridgeCharge {
     private QuickcastCartridgeCharge() {}
 
     public static long now(ServerPlayer player) { return player.server.overworld().getGameTime(); }
+
+    static boolean canProcess(ServerPlayer player) {
+        // Forgeでは死亡・ディメンション移動で除去した旧playerにもtickが届くことがある。
+        return !player.isRemoved() && Capabilities.getSpellDataOrNull(player) != null;
+    }
 
     public static QuickcastCartridgeChargeState state(ServerPlayer player) {
         var state = Capabilities.getSpellDataOrNull(player).get(CodexSpellStateTypeRegister.QUICKCAST_CARTRIDGE_CHARGE_STATE);
@@ -39,11 +43,13 @@ public final class QuickcastCartridgeCharge {
     public static void clearConfirmation(ServerPlayer player) { runtime(player).confirmationAt = -1; }
 
     public static void selectionChanged(ServerPlayer player) {
+        if (!canProcess(player)) return;
         clearConfirmation(player);
         interruptReload(player);
     }
 
     public static void requestReload(ServerPlayer player) {
+        if (!canProcess(player)) return;
         tick(player);
         var runtime = runtime(player);
         long now = now(player);
@@ -68,6 +74,7 @@ public final class QuickcastCartridgeCharge {
     }
 
     public static void interruptReload(ServerPlayer player) {
+        if (!canProcess(player)) return;
         var runtime = runtime(player);
         if (runtime.reloadUntil == 0) return;
         // 境界tickに届いた入力でも、既に完了した回復は取り消さない。
@@ -79,6 +86,7 @@ public final class QuickcastCartridgeCharge {
     }
 
     public static void equipmentChanged(ServerPlayer player) {
+        if (!canProcess(player)) return;
         var runtime = runtime(player);
         runtime.confirmationAt = -1;
         runtime.reloadUntil = 0;
@@ -96,6 +104,7 @@ public final class QuickcastCartridgeCharge {
     }
 
     public static void tick(ServerPlayer player) {
+        if (!canProcess(player)) return;
         var runtime = runtime(player);
         var stack = QuickcastCartridgeCasting.findEquipped(player);
         if (runtime.equipped != stack || !ItemStack.isSameItemSameTags(runtime.equipmentSnapshot, stack)) {
@@ -125,6 +134,7 @@ public final class QuickcastCartridgeCharge {
     }
 
     public static void sync(ServerPlayer player, boolean completed, boolean force) {
+        if (!canProcess(player)) return;
         var runtime = runtime(player);
         var state = state(player);
         var snapshot = new Snapshot(!QuickcastCartridgeCasting.findEquipped(player).isEmpty(),

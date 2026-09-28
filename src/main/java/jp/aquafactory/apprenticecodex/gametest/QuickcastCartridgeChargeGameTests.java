@@ -23,6 +23,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
@@ -30,6 +31,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.PlayLevelSoundEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
@@ -194,6 +196,43 @@ public final class QuickcastCartridgeChargeGameTests extends ApprenticeCodexGame
     }
 
     @GameTest(template = TEMPLATE, batch = BATCH)
+    public static void removedAndUnavailablePlayersSkipCharge(GameTestHelper helper) {
+        // 除去された旧playerにもPlayerTickEventが届くため、装備の有無と除去理由の両方を確認する。
+        var killed = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "cartridge_killed");
+        killed.remove(Entity.RemovalReason.KILLED);
+        helper.assertTrue(Capabilities.getSpellDataOrNull(killed) == null,
+                "Killed player must have no spell data capability");
+        QuickcastCartridgeEvents.onTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.START, killed));
+        helper.assertFalse(QuickcastCartridgeCasting.initiate(killed), "Killed player must not initiate cartridge casting");
+
+        var changedDimension = prepare(helper, "cartridge_changed_dimension", 1);
+        var state = QuickcastCartridgeCharge.state(changedDimension);
+        long recoveryUntil = state.recoveryUntil();
+
+        var unavailable = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "cartridge_unavailable");
+        unavailable.invalidateCaps();
+        helper.assertTrue(Capabilities.getSpellDataOrNull(unavailable) == null,
+                "Invalidated player must have no spell data capability");
+        QuickcastCartridgeEvents.onTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.START, unavailable));
+        QuickcastCartridgeCharge.tick(unavailable);
+        QuickcastCartridgeCharge.sync(unavailable, false, true);
+        helper.assertFalse(QuickcastCartridgeCasting.initiate(unavailable),
+                "Player without spell data must not initiate cartridge casting");
+
+        helper.runAtTickTime(2, () -> {
+            changedDimension.remove(Entity.RemovalReason.CHANGED_DIMENSION);
+            helper.assertTrue(Capabilities.getSpellDataOrNull(changedDimension) == null,
+                    "Dimension-changed player must have no spell data capability");
+            QuickcastCartridgeEvents.onTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.START, changedDimension));
+            QuickcastCartridgeCharge.tick(changedDimension);
+            QuickcastCartridgeCharge.sync(changedDimension, false, true);
+            helper.assertTrue(state.recoveryUntil() == recoveryUntil,
+                    "Removed player must preserve an expired charge deadline");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE, batch = BATCH)
     public static void reloadUsesFinalDamageAndManaShield(GameTestHelper helper) {
         var full = prepare(helper, "cartridge_shield_full", 1000);
         var partial = prepareDamageable(helper, "cartridge_shield_partial");
@@ -307,6 +346,7 @@ public final class QuickcastCartridgeChargeGameTests extends ApprenticeCodexGame
         // Forgeのclone処理は旧playerのcapabilityを無効化するため、旧個体の検証を先に済ませる。
         var clone = prepare(helper, "cartridge_clone", 0);
         CapabilityEvents.onPlayerClone(new PlayerEvent.Clone(clone, player, true));
+        QuickcastCartridgeCharge.tick(clone);
         helper.assertTrue(QuickcastCartridgeCharge.state(clone).recoveryUntil() == until,
                 "Death clone must preserve the recovery deadline");
         var restored = new QuickcastCartridgeChargeState();
