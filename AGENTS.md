@@ -118,6 +118,7 @@ Get-ChildItem build\libs\*.jar
 - 追加要素の登録処理は既存の `registry` パッケージ構成に合わせ、初期化時に一元登録する。
 - データ駆動で表現できる内容は `src/generated/resources` と datagen を優先し、ハードコードを最小化する。
 - コメントは「何をしているか」より「なぜそうするか」を優先する。外部 MOD 仕様依存、ワークアラウンド、クライアント/サーバー差分、実行順依存、魔法値には日本語コメントを残す。
+- 1.20.1 / Forge のプレイヤー Capability は entity 除去後に取得できなくなる。読み取りは `Capabilities.readOrDefault`、魔法状態では `Capabilities.readSpellStateOrDefault` で既定の結果を返す。保存を伴う変更は `Capabilities.withSpellData` または null 確認済みの実 Capability に行う。アイテム消費・召喚などの副作用は `Capabilities.tryWithSpellData` の成功後など、Capability 取得成功を確認してから実行する。他の Capability も取得失敗を想定し、`orElseThrow` で存在を前提にしない。
 - テキストファイルは UTF-8（BOM なし）を原則とする。
 - 日本語を含むファイルや文字化けが疑われるファイルを扱う場合は、英語で書かれた `.codex/skills/text-encoding-hygiene` を先に確認する。
 - 依存関係の追加・更新では、ビルドで使用するバージョンを `gradle.properties` に集約し、必須依存を追加する場合は `mods.toml` も更新する。外部アセット/ライブラリ利用時は `THIRD_PARTY_NOTICES.md` の追記要否を確認する。

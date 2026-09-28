@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.CapabilityEvents;
+import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.spellstates.QuickcastCartridgeChargeState;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.*;
@@ -41,6 +42,7 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -230,6 +232,23 @@ public final class QuickcastCartridgeChargeGameTests extends ApprenticeCodexGame
                     "Removed player must preserve an expired charge deadline");
             helper.succeed();
         });
+    }
+
+    @GameTest(template = TEMPLATE, batch = BATCH)
+    public static void unavailableCapabilityHasReadOnlyDefault(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_data_default");
+        var original = Objects.requireNonNull(Capabilities.getSpellDataOrNull(player))
+                .get(CodexSpellStateTypeRegister.QUICKCAST_CARTRIDGE_CHARGE_STATE);
+        original.consume(100, 50);
+        player.invalidateCaps();
+
+        helper.assertTrue(Capabilities.readSpellStateOrDefault(player,
+                        CodexSpellStateTypeRegister.QUICKCAST_CARTRIDGE_CHARGE_STATE, state -> state.recoveryUntil()) == 0,
+                "Unavailable capability must return a default value for reads");
+        helper.assertTrue(original.recoveryUntil() == 150, "Default reads must not mutate the original state");
+        helper.assertFalse(Capabilities.tryWithSpellData(player, data -> data.markDirty(CodexSpellStateTypeRegister.QUICKCAST_CARTRIDGE_CHARGE_STATE.id())),
+                "Unavailable capability must reject persistent writes");
+        helper.succeed();
     }
 
     @GameTest(template = TEMPLATE, batch = BATCH)

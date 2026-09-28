@@ -208,6 +208,18 @@ public final class ShootingStarMantleForgeGameTests extends ApprenticeCodexGameT
     }
 
     @GameTest(template = TEMPLATE)
+    public static void fireworkCountSkipsUnavailablePersonalInventory(GameTestHelper helper) {
+        var player = equippedPlayer(helper, "mantle_missing_shelf");
+        player.getInventory().setItem(0, rocket(1, 2, false));
+        player.invalidateCaps();
+        helper.assertTrue(Capabilities.getPersonalInventoryOrNull(player) == null,
+                "Invalidated player must have no personal inventory capability");
+        helper.assertTrue(MantleFireworkBoost.countRockets(player) == 2,
+                "Available rockets must still be counted without a personal inventory capability");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void blinkImmunityEndsAfterCancellation(GameTestHelper helper) {
         var player = equippedPlayer(helper, "mantle_blink");
         var stack = ShootingStarMantleRuntime.findEquipped(player);
