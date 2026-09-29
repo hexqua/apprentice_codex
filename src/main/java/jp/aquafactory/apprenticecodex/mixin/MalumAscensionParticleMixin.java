@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScytheClientConfigState;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -13,12 +15,11 @@ import net.minecraftforge.fml.ModList;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Pseudo
 @Mixin(targets = "com.sammy.malum.common.enchantment.scythe.AscensionEnchantment", remap = false)
 public abstract class MalumAscensionParticleMixin {
-    @Redirect(
+    @WrapOperation(
             method = "triggerAscension",
             at = @At(
                     value = "INVOKE",
@@ -30,13 +31,14 @@ public abstract class MalumAscensionParticleMixin {
             ItemCooldowns cooldowns,
             Item item,
             int originalTicks,
+            Operation<Void> original,
             Level level,
             Player player,
             InteractionHand hand,
             ItemStack scythe
     ) {
         if (!scythe.is(ItemRegistry.SPELL_REAPER_SCYTHE.get())) {
-            cooldowns.addCooldown(item, originalTicks);
+            original.call(cooldowns, item, originalTicks);
             return;
         }
 
@@ -50,7 +52,7 @@ public abstract class MalumAscensionParticleMixin {
                 : ApprenticeCodexServerConfig.spellReaperScytheConfig()).ascensionCooldownTicks();
         if (cooldownTicks > 0) {
             // ItemCooldownsはItem単位で管理されるため、全Spell Reaper Scytheで同じ待ち時間を共有する。
-            cooldowns.addCooldown(item, cooldownTicks);
+            original.call(cooldowns, item, cooldownTicks);
         }
     }
 

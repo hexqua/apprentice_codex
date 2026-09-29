@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.redspace.ironsspellbooks.entity.spells.ice_tomb.IceTombEntity;
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.IceTombShatter;
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.SupportedIceTomb;
@@ -8,7 +10,6 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = IceTombEntity.class, remap = false)
@@ -34,14 +35,14 @@ public abstract class IceTombSupporterMixin implements SupportedIceTomb {
     }
 
     // tickはMinecraft継承メソッドなので本番名へ変換し、Iron's独自のdestroyTombは変換しない。
-    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lio/redspace/ironsspellbooks/entity/spells/ice_tomb/IceTombEntity;destroyTomb()V", remap = false), remap = true)
-    private void allowNaturalRelease(IceTombEntity tomb) {
-        apprenticecodex$withShatterRelease(tomb::destroyTomb);
+    @WrapOperation(method = "tick", at = @At(value = "INVOKE", target = "Lio/redspace/ironsspellbooks/entity/spells/ice_tomb/IceTombEntity;destroyTomb()V", remap = false), remap = true)
+    private void allowNaturalRelease(IceTombEntity tomb, Operation<Void> original) {
+        apprenticecodex$withShatterRelease(() -> original.call(tomb));
     }
 
-    @Redirect(method = "die", at = @At(value = "INVOKE", target = "Lio/redspace/ironsspellbooks/entity/spells/ice_tomb/IceTombEntity;destroyTomb()V"))
-    private void allowDamageRelease(IceTombEntity tomb) {
-        apprenticecodex$withShatterRelease(tomb::destroyTomb);
+    @WrapOperation(method = "die", at = @At(value = "INVOKE", target = "Lio/redspace/ironsspellbooks/entity/spells/ice_tomb/IceTombEntity;destroyTomb()V"))
+    private void allowDamageRelease(IceTombEntity tomb, Operation<Void> original) {
+        apprenticecodex$withShatterRelease(() -> original.call(tomb));
     }
 
     @Unique private int apprenticecodex$releaseDepth;

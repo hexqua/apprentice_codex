@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffRiptide;
@@ -29,16 +31,16 @@ public abstract class ChargedStaffItemInHandRendererMixin {
                 ? 0 : instance.getUseItemRemainingTicks();
     }
 
-    @Redirect(method = "renderArmWithItem", at = @At(value = "INVOKE",
+    @WrapOperation(method = "renderArmWithItem", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/world/item/ItemStack;getUseAnimation()Lnet/minecraft/world/item/UseAnim;"),
             require = 0, expect = 0)
-    private UseAnim apprenticecodex$hideMaintenancePose(ItemStack instance,
+    private UseAnim apprenticecodex$hideMaintenancePose(ItemStack instance, Operation<UseAnim> original,
             AbstractClientPlayer player, float partialTicks, float pitch, InteractionHand hand,
             float swingProgress, ItemStack stack, float equippedProgress, PoseStack poseStack,
             MultiBufferSource buffer, int combinedLight) {
         return apprenticecodex$isMainHandStaff(player, hand, stack) && player.getUsedItemHand() == hand
                 && ChargedTwinBladeStaffRiptide.isMaintenanceInput(player)
-                ? UseAnim.NONE : instance.getUseAnimation();
+                ? UseAnim.NONE : original.call(instance);
     }
 
     @Unique
