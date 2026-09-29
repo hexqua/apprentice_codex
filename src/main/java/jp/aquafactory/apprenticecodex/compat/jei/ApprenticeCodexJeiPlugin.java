@@ -5,7 +5,7 @@ import com.google.gson.JsonParser;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.arcanuminajar.ArcanumInAJarConfigState;
-import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.compat.spellcasterworkbench.SpellcasterWorkbenchDisplayExamples;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoEchoConfigState;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
@@ -574,98 +574,10 @@ public class ApprenticeCodexJeiPlugin implements IModPlugin {
         for (var recipe : recipeManager.getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get())) {
             recipes.add(recipe.value());
         }
-        if (ApprenticeCodexServerConfig.archivistsGrimoireInitialRows()
-                < ApprenticeCodexServerConfig.archivistsGrimoireEffectiveMaxRows()) {
-            recipes.add(createArchivistsGrimoireUpgradeJeiRecipe());
-        }
-        recipes.add(createSpellExtractionJeiRecipe());
-        recipes.addAll(createSpellThrowableCardJeiRecipes());
+        recipes.addAll(SpellcasterWorkbenchDisplayExamples.all().stream()
+                .map(SpellcasterWorkbenchDisplayExamples.Example::recipe)
+                .toList());
         return recipes;
-    }
-
-    private static SpellcasterWorkbenchRecipe createArchivistsGrimoireUpgradeJeiRecipe() {
-        return new SpellcasterWorkbenchRecipe(
-                List.of(
-                        new SpellcasterWorkbenchRecipe.SizedIngredient(Ingredient.of(ItemRegistry.ARCHIVISTS_GRIMOIRE.get()), 1),
-                        new SpellcasterWorkbenchRecipe.SizedIngredient(Ingredient.of(TagRegistry.Items.ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_CATALYSTS), 1),
-                        new SpellcasterWorkbenchRecipe.SizedIngredient(Ingredient.of(TagRegistry.Items.ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_MATERIALS), 1)
-                ),
-                List.of(new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get())),
-                -10
-        );
-    }
-
-    private static SpellcasterWorkbenchRecipe createSpellExtractionJeiRecipe() {
-        var magicMissile = io.redspace.ironsspellbooks.api.registry.SpellRegistry.MAGIC_MISSILE_SPELL.get();
-        var imbuedSword = new ItemStack(Items.IRON_SWORD);
-        var swordSpells = ISpellContainer.create(1, true, false).mutableCopy();
-        swordSpells.addSpellAtIndex(magicMissile, 1, 0, true);
-        ISpellContainer.set(imbuedSword, swordSpells.toImmutable());
-
-        var extractedScroll = new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get());
-        ISpellContainer.createScrollContainer(magicMissile, 1, extractedScroll);
-
-        // 実処理は2入力と空スロットを要求するため、JEI専用レシピの3枠目も空Ingredientとして表示する。
-        return new SpellcasterWorkbenchRecipe(
-                List.of(
-                        new SpellcasterWorkbenchRecipe.SizedIngredient(Ingredient.of(imbuedSword), 1),
-                        new SpellcasterWorkbenchRecipe.SizedIngredient(Ingredient.of(ItemRegistry.SPELL_EXTRACT_SHARD.get()), 1),
-                        new SpellcasterWorkbenchRecipe.SizedIngredient(Ingredient.EMPTY, 1)
-                ),
-                List.of(extractedScroll),
-                -20
-        );
-    }
-
-    private static List<SpellcasterWorkbenchRecipe> createSpellThrowableCardJeiRecipes() {
-        var invokeCount = ApprenticeCodexServerConfig.spellInvokeCardCraftCount();
-        var autonomyCount = ApprenticeCodexServerConfig.spellAutonomyCardCraftCount();
-        return List.of(
-                createSpellThrowableCardJeiRecipe(
-                        Ingredient.of(TagRegistry.Items.SPELL_THROWABLE_CARD_PAPERS),
-                        invokeCount,
-                        Ingredient.of(TagRegistry.Items.SPELL_INVOKE_CARD_CRAFTING_MATERIALS),
-                        new ItemStack(ItemRegistry.SPELL_INVOKE_CARD.get(), invokeCount)
-                ),
-                createSpellThrowableCardJeiRecipe(
-                        Ingredient.of(ItemRegistry.SPELL_INVOKE_CARD.get()),
-                        invokeCount,
-                        Ingredient.of(TagRegistry.Items.SPELL_INVOKE_CARD_CRAFTING_MATERIALS),
-                        new ItemStack(ItemRegistry.SPELL_INVOKE_CARD.get(), invokeCount)
-                ),
-                createSpellThrowableCardJeiRecipe(
-                        Ingredient.of(TagRegistry.Items.SPELL_THROWABLE_CARD_PAPERS),
-                        autonomyCount,
-                        Ingredient.of(TagRegistry.Items.SPELL_AUTONOMY_CARD_CRAFTING_MATERIALS),
-                        new ItemStack(ItemRegistry.SPELL_AUTONOMY_CARD.get(), autonomyCount)
-                ),
-                createSpellThrowableCardJeiRecipe(
-                        Ingredient.of(ItemRegistry.SPELL_AUTONOMY_CARD.get()),
-                        autonomyCount,
-                        Ingredient.of(TagRegistry.Items.SPELL_AUTONOMY_CARD_CRAFTING_MATERIALS),
-                        new ItemStack(ItemRegistry.SPELL_AUTONOMY_CARD.get(), autonomyCount)
-                )
-        );
-    }
-
-    private static SpellcasterWorkbenchRecipe createSpellThrowableCardJeiRecipe(
-            Ingredient baseIngredient,
-            int baseCount,
-            Ingredient catalystIngredient,
-            ItemStack result
-    ) {
-        return new SpellcasterWorkbenchRecipe(
-                List.of(
-                        new SpellcasterWorkbenchRecipe.SizedIngredient(baseIngredient, baseCount),
-                        new SpellcasterWorkbenchRecipe.SizedIngredient(catalystIngredient, 1),
-                        new SpellcasterWorkbenchRecipe.SizedIngredient(
-                                Ingredient.of(io.redspace.ironsspellbooks.registries.ItemRegistry.SCROLL.get()),
-                                1
-                        )
-                ),
-                List.of(result),
-                -20
-        );
     }
 
     private static void registerAffinityPotionJeiRecipes(IRecipeRegistration registration) {
