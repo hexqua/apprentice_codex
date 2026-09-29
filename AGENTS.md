@@ -77,6 +77,7 @@
 ```powershell
 Get-ChildItem build\libs\*.jar
 ```
+- `build` は MixinExtras を Jar-in-Jar で含む通常名の配布 jar と、依存を含まない `-plain.jar` を出力する。配布には通常名の jar を使う。
 - `runClient` は GUI を起動するため、CI やヘッドレス環境では実行しない。
 - `runGameTestServer` はサーバー側の登録、データ読込、レシピ、生成まわりの検証に使う。renderer / screen など client 専用の起動・挙動は、人間が対応する `runClient...` 構成で確認する。
 - `runGameTestServer` は専用 world `run/codex_gametest_clean` を毎回初期化してから起動する。通常の手動確認用 `run/world` は削除しない。

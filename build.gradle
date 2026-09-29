@@ -7,6 +7,9 @@ plugins {
     id 'org.spongepowered.mixin' version '0.7.+'
 }
 
+// Forge 1.20.1にはMixinExtrasが同梱されないため、配布jarにも含める。
+jarJar.enable()
+
 version = mod_version
 group = mod_group_id
 
@@ -353,6 +356,10 @@ dependencies {
 
     // mixin.
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixinextras_version}"))
+    implementation(jarJar("io.github.llamalad7:mixinextras-forge:${mixinextras_version}")) {
+        jarJar.ranged(it, "[${mixinextras_version},)")
+    }
 
     // GeckoLib.
     implementation fg.deobf("software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}")
@@ -589,7 +596,24 @@ tasks.named('jar', Jar).configure {
     // project.name は作業ディレクトリ名を既定で使用するため、配布ファイル名は固定する。
     archiveBaseName.set('apprentice_codex')
     archiveVersion.set("${project.mod_version}+mc${project.minecraft_version}")
+    archiveClassifier.set('plain')
     finalizedBy 'reobfJar'
+}
+
+tasks.named('jarJar').configure {
+    // jar と同じく GameTest 用のクラス/structure は配布しない。
+    exclude('jp/aquafactory/apprenticecodex/gametest/**')
+    exclude('data/apprenticecodex/structures/gametest/**')
+
+    // 通常の配布ファイル名を依存入りjarに割り当てる。
+    archiveBaseName.set('apprentice_codex')
+    archiveVersion.set("${project.mod_version}+mc${project.minecraft_version}")
+    archiveClassifier.set('')
+    finalizedBy 'reobfJarJar'
+}
+
+tasks.named('assemble').configure {
+    dependsOn tasks.named('jarJar')
 }
 
 // mixin.
@@ -601,7 +625,7 @@ mixin {
 publishing {
     publications {
         register('mavenJava', MavenPublication) {
-            artifact jar
+            artifact tasks.named('jarJar').get()
         }
     }
     repositories {
