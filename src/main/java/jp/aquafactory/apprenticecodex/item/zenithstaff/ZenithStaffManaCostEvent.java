@@ -7,9 +7,7 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.config.ServerConfigs;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
-import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightSpellSupport;
-import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
+import jp.aquafactory.apprenticecodex.item.SpellManaCostDiscounts;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -63,20 +61,7 @@ public final class ZenithStaffManaCostEvent {
     }
 
     private static int resolvePreCastManaCost(ServerPlayer player, String spellId, int baseManaCost) {
-        return applyZenithManaCostMultiplier(applyKnownManaCostDiscounts(baseManaCost, player, spellId));
-    }
-
-    private static int applyKnownManaCostDiscounts(int manaCost, ServerPlayer player, String spellId) {
-        // SpellOnCastEvent を事前判定で疑似発火すると、弾消費などマナ以外の副作用まで走る。
-        // Zenith gate では、この MOD 内の副作用なし helper で表現できる既知の割引だけを明示的に再現する。
-        var discountedManaCost = manaCost;
-        if (CraftsmansDelightSpellSupport.isManaCostDiscountTarget(spellId)) {
-            discountedManaCost = CraftsmansDelight.applyManaCostDiscount(discountedManaCost, player);
-        }
-        if (ProtectionSpellSupporter.isManaCostDiscountTargetSpell(spellId)) {
-            discountedManaCost = ProtectionSpellSupporter.applyManaCostDiscount(discountedManaCost, player);
-        }
-        return Math.max(0, discountedManaCost);
+        return applyZenithManaCostMultiplier(SpellManaCostDiscounts.applyKnownDiscounts(baseManaCost, player, spellId));
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
