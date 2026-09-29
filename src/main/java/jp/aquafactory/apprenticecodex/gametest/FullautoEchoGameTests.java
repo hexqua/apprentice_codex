@@ -1,35 +1,44 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import io.netty.buffer.Unpooled;
+import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
+import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
+import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
-import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
+import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
 import io.redspace.ironsspellbooks.config.ServerConfigs;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleCastContext;
-import net.minecraft.world.level.GameType;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
+import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelightManaCostDiscountEvent;
+import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporterManaCostDiscountEvent;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoCooldownPolicy;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoEchoCasting;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoEchoConfigState;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleCastEvent;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleRateLimiter;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleScrollStorage;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfile;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfileManager;
+import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffManaCostEvent;
+import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffPowerHelper;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFullautoEchoConfigPacket;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -38,10 +47,13 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameType;
 import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -79,7 +91,7 @@ public final class FullautoEchoGameTests extends ApprenticeCodexGameTestScenario
         }
     }
 
-    private static ServerPlayer player(GameTestHelper helper, String name) {
+    private static FakePlayer player(GameTestHelper helper, String name) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(1, 30, 1), name);
         player.getAttribute(AttributeRegistry.MAX_MANA).setBaseValue(20000);
         player.setYRot(0);
@@ -170,6 +182,141 @@ public final class FullautoEchoGameTests extends ApprenticeCodexGameTestScenario
                 helper.assertTrue(magic.getMana() == 1000, "Hood mana exemption must survive the multiplier");
             }
             helper.getLevel().getEntitiesOfClass(Projectile.class, player.getBoundingBox().inflate(30), p -> p.getOwner() == player).forEach(Entity::discard);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, batch = BATCH)
+    public static void echoRequirementIncludesKnownCurioDiscounts(GameTestHelper helper) {
+        try (var settings = Settings.defaults()) {
+            multiplier("ManaCost").set(2.5);
+            var craftSpell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.HEAVENLY_FIST.get();
+            var protectionSpell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.MIRAGE_AVOIDANCE.get();
+
+            var craftPlayer = player(helper, "echo_craft_discount");
+            equipRingCurio(craftPlayer, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            assertEchoDiscountGateAndCost(helper, craftPlayer, craftSpell);
+
+            var protectionPlayer = player(helper, "echo_protection_discount");
+            equipCurio(protectionPlayer, CuriosSlotConstants.BELT,
+                    new ItemStack(ItemRegistry.PROTECTION_SPELL_SUPPORTER.get()));
+            assertEchoDiscountGateAndCost(helper, protectionPlayer, protectionSpell);
+        }
+        helper.succeed();
+    }
+
+    private static void assertEchoDiscountGateAndCost(GameTestHelper helper, FakePlayer player, AbstractSpell spell) {
+        var stack = player.getMainHandItem();
+        var magic = MagicData.getPlayerMagicData(player);
+        var baseCost = spell.getManaCost(1);
+        var discountedCost = Math.max(1, Math.round(baseCost * 0.5F));
+        var requiredCost = FullautoEchoCasting.scaleMana(discountedCost, 2.5D);
+        helper.assertTrue(requiredCost > baseCost, "Discount fixture must exceed the normal mana floor");
+        magic.setPlayerCastingItem(stack);
+
+        try (var ignored = FullautoRapidcastSpellrifleCastContext.open(player.getUUID(), stack, spell, false)) {
+            magic.setMana(requiredCost - 1);
+            var rejected = new SpellPreCastEvent(player, spell.getSpellId(), 1, spell.getSchoolType(), CastSource.SWORD);
+            FullautoRapidcastSpellrifleCastEvent.onEchoManaRequirement(rejected);
+            helper.assertTrue(rejected.isCanceled(), "Discounted echo cast must reject insufficient mana");
+
+            magic.setMana(requiredCost);
+            var funded = new SpellPreCastEvent(player, spell.getSpellId(), 1, spell.getSchoolType(), CastSource.SWORD);
+            FullautoRapidcastSpellrifleCastEvent.onEchoManaRequirement(funded);
+            helper.assertFalse(funded.isCanceled(), "Discounted echo cast must accept its required mana");
+
+            var cast = new SpellOnCastEvent(player, spell.getSpellId(), 1, baseCost, spell.getSchoolType(), CastSource.SWORD);
+            CraftsmansDelightManaCostDiscountEvent.onSpellCast(cast);
+            ProtectionSpellSupporterManaCostDiscountEvent.onSpellCast(cast);
+            FullautoRapidcastSpellrifleCastEvent.onEchoManaCost(cast);
+            helper.assertTrue(cast.getManaCost() == requiredCost,
+                    "Discounted echo payment must match the requirement: " + cast.getManaCost());
+        } catch (Exception exception) {
+            throw new IllegalStateException("Failed to close discounted echo cast test context.", exception);
+        }
+    }
+
+    @GameTest(template = TEMPLATE, batch = BATCH)
+    public static void echoAndZenithRequirementIncludesBothMultipliers(GameTestHelper helper) {
+        try (var settings = Settings.defaults();
+             var zenith = ApprenticeCodexServerConfig.useZenithStaffManaCostMultiplierOverrideForGameTest(1.5D)) {
+            multiplier("ManaCost").set(2.5D);
+            var player = player(helper, "echo_zenith_discount");
+            player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(ItemRegistry.ZENITH_STAFF.get()));
+            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
+            var firePower = player.getAttribute(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(
+                    AttributeRegistry.FIRE_SPELL_POWER.get()));
+            helper.assertTrue(firePower != null, "Echo Zenith test player is missing fire spell power attribute");
+            firePower.addTransientModifier(new AttributeModifier(ZENITH_STAFF_SCHOOL_POWER_TEST_MODIFIER_ID,
+                    0.5D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+
+            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.HEAVENLY_FIST.get();
+            helper.assertTrue(spell.getSchoolType() != SchoolRegistry.FIRE.get()
+                            && ZenithStaffPowerHelper.shouldIncreaseManaCost(player, spell.getSchoolType()),
+                    "Zenith Staff must increase this spell's mana cost");
+            var baseCost = spell.getManaCost(1);
+            var discountedCost = Math.max(1, Math.round(baseCost * 0.5F));
+            var echoThenZenith = ZenithStaffManaCostEvent.applyZenithManaCostMultiplier(
+                    FullautoEchoCasting.scaleMana(discountedCost, 2.5D));
+            var zenithThenEcho = FullautoEchoCasting.scaleMana(
+                    ZenithStaffManaCostEvent.applyZenithManaCostMultiplier(discountedCost), 2.5D);
+            var requiredCost = Math.max(baseCost, Math.max(echoThenZenith, zenithThenEcho));
+            helper.assertTrue(requiredCost > baseCost, "Combined multiplier must exceed the normal mana floor");
+
+            var magic = MagicData.getPlayerMagicData(player);
+            var stack = player.getMainHandItem();
+            magic.setPlayerCastingItem(stack);
+            try (var ignored = FullautoRapidcastSpellrifleCastContext.open(player.getUUID(), stack, spell, false)) {
+                magic.setMana(requiredCost - 1);
+                var rejected = new SpellPreCastEvent(player, spell.getSpellId(), 1, spell.getSchoolType(), CastSource.SWORD);
+                ZenithStaffManaCostEvent.onSpellPreCast(rejected);
+                FullautoRapidcastSpellrifleCastEvent.onEchoManaRequirement(rejected);
+                helper.assertTrue(rejected.isCanceled(), "Combined echo and Zenith cost must reject insufficient mana");
+
+                magic.setMana(requiredCost);
+                var funded = new SpellPreCastEvent(player, spell.getSpellId(), 1, spell.getSchoolType(), CastSource.SWORD);
+                ZenithStaffManaCostEvent.onSpellPreCast(funded);
+                FullautoRapidcastSpellrifleCastEvent.onEchoManaRequirement(funded);
+                helper.assertFalse(funded.isCanceled(), "Combined echo and Zenith cost must accept sufficient mana");
+
+                var echoFirst = new SpellOnCastEvent(player, spell.getSpellId(), 1, baseCost,
+                        spell.getSchoolType(), CastSource.SWORD);
+                CraftsmansDelightManaCostDiscountEvent.onSpellCast(echoFirst);
+                FullautoRapidcastSpellrifleCastEvent.onEchoManaCost(echoFirst);
+                ZenithStaffManaCostEvent.onSpellCast(echoFirst);
+                helper.assertTrue(echoFirst.getManaCost() == echoThenZenith,
+                        "Echo-first payment must match the combined mana requirement");
+
+                var zenithFirst = new SpellOnCastEvent(player, spell.getSpellId(), 1, baseCost,
+                        spell.getSchoolType(), CastSource.SWORD);
+                CraftsmansDelightManaCostDiscountEvent.onSpellCast(zenithFirst);
+                ZenithStaffManaCostEvent.onSpellCast(zenithFirst);
+                FullautoRapidcastSpellrifleCastEvent.onEchoManaCost(zenithFirst);
+                helper.assertTrue(zenithFirst.getManaCost() == zenithThenEcho,
+                        "Zenith-first payment must match the combined mana requirement");
+            } catch (Exception exception) {
+                throw new IllegalStateException("Failed to close echo Zenith cast test context.", exception);
+            }
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, batch = BATCH)
+    public static void suitManaWaiverDoesNotReduceEchoRequirement(GameTestHelper helper) {
+        try (var settings = Settings.defaults();
+             var suit = ApprenticeCodexServerConfig.useMagiAgentSuitAmmoConfigOverrideForGameTest(1, true)) {
+            var player = player(helper, "echo_suit_waiver");
+            player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_HOOD.get()));
+            var magic = MagicData.getPlayerMagicData(player);
+            var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.SHOCK.get();
+            var requiredCost = FullautoEchoCasting.scaleMana(spell.getManaCost(1), 2.0D);
+
+            magic.setMana(requiredCost - 1);
+            helper.assertFalse(start(player, spell), "Suit waiver must not lower the echo cast requirement");
+            magic.setMana(requiredCost);
+            helper.assertTrue(start(player, spell), "Funded suit echo cast must start");
+            finishInstant(player, spell);
+            helper.assertTrue(magic.getMana() == requiredCost, "Suit waiver must remove the cast payment after start");
         }
         helper.succeed();
     }
