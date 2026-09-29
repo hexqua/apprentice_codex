@@ -7,12 +7,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.SmithingRecipe;
 import net.minecraft.world.item.crafting.SmithingRecipeInput;
+import net.minecraft.world.item.crafting.SmithingTransformRecipe;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
-public final class SpellbookCarryoverSmithingRecipe implements SmithingRecipe {
+// Patchouliの鍛冶台ページはSmithingTransformRecipeから材料を取得するため、この型を継承する。
+public final class SpellbookCarryoverSmithingRecipe extends SmithingTransformRecipe {
     private final Ingredient template;
     private final Ingredient base;
     private final Ingredient addition;
@@ -24,6 +25,7 @@ public final class SpellbookCarryoverSmithingRecipe implements SmithingRecipe {
             Ingredient addition,
             ItemStack result
     ) {
+        super(template, base, addition, sanitizeResult(result));
         this.template = template;
         this.base = base;
         this.addition = addition;
@@ -38,7 +40,7 @@ public final class SpellbookCarryoverSmithingRecipe implements SmithingRecipe {
     }
 
     @Override
-    public @NotNull ItemStack assemble(SmithingRecipeInput input, HolderLookup.Provider registries) {
+    public @NotNull ItemStack assemble(SmithingRecipeInput input, HolderLookup.@NotNull Provider registries) {
         var baseStack = input.base();
         if (baseStack.isEmpty()) {
             return result.copy();
@@ -71,7 +73,7 @@ public final class SpellbookCarryoverSmithingRecipe implements SmithingRecipe {
     }
 
     @Override
-    public @NotNull ItemStack getResultItem(HolderLookup.Provider registries) {
+    public @NotNull ItemStack getResultItem(HolderLookup.@NotNull Provider registries) {
         return result.copy();
     }
 
@@ -86,17 +88,17 @@ public final class SpellbookCarryoverSmithingRecipe implements SmithingRecipe {
     }
 
     @Override
-    public boolean isTemplateIngredient(ItemStack stack) {
+    public boolean isTemplateIngredient(@NotNull ItemStack stack) {
         return template.test(stack);
     }
 
     @Override
-    public boolean isBaseIngredient(ItemStack stack) {
+    public boolean isBaseIngredient(@NotNull ItemStack stack) {
         return base.test(stack);
     }
 
     @Override
-    public boolean isAdditionIngredient(ItemStack stack) {
+    public boolean isAdditionIngredient(@NotNull ItemStack stack) {
         return addition.test(stack);
     }
 
