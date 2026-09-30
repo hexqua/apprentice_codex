@@ -27,6 +27,7 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
 
     private static final int FIRE_START_DELAY_TICK = 10;
     private static final int FIRE_INTERVAL_TICK = 3;
+    private static final byte EVENT_FIRE = 61;
     private static final float ELEVATED_PITCH_DEG = -60f;
     private static final double ELEVATED_TARGET_HEIGHT = 8;
 
@@ -40,6 +41,7 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
     private boolean elevatedLaunch;
     private float baseXRot;
     private int shotIndex;
+    private int clientRecoilStartTick = -1;
 
     public FlySwatterLauncherEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -81,6 +83,20 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
     @Override
     public void releaseWeapon(){
         isReleased = true;
+    }
+
+    @Override
+    public void handleEntityEvent(byte event) {
+        if (event == EVENT_FIRE) {
+            // 発射ごとに再開し、連射しても描画上の反動を蓄積させない。
+            clientRecoilStartTick = tickCount;
+        } else {
+            super.handleEntityEvent(event);
+        }
+    }
+
+    public float getClientRecoilTicks(float partialTicks) {
+        return clientRecoilStartTick < 0 ? -1.0f : tickCount - clientRecoilStartTick + partialTicks;
     }
 
     @Override
@@ -154,6 +170,8 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
         projectile.setRadius(radius);
         projectile.launch(position(), position().add(getLookAngle()), getLookAngle(), target, shotIndex++);
         if (!projectile.isRemoved()) level.addFreshEntity(projectile);
+        // 発射直後に壁へ着弾しても発射の反動は再生する。無効な捕捉枠ではここへ来ない。
+        level.broadcastEntityEvent(this, EVENT_FIRE);
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.VANILLA_PROJECTILE_SHOOT.get(), SoundSource.PLAYERS, 1.0f, 1.2f);
     }
 
