@@ -72,9 +72,9 @@ public final class FlySwatterTrajectoryGameTests {
             int deadline = missile.getArrivalTicks();
             s.tick(missile);
             target.setPos(target.position().add(0, 2, 0));
-            for (int tick = 2; tick <= deadline && !missile.isRemoved(); tick++) s.tick(missile);
+            for (int tick = 2; tick <= deadline && !missile.isRemoved() && !missile.isBursting(); tick++) s.tick(missile);
             h.assertTrue(missile.getArrivalTicks() == deadline, "Moving targets must not extend the arrival deadline");
-            h.assertTrue(missile.isRemoved() && missile.position().y >= s.origin.y + 2,
+            h.assertTrue(missile.isBursting() && missile.position().y >= s.origin.y + 2,
                     "Endpoint tracking must hit the moved target within the original deadline");
         }
         h.succeed();
@@ -129,8 +129,8 @@ public final class FlySwatterTrajectoryGameTests {
             s.block(BlockPos.containing(plan.curve().position(0.5)), Blocks.STONE.defaultBlockState());
             var expected = FlySwatterTrajectory.firstObstruction(h.getLevel(), missile, plan.curve());
             h.assertTrue(expected != null, "Fixture must block the selected flight");
-            for (int tick = 0; tick < missile.getArrivalTicks() && !missile.isRemoved(); tick++) s.tick(missile);
-            h.assertTrue(missile.isRemoved(), "A newly blocked selected route must impact instead of replanning");
+            for (int tick = 0; tick < missile.getArrivalTicks() && !missile.isRemoved() && !missile.isBursting(); tick++) s.tick(missile);
+            h.assertTrue(missile.isBursting(), "A newly blocked selected route must impact instead of replanning");
             h.assertTrue(missile.position().distanceTo(Objects.requireNonNull(expected).position()) < 0.08,
                     "Runtime impact must agree with preflight collision sampling");
         }
@@ -145,7 +145,7 @@ public final class FlySwatterTrajectoryGameTests {
             var block = BlockPos.containing(s.origin.add(0.6, 0, 0));
             s.block(block, Blocks.STONE.defaultBlockState());
             missile.launch(s.origin, s.origin.add(1, 0, 0), new Vec3(1, 0, 0), target, 0);
-            h.assertTrue(missile.isRemoved() && missile.position().x < s.origin.x + 1,
+            h.assertTrue(missile.isBursting() && missile.position().x < s.origin.x + 1,
                     "Muzzle lead must impact a wall instead of spawning through it");
         }
         try (var s = new Scene(h)) {
@@ -158,8 +158,8 @@ public final class FlySwatterTrajectoryGameTests {
             var obstacle = s.target(selected.curve().position(0.3).add(0, -0.975, 0));
             missile.launch(s.origin, s.origin, new Vec3(1, 0, 0), target, 0);
             float health = obstacle.getHealth();
-            for (int tick = 0; tick < missile.getArrivalTicks() && !missile.isRemoved(); tick++) s.tick(missile);
-            h.assertTrue(missile.isRemoved() && obstacle.getHealth() < health && missile.position().x < s.origin.x + 5,
+            for (int tick = 0; tick < missile.getArrivalTicks() && !missile.isRemoved() && !missile.isBursting(); tick++) s.tick(missile);
+            h.assertTrue(missile.isBursting() && obstacle.getHealth() < health && missile.position().x < s.origin.x + 5,
                     "An intervening combat entity must impact before a later block");
         }
         h.succeed();
