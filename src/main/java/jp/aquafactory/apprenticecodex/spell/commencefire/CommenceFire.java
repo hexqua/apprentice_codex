@@ -6,6 +6,8 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
@@ -143,7 +145,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
         }
 
         // 射撃は固定値(0.5秒)
-        return MagiAgentSuitEffects.applyBootsCommenceFireRecastCastTime(this, 10, entity);
+        return MagiAgentSuitEffects.applyBootsRecastCastTime(this, 10, 1, entity);
     }
 
     @Override
@@ -165,9 +167,6 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
         }
 
         var result = resolvePlayerAim(entity);
-
-        // 上の判定式で非nullが保証.
-        //noinspection DataFlowIssue
         var castTick = playerMagicData.getCastDuration() - playerMagicData.getCastDurationRemaining();
         summon.setCastingReticleEffect(castTick, playerMagicData.getCastDuration(), result.hitPosition());
     }
@@ -200,7 +199,8 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
     }
 
     @Override
-    public CompleteRecastTypes onRecastFinishedWithWeapon(Level level, ServerPlayer serverPlayer, @NotNull CommenceFireRifleEntity weapon) {
+    public CompleteRecastTypes onRecastFinishedWithWeapon(Level level, ServerPlayer serverPlayer, @NotNull CommenceFireRifleEntity weapon,
+                                                         RecastInstance recast, RecastResult result) {
         return CompleteRecastTypes.RELEASE_WEAPON;
     }
 

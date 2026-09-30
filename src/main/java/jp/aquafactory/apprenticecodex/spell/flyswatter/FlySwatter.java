@@ -8,43 +8,44 @@ import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
+import io.redspace.ironsspellbooks.network.casting.SyncTargetingDataPacket;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
+import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
-import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponRecastSpell;
 import jp.aquafactory.apprenticecodex.spell.IMagiAgentSuitAffectedSpell;
+import jp.aquafactory.apprenticecodex.spell.lockonray.LockOnRayCastData;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
-import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEntity> implements IMagiAgentSuitAffectedSpell {
+public class FlySwatter extends AbstractSummonWeaponRecastSpell<FlySwatterLauncherEntity> implements IMagiAgentSuitAffectedSpell {
+    private static final int RECAST_WINDOW_TICKS = 120;
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "fly_swatter");
-
     private final DefaultConfig config = new DefaultConfig()
             .setMinRarity(SpellRarity.EPIC)
             .setSchoolResource(SchoolRegistry.LIGHTNING_RESOURCE)
@@ -56,40 +57,32 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
         super(FlySwatterLauncherEntity.class);
         baseSpellPower = 100;
         spellPowerPerLevel = 50;
-        manaCostPerLevel = 5;
-        baseManaCost = 10;
-        castTime = 300;
+        manaCostPerLevel = 20;
+        baseManaCost = 90;
+        castTime = 40;
     }
 
     @Override
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
-                Component.translatable("ui.apprenticecodex.lock_on_count", Utils.stringTruncation(getLockOnCount(spellLevel, caster), 1)),
-                Component.translatable("ui.apprenticecodex.lock_on_time", Utils.timeFromTicks(getLockOnInterval(spellLevel, caster), 1))
-        );
+                Component.translatable("ui.apprenticecodex.lock_on_count", getActivateCount(spellLevel, caster)),
+                Component.translatable("ui.irons_spellbooks.distance", 128));
     }
 
-    private float getDamage(int spellLevel, LivingEntity entity) {
-        var rawDamage = 3 + 2 * getSpellPower(spellLevel, entity) / 100.0f;
-        return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.FLY_SWATTER);
+    private float getDamage(int spellLevel, LivingEntity caster) {
+        return (3 + 2 * getSpellPower(spellLevel, caster) / 100.0f)
+                * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.FLY_SWATTER);
     }
 
-    private float getExplosionRadius(){
-        // レベルで上がると制御しづらいので固定値.
-        return 3.0f;
+    @Override
+    public int getActivateCount(int spellLevel, @Nullable LivingEntity caster) {
+        return Math.clamp(Math.round(2 * getSpellPower(spellLevel, caster) / 100), 1, 8);
     }
 
-    private double getRange() {
-        return 128;
-    }
-
-    private int getLockOnCount(int spellLevel, LivingEntity entity) {
-        return Math.min(8, Math.round(2 * getSpellPower(spellLevel, entity) / 100));
-    }
-
-    private int getLockOnInterval(int spellLevel, LivingEntity entity) {
-        return Math.max(10, 40 - Math.round(10 * getSpellPower(spellLevel, entity) / 100));
+    @Override
+    public int getDurationTick() {
+        return RECAST_WINDOW_TICKS;
     }
 
     @Override
@@ -104,7 +97,16 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
 
     @Override
     public CastType getCastType() {
-        return CastType.CONTINUOUS;
+        return CastType.LONG;
+    }
+
+    @Override
+    public int getEffectiveCastTime(int spellLevel, @Nullable LivingEntity caster) {
+        if (caster != null && MagicData.getPlayerMagicData(caster).getPlayerRecasts().hasRecastForSpell(this)) {
+            // Recastは固定時間。通常詠唱の倍率補正を重ねない。
+            return MagiAgentSuitEffects.applyBootsRecastCastTime(this, 10, 5, caster);
+        }
+        return super.getEffectiveCastTime(spellLevel, caster);
     }
 
     @Override
@@ -113,13 +115,12 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
     }
 
     @Override
-    public final Optional<SoundEvent> getCastStartSound() {
-        return Optional.of(SoundRegistry.VANILLA_SUMMON_WEAPON.get());
+    public Optional<SoundEvent> getPreFireSound() {
+        return Optional.of(SoundRegistry.VANILLA_HOLD_WEAPON.get());
     }
-
     @Override
-    public final Optional<SoundEvent> getCastFinishSound() {
-        return Optional.empty();
+    public Optional<SoundEvent> getPreSummonSound() {
+        return Optional.of(getSchoolType().getCastSound());
     }
 
     @Override
@@ -133,110 +134,104 @@ public class FlySwatter extends AbstractSummonWeaponSpell<FlySwatterLauncherEnti
     }
 
     @Override
-    protected SummonWeaponSpellCastData createCastData() {
-        return new FlySwatterCastData();
+    public Optional<SoundEvent> getFireSound() {
+        return Optional.of(SoundEvents.ITEM_PICKUP);
     }
 
     @Override
-    public FlySwatterLauncherEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData) {
-        var summonWeapon = new FlySwatterLauncherEntity(EntityRegistry.FLY_SWATTER_LAUNCHER.get(), level, entity);
-        summonWeapon.setDamage(getDamage(spellLevel, entity));
-        summonWeapon.setRadius(getExplosionRadius());
-        level.addFreshEntity(summonWeapon);
-        return summonWeapon;
+    public Optional<SoundEvent> getSummonSound() {
+        return Optional.of(SoundRegistry.VANILLA_SUMMON_WEAPON.get());
     }
 
     @Override
-    public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull FlySwatterLauncherEntity weapon) {
-        // FocusStaffbow の continuous 終了時は完了処理前に補正が外れるため、詠唱中の最新値を保持しておく。
-        weapon.setDamage(getDamage(spellLevel, entity));
-        if (playerMagicData.getAdditionalCastData() instanceof FlySwatterCastData castData && castData.lockOnEntityIdList.size() < getLockOnCount(spellLevel, entity)) {
-            var result = RaycastTools.raycastFromEye(entity, getRange(), 0.5, e -> CombatTools.isValidCombatTarget(e, entity));
-            if (result.hitEntity() != null) {
-                var id = result.hitEntity().getId();
-                if (castData.currentLockOnId != id) {
-                    castData.currentLockOnId = id;
-                    castData.currentLockOnTick = 0;
-                } else {
-                    ++castData.currentLockOnTick;
-                    weapon.setCastingReticleEffect(castData.currentLockOnTick, result.hitPosition());
-                    if (castData.currentLockOnTick >= getLockOnInterval(spellLevel, entity)) {
-                        AudioTools.playSoundFromEntity(level, weapon, SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 1.5f, 1.5f);
-                        castData.lockOnEntityIdList.add(id);
-                        castData.currentLockOnId = -1;
-                        castData.currentLockOnTick = 0;
-                        if (entity instanceof ServerPlayer server) {
-                            server.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable(
-                                    "ui.apprenticecodex.fly_swatter.lockon_entity", result.hitEntity().getName().getString(), castData.lockOnEntityIdList.size(), getLockOnCount(spellLevel, entity), this.getDisplayName(server)).withStyle(ChatFormatting.DARK_AQUA, ChatFormatting.BOLD)));
-                        }
-                    }
-                }
-            } else {
-                weapon.setCastingReticleEffect(castData.currentLockOnTick, null);
-                castData.currentLockOnId = -1;
-                castData.currentLockOnTick = 0;
-            }
-        } else {
-            weapon.setCastingReticleEffect(0, null);
+    protected PendingSummonCastData createPendingCastData(Level level, @Nullable FlySwatterLauncherEntity weapon) {
+        return new PendingLock(level, weapon);
+    }
+
+    @Override
+    protected boolean isSummonWeaponValid(FlySwatterLauncherEntity weapon) {
+        return !weapon.isReleased();
+    }
+
+    @Override
+    protected boolean onPreRecastWithWeapon(Level level, int spellLevel, LivingEntity caster, MagicData data,
+                                           @NotNull FlySwatterLauncherEntity weapon) {
+        if (!(caster instanceof ServerPlayer player)) return false;
+        var target = CombatTools.findLookCombatTarget(caster, 128, 1);
+        if (target == null) {
+            player.connection.send(new ClientboundSetActionBarTextPacket(
+                    Component.translatable("ui.irons_spellbooks.cast_error_target").withStyle(ChatFormatting.RED)));
+            return false;
+        }
+        if (!(data.getAdditionalCastData() instanceof PendingLock pending)) return false;
+        pending.target = new LockOnRayCastData(target);
+        player.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable(
+                "ui.irons_spellbooks.spell_target_success", target.getDisplayName().getString(), getDisplayName(player))
+                .withStyle(ChatFormatting.GREEN)));
+        return true;
+    }
+
+    @Override
+    protected boolean onPreRecastNoWeapon(Level level, int spellLevel, LivingEntity caster, MagicData data) {
+        return false;
+    }
+
+    @Override
+    public void onServerPreCast(Level level, int spellLevel, LivingEntity caster, @Nullable MagicData data) {
+        super.onServerPreCast(level, spellLevel, caster, data);
+        if (data != null && caster instanceof ServerPlayer player && level instanceof ServerLevel server
+                && data.getAdditionalCastData() instanceof PendingLock pending && pending.target != null
+                && pending.target.resolve(server) instanceof LivingEntity target) {
+            PacketDistributor.sendToPlayer(player, new SyncTargetingDataPacket(target, this));
         }
     }
 
     @Override
-    public CompleteCastTypes onCastCompleteWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, boolean cancelled, @NotNull FlySwatterLauncherEntity weapon) {
-        if (playerMagicData.getAdditionalCastData() instanceof FlySwatterCastData castData) {
-            if (!castData.lockOnEntityIdList.isEmpty()){
-                weapon.setLockOnEntityList(castData.lockOnEntityIdList, level);
-                weapon.startFiring(level, entity);
-            }
-        }
-
-        return CompleteCastTypes.RELEASE_WEAPON;
+    public FlySwatterLauncherEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity caster, MagicData data) {
+        var launcher = new FlySwatterLauncherEntity(EntityRegistry.FLY_SWATTER_LAUNCHER.get(), level, caster);
+        launcher.setRadius(3);
+        launcher.setDamage(getDamage(spellLevel, caster));
+        level.addFreshEntity(launcher);
+        return launcher;
     }
 
-    public static class FlySwatterCastData extends SummonWeaponSpellCastData {
-        private int currentLockOnId;
-        private int currentLockOnTick;
-        private List<Integer> lockOnEntityIdList = new ArrayList<>();
-
-        @Override
-        public void writeToBuffer(FriendlyByteBuf friendlyByteBuf) {
-            super.writeToBuffer(friendlyByteBuf);
-            friendlyByteBuf.writeInt(currentLockOnId);
-            friendlyByteBuf.writeInt(currentLockOnTick);
-            friendlyByteBuf.writeCollection(lockOnEntityIdList, FriendlyByteBuf::writeInt);
+    @Override
+    public void onCastWithWeapon(Level level, int spellLevel, LivingEntity caster, MagicData data,
+                                 @NotNull FlySwatterLauncherEntity weapon) {
+        // FocusStaffbowの補正はcastSpell中だけ有効なので、正常完了した最新キャストで保持する。
+        weapon.setDamage(getDamage(spellLevel, caster));
+        if (level instanceof ServerLevel server && data.getAdditionalCastData() instanceof PendingLock pending
+                && pending.target != null) {
+            var target = pending.target.resolve(server);
+            if (target != null) weapon.addLockOnTarget(target);
+            AudioTools.playSoundFromEntity(level, weapon, SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, 1.5f, 1.5f);
         }
+    }
 
-        @Override
-        public void readFromBuffer(FriendlyByteBuf friendlyByteBuf) {
-            super.readFromBuffer(friendlyByteBuf);
-            currentLockOnId = friendlyByteBuf.readInt();
-            currentLockOnTick = friendlyByteBuf.readInt();
-            lockOnEntityIdList = friendlyByteBuf.readList(FriendlyByteBuf::readInt);
+    @Override
+    public CompleteRecastTypes onRecastFinishedWithWeapon(Level level, ServerPlayer player,
+                                                          @NotNull FlySwatterLauncherEntity weapon,
+                                                          RecastInstance recast, RecastResult result) {
+        if (result == RecastResult.TIMEOUT || result == RecastResult.USED_ALL_RECASTS) {
+            weapon.startFiring(level, player);
+            return CompleteRecastTypes.RELEASE_WEAPON;
+        }
+        return CompleteRecastTypes.DISCARD_WEAPON;
+    }
+
+    private static final class PendingLock extends PendingSummonCastData {
+        @Nullable
+        private LockOnRayCastData target;
+
+        private PendingLock(Level level, @Nullable Entity weapon) {
+            super(level, weapon);
         }
 
         @Override
         public void reset() {
             super.reset();
-            currentLockOnId = -1;
-            currentLockOnTick = 0;
-            lockOnEntityIdList.clear();
-        }
-
-        @Override
-        public CompoundTag serializeNBT(HolderLookup.@NotNull Provider provider) {
-            var tag = super.serializeNBT(provider);
-            tag.putInt("CurrentLockOnId", currentLockOnId);
-            tag.putInt("CurrentLockOnTick", currentLockOnTick);
-            tag.putIntArray("LockOnEntityIdList", lockOnEntityIdList.stream().mapToInt(i -> i).toArray());
-            return tag;
-        }
-
-        @Override
-        public void deserializeNBT(HolderLookup.@NotNull Provider provider, CompoundTag nbt) {
-            super.deserializeNBT(provider, nbt);
-            currentLockOnId = nbt.getInt("CurrentLockOnId");
-            currentLockOnTick = nbt.getInt("CurrentLockOnTick");
-            lockOnEntityIdList = Arrays.stream(nbt.getIntArray("LockOnEntityIdList")).boxed().collect(Collectors.toList());
+            if (target != null) target.reset();
+            target = null;
         }
     }
 }

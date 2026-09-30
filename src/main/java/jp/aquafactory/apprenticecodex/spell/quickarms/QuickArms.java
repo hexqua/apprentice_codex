@@ -8,6 +8,8 @@ import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
@@ -157,7 +159,8 @@ public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunE
 
     @Override
     public CompleteRecastTypes onRecastFinishedWithWeapon(Level level, ServerPlayer serverPlayer,
-                                                          @NotNull QuickArmsHandgunEntity weapon) {
+                                                          @NotNull QuickArmsHandgunEntity weapon,
+                                                          RecastInstance recast, RecastResult result) {
         return CompleteRecastTypes.RELEASE_WEAPON;
     }
 

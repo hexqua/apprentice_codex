@@ -1114,7 +1114,7 @@
   "spell.apprenticecodex.mage_light.guide": "召唤并放置一根魔法火把，照亮周围区域。该火把无需依附方块放置。",
   "spell.apprenticecodex.personal_shelf.guide": "具象化一个限时魔法储物箱。一段时间后或你远离时会消失。该储物箱仅为个人私人空间的交互界面。潜行时使用可尝试将其内容物转移到箱子等容器中。",
   "spell.apprenticecodex.rift_hole.guide": "在方块表面打开一个异界孔洞，在墙壁中开辟一条临时通道。再次施法或等待片刻即可封闭通道。",
-  "spell.apprenticecodex.fly_swatter.guide": "召唤一个魔法发射器，攻击你视线内锁定的目标。发射的弹药会自动追踪敌人。",
+  "spell.apprenticecodex.fly_swatter.guide": "首次施法只召唤魔法发射器，不锁定目标。重施开始时锁定视线中的目标，也可反复锁定同一目标。每次重施完成后，六秒的重施时间会重置。当重施次数用尽或时间结束时，向已锁定的目标发射追踪飞弹。无法通过法术发射器施放。",
   "spell.apprenticecodex.assist_wings.guide": "召唤魔法之翼，振翅跃起。该魔法也能在空中施放，但可用次数有限。羽翼会保护使用者免受摔落伤害，但手持利用坠落的武器时，保护效果会受到阻碍，使使用者重新受到摔落伤害。骑乘时无法使用，但骑乘浮空行驶扫帚时可以使用，并会带着扫帚一同跳跃。",
   "spell.apprenticecodex.world_flatter.guide": "召唤一把魔法钻头，穿透你视线内目标的护甲。将其挥向地面可快速挖出一个大洞。",
   "spell.apprenticecodex.slash_blade.guide": "召唤一把魔法武士刀，向前方进行大范围斩击。斩击不会被方块完全阻挡，但穿透方块后伤害和冲击力会降低。该施法过程无法被打断。",
