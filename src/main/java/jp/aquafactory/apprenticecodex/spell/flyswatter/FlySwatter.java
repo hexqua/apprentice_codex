@@ -58,8 +58,8 @@ public class FlySwatter extends AbstractSummonWeaponRecastSpell<FlySwatterLaunch
         baseSpellPower = 100;
         spellPowerPerLevel = 50;
         manaCostPerLevel = 20;
-        baseManaCost = 90;
-        castTime = 40;
+        baseManaCost = 70;
+        castTime = 30;
     }
 
     @Override
@@ -71,13 +71,13 @@ public class FlySwatter extends AbstractSummonWeaponRecastSpell<FlySwatterLaunch
     }
 
     private float getDamage(int spellLevel, LivingEntity caster) {
-        return (3 + 2 * getSpellPower(spellLevel, caster) / 100.0f)
+        return (3 * getSpellPower(spellLevel, caster) / 100.0f)
                 * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.FLY_SWATTER);
     }
 
     @Override
     public int getActivateCount(int spellLevel, @Nullable LivingEntity caster) {
-        return Math.clamp(Math.round(2 * getSpellPower(spellLevel, caster) / 100), 1, 8);
+        return Math.clamp(spellLevel + 3, 1, 8);
     }
 
     @Override

@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 import com.mojang.authlib.GameProfile;
 import io.netty.buffer.Unpooled;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
@@ -37,6 +38,25 @@ public final class FlySwatterGameTests {
     private static final String BATCH = "apprenticecodex.fly_swatter";
 
     @GameTest(template = TEMPLATE, batch = BATCH)
+    public static void lockSlotsDependOnLevelNotSpellPower(GameTestHelper h) {
+        try (var s = new Scene(h)) {
+            int[] expectedSlots = {4, 5, 6};
+            for (double power : new double[]{0.5, 1, 2}) {
+                s.owner.getAttribute(AttributeRegistry.SPELL_POWER).setBaseValue(power);
+                s.owner.getAttribute(AttributeRegistry.LIGHTNING_SPELL_POWER).setBaseValue(power);
+                for (int level = 1; level <= expectedSlots.length; level++) {
+                    int slots = expectedSlots[level - 1];
+                    h.assertTrue(s.spell.getActivateCount(level, s.owner) == slots,
+                            "Lock slots must depend only on spell level: level=" + level + ", power=" + power);
+                    h.assertTrue(s.spell.getRecastCount(level, s.owner) == slots + 1,
+                            "Total casts must include the initial summon and every lock slot");
+                }
+            }
+        }
+        h.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, batch = BATCH)
     public static void completedLocksAndFreeRecasts(GameTestHelper h) {
         try (var s = new Scene(h)) {
             s.zombie();
@@ -46,7 +66,8 @@ public final class FlySwatterGameTests {
             s.finish();
             var launcher = s.launcher();
             var recast = s.data.getPlayerRecasts().getRecastInstance(s.spell.getSpellId());
-            h.assertTrue(launcher.getLockOnCount() == 0 && recast.getRemainingRecasts() == 2,
+            int lockSlots = s.spell.getActivateCount(1, s.owner);
+            h.assertTrue(launcher.getLockOnCount() == 0 && recast.getRemainingRecasts() == lockSlots,
                     "Initial summon must preserve all lock slots even with a target in sight");
             float mana = s.data.getMana();
             h.assertTrue(mana == initialMana - s.spell.getManaCost(1),
@@ -55,21 +76,31 @@ public final class FlySwatterGameTests {
             s.owner.setItemSlot(EquipmentSlot.FEET, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_BOOTS.get()));
             h.assertTrue(s.spell.getEffectiveCastTime(1, s.owner) == 5, "Boots must shorten recast to five ticks");
             s.begin(); s.finish();
-            h.assertTrue(launcher.getLockOnCount() == 1 && recast.getRemainingRecasts() == 1 && recast.getTicksRemaining() == 120,
+            h.assertTrue(launcher.getLockOnCount() == 1 && recast.getRemainingRecasts() == lockSlots - 1 && recast.getTicksRemaining() == 120,
                     "First recast must add one lock and refresh the six second window");
-            s.begin(); s.finish();
+            for (int locks = 2; locks <= lockSlots; locks++) {
+                s.begin(); s.finish();
+                h.assertTrue(s.data.getMana() == mana && launcher.getLockOnCount() == locks,
+                        "Each recast must be free and add exactly one lock");
+                if (locks < lockSlots) {
+                    h.assertTrue(!launcher.isReleased() && recast.getRemainingRecasts() == lockSlots - locks,
+                            "Launcher must wait until all lock slots are consumed");
+                }
+            }
             h.assertTrue(s.data.getMana() == mana && !s.data.getPlayerRecasts().hasRecastForSpell(s.spell),
                     "Last recast must be free and end the session");
-            h.assertTrue(launcher.isReleased() && launcher.getLockOnCount() == 2,
+            h.assertTrue(launcher.isReleased() && launcher.getLockOnCount() == lockSlots,
                     "Repeated locks must remain separate shots");
             s.fireTicks(launcher, 9);
             h.assertTrue(s.projectiles().isEmpty(), "Launch sequence must retain its ten tick delay");
             s.fireTicks(launcher, 1);
             h.assertTrue(s.projectiles().size() == 1, "First shot must launch on tick ten");
-            s.fireTicks(launcher, 2);
-            h.assertTrue(s.projectiles().size() == 1, "Second shot must wait three ticks");
-            s.fireTicks(launcher, 1);
-            h.assertTrue(s.projectiles().size() == 2, "Completed locks must launch at a three tick interval");
+            for (int shot = 2; shot <= lockSlots; shot++) {
+                s.fireTicks(launcher, 2);
+                h.assertTrue(s.projectiles().size() == shot - 1, "Next shot must wait three ticks");
+                s.fireTicks(launcher, 1);
+                h.assertTrue(s.projectiles().size() == shot, "Completed locks must launch at a three tick interval");
+            }
         }
         h.succeed();
     }
@@ -82,10 +113,11 @@ public final class FlySwatterGameTests {
             var recast = s.data.getPlayerRecasts().getRecastInstance(s.spell.getSpellId());
             s.data.getPlayerRecasts().tick(1);
             int ticks = recast.getTicksRemaining();
+            int remainingRecasts = recast.getRemainingRecasts();
             float mana = s.data.getMana();
             s.owner.setXRot(-90);
             h.assertFalse(s.spell.checkPreCastConditions(h.getLevel(), 1, s.owner, s.data), "Empty recast aim must fail");
-            h.assertTrue(recast.getRemainingRecasts() == 1 && recast.getTicksRemaining() == ticks && s.data.getMana() == mana,
+            h.assertTrue(recast.getRemainingRecasts() == remainingRecasts && recast.getTicksRemaining() == ticks && s.data.getMana() == mana,
                     "Failed aim must not spend mana, consume a lock, or refresh the window");
             s.owner.setXRot(0); s.begin();
             s.spell.onServerCastComplete(h.getLevel(), 1, s.owner, s.data, true);
