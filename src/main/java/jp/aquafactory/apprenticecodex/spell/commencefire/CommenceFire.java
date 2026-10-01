@@ -6,6 +6,8 @@ import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
@@ -59,7 +61,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
                 Component.translatable("ui.irons_spellbooks.recast_count", getActivateCount(spellLevel, caster)),
-                Component.translatable("ui.apprenticecodex.headshot_damage_multiplier", getHeadshotPercent(spellLevel, caster)),
+                Component.translatable("ui.apprenticecodex.headshot_damage_multiplier", getHeadshotPercent()),
                 Component.translatable("ui.irons_spellbooks.distance", getRange())
         );
     }
@@ -71,7 +73,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
 
     @Override
     public int getActivateCount(int spellLevel, LivingEntity entity) {
-        return Math.min(10, 3 + Math.round(2 * (getSpellPower(spellLevel, entity) / 100.0f)));
+        return 6;
     }
 
     @Override
@@ -101,8 +103,9 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
         return 16 * 4;
     }
 
-    private int getHeadshotPercent(int spellLevel, LivingEntity entity) {
-        return Math.min(500, 200 + Math.round(30 * (getSpellPower(spellLevel, entity) / 100.0f)));
+    private int getHeadshotPercent() {
+        // ヘッドショット倍率を固定化.
+        return 200;
     }
 
     @Override
@@ -142,7 +145,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
         }
 
         // 射撃は固定値(0.5秒)
-        return MagiAgentSuitEffects.applyBootsCommenceFireRecastCastTime(this, 10, entity);
+        return MagiAgentSuitEffects.applyBootsRecastCastTime(this, 10, 1, entity);
     }
 
     @Override
@@ -164,9 +167,6 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
         }
 
         var result = resolvePlayerAim(entity);
-
-        // 上の判定式で非nullが保証.
-        //noinspection DataFlowIssue
         var castTick = playerMagicData.getCastDuration() - playerMagicData.getCastDurationRemaining();
         summon.setCastingReticleEffect(castTick, playerMagicData.getCastDuration(), result.hitPosition());
     }
@@ -185,7 +185,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
     protected boolean onPreRecastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull CommenceFireRifleEntity weapon) {
         if (weapon.duringRecoil()) {
             if (entity instanceof ServerPlayer serverPlayer) {
-                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.commence_fire.during_recoil", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
+                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.during_recoil", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
             }
             return false;
         }
@@ -199,14 +199,15 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
     }
 
     @Override
-    public CompleteRecastTypes onRecastFinishedWithWeapon(Level level, ServerPlayer serverPlayer, @NotNull CommenceFireRifleEntity weapon) {
+    public CompleteRecastTypes onRecastFinishedWithWeapon(Level level, ServerPlayer serverPlayer, @NotNull CommenceFireRifleEntity weapon,
+                                                         RecastInstance recast, RecastResult result) {
         return CompleteRecastTypes.RELEASE_WEAPON;
     }
 
     @Override
     public void onCastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull CommenceFireRifleEntity weapon){
         // FocusStaffbow のリキャスト詠唱は castSpell 中だけ SPELL_POWER を増やすため、射撃直前に計算する。
-        weapon.setDamage(getDamage(spellLevel, entity), getHeadshotPercent(spellLevel, entity));
+        weapon.setDamage(getDamage(spellLevel, entity), getHeadshotPercent());
         var result = resolvePlayerAim(entity);
         var isHeadShot = SummonedFirearmTools.isHeadShot(result);
         if (result.hitEntity() != null) {
@@ -225,7 +226,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
     @Override
     public CommenceFireRifleEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData){
         var summonWeapon = new CommenceFireRifleEntity(EntityRegistry.COMMENCE_FIRE_RIFLE.get(), level, entity);
-        summonWeapon.setDamage(getDamage(spellLevel, entity), getHeadshotPercent(spellLevel, entity));
+        summonWeapon.setDamage(getDamage(spellLevel, entity), getHeadshotPercent());
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }
