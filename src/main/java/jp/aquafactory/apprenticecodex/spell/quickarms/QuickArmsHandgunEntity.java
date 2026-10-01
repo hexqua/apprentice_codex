@@ -23,12 +23,14 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
 
     private static final float TRACER_SPEED_BLOCKS_PER_TICK = 24.0F;
     private static final float TRACER_LENGTH = 8.0F;
+    private static final int RECOIL_TICKS = 5;
 
     private float range;
 
     private float standbyDamage;
     private boolean isStandbyFirstFire;
     private int standbyTick;
+    private int recoilTick;
 
     public QuickArmsHandgunEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -50,6 +52,7 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
         standbyDamage = pCompound.getFloat("StandbyDamage");
         isStandbyFirstFire = pCompound.getBoolean("IsStandbyFirstFire");
         standbyTick = pCompound.getInt("StandbyTick");
+        recoilTick = pCompound.getInt("RecoilTick");
     }
 
     @Override
@@ -59,6 +62,7 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
         pCompound.putFloat("StandbyDamage", standbyDamage);
         pCompound.putBoolean("IsStandbyFirstFire", isStandbyFirstFire);
         pCompound.putInt("StandbyTick", standbyTick);
+        pCompound.putInt("RecoilTick", recoilTick);
     }
 
     @Override
@@ -110,6 +114,11 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
         var aimResult = RaycastTools.raycastFromEye(owner, range, 1, e -> CombatTools.isValidCombatTarget(e, this));
         faceTarget(aimResult.hitPosition());
 
+        // 初弾が設定する反動を同じtickに減らさず、初弾後も5tickの射撃間隔を保つ。
+        if (recoilTick > 0) {
+            --recoilTick;
+        }
+
         if (standbyTick > 0) {
             --standbyTick;
             if (standbyTick == 0 && isStandbyFirstFire) {
@@ -124,6 +133,7 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
             return;
         }
 
+        recoilTick = RECOIL_TICKS;
         var aimResult = RaycastTools.raycastFromEye(owner, range, 0.5, e -> CombatTools.isValidCombatTarget(e, this));
         faceTarget(aimResult.hitPosition());
         if (aimResult.hitEntity() != null) {
@@ -183,6 +193,10 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
         return standbyTick <= 0;
     }
 
+    public boolean duringRecoil() {
+        return recoilTick > 0;
+    }
+
     private void faceTarget(Vec3 target) {
         var targetVec = target.subtract(position());
         var yawPitch = RotationTools.calculateYawPitchByDirection(targetVec);
@@ -192,4 +206,3 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
         hasImpulse = true;
     }
 }
-

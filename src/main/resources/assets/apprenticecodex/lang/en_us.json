@@ -1269,7 +1269,7 @@
   "ui.apprenticecodex.too_far": "Too far!",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "Auto target mode with %s",
   "ui.apprenticecodex.recast_summon_spell.no_weapon": "Couldn't find weapon!",
-  "ui.apprenticecodex.commence_fire.during_recoil": "Recoil is still kicking.",
+  "ui.apprenticecodex.during_recoil": "Recoil is still kicking.",
   "ui.apprenticecodex.during_standby": "Preparing.",
   "ui.apprenticecodex.during_effect": "Still under effect!",
   "ui.apprenticecodex.fly_swatter.lockon_entity": "Lock on to %s...(%d/%d)",
