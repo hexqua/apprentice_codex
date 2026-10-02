@@ -13,6 +13,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -53,7 +54,7 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
     private RaycastTools.TargetType targetType = RaycastTools.TargetType.NONE;
     private Vec3 ownerTargetHitPos = Vec3.ZERO;
     private @Nullable BlockPos ownerTargetBlockPos;
-    private @Nullable LivingEntity ownerTargetEntity;
+    private @Nullable Entity ownerTargetEntity;
     private @Nullable Vec3 moveStartPos;
     private @Nullable Vec3 moveTargetPos;
     private @Nullable Integer moveTargetEntityId;
@@ -73,7 +74,7 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
     }
 
     @Override
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+    protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
         // do nothing.
     }
 
@@ -125,7 +126,7 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
 
         if (targetType == RaycastTools.TargetType.LIVING_ENTITY && ownerTargetEntity != null) {
             resetBreakProgress(level);
-            handleLivingTarget(owner, ownerTargetEntity);
+            handleCombatTarget(owner, ownerTargetEntity);
             return;
         }
 
@@ -175,8 +176,8 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
         ownerTargetHitPos = result.hitPosition();
         ownerTargetBlockPos = result.hitBlock();
 
-        if (result.hitEntity() instanceof LivingEntity target) {
-            ownerTargetEntity = target;
+        if (result.hitEntity() != null && CombatTools.isValidCombatTarget(result.hitEntity(), getOwner())) {
+            ownerTargetEntity = CombatTools.resolutePartEntity(result.hitEntity());
         } else {
             ownerTargetEntity = null;
         }
@@ -190,7 +191,7 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
         return targetType == RaycastTools.TargetType.BLOCK && ownerTargetBlockPos != null;
     }
 
-    private void handleLivingTarget(LivingEntity owner, LivingEntity target) {
+    private void handleCombatTarget(LivingEntity owner, Entity target) {
         if (!target.isAlive() || !CombatTools.isValidCombatTarget(target, owner)) {
             moveToTarget(getStandbyPosition(), owner.getYRot(), owner.getXRot(), ENTITY_REACH_TICKS);
             return;
@@ -211,7 +212,7 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
         }
     }
 
-    private void performMobAttack(LivingEntity target) {
+    private void performMobAttack(Entity target) {
         var source = createCombatDamageSource(DamageTypes.WORLD_FLATTER);
         var damaged = CombatTools.applyDamage(
                 target,
@@ -220,8 +221,8 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
                 SpellRegistry.WORLD_FLATTER.get().getSchoolType(),
                 CombatTools.KnockbackTypes.NO_KNOCKBACK
         );
-        if (damaged) {
-            target.addEffect(new MobEffectInstance(
+        if (damaged && target instanceof LivingEntity livingTarget) {
+            livingTarget.addEffect(new MobEffectInstance(
                     EffectRegistry.PENETRATED_ARMOR,
                     PENETRATED_ARMOR_DURATION_TICKS,
                     penetratedArmorAmplifier,
@@ -466,7 +467,7 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
         applyMove(yaw, pitch, durationTicks);
     }
 
-    private void moveToEntityTarget(LivingEntity target, Vec3 targetPos, float yaw, float pitch, int durationTicks) {
+    private void moveToEntityTarget(Entity target, Vec3 targetPos, float yaw, float pitch, int durationTicks) {
         var targetId = target.getId();
         if (moveTargetEntityId == null || moveTargetEntityId != targetId) {
             moveStartPos = position();

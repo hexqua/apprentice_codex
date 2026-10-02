@@ -527,7 +527,8 @@ public final class RaycastTools {
 
         int steps = Math.max(1, (int) Math.ceil(len / step));
         for (Entity e : candidates) {
-            if (!(e instanceof LivingEntity le)) continue;
+            var target = CombatTools.resolutePartEntity(e);
+            if (!target.isAlive()) continue;
             var box = e.getBoundingBox().inflate(radius);
 
             for (var i = 0; i <= steps; ++i) {
@@ -535,7 +536,8 @@ public final class RaycastTools {
                 var p = start.add(dir.scale(len * t));
 
                 if (box.contains(p)) {
-                    hits.add(le);
+                    // 部位の箱で命中を確定してから本体へ集約し、複数部位による多重ダメージを防ぐ。
+                    hits.add(target);
                     break;
                 }
             }
