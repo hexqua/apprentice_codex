@@ -28,6 +28,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
@@ -1031,7 +1032,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
         }
     }
 
-    private LinkedHashSet<LivingEntity> resolveDamageTargets(LivingEntity owner, boolean includeOwner) {
+    private LinkedHashSet<Entity> resolveDamageTargets(LivingEntity owner, boolean includeOwner) {
         var axis = resolveDamageAxis(owner);
         var start = position().subtract(axis.scale(DAMAGE_AXIS_RANGE));
         var end = position().add(axis.scale(DAMAGE_AXIS_RANGE));
@@ -1046,20 +1047,20 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
                         : CombatTools.CombatTargetPolicy.PROTECT_SELF_AND_ALLIES)
         );
 
-        var targets = new LinkedHashSet<LivingEntity>();
+        var targets = new LinkedHashSet<Entity>();
         for (var hit : hits) {
-            if (!(hit instanceof LivingEntity livingTarget) || !livingTarget.isAlive()) {
+            if (!hit.isAlive()) {
                 continue;
             }
 
-            if (livingTarget == owner && !includeOwner) {
+            if (hit == owner && !includeOwner) {
                 continue;
             }
 
-            if (CombatTools.isValidCombatTarget(livingTarget, owner, includeOwner
+            if (CombatTools.isValidCombatTarget(hit, owner, includeOwner
                     ? CombatTools.CombatTargetPolicy.ALLOW_SELF_PROTECT_ALLIES
                     : CombatTools.CombatTargetPolicy.PROTECT_SELF_AND_ALLIES)) {
-                targets.add(livingTarget);
+                targets.add(hit);
             }
         }
         return targets;
