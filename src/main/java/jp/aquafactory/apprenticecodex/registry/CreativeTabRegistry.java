@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
+import jp.aquafactory.apprenticecodex.compat.patchouli.PatchouliBookSupport;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkState;
 import jp.aquafactory.apprenticecodex.potion.SchoolAffinityPotion;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
@@ -44,6 +45,11 @@ public final class CreativeTabRegistry {
     }
 
     private static void addItemsToTab(CreativeModeTab.ItemDisplayParameters params, CreativeModeTab.Output output) {
+        var book = PatchouliBookSupport.createBookStack();
+        if (!book.isEmpty()) {
+            output.accept(book);
+        }
+
         addBlockToTab(output);
         addSimpleMaterialToTab(output);
         addCalibrationItemToTab(output);
