@@ -1,0 +1,13 @@
+{
+  "name": "item.apprenticecodex.isekai_travel_guidebook",
+  "category": "apprenticecodex:equipment_and_accessories",
+  "icon": "apprenticecodex:isekai_travel_guidebook",
+  "pages": [
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:isekai_travel_guidebook",
+      "link_recipe": true,
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.isekai_travel_guidebook.page.p001.text"
+    }
+  ]
+}

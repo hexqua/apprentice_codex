@@ -1,0 +1,42 @@
+{
+  "name": "item.apprenticecodex.quickcast_scroll_cartridge",
+  "category": "apprenticecodex:equipment_and_accessories",
+  "icon": "apprenticecodex:quickcast_scroll_cartridge",
+  "pages": [
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:quickcast_scroll_cartridge",
+      "text": {
+        "translate": "patchouli.apprenticecodex.apprentices_memo.entry.quickcast_scroll_cartridge.page.p001.text",
+        "with": [
+          {
+            "translate": "block.apprenticecodex.spell_calibration_bench"
+          }
+        ]
+      }
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "apprenticecodex:quickcast_scroll_cartridge",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.quickcast_scroll_cartridge.page.p002.text"
+    },
+    {
+      "type": "patchouli:text",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.quickcast_scroll_cartridge.page.p003.title",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.quickcast_scroll_cartridge.page.p003.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:scrollwoven_parchment",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.quickcast_scroll_cartridge.page.p004.title",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.quickcast_scroll_cartridge.page.p004.text"
+    },
+    {
+      "type": "patchouli:relations",
+      "entries": [
+        "apprenticecodex:devices/spell_calibration_bench",
+        "apprenticecodex:enchantments/transcendence"
+      ]
+    }
+  ]
+}
