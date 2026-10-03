@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.spellcasterworkbench.SpellcasterWorkbenchDisplayExamples;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
+import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -29,10 +30,9 @@ import java.util.function.UnaryOperator;
 public final class SpellcasterWorkbenchRecipeComponent implements ICustomComponent {
     private static final int SLOT_SIZE = 18;
     private static final int MAX_RECIPES_PER_PAGE = 2;
-    private static final int ROW_HEIGHT = 50;
     private static final int[] INPUT_X = {0, 20, 0};
     private static final int[] INPUT_Y = {0, 10, 20};
-    private static final int OUTPUT_X = 68;
+    private static final int OUTPUT_X = 70;
     private static final int OUTPUT_Y = 10;
     private static final int OUTPUT_COLUMNS = 2;
     private static final int OUTPUT_ROWS = 2;
@@ -44,14 +44,17 @@ public final class SpellcasterWorkbenchRecipeComponent implements ICustomCompone
     public String recipe2 = "";
     public String example = "";
     public String example2 = "";
+    public String title = "";
 
     private transient List<DisplayReference> references = List.of();
     private transient List<DisplayRecipe> displayRecipes = List.of();
     private transient int componentX;
     private transient int componentY;
+    private transient Component customTitle = Component.empty();
 
     @Override
     public void onVariablesAvailable(UnaryOperator<IVariable> lookup, HolderLookup.Provider registries) {
+        customTitle = PatchouliRecipeLayout.resolveTitle(title, lookup, registries);
         var parsed = new ArrayList<DisplayReference>(MAX_RECIPES_PER_PAGE);
         collectSlot(parsed, lookup, registries, recipe, example);
         collectSlot(parsed, lookup, registries, recipe2, example2);
@@ -78,10 +81,16 @@ public final class SpellcasterWorkbenchRecipeComponent implements ICustomCompone
 
     @Override
     public void render(GuiGraphics graphics, IComponentRenderContext context, float pticks, int mouseX, int mouseY) {
+        var layout = PatchouliRecipeLayout.create(displayRecipes.stream()
+                .map(value -> value.recipe() == null ? ItemStack.EMPTY : value.recipe().getResultTemplates().get(0))
+                .toList(), customTitle, PatchouliRecipeLayout.WORKBENCH_ROW_HEIGHT);
         for (var index = 0; index < displayRecipes.size(); ++index) {
             var displayRecipe = displayRecipes.get(index).recipe();
             if (displayRecipe != null) {
-                renderRecipe(graphics, context, mouseX, mouseY, displayRecipe, componentY + index * ROW_HEIGHT);
+                var row = layout.rows().get(index);
+                PatchouliRecipeLayout.renderHeader(graphics, context, row.title(), componentX,
+                        componentY + row.titleY(), mouseX, mouseY);
+                renderRecipe(graphics, context, mouseX, mouseY, displayRecipe, componentY + row.recipeY());
             }
         }
     }
@@ -97,8 +106,12 @@ public final class SpellcasterWorkbenchRecipeComponent implements ICustomCompone
         for (var index = 0; index < INPUT_X.length; ++index) {
             drawSlot(graphics, componentX + INPUT_X[index], rowY + INPUT_Y[index]);
         }
-        graphics.drawString(Minecraft.getInstance().font, Component.literal("->"),
-                componentX + 47, rowY + 16, context.getTextColor(), false);
+        context.renderItemStack(graphics, componentX + 47, rowY + 11,
+                mouseX, mouseY, new ItemStack(BlockRegistry.SPELLCASTER_WORKBENCH.get()));
+        for (var arrowX : new int[]{40, 64}) {
+            graphics.drawString(Minecraft.getInstance().font, Component.literal(">"),
+                    componentX + arrowX, rowY + 16, context.getTextColor(), false);
+        }
 
         var ingredients = displayRecipe.getSizedIngredients();
         for (var index = 0; index < Math.min(INPUT_X.length, ingredients.size()); ++index) {

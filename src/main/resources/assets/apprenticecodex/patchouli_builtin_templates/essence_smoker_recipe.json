@@ -7,14 +7,73 @@
       "y": 0,
       "recipe": "#recipe",
       "recipe2": "#recipe2",
-      "recipe3": "#recipe3"
+      "recipe3": "#recipe3",
+      "title": "#title"
     },
     {
       "type": "patchouli:text",
+      "group": "recipe_text_29",
       "text": "#text",
       "x": 0,
-      "y": 74,
+      "y": 29,
+      "max_width": 116
+    },
+    {
+      "type": "patchouli:text",
+      "group": "recipe_text_41",
+      "text": "#text",
+      "x": 0,
+      "y": 41,
+      "max_width": 116
+    },
+    {
+      "type": "patchouli:text",
+      "group": "recipe_text_53",
+      "text": "#text",
+      "x": 0,
+      "y": 53,
+      "max_width": 116
+    },
+    {
+      "type": "patchouli:text",
+      "group": "recipe_text_65",
+      "text": "#text",
+      "x": 0,
+      "y": 65,
+      "max_width": 116
+    },
+    {
+      "type": "patchouli:text",
+      "group": "recipe_text_77",
+      "text": "#text",
+      "x": 0,
+      "y": 77,
+      "max_width": 116
+    },
+    {
+      "type": "patchouli:text",
+      "group": "recipe_text_89",
+      "text": "#text",
+      "x": 0,
+      "y": 89,
+      "max_width": 116
+    },
+    {
+      "type": "patchouli:text",
+      "group": "recipe_text_101",
+      "text": "#text",
+      "x": 0,
+      "y": 101,
+      "max_width": 116
+    },
+    {
+      "type": "patchouli:text",
+      "group": "recipe_text_113",
+      "text": "#text",
+      "x": 0,
+      "y": 113,
       "max_width": 116
     }
-  ]
+  ],
+  "processor": "jp.aquafactory.apprenticecodex.compat.patchouli.EssenceSmokerRecipeTemplateProcessor"
 }
