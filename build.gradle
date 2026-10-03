@@ -476,7 +476,8 @@ dependencies {
     add(clientRuntimeModuleConfigurations.target_dummy, "maven.modrinth:Adega8YN:nnQq1ivl")
 
     // Patchouli.
-    compileOnly "vazkii.patchouli:Patchouli:${patchouli_version}:api"
+    // 標準ページの見出し描画へMixinで介入するため、API以外もコンパイル時だけ参照する。
+    compileOnly "vazkii.patchouli:Patchouli:${patchouli_version}"
     runtimeOnly "vazkii.patchouli:Patchouli:${patchouli_version}"
 }
 

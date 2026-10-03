@@ -99,6 +99,7 @@
     "UtilsMixin"
   ],
   "client": [
+    "PatchouliBookHeaderMixin",
     "EntityRenderDispatcherMantleBlinkMixin",
     "EntityRendererMantleBlinkNameMixin",
     "ClientMantlePositionMixin",
