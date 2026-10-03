@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.spellcasterworkbench.SpellcasterWorkbenchDisplayExamples;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
+import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -27,31 +28,30 @@ import java.util.function.UnaryOperator;
 // Patchouliがリフレクションで参照するため、IDE側の未使用検知を無効化する。
 @SuppressWarnings("unused")
 public final class SpellcasterWorkbenchRecipeComponent implements ICustomComponent {
-    private static final int SLOT_SIZE = 18;
     private static final int MAX_RECIPES_PER_PAGE = 2;
-    private static final int ROW_HEIGHT = 50;
-    private static final int[] INPUT_X = {0, 20, 0};
-    private static final int[] INPUT_Y = {0, 10, 20};
+    private static final int[] INPUT_X = {0, 24, 0};
+    private static final int[] INPUT_Y = {0, 12, 24};
+    private static final int INPUT_HEIGHT = 48;
     private static final int OUTPUT_X = 68;
-    private static final int OUTPUT_Y = 10;
     private static final int OUTPUT_COLUMNS = 2;
     private static final int OUTPUT_ROWS = 2;
-    private static final int SLOT_SPACING = 20;
-    private static final int SLOT_OUTER_COLOR = 0xFF111111;
-    private static final int SLOT_INNER_COLOR = 0xFF8B8B8B;
+    private static final int SLOT_SPACING = 24;
 
     public String recipe = "";
     public String recipe2 = "";
     public String example = "";
     public String example2 = "";
+    public String title = "";
 
     private transient List<DisplayReference> references = List.of();
     private transient List<DisplayRecipe> displayRecipes = List.of();
     private transient int componentX;
     private transient int componentY;
+    private transient Component customTitle = Component.empty();
 
     @Override
     public void onVariablesAvailable(UnaryOperator<IVariable> lookup, HolderLookup.Provider registries) {
+        customTitle = PatchouliRecipeLayout.resolveTitle(title, lookup, registries);
         var parsed = new ArrayList<DisplayReference>(MAX_RECIPES_PER_PAGE);
         collectSlot(parsed, lookup, registries, recipe, example);
         collectSlot(parsed, lookup, registries, recipe2, example2);
@@ -78,10 +78,16 @@ public final class SpellcasterWorkbenchRecipeComponent implements ICustomCompone
 
     @Override
     public void render(GuiGraphics graphics, IComponentRenderContext context, float pticks, int mouseX, int mouseY) {
+        var layout = PatchouliRecipeLayout.create(displayRecipes.stream()
+                .map(value -> value.recipe() == null ? ItemStack.EMPTY : value.recipe().getResultTemplates().get(0))
+                .toList(), customTitle, PatchouliRecipeLayout.WORKBENCH_ROW_HEIGHT);
         for (var index = 0; index < displayRecipes.size(); ++index) {
             var displayRecipe = displayRecipes.get(index).recipe();
             if (displayRecipe != null) {
-                renderRecipe(graphics, context, mouseX, mouseY, displayRecipe, componentY + index * ROW_HEIGHT);
+                var row = layout.rows().get(index);
+                PatchouliRecipeLayout.renderHeader(graphics, context, row.title(), componentX,
+                        componentY + row.titleY(), mouseX, mouseY);
+                renderRecipe(graphics, context, mouseX, mouseY, displayRecipe, componentY + row.recipeY());
             }
         }
     }
@@ -94,16 +100,22 @@ public final class SpellcasterWorkbenchRecipeComponent implements ICustomCompone
             SpellcasterWorkbenchRecipe displayRecipe,
             int rowY
     ) {
+        var results = displayRecipe.getResultTemplates();
+        var outputColumns = Math.min(results.size(), OUTPUT_COLUMNS);
+        var outputRows = Math.min((results.size() + OUTPUT_COLUMNS - 1) / OUTPUT_COLUMNS, OUTPUT_ROWS);
+        var bodyX = PatchouliRecipeLayout.centeredX(componentX, OUTPUT_X + outputColumns * SLOT_SPACING);
+        var outputY = (INPUT_HEIGHT - outputRows * SLOT_SPACING) / 2;
         for (var index = 0; index < INPUT_X.length; ++index) {
-            drawSlot(graphics, componentX + INPUT_X[index], rowY + INPUT_Y[index]);
+            PatchouliRecipeLayout.drawSlot(graphics, context, bodyX + INPUT_X[index], rowY + INPUT_Y[index]);
         }
-        graphics.drawString(Minecraft.getInstance().font, Component.literal("->"),
-                componentX + 47, rowY + 16, context.getTextColor(), false);
+        context.renderItemStack(graphics, bodyX + 50, rowY + 8,
+                mouseX, mouseY, new ItemStack(BlockRegistry.SPELLCASTER_WORKBENCH.get()));
+        PatchouliRecipeLayout.drawArrow(graphics, context, bodyX + 53, rowY + 30);
 
         var ingredients = displayRecipe.getSizedIngredients();
         for (var index = 0; index < Math.min(INPUT_X.length, ingredients.size()); ++index) {
-            var x = componentX + INPUT_X[index] + 1;
-            var y = rowY + INPUT_Y[index] + 1;
+            var x = bodyX + INPUT_X[index] + PatchouliRecipeLayout.SLOT_PADDING;
+            var y = rowY + INPUT_Y[index] + PatchouliRecipeLayout.SLOT_PADDING;
             var sizedIngredient = ingredients.get(index);
             var preview = createIngredientPreview(displayRecipe, sizedIngredient);
             if (preview.isEmpty()) {
@@ -113,25 +125,26 @@ public final class SpellcasterWorkbenchRecipeComponent implements ICustomCompone
             }
         }
 
-        var results = displayRecipe.getResultTemplates();
         var slotCount = OUTPUT_COLUMNS * OUTPUT_ROWS;
         var hasOverflow = results.size() > slotCount;
         var visibleCount = Math.min(results.size(), hasOverflow ? slotCount - 1 : slotCount);
         for (var index = 0; index < visibleCount; ++index) {
-            var x = componentX + OUTPUT_X + index % OUTPUT_COLUMNS * SLOT_SPACING;
-            var y = rowY + OUTPUT_Y + index / OUTPUT_COLUMNS * SLOT_SPACING;
-            drawSlot(graphics, x, y);
-            context.renderItemStack(graphics, x + 1, y + 1, mouseX, mouseY, results.get(index));
+            var x = bodyX + OUTPUT_X + index % OUTPUT_COLUMNS * SLOT_SPACING;
+            var y = rowY + outputY + index / OUTPUT_COLUMNS * SLOT_SPACING;
+            PatchouliRecipeLayout.drawSlot(graphics, context, x, y);
+            context.renderItemStack(graphics, x + PatchouliRecipeLayout.SLOT_PADDING,
+                    y + PatchouliRecipeLayout.SLOT_PADDING, mouseX, mouseY, results.get(index));
         }
         if (hasOverflow) {
             // ページ内に収まらない出力は最後の枠のツールチップから確認できるようにする。
-            var x = componentX + OUTPUT_X + (OUTPUT_COLUMNS - 1) * SLOT_SPACING;
-            var y = rowY + OUTPUT_Y + (OUTPUT_ROWS - 1) * SLOT_SPACING;
-            drawSlot(graphics, x, y);
+            var x = bodyX + OUTPUT_X + (OUTPUT_COLUMNS - 1) * SLOT_SPACING;
+            var y = rowY + outputY + (OUTPUT_ROWS - 1) * SLOT_SPACING;
+            PatchouliRecipeLayout.drawSlot(graphics, context, x, y);
             graphics.drawString(Minecraft.getInstance().font,
                     Component.literal("+" + (results.size() - visibleCount)),
-                    x + 2, y + 6, context.getTextColor(), false);
-            if (context.isAreaHovered(mouseX, mouseY, x, y, SLOT_SIZE, SLOT_SIZE)) {
+                    x + PatchouliRecipeLayout.SLOT_PADDING, y + 8, context.getTextColor(), false);
+            if (context.isAreaHovered(mouseX, mouseY, x, y,
+                    PatchouliRecipeLayout.SLOT_SIZE, PatchouliRecipeLayout.SLOT_SIZE)) {
                 context.setHoverTooltipComponents(results.subList(visibleCount, results.size()).stream()
                         .<Component>map(result -> Component.literal(result.getCount() + "x ").append(result.getHoverName()))
                         .toList());
@@ -264,11 +277,6 @@ public final class SpellcasterWorkbenchRecipeComponent implements ICustomCompone
     private static @Nullable RecipeManager getClientRecipeManager() {
         ClientPacketListener connection = Minecraft.getInstance().getConnection();
         return connection == null ? null : connection.getRecipeManager();
-    }
-
-    private static void drawSlot(GuiGraphics graphics, int x, int y) {
-        graphics.fill(x, y, x + SLOT_SIZE, y + SLOT_SIZE, SLOT_OUTER_COLOR);
-        graphics.fill(x + 1, y + 1, x + SLOT_SIZE - 1, y + SLOT_SIZE - 1, SLOT_INNER_COLOR);
     }
 
     private record DisplayReference(ResourceLocation id, boolean example) {

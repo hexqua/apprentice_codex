@@ -1,0 +1,82 @@
+{
+  "name": "item.apprenticecodex.protection_spell_supporter",
+  "category": "apprenticecodex:equipment_and_accessories",
+  "icon": "apprenticecodex:protection_spell_supporter",
+  "pages": [
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:protection_spell_supporter",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.protection_spell_supporter.page.p001.text"
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "apprenticecodex:protection_spell_supporter",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.protection_spell_supporter.page.p002.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "title": "spell.apprenticecodex.force_field",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.protection_spell_supporter.page.p003.text",
+      "item": "irons_spellbooks:scroll[irons_spellbooks:spell_container={maxSpells:1,mustEquip:false,spellWheel:false,data:[{id:\"apprenticecodex:force_field\",index:0,level:1,locked:1b}]}]"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "title": "spell.apprenticecodex.phalanx_charge",
+      "text": {
+        "translate": "patchouli.apprenticecodex.apprentices_memo.entry.protection_spell_supporter.page.p004.text",
+        "with": [
+          {
+            "translate": "spell.irons_spellbooks.counterspell"
+          }
+        ]
+      },
+      "item": "irons_spellbooks:scroll[irons_spellbooks:spell_container={maxSpells:1,mustEquip:false,spellWheel:false,data:[{id:\"apprenticecodex:phalanx_charge\",index:0,level:1,locked:1b}]}]"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "title": "spell.apprenticecodex.mystic_shield",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.protection_spell_supporter.page.p005.text",
+      "item": "irons_spellbooks:scroll[irons_spellbooks:spell_container={maxSpells:1,mustEquip:false,spellWheel:false,data:[{id:\"apprenticecodex:mystic_shield\",index:0,level:1,locked:1b}]}]"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "title": "spell.apprenticecodex.mirage_avoidance",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.protection_spell_supporter.page.p006.text",
+      "item": "irons_spellbooks:scroll[irons_spellbooks:spell_container={maxSpells:1,mustEquip:false,spellWheel:false,data:[{id:\"apprenticecodex:mirage_avoidance\",index:0,level:1,locked:1b}]}]"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "title": "spell.irons_spellbooks.shield",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.protection_spell_supporter.page.p007.text",
+      "item": "irons_spellbooks:scroll[irons_spellbooks:spell_container={maxSpells:1,mustEquip:false,spellWheel:false,data:[{id:\"irons_spellbooks:shield\",index:0,level:1,locked:1b}]}]"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "title": "spell.irons_spellbooks.ice_tomb",
+      "text": {
+        "translate": "patchouli.apprenticecodex.apprentices_memo.entry.protection_spell_supporter.page.p008.text",
+        "with": [
+          {
+            "translate": "spell.irons_spellbooks.ice_tomb"
+          },
+          {
+            "translate": "spell.irons_spellbooks.frost_step"
+          }
+        ]
+      },
+      "item": "irons_spellbooks:scroll[irons_spellbooks:spell_container={maxSpells:1,mustEquip:false,spellWheel:false,data:[{id:\"irons_spellbooks:ice_tomb\",index:0,level:1,locked:1b}]}]"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "title": "spell.irons_spellbooks.evasion",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.protection_spell_supporter.page.p009.text",
+      "item": "irons_spellbooks:scroll[irons_spellbooks:spell_container={maxSpells:1,mustEquip:false,spellWheel:false,data:[{id:\"irons_spellbooks:evasion\",index:0,level:1,locked:1b}]}]"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "title": "spell.irons_spellbooks.heartstop",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.protection_spell_supporter.page.p010.text",
+      "item": "irons_spellbooks:scroll[irons_spellbooks:spell_container={maxSpells:1,mustEquip:false,spellWheel:false,data:[{id:\"irons_spellbooks:heartstop\",index:0,level:1,locked:1b}]}]"
+    }
+  ]
+}

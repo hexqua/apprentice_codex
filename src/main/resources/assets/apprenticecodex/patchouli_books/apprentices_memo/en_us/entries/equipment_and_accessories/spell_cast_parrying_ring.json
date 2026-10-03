@@ -1,0 +1,31 @@
+{
+  "name": "item.apprenticecodex.spell_cast_parrying_ring",
+  "category": "apprenticecodex:equipment_and_accessories",
+  "icon": "apprenticecodex:spell_cast_parrying_ring",
+  "pages": [
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:spell_cast_parrying_ring",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.spell_cast_parrying_ring.page.p001.text"
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "apprenticecodex:spell_cast_parrying_ring",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.spell_cast_parrying_ring.page.p002.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": "malum:mnemonic_hex_staff",
+      "flag": "mod:malum",
+      "advancement": "apprenticecodex:apprentice_codex/malum_black_crystal_revealed",
+      "text": {
+        "translate": "patchouli.apprenticecodex.apprentices_memo.entry.spell_cast_parrying_ring.page.p003.text",
+        "with": [
+          {
+            "translate": "item.malum.mnemonic_hex_staff"
+          }
+        ]
+      }
+    }
+  ]
+}

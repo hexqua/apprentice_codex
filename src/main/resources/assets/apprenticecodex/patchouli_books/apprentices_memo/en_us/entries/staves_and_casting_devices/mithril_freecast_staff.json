@@ -1,0 +1,30 @@
+{
+  "name": "item.apprenticecodex.mithril_freecast_staff",
+  "category": "apprenticecodex:staves_and_casting_devices",
+  "icon": "apprenticecodex:mithril_freecast_staff",
+  "pages": [
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:mithril_freecast_staff",
+      "text": {
+        "translate": "patchouli.apprenticecodex.apprentices_memo.entry.mithril_freecast_staff.page.p001.text",
+        "with": [
+          {
+            "translate": "block.apprenticecodex.spell_calibration_bench"
+          }
+        ]
+      }
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "apprenticecodex:mithril_freecast_staff",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.mithril_freecast_staff.page.p002.text"
+    },
+    {
+      "type": "patchouli:relations",
+      "entries": [
+        "apprenticecodex:devices/spell_calibration_bench"
+      ]
+    }
+  ]
+}

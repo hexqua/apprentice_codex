@@ -3,17 +3,17 @@ package jp.aquafactory.apprenticecodex.compat.patchouli;
 import com.google.gson.annotations.SerializedName;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.recipe.essencesmoker.EssenceSmokerRecipe;
+import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeManager;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import vazkii.patchouli.api.IComponentRenderContext;
 import vazkii.patchouli.api.ICustomComponent;
@@ -27,22 +27,20 @@ import java.util.function.UnaryOperator;
 @SuppressWarnings("unused")
 public final class EssenceSmokerRecipeComponent implements ICustomComponent {
     private static final int MAX_RECIPES_PER_PAGE = 3;
-    private static final int ROW_HEIGHT = 20;
-    private static final int SLOT_SIZE = 18;
-    private static final int SLOT_INNER_PADDING = 1;
-    private static final int CATALYST_X = 4;
-    private static final int MATERIAL_X = 26;
-    private static final int OUTPUT_X = 78;
-    private static final int ROW_TEXT_Y_OFFSET = 6;
-    private static final int PLUS_X = 21;
-    private static final int ARROW_X = 53;
-    private static final int SLOT_OUTER_COLOR = 0xFF111111;
-    private static final int SLOT_INNER_COLOR = 0xFF8B8B8B;
+    private static final int BODY_WIDTH = 112;
+    private static final int CATALYST_X = 0;
+    private static final int MATERIAL_X = 32;
+    private static final int OUTPUT_X = 88;
+    private static final int SLOT_Y = 4;
+    private static final int ROW_TEXT_Y_OFFSET = 12;
+    private static final int PLUS_X = 25;
+    private static final int MACHINE_X = 64;
     private static final int WARNING_COLOR = 0xFFAA3333;
 
     public String recipe = "";
     public String recipe2 = "";
     public String recipe3 = "";
+    public String title = "";
     @SerializedName("recipe_ids")
     public List<String> configuredRecipeIds = List.of();
 
@@ -50,9 +48,11 @@ public final class EssenceSmokerRecipeComponent implements ICustomComponent {
     private transient List<DisplayRecipe> displayRecipes = List.of();
     private transient int componentX;
     private transient int componentY;
+    private transient Component customTitle = Component.empty();
 
     @Override
     public void onVariablesAvailable(UnaryOperator<IVariable> lookup, HolderLookup.Provider registries) {
+        customTitle = PatchouliRecipeLayout.resolveTitle(title, lookup, registries);
         var parsedIds = new ArrayList<ResourceLocation>(MAX_RECIPES_PER_PAGE);
         collectConfiguredRecipeId(parsedIds, lookup, registries, recipe);
         collectConfiguredRecipeId(parsedIds, lookup, registries, recipe2);
@@ -116,8 +116,14 @@ public final class EssenceSmokerRecipeComponent implements ICustomComponent {
             return;
         }
 
+        var layout = PatchouliRecipeLayout.create(displayRecipes.stream()
+                .map(value -> value.recipe() == null ? ItemStack.EMPTY : value.recipe().getResultTemplate())
+                .toList(), customTitle, PatchouliRecipeLayout.SMOKER_ROW_HEIGHT);
         for (int index = 0; index < displayRecipes.size(); index++) {
-            renderRow(graphics, context, displayRecipes.get(index), mouseX, mouseY, componentY + index * ROW_HEIGHT);
+            var row = layout.rows().get(index);
+            PatchouliRecipeLayout.renderHeader(graphics, context, row.title(), componentX,
+                    componentY + row.titleY(), mouseX, mouseY);
+            renderRow(graphics, context, displayRecipes.get(index), mouseX, mouseY, componentY + row.recipeY());
         }
     }
 
@@ -129,35 +135,37 @@ public final class EssenceSmokerRecipeComponent implements ICustomComponent {
             int mouseY,
             int rowY
     ) {
-        var catalystX = componentX + CATALYST_X;
-        var materialX = componentX + MATERIAL_X;
-        var outputX = componentX + OUTPUT_X;
+        var bodyX = PatchouliRecipeLayout.centeredX(componentX, BODY_WIDTH);
+        var catalystX = bodyX + CATALYST_X;
+        var materialX = bodyX + MATERIAL_X;
+        var outputX = bodyX + OUTPUT_X;
+        var slotY = rowY + SLOT_Y;
 
-        drawSlot(graphics, catalystX, rowY);
-        drawSlot(graphics, materialX, rowY);
-        drawSlot(graphics, outputX, rowY);
+        PatchouliRecipeLayout.drawSlot(graphics, context, catalystX, slotY);
+        PatchouliRecipeLayout.drawSlot(graphics, context, materialX, slotY);
+        PatchouliRecipeLayout.drawSlot(graphics, context, outputX, slotY);
 
         if (displayRecipe.recipe() != null) {
             context.renderIngredient(
                     graphics,
-                    catalystX + SLOT_INNER_PADDING,
-                    rowY + SLOT_INNER_PADDING,
+                    catalystX + PatchouliRecipeLayout.SLOT_PADDING,
+                    slotY + PatchouliRecipeLayout.SLOT_PADDING,
                     mouseX,
                     mouseY,
                     displayRecipe.recipe().getCatalyst()
             );
             context.renderIngredient(
                     graphics,
-                    materialX + SLOT_INNER_PADDING,
-                    rowY + SLOT_INNER_PADDING,
+                    materialX + PatchouliRecipeLayout.SLOT_PADDING,
+                    slotY + PatchouliRecipeLayout.SLOT_PADDING,
                     mouseX,
                     mouseY,
                     displayRecipe.recipe().getMaterial()
             );
             context.renderItemStack(
                     graphics,
-                    outputX + SLOT_INNER_PADDING,
-                    rowY + SLOT_INNER_PADDING,
+                    outputX + PatchouliRecipeLayout.SLOT_PADDING,
+                    slotY + PatchouliRecipeLayout.SLOT_PADDING,
                     mouseX,
                     mouseY,
                     displayRecipe.recipe().getResultTemplate()
@@ -166,13 +174,14 @@ public final class EssenceSmokerRecipeComponent implements ICustomComponent {
             var missingStack = new ItemStack(Items.BARRIER);
             context.renderItemStack(
                     graphics,
-                    outputX + SLOT_INNER_PADDING,
-                    rowY + SLOT_INNER_PADDING,
+                    outputX + PatchouliRecipeLayout.SLOT_PADDING,
+                    slotY + PatchouliRecipeLayout.SLOT_PADDING,
                     mouseX,
                     mouseY,
                     missingStack
             );
-            if (context.isAreaHovered(mouseX, mouseY, outputX, rowY, SLOT_SIZE, SLOT_SIZE)) {
+            if (context.isAreaHovered(mouseX, mouseY, outputX, slotY,
+                    PatchouliRecipeLayout.SLOT_SIZE, PatchouliRecipeLayout.SLOT_SIZE)) {
                 context.setHoverTooltipComponents(List.of(
                         Component.literal("Missing Essence Smoker recipe"),
                         Component.literal(displayRecipe.recipeId().toString())
@@ -183,19 +192,14 @@ public final class EssenceSmokerRecipeComponent implements ICustomComponent {
         graphics.drawString(
                 Minecraft.getInstance().font,
                 Component.literal("+"),
-                componentX + PLUS_X,
+                bodyX + PLUS_X,
                 rowY + ROW_TEXT_Y_OFFSET,
                 context.getTextColor(),
                 false
         );
-        graphics.drawString(
-                Minecraft.getInstance().font,
-                Component.literal("->"),
-                componentX + ARROW_X,
-                rowY + ROW_TEXT_Y_OFFSET,
-                context.getTextColor(),
-                false
-        );
+        context.renderItemStack(graphics, bodyX + MACHINE_X, rowY,
+                mouseX, mouseY, new ItemStack(BlockRegistry.ESSENCE_SMOKER.get()));
+        PatchouliRecipeLayout.drawArrow(graphics, context, bodyX + 68, rowY + 20);
     }
 
     private void refreshRecipes() {
@@ -235,17 +239,6 @@ public final class EssenceSmokerRecipeComponent implements ICustomComponent {
     private static RecipeManager getClientRecipeManager() {
         ClientPacketListener connection = Minecraft.getInstance().getConnection();
         return connection == null ? null : connection.getRecipeManager();
-    }
-
-    private static void drawSlot(@NotNull GuiGraphics graphics, int x, int y) {
-        graphics.fill(x, y, x + SLOT_SIZE, y + SLOT_SIZE, SLOT_OUTER_COLOR);
-        graphics.fill(
-                x + SLOT_INNER_PADDING,
-                y + SLOT_INNER_PADDING,
-                x + SLOT_SIZE - SLOT_INNER_PADDING,
-                y + SLOT_SIZE - SLOT_INNER_PADDING,
-                SLOT_INNER_COLOR
-        );
     }
 
     private static void collectConfiguredRecipeId(

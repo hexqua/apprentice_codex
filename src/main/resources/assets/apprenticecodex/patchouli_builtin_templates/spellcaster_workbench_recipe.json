@@ -9,22 +9,47 @@
       "recipe": "#recipe",
       "recipe2": "#recipe2",
       "example": "#example",
-      "example2": "#example2"
+      "example2": "#example2",
+      "title": "#title"
     },
     {
       "type": "patchouli:text",
-      "group": "single_recipe_text",
+      "group": "recipe_text_57",
       "text": "#text",
       "x": 0,
-      "y": 55,
+      "y": 57,
       "max_width": 116
     },
     {
       "type": "patchouli:text",
-      "group": "double_recipe_text",
+      "group": "recipe_text_69",
       "text": "#text",
       "x": 0,
-      "y": 105,
+      "y": 69,
+      "max_width": 116
+    },
+    {
+      "type": "patchouli:text",
+      "group": "recipe_text_109",
+      "text": "#text",
+      "x": 0,
+      "y": 109,
+      "max_width": 116
+    },
+    {
+      "type": "patchouli:text",
+      "group": "recipe_text_121",
+      "text": "#text",
+      "x": 0,
+      "y": 121,
+      "max_width": 116
+    },
+    {
+      "type": "patchouli:text",
+      "group": "recipe_text_133",
+      "text": "#text",
+      "x": 0,
+      "y": 133,
       "max_width": 116
     }
   ]

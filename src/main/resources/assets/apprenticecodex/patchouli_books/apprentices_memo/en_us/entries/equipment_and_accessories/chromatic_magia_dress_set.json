@@ -1,0 +1,35 @@
+{
+  "name": "patchouli.apprenticecodex.apprentices_memo.entry.chromatic_magia_dress_set.name",
+  "category": "apprenticecodex:equipment_and_accessories",
+  "icon": "apprenticecodex:chromatic_magia_dress_hat",
+  "pages": [
+    {
+      "type": "patchouli:spotlight",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.chromatic_magia_dress_set.page.p001.title",
+      "item": "apprenticecodex:chromatic_magia_dress_hat",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.chromatic_magia_dress_set.page.p001.text"
+    },
+    {
+      "type": "patchouli:entity",
+      "entity": "minecraft:armor_stand{ArmorItems:[{id:\"apprenticecodex:chromatic_magia_dress_boots\",Count:1b},{id:\"apprenticecodex:chromatic_magia_dress_leggings\",Count:1b},{id:\"apprenticecodex:chromatic_magia_dress_coat\",Count:1b},{id:\"apprenticecodex:chromatic_magia_dress_hat\",Count:1b}],NoBasePlate:1b,ShowArms:1b}",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.chromatic_magia_dress_set.page.p002.text"
+    },
+    {
+      "type": "patchouli:smithing",
+      "recipe": "apprenticecodex:chromatic_magia_dress_hat",
+      "recipe2": "apprenticecodex:chromatic_magia_dress_coat"
+    },
+    {
+      "type": "patchouli:smithing",
+      "recipe": "apprenticecodex:chromatic_magia_dress_leggings",
+      "recipe2": "apprenticecodex:chromatic_magia_dress_boots"
+    },
+    {
+      "type": "patchouli:relations",
+      "entries": [
+        "apprenticecodex:equipment_and_accessories/end_game_armors",
+        "apprenticecodex:devices/spell_calibration_bench"
+      ]
+    }
+  ]
+}

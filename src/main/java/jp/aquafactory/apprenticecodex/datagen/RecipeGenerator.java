@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
+import jp.aquafactory.apprenticecodex.compat.patchouli.PatchouliBookSupport;
 import jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe;
 import jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
@@ -30,6 +31,7 @@ import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
+import net.neoforged.neoforge.common.conditions.ModLoadedCondition;
 import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.CompletableFuture;
 
@@ -49,6 +51,21 @@ public final class RecipeGenerator extends RecipeProvider {
 
     @Override
     protected void buildRecipes(@NotNull RecipeOutput recipeOutput) {
+        var book = PatchouliBookSupport.createBookStack();
+        if (!book.isEmpty()) {
+            ShapedRecipeBuilder.shaped(RecipeCategory.MISC, book)
+                    .pattern(" E ")
+                    .pattern("CBC")
+                    .pattern(" D ")
+                    .define('B', Items.BOOK)
+                    .define('C', Items.COPPER_INGOT)
+                    .define('D', Items.BLUE_DYE)
+                    .define('E', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get())
+                    .unlockedBy(getHasName(Items.BOOK), has(Items.BOOK))
+                    // 生成時にはPatchouliが存在しても、配布先では未導入の場合がある。
+                    .save(recipeOutput.withConditions(new ModLoadedCondition("patchouli")), PatchouliBookSupport.BOOK_ID);
+        }
+
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
                 .pattern("CCC")
                 .pattern("CMC")

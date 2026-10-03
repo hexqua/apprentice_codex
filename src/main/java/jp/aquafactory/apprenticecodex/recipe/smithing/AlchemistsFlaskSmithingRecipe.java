@@ -17,14 +17,15 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.SmithingRecipe;
 import net.minecraft.world.item.crafting.SmithingRecipeInput;
+import net.minecraft.world.item.crafting.SmithingTransformRecipe;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
-public final class AlchemistsFlaskSmithingRecipe implements SmithingRecipe {
+// Patchouliの鍛冶台ページはSmithingTransformRecipeから材料を取得するため、この型を継承する。
+public final class AlchemistsFlaskSmithingRecipe extends SmithingTransformRecipe {
     private static final HolderLookup.Provider SERIALIZATION_LOOKUP =
             RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     private static final String STORAGE_TAG = "SpellcastersFlask";
@@ -42,6 +43,7 @@ public final class AlchemistsFlaskSmithingRecipe implements SmithingRecipe {
             Ingredient addition,
             ItemStack result
     ) {
+        super(template, base, addition, sanitizeResult(result));
         this.template = template;
         this.base = base;
         this.addition = addition;
@@ -57,7 +59,7 @@ public final class AlchemistsFlaskSmithingRecipe implements SmithingRecipe {
     }
 
     @Override
-    public @NotNull ItemStack assemble(SmithingRecipeInput input, HolderLookup.Provider registries) {
+    public @NotNull ItemStack assemble(SmithingRecipeInput input, HolderLookup.@NotNull Provider registries) {
         var baseStack = input.base();
         var convertedStoredItem = convertStoredItem(baseStack);
         if (convertedStoredItem == null) {
@@ -75,7 +77,7 @@ public final class AlchemistsFlaskSmithingRecipe implements SmithingRecipe {
     }
 
     @Override
-    public @NotNull ItemStack getResultItem(HolderLookup.Provider registries) {
+    public @NotNull ItemStack getResultItem(HolderLookup.@NotNull Provider registries) {
         return result.copy();
     }
 
@@ -90,17 +92,17 @@ public final class AlchemistsFlaskSmithingRecipe implements SmithingRecipe {
     }
 
     @Override
-    public boolean isTemplateIngredient(ItemStack stack) {
+    public boolean isTemplateIngredient(@NotNull ItemStack stack) {
         return template.test(stack);
     }
 
     @Override
-    public boolean isBaseIngredient(ItemStack stack) {
+    public boolean isBaseIngredient(@NotNull ItemStack stack) {
         return base.test(stack);
     }
 
     @Override
-    public boolean isAdditionIngredient(ItemStack stack) {
+    public boolean isAdditionIngredient(@NotNull ItemStack stack) {
         return addition.test(stack);
     }
 
