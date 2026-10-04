@@ -113,13 +113,14 @@ public final class MagiAgentSuitEffects {
         ));
     }
 
-    public static int applyBootsCommenceFireRecastCastTime(AbstractSpell spell, int effectiveCastTime, LivingEntity entity) {
-        if (!isTargetSpell(spell) || !isWearingSuitPiece(entity, ArmorItem.Type.BOOTS)) {
-            return effectiveCastTime;
+    public static int applyBootsRecastCastTime(AbstractSpell spell, int normalTicks, int bootsTicks,
+                                              @Nullable LivingEntity entity) {
+        if (entity == null || !isTargetSpell(spell) || !isWearingSuitPiece(entity, ArmorItem.Type.BOOTS)) {
+            return normalTicks;
         }
 
-        // 0tickにするとレティクル表示が消えるため、最小でも1tickの詠唱時間にする.
-        return 1;
+        // 0tickにすると各種誤作動を起こす可能性があるため、防衛ラインとして1tickを死守.
+        return Math.max(1, bootsTicks);
     }
 
     public static boolean shouldCancelCastingMovePenalty(

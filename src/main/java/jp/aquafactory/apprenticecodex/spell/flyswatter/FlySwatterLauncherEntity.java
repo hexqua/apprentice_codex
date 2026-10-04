@@ -2,15 +2,13 @@ package jp.aquafactory.apprenticecodex.spell.flyswatter;
 
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
-import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.spell.lockonray.LockOnRayCastData;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.EffectTools;
 import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
@@ -21,7 +19,6 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,15 +28,6 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
     private static final int FIRE_START_DELAY_TICK = 10;
     private static final int FIRE_INTERVAL_TICK = 5;
     private static final float OPEN_AIR_PITCH_DEG = -60f;
-
-    private static final EntityDataAccessor<Integer> CASTING_TICK =
-            SynchedEntityData.defineId(FlySwatterLauncherEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Float> AIM_X =
-            SynchedEntityData.defineId(FlySwatterLauncherEntity.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> AIM_Y =
-            SynchedEntityData.defineId(FlySwatterLauncherEntity.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> AIM_Z =
-            SynchedEntityData.defineId(FlySwatterLauncherEntity.class, EntityDataSerializers.FLOAT);
 
     private float damage;
     private float radius;
@@ -70,10 +58,6 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
 
     @Override
     protected void defineSynchedData() {
-        entityData.define(CASTING_TICK, 0);
-        entityData.define(AIM_X, 0.0f);
-        entityData.define(AIM_Y, 0.0f);
-        entityData.define(AIM_Z, 0.0f);
     }
 
     @Override
@@ -115,24 +99,12 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
             );
         }
 
-        // todo:実行順の変化で見え方が変わるかもなので微調整.
-        if (level.isClientSide) {
-            int castingTick = entityData.get(CASTING_TICK);
-            if (castingTick > 0) {
-                var targetPosition = new Vec3(entityData.get(AIM_X), entityData.get(AIM_Y), entityData.get(AIM_Z));
-                var targetVec = targetPosition.subtract(position());
-                var reticleDistance = Math.min(4, targetVec.length() - 1);
-                var reticlePosition = position().add(targetVec.normalize().scale(reticleDistance));
-                EffectTools.createRingParticle(reticlePosition, targetVec, 0.25, 16, 0, 0, ParticleRegistry.RETICLE_DOT.get(), level);
-            }
-        }
-
         super.tick();
     }
 
     @Override
     public void tickOnServer(ServerLevel level) {
-        if (!(getOwner() instanceof LivingEntity owner)) {
+        if (!(getOwner() instanceof LivingEntity owner) || !owner.isAlive() || owner.isRemoved() || owner.level() != level) {
             discard();
             return;
         }
@@ -143,8 +115,11 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
                 fireIntervalTick = FIRE_INTERVAL_TICK;
                 if (!lockOnEntityList.isEmpty()) {
                     var target = lockOnEntityList.get(0);
-                    fire(level, target);
                     lockOnEntityList.remove(0);
+                    // 捕捉済みの枠は払い戻さず、無効な対象への射出だけを省く。
+                    if (LockOnRayCastData.isLoadedTarget(level, target) && CombatTools.isValidCombatTarget(target, owner)) {
+                        fire(level, target);
+                    }
                 } else {
                     isFiring = false;
                 }
@@ -192,17 +167,6 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.VANILLA_PROJECTILE_SHOOT.get(), SoundSource.PLAYERS, 1.0f, 1.2f);
     }
 
-    public void setCastingReticleEffect(int tick, @Nullable Vec3 target) {
-        if (entityData.get(CASTING_TICK) != tick) {
-            entityData.set(CASTING_TICK, tick);
-            if (target != null) {
-                entityData.set(AIM_X, (float) target.x);
-                entityData.set(AIM_Y, (float) target.y);
-                entityData.set(AIM_Z, (float) target.z);
-            }
-        }
-    }
-
     public void setDamage(float damage){
         this.damage = damage;
     }
@@ -211,17 +175,26 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
         this.radius = radius;
     }
 
-    public void setLockOnEntityList(List<Integer> entityIdList, Level level) {
-        lockOnEntityList.clear();
-        for (var entityId : entityIdList) {
-            var entity = level.getEntity(entityId);
-            if (entity != null && entity.isAlive()){
-                lockOnEntityList.add(entity);
-            }
-        }
+    public void addLockOnTarget(Entity target) {
+        lockOnEntityList.add(CombatTools.resolutePartEntity(target));
+    }
+
+    public boolean isReleased() {
+        return isReleased;
+    }
+
+    public int getLockOnCount() {
+        return lockOnEntityList.size();
     }
 
     public void startFiring(Level level, LivingEntity owner) {
+        if (isReleased || isFiring) return;
+        lockOnEntityList.removeIf(target -> !(level instanceof ServerLevel server)
+                || !LockOnRayCastData.isLoadedTarget(server, target) || !CombatTools.isValidCombatTarget(target, owner));
+        if (lockOnEntityList.isEmpty()) {
+            discard();
+            return;
+        }
         // ガラスの下ならちゃんと屋内判定にしないと自爆するため.
         var start = owner.getEyePosition();
         var end = start.add(0, level.getMaxBuildHeight() - start.y, 0);
