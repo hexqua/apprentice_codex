@@ -1,0 +1,28 @@
+{
+  "name": "item.apprenticecodex.spellstained_runic_tablet",
+  "category": "apprenticecodex:equipment_and_accessories",
+  "icon": "apprenticecodex:spellstained_runic_tablet",
+  "pages": [
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:spellstained_runic_tablet",
+      "text": {
+        "translate": "patchouli.apprenticecodex.apprentices_memo.entry.spellstained_runic_tablet.page.p001.text",
+        "with": [
+          {
+            "translate": "block.irons_spellbooks.inscription_table"
+          }
+        ]
+      }
+    },
+    {
+      "type": "patchouli:smithing",
+      "recipe": "apprenticecodex:spellstained_runic_tablet",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.spellstained_runic_tablet.page.p002.text"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.spellstained_runic_tablet.page.p003.text"
+    }
+  ]
+}

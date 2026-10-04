@@ -1,0 +1,68 @@
+{
+  "name": "item.apprenticecodex.fullauto_rapidcast_spellrifle",
+  "category": "apprenticecodex:staves_and_casting_devices",
+  "icon": "apprenticecodex:fullauto_rapidcast_spellrifle",
+  "pages": [
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:fullauto_rapidcast_spellrifle",
+      "text": {
+        "translate": "patchouli.apprenticecodex.apprentices_memo.entry.fullauto_rapidcast_spellrifle.page.p001.text",
+        "with": [
+          {
+            "translate": "item.apprenticecodex.multipurpose_staffrifle"
+          },
+          {
+            "translate": "item.apprenticecodex.fullauto_spell_casting_round"
+          }
+        ]
+      }
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "apprenticecodex:fullauto_rapidcast_spellrifle",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.fullauto_rapidcast_spellrifle.page.p002.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": "tag:apprenticecodex:scrollcaster_gauntlet_slot_upgrades",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.fullauto_rapidcast_spellrifle.page.p003.title",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.fullauto_rapidcast_spellrifle.page.p003.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": "irons_spellbooks:silver_ring",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.fullauto_rapidcast_spellrifle.page.p004.title",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.fullauto_rapidcast_spellrifle.page.p004.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": "irons_spellbooks:cooldown_rune",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.fullauto_rapidcast_spellrifle.page.p005.title",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.fullauto_rapidcast_spellrifle.page.p005.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:multicast_echo_staff",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.fullauto_rapidcast_spellrifle.page.p006.title",
+      "text": {
+        "translate": "patchouli.apprenticecodex.apprentices_memo.entry.fullauto_rapidcast_spellrifle.page.p006.text",
+        "with": [
+          {
+            "translate": "item.apprenticecodex.multicast_echo_staff"
+          }
+        ]
+      }
+    },
+    {
+      "type": "patchouli:relations",
+      "entries": [
+        "apprenticecodex:staves_and_casting_devices/spellgun_ammo",
+        "apprenticecodex:staves_and_casting_devices/spellgun_system",
+        "apprenticecodex:staves_and_casting_devices/multicast_echo_staff",
+        "apprenticecodex:devices/spellcaster_workbench",
+        "apprenticecodex:devices/spell_calibration_bench"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "name": "item.apprenticecodex.multipurpose_staffrifle",
+  "category": "apprenticecodex:staves_and_casting_devices",
+  "icon": "apprenticecodex:multipurpose_staffrifle",
+  "pages": [
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:multipurpose_staffrifle",
+      "text": {
+        "translate": "patchouli.apprenticecodex.apprentices_memo.entry.multipurpose_staffrifle.page.p001.text",
+        "with": [
+          {
+            "translate": "block.apprenticecodex.spell_calibration_bench"
+          }
+        ]
+      }
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "apprenticecodex:multipurpose_staffrifle",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.multipurpose_staffrifle.page.p002.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": "tag:apprenticecodex:scrollcaster_gauntlet_slot_upgrades",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.multipurpose_staffrifle.page.p003.title",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.multipurpose_staffrifle.page.p003.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": "irons_spellbooks:silver_ring",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.multipurpose_staffrifle.page.p004.title",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.multipurpose_staffrifle.page.p004.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": "irons_spellbooks:cooldown_rune",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.multipurpose_staffrifle.page.p005.title",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.multipurpose_staffrifle.page.p005.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:wisdom_shard",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.multipurpose_staffrifle.page.p006.title",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.multipurpose_staffrifle.page.p006.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": "minecraft:spyglass",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.multipurpose_staffrifle.page.p007.title",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.multipurpose_staffrifle.page.p007.text"
+    },
+    {
+      "type": "patchouli:relations",
+      "entries": [
+        "apprenticecodex:staves_and_casting_devices/spellgun_ammo",
+        "apprenticecodex:staves_and_casting_devices/spellgun_system",
+        "apprenticecodex:devices/spellcaster_workbench",
+        "apprenticecodex:devices/spell_calibration_bench"
+      ]
+    }
+  ]
+}

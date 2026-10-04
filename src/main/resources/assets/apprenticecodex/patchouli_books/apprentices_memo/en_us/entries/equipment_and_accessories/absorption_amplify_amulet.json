@@ -1,0 +1,27 @@
+{
+  "name": "item.apprenticecodex.absorption_amplify_amulet",
+  "category": "apprenticecodex:equipment_and_accessories",
+  "icon": "apprenticecodex:absorption_amplify_amulet",
+  "pages": [
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:absorption_amplify_amulet",
+      "text": {
+        "translate": "patchouli.apprenticecodex.apprentices_memo.entry.absorption_amplify_amulet.page.p001.text",
+        "with": [
+          {
+            "translate": "item.minecraft.golden_apple"
+          },
+          {
+            "translate": "effect.irons_spellbooks.fortify"
+          }
+        ]
+      }
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "apprenticecodex:absorption_amplify_amulet",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.absorption_amplify_amulet.page.p002.text"
+    }
+  ]
+}

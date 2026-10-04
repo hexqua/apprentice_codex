@@ -1,0 +1,29 @@
+{
+  "name": "enchantment.apprenticecodex.release",
+  "category": "apprenticecodex:enchantments",
+  "icon": "apprenticecodex:smashcast_scepter",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "enchantment.apprenticecodex.release",
+      "text": {
+        "translate": "patchouli.apprenticecodex.apprentices_memo.entry.release.page.p001.text",
+        "with": [
+          {
+            "translate": "item.apprenticecodex.smashcast_scepter"
+          },
+          {
+            "translate": "enchantment.apprenticecodex.compress"
+          }
+        ]
+      }
+    },
+    {
+      "type": "patchouli:relations",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.release.page.p999.title",
+      "entries": [
+        "apprenticecodex:staves_and_casting_devices/smashcast_scepter"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "name": "item.apprenticecodex.charged_twin_blade_staff",
+  "category": "apprenticecodex:staves_and_casting_devices",
+  "icon": "apprenticecodex:charged_twin_blade_staff",
+  "pages": [
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:charged_twin_blade_staff",
+      "text": {
+        "translate": "patchouli.apprenticecodex.apprentices_memo.entry.charged_twin_blade_staff.page.p001.text",
+        "with": [
+          {
+            "translate": "item.minecraft.trident"
+          },
+          {
+            "translate": "enchantment.minecraft.loyalty"
+          }
+        ]
+      }
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "apprenticecodex:charged_twin_blade_staff",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.charged_twin_blade_staff.page.p002.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "title": "enchantment.minecraft.riptide",
+      "text": {
+        "translate": "patchouli.apprenticecodex.apprentices_memo.entry.charged_twin_blade_staff.page.p003.text",
+        "with": [
+          {
+            "translate": "enchantment.minecraft.riptide"
+          },
+          {
+            "translate": "enchantment.minecraft.riptide"
+          },
+          {
+            "translate": "enchantment.minecraft.riptide"
+          },
+          {
+            "translate": "enchantment.minecraft.loyalty"
+          },
+          {
+            "translate": "enchantment.minecraft.channeling"
+          }
+        ]
+      },
+      "item": "apprenticecodex:charged_twin_blade_staff{Enchantments:[{id:\"minecraft:riptide\",lvl:3s}]}"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "title": "enchantment.minecraft.channeling",
+      "text": {
+        "translate": "patchouli.apprenticecodex.apprentices_memo.entry.charged_twin_blade_staff.page.p004.text",
+        "with": [
+          {
+            "translate": "enchantment.minecraft.channeling"
+          },
+          {
+            "translate": "enchantment.minecraft.channeling"
+          },
+          {
+            "translate": "enchantment.minecraft.riptide"
+          }
+        ]
+      },
+      "item": "apprenticecodex:charged_twin_blade_staff{Enchantments:[{id:\"minecraft:channeling\",lvl:1s}]}"
+    }
+  ]
+}
