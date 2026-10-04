@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.compat.patchouli;
 import com.google.gson.annotations.SerializedName;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.recipe.essencesmoker.EssenceSmokerRecipe;
+import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -26,7 +27,6 @@ import java.util.function.UnaryOperator;
 @SuppressWarnings("unused")
 public final class EssenceSmokerRecipeComponent implements ICustomComponent {
     private static final int MAX_RECIPES_PER_PAGE = 3;
-    private static final int ROW_HEIGHT = 20;
     private static final int SLOT_SIZE = 18;
     private static final int SLOT_INNER_PADDING = 1;
     private static final int CATALYST_X = 4;
@@ -34,7 +34,7 @@ public final class EssenceSmokerRecipeComponent implements ICustomComponent {
     private static final int OUTPUT_X = 78;
     private static final int ROW_TEXT_Y_OFFSET = 6;
     private static final int PLUS_X = 21;
-    private static final int ARROW_X = 53;
+    private static final int MACHINE_X = 54;
     private static final int SLOT_OUTER_COLOR = 0xFF111111;
     private static final int SLOT_INNER_COLOR = 0xFF8B8B8B;
     private static final int WARNING_COLOR = 0xFFAA3333;
@@ -42,6 +42,7 @@ public final class EssenceSmokerRecipeComponent implements ICustomComponent {
     public String recipe = "";
     public String recipe2 = "";
     public String recipe3 = "";
+    public String title = "";
     @SerializedName("recipe_ids")
     public List<String> configuredRecipeIds = List.of();
 
@@ -49,9 +50,11 @@ public final class EssenceSmokerRecipeComponent implements ICustomComponent {
     private transient List<DisplayRecipe> displayRecipes = List.of();
     private transient int componentX;
     private transient int componentY;
+    private transient Component customTitle = Component.empty();
 
     @Override
     public void onVariablesAvailable(UnaryOperator<IVariable> lookup) {
+        customTitle = PatchouliRecipeLayout.resolveTitle(title, lookup);
         var parsedIds = new ArrayList<ResourceLocation>(MAX_RECIPES_PER_PAGE);
         collectConfiguredRecipeId(parsedIds, lookup, recipe);
         collectConfiguredRecipeId(parsedIds, lookup, recipe2);
@@ -115,8 +118,14 @@ public final class EssenceSmokerRecipeComponent implements ICustomComponent {
             return;
         }
 
+        var layout = PatchouliRecipeLayout.create(displayRecipes.stream()
+                .map(value -> value.recipe() == null ? ItemStack.EMPTY : value.recipe().getResultTemplate())
+                .toList(), customTitle, PatchouliRecipeLayout.SMOKER_ROW_HEIGHT);
         for (int index = 0; index < displayRecipes.size(); index++) {
-            renderRow(graphics, context, displayRecipes.get(index), mouseX, mouseY, componentY + index * ROW_HEIGHT);
+            var row = layout.rows().get(index);
+            PatchouliRecipeLayout.renderHeader(graphics, context, row.title(), componentX,
+                    componentY + row.titleY(), mouseX, mouseY);
+            renderRow(graphics, context, displayRecipes.get(index), mouseX, mouseY, componentY + row.recipeY());
         }
     }
 
@@ -187,14 +196,12 @@ public final class EssenceSmokerRecipeComponent implements ICustomComponent {
                 context.getTextColor(),
                 false
         );
-        graphics.drawString(
-                Minecraft.getInstance().font,
-                Component.literal("->"),
-                componentX + ARROW_X,
-                rowY + ROW_TEXT_Y_OFFSET,
-                context.getTextColor(),
-                false
-        );
+        context.renderItemStack(graphics, componentX + MACHINE_X, rowY + SLOT_INNER_PADDING,
+                mouseX, mouseY, new ItemStack(BlockRegistry.ESSENCE_SMOKER.get()));
+        for (var arrowX : new int[]{46, 72}) {
+            graphics.drawString(Minecraft.getInstance().font, Component.literal(">"),
+                    componentX + arrowX, rowY + ROW_TEXT_Y_OFFSET, context.getTextColor(), false);
+        }
     }
 
     private void refreshRecipes() {
