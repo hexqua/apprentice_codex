@@ -13,8 +13,9 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 @Mixin(Player.class)
 public abstract class MalumPlayerScytheAttackMixin {
     // Malum 1.6.7 の PlayerMixin は instanceof 判定なので、独自大鎌にも同じ近接 damage type を渡す。
+    // 他 MOD の Redirect で対象 Entity が引数に加わる場合も、DamageSource の型で変更対象を選ぶ。
     @ModifyArg(method = "attack", at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/world/entity/Entity;hurt(Lnet/minecraft/world/damagesource/DamageSource;F)Z"), index = 0)
+            target = "Lnet/minecraft/world/entity/Entity;hurt(Lnet/minecraft/world/damagesource/DamageSource;F)Z"))
     private DamageSource apprenticecodex$useMalumScytheDamage(DamageSource original) {
         var player = (Player) (Object) this;
         if (!player.getMainHandItem().is(ItemRegistry.SPELL_REAPER_SCYTHE.get())) return original;
