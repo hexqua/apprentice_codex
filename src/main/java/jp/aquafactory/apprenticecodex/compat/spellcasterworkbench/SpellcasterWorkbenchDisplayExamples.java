@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
@@ -76,6 +77,8 @@ public final class SpellcasterWorkbenchDisplayExamples {
     }
 
     private static SpellcasterWorkbenchRecipe createArchivistsGrimoireUpgrade() {
+        // 入力と完成品の違いがツールチップで分かるよう、実処理と同じ1回分の強化結果を見本にする。
+        var result = ArchivistsGrimoire.createUpgradeResult(new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get()));
         return new SpellcasterWorkbenchRecipe(
                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "archivists_grimoire_row_upgrade"),
                 List.of(
@@ -83,7 +86,7 @@ public final class SpellcasterWorkbenchDisplayExamples {
                         new SpellcasterWorkbenchRecipe.SizedIngredient(Ingredient.of(TagRegistry.Items.ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_CATALYSTS), 1),
                         new SpellcasterWorkbenchRecipe.SizedIngredient(Ingredient.of(TagRegistry.Items.ARCHIVISTS_GRIMOIRE_ROW_UPGRADE_MATERIALS), 1)
                 ),
-                List.of(new ItemStack(ItemRegistry.ARCHIVISTS_GRIMOIRE.get())),
+                List.of(result),
                 -10
         );
     }
