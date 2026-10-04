@@ -91,8 +91,8 @@ public final class SilentAssassinGameTests {
     private static FakePlayer createCaster(GameTestHelper helper) {
         var caster = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "silent_assassin_test"));
         caster.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
-        // 成功表示ブロックやtemplateの壁が射線を遮らない高さで検証する。
-        caster.setPos(helper.absoluteVec(new Vec3(1, 30, 1)));
+        // 1.20.1の地下原点・template・成功表示ブロックが射線を遮らない上空で検証する。
+        caster.setPos(helper.absoluteVec(new Vec3(1, 260, 1)));
         Objects.requireNonNull(caster.getAttribute(AttributeRegistry.SPELL_POWER.get())).setBaseValue(1);
         Objects.requireNonNull(caster.getAttribute(AttributeRegistry.EVOCATION_SPELL_POWER.get())).setBaseValue(1);
         helper.getLevel().addFreshEntity(caster);

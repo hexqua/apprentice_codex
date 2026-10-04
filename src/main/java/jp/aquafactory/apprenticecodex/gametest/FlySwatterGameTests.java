@@ -218,7 +218,8 @@ public final class FlySwatterGameTests {
 
         Scene(GameTestHelper helper) {
             this.helper = helper;
-            origin = helper.absoluteVec(new Vec3(2, 30, 2));
+            // 1.20.1のGameTest原点は地下のため、射線と爆風が地形に遮られない上空へ置く。
+            origin = helper.absoluteVec(new Vec3(2, 260, 2));
             owner = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "fly_swatter_test"));
             owner.setPos(origin); owner.setYRot(-90); owner.setXRot(0); owner.setNoGravity(true);
             helper.getLevel().addFreshEntity(owner); entities.add(owner);

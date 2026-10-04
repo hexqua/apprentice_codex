@@ -178,7 +178,8 @@ public final class NonLivingSpellTargetGameTests {
         private Scene(GameTestHelper helper) {
             this.helper = helper;
             // 同期的に完了・後片付けし、クリスタルの爆発が構造や隣のテストへ届かない高度に置く。
-            origin = helper.absoluteVec(new Vec3(2.5, 80, 2.5));
+            // 1.20.1のGameTest原点は地下のため、射線と爆風が地形に遮られない上空へ置く。
+            origin = helper.absoluteVec(new Vec3(2.5, 260, 2.5));
             owner = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "crystal_spell_test"));
             owner.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
             owner.setPos(origin.add(-16, 0, 0));

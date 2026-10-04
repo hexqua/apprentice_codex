@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastMode;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfile;
@@ -247,7 +248,8 @@ public final class SummonWeaponRecastGameTests {
 
         Scene(GameTestHelper helper, AbstractSummonWeaponRecastSpell<?> spell) {
             this.helper = helper; this.spell = spell;
-            var origin = helper.absoluteVec(new Vec3(2, 30, 2));
+            // 1.20.1のGameTest原点は地下のため、射線と爆風が地形に遮られない上空へ置く。
+            var origin = helper.absoluteVec(new Vec3(2, 260, 2));
             owner = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "summon_recast_test"));
             owner.setPos(origin); owner.setYRot(-90); owner.setXRot(0); owner.setNoGravity(true);
             // CommenceFireはgetViewVectorで頭の向きを参照する。FakePlayerには通常の更新tickがない。
@@ -262,6 +264,11 @@ public final class SummonWeaponRecastGameTests {
             target.getAttribute(Attributes.MAX_HEALTH).setBaseValue(200); target.setHealth(200);
             target.getAttribute(Attributes.ARMOR).setBaseValue(0);
             helper.getLevel().addFreshEntity(target);
+            var aim = RaycastTools.raycastFromEye(owner, 64, 0.5,
+                    entity -> entity == target);
+            helper.assertTrue(aim.hitEntity() == target,
+                    "Scene must expose its target: eye=" + owner.getEyePosition(1) + ", look=" + owner.getViewVector(1)
+                            + ", target=" + target.getBoundingBox() + ", hit=" + aim);
         }
 
         void assertRejectedRecastPreservesState() {

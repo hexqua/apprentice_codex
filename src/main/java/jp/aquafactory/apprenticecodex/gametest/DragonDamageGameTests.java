@@ -395,7 +395,7 @@ public final class DragonDamageGameTests {
         private Scene(GameTestHelper helper) {
             this.helper = helper;
             // 同時実行される隣のテストの大型部位をレイや接触判定に拾わないよう、高度を分離する。
-            origin = helper.absoluteVec(new Vec3(2.5, 100 + 16 * sceneSequence++, 2.5));
+            origin = helper.absoluteVec(new Vec3(2.5, 260 + 16 * sceneSequence++, 2.5));
             owner = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "part_hit_test"));
             owner.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
             owner.setPos(origin);
