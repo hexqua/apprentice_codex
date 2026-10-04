@@ -3,36 +3,32 @@ package jp.aquafactory.apprenticecodex.spell.flyswatter;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.FlySwatterTrailPacket;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.spell.lockonray.LockOnRayCastData;
+import jp.aquafactory.apprenticecodex.spell.lockonray.LockOnRayCurve;
 import jp.aquafactory.apprenticecodex.utility.CombatOwnerResolver;
 import jp.aquafactory.apprenticecodex.utility.CombatOwnerUuidHolder;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
-import jp.aquafactory.apprenticecodex.utility.EffectTools;
-import jp.aquafactory.apprenticecodex.utility.RotationTools;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.*;
 import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,24 +36,16 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 public class FlySwatterProjectileEntity extends Projectile implements AntiMagicSusceptible, CombatOwnerUuidHolder {
-    private static final EntityDataAccessor<Integer> STANDBY_TICK =
-            SynchedEntityData.defineId(FlySwatterProjectileEntity.class, EntityDataSerializers.INT);
-
     private static final int LIFE_TICKS = 20 * 10;
-    private static final RandomSource RNG = RandomSource.create();
-    private static final double SPEED_BASE = 1.5;
-    private static final double SPEED_MAX = 2.5;
-    private static final double SPEED_UP_PER_TICK = 0.01;
-    private static final double ROTATION_DEG = 4;
     private static final double EXPLOSION_KNOCKBACK = 0.5;
     private static final double EXPLOSION_KNOCKBACK_UP = 0.2;
-    private static final int OPEN_AIR_MODE_TICK = 20;
 
     private float damage;
     private float radius;
-    private double speed;
-    private int standbyTick;
     private Entity target;
+    private int arrivalTicks;
+    private Vec3 velocity = Vec3.ZERO;
+    private Vec3 arrivalVelocity = Vec3.ZERO;
     @Nullable
     private UUID combatOwnerUuid;
 
@@ -75,80 +63,111 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
         setNoGravity(true);
     }
 
-    public void setProjectileVelocity(Vec3 rotation) {
-        speed = SPEED_BASE;
-        setDeltaMovement(rotation.scale(speed));
+    public void launch(Vec3 launcherPosition, Vec3 muzzle, Vec3 direction, Entity target, int shot) {
+        setPos(launcherPosition);
+        var lead = muzzle.subtract(launcherPosition);
+        var obstruction = FlySwatterTrajectory.firstObstruction(level(), this,
+                new LockOnRayCurve(launcherPosition, muzzle, lead, lead));
+        if (obstruction != null) {
+            setPos(obstruction.position());
+            var hit = obstruction.hit();
+            if (obstruction.unloaded() || hit == null) discard();
+            else if (!ForgeEventFactory.onProjectileImpact(this, hit)) onHit(hit);
+            if (isRemoved()) return;
+        }
+        setPos(muzzle);
+        this.target = target;
+        var plan = FlySwatterTrajectory.select(level(), this, muzzle, direction, target.getBoundingBox().getCenter(), shot);
+        arrivalTicks = plan.arrivalTicks();
+        velocity = plan.curve().startTangent().scale(1.0 / arrivalTicks);
+        arrivalVelocity = plan.curve().endTangent().scale(1.0 / arrivalTicks);
+        setDeltaMovement(velocity);
         ProjectileUtil.rotateTowardsMovement(this, 1);
-    }
-
-    public void setOpenAirMode() {
-        setDeltaMovement(getDeltaMovement().scale(0.5));
-        standbyTick = OPEN_AIR_MODE_TICK;
     }
 
     @Override
     protected void defineSynchedData() {
-        entityData.define(STANDBY_TICK, 0);
     }
 
     @Override
     public void tick() {
-        var level = level();
-        super.tick();
-
-        if (!level.isClientSide) {
-            if (tickCount > LIFE_TICKS) {
-                discard();
-            }
-
-            var hitresult = ProjectileUtil.getHitResultOnMoveVector(this, this::canHitEntity);
-            if (hitresult.getType() != HitResult.Type.MISS && !ForgeEventFactory.onProjectileImpact(this, hitresult)) {
-                onHit(hitresult);
-            }
-
-            if(standbyTick > 0) {
-                --standbyTick;
-                entityData.set(STANDBY_TICK, standbyTick);
-
-                if(standbyTick == 0) {
-                    var targetPos = target.getBoundingBox().getCenter();
-                    var targetVec = targetPos.subtract(position()).normalize();
-                    setDeltaMovement(targetVec.scale(speed));
-                } else if(target == null || target.isRemoved() || !target.isAlive()){
-                    setDeltaMovement(getDeltaMovement().normalize().scale(speed));
-                    standbyTick = 0;
-                    entityData.set(STANDBY_TICK, standbyTick);
-                } else {
-                    var speed = Mth.lerp(standbyTick / (float)OPEN_AIR_MODE_TICK, 0.0f, 1.0f);
-                    var angle = getDeltaMovement().normalize();
-                    setDeltaMovement(angle.scale(speed));
-                }
-            } else {
-                speed = Mth.clamp(speed + SPEED_UP_PER_TICK, SPEED_BASE, SPEED_MAX);
-                if (target != null && !target.isRemoved() && target.isAlive()) {
-                    var targetPos = target.getBoundingBox().getCenter();
-                    var targetVec = targetPos.subtract(position()).normalize();
-                    var newAngle = RotationTools.steerTowards(getDeltaMovement(), targetVec, ROTATION_DEG);
-                    setDeltaMovement(newAngle.scale(speed));
-                }
-            }
-
-            move(MoverType.SELF, getDeltaMovement());
-            ProjectileUtil.rotateTowardsMovement(this, 1);
+        if (isRemoved()) return;
+        // Projectile / Entityの基底tickも現在位置のブロック・流体を読むため、先に拒否する。
+        if (!level().isClientSide && !level().getChunkSource().hasChunk(blockPosition().getX() >> 4, blockPosition().getZ() >> 4)) {
+            discard();
+            return;
         }
-
-        // 軌跡はクライアントでのみ.
-        if (level.isClientSide && entityData.get(STANDBY_TICK) == 0 && tickCount > 2) {
-            var camPos = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
-            if (camPos.distanceToSqr(position()) < 32.0 * 32.0) {
-                var count = 8;
-                for (var i = 0; i < count; i++) {
-                    var pos = position().subtract(getDeltaMovement().scale(RNG.nextDouble()));
-                    EffectTools.createParticle(level, ParticleTypes.CAMPFIRE_COSY_SMOKE, pos, 0, 0.001);
-                }
-            }
+        super.tick();
+        if (!(level() instanceof ServerLevel server)) return;
+        if (tickCount > LIFE_TICKS) { discard(); return; }
+        var start = position();
+        var owner = CombatOwnerResolver.resolveCombatOwner(server, getOwner(), combatOwnerUuid);
+        LockOnRayCurve step;
+        if (LockOnRayCastData.isLoadedTarget(server, target) && CombatTools.isValidCombatTarget(target, owner)
+                && tickCount <= arrivalTicks) {
+            int remaining = arrivalTicks - tickCount + 1;
+            var curve = new LockOnRayCurve(start, target.getBoundingBox().getCenter(),
+                    velocity.scale(remaining), arrivalVelocity.scale(remaining));
+            step = curve.prefix(1.0 / remaining);
+            velocity = step.endTangent();
+        } else {
+            target = null;
+            velocity = getDeltaMovement();
+            step = new LockOnRayCurve(start, start.add(velocity), velocity, velocity);
+        }
+        double fraction = moveAlongCurve(step);
+        if (fraction > 0) {
+            // 削除直前も、serverが通過した区間を独立して送る。
+            Networks.sendToPlayersNear(server, start, 160, new FlySwatterTrailPacket(step.prefix(fraction)));
+        }
+        if (!isRemoved()) {
+            setPos(step.end());
+            setDeltaMovement(position().subtract(start));
+            ProjectileUtil.rotateTowardsMovement(this, 1);
+            hasImpulse = true;
+            if (tickCount >= LIFE_TICKS) discard();
         }
     }
+
+    private double moveAlongCurve(LockOnRayCurve curve) {
+        var from = curve.start();
+        double previousFraction = 0;
+        for (var sample : FlySwatterTrajectory.samples(curve)) {
+            var to = sample.position();
+            var block = FlySwatterTrajectory.traceSegment(level(), this, from, to);
+            if (block != null && block.unloaded()) {
+                setPos(from);
+                discard();
+                return previousFraction;
+            }
+            var entityEnd = block == null ? to : block.position();
+            var entity = ProjectileUtil.getEntityHitResult(level(), this, from, entityEnd,
+                    new AABB(from, entityEnd).inflate(getBbWidth() * 0.5 + 0.3), this::canHitEntity);
+            HitResult hit = entity != null ? entity : block == null ? null : block.hit();
+            if (hit != null && !ForgeEventFactory.onProjectileImpact(this, hit)) {
+                setPos(hit.getLocation());
+                onHit(hit);
+                if (isRemoved()) {
+                    double part = from.distanceTo(to) < 1.0e-12 ? 0 : from.distanceTo(hit.getLocation()) / from.distanceTo(to);
+                    return previousFraction + (sample.fraction() - previousFraction) * part;
+                }
+            }
+            from = to;
+            previousFraction = sample.fraction();
+        }
+        return 1;
+    }
+
+    @Override
+    protected boolean canHitEntity(@NotNull Entity entity) {
+        var owner = CombatOwnerResolver.resolveCombatOwner(level(), getOwner(), combatOwnerUuid);
+        return super.canHitEntity(entity) && CombatTools.isValidCombatTarget(CombatTools.resolutePartEntity(entity), owner);
+    }
+
+    public int getArrivalTicks() { return arrivalTicks; }
+
+    @Override public boolean shouldBeSaved() { return false; }
+    @Override public boolean isPushedByFluid(@NotNull FluidType type) { return false; }
 
     @Override
     protected void onHitEntity(@NotNull EntityHitResult hit) {
@@ -243,7 +262,8 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
             }
 
             var eye = e.getEyePosition();
-            var hit = level.clip(new ClipContext(position, eye,ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, owner));
+            var hit = level.clip(new ClipContext(position, eye,ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE,
+                    owner != null ? owner : this));
             if (hit.getType() != HitResult.Type.MISS) {
                 scale *= 0.5;
             }
@@ -279,7 +299,6 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
         super.addAdditionalSaveData(tag);
         tag.putFloat("damage", damage);
         tag.putFloat("radius", radius);
-        tag.putInt("standbyTick", standbyTick);
         saveCombatOwnerUuid(tag);
     }
 
@@ -288,7 +307,6 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
         super.readAdditionalSaveData(tag);
         damage = tag.getFloat("damage");
         radius = tag.getFloat("radius");
-        standbyTick = tag.getInt("standbyTick");
         loadCombatOwnerUuid(tag);
     }
 
@@ -314,10 +332,6 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
 
     public void setRadius(float newRadius) {
         radius = newRadius;
-    }
-
-    public void setTarget(Entity target) {
-        this.target = target;
     }
 
     @Override

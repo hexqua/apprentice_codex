@@ -64,8 +64,12 @@ public final class FlySwatterGameTests {
                     "Repeated locks must remain separate shots");
             s.fireTicks(launcher, 9);
             h.assertTrue(s.projectiles().isEmpty(), "Launch sequence must retain its ten tick delay");
-            s.fireTicks(launcher, 6);
-            h.assertTrue(s.projectiles().size() == 2, "Completed locks must launch at the original five tick interval");
+            s.fireTicks(launcher, 1);
+            h.assertTrue(s.projectiles().size() == 1, "First shot must launch on tick ten");
+            s.fireTicks(launcher, 2);
+            h.assertTrue(s.projectiles().size() == 1, "Second shot must wait three ticks");
+            s.fireTicks(launcher, 1);
+            h.assertTrue(s.projectiles().size() == 2, "Completed locks must launch at a three tick interval");
         }
         h.succeed();
     }

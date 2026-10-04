@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.network;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.network.packet.FlySwatterTrailPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleAdsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMantleImpulsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMantleDashInputPacket;
@@ -125,7 +126,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "116";
+    private static final String PROTOCOL_VERSION = "117";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -139,6 +140,9 @@ public final class Networks {
     }
 
     public static void register() {
+        CHANNEL.registerMessage(nextPacketId++, FlySwatterTrailPacket.class,
+                FlySwatterTrailPacket::encode, FlySwatterTrailPacket::decode,
+                FlySwatterTrailPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(nextPacketId++, ClientMantleFireworkInputPacket.class,
                 ClientMantleFireworkInputPacket::encode, ClientMantleFireworkInputPacket::decode,
                 ClientMantleFireworkInputPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));

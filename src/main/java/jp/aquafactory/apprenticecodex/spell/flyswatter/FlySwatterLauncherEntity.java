@@ -15,10 +15,9 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,8 +25,9 @@ import java.util.List;
 public class FlySwatterLauncherEntity extends SummonWeaponEntity {
 
     private static final int FIRE_START_DELAY_TICK = 10;
-    private static final int FIRE_INTERVAL_TICK = 5;
-    private static final float OPEN_AIR_PITCH_DEG = -60f;
+    private static final int FIRE_INTERVAL_TICK = 3;
+    private static final float ELEVATED_PITCH_DEG = -60f;
+    private static final double ELEVATED_TARGET_HEIGHT = 8;
 
     private float damage;
     private float radius;
@@ -36,8 +36,9 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
     private int fireDelayTick;
     private boolean isFiring;
     private boolean isReleased;
-    private boolean isOpenAir;
+    private boolean elevatedLaunch;
     private float baseXRot;
+    private int shotIndex;
 
     public FlySwatterLauncherEntity(EntityType<?> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -109,13 +110,26 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
             return;
         }
 
+        var locatePosition = getAimingPosition(owner);
+        followTargetPosition(locatePosition);
+        if (isFiring) {
+            if (fireDelayTick > 0) --fireDelayTick;
+            float targetPitch = elevatedLaunch ? ELEVATED_PITCH_DEG : 0;
+            setYRot(owner.getYRot());
+            setXRot(Mth.lerp(fireDelayTick / (float) FIRE_START_DELAY_TICK, targetPitch, baseXRot));
+        } else if (!isReleased) {
+            setYRot(owner.getYRot());
+            setXRot(owner.getXRot());
+        }
+        setRot(getYRot(), getXRot());
+        hasImpulse = true;
+
         if (isFiring) {
             --fireIntervalTick;
             if (fireIntervalTick <= 0) {
                 fireIntervalTick = FIRE_INTERVAL_TICK;
                 if (!lockOnEntityList.isEmpty()) {
-                    var target = lockOnEntityList.get(0);
-                    lockOnEntityList.remove(0);
+                    var target = lockOnEntityList.remove(0);
                     // 捕捉済みの枠は払い戻さず、無効な対象への射出だけを省く。
                     if (LockOnRayCastData.isLoadedTarget(level, target) && CombatTools.isValidCombatTarget(target, owner)) {
                         fire(level, target);
@@ -127,25 +141,6 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
         } else if (isReleased) {
             discard();
         }
-
-        var locatePosition = getAimingPosition(owner);
-        followTargetPosition(locatePosition);
-
-        if (isFiring && isOpenAir) {
-            if(fireDelayTick > 0) {
-                --fireDelayTick;
-            }
-
-            var pitch = Mth.lerp(fireDelayTick / (float) FIRE_START_DELAY_TICK, OPEN_AIR_PITCH_DEG, baseXRot);
-            setYRot(owner.getYRot());
-            setXRot(pitch);
-        } else if (!isReleased) {
-            setYRot(owner.getYRot());
-            setXRot(owner.getXRot());
-        }
-
-        setRot(getYRot(), getXRot());
-        hasImpulse = true;
     }
 
     private void fire(Level level, Entity target){
@@ -154,16 +149,10 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
         }
 
         var projectile = new FlySwatterProjectileEntity(EntityRegistry.FLY_SWATTER_PROJECTILE.get(),level, owner);
-        projectile.setPos(position().add(getLookAngle().scale(1f)));
         projectile.setDamage(damage);
         projectile.setRadius(radius);
-        projectile.setProjectileVelocity(getLookAngle());
-        projectile.setTarget(target);
-        if (isOpenAir){
-            projectile.setOpenAirMode();
-        }
-
-        level.addFreshEntity(projectile);
+        projectile.launch(position(), position().add(getLookAngle()), getLookAngle(), target, shotIndex++);
+        if (!projectile.isRemoved()) level.addFreshEntity(projectile);
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.VANILLA_PROJECTILE_SHOOT.get(), SoundSource.PLAYERS, 1.0f, 1.2f);
     }
 
@@ -195,12 +184,11 @@ public class FlySwatterLauncherEntity extends SummonWeaponEntity {
             discard();
             return;
         }
-        // ガラスの下ならちゃんと屋内判定にしないと自爆するため.
-        var start = owner.getEyePosition();
-        var end = start.add(0, level.getMaxBuildHeight() - start.y, 0);
-        var ctx = new ClipContext(start, end, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, owner);
-        var hit = level.clip(ctx);
-        isOpenAir = hit.getType() == HitResult.Type.MISS;
+        // 天井ではなく、捕捉した敵の高度で構えを選ぶ。通せる軌道は各射出時に選択する。
+        followTargetPosition(getAimingPosition(owner));
+        var muzzle = position().add(getLookAngle());
+        elevatedLaunch = lockOnEntityList.stream().anyMatch(target ->
+                target.getBoundingBox().getCenter().y - muzzle.y >= ELEVATED_TARGET_HEIGHT);
         fireIntervalTick = FIRE_START_DELAY_TICK;
         fireDelayTick = FIRE_START_DELAY_TICK;
         isFiring = true;
