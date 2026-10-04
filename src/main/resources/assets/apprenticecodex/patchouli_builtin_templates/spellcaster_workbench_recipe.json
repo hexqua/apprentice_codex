@@ -1,0 +1,29 @@
+{
+  "processor": "jp.aquafactory.apprenticecodex.compat.patchouli.SpellcasterWorkbenchRecipeTemplateProcessor",
+  "components": [
+    {
+      "type": "patchouli:custom",
+      "class": "jp.aquafactory.apprenticecodex.compat.patchouli.SpellcasterWorkbenchRecipeComponent",
+      "x": 0,
+      "y": 0,
+      "recipe": "#recipe",
+      "recipe2": "#recipe2"
+    },
+    {
+      "type": "patchouli:text",
+      "group": "single_recipe_text",
+      "text": "#text",
+      "x": 0,
+      "y": 55,
+      "max_width": 116
+    },
+    {
+      "type": "patchouli:text",
+      "group": "double_recipe_text",
+      "text": "#text",
+      "x": 0,
+      "y": 105,
+      "max_width": 116
+    }
+  ]
+}
