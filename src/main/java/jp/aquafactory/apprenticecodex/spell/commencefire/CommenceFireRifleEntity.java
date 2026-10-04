@@ -195,6 +195,11 @@ public class CommenceFireRifleEntity extends SummonWeaponEntity {
         entityData.set(AIM_Z, (float) target.z);
     }
 
+    public void clearCastingReticleEffect() {
+        aimPosition = null;
+        entityData.set(CASTING_TICK, 0);
+    }
+
     public void damageTarget(Entity target, boolean isHeadShot, Level level) {
         var resoluteTarget = CombatTools.resolutePartEntity(target);
         var source = createOwnerDirectCombatDamageSource(DamageTypes.COMMENCE_FIRE);
@@ -240,8 +245,7 @@ public class CommenceFireRifleEntity extends SummonWeaponEntity {
         }
 
         AudioTools.playSoundFromEntity(level, this, SoundRegistry.RIFLE.get(), SoundSource.PLAYERS, 1.0f);
-        entityData.set(CASTING_TICK, 0);
-        aimPosition = null;
+        clearCastingReticleEffect();
     }
 
     @Override
