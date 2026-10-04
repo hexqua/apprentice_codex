@@ -515,8 +515,8 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "craftsmans_apprentice_spell_discount_test");
             equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
 
-            assertCraftsmansDelightBasicDiscountOnly(helper, player, SpellRegistry.HARVEST_MOON.get(), 60, "Harvest Moon");
-            assertCraftsmansDelightBasicDiscountOnly(helper, player, SpellRegistry.EARTH_FORGE.get(), 20, "Earth Forge");
+            assertCraftsmansDelightBasicDiscounts(helper, player, SpellRegistry.HARVEST_MOON.get(), 60, "Harvest Moon", true);
+            assertCraftsmansDelightBasicDiscounts(helper, player, SpellRegistry.EARTH_FORGE.get(), 20, "Earth Forge", false);
         });
     }
 

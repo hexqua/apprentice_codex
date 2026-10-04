@@ -98,6 +98,17 @@ public class ManaMending extends AbstractSpell implements ICraftsmansDelightAffe
     }
 
     @Override
+    public boolean isCraftsmansDelightCastingMobilityEnabled() {
+        return true;
+    }
+
+    @Override
+    public void onServerPreCast(Level level, int spellLevel, LivingEntity entity, @Nullable MagicData playerMagicData) {
+        super.onServerPreCast(level, spellLevel, entity, playerMagicData);
+        CraftsmansDelight.applyCastingMobility(entity);
+    }
+
+    @Override
     public Optional<SoundEvent> getCastStartSound() {
         return Optional.of(SoundRegistry.VANILLA_POWER_ACTIVATE.get());
     }
@@ -159,6 +170,8 @@ public class ManaMending extends AbstractSpell implements ICraftsmansDelightAffe
             failAndCancel(entity, ManaMendingFailure.CANCELED_BY_SWAP, ItemStack.EMPTY);
             return;
         }
+
+        CraftsmansDelight.applyCastingMobility(entity);
 
         if (playerMagicData != null){
             var tick = playerMagicData.getCastDurationRemaining();
