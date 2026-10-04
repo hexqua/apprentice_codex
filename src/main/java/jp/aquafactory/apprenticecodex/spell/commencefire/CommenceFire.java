@@ -185,7 +185,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
     protected boolean onPreRecastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull CommenceFireRifleEntity weapon) {
         if (weapon.duringRecoil()) {
             if (entity instanceof ServerPlayer serverPlayer) {
-                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.commence_fire.during_recoil", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
+                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("ui.apprenticecodex.during_recoil", this.getDisplayName(serverPlayer)).withStyle(ChatFormatting.RED)));
             }
             return false;
         }

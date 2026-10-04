@@ -69,12 +69,12 @@ public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunE
 
     @Override
     public int getActivateCount(int spellLevel, LivingEntity entity) {
-        return Math.min(16, 2 + Math.round(4 * getSpellPower(spellLevel, entity) / 100.0f));
+        return Math.min(10, 5 + spellLevel);
     }
 
     @Override
     public int getDurationTick() {
-        return 20 * 3;
+        return 20 * 5;
     }
 
     @Override
@@ -103,7 +103,7 @@ public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunE
     }
 
     private int getFirstDelay(){
-        return 20;
+        return 5;
     }
 
     @Override
@@ -143,6 +143,16 @@ public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunE
             if (entity instanceof ServerPlayer serverPlayer) {
                 serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
                         Component.translatable("ui.apprenticecodex.during_standby", this.getDisplayName(serverPlayer))
+                                .withStyle(ChatFormatting.RED)
+                ));
+            }
+            return false;
+        }
+
+        if (weapon.duringRecoil()) {
+            if (entity instanceof ServerPlayer serverPlayer) {
+                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                        Component.translatable("ui.apprenticecodex.during_recoil", this.getDisplayName(serverPlayer))
                                 .withStyle(ChatFormatting.RED)
                 ));
             }

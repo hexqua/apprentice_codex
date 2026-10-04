@@ -19,6 +19,7 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerOriginMode;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponRecastSpell;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponRecastSpell.SummonWeaponRecastSpellData;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleEntity;
+import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunEntity;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -105,6 +106,84 @@ public final class SummonWeaponRecastGameTests {
     }
 
     @GameTest(template = TEMPLATE, batch = BATCH)
+    public static void quickArmsInitialShotAndRecastRespectFiveTickInterval(GameTestHelper h) {
+        try (var s = new Scene(h, (AbstractSummonWeaponRecastSpell<?>) SpellRegistry.QUICK_ARMS.get())) {
+            s.begin(); s.finish();
+            var weapon = (QuickArmsHandgunEntity) s.weapon();
+            s.weaponTicks(4);
+            h.assertTrue(s.target.getHealth() == 200 && !weapon.canFire(),
+                    "Quick Arms must wait until the fifth tick before its initial shot");
+            s.assertRejectedRecastPreservesState();
+            s.weaponTicks(1);
+            h.assertTrue(s.target.getHealth() < 200 && weapon.canFire() && weapon.duringRecoil(),
+                    "The fifth tick must fire the initial shot and start recoil");
+            for (int shot = 0; shot < 2; shot++) {
+                // 拒否された連打で反動やリキャスト期限が延びないことも確認する。
+                for (int tick = 0; tick < 5; tick++) {
+                    s.assertRejectedRecastPreservesState();
+                    s.assertRejectedRecastPreservesState();
+                    s.weaponTicks(1);
+                }
+                h.assertFalse(weapon.duringRecoil(), "Recoil must end exactly five ticks after firing");
+                float before = s.target.getHealth();
+                s.begin(); s.finish();
+                h.assertTrue(s.target.getHealth() < before && weapon.duringRecoil(),
+                        "A recast at the five-tick boundary must attack and restart recoil");
+            }
+        }
+        h.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, batch = BATCH)
+    public static void quickArmsMissStillStartsRecoil(GameTestHelper h) {
+        try (var s = new Scene(h, (AbstractSummonWeaponRecastSpell<?>) SpellRegistry.QUICK_ARMS.get())) {
+            s.owner.setYRot(90); s.owner.setYHeadRot(90); s.owner.yHeadRotO = 90;
+            s.begin(); s.finish();
+            s.weaponTicks(5);
+            h.assertTrue(s.target.getHealth() == 200, "The initial shot must miss the target behind the caster");
+            s.assertRejectedRecastPreservesState();
+            s.weaponTicks(5);
+            s.begin(); s.finish();
+            h.assertTrue(s.target.getHealth() == 200, "The recast shot must also miss");
+            for (int tick = 0; tick < 5; tick++) {
+                s.assertRejectedRecastPreservesState();
+                s.weaponTicks(1);
+            }
+            h.assertTrue(s.spell.checkPreCastConditions(h.getLevel(), 1, s.owner, s.data),
+                    "A missed shot must allow the next recast after five ticks");
+        }
+        h.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, batch = BATCH)
+    public static void quickArmsRecoilSurvivesNbtAndAcceptsLegacyData(GameTestHelper h) {
+        try (var s = new Scene(h, (AbstractSummonWeaponRecastSpell<?>) SpellRegistry.QUICK_ARMS.get())) {
+            s.begin(); s.finish();
+            var weapon = (QuickArmsHandgunEntity) s.weapon();
+            s.weaponTicks(8);
+            var tag = weapon.saveWithoutId(new CompoundTag());
+            h.assertTrue(tag.getInt("RecoilTick") == 2, "NBT must preserve the remaining recoil ticks");
+            s.weaponTicks(2);
+            h.assertFalse(weapon.duringRecoil(), "Recoil must expire before restoring the saved state");
+            weapon.load(tag);
+            // 召喚武器はNBT読込時に所有者を消す仕様なので、反動の検証用に再設定する。
+            weapon.setOwner(s.owner);
+            s.assertRejectedRecastPreservesState();
+            s.weaponTicks(1);
+            s.assertRejectedRecastPreservesState();
+            s.weaponTicks(1);
+            h.assertFalse(weapon.duringRecoil(), "Restored recoil must retain its remaining duration");
+            tag.remove("RecoilTick");
+            weapon.load(tag);
+            weapon.setOwner(s.owner);
+            h.assertFalse(weapon.duringRecoil(), "Legacy weapon NBT must default to no recoil");
+            h.assertTrue(s.spell.checkPreCastConditions(h.getLevel(), 1, s.owner, s.data),
+                    "Legacy weapon NBT must remain eligible for recasting");
+        }
+        h.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, batch = BATCH)
     public static void cancelledRifleCastPreservesSession(GameTestHelper h) {
         try (var s = new Scene(h, (AbstractSummonWeaponRecastSpell<?>) SpellRegistry.COMMENCE_FIRE.get())) {
             s.begin(); s.finish();
@@ -183,6 +262,19 @@ public final class SummonWeaponRecastGameTests {
             target.getAttribute(Attributes.MAX_HEALTH).setBaseValue(200); target.setHealth(200);
             target.getAttribute(Attributes.ARMOR).setBaseValue(0);
             helper.getLevel().addFreshEntity(target);
+        }
+
+        void assertRejectedRecastPreservesState() {
+            var recast = data.getPlayerRecasts().getRecastInstance(spell.getSpellId());
+            int count = recast.getRemainingRecasts();
+            int remainingTicks = recast.getTicksRemaining();
+            float mana = data.getMana();
+            float health = target.getHealth();
+            helper.assertFalse(spell.checkPreCastConditions(helper.getLevel(), 1, owner, data),
+                    "Quick Arms must reject a recast while preparing or recoiling");
+            helper.assertTrue(recast.getRemainingRecasts() == count && recast.getTicksRemaining() == remainingTicks
+                            && data.getMana() == mana && target.getHealth() == health && !data.isCasting(),
+                    "A rejected recast must preserve shots, timeout, mana, health, and casting state");
         }
 
         void begin() {

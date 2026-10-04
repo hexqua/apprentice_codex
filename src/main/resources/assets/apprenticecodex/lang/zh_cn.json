@@ -1256,7 +1256,7 @@
   "ui.apprenticecodex.too_far": "太远了！",
   "ui.apprenticecodex.archer_multiple.spell_target_none": "%s 自动目标模式",
   "ui.apprenticecodex.recast_summon_spell.no_weapon": "未找到武器！",
-  "ui.apprenticecodex.commence_fire.during_recoil": "后坐力尚未消退。",
+  "ui.apprenticecodex.during_recoil": "后坐力尚未消退。",
   "ui.apprenticecodex.during_standby": "准备中。",
   "ui.apprenticecodex.during_effect": "效果尚未结束！",
   "ui.apprenticecodex.fly_swatter.lockon_entity": "锁定 %s...(%d/%d)",
