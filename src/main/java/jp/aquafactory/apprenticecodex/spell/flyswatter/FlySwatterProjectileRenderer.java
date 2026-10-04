@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.spell.flyswatter;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import jp.aquafactory.apprenticecodex.client.render.ColorCubeRenderTools;
+import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import net.minecraft.client.model.ShulkerBulletModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -18,6 +20,8 @@ public class FlySwatterProjectileRenderer extends EntityRenderer<FlySwatterProje
     private static final ResourceLocation TEXTURE =
             ResourceLocation.withDefaultNamespace("textures/entity/shulker/spark.png");
 
+    private static final RenderType BURST_RENDER_TYPE =
+            ApprenticeRenderTypes.additiveColorNoCull("fly_swatter_burst_additive");
     private final ShulkerBulletModel<FlySwatterProjectileEntity> model;
 
     public FlySwatterProjectileRenderer(EntityRendererProvider.Context ctx) {
@@ -28,7 +32,19 @@ public class FlySwatterProjectileRenderer extends EntityRenderer<FlySwatterProje
 
     @Override
     public void render(FlySwatterProjectileEntity entity, float entityYaw, float partialTicks,
-                       PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
+                       @NotNull PoseStack poseStack, @NotNull MultiBufferSource buffer, int packedLight) {
+
+        if (entity.isBursting()) {
+            poseStack.pushPose();
+            poseStack.mulPose(Axis.YP.rotationDegrees(entity.getBurstSpinDegrees(partialTicks)));
+            float alpha = entity.getBurstCubeAlpha(partialTicks);
+            ColorCubeRenderTools.drawCube(poseStack, buffer.getBuffer(BURST_RENDER_TYPE),
+                    entity.getBurstCubeScale(partialTicks), Math.round(255 * alpha),
+                    Math.round(122 * alpha), Math.round(31 * alpha), Math.round(255 * alpha), false);
+            poseStack.popPose();
+            super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);
+            return;
+        }
 
         var yRot = Mth.lerp(partialTicks, entity.yRotO, entity.getYRot());
         var xRot = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());

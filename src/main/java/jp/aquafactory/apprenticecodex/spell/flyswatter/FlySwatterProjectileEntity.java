@@ -16,9 +16,13 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -26,24 +30,36 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.*;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.LinkedHashSet;
 import java.util.UUID;
 
 public class FlySwatterProjectileEntity extends Projectile implements AntiMagicSusceptible, CombatOwnerUuidHolder {
     private static final int LIFE_TICKS = 20 * 10;
-    private static final double EXPLOSION_KNOCKBACK = 0.5;
-    private static final double EXPLOSION_KNOCKBACK_UP = 0.2;
+    private static final int BURST_TICKS = 14;
+    private static final double ENTITY_HIT_MARGIN = 0.3;
+    private static final EntityDataAccessor<Boolean> DATA_BURST =
+            SynchedEntityData.defineId(FlySwatterProjectileEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Float> DATA_RADIUS =
+            SynchedEntityData.defineId(FlySwatterProjectileEntity.class, EntityDataSerializers.FLOAT);
 
     private float damage;
     private float radius;
     private Entity target;
+    private Entity aimTarget;
     private int arrivalTicks;
+    private int burstTicks;
+    private int clientBurstTicks;
     private Vec3 velocity = Vec3.ZERO;
     private Vec3 arrivalVelocity = Vec3.ZERO;
     @Nullable
@@ -73,11 +89,12 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
             var hit = obstruction.hit();
             if (obstruction.unloaded() || hit == null) discard();
             else if (!ForgeEventFactory.onProjectileImpact(this, hit)) onHit(hit);
-            if (isRemoved()) return;
+            if (isRemoved() || isBursting()) return;
         }
         setPos(muzzle);
         this.target = target;
-        var plan = FlySwatterTrajectory.select(level(), this, muzzle, direction, target.getBoundingBox().getCenter(), shot);
+        aimTarget = selectAimTarget(target);
+        var plan = FlySwatterTrajectory.select(level(), this, muzzle, direction, aimTarget.getBoundingBox().getCenter(), shot);
         arrivalTicks = plan.arrivalTicks();
         velocity = plan.curve().startTangent().scale(1.0 / arrivalTicks);
         arrivalVelocity = plan.curve().endTangent().scale(1.0 / arrivalTicks);
@@ -87,6 +104,8 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
 
     @Override
     protected void defineSynchedData() {
+        entityData.define(DATA_BURST, false);
+        entityData.define(DATA_RADIUS, 0.0f);
     }
 
     @Override
@@ -98,6 +117,12 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
             return;
         }
         super.tick();
+        if (isBursting()) {
+            setDeltaMovement(Vec3.ZERO);
+            if (level().isClientSide) ++clientBurstTicks;
+            else if (++burstTicks >= BURST_TICKS) discard();
+            return;
+        }
         if (!(level() instanceof ServerLevel server)) return;
         if (tickCount > LIFE_TICKS) { discard(); return; }
         var start = position();
@@ -106,7 +131,8 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
         if (LockOnRayCastData.isLoadedTarget(server, target) && CombatTools.isValidCombatTarget(target, owner)
                 && tickCount <= arrivalTicks) {
             int remaining = arrivalTicks - tickCount + 1;
-            var curve = new LockOnRayCurve(start, target.getBoundingBox().getCenter(),
+            if (aimTarget == null || aimTarget.isRemoved()) aimTarget = selectAimTarget(target);
+            var curve = new LockOnRayCurve(start, aimTarget.getBoundingBox().getCenter(),
                     velocity.scale(remaining), arrivalVelocity.scale(remaining));
             step = curve.prefix(1.0 / remaining);
             velocity = step.endTangent();
@@ -120,7 +146,7 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
             // 削除直前も、serverが通過した区間を独立して送る。
             Networks.sendToPlayersNear(server, start, 160, new FlySwatterTrailPacket(step.prefix(fraction)));
         }
-        if (!isRemoved()) {
+        if (!isRemoved() && !isBursting()) {
             setPos(step.end());
             setDeltaMovement(position().subtract(start));
             ProjectileUtil.rotateTowardsMovement(this, 1);
@@ -141,14 +167,14 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
                 return previousFraction;
             }
             var entityEnd = block == null ? to : block.position();
-            var entity = ProjectileUtil.getEntityHitResult(level(), this, from, entityEnd,
-                    new AABB(from, entityEnd).inflate(getBbWidth() * 0.5 + 0.3), this::canHitEntity);
+            var entity = findEntityHit(from, entityEnd);
             HitResult hit = entity != null ? entity : block == null ? null : block.hit();
             if (hit != null && !ForgeEventFactory.onProjectileImpact(this, hit)) {
                 setPos(hit.getLocation());
                 onHit(hit);
-                if (isRemoved()) {
-                    double part = from.distanceTo(to) < 1.0e-12 ? 0 : from.distanceTo(hit.getLocation()) / from.distanceTo(to);
+                if (isRemoved() || isBursting()) {
+                    double part = from.distanceTo(to) < 1.0e-12 ? 0
+                            : Mth.clamp(from.distanceTo(hit.getLocation()) / from.distanceTo(to), 0, 1);
                     return previousFraction + (sample.fraction() - previousFraction) * part;
                 }
             }
@@ -158,13 +184,69 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
         return 1;
     }
 
+    private @Nullable EntityHitResult findEntityHit(Vec3 from, Vec3 to) {
+        var search = new AABB(from, to).inflate(getBbWidth() * 0.5 + ENTITY_HIT_MARGIN);
+        EntityHitResult nearest = null;
+        double nearestDistance = Double.MAX_VALUE;
+        for (var candidate : level().getEntities(this, search, this::canHitEntity)) {
+            var box = candidate.getBoundingBox().inflate(ENTITY_HIT_MARGIN);
+            // Level版ProjectileUtilは交点を失い、移動する部位が弾を包んだ場合も検出しない。
+            var point = box.contains(from) ? from : box.clip(from, to).orElse(null);
+            if (point == null) continue;
+            double distance = from.distanceToSqr(point);
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                nearest = new EntityHitResult(candidate, point);
+            }
+        }
+        return nearest;
+    }
+
+    private static Entity selectAimTarget(Entity target) {
+        Entity selected = target;
+        if (!target.isMultipartEntity()) return selected;
+        double nearest = Double.MAX_VALUE;
+        var parts = target.getParts();
+        if (parts == null) return selected;
+        var center = target.getBoundingBox().getCenter();
+        for (var part : parts) {
+            if (part.isRemoved()) continue;
+            double distance = part.getBoundingBox().getCenter().distanceToSqr(center);
+            if (distance < nearest) {
+                nearest = distance;
+                selected = part;
+            }
+        }
+        // ドラゴン本体の箱の中心は実部位の外にあるため、射出時に選んだ部位を追う。
+        return selected;
+    }
+
     @Override
     protected boolean canHitEntity(@NotNull Entity entity) {
         var owner = CombatOwnerResolver.resolveCombatOwner(level(), getOwner(), combatOwnerUuid);
-        return super.canHitEntity(entity) && CombatTools.isValidCombatTarget(CombatTools.resolutePartEntity(entity), owner);
+        var resolved = CombatTools.resolutePartEntity(entity);
+        return !isBursting() && resolved.isAlive() && !resolved.isRemoved()
+                && super.canHitEntity(entity) && CombatTools.isValidCombatTarget(resolved, owner);
     }
 
     public int getArrivalTicks() { return arrivalTicks; }
+
+    public boolean isBursting() { return entityData.get(DATA_BURST); }
+
+    public float getBurstCubeScale(float partialTicks) {
+        float progress = Mth.clamp((clientBurstTicks + partialTicks) / 4.0f, 0, 1);
+        float eased = 1 - (1 - progress) * (1 - progress) * (1 - progress);
+        return Mth.lerp(eased, 0.45f, Math.max(0.45f, entityData.get(DATA_RADIUS) * 2));
+    }
+
+    public float getBurstCubeAlpha(float partialTicks) {
+        float progress = Mth.clamp((clientBurstTicks + partialTicks - 5) / (BURST_TICKS - 5.0f), 0, 1);
+        return 0.95f * (1 - progress * progress * progress);
+    }
+
+    public float getBurstSpinDegrees(float partialTicks) {
+        return (clientBurstTicks + partialTicks) * 22 * (getId() % 2 == 0 ? 1 : -1);
+    }
 
     @Override public boolean shouldBeSaved() { return false; }
     @Override public boolean isPushedByFluid(@NotNull FluidType type) { return false; }
@@ -174,17 +256,13 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
         super.onHitEntity(hit);
 
         var level = level();
-        if (level.isClientSide) {
+        if (level.isClientSide || isRemoved() || isBursting()) {
             return;
         }
 
         var owner = CombatOwnerResolver.resolveCombatOwner(level(), getOwner(), combatOwnerUuid);
         if (CombatTools.isValidCombatTarget(hit.getEntity(), owner)) {
-            var target = CombatTools.resolutePartEntity(hit.getEntity());
-            var source = CombatOwnerResolver.createDamageSource(level(), this, getOwner(), combatOwnerUuid, DamageTypes.FLY_SWATTER);
-            CombatTools.applyDamage(target, damage, source, SpellRegistry.FLY_SWATTER.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
-            onImpact(level, target);
-            discard();
+            onImpact(hit.getLocation(), CombatTools.resolutePartEntity(hit.getEntity()));
         }
     }
 
@@ -193,92 +271,62 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
         super.onHitBlock(hit);
 
         var level = level();
-        if (!level.isClientSide) {
-            onImpact(level, null);
-            discard();
+        if (!level.isClientSide && !isRemoved() && !isBursting()) {
+            onImpact(hit.getLocation(), null);
         }
     }
 
     @Override
     public void onAntiMagic(MagicData playerMagicData) {
-        if (level().isClientSide || isRemoved()) {
+        if (level().isClientSide || isRemoved() || isBursting()) {
             return;
         }
 
         fizzleByAntiMagic();
     }
 
-    private void onImpact(Level level, Entity directHitTarget){
-        var position = position();
-
-        // パーティクルと音.
-        if (level instanceof ServerLevel server){
-            server.sendParticles(ParticleTypes.EXPLOSION, position.x, position.y, position.z,
-                    1, 0.0, 0.0, 0.0, 0.0);
-            server.sendParticles(ParticleTypes.EXPLOSION_EMITTER, position.x, position.y, position.z,
-                    1, 0.0, 0.0, 0.0, 0.0);
-
-            var smokeSpread = radius * 0.35;
-            server.sendParticles(ParticleTypes.LARGE_SMOKE, position.x, position.y, position.z,
-                    25, smokeSpread, smokeSpread * 0.6, smokeSpread, 0.02);
-            var poofSpread = radius * 0.2;
-            server.sendParticles(ParticleTypes.POOF, position.x, position.y, position.z,
-                    18, poofSpread, poofSpread * 0.4, poofSpread, 0.12);
-
-            server.playSound(null, BlockPos.containing(position), SoundEvents.GENERIC_EXPLODE,
-                    SoundSource.PLAYERS, 1.0f, 0.9f + level.random.nextFloat() * 0.2f);
+    private void onImpact(Vec3 center, @Nullable Entity directHitTarget) {
+        entityData.set(DATA_BURST, true);
+        burstTicks = 0;
+        target = null;
+        aimTarget = null;
+        setPos(center);
+        setDeltaMovement(Vec3.ZERO);
+        hasImpulse = true;
+        applyAreaDamage(center, directHitTarget);
+        if (level() instanceof ServerLevel server) {
+            server.sendParticles(ParticleTypes.EXPLOSION, center.x, center.y, center.z, 1, 0, 0, 0, 0);
+            server.playSound(null, BlockPos.containing(center), SoundEvents.GENERIC_EXPLODE,
+                    SoundSource.PLAYERS, 0.95f, 1.15f + level().random.nextFloat() * 0.12f);
         }
+    }
 
-
-        // 判定.
-        var aabb = new AABB(position, position).inflate(radius);
-        var r2 = radius * radius;
-        var owner = CombatOwnerResolver.resolveCombatOwner(level, getOwner(), combatOwnerUuid);
-        var targets = level.getEntitiesOfClass(Entity.class, aabb, e -> {
-            if (!e.isAlive()) {
-                return false;
-            }
-
-            // 直撃させた対象は爆風ダメージからは除外.
-            if (e == directHitTarget) {
-                return false;
-            }
-
-            return CombatTools.isValidCombatTarget(e, owner);
-        });
-
-        var source = CombatOwnerResolver.createDamageSource(level, this, getOwner(), combatOwnerUuid, DamageTypes.FLY_SWATTER);
-        for (var e : targets) {
-            var dist2 = e.distanceToSqr(position);
-            if (dist2 > r2) {
-                continue;
-            }
-
-            var dist = Math.sqrt(dist2);
-            var t = dist / radius;
-            var scale = 1.0 - t * t;
-            if (scale <= 0) {
-                continue;
-            }
-
-            var eye = e.getEyePosition();
-            var hit = level.clip(new ClipContext(position, eye,ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE,
-                    owner != null ? owner : this));
-            if (hit.getType() != HitResult.Type.MISS) {
-                scale *= 0.5;
-            }
-
-            var finalDamage = (float)(damage * scale);
-            var damaged = CombatTools.applyDamage(e, finalDamage, source,
-                    SpellRegistry.FLY_SWATTER.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
-
-            // 爆風で吹き飛ばす.
-            var dir = e.position().subtract(position);
-            if (damaged && dir.lengthSqr() > 1.0e-6) {
-                dir = dir.normalize();
-                e.push(dir.x * EXPLOSION_KNOCKBACK * scale, EXPLOSION_KNOCKBACK_UP * scale, dir.z * EXPLOSION_KNOCKBACK * scale);
-            }
+    private void applyAreaDamage(Vec3 center, @Nullable Entity directHitTarget) {
+        var owner = CombatOwnerResolver.resolveCombatOwner(level(), getOwner(), combatOwnerUuid);
+        var targets = new LinkedHashSet<Entity>();
+        // 直撃も範囲ダメージと同じ集合で処理し、半径ゼロや部位の重なりでも一回だけ与える。
+        if (directHitTarget != null) targets.add(directHitTarget);
+        var area = new AABB(center, center).inflate(radius);
+        for (var raw : level().getEntities(this, area, Entity::isAlive)) {
+            // 本体の大きな箱だけで判定すると、実部位のない空間まで巻き込んでしまう。
+            if (raw.isMultipartEntity()) continue;
+            targets.add(CombatTools.resolutePartEntity(raw));
         }
+        var source = CombatOwnerResolver.createDamageSource(level(), this, getOwner(), combatOwnerUuid, DamageTypes.FLY_SWATTER);
+        for (var candidate : targets) {
+            if (!candidate.isAlive() || candidate.isRemoved() || !CombatTools.isValidCombatTarget(candidate, owner)) continue;
+            boolean multipart = candidate.isMultipartEntity();
+            // 部位の接触地点から本体の目への遮蔽は、ドラゴン等の露出部位への命中まで拒否する。
+            if (!multipart && candidate != directHitTarget && isBlockedByWall(center, candidate)) continue;
+            CombatTools.applyDamage(candidate, damage, source, SpellRegistry.FLY_SWATTER.get().getSchoolType(),
+                    multipart ? CombatTools.KnockbackTypes.NO_KNOCKBACK : CombatTools.KnockbackTypes.DEFAULT);
+        }
+    }
+
+    private boolean isBlockedByWall(Vec3 center, Entity target) {
+        var point = target instanceof LivingEntity living ? living.getEyePosition() : target.getBoundingBox().getCenter();
+        return level().clip(new ClipContext(center, point, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this))
+                .getType() == HitResult.Type.BLOCK;
     }
 
     private void fizzleByAntiMagic() {
@@ -307,6 +355,7 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
         super.readAdditionalSaveData(tag);
         damage = tag.getFloat("damage");
         radius = tag.getFloat("radius");
+        entityData.set(DATA_RADIUS, radius);
         loadCombatOwnerUuid(tag);
     }
 
@@ -317,7 +366,7 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
 
     @Override
     public @NotNull AABB getBoundingBoxForCulling() {
-        return getBoundingBox().inflate(4.0);
+        return getBoundingBox().inflate(isBursting() ? Math.max(4, entityData.get(DATA_RADIUS) * 1.5) : 4);
     }
 
     @Override
@@ -331,7 +380,8 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
     }
 
     public void setRadius(float newRadius) {
-        radius = newRadius;
+        radius = Math.max(0, newRadius);
+        entityData.set(DATA_RADIUS, radius);
     }
 
     @Override
