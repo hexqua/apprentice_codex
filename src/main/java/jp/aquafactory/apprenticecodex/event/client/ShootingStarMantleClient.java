@@ -18,6 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModLoader;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
@@ -186,6 +187,8 @@ public final class ShootingStarMantleClient {
 
     @SubscribeEvent
     public static void tick(ClientTickEvent.Post event) {
+        // 他MODのロード失敗で登録が未完了でもtickは届くため、二次例外で元のエラーを覆い隠さない。
+        if (ModLoader.hasErrors()) return;
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         var equipped = player == null ? ItemStack.EMPTY : ShootingStarMantleRuntime.findEquipped(player);

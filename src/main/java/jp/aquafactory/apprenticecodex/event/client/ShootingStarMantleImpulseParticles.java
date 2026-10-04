@@ -10,18 +10,21 @@ import net.minecraft.world.phys.Vec3;
 
 final class ShootingStarMantleImpulseParticles {
     private static final int MAX_ICE_COAST_TICKS = 8;
-    private static final AdditiveGlowParticleOptions COMET_SPARK =
-            new AdditiveGlowParticleOptions(ParticleRegistry.ADDITIVE_SPARK.get(), 0.16F,
-                    0.38F, 0.58F, 1.0F, 3, 11, 3,
-                    0.85F, 1.25F, 0.75F, 0.95F, 0.03F, 0.65F, 0.65F, true);
-    private static final AdditiveGlowParticleOptions ICE_SPARK =
-            new AdditiveGlowParticleOptions(ParticleRegistry.ADDITIVE_SPARK.get(), 0.12F,
-                    0.48F, 0.88F, 1.0F, 2, 9, 3,
-                    0.8F, 1.2F, 0.55F, 0.8F, 0.03F, 0.6F, 0.55F, true);
-    private static final AdditiveGlowParticleOptions STAR =
-            new AdditiveGlowParticleOptions(ParticleRegistry.ADDITIVE_RHOMBUS.get(), 0.15F,
-                    1.0F, 0.87F, 0.36F, 2, 14, 3,
-                    0.85F, 1.2F, 0.65F, 0.85F, 0.04F, 0.68F, 0.6F, false);
+    // 起動中や切断時のresetでは登録値に触れず、実際の粒子生成まで初期化を遅らせる。
+    private static final class ParticlePresets {
+        private static final AdditiveGlowParticleOptions COMET_SPARK =
+                new AdditiveGlowParticleOptions(ParticleRegistry.ADDITIVE_SPARK.get(), 0.16F,
+                        0.38F, 0.58F, 1.0F, 3, 11, 3,
+                        0.85F, 1.25F, 0.75F, 0.95F, 0.03F, 0.65F, 0.65F, true);
+        private static final AdditiveGlowParticleOptions ICE_SPARK =
+                new AdditiveGlowParticleOptions(ParticleRegistry.ADDITIVE_SPARK.get(), 0.12F,
+                        0.48F, 0.88F, 1.0F, 2, 9, 3,
+                        0.8F, 1.2F, 0.55F, 0.8F, 0.03F, 0.6F, 0.55F, true);
+        private static final AdditiveGlowParticleOptions STAR =
+                new AdditiveGlowParticleOptions(ParticleRegistry.ADDITIVE_RHOMBUS.get(), 0.15F,
+                        1.0F, 0.87F, 0.36F, 2, 14, 3,
+                        0.85F, 1.2F, 0.65F, 0.85F, 0.04F, 0.68F, 0.6F, false);
+    }
     private static Vec3 previousPosition;
     private static boolean wasDashing;
     private static int dashAge;
@@ -79,7 +82,7 @@ final class ShootingStarMantleImpulseParticles {
                         .add(right.scale(side * (0.55D + i * 0.15D)))
                         .add(0, player.getEyeHeight() - 0.55D, 0);
                 var velocity = right.scale(side * 0.025D).add(0, 0.012D, 0);
-                player.level().addParticle(i == 0 ? COMET_SPARK : STAR,
+                player.level().addParticle(i == 0 ? ParticlePresets.COMET_SPARK : ParticlePresets.STAR,
                         position.x, position.y, position.z, velocity.x, velocity.y, velocity.z);
             }
         }
@@ -104,7 +107,8 @@ final class ShootingStarMantleImpulseParticles {
             var velocity = direction.scale(-0.015D)
                     .add(right.scale((random.nextDouble() - 0.5D) * 0.018D))
                     .add(0, 0.006D, 0);
-            var particle = coasting ? ICE_SPARK : random.nextInt(8) == 0 ? STAR : COMET_SPARK;
+            var particle = coasting ? ParticlePresets.ICE_SPARK
+                    : random.nextInt(8) == 0 ? ParticlePresets.STAR : ParticlePresets.COMET_SPARK;
             player.level().addParticle(particle, position.x, position.y, position.z,
                     velocity.x, velocity.y, velocity.z);
         }
