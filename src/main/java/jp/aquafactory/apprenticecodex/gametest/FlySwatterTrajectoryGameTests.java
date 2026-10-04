@@ -50,10 +50,15 @@ public final class FlySwatterTrajectoryGameTests {
             missile.launch(s.origin, s.origin, new Vec3(1, 0, 0), target, 0);
             h.assertTrue(missile.getArrivalTicks() == plan.arrivalTicks(), "Flight deadline must match the selected plan");
             h.assertTrue(plan.arrivalTicks() >= 4 && plan.arrivalTicks() < 20, "Short flight must use Magic Spear scale timing");
+            h.assertTrue(missile.position().distanceTo(plan.curve().position(0.25 / plan.arrivalTicks())) < 1.0e-6,
+                    "Missile must spawn a quarter tick along the selected curve");
+            h.assertTrue(missile.getDeltaMovement().distanceTo(plan.curve().tangent(0.25 / plan.arrivalTicks())
+                    .scale(1.0 / plan.arrivalTicks())) < 1.0e-6,
+                    "Spawn velocity must follow the tangent at the advanced position");
             for (int tick = 1; tick <= plan.arrivalTicks() / 2; tick++) {
                 s.tick(missile);
                 h.assertFalse(missile.isRemoved(), "Clear flight must remain active before arrival");
-                h.assertTrue(missile.position().distanceTo(plan.curve().position(tick / (double) plan.arrivalTicks())) < 1.0e-6,
+                h.assertTrue(missile.position().distanceTo(plan.curve().position((tick + 0.25) / plan.arrivalTicks())) < 1.0e-6,
                         "Stationary flight must follow the prechecked curve on tick " + tick);
             }
             h.assertTrue(missile.position().distanceTo(s.origin) > 1, "Missile must move immediately without a boost wait");
@@ -75,6 +80,40 @@ public final class FlySwatterTrajectoryGameTests {
             h.assertTrue(missile.getArrivalTicks() == deadline, "Moving targets must not extend the arrival deadline");
             h.assertTrue(missile.isBursting() && missile.position().y >= s.origin.y + 2,
                     "Endpoint tracking must hit the moved target within the original deadline");
+        }
+        h.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, batch = BATCH)
+    public static void launchAdvanceCannotSkipWallOrCombatTarget(GameTestHelper h) {
+        try (var s = new Scene(h)) {
+            var origin = s.origin.add(0.3, 0, 0);
+            var target = s.target(origin.add(12, 0, 0));
+            var missile = s.missile();
+            // 発射口の箱は壁の外側だが、0.25tickの前進区間だけで壁に接触する。
+            for (int y = -3; y <= 3; y++) for (int z = -3; z <= 3; z++) {
+                s.block(BlockPos.containing(origin.add(1, y, z)), Blocks.STONE.defaultBlockState());
+            }
+            var plan = FlySwatterTrajectory.select(h.getLevel(), missile, origin, new Vec3(1, 0, 0),
+                    target.getBoundingBox().getCenter(), 0);
+            var hit = FlySwatterTrajectory.firstObstruction(h.getLevel(), missile, plan.curve().prefix(0.25 / plan.arrivalTicks()));
+            h.assertTrue(hit != null, "Fixture must obstruct the quarter tick launch advance");
+            missile.launch(origin, origin, new Vec3(1, 0, 0), target, 0);
+            h.assertTrue(missile.isBursting() && missile.position().distanceTo(Objects.requireNonNull(hit).position()) < 0.08,
+                    "Launch advance must impact the wall before the missile is spawned");
+        }
+        try (var s = new Scene(h)) {
+            var target = s.target(s.origin.add(12, 0, 0));
+            var missile = s.missile();
+            var plan = FlySwatterTrajectory.select(h.getLevel(), missile, s.origin, new Vec3(1, 0, 0),
+                    target.getBoundingBox().getCenter(), 0);
+            var obstacle = s.target(s.origin.add(plan.curve().startTangent().normalize().scale(0.9)).add(0, -0.975, 0));
+            h.assertFalse(obstacle.getBoundingBox().inflate(0.3).contains(s.origin),
+                    "Launch fixture must place the intervening target beyond the muzzle");
+            float health = obstacle.getHealth();
+            missile.launch(s.origin, s.origin, new Vec3(1, 0, 0), target, 0);
+            h.assertTrue(missile.isBursting() && obstacle.getHealth() < health,
+                    "Launch advance must damage an intervening target before the missile is spawned");
         }
         h.succeed();
     }
@@ -266,7 +305,7 @@ public final class FlySwatterTrajectoryGameTests {
             missile.launch(s.origin, s.origin, new Vec3(1, 0, 0), target, 0);
             s.tick(missile);
             h.assertTrue(!missile.isRemoved()
-                            && missile.position().distanceTo(plan.curve().position(1.0 / plan.arrivalTicks())) < 1.0e-6,
+                            && missile.position().distanceTo(plan.curve().position(1.25 / plan.arrivalTicks())) < 1.0e-6,
                     "Fluid must neither obstruct nor push the missile off its selected curve");
         }
         h.succeed();

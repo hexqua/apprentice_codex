@@ -2,36 +2,32 @@ package jp.aquafactory.apprenticecodex.spell.flyswatter;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.client.render.ColorCubeRenderTools;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
-import net.minecraft.client.model.ShulkerBulletModel;
-import net.minecraft.client.model.geom.ModelLayers;
+import jp.aquafactory.apprenticecodex.renderer.extrudedsprite.ExtrudedSpriteRenderer;
+import jp.aquafactory.apprenticecodex.utility.RotationTools;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 
 public class FlySwatterProjectileRenderer extends EntityRenderer<FlySwatterProjectileEntity> {
-    // シュルカーを流用.
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.withDefaultNamespace("textures/entity/shulker/spark.png");
+    private static final ResourceLocation MISSILE_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/fly_swatter_missile.png");
 
     private static final RenderType BURST_RENDER_TYPE =
             ApprenticeRenderTypes.additiveColorNoCull("fly_swatter_burst_additive");
-    private final ShulkerBulletModel<FlySwatterProjectileEntity> model;
 
     public FlySwatterProjectileRenderer(EntityRendererProvider.Context ctx) {
         super(ctx);
-        model = new ShulkerBulletModel<>(ctx.bakeLayer(ModelLayers.SHULKER_BULLET));
         shadowRadius = 0.0F;
     }
 
     @Override
-    public void render(FlySwatterProjectileEntity entity, float entityYaw, float partialTicks,
+    public void render(@NotNull FlySwatterProjectileEntity entity, float entityYaw, float partialTicks,
                        @NotNull PoseStack poseStack, @NotNull MultiBufferSource buffer, int packedLight) {
 
         if (entity.isBursting()) {
@@ -46,24 +42,26 @@ public class FlySwatterProjectileRenderer extends EntityRenderer<FlySwatterProje
             return;
         }
 
-        var yRot = Mth.lerp(partialTicks, entity.yRotO, entity.getYRot());
-        var xRot = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());
-        var roll = (entity.tickCount + partialTicks) * 20.0F;
-        var vc = buffer.getBuffer(RenderType.entityTranslucent(getTextureLocation(entity)));
-
+        var motion = entity.getDeltaMovement();
+        var hasMotion = motion.lengthSqr() > 1.0e-6;
+        var yawPitch = hasMotion
+                ? RotationTools.calculateYawPitchByDirection(motion)
+                : RotationTools.calculateYawPitchByEntity(entity, partialTicks);
+        // ProjectileUtilのyawは+Z基準より180度ずれるため、速度ゼロ時の同期角だけ補正する。
+        var yaw = hasMotion ? yawPitch.yaw() : yawPitch.yaw() - 180.0f;
         poseStack.pushPose();
-        poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - yRot));
-        poseStack.mulPose(Axis.XP.rotationDegrees(-xRot));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(roll));
-        model.setupAnim(entity, 0.0F, 0.0F, entity.tickCount + partialTicks, 0.0F, 0.0F);
-        model.renderToBuffer(poseStack, vc, packedLight, OverlayTexture.NO_OVERLAY,
-                1.0F, 1.0F, 1.0F, 1.0F);
+        poseStack.mulPose(Axis.YP.rotationDegrees(-yaw));
+        poseStack.mulPose(Axis.XP.rotationDegrees(yawPitch.pitch()));
+        // 画像右上(+X,+Y)を+Zへ向けてから、進行方向のyaw/pitchを適用する。
+        poseStack.mulPose(Axis.XP.rotationDegrees(90.0f));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(45.0f));
+        ExtrudedSpriteRenderer.renderCenteredWithIndependentRotation(poseStack, buffer, packedLight, MISSILE_TEXTURE);
         poseStack.popPose();
         super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(@NotNull FlySwatterProjectileEntity pEntity) {
-        return TEXTURE;
+    public @NotNull ResourceLocation getTextureLocation(@NotNull FlySwatterProjectileEntity entity) {
+        return MISSILE_TEXTURE;
     }
 }

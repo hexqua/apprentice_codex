@@ -47,6 +47,7 @@ import java.util.UUID;
 public class FlySwatterProjectileEntity extends Projectile implements AntiMagicSusceptible, CombatOwnerUuidHolder {
     private static final int LIFE_TICKS = 20 * 10;
     private static final int BURST_TICKS = 14;
+    private static final double LAUNCH_ADVANCE_TICKS = 0.25;
     private static final double ENTITY_HIT_MARGIN = 0.3;
     private static final EntityDataAccessor<Boolean> DATA_BURST =
             SynchedEntityData.defineId(FlySwatterProjectileEntity.class, EntityDataSerializers.BOOLEAN);
@@ -99,6 +100,15 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
         velocity = plan.curve().startTangent().scale(1.0 / arrivalTicks);
         arrivalVelocity = plan.curve().endTangent().scale(1.0 / arrivalTicks);
         setDeltaMovement(velocity);
+        // 弾ごとの展開方向が同じ発射口で切り替わって見えるのを避け、軌道上を少し進めて生成する。
+        // 前進区間も通常の飛行と同じ衝突判定・軌跡送信を通し、壁や敵を飛び越さない。
+        var advance = plan.curve().prefix(LAUNCH_ADVANCE_TICKS / arrivalTicks);
+        double fraction = moveAlongCurve(advance);
+        sendTrail(advance, fraction);
+        if (isRemoved() || isBursting()) return;
+        setPos(advance.end());
+        velocity = plan.curve().tangent(LAUNCH_ADVANCE_TICKS / arrivalTicks).scale(1.0 / arrivalTicks);
+        setDeltaMovement(velocity);
         ProjectileUtil.rotateTowardsMovement(this, 1);
     }
 
@@ -123,6 +133,13 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
             else if (++burstTicks >= BURST_TICKS) discard();
             return;
         }
+        if (level().isClientSide) {
+            // 受信間も同期速度で表示位置を進め、基底lerpToによる次のserver座標で補正する。
+            // 衝突・誘導・ダメージと煙の軌跡は、引き続きserverの確定した経路を使う。
+            setPos(position().add(getDeltaMovement()));
+            ProjectileUtil.rotateTowardsMovement(this, 1);
+            return;
+        }
         if (!(level() instanceof ServerLevel server)) return;
         if (tickCount > LIFE_TICKS) { discard(); return; }
         var start = position();
@@ -130,11 +147,12 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
         LockOnRayCurve step;
         if (LockOnRayCastData.isLoadedTarget(server, target) && CombatTools.isValidCombatTarget(target, owner)
                 && tickCount <= arrivalTicks) {
-            int remaining = arrivalTicks - tickCount + 1;
+            // 射出時に進めた端数時間を残り時間にも反映し、選択済みの曲線と到達期限を維持する。
+            double remaining = arrivalTicks - tickCount + 1 - LAUNCH_ADVANCE_TICKS;
             if (aimTarget == null || aimTarget.isRemoved()) aimTarget = selectAimTarget(target);
             var curve = new LockOnRayCurve(start, aimTarget.getBoundingBox().getCenter(),
                     velocity.scale(remaining), arrivalVelocity.scale(remaining));
-            step = curve.prefix(1.0 / remaining);
+            step = curve.prefix(1.0 / Math.max(1.0, remaining));
             velocity = step.endTangent();
         } else {
             target = null;
@@ -142,16 +160,40 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
             step = new LockOnRayCurve(start, start.add(velocity), velocity, velocity);
         }
         double fraction = moveAlongCurve(step);
-        if (fraction > 0) {
-            // 削除直前も、serverが通過した区間を独立して送る。
-            Networks.sendToPlayersNear(server, start, 160, new FlySwatterTrailPacket(step.prefix(fraction)));
-        }
+        sendTrail(step, fraction);
         if (!isRemoved() && !isBursting()) {
             setPos(step.end());
             setDeltaMovement(position().subtract(start));
             ProjectileUtil.rotateTowardsMovement(this, 1);
             hasImpulse = true;
             if (tickCount >= LIFE_TICKS) discard();
+        }
+    }
+
+    @Override
+    public void onSyncedDataUpdated(@NotNull EntityDataAccessor<?> accessor) {
+        super.onSyncedDataUpdated(accessor);
+        if (level().isClientSide && DATA_BURST.equals(accessor) && isBursting()) {
+            setDeltaMovement(Vec3.ZERO);
+            clientBurstTicks = 0;
+            // 予測位置から着弾位置への補間で、爆発キューブが移動して見えるのを防ぐ。
+            setOldPosAndRot();
+        }
+    }
+
+    @Override
+    public void lerpTo(double x, double y, double z, float yaw, float pitch, int steps, boolean teleport) {
+        super.lerpTo(x, y, z, yaw, pitch, steps, teleport);
+        if (level().isClientSide && isBursting()) {
+            // 着弾状態と位置packetの到着順によらず、serverの着弾位置で描画を固定する。
+            setOldPosAndRot();
+        }
+    }
+
+    private void sendTrail(LockOnRayCurve curve, double fraction) {
+        if (fraction > 0 && level() instanceof ServerLevel server) {
+            // 射出時と削除直前も、serverが通過した区間を独立して送る。
+            Networks.sendToPlayersNear(server, curve.start(), 160, new FlySwatterTrailPacket(curve.prefix(fraction)));
         }
     }
 
