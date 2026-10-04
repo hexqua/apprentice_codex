@@ -1087,9 +1087,9 @@
 
   "spell.apprenticecodex.sky_edge.guide": "Summons a weapon that fires toward your line of sight. It has a wind-up and deals no knockback, but it can ignore the target's invulnerability frames.",
   "spell.apprenticecodex.archer_multiple.guide": "Summons a magical bow that follows you and continues attacking your chosen target or nearby enemies. The Greater Conjurer's Talisman cannot prevent this spell from entering cooldown.",
-  "spell.apprenticecodex.commence_fire.guide": "Summons a magical rifle that follows you. Use it again to unleash a powerful shot.",
+  "spell.apprenticecodex.commence_fire.guide": "Summons a magical rifle that follows you. Use it again to unleash a powerful shot. Headshots deal increased damage.",
   "spell.apprenticecodex.compound_phial.guide": "Instantly brews a potion on the spot and hurls it. It bypasses armor, but it can hit you as well.",
-  "spell.apprenticecodex.quick_arms.guide": "Summons a magical handgun and lets you fire it rapidly for a short time.",
+  "spell.apprenticecodex.quick_arms.guide": "Summons a magical handgun and lets you fire it rapidly for a short time. Ignores the target's invulnerability frames.",
   "spell.apprenticecodex.breaching_enemy.guide": "Summons a magical shotgun and fires. Its range is short, but the knockback is extremely powerful.",
   "spell.apprenticecodex.bullet_stream.guide": "Summons a magical gatling gun and unleashes a sustained barrage. It takes time to spin up, but once firing, its shots deal no knockback and ignore the target's invulnerability frames. Its maximum casting duration is unaffected by equipment modifiers. Cancelling during spin-up still triggers the normal cooldown.",
   "spell.apprenticecodex.arcane_blast.guide": "Detonates arcane power inside the target and accelerates your mana circulation. As an arcane attack, it bypasses armor, but it is powerless against demonic beings. A replica of the Weaver Mage's spell.",
