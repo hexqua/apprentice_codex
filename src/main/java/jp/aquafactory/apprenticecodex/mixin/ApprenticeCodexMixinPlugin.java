@@ -12,6 +12,7 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
     private static final String EASY_MAGIC_MOD_ID = "easymagic";
     private static final String APOTHEOSIS_MOD_ID = "apotheosis";
     private static final String JEI_MOD_ID = "jei";
+    private static final String PATCHOULI_MOD_ID = "patchouli";
     private static final String EPIC_FIGHT_MOD_ID = "epicfight";
     private static final String BETTER_COMBAT_MOD_ID = "bettercombat";
     private static final String EFIS_COMPAT_MOD_ID = "efiscompat";
@@ -22,6 +23,8 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
     private static final String EASY_MAGIC_MIXIN = "jp.aquafactory.apprenticecodex.mixin.EasyMagicModEnchantmentMenuMixin";
     private static final String ARCANE_ANVIL_JEI_RECIPE_MIXIN =
             "jp.aquafactory.apprenticecodex.mixin.ArcaneAnvilJeiRecipeMixin";
+    private static final String PATCHOULI_BOOK_HEADER_MIXIN =
+            "jp.aquafactory.apprenticecodex.mixin.PatchouliBookHeaderMixin";
     private static final String EPIC_FIGHT_MIXIN_PREFIX = "jp.aquafactory.apprenticecodex.mixin.EpicFight";
     private static final String BETTER_COMBAT_MIXIN_PREFIX = "jp.aquafactory.apprenticecodex.mixin.BetterCombat";
     private static final String EFIS_COMPAT_MIXIN_PREFIX = "jp.aquafactory.apprenticecodex.mixin.EfisCompat";
@@ -41,6 +44,12 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+        if (PATCHOULI_BOOK_HEADER_MIXIN.equals(mixinClassName)) {
+            // Patchouliは任意依存なので、未導入時にはclientの対象クラスを解決しない。
+            var loadingModList = FMLLoader.getLoadingModList();
+            return loadingModList != null && loadingModList.getModFileById(PATCHOULI_MOD_ID) != null;
+        }
+
         if (EASY_MAGIC_MIXIN.equals(mixinClassName)) {
             var loadingModList = FMLLoader.getLoadingModList();
             return loadingModList != null
