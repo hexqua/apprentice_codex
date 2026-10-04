@@ -1137,7 +1137,7 @@
   "spell.apprenticecodex.harvest_moon.guide": "收割你周围的作物，不会破坏植株，并将作物转移到你身上。",
   "spell.apprenticecodex.shock.guide": "发射由元素能量转化的闪电。",
   "spell.apprenticecodex.extract.guide": "从你手中的炼金术士烧瓶中提取内容物，并作为药水投掷。效果强度、喷溅/滞留形态取决于提取的内容物。",
-  "spell.apprenticecodex.silent_assassin.guide": "召唤一把一击即自毁的魔法狙击枪，瞄准并射击。对未发现你的生物造成极高伤害。",
+  "spell.apprenticecodex.silent_assassin.guide": "召唤一把一击即自毁的魔法狙击枪，瞄准并射击。爆头会提高伤害，对几乎未受伤的目标成功爆头时，伤害还会大幅提高。周围的敌人不容易发现你。",
   "spell.apprenticecodex.tiro_volley.guide": "在你周围连续召唤魔法火铳，持续攻击附近敌人。这些射击虽然不会造成击退，但可以无视目标的受伤无敌时间。这是对一位克服恐惧的魔法少女所用魔法的复刻。",
   "spell.apprenticecodex.magic_spear.guide": "召唤并发射一把魔法长矛，飞向你视线内的目标。命中后爆炸，波及附近目标。这是对曾经统治天空的天使所持武器的复刻。",
   "spell.apprenticecodex.frost_rune.guide": "在地形上刻下冰霜符文。除施法者外，任何生物触碰都会引爆，攻击范围内的目标。隐匿魔法使其难以被发现，但完全无法骗过翡翠之眼。",
@@ -1184,6 +1184,7 @@
 
   "ui.apprenticecodex.headshot_damage_multiplier": "爆头伤害倍率：%d%%",
   "ui.apprenticecodex.sneak_damage_multiplier": "潜行伤害倍率：%d%%",
+  "ui.apprenticecodex.almost_full_health_damage_multiplier": "对几乎未受伤敌人的伤害倍率：%d%%",
   "ui.apprenticecodex.reflect_damage_multiplier": "反射伤害倍率：%d%%",
   "ui.apprenticecodex.referenced_weapon_damage_multiplier": "参照攻击力倍率：%s%%",
   "ui.apprenticecodex.block_penetration_damage_multiplier": "方块穿透伤害倍率：%s%%",

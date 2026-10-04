@@ -70,23 +70,6 @@ public final class SummonedFirearmTools {
                 && CombatTools.isHeadShot(living, result.hitPosition());
     }
 
-    public static boolean shouldApplyUnawareBonus(Entity target, LivingEntity owner) {
-        if (target instanceof Mob mob && mob.getTarget() == owner) {
-            return false;
-        }
-
-        if (target instanceof NeutralMob neutral) {
-            var angerTarget = neutral.getPersistentAngerTarget();
-            if (angerTarget != null && angerTarget.equals(owner.getUUID())) {
-                return false;
-            }
-
-            return !neutral.isAngryAt(owner);
-        }
-
-        return true;
-    }
-
     public static void suppressNearbyAwareness(Level level, LivingEntity owner, Entity center, double radius) {
         if (!(level instanceof ServerLevel)) {
             return;

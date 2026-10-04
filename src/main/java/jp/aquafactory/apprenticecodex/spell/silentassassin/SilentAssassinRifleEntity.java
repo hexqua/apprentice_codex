@@ -195,7 +195,7 @@ public class SilentAssassinRifleEntity extends SummonWeaponEntity {
         CombatTools.applyDamage(target, finalDamage, source, SpellRegistry.SILENT_ASSASSIN.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
     }
 
-    public void fire(Vec3 target, Level level, HitTypes hitType, boolean isHeadShot, boolean hasUnawareBonus) {
+    public void fire(Vec3 target, Level level, HitTypes hitType, boolean isHeadShot) {
         recoilTick = MAX_RECOIL_TICK;
         isReleased = true;
         entityData.set(RECOIL_TICK, recoilTick);
@@ -222,8 +222,6 @@ public class SilentAssassinRifleEntity extends SummonWeaponEntity {
             if (isHeadShot) {
                 AudioTools.playSoundFromEntity(level, this, SoundRegistry.VANILLA_CRITICAL_SHOT.get(), SoundSource.PLAYERS, 1.0f, 2.0f);
                 server.sendParticles(ParticleTypes.CRIT, target.x, target.y, target.z, 20, .3, .3, .3, .15);
-            } else if (hasUnawareBonus) {
-                server.sendParticles(ParticleTypes.CRIT, target.x, target.y, target.z, 8, .2, .2, .2, .08);
             }
 
             // 魔法の性質上、これは相当なバランス変更になる点に注意.
