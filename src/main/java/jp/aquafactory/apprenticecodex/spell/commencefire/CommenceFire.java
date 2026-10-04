@@ -59,7 +59,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
         return List.of(
                 Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellLevel, caster), 2)),
                 Component.translatable("ui.irons_spellbooks.recast_count", getActivateCount(spellLevel, caster)),
-                Component.translatable("ui.apprenticecodex.headshot_damage_multiplier", getHeadshotPercent(spellLevel, caster)),
+                Component.translatable("ui.apprenticecodex.headshot_damage_multiplier", getHeadshotPercent()),
                 Component.translatable("ui.irons_spellbooks.distance", getRange())
         );
     }
@@ -101,8 +101,9 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
         return 16 * 4;
     }
 
-    private int getHeadshotPercent(int spellLevel, LivingEntity entity) {
-        return Math.min(500, 200 + Math.round(30 * (getSpellPower(spellLevel, entity) / 100.0f)));
+    private int getHeadshotPercent() {
+        // ヘッドショット倍率を固定化.
+        return 200;
     }
 
     @Override
@@ -206,7 +207,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
     @Override
     public void onCastWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull CommenceFireRifleEntity weapon){
         // FocusStaffbow のリキャスト詠唱は castSpell 中だけ SPELL_POWER を増やすため、射撃直前に計算する。
-        weapon.setDamage(getDamage(spellLevel, entity), getHeadshotPercent(spellLevel, entity));
+        weapon.setDamage(getDamage(spellLevel, entity), getHeadshotPercent());
         var result = resolvePlayerAim(entity);
         var isHeadShot = SummonedFirearmTools.isHeadShot(result);
         if (result.hitEntity() != null) {
@@ -225,7 +226,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
     @Override
     public CommenceFireRifleEntity onCastNoWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData){
         var summonWeapon = new CommenceFireRifleEntity(EntityRegistry.COMMENCE_FIRE_RIFLE.get(), level, entity);
-        summonWeapon.setDamage(getDamage(spellLevel, entity), getHeadshotPercent(spellLevel, entity));
+        summonWeapon.setDamage(getDamage(spellLevel, entity), getHeadshotPercent());
         level.addFreshEntity(summonWeapon);
         return summonWeapon;
     }
