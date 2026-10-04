@@ -38,6 +38,7 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
+import net.bettercombat.logic.WeaponRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.GameType;
 import net.minecraftforge.common.util.FakePlayer;
@@ -55,6 +56,7 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
@@ -245,24 +247,42 @@ public final class FullautoEchoGameTests extends ApprenticeCodexGameTestScenario
             var player = player(helper, "echo_zenith_discount");
             player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(ItemRegistry.ZENITH_STAFF.get()));
             equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
-            var firePower = player.getAttribute(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(
-                    AttributeRegistry.FIRE_SPELL_POWER.get()));
+            var firePower = player.getAttribute(AttributeRegistry.FIRE_SPELL_POWER.get());
             helper.assertTrue(firePower != null, "Echo Zenith test player is missing fire spell power attribute");
             firePower.addTransientModifier(new AttributeModifier(ZENITH_STAFF_SCHOOL_POWER_TEST_MODIFIER_ID, "Echo Zenith test",
                     0.5D, AttributeModifier.Operation.MULTIPLY_BASE));
 
             var spell = jp.aquafactory.apprenticecodex.registry.SpellRegistry.HEAVENLY_FIST.get();
-            helper.assertTrue(spell.getSchoolType() != SchoolRegistry.FIRE.get()
-                            && ZenithStaffPowerHelper.shouldIncreaseManaCost(player, spell.getSchoolType()),
-                    "Zenith Staff must increase this spell's mana cost");
+            helper.assertTrue(spell.getSchoolType() != SchoolRegistry.FIRE.get(),
+                    "Echo Zenith test spell must belong to a weaker school");
+            var betterCombatLoaded = ModList.get().isLoaded("bettercombat");
+            if (betterCombatLoaded) {
+                // 両手ライフルでは論理オフハンドが隠れるため、実スロットの杖を倍率へ含めない。
+                var attributes = WeaponRegistry.getAttributes(player.getMainHandItem());
+                helper.assertTrue(attributes != null && attributes.isTwoHanded(),
+                        "Fullauto Rapidcast Spellrifle must be a two-handed Better Combat weapon");
+                helper.assertTrue(player.getInventory().offhand.get(0).is(ItemRegistry.ZENITH_STAFF.get()),
+                        "Two-handed rifle must preserve the physical offhand Zenith Staff");
+                helper.assertTrue(player.getOffhandItem().isEmpty(),
+                        "Two-handed rifle must hide the logical offhand Zenith Staff");
+            } else {
+                helper.assertTrue(player.getOffhandItem().is(ItemRegistry.ZENITH_STAFF.get()),
+                        "Zenith Staff must remain visible without Better Combat");
+            }
+            helper.assertTrue(ZenithStaffPowerHelper.isHeldBy(player) == !betterCombatLoaded,
+                    "Zenith Staff activation must follow logical offhand visibility");
+            helper.assertTrue(ZenithStaffPowerHelper.shouldIncreaseManaCost(player, spell.getSchoolType())
+                            == !betterCombatLoaded,
+                    "Hidden Zenith Staff must not increase mana cost; visible Zenith Staff must increase it");
             var baseCost = spell.getManaCost(1);
             var discountedCost = Math.max(1, Math.round(baseCost * 0.5F));
-            var echoThenZenith = ZenithStaffManaCostEvent.applyZenithManaCostMultiplier(
-                    FullautoEchoCasting.scaleMana(discountedCost, 2.5D));
-            var zenithThenEcho = FullautoEchoCasting.scaleMana(
+            var echoCost = FullautoEchoCasting.scaleMana(discountedCost, 2.5D);
+            var echoThenZenith = betterCombatLoaded ? echoCost
+                    : ZenithStaffManaCostEvent.applyZenithManaCostMultiplier(echoCost);
+            var zenithThenEcho = betterCombatLoaded ? echoCost : FullautoEchoCasting.scaleMana(
                     ZenithStaffManaCostEvent.applyZenithManaCostMultiplier(discountedCost), 2.5D);
             var requiredCost = Math.max(baseCost, Math.max(echoThenZenith, zenithThenEcho));
-            helper.assertTrue(requiredCost > baseCost, "Combined multiplier must exceed the normal mana floor");
+            helper.assertTrue(requiredCost > baseCost, "Echo mana requirement must exceed the normal mana floor");
 
             var magic = MagicData.getPlayerMagicData(player);
             var stack = player.getMainHandItem();
@@ -272,13 +292,13 @@ public final class FullautoEchoGameTests extends ApprenticeCodexGameTestScenario
                 var rejected = new SpellPreCastEvent(player, spell.getSpellId(), 1, spell.getSchoolType(), CastSource.SWORD);
                 ZenithStaffManaCostEvent.onSpellPreCast(rejected);
                 FullautoRapidcastSpellrifleCastEvent.onEchoManaRequirement(rejected);
-                helper.assertTrue(rejected.isCanceled(), "Combined echo and Zenith cost must reject insufficient mana");
+                helper.assertTrue(rejected.isCanceled(), "Echo cost with only active multipliers must reject insufficient mana");
 
                 magic.setMana(requiredCost);
                 var funded = new SpellPreCastEvent(player, spell.getSpellId(), 1, spell.getSchoolType(), CastSource.SWORD);
                 ZenithStaffManaCostEvent.onSpellPreCast(funded);
                 FullautoRapidcastSpellrifleCastEvent.onEchoManaRequirement(funded);
-                helper.assertFalse(funded.isCanceled(), "Combined echo and Zenith cost must accept sufficient mana");
+                helper.assertFalse(funded.isCanceled(), "Echo cost with only active multipliers must accept sufficient mana");
 
                 var echoFirst = new SpellOnCastEvent(player, spell.getSpellId(), 1, baseCost,
                         spell.getSchoolType(), CastSource.SWORD);
@@ -286,7 +306,7 @@ public final class FullautoEchoGameTests extends ApprenticeCodexGameTestScenario
                 FullautoRapidcastSpellrifleCastEvent.onEchoManaCost(echoFirst);
                 ZenithStaffManaCostEvent.onSpellCast(echoFirst);
                 helper.assertTrue(echoFirst.getManaCost() == echoThenZenith,
-                        "Echo-first payment must match the combined mana requirement");
+                        "Echo-first payment must include only active mana multipliers");
 
                 var zenithFirst = new SpellOnCastEvent(player, spell.getSpellId(), 1, baseCost,
                         spell.getSchoolType(), CastSource.SWORD);
@@ -294,7 +314,7 @@ public final class FullautoEchoGameTests extends ApprenticeCodexGameTestScenario
                 ZenithStaffManaCostEvent.onSpellCast(zenithFirst);
                 FullautoRapidcastSpellrifleCastEvent.onEchoManaCost(zenithFirst);
                 helper.assertTrue(zenithFirst.getManaCost() == zenithThenEcho,
-                        "Zenith-first payment must match the combined mana requirement");
+                        "Zenith-first payment must include only active mana multipliers");
             } catch (Exception exception) {
                 throw new IllegalStateException("Failed to close echo Zenith cast test context.", exception);
             }
