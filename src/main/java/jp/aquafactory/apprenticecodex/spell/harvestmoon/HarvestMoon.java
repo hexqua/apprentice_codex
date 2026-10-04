@@ -22,6 +22,7 @@ import net.minecraft.world.entity.animal.Sheep;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.world.phys.Vec3;
 import java.util.List;
@@ -69,6 +70,23 @@ public class HarvestMoon extends AbstractSpell implements ICraftsmansDelightAffe
     @Override
     public boolean isCraftsmansDelightProcessSpeedBonusEnabled() {
         return false;
+    }
+
+    @Override
+    public boolean isCraftsmansDelightCastingMobilityEnabled() {
+        return true;
+    }
+
+    @Override
+    public void onServerPreCast(Level level, int spellLevel, LivingEntity entity, @Nullable MagicData playerMagicData) {
+        super.onServerPreCast(level, spellLevel, entity, playerMagicData);
+        CraftsmansDelight.applyCastingMobility(entity);
+    }
+
+    @Override
+    public void onServerCastTick(Level level, int spellLevel, LivingEntity entity, @Nullable MagicData playerMagicData) {
+        CraftsmansDelight.applyCastingMobility(entity);
+        super.onServerCastTick(level, spellLevel, entity, playerMagicData);
     }
 
     @Override

@@ -1825,6 +1825,21 @@ public final class ApprenticeCodexEquipmentAndEnchantGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void gracedRainCastingMobilityFollowsEquipmentAndCastLifecycle(GameTestHelper helper) {
+        CraftsmansDelightCastingMobilityGameTestScenarios.gracedRainCastingMobilityFollowsEquipmentAndCastLifecycle(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void manaMendingCastingMobilityFollowsEquipmentAndCastLifecycle(GameTestHelper helper) {
+        CraftsmansDelightCastingMobilityGameTestScenarios.manaMendingCastingMobilityFollowsEquipmentAndCastLifecycle(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void harvestMoonCastingMobilityFollowsEquipmentAndCastLifecycle(GameTestHelper helper) {
+        CraftsmansDelightCastingMobilityGameTestScenarios.harvestMoonCastingMobilityFollowsEquipmentAndCastLifecycle(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void craftsmansDelightScrollcasterGauntletCooldownUsesSwordMultiplier(GameTestHelper helper) {
         EquipmentSpellBehaviorBridgeGameTestScenarios.craftsmansDelightScrollcasterGauntletCooldownUsesSwordMultiplier(helper);
     }

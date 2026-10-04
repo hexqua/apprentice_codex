@@ -5490,12 +5490,13 @@ public class ApprenticeCodexGameTestScenarios {
 
 
 
-    static void assertCraftsmansDelightBasicDiscountOnly(
+    static void assertCraftsmansDelightBasicDiscounts(
             GameTestHelper helper,
             FakePlayer player,
             AbstractSpell spell,
             int baseManaCost,
-            String spellName
+            String spellName,
+            boolean expectedCastingMobility
     ) {
         if (!(spell instanceof ICraftsmansDelightAffectedSpell affectedSpell)) {
             helper.fail(spellName + " should opt into CraftsmansDelight support");
@@ -5506,8 +5507,8 @@ public class ApprenticeCodexGameTestScenarios {
                 spellName + " should not receive CraftsmansDelight break speed bonuses");
         helper.assertFalse(affectedSpell.isCraftsmansDelightProcessSpeedBonusEnabled(),
                 spellName + " should not receive CraftsmansDelight process speed bonuses");
-        helper.assertFalse(affectedSpell.isCraftsmansDelightCastingMobilityEnabled(),
-                spellName + " should keep CraftsmansDelight casting mobility disabled");
+        helper.assertTrue(affectedSpell.isCraftsmansDelightCastingMobilityEnabled() == expectedCastingMobility,
+                spellName + " casting mobility should be " + expectedCastingMobility);
         helper.assertTrue(CraftsmansDelightSpellSupport.isManaCostDiscountTarget(spell.getSpellId()),
                 spellName + " should be a CraftsmansDelight mana discount target");
         helper.assertTrue(CraftsmansDelightSpellSupport.isCooldownReductionTarget(spell),
