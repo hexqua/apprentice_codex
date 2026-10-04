@@ -15,18 +15,21 @@ import top.theillusivec4.curios.api.CuriosApi;
 final class ShootingStarMantleParticles {
     private static final DustParticleOptions NIGHT_DUST =
             new DustParticleOptions(new Vector3f(0.12F, 0.18F, 0.43F), 0.8F);
-    private static final AdditiveGlowParticleOptions BLUE_SPARK =
-            new AdditiveGlowParticleOptions(ParticleRegistry.ADDITIVE_SPARK.get(), 0.12F,
-                    0.27F, 0.42F, 0.82F, 2, 12, 4,
-                    0.85F, 1.25F, 0.65F, 0.9F, 0.05F, 0.65F, 0.65F, true);
-    private static final AdditiveGlowParticleOptions GOLD_SPARK =
-            new AdditiveGlowParticleOptions(ParticleRegistry.ADDITIVE_SPARK.get(), 0.13F,
-                    1.0F, 0.86F, 0.34F, 2, 12, 4,
-                    0.85F, 1.25F, 0.7F, 0.95F, 0.05F, 0.65F, 0.65F, true);
-    private static final AdditiveGlowParticleOptions GOLD_RHOMBUS =
-            new AdditiveGlowParticleOptions(ParticleRegistry.ADDITIVE_RHOMBUS.get(), 0.15F,
-                    1.0F, 0.88F, 0.4F, 2, 15, 4,
-                    0.85F, 1.2F, 0.6F, 0.85F, 0.05F, 0.7F, 0.6F, false);
+    // 起動中や切断時のresetでは登録値に触れず、実際の粒子生成まで初期化を遅らせる。
+    private static final class ParticlePresets {
+        private static final AdditiveGlowParticleOptions BLUE_SPARK =
+                new AdditiveGlowParticleOptions(ParticleRegistry.ADDITIVE_SPARK.get(), 0.12F,
+                        0.27F, 0.42F, 0.82F, 2, 12, 4,
+                        0.85F, 1.25F, 0.65F, 0.9F, 0.05F, 0.65F, 0.65F, true);
+        private static final AdditiveGlowParticleOptions GOLD_SPARK =
+                new AdditiveGlowParticleOptions(ParticleRegistry.ADDITIVE_SPARK.get(), 0.13F,
+                        1.0F, 0.86F, 0.34F, 2, 12, 4,
+                        0.85F, 1.25F, 0.7F, 0.95F, 0.05F, 0.65F, 0.65F, true);
+        private static final AdditiveGlowParticleOptions GOLD_RHOMBUS =
+                new AdditiveGlowParticleOptions(ParticleRegistry.ADDITIVE_RHOMBUS.get(), 0.15F,
+                        1.0F, 0.88F, 0.4F, 2, 15, 4,
+                        0.85F, 1.2F, 0.6F, 0.85F, 0.05F, 0.7F, 0.6F, false);
+    }
     private static Vec3 previousPosition;
 
     private ShootingStarMantleParticles() { }
@@ -58,8 +61,8 @@ final class ShootingStarMantleParticles {
             // 暗い粒を面として残し、黄色い星は少数の光点にする。
             double choice = random.nextDouble();
             ParticleOptions particle = choice < 0.55D ? NIGHT_DUST
-                    : choice < 0.8D ? BLUE_SPARK
-                    : choice < 0.96D ? GOLD_SPARK : GOLD_RHOMBUS;
+                    : choice < 0.8D ? ParticlePresets.BLUE_SPARK
+                    : choice < 0.96D ? ParticlePresets.GOLD_SPARK : ParticlePresets.GOLD_RHOMBUS;
             double outward = (side > 0 ? 1 : -1) * (flying ? 0.002D : 0.012D);
             var velocity = right.scale(outward).add(
                     (random.nextDouble() - 0.5D) * 0.008D,
@@ -73,7 +76,7 @@ final class ShootingStarMantleParticles {
             var position = current.add(forward.scale(0.55D))
                     .add(right.scale(random.nextBoolean() ? 0.7D : -0.7D))
                     .add(0, player.getEyeHeight() - 0.4D, 0);
-            player.level().addParticle(random.nextInt(4) == 0 ? GOLD_SPARK : BLUE_SPARK,
+            player.level().addParticle(random.nextInt(4) == 0 ? ParticlePresets.GOLD_SPARK : ParticlePresets.BLUE_SPARK,
                     position.x, position.y, position.z, 0, 0.005D, 0);
         }
         previousPosition = current;
