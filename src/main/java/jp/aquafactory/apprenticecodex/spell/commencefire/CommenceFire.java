@@ -73,7 +73,7 @@ public class CommenceFire extends AbstractSummonWeaponRecastSpell<CommenceFireRi
 
     @Override
     public int getActivateCount(int spellLevel, LivingEntity entity) {
-        return Math.min(10, 3 + Math.round(2 * (getSpellPower(spellLevel, entity) / 100.0f)));
+        return 6;
     }
 
     @Override
