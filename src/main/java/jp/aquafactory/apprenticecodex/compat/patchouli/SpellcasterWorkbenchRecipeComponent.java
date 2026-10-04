@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.spellcasterworkbench.SpellcasterWorkbenchDisplayExamples;
 import jp.aquafactory.apprenticecodex.recipe.spellcasterworkbench.SpellcasterWorkbenchRecipe;
 import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import net.minecraft.client.Minecraft;
@@ -40,22 +41,26 @@ public final class SpellcasterWorkbenchRecipeComponent implements ICustomCompone
 
     public String recipe = "";
     public String recipe2 = "";
+    public String example = "";
+    public String example2 = "";
 
-    private transient List<ResourceLocation> recipeIds = List.of();
+    private transient List<DisplayReference> references = List.of();
     private transient List<DisplayRecipe> displayRecipes = List.of();
     private transient int componentX;
     private transient int componentY;
 
     @Override
     public void onVariablesAvailable(UnaryOperator<IVariable> lookup) {
-        var parsedIds = new ArrayList<ResourceLocation>(MAX_RECIPES_PER_PAGE);
-        collectConfiguredRecipeId(parsedIds, lookup, recipe);
-        collectConfiguredRecipeId(parsedIds, lookup, recipe2);
-        if (parsedIds.isEmpty()) {
-            collectLookupRecipeId(parsedIds, lookup, "recipe");
-            collectLookupRecipeId(parsedIds, lookup, "recipe2");
+        var parsed = new ArrayList<DisplayReference>(MAX_RECIPES_PER_PAGE);
+        collectSlot(parsed, lookup, recipe, example);
+        collectSlot(parsed, lookup, recipe2, example2);
+        if (parsed.isEmpty()) {
+            collectLookupReference(parsed, lookup, "recipe", false);
+            collectLookupReference(parsed, lookup, "example", true);
+            collectLookupReference(parsed, lookup, "recipe2", false);
+            collectLookupReference(parsed, lookup, "example2", true);
         }
-        recipeIds = List.copyOf(parsedIds);
+        references = List.copyOf(parsed);
     }
 
     @Override
@@ -151,47 +156,70 @@ public final class SpellcasterWorkbenchRecipeComponent implements ICustomCompone
         return preview;
     }
 
-    private static void collectConfiguredRecipeId(
-            List<ResourceLocation> parsedIds,
+    private static void collectSlot(
+            List<DisplayReference> parsed,
             UnaryOperator<IVariable> lookup,
-            @Nullable String configuredValue
+            @Nullable String configuredRecipe,
+            @Nullable String configuredExample
+    ) {
+        var reference = parseConfiguredReference(lookup, configuredRecipe, false);
+        if (reference == null) {
+            reference = parseConfiguredReference(lookup, configuredExample, true);
+        }
+        if (reference != null && parsed.size() < MAX_RECIPES_PER_PAGE) {
+            parsed.add(reference);
+        }
+    }
+
+    private static @Nullable DisplayReference parseConfiguredReference(
+            UnaryOperator<IVariable> lookup,
+            @Nullable String configuredValue,
+            boolean example
     ) {
         if (configuredValue == null || configuredValue.isBlank()) {
-            return;
+            return null;
         }
         var configured = configuredValue.trim();
         if (configured.startsWith("#")) {
             configured = lookup.apply(IVariable.wrap(configured)).asString("").trim();
         }
-        collectRecipeId(parsedIds, configured);
+        return parseReference(configured, example);
     }
 
-    private static void collectLookupRecipeId(
-            List<ResourceLocation> parsedIds,
+    private static void collectLookupReference(
+            List<DisplayReference> parsed,
             UnaryOperator<IVariable> lookup,
-            String key
+            String key,
+            boolean example
     ) {
+        if (parsed.size() >= MAX_RECIPES_PER_PAGE) {
+            return;
+        }
         var configured = lookup.apply(IVariable.wrap(key)).asString("").trim();
         if (!configured.equals(key)) {
-            collectRecipeId(parsedIds, configured);
+            var reference = parseReference(configured, example);
+            if (reference != null) {
+                parsed.add(reference);
+            }
         }
     }
 
-    private static void collectRecipeId(List<ResourceLocation> parsedIds, String configured) {
-        if (configured.isEmpty() || configured.startsWith("#") || parsedIds.size() >= MAX_RECIPES_PER_PAGE) {
-            return;
+    private static @Nullable DisplayReference parseReference(String configured, boolean example) {
+        if (configured.isEmpty() || configured.startsWith("#")) {
+            return null;
         }
-        var recipeId = ResourceLocation.tryParse(configured);
-        if (recipeId == null) {
-            ApprenticeCodex.LOGGER.warn("Patchouli Spellcaster Workbench page skipped invalid recipe id: {}", configured);
-            return;
+        var id = ResourceLocation.tryParse(configured);
+        if (id == null) {
+            ApprenticeCodex.LOGGER.warn("Patchouli Spellcaster Workbench page skipped invalid {} id: {}",
+                    example ? "example" : "recipe", configured);
+            return null;
         }
-        parsedIds.add(recipeId);
+        return new DisplayReference(id, example);
     }
 
     private void refreshRecipes() {
         displayRecipes = List.of();
-        if (recipeIds.isEmpty()) {
+        if (references.isEmpty()) {
             return;
         }
         var recipeManager = getClientRecipeManager();
@@ -199,14 +227,30 @@ public final class SpellcasterWorkbenchRecipeComponent implements ICustomCompone
             return;
         }
         var availableRecipes = recipeManager.getAllRecipesFor(RecipeRegistry.SPELLCASTER_WORKBENCH_RECIPE_TYPE.get());
-        var resolved = new ArrayList<DisplayRecipe>(recipeIds.size());
-        for (var recipeId : recipeIds) {
-            var match = availableRecipes.stream()
-                    .filter(holder -> holder.getId().equals(recipeId))
-                    .findFirst()
-                    .orElse(null);
+        // Patchouli の book 再構築タイミングには依存できないため、表示中の制作数は設定変更に追従させない。
+        // 見本はページを表示した時点の同期済みサーバー設定で作り直す。
+        var examples = references.stream().anyMatch(DisplayReference::example)
+                ? SpellcasterWorkbenchDisplayExamples.all()
+                : List.<SpellcasterWorkbenchDisplayExamples.Example>of();
+        var resolved = new ArrayList<DisplayRecipe>(references.size());
+        for (var reference : references) {
+            SpellcasterWorkbenchRecipe match;
+            if (reference.example()) {
+                match = examples.stream()
+                        .filter(value -> value.id().equals(reference.id()))
+                        .map(SpellcasterWorkbenchDisplayExamples.Example::recipe)
+                        .findFirst()
+                        .orElse(null);
+            } else {
+                var holder = availableRecipes.stream()
+                        .filter(value -> value.getId().equals(reference.id()))
+                        .findFirst()
+                        .orElse(null);
+                match = holder;
+            }
             if (match == null) {
-                ApprenticeCodex.LOGGER.warn("Patchouli Spellcaster Workbench page could not resolve recipe {}.", recipeId);
+                ApprenticeCodex.LOGGER.warn("Patchouli Spellcaster Workbench page could not resolve {} {}.",
+                        reference.example() ? "example" : "recipe", reference.id());
             }
             resolved.add(new DisplayRecipe(match));
         }
@@ -221,6 +265,9 @@ public final class SpellcasterWorkbenchRecipeComponent implements ICustomCompone
     private static void drawSlot(GuiGraphics graphics, int x, int y) {
         graphics.fill(x, y, x + SLOT_SIZE, y + SLOT_SIZE, SLOT_OUTER_COLOR);
         graphics.fill(x + 1, y + 1, x + SLOT_SIZE - 1, y + SLOT_SIZE - 1, SLOT_INNER_COLOR);
+    }
+
+    private record DisplayReference(ResourceLocation id, boolean example) {
     }
 
     private record DisplayRecipe(@Nullable SpellcasterWorkbenchRecipe recipe) {

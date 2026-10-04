@@ -7,7 +7,9 @@
       "x": 0,
       "y": 0,
       "recipe": "#recipe",
-      "recipe2": "#recipe2"
+      "recipe2": "#recipe2",
+      "example": "#example",
+      "example2": "#example2"
     },
     {
       "type": "patchouli:text",
