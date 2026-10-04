@@ -7,6 +7,7 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfile;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfileManager;
@@ -17,6 +18,7 @@ import jp.aquafactory.apprenticecodex.mixin.LivingEntityDamageMemoryAccessor;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLightChargeCutEntity;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLightKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunEntity;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
@@ -315,6 +317,56 @@ public final class DragonDamageGameTests {
             assertDamage(helper, dragon, 5);
             helper.assertTrue(dragon.invulnerableTime == 2,
                     "Repeated part damage must restore the configured iframe on the parent");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void sampledBeamHitsNonHeadPartsOncePerDamagePass(GameTestHelper helper) {
+        if (skipDragonTest(helper)) return;
+        try (var scene = new Scene(helper)) {
+            var dragon = scene.dragon();
+            scene.exposePart(dragon.getSubEntities()[6], new Vec3(3, 1, 0));
+            scene.exposePart(dragon.getSubEntities()[7], new Vec3(5, 1, 0));
+            var source = CombatTools.getDamageSource(helper.getLevel(), scene.owner, DamageTypes.GRIND_RUNNER);
+            // 複数部位を拾っても一回分。次の判定では再び命中し、継続攻撃を妨げない。
+            for (int pass = 1; pass <= 2; pass++) {
+                var hits = RaycastTools.sampleBeamHits(helper.getLevel(), scene.origin.add(0, 1, 0),
+                        scene.origin.add(8, 1, 0), 0.3, 0.2,
+                        target -> CombatTools.isValidCombatTarget(target, scene.owner));
+                helper.assertTrue(hits.size() == 1 && hits.contains(dragon),
+                        "Beam must merge exposed non-head parts into one parent hit");
+                hits.forEach(target -> CombatTools.applyDamage(target, 20, source, null,
+                        CombatTools.KnockbackTypes.NO_KNOCKBACK));
+                assertDamage(helper, dragon, 20 * pass);
+            }
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void moonLightChargeCutHitsNonHeadPartsOnceAcrossSegments(GameTestHelper helper) {
+        if (skipDragonTest(helper)) return;
+        try (var scene = new Scene(helper)) {
+            var dragon = scene.dragon();
+            scene.exposePart(dragon.getSubEntities()[6], new Vec3(3, 1, 0));
+            scene.exposePart(dragon.getSubEntities()[7], new Vec3(6, 1, 0));
+            var cut = new MoonLightChargeCutEntity(EntityRegistry.MOON_LIGHT_CHARGE_CUT.get(),
+                    helper.getLevel(), scene.owner);
+            cut.setPos(scene.origin);
+            cut.setYRot(-90);
+            cut.setXRot(0);
+            cut.setup(8, 20);
+            scene.add(cut);
+            // 部位が別の進行区間で命中しても、斬撃全体では本体へ一回だけ適用する。
+            for (int tick = 0; tick < MoonLightChargeCutEntity.PROCESS_START_DELAY_TICKS
+                    + MoonLightChargeCutEntity.PROCESS_DURATION_TICKS + 1; tick++) {
+                if (!cut.isRemoved()) {
+                    ++cut.tickCount;
+                    cut.tick();
+                }
+            }
+            assertDamage(helper, dragon, 20);
         }
         helper.succeed();
     }

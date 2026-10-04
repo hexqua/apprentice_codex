@@ -46,19 +46,20 @@ public final class BloodBrandBurst {
         var totalHealing = 0.0F;
 
         for (var rawTarget : level.getEntities((Entity) null, area, entity -> isCandidate(entity, origin, caster))) {
-            var resolved = CombatTools.resolutePartEntity(rawTarget);
-            if (!(resolved instanceof LivingEntity target) || target == origin
-                    || !damagedTargets.add(target.getUUID())) {
+            var target = CombatTools.resolutePartEntity(rawTarget);
+            if (!target.isAlive() || target == origin || damagedTargets.contains(target.getUUID())) {
                 continue;
             }
-            if (distanceToBoundingBox(center, target.getBoundingBox()) > range) {
+            if (distanceToBoundingBox(center, rawTarget.getBoundingBox()) > range) {
                 continue;
             }
-            if (!Utils.hasLineOfSight(level, center, target.getBoundingBox().getCenter(), false)) {
+            if (!Utils.hasLineOfSight(level, center, rawTarget.getBoundingBox().getCenter(), false)) {
                 continue;
             }
 
-            var healthBefore = target.getHealth();
+            damagedTargets.add(target.getUUID());
+            var livingTarget = target instanceof LivingEntity living ? living : null;
+            var healthBefore = livingTarget != null ? livingTarget.getHealth() : 0.0F;
             var damaged = CombatTools.applyDamage(
                     target,
                     damage,
@@ -66,9 +67,9 @@ public final class BloodBrandBurst {
                     SpellRegistry.BLOOD_BRAND.get().getSchoolType(),
                     CombatTools.KnockbackTypes.NO_KNOCKBACK
             );
-            if (damaged) {
+            if (damaged && livingTarget != null) {
                 // 余剰ダメージでは回復せず、対象が実際に失った通常体力だけを吸収する。
-                totalHealing += Math.max(0.0F, healthBefore - target.getHealth()) * healRate;
+                totalHealing += Math.max(0.0F, healthBefore - livingTarget.getHealth()) * healRate;
             }
         }
         if (totalHealing > 0.0F) {

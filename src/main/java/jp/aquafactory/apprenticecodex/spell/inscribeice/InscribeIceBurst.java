@@ -87,22 +87,23 @@ public final class InscribeIceBurst {
         var damagedIds = new HashSet<Integer>();
 
         for (var rawTarget : level.getEntities((Entity) null, area, entity -> isBlastCandidate(entity, owner))) {
-            var resolved = CombatTools.resolutePartEntity(rawTarget);
-            if (!(resolved instanceof LivingEntity livingTarget)) {
+            var target = CombatTools.resolutePartEntity(rawTarget);
+            if (!target.isAlive()) {
                 continue;
             }
-            if (!damagedIds.add(livingTarget.getId())) {
+            if (!damagedIds.add(target.getId())) {
                 continue;
             }
 
             var damaged = CombatTools.applyDamage(
-                    livingTarget,
+                    target,
                     damage,
                     damageSource,
                     SpellRegistry.INSCRIBE_ICE.get().getSchoolType(),
                     CombatTools.KnockbackTypes.NO_KNOCKBACK
             );
-            if (damaged && livingTarget.hasEffect(EffectRegistry.NOTCHED_FROZEN.get())) {
+            if (damaged && target instanceof LivingEntity livingTarget
+                    && livingTarget.hasEffect(EffectRegistry.NOTCHED_FROZEN.get())) {
                 burstChain(level, livingTarget, sourceEntity, owner, chainDamage, processedEntityIds);
             }
         }
