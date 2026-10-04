@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.compat.patchouli;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -14,11 +15,35 @@ import java.util.function.UnaryOperator;
 final class PatchouliRecipeLayout {
     static final int HEADER_HEIGHT = 12;
     static final int PAGE_WIDTH = 116;
-    static final int SMOKER_ROW_HEIGHT = 24;
-    static final int WORKBENCH_ROW_HEIGHT = 50;
+    static final int SMOKER_ROW_HEIGHT = 32;
+    static final int WORKBENCH_ROW_HEIGHT = 52;
     static final int TEXT_GAP = 5;
+    static final int SLOT_SIZE = 24;
+    static final int SLOT_PADDING = 4;
+    private static final int TEXTURE_WIDTH = 128;
+    private static final int TEXTURE_HEIGHT = 256;
 
     private PatchouliRecipeLayout() {
+    }
+
+    static int centeredX(int componentX, int width) {
+        return componentX + (PAGE_WIDTH - width) / 2;
+    }
+
+    static void drawSlot(GuiGraphics graphics, IComponentRenderContext context, int x, int y) {
+        drawTexture(graphics, context, x, y, 11, 71, SLOT_SIZE, SLOT_SIZE);
+    }
+
+    static void drawArrow(GuiGraphics graphics, IComponentRenderContext context, int x, int y) {
+        drawTexture(graphics, context, x, y, 38, 79, 9, 9);
+    }
+
+    private static void drawTexture(GuiGraphics graphics, IComponentRenderContext context,
+                                    int x, int y, int u, int v, int width, int height) {
+        // 標準ページと同じ描画条件で、本ごとのcrafting textureと透明な枠を利用する。
+        RenderSystem.enableBlend();
+        RenderSystem.setShaderColor(1F, 1F, 1F, 1F);
+        graphics.blit(context.getCraftingTexture(), x, y, u, v, width, height, TEXTURE_WIDTH, TEXTURE_HEIGHT);
     }
 
     static Component resolveTitle(String configured, UnaryOperator<IVariable> lookup) {
