@@ -1,0 +1,60 @@
+{
+  "name": "item.apprenticecodex.chargecast_catalystbook",
+  "category": "apprenticecodex:staves_and_casting_devices",
+  "icon": "apprenticecodex:chargecast_catalystbook",
+  "pages": [
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:chargecast_catalystbook",
+      "text": {
+        "translate": "patchouli.apprenticecodex.apprentices_memo.entry.chargecast_catalystbook.page.p001.text",
+        "with": [
+          {
+            "translate": "block.apprenticecodex.spell_calibration_bench"
+          }
+        ]
+      }
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "apprenticecodex:chargecast_catalystbook",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.chargecast_catalystbook.page.p002.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.chargecast_catalystbook.page.p003.title",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.chargecast_catalystbook.page.p003.text",
+      "item": "irons_spellbooks:fire_rune,irons_spellbooks:ice_rune,irons_spellbooks:lightning_rune,irons_spellbooks:holy_rune,irons_spellbooks:ender_rune,irons_spellbooks:blood_rune,irons_spellbooks:evocation_rune,irons_spellbooks:nature_rune"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": "tag:apprenticecodex:scrollcaster_gauntlet_slot_upgrades",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.chargecast_catalystbook.page.p004.title",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.chargecast_catalystbook.page.p004.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": "irons_spellbooks:silver_ring",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.chargecast_catalystbook.page.p005.title",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.chargecast_catalystbook.page.p005.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:silver_spell_amplifier",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.chargecast_catalystbook.page.p006.title",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.chargecast_catalystbook.page.p006.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:wisdom_shard",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.chargecast_catalystbook.page.p007.title",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.chargecast_catalystbook.page.p007.text"
+    },
+    {
+      "type": "patchouli:relations",
+      "entries": [
+        "apprenticecodex:devices/spell_calibration_bench"
+      ]
+    }
+  ]
+}

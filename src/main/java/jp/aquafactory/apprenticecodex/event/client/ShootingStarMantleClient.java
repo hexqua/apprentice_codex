@@ -22,6 +22,7 @@ import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.client.event.MovementInputUpdateEvent;
+import net.minecraftforge.fml.ModLoader;
 
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -187,6 +188,8 @@ public final class ShootingStarMantleClient {
     @SubscribeEvent
     public static void tick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
+        // Forgeでロード失敗後に届くtickから未登録値を参照しない。
+        if (!ModLoader.isLoadingStateValid()) return;
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         var equipped = player == null ? ItemStack.EMPTY : ShootingStarMantleRuntime.findEquipped(player);

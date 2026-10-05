@@ -292,6 +292,9 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
         entityData.define(THROW_YAW, 0f);
     }
     // セッション限定。保存済みEntityが復元されてもowner無しとして即時破棄する。
+    public float getPhysicalDamage() { return physical; }
+    public float getMagicDamage() { return magic; }
+
     @Override protected void readAdditionalSaveData(@NotNull CompoundTag tag) {}
     @Override protected void addAdditionalSaveData(@NotNull CompoundTag tag) {}
     @Override public boolean shouldBeSaved() { return false; }

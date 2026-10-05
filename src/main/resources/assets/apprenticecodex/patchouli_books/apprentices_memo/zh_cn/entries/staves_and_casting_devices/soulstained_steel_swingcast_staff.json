@@ -1,0 +1,29 @@
+{
+  "name": "item.apprenticecodex.soulstained_steel_swingcast_staff",
+  "category": "apprenticecodex:staves_and_casting_devices",
+  "icon": "apprenticecodex:soulstained_steel_swingcast_staff",
+  "flag": "mod:malum",
+  "pages": [
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:soulstained_steel_swingcast_staff",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.soulstained_steel_swingcast_staff.page.p001.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": "malum:spirit_altar",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.soulstained_steel_swingcast_staff.page.p002.title",
+      "text": {
+        "translate": "patchouli.apprenticecodex.apprentices_memo.entry.soulstained_steel_swingcast_staff.page.p002.text",
+        "with": [
+          {
+            "translate": "block.malum.spirit_altar"
+          },
+          {
+            "translate": "item.apprenticecodex.iron_swingcast_staff"
+          }
+        ]
+      }
+    }
+  ]
+}

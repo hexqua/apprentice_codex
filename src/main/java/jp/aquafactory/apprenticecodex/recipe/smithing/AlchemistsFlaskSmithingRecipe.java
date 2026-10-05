@@ -15,7 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.SmithingRecipe;
+import net.minecraft.world.item.crafting.SmithingTransformRecipe;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.ForgeHooks;
@@ -23,7 +23,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.stream.Stream;
 
-public final class AlchemistsFlaskSmithingRecipe implements SmithingRecipe {
+// Patchouliの材料取得に対応し、NBT・内容物・エンチャントの変換はForge側の処理を保つ。
+public final class AlchemistsFlaskSmithingRecipe extends SmithingTransformRecipe {
     private static final String STORAGE_TAG = "SpellcastersFlask";
     private static final String STORED_ITEM_TAG = "StoredItem";
     private static final String PARTICLES_SUPPRESSED_TAG = "ParticlesSuppressed";
@@ -41,6 +42,7 @@ public final class AlchemistsFlaskSmithingRecipe implements SmithingRecipe {
             Ingredient addition,
             ItemStack result
     ) {
+        super(id, template, base, addition, result.copy());
         this.id = id;
         this.template = template;
         this.base = base;

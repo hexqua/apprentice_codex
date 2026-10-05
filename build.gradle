@@ -447,7 +447,8 @@ dependencies {
     add(clientRuntimeModuleConfigurations.target_dummy, fg.deobf("maven.modrinth:Adega8YN:zAahRq2q"))
 
     // Patchouli.
-    compileOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}:api")
+    // 標準ページの見出し描画へMixinで介入するため、API以外もコンパイル時に参照する。
+    compileOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}")
     runtimeOnly fg.deobf("vazkii.patchouli:Patchouli:${patchouli_version}")
 }
 

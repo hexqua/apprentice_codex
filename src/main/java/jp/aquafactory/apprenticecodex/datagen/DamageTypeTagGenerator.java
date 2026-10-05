@@ -143,6 +143,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
 
         // BYPASSES_IFRAME: 無敵時間を無視するダメージ.
         tag(BYPASSES_IFRAME).add(
+                QUICK_ARMS,
                 BULLET_STREAM,
                 GRACED_RAIN,
                 SKY_EDGE,

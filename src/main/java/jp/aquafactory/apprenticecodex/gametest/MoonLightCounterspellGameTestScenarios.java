@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.events.CounterSpellEvent;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
+import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
@@ -179,6 +180,8 @@ final class MoonLightCounterspellGameTestScenarios {
 
     private static MagicData preparePlayerCounterspellState(FakePlayer target) {
         var magicData = MagicData.getPlayerMagicData(target);
+        // ForgeのFakePlayerはログイン時の同期データ初期化を通らない。
+        magicData.setSyncedData(new SyncedSpellData(target));
         var interruptedSpell = SpellRegistry.MOON_LIGHT.get();
         magicData.initiateCast(interruptedSpell, 1, 60, CastSource.SPELLBOOK, "gametest");
 

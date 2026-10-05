@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.datagen;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.patchouli.PatchouliBookSupport;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.RequirementsStrategy;
@@ -48,6 +49,21 @@ public final class RecipeGenerator extends RecipeProvider {
     @SuppressWarnings("DataFlowIssue")
     @Override
     protected void buildRecipes(@NotNull Consumer<FinishedRecipe> recipeWriter) {
+        var book = PatchouliBookSupport.createBookStack();
+        if (!book.isEmpty()) {
+            ShapedRecipeBuilder.shaped(RecipeCategory.MISC, book.getItem())
+                    .pattern(" E ")
+                    .pattern("CBC")
+                    .pattern(" D ")
+                    .define('B', Items.BOOK)
+                    .define('C', Items.COPPER_INGOT)
+                    .define('D', Items.BLUE_DYE)
+                    .define('E', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get())
+                    .unlockedBy(getHasName(Items.BOOK), has(Items.BOOK))
+                    // 生成時にはPatchouliが存在しても、配布先では未導入の場合がある。
+                    .save(recipe -> recipeWriter.accept(new PatchouliBookFinishedRecipe(recipe, book)), PatchouliBookSupport.BOOK_ID);
+        }
+
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
                 .pattern("CCC")
                 .pattern("CMC")
@@ -1993,6 +2009,44 @@ public final class RecipeGenerator extends RecipeProvider {
             json.addProperty("type", type);
             json.addProperty("count", count);
             return json;
+        }
+    }
+
+    // Forgeのshaped出力へ本のNBTを付加し、Patchouli未導入時はレシピと進捗を両方除外する。
+    private record PatchouliBookFinishedRecipe(FinishedRecipe delegate, ItemStack book) implements FinishedRecipe {
+        private JsonArray conditions() {
+            var condition = new JsonObject();
+            condition.addProperty("type", "forge:mod_loaded");
+            condition.addProperty("modid", "patchouli");
+            var conditions = new JsonArray();
+            conditions.add(condition);
+            return conditions;
+        }
+
+        @Override
+        public void serializeRecipeData(JsonObject json) {
+            delegate.serializeRecipeData(json);
+            json.add("conditions", conditions());
+            var tag = book.getTag();
+            if (tag != null) json.getAsJsonObject("result").addProperty("nbt", tag.toString());
+        }
+
+        @Override public @NotNull ResourceLocation getId() { return delegate.getId(); }
+        @Override public @NotNull RecipeSerializer<?> getType() { return delegate.getType(); }
+        @Override public @Nullable ResourceLocation getAdvancementId() { return delegate.getAdvancementId(); }
+
+        @Override
+        public @Nullable JsonObject serializeAdvancement() {
+            var advancement = delegate.serializeAdvancement();
+            if (advancement == null) return null;
+            var entry = new JsonObject();
+            entry.add("conditions", conditions());
+            entry.add("advancement", advancement);
+            var entries = new JsonArray();
+            entries.add(entry);
+            var result = new JsonObject();
+            result.add("advancements", entries);
+            return result;
         }
     }
 }

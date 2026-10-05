@@ -10,14 +10,15 @@ import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.SmithingRecipe;
+import net.minecraft.world.item.crafting.SmithingTransformRecipe;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.ForgeHooks;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.stream.Stream;
 
-public final class SpellbookCarryoverSmithingRecipe implements SmithingRecipe {
+// Patchouliの鍛冶台ページが参照する材料を基底クラスにも渡し、NBTの継承は1.20.1方式を保つ。
+public final class SpellbookCarryoverSmithingRecipe extends SmithingTransformRecipe {
     private final ResourceLocation id;
     private final Ingredient template;
     private final Ingredient base;
@@ -31,6 +32,7 @@ public final class SpellbookCarryoverSmithingRecipe implements SmithingRecipe {
             Ingredient addition,
             ItemStack result
     ) {
+        super(id, template, base, addition, result.copy());
         this.id = id;
         this.template = template;
         this.base = base;
@@ -135,17 +137,17 @@ public final class SpellbookCarryoverSmithingRecipe implements SmithingRecipe {
     }
 
     @Override
-    public boolean isTemplateIngredient(ItemStack stack) {
+    public boolean isTemplateIngredient(@NotNull ItemStack stack) {
         return template.test(stack);
     }
 
     @Override
-    public boolean isBaseIngredient(ItemStack stack) {
+    public boolean isBaseIngredient(@NotNull ItemStack stack) {
         return base.test(stack);
     }
 
     @Override
-    public boolean isAdditionIngredient(ItemStack stack) {
+    public boolean isAdditionIngredient(@NotNull ItemStack stack) {
         return addition.test(stack);
     }
 

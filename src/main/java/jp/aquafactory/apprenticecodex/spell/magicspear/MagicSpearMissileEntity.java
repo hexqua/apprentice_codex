@@ -404,7 +404,7 @@ public class MagicSpearMissileEntity extends Projectile implements GeoEntity, An
 
         for (var rawTarget : level().getEntities(this, area, Entity::isAlive)) {
             var target = CombatTools.resolutePartEntity(rawTarget);
-            if (!(target instanceof LivingEntity) || !CombatTools.isValidCombatTarget(target, owner) || !damagedIds.add(target.getId())) {
+            if (!target.isAlive() || !CombatTools.isValidCombatTarget(target, owner) || !damagedIds.add(target.getId())) {
                 continue;
             }
             CombatTools.applyDamage(

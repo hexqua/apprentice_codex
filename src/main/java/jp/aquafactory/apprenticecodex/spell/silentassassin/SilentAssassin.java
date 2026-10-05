@@ -32,6 +32,7 @@ import java.util.Optional;
 
 public class SilentAssassin extends AbstractSummonWeaponSpell<SilentAssassinRifleEntity> implements IMagiAgentSuitAffectedSpell {
     private static final double AWARENESS_SUPPRESSION_RADIUS = 16.0D;
+    private static final float ALMOST_FULL_HEALTH_RATIO = 0.995F;
 
     private final ResourceLocation spellId = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "silent_assassin");
 
@@ -44,8 +45,8 @@ public class SilentAssassin extends AbstractSummonWeaponSpell<SilentAssassinRifl
 
     public SilentAssassin() {
         super(SilentAssassinRifleEntity.class);
-        baseSpellPower = 100;
-        spellPowerPerLevel = 100;
+        baseSpellPower = 40;
+        spellPowerPerLevel = 60;
         baseManaCost = 100;
         manaCostPerLevel = 40;
         castTime = 50;
@@ -55,24 +56,24 @@ public class SilentAssassin extends AbstractSummonWeaponSpell<SilentAssassinRifl
     public List<MutableComponent> getUniqueInfo(int spellLevel, LivingEntity caster) {
         var spellPower = getSpellPower(spellLevel, caster);
         return List.of(
-                Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(spellPower), 2)),
+                Component.translatable("ui.irons_spellbooks.damage", Utils.stringTruncation(getDamage(), 2)),
                 Component.translatable("ui.apprenticecodex.headshot_damage_multiplier", getHeadshotPercent(spellPower)),
-                Component.translatable("ui.apprenticecodex.sneak_damage_multiplier", getSneakPercent(spellPower)),
+                Component.translatable("ui.apprenticecodex.almost_full_health_damage_multiplier", getFullHealthDamageBonusPercent()),
                 Component.translatable("ui.irons_spellbooks.distance", getRange())
         );
     }
 
-    private float getDamage(float spellPower) {
-        var rawDamage = 10 * (spellPower / 100.0f);
+    private float getDamage() {
+        var rawDamage = 15;
         return rawDamage * ApprenticeCodexServerConfig.damageMultiplier(DamageMultiplierKey.SILENT_ASSASSIN);
     }
 
     private int getHeadshotPercent(float spellPower) {
-        return Math.min(500, 100 + Math.round(50 * (spellPower / 100.0f)));
+        return Math.min(1000, 100 + Math.round(spellPower));
     }
 
-    private int getSneakPercent(float spellPower) {
-        return Math.min(500, 100 + Math.round(75 * (spellPower / 100.0f)));
+    private int getFullHealthDamageBonusPercent() {
+        return 200;
     }
 
     private int getRange(){
@@ -146,22 +147,24 @@ public class SilentAssassin extends AbstractSummonWeaponSpell<SilentAssassinRifl
         var result = SummonedFirearmTools.resolveAssistedAim(entity, getRange(), e -> CombatTools.isValidCombatTarget(e, entity));
         var isHeadShot = SummonedFirearmTools.isHeadShot(result);
 
-        boolean hasUnawareBonus = false;
         if (result.hitEntity() != null) {
             var target = CombatTools.resolutePartEntity(result.hitEntity());
             var currentSpellPower = getSpellPower(spellLevel, entity);
-            var finalDamage = getDamage(currentSpellPower);
+            var finalDamage = getDamage();
             if (isHeadShot) {
                 finalDamage *= getHeadshotPercent(currentSpellPower) / 100.0f;
             }
 
-            hasUnawareBonus = SummonedFirearmTools.shouldApplyUnawareBonus(target, entity);
-            if (hasUnawareBonus) {
-                finalDamage *= getSneakPercent(currentSpellPower) / 100.0f;
+            // AIの攻撃対象ではなく、軽減前の初撃条件でボーナスを決める。
+            boolean hasAlmostFullHealthBonus = isHeadShot && target instanceof LivingEntity livingTarget
+                    && livingTarget.getHealth() >= livingTarget.getMaxHealth() * ALMOST_FULL_HEALTH_RATIO;
+            if (hasAlmostFullHealthBonus) {
+                finalDamage *= getFullHealthDamageBonusPercent() / 100.0f;
             }
 
             weapon.damageTarget(target, finalDamage, level);
-            if (hasUnawareBonus && target instanceof LivingEntity livingTarget && finalDamage >= livingTarget.getHealth()) {
+            // 耐性・防具・無敵による不発を暗殺成功と扱わず、実際に倒した場合だけ認識を解除する。
+            if (hasAlmostFullHealthBonus && target instanceof LivingEntity livingTarget && livingTarget.isDeadOrDying()) {
                 SummonedFirearmTools.suppressNearbyAwareness(level, entity, target, AWARENESS_SUPPRESSION_RADIUS);
             }
         }
@@ -172,7 +175,7 @@ public class SilentAssassin extends AbstractSummonWeaponSpell<SilentAssassinRifl
             case LIVING_ENTITY -> SilentAssassinRifleEntity.HitTypes.ENTITY;
         };
 
-        weapon.fire(result.hitPosition(), level, hitType, isHeadShot, hasUnawareBonus);
+        weapon.fire(result.hitPosition(), level, hitType, isHeadShot);
         return CompleteCastTypes.KEEP_WEAPON;
     }
 }

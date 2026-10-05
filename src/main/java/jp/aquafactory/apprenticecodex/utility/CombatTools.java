@@ -17,6 +17,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
@@ -194,7 +195,7 @@ public final class CombatTools {
         var suppress = living != null && type == KnockbackTypes.NO_KNOCKBACK;
         if (suppress) KnockbackControlEvent.markIgnoreNextKnockback(living);
         try {
-            return target.hurt(source, amount);
+            return hurtCombatTarget(target, source, amount);
         } finally {
             if (suppress) KnockbackControlEvent.clearIgnoreNextKnockback(living);
         }
@@ -240,13 +241,13 @@ public final class CombatTools {
                 // Epicfight関連は例外握りつぶしを行う.
                 if (isEpicFightLikeEnvironment()) {
                     try {
-                        applied = livingTarget.hurt(source, amount);
+                        applied = hurtCombatTarget(livingTarget, source, amount);
                     } catch (Throwable t) {
                         logEpicFightCompatOncePerInterval("LivingEntity#hurt", livingTarget, source, amount, t);
                         return false;
                     }
                 } else {
-                    applied = livingTarget.hurt(source, amount);
+                    applied = hurtCombatTarget(livingTarget, source, amount);
                 }
             } finally {
                 if (suppressKnockback) {
@@ -263,8 +264,15 @@ public final class CombatTools {
         } else {
             var multicastAdjustment = MulticastEchoStaffAttackHandler.adjustCombatDamage(target, baseAmount, source);
             baseAmount = multicastAdjustment.baseAmount();
-            return target.hurt(source, baseAmount);
+            return hurtCombatTarget(target, source, baseAmount);
         }
+    }
+
+    private static boolean hurtCombatTarget(Entity target, DamageSource source, float amount) {
+        // 本体を返す照準や範囲・継続接触でも結果を揃えるため、ドラゴンの部位軽減は一律に適用しない。
+        // 保護・耐性・無敵時間の補正は親で済ませ、最終的なダメージだけ頭部の経路へ渡す。
+        var hurtTarget = target instanceof EnderDragon dragon ? dragon.head : target;
+        return hurtTarget.hurt(source, amount);
     }
 
     public static boolean isProtectedCombatTarget(Entity target, @Nullable Entity owner, CombatTargetPolicy policy) {

@@ -156,8 +156,8 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity,
                 DamageTypes.MOON_LIGHT
         );
         var school = SpellRegistry.MOON_LIGHT.get().getSchoolType();
-        var candidates = level.getEntitiesOfClass(
-                LivingEntity.class,
+        var candidates = level.getEntities(
+                this,
                 getBoundingBoxForCulling(),
                 target -> target != owner
                         && target.isAlive()
@@ -165,12 +165,16 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity,
                         && CombatTools.isValidCombatTarget(target, owner)
         );
 
-        for (var target : candidates) {
-            if (!isInsideSegment(target.getBoundingBox(), startPos, forward, right, up, segmentStart, segmentEnd)) {
+        for (var rawTarget : candidates) {
+            if (!isInsideSegment(rawTarget.getBoundingBox(), startPos, forward, right, up, segmentStart, segmentEnd)) {
                 continue;
             }
 
-            damagedEntityIds.add(target.getUUID());
+            // 部位の形状で判定し、斬撃全体では本体ごとに一度だけ命中させる。
+            var target = CombatTools.resolutePartEntity(rawTarget);
+            if (!target.isAlive() || !damagedEntityIds.add(target.getUUID())) {
+                continue;
+            }
             if (CombatTools.applyDamage(target, damage, source, school, CombatTools.KnockbackTypes.DEFAULT)) {
                 MoonLightCounterspellEffect.applyAfterSuccessfulDamage(source, target, owner);
             }

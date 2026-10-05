@@ -8,6 +8,8 @@ import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
+import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
@@ -67,12 +69,12 @@ public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunE
 
     @Override
     public int getActivateCount(int spellLevel, LivingEntity entity) {
-        return Math.min(16, 2 + Math.round(4 * getSpellPower(spellLevel, entity) / 100.0f));
+        return Math.min(10, 5 + spellLevel);
     }
 
     @Override
     public int getDurationTick() {
-        return 20 * 3;
+        return 20 * 5;
     }
 
     @Override
@@ -101,7 +103,7 @@ public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunE
     }
 
     private int getFirstDelay(){
-        return 20;
+        return 5;
     }
 
     @Override
@@ -147,6 +149,16 @@ public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunE
             return false;
         }
 
+        if (weapon.duringRecoil()) {
+            if (entity instanceof ServerPlayer serverPlayer) {
+                serverPlayer.connection.send(new ClientboundSetActionBarTextPacket(
+                        Component.translatable("ui.apprenticecodex.during_recoil", this.getDisplayName(serverPlayer))
+                                .withStyle(ChatFormatting.RED)
+                ));
+            }
+            return false;
+        }
+
         return true;
     }
 
@@ -157,7 +169,8 @@ public class QuickArms extends AbstractSummonWeaponRecastSpell<QuickArmsHandgunE
 
     @Override
     public CompleteRecastTypes onRecastFinishedWithWeapon(Level level, ServerPlayer serverPlayer,
-                                                          @NotNull QuickArmsHandgunEntity weapon) {
+                                                          @NotNull QuickArmsHandgunEntity weapon,
+                                                          RecastInstance recast, RecastResult result) {
         return CompleteRecastTypes.RELEASE_WEAPON;
     }
 

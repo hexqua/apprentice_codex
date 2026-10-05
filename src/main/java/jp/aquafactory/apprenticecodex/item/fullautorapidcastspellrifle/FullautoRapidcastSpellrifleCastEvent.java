@@ -2,15 +2,22 @@ package jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle;
 
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
+import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.config.ServerConfigs;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.SpellManaCostDiscounts;
 import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunRecastCompletion;
+import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffManaCostEvent;
+import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffPowerHelper;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncFullautoRapidcastSpellrifleFireEffectPacket;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -22,6 +29,39 @@ import net.minecraftforge.event.TickEvent;
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class FullautoRapidcastSpellrifleCastEvent {
     private FullautoRapidcastSpellrifleCastEvent() {
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onEchoManaRequirement(SpellPreCastEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)
+                || !(player.getMainHandItem().getItem() instanceof FullautoRapidcastSpellrifle)) return;
+
+        var magicData = MagicData.getPlayerMagicData(player);
+        if (magicData == null || !event.getCastSource().consumesMana()
+                || magicData.getPlayerRecasts().hasRecastForSpell(event.getSpellId())
+                || player.isCreative() && !ServerConfigs.CREATIVE_MANA_COST.get()) return;
+
+        var spell = SpellRegistry.getSpell(event.getSpellId());
+        var multiplier = FullautoEchoCasting.manaMultiplier(player, player.getMainHandItem(), spell);
+        if (multiplier == 1.0D) return;
+
+        var baseManaCost = Math.max(0, spell.getManaCost(event.getSpellLevel()));
+        var discountedManaCost = SpellManaCostDiscounts.applyKnownDiscounts(baseManaCost, player, event.getSpellId());
+        // 上流の通常コストを下限とし、Hood の発動時抽選による無料化は開始判定へ先取りしない。
+        var requiredManaCost = Math.max(baseManaCost, FullautoEchoCasting.scaleMana(discountedManaCost, multiplier));
+        if (ZenithStaffPowerHelper.shouldIncreaseManaCost(player, event.getSchoolType())) {
+            // 両方の SpellOnCastEvent は LOWEST のため、どちらが先でも実消費を払えるようにする。
+            var echoThenZenith = ZenithStaffManaCostEvent.applyZenithManaCostMultiplier(
+                    FullautoEchoCasting.scaleMana(discountedManaCost, multiplier));
+            var zenithThenEcho = FullautoEchoCasting.scaleMana(
+                    ZenithStaffManaCostEvent.applyZenithManaCostMultiplier(discountedManaCost), multiplier);
+            requiredManaCost = Math.max(requiredManaCost, Math.max(echoThenZenith, zenithThenEcho));
+        }
+        if (magicData.getMana() >= requiredManaCost) return;
+
+        player.displayClientMessage(Component.translatable("ui.irons_spellbooks.cast_error_mana", spell.getDisplayName(player))
+                .withStyle(ChatFormatting.RED), true);
+        event.setCanceled(true);
     }
 
     @SubscribeEvent

@@ -90,6 +90,10 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
     // 全対応武器で「生成しただけ」「タイムアウトで消えただけ」を攻撃不成立として検出する。
     @GameTest(template = TEMPLATE, batch = BATCH, timeoutTicks = 100)
     public static void everySupportedWeaponAttacksAndExpires(GameTestHelper helper) {
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> verifySupportedWeaponAttacks(helper));
+    }
+
+    private static void verifySupportedWeaponAttacks(GameTestHelper helper) {
         var spells = List.of(SpellRegistry.SHIDEN.get(), SpellRegistry.BREACHING_ENEMY.get(),
                 SpellRegistry.SLASH_BLADE.get(), SpellRegistry.MOON_LIGHT.get(), SpellRegistry.SILENT_ASSASSIN.get(),
                 SpellRegistry.ARTISAN_SMASH.get(), SpellRegistry.PRECISION_JACK.get(),
@@ -119,6 +123,11 @@ public final class MulticastSummonWeaponGameTests extends ApprenticeCodexGameTes
 
     @GameTest(template = TEMPLATE, batch = BATCH, timeoutTicks = 100)
     public static void rifleEchoTracksSupportedSummonWeapons(GameTestHelper helper) {
+        // UUIDによる即時取得は、1.20.1のentity section公開後に検証する。
+        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> verifyRifleSummonWeapons(helper));
+    }
+
+    private static void verifyRifleSummonWeapons(GameTestHelper helper) {
         ForgeConfigSpec.BooleanValue enabled = ApprenticeCodexServerConfig.SPEC.getValues()
                 .get("Items.FullautoRapidcastSpellrifle.echoCastEnabled");
         ForgeConfigSpec.DoubleValue damage = ApprenticeCodexServerConfig.SPEC.getValues()
