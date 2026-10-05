@@ -22,10 +22,6 @@ final class HeavenlyFistCrystalHarvestProcessor {
     }
 
     static void harvest(ServerLevel level, ServerPlayer owner, Vec3 center, double radius) {
-        if (!CraftsmansDelight.isEquippedBy(owner)) {
-            return;
-        }
-
         var searchRadius = Math.max(0, Mth.ceil(radius));
         var centerPos = BlockPos.containing(center);
         var minX = centerPos.getX() - searchRadius;
