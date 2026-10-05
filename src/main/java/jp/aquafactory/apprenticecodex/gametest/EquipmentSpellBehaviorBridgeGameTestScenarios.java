@@ -934,7 +934,6 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             prepareMiningSpellIsolationArea(helper, playerPos);
             var player = createServerEquipmentTestPlayer(helper, playerPos);
             player.gameMode.changeGameModeForPlayer(GameType.ADVENTURE);
-            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
 
             var sourcePos = helper.absolutePos(new BlockPos(1, 12, 1));
             var clusterPos = sourcePos.east();
@@ -956,7 +955,6 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             var playerPos = new BlockPos(0, 12, 0);
             prepareMiningSpellIsolationArea(helper, playerPos);
             var player = createServerEquipmentTestPlayer(helper, playerPos);
-            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
 
             var sourcePos = helper.absolutePos(new BlockPos(1, 12, 1));
             var clusterPos = sourcePos.east();
@@ -982,12 +980,17 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
         });
     }
 
-    static void heavenlyFistWithoutCraftsmansDelightLeavesBuddingCrystal(GameTestHelper helper) {
+    static void heavenlyFistWithoutCraftsmansDelightHarvestsWithoutEnchantments(GameTestHelper helper) {
         helper.runAtTickTime(1, () -> {
             var level = helper.getLevel();
             var playerPos = new BlockPos(0, 12, 0);
             prepareMiningSpellIsolationArea(helper, playerPos);
             var player = createServerEquipmentTestPlayer(helper, playerPos);
+
+
+            var heldTool = new ItemStack(Items.DIAMOND_PICKAXE);
+            heldTool.enchant(Enchantments.SILK_TOUCH, 1);
+            player.setItemInHand(InteractionHand.MAIN_HAND, heldTool);
 
             var sourcePos = helper.absolutePos(new BlockPos(1, 12, 1));
             var clusterPos = sourcePos.east();
@@ -996,8 +999,14 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
 
             spawnHeavenlyFist(level, player, Vec3.atCenterOf(sourcePos), 2.0F);
             helper.runAtTickTime(28, () -> {
-                helper.assertTrue(level.getBlockState(clusterPos).is(Blocks.AMETHYST_CLUSTER),
-                        "Heavenly Fist without CraftsmansDelight should leave the crystal intact");
+                helper.assertTrue(level.getBlockState(clusterPos).isAir(),
+                        "Heavenly Fist without CraftsmansDelight should harvest mature crystals");
+                helper.assertTrue(level.getBlockState(sourcePos).is(Blocks.BUDDING_AMETHYST),
+                        "Heavenly Fist without CraftsmansDelight should leave budding amethyst intact");
+                helper.assertTrue(hasItemEntityWithin(level, Items.AMETHYST_SHARD, Vec3.atCenterOf(clusterPos), 1.5D),
+                        "Heavenly Fist without CraftsmansDelight should drop amethyst shards despite main-hand Silk Touch");
+                helper.assertFalse(hasItemEntityWithin(level, Blocks.AMETHYST_CLUSTER.asItem(), Vec3.atCenterOf(clusterPos), 1.5D),
+                        "Heavenly Fist without CraftsmansDelight should not copy main-hand Silk Touch");
                 helper.succeed();
             });
         });
@@ -1009,7 +1018,6 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             var playerPos = new BlockPos(0, 12, 0);
             prepareMiningSpellIsolationArea(helper, playerPos);
             var player = createServerEquipmentTestPlayer(helper, playerPos);
-            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
 
             var supportPos = helper.absolutePos(new BlockPos(1, 12, 1));
             var clusterPos = supportPos.east();
@@ -1019,7 +1027,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             spawnHeavenlyFist(level, player, Vec3.atCenterOf(supportPos), 2.0F);
             helper.runAtTickTime(28, () -> {
                 helper.assertTrue(level.getBlockState(clusterPos).is(Blocks.AMETHYST_CLUSTER),
-                        "Heavenly Fist with CraftsmansDelight should skip crystals not attached to harvest sources");
+                        "Heavenly Fist without CraftsmansDelight should skip crystals not attached to harvest sources");
                 helper.succeed();
             });
         });
@@ -1031,7 +1039,6 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             var playerPos = new BlockPos(0, 12, 0);
             prepareMiningSpellIsolationArea(helper, playerPos);
             var player = createServerEquipmentTestPlayer(helper, playerPos);
-            equipRingCurio(player, new ItemStack(ItemRegistry.CRAFTSMANS_DELIGHT.get()));
 
             var sourcePos = helper.absolutePos(new BlockPos(1, 12, 1));
             var budPos = sourcePos.east();
@@ -1042,7 +1049,7 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             spawnHeavenlyFist(level, player, Vec3.atCenterOf(sourcePos), 2.0F);
             helper.runAtTickTime(28, () -> {
                 helper.assertTrue(level.getBlockState(budPos).is(Blocks.LARGE_AMETHYST_BUD),
-                        "Heavenly Fist with CraftsmansDelight should skip immature amethyst buds");
+                        "Heavenly Fist without CraftsmansDelight should skip immature amethyst buds");
                 helper.succeed();
             });
         });
