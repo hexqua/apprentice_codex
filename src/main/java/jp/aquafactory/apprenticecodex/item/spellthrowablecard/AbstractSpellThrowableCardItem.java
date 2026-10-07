@@ -7,7 +7,6 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.AbstractSpellThrowableCardEntity;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
@@ -35,13 +34,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractSpellThrowableCardItem extends Item implements RestrictedSpellImbuableItem,
-        IJeiInfoItem {
+public abstract class AbstractSpellThrowableCardItem extends Item implements RestrictedSpellImbuableItem {
     public static final int SPELL_SLOT_COUNT = 1;
     public static final float THROW_POWER = 1.6F;
     public static final String CASTING_SLOT = "spell_throwable_card";
-    private static final String JEI_INFO_KEY_PREFIX = "jei." + ApprenticeCodex.MODID + ".spell_throwable_cards.desc_";
-    private static final String JEI_INFO_GROUP_ID = ApprenticeCodex.MODID + ":spell_throwable_cards";
 
     protected AbstractSpellThrowableCardItem() {
         super(new Item.Properties().stacksTo(64).rarity(Rarity.UNCOMMON));
@@ -197,16 +193,6 @@ public abstract class AbstractSpellThrowableCardItem extends Item implements Res
     @Override
     public List<Component> getImbueRestrictionTooltipLines() {
         return collectRestrictTooltipSection();
-    }
-
-    @Override
-    public String getJeiInfoTranslationKeyPrefix() {
-        return JEI_INFO_KEY_PREFIX;
-    }
-
-    @Override
-    public @Nullable String getJeiInfoGroupId() {
-        return JEI_INFO_GROUP_ID;
     }
 
     private @Nullable Component validateThrowStart(ServerPlayer player, ItemStack stack, SpellData spellData) {

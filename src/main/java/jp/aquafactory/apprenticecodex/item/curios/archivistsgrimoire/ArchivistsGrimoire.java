@@ -11,7 +11,6 @@ import io.redspace.ironsspellbooks.item.weapons.AttributeContainer;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceHelper;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
@@ -48,12 +47,11 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, IJeiInfoItem, TranscendenceTarget {
+public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, TranscendenceTarget {
     public static final int ROW_COUNT = 6;
     public static final int COLUMN_COUNT = 9;
     public static final int SLOT_COUNT = ROW_COUNT * COLUMN_COUNT;
 
-    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.archivists_grimoire.desc_";
     private static final String INVENTORY_TAG = ApprenticeCodex.MODID + ":archivists_grimoire_inventory";
     private static final String SELECTED_ROW_TAG = ApprenticeCodex.MODID + ":archivists_grimoire_selected_row";
     private static final String UPGRADE_COUNT_TAG = ApprenticeCodex.MODID + ":archivists_grimoire_upgrade_count";
@@ -73,11 +71,6 @@ public class ArchivistsGrimoire extends Item implements ICurioItem, ISpellbook, 
     @Override
     public boolean isEnchantable(@NotNull ItemStack stack) {
         return true;
-    }
-
-    @Override
-    public String getJeiInfoTranslationKeyPrefix() {
-        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override

@@ -14,7 +14,6 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
@@ -81,10 +80,9 @@ import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 
 public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
-        implements GeoItem, CastAnimationOverrideItem, IJeiInfoItem, SwingTriggeredMagicItem,
+        implements GeoItem, CastAnimationOverrideItem, SwingTriggeredMagicItem,
         ArcaneAnvilImbueBlockItem, SpellCalibrationAdjustmentTarget, AttributeEnchantmentPolicy {
     private static final String ITEM_KEY = "mithril_freecast_staff";
-    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.mithril_freecast_staff.desc_";
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     private static final CalibrationAdjustmentProfile CALIBRATION_ADJUSTMENT_PROFILE =
             CalibrationAdjustmentProfile.of(
@@ -371,11 +369,6 @@ public class MithrilFreecastStaff extends AbstractRightClickMagicWeaponItem
     @Override
     public @NotNull AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
-    }
-
-    @Override
-    public String getJeiInfoTranslationKeyPrefix() {
-        return JEI_INFO_KEY_PREFIX;
     }
 
     public static boolean canSwingCastSpell(@Nullable AbstractSpell spell) {

@@ -27,6 +27,7 @@ import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGaun
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
 import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCase;
 import jp.aquafactory.apprenticecodex.item.blockitem.SpellCalibrationBenchItem;
+import jp.aquafactory.apprenticecodex.item.blockitem.CreativeSpellDispenserItem;
 import jp.aquafactory.apprenticecodex.item.blockitem.SpellDispenserItem;
 import jp.aquafactory.apprenticecodex.item.blockitem.SpellcasterWorkbenchItem;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScythe;
@@ -338,7 +339,7 @@ public final class ItemRegistry {
 
     public static final DeferredHolder<Item, Item> CREATIVE_SPELL_DISPENSER =
             ITEMS.register("creative_spell_dispenser",
-                    () -> new SpellDispenserItem(BlockRegistry.CREATIVE_SPELL_DISPENSER.get(), new Item.Properties(), true));
+                    () -> new CreativeSpellDispenserItem(BlockRegistry.CREATIVE_SPELL_DISPENSER.get(), new Item.Properties()));
 
     public static final DeferredHolder<Item, Item> ARCANUM_IN_A_JAR = block("arcanum_in_a_jar", BlockRegistry.ARCANUM_IN_A_JAR);
     public static final DeferredHolder<Item, Item> MAGNETIC_STABILITY_ANCHOR =

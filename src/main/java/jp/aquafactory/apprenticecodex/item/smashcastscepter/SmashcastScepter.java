@@ -11,7 +11,6 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.renderer.item.SmashcastScepterRenderer;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
@@ -56,7 +55,7 @@ import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 
 public final class SmashcastScepter extends AbstractImbuedMagicWeaponItem
-        implements GeoItem, RestrictedSpellImbuableItem, IJeiInfoItem, PlunderTarget {
+        implements GeoItem, RestrictedSpellImbuableItem, PlunderTarget {
     public static final double ATTACK_DAMAGE_MODIFIER = 5.0D;
     public static final double ATTACK_SPEED_MODIFIER = -3.4D;
     public static final float SMASH_ATTACK_FALL_DISTANCE_THRESHOLD = 1.5F;
@@ -66,7 +65,6 @@ public final class SmashcastScepter extends AbstractImbuedMagicWeaponItem
     public static final double WIND_BURST_MOTION_EPSILON = 0.01D;
 
     private static final String ITEM_KEY = "smashcast_scepter";
-    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.smashcast_scepter.desc_";
     private static final String IDLE_CONTROLLER = "idle";
     private static final String SMASH_CONTROLLER = "smash";
     private static final String SMASH_ANIMATION = "smash";
@@ -391,11 +389,6 @@ public final class SmashcastScepter extends AbstractImbuedMagicWeaponItem
     @Override
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
-    }
-
-    @Override
-    public String getJeiInfoTranslationKeyPrefix() {
-        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override
