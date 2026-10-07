@@ -12,7 +12,6 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.item.Scroll;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.network.casting.UpdateCastingStatePacket;
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.*;
@@ -80,8 +79,7 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, Uniqu
         RestrictedSpellImbuableItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget,
         ArcaneAnvilScrollImbueBlockItem, CastAnimationOverrideItem, ImmediateSneakSelectionUiItem,
         OffhandAttributeRelocatingItem, NonDamageableAnvilMergeItem,
-        AttributeEnchantmentPolicy, WisdomPolicy, PlunderTarget, IJeiInfoItem {
-    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.chargecast_catalystbook.desc_";
+        AttributeEnchantmentPolicy, WisdomPolicy, PlunderTarget {
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     public static final int CALIBRATION_SCROLL_SLOT_COUNT = 4;
     public static final int BASE_CALIBRATION_SCROLL_SLOT_COUNT = 1;
@@ -143,11 +141,6 @@ public final class ChargecastCatalystbook extends Item implements GeoItem, Uniqu
     public ChargecastCatalystbook() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE).fireResistant());
         GeoItem.registerSyncedAnimatable(this);
-    }
-
-    @Override
-    public String getJeiInfoTranslationKeyPrefix() {
-        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override

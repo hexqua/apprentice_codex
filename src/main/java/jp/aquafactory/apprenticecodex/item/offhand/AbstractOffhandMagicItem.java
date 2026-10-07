@@ -3,7 +3,6 @@ package jp.aquafactory.apprenticecodex.item.offhand;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
@@ -32,10 +31,8 @@ import java.util.function.Supplier;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 
 public abstract class AbstractOffhandMagicItem extends Item
-        implements IPresetSpellContainer, IJeiInfoItem, NonDamageableAnvilMergeItem,
+        implements IPresetSpellContainer, NonDamageableAnvilMergeItem,
         AttributeEnchantmentPolicy {
-    private static final String JEI_INFO_GROUP_ID = "offhand_magic_items";
-    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.offhand_magic_items.desc_";
     private static final int ENCHANTMENT_VALUE = 1;
 
     private final Supplier<? extends AbstractSpell> configuredSpell;
@@ -192,33 +189,23 @@ public abstract class AbstractOffhandMagicItem extends Item
     }
 
     @Override
-    public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+    public @NotNull ItemAttributeModifiers getDefaultAttributeModifiers(@NotNull ItemStack stack) {
         return buildOffhandModifiers(stack, baseOffhandModifiers);
     }
 
     @Override
-    public EquipmentSlot getEquipmentSlot(ItemStack stack) {
+    public EquipmentSlot getEquipmentSlot(@NotNull ItemStack stack) {
         return EquipmentSlot.OFFHAND;
     }
 
     @Override
-    public int getEnchantmentValue(ItemStack stack) {
+    public int getEnchantmentValue(@NotNull ItemStack stack) {
         return 1;
     }
 
     @Override
     public boolean isEnchantable(@NotNull ItemStack stack) {
         return getEnchantmentValue(stack) > 0;
-    }
-
-    @Override
-    public String getJeiInfoTranslationKeyPrefix() {
-        return JEI_INFO_KEY_PREFIX;
-    }
-
-    @Override
-    public String getJeiInfoGroupId() {
-        return JEI_INFO_GROUP_ID;
     }
 
     private ItemAttributeModifiers buildBaseOffhandModifiers() {

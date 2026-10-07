@@ -15,7 +15,6 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.item.Scroll;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
@@ -98,11 +97,10 @@ import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastS
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 
 public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
-        implements GeoItem, CastAnimationOverrideItem, IJeiInfoItem, SwingTriggeredMagicItem,
+        implements GeoItem, CastAnimationOverrideItem, SwingTriggeredMagicItem,
         ArcaneAnvilImbueBlockItem, StoredSpellCalibrationImbueTarget,
         SpellCalibrationAdjustmentTarget, AttributeEnchantmentPolicy, TranscendenceTarget {
     private static final String ITEM_KEY = "revolvercast_staff";
-    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.revolvercast_staff.desc_";
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     public static final int CALIBRATION_SCROLL_SLOT_COUNT = 10;
     public static final int BASE_CALIBRATION_SCROLL_SLOT_COUNT = 4;
@@ -472,11 +470,6 @@ public final class RevolvercastStaff extends AbstractRightClickMagicWeaponItem
     @Override
     public @NotNull AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
-    }
-
-    @Override
-    public String getJeiInfoTranslationKeyPrefix() {
-        return JEI_INFO_KEY_PREFIX;
     }
 
     public static boolean canSwingCastSpell(@Nullable AbstractSpell spell) {

@@ -3,7 +3,6 @@ package jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.compat.Curios;
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.EquipmentSpellTimingConfigState;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
@@ -31,7 +30,7 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem {
+public class CraftsmansDelight extends Item implements ICurioItem {
     private static final float BREAK_SPEED_BONUS_MULTIPLIER = 2.0f;
     private static final float PROCESS_SPEED_BONUS_MULTIPLIER = 1.5f;
     private static final float MANA_COST_DISCOUNT_MULTIPLIER = 0.5f;
@@ -39,7 +38,6 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
     private static final int TOUCH_DIG_RANGE_WITH_BONUS_BLOCKS = 16;
     private static final int CASTING_MOBILITY_EFFECT_REFRESH_TICKS = 5;
 
-    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.craftsmans_delight.desc_";
     private static final String SPELL_HINT_KEY = "item.apprenticecodex.common.desc.spell_hint";
     private static final String SPELL_HINT_OPEN_KEY = "item.apprenticecodex.common.desc.spell_hint_open";
     private static final List<DeferredHolder<AbstractSpell, AbstractSpell>> TARGET_SPELLS = List.of(
@@ -122,11 +120,6 @@ public class CraftsmansDelight extends Item implements ICurioItem, IJeiInfoItem 
     @Override
     public boolean canEquipFromUse(SlotContext slotContext, ItemStack stack) {
         return true;
-    }
-
-    @Override
-    public String getJeiInfoTranslationKeyPrefix() {
-        return JEI_INFO_KEY_PREFIX;
     }
 
     public static boolean isEquippedBy(@Nullable LivingEntity entity) {

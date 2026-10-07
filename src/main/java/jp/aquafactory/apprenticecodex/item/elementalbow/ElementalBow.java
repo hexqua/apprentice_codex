@@ -6,7 +6,6 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
@@ -92,8 +91,7 @@ import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import java.util.Optional;
 
 public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget, ArcaneAnvilImbueBlockItem,
-        IJeiInfoItem, SneakSelectionUiItem, TranscendenceTarget, WisdomPolicy, PlunderTarget {
-    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.elemental_bow.desc_";
+        SneakSelectionUiItem, TranscendenceTarget, WisdomPolicy, PlunderTarget {
 
     public static final int READY_DRAW_TICKS = 20;
     private static final String MAIN_CONTROLLER = "main";
@@ -116,11 +114,6 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
     public ElementalBow() {
         super(new Properties().durability(1561).fireResistant());
         GeoItem.registerSyncedAnimatable(this);
-    }
-
-    @Override
-    public String getJeiInfoTranslationKeyPrefix() {
-        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override

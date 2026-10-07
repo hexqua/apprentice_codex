@@ -18,12 +18,8 @@ import io.redspace.ironsspellbooks.item.weapons.StaffTier;
 import io.redspace.ironsspellbooks.network.casting.CancelCastPacket;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffConfigState;
-import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffCoolingHandler;
-import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaffOverheatManager;
 import jp.aquafactory.apprenticecodex.utility.PersistentGameTimeSanitizer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
@@ -69,8 +65,7 @@ import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 
 public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, NonDamageableAnvilMergeItem,
-        IJeiInfoItem, WisdomPolicy {
-    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.circuit_heat_staff.desc_";
+        WisdomPolicy {
     private static final String FRAME_CONTROLLER = "frame";
     private static final String COG_CONTROLLER = "cog";
     private static final String OVERHEAT_EXPIRE_GAME_TIME_TAG = "CircuitHeatStaffOverheatExpireGameTime";
@@ -100,11 +95,6 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
                 .fireResistant()
                 .attributes(ExtendedSwordItem.createAttributes(CIRCUIT_HEAT_STAFF_TIER)));
         GeoItem.registerSyncedAnimatable(this);
-    }
-
-    @Override
-    public String getJeiInfoTranslationKeyPrefix() {
-        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override
