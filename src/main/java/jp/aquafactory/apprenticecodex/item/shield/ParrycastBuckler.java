@@ -7,7 +7,6 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.capabilities.magic.CooldownInstance;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
@@ -70,8 +69,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class ParrycastBuckler extends AbstractImbueShieldItem
-        implements GeoItem, IJeiInfoItem, SpellCalibrationAdjustmentTarget, AttributeEnchantmentPolicy {
-    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.parrycast_buckler.desc_";
+        implements GeoItem, SpellCalibrationAdjustmentTarget, AttributeEnchantmentPolicy {
     public static final int DURABILITY = 1561;
     public static final int ENCHANTMENT_VALUE = 22;
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
@@ -114,11 +112,6 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
     public ParrycastBuckler() {
         super(new Item.Properties().stacksTo(1).durability(DURABILITY).rarity(Rarity.RARE).fireResistant());
         GeoItem.registerSyncedAnimatable(this);
-    }
-
-    @Override
-    public String getJeiInfoTranslationKeyPrefix() {
-        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override

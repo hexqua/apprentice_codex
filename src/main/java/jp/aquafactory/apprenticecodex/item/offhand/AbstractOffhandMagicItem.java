@@ -5,7 +5,6 @@ import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentResolver;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
@@ -31,10 +30,8 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 public abstract class AbstractOffhandMagicItem extends Item
-        implements IPresetSpellContainer, IJeiInfoItem, NonDamageableAnvilMergeItem,
+        implements IPresetSpellContainer, NonDamageableAnvilMergeItem,
         AttributeEnchantmentPolicy {
-    private static final String JEI_INFO_GROUP_ID = "offhand_magic_items";
-    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.offhand_magic_items.desc_";
     private static final int ENCHANTMENT_VALUE = 1;
 
     private final Supplier<? extends AbstractSpell> configuredSpell;
@@ -197,7 +194,7 @@ public abstract class AbstractOffhandMagicItem extends Item
     }
 
     @Override
-    public EquipmentSlot getEquipmentSlot(ItemStack stack) {
+    public EquipmentSlot getEquipmentSlot(@NotNull ItemStack stack) {
         return EquipmentSlot.OFFHAND;
     }
 
@@ -215,16 +212,6 @@ public abstract class AbstractOffhandMagicItem extends Item
     @Override
     public Set<AttributeEnchantmentType> directlyApplicableAttributeEnchantments() {
         return ALL_ATTRIBUTE_ENCHANTMENTS;
-    }
-
-    @Override
-    public String getJeiInfoTranslationKeyPrefix() {
-        return JEI_INFO_KEY_PREFIX;
-    }
-
-    @Override
-    public String getJeiInfoGroupId() {
-        return JEI_INFO_GROUP_ID;
     }
 
     private Multimap<Attribute, AttributeModifier> buildBaseModifiers() {

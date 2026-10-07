@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter;
 
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -21,9 +20,8 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiInfoItem {
+public class ProtectionSpellSupporter extends Item implements ICurioItem {
     private static final float MANA_COST_DISCOUNT_MULTIPLIER = 0.5f;
-    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.protection_spell_supporter.desc_";
     private static final String SPELL_HINT_KEY = "item.apprenticecodex.common.desc.spell_hint";
     private static final String SPELL_HINT_OPEN_KEY = "item.apprenticecodex.common.desc.spell_hint_open";
     private static final List<Supplier<AbstractSpell>> TARGET_SPELLS = List.of(
@@ -92,11 +90,6 @@ public class ProtectionSpellSupporter extends Item implements ICurioItem, IJeiIn
     @Override
     public boolean canEquipFromUse(SlotContext slotContext, ItemStack stack) {
         return true;
-    }
-
-    @Override
-    public String getJeiInfoTranslationKeyPrefix() {
-        return JEI_INFO_KEY_PREFIX;
     }
 
     public static boolean isEquippedBy(@Nullable LivingEntity entity) {

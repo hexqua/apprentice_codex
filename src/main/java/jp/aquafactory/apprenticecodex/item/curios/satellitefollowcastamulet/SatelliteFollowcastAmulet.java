@@ -9,7 +9,6 @@ import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceHelper;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
@@ -46,7 +45,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiInfoItem, ArcaneAnvilImbueBlockItem,
+public class SatelliteFollowcastAmulet extends Item implements ICurioItem, ArcaneAnvilImbueBlockItem,
         StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget, TranscendenceTarget {
     public static final int MIN_SPELL_SLOTS = 1;
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
@@ -70,7 +69,6 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
     public static final double CRYSTAL_FLOAT_SPEED = Math.PI / 24.0D;
     public static final double CRYSTAL_FLOAT_RANGE = 0.12D;
 
-    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.satellite_followcast_amulet.desc_";
     private static final String CALIBRATION_TAG = "SpellCalibration";
     private static final String SCROLLS_TAG = "Scrolls";
     private static final String SLOT_TAG = "Slot";
@@ -127,11 +125,6 @@ public class SatelliteFollowcastAmulet extends Item implements ICurioItem, IJeiI
                 .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
         appendFollowcastTooltip(stack, tooltips);
         return tooltips;
-    }
-
-    @Override
-    public String getJeiInfoTranslationKeyPrefix() {
-        return JEI_INFO_KEY_PREFIX;
     }
 
     public boolean canImbueSpell(SpellData spellData) {

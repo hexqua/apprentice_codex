@@ -6,7 +6,6 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.item.SpellBook;
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -32,9 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class SpellStainedRunicTablet extends SpellBook implements IJeiInfoItem {
+public class SpellStainedRunicTablet extends SpellBook {
     private static final String MODIFIER_NAME_PREFIX = "apprenticecodex.spellstained_runic_tablet.";
-    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.spellstained_runic_tablet.desc_";
     private static final String TOOLTIP_KEY_PREFIX = "item.apprenticecodex.spellstained_runic_tablet.desc";
 
     public SpellStainedRunicTablet() {
@@ -62,11 +60,6 @@ public class SpellStainedRunicTablet extends SpellBook implements IJeiInfoItem {
         builder.putAll(baseModifiers);
         builder.putAll(dynamicModifiers);
         return builder.build();
-    }
-
-    @Override
-    public String getJeiInfoTranslationKeyPrefix() {
-        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override
