@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex.item.blockitem;
 
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -13,9 +12,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class SpellDispenserItem extends BlockItem implements IJeiInfoItem {
-    private static final String JEI_INFO_KEY_PREFIX_NORMAL = "jei.apprenticecodex.spell_dispenser.desc_";
-    private static final String JEI_INFO_KEY_PREFIX_CREATIVE = "jei.apprenticecodex.creative_spell_dispenser.desc_";
+public class SpellDispenserItem extends BlockItem {
     private static final String CREATIVE_TOOLTIP_KEY = "item.apprenticecodex.spell_dispenser.creative_tooltip";
 
     private final boolean showCreativeTooltip;
@@ -36,10 +33,5 @@ public class SpellDispenserItem extends BlockItem implements IJeiInfoItem {
             lines.add(Component.translatable(CREATIVE_TOOLTIP_KEY).withStyle(ChatFormatting.GRAY));
         }
         super.appendHoverText(stack, level, lines, flag);
-    }
-
-    @Override
-    public String getJeiInfoTranslationKeyPrefix() {
-        return showCreativeTooltip ? JEI_INFO_KEY_PREFIX_CREATIVE : JEI_INFO_KEY_PREFIX_NORMAL;
     }
 }

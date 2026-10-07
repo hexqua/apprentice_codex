@@ -10,6 +10,7 @@ import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
 import jp.aquafactory.apprenticecodex.spell.IClientBlockTargetingSpell;
@@ -29,6 +30,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -110,6 +112,17 @@ public class GracedRain extends AbstractSummonWeaponSpell<GracedRainCloudEntity>
     }
 
     @Override
+    public boolean isCraftsmansDelightCastingMobilityEnabled() {
+        return true;
+    }
+
+    @Override
+    public void onServerPreCast(Level level, int spellLevel, LivingEntity entity, @Nullable MagicData playerMagicData) {
+        super.onServerPreCast(level, spellLevel, entity, playerMagicData);
+        CraftsmansDelight.applyCastingMobility(entity);
+    }
+
+    @Override
     public Optional<SoundEvent> getCastStartSound() {
         return Optional.of(SoundRegistry.CLOUD_OF_REGEN_LOOP.get());
     }
@@ -174,6 +187,7 @@ public class GracedRain extends AbstractSummonWeaponSpell<GracedRainCloudEntity>
 
     @Override
     public void onCastTickWithWeapon(Level level, int spellLevel, LivingEntity entity, MagicData playerMagicData, @NotNull GracedRainCloudEntity weapon) {
+        CraftsmansDelight.applyCastingMobility(entity);
     }
 
     @Override
@@ -199,7 +213,7 @@ public class GracedRain extends AbstractSummonWeaponSpell<GracedRainCloudEntity>
                 ? BlockTargetingHelper.getValidatedPendingTarget(level, entity, getSpellResource(), getClientBlockTargetingRange(spellLevel, entity))
                 : BlockTargetingHelper.peekValidatedPendingTarget(level, entity, getSpellResource(), getClientBlockTargetingRange(spellLevel, entity));
         return target
-                .map(targetData -> targetData.getHitBlockPos().immutable());
+                .map(targetData -> targetData.getHitBlockPos() != null ? targetData.getHitBlockPos().immutable() : null);
     }
 
     private void sendCantPlaceMessage(LivingEntity entity) {

@@ -15,7 +15,6 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.CastingItem;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
@@ -64,9 +63,8 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public final class FocusStaffbow extends CastingItem
-        implements GeoItem, NonDamageableAnvilMergeItem, UniqueItem, CastAnimationOverrideItem, IJeiInfoItem,
+        implements GeoItem, NonDamageableAnvilMergeItem, UniqueItem, CastAnimationOverrideItem,
         WisdomPolicy, PlunderTarget {
-    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.focus_staffbow.desc_";
     private static final int MAX_USE_DURATION = 72000;
     private static final float CLIENT_MANA_SAFE_MARGIN = 0.001F;
     private static final String MALUM_NAMESPACE = "malum";
@@ -108,11 +106,6 @@ public final class FocusStaffbow extends CastingItem
     public FocusStaffbow() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE).fireResistant());
         GeoItem.registerSyncedAnimatable(this);
-    }
-
-    @Override
-    public String getJeiInfoTranslationKeyPrefix() {
-        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override

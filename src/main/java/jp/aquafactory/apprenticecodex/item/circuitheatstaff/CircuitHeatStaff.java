@@ -16,7 +16,6 @@ import io.redspace.ironsspellbooks.item.weapons.StaffItem;
 import io.redspace.ironsspellbooks.item.weapons.StaffTier;
 import io.redspace.ironsspellbooks.player.ClientMagicData;
 import io.redspace.ironsspellbooks.render.ClientStaffItemExtensions;
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.StaffEnchantmentTargeting;
@@ -61,8 +60,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, NonDamageableAnvilMergeItem,
-        IJeiInfoItem, WisdomPolicy {
-    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.circuit_heat_staff.desc_";
+        WisdomPolicy {
     private static final String FRAME_CONTROLLER = "frame";
     private static final String COG_CONTROLLER = "cog";
     private static final String OVERHEAT_EXPIRE_GAME_TIME_TAG = "CircuitHeatStaffOverheatExpireGameTime";
@@ -83,11 +81,6 @@ public class CircuitHeatStaff extends StaffItem implements GeoItem, UniqueItem, 
     public CircuitHeatStaff() {
         super(new Item.Properties().stacksTo(1).rarity(Rarity.RARE).fireResistant(), CIRCUIT_HEAT_STAFF_TIER);
         GeoItem.registerSyncedAnimatable(this);
-    }
-
-    @Override
-    public String getJeiInfoTranslationKeyPrefix() {
-        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override

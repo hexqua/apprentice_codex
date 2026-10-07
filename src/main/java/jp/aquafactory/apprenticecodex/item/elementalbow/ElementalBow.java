@@ -7,14 +7,12 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.setup.PacketDistributor;
-import jp.aquafactory.apprenticecodex.compat.jei.IJeiInfoItem;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.SneakSelectionUiItem;
-import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 import jp.aquafactory.apprenticecodex.item.ammo.BowAmmoConsumptionNotification;
 import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
@@ -81,7 +79,6 @@ import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
@@ -97,8 +94,7 @@ import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import java.util.Optional;
 
 public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget, ArcaneAnvilImbueBlockItem,
-        IJeiInfoItem, SneakSelectionUiItem, TranscendenceTarget, WisdomPolicy, PlunderTarget {
-    private static final String JEI_INFO_KEY_PREFIX = "jei.apprenticecodex.elemental_bow.desc_";
+        SneakSelectionUiItem, TranscendenceTarget, WisdomPolicy, PlunderTarget {
 
     public static final int READY_DRAW_TICKS = 20;
     private static final String MAIN_CONTROLLER = "main";
@@ -121,11 +117,6 @@ public class ElementalBow extends BowItem implements GeoItem, StoredSpellCalibra
     public ElementalBow() {
         super(new Properties().durability(1561).fireResistant());
         GeoItem.registerSyncedAnimatable(this);
-    }
-
-    @Override
-    public String getJeiInfoTranslationKeyPrefix() {
-        return JEI_INFO_KEY_PREFIX;
     }
 
     @Override

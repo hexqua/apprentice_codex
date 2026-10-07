@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.Quick
 import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.ShootingStarMantle;
 import jp.aquafactory.apprenticecodex.item.curios.undyingemblem.UndyingEmblem;
 import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCase;
+import jp.aquafactory.apprenticecodex.item.blockitem.CreativeSpellDispenserItem;
 import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRing;
 import jp.aquafactory.apprenticecodex.item.curios.circlets.AshenCirclet;
 import jp.aquafactory.apprenticecodex.item.curios.circlets.EnchantedCirclet;
@@ -325,7 +326,7 @@ public final class ItemRegistry {
                     () -> new SpellDispenserItem(BlockRegistry.SPELL_DISPENSER.get(), new Item.Properties()));
     public static final RegistryObject<Item> CREATIVE_SPELL_DISPENSER =
             ITEMS.register("creative_spell_dispenser",
-                    () -> new SpellDispenserItem(BlockRegistry.CREATIVE_SPELL_DISPENSER.get(), new Item.Properties(), true));
+                    () -> new CreativeSpellDispenserItem(BlockRegistry.CREATIVE_SPELL_DISPENSER.get(), new Item.Properties()));
     public static final RegistryObject<Item> ARCANUM_IN_A_JAR = block("arcanum_in_a_jar", BlockRegistry.ARCANUM_IN_A_JAR);
     public static final RegistryObject<Item> MAGNETIC_STABILITY_ANCHOR =
             ITEMS.register("magnetic_stability_anchor", () -> new MagneticStabilityAnchorItem(
