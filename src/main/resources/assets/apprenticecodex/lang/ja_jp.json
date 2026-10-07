@@ -772,8 +772,8 @@
   "config.jade.plugin_apprenticecodex.field_overseer": "フィールドオーバーシアー",
   "config.jade.plugin_apprenticecodex.servant_gaze": "サーヴァントゲイズ",
 
-  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_1": "カタコンベのボーンヴォールトと城塞のシンダラスヴォールトから入手できます。",
-  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_2": "各宝物庫から2〜3個を確定で入手できます。",
+  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_1": "宝物庫から入手できる。",
+  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_2": "不吉なものや、カタコンベや城塞で見かける特殊な宝物庫からは多く入手できる。",
   "jei.apprenticecodex.creative_spell_dispenser.desc_1": "通常のディスペンサースペルを建築者向けに調整した特殊なスペルディスペンサー。",
   "jei.apprenticecodex.creative_spell_dispenser.desc_2": "下記が通常版と異なる。",
   "jei.apprenticecodex.creative_spell_dispenser.desc_3": "- 設置したプレイヤーの情報を一切保持しない。",

@@ -775,8 +775,8 @@
   "config.jade.plugin_apprenticecodex.field_overseer": "Field Overseer",
   "config.jade.plugin_apprenticecodex.servant_gaze": "Servant Gaze",
 
-  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_1": "Obtained from Bone Vaults in the Catacombs and Cinderous Vaults in the Citadel.",
-  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_2": "Each vault grants 2–3 chunks.",
+  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_1": "Obtained from vaults.",
+  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_2": "Ominous vaults and special vaults found in Catacombs and Citadels yield more.",
   "jei.apprenticecodex.creative_spell_dispenser.desc_1": "A special Spell Dispenser tuned for builders from the standard Spell Dispenser.",
   "jei.apprenticecodex.creative_spell_dispenser.desc_2": "It differs from the standard version as follows:",
   "jei.apprenticecodex.creative_spell_dispenser.desc_3": "- Does not retain any information about the player who placed it.",

@@ -777,8 +777,8 @@
   "config.jade.plugin_apprenticecodex.field_overseer": "领域监视者",
   "config.jade.plugin_apprenticecodex.servant_gaze": "侍从凝视",
 
-  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_1": "可从地下墓穴的骸骨宝库和城塞的余烬宝库中获得。",
-  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_2": "每个宝库必定产出2至3块。",
+  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_1": "可从宝库中获得。",
+  "jei.apprenticecodex.mana_enveloped_silver_chunk.desc_2": "不祥宝库以及地下墓穴和城塞中的特殊宝库会产出更多。",
   "jei.apprenticecodex.creative_spell_dispenser.desc_1": "为建筑者调整的特殊法术发射器，基于普通版法术发射器。",
   "jei.apprenticecodex.creative_spell_dispenser.desc_2": "与普通版有以下不同：",
   "jei.apprenticecodex.creative_spell_dispenser.desc_3": "- 不会保留任何放置玩家的信息。",
