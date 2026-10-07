@@ -986,8 +986,6 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios extends ApprenticeCode
             var playerPos = new BlockPos(0, 12, 0);
             prepareMiningSpellIsolationArea(helper, playerPos);
             var player = createServerEquipmentTestPlayer(helper, playerPos);
-
-
             var heldTool = new ItemStack(Items.DIAMOND_PICKAXE);
             heldTool.enchant(Enchantments.SILK_TOUCH, 1);
             player.setItemInHand(InteractionHand.MAIN_HAND, heldTool);

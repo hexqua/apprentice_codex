@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
@@ -25,7 +26,8 @@ final class CraftsmansDelightCastingMobilityGameTestScenarios extends Apprentice
     }
 
     static void gracedRainCastingMobilityFollowsEquipmentAndCastLifecycle(GameTestHelper helper) {
-        verifyCastingMobilityLifecycle(helper, SpellRegistry.GRACED_RAIN.get());
+        GameTestFixtureSupport.whenEntityChunksReady(helper,
+                () -> verifyCastingMobilityLifecycle(helper, SpellRegistry.GRACED_RAIN.get()));
     }
 
     static void manaMendingCastingMobilityFollowsEquipmentAndCastLifecycle(GameTestHelper helper) {
@@ -38,8 +40,8 @@ final class CraftsmansDelightCastingMobilityGameTestScenarios extends Apprentice
 
     private static void verifyCastingMobilityLifecycle(GameTestHelper helper, AbstractSpell spell) {
         var player = new MobilityTestPlayer(helper.getLevel());
-        // 雲の設置判定を隣接テストのブロックから分離し、移動補助だけを検証する。
-        var position = helper.absoluteVec(new Vec3(0.5D, 12.0D, 0.5D));
+        // 1.20.1の地下原点と隣接テストから雲の設置判定を分離し、移動補助だけを検証する。
+        var position = helper.absoluteVec(new Vec3(0.5D, 260.0D, 0.5D));
         player.setPos(position.x, position.y, position.z);
         player.setXRot(-90.0F);
         player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
@@ -47,7 +49,9 @@ final class CraftsmansDelightCastingMobilityGameTestScenarios extends Apprentice
         tool.setDamageValue(100);
         player.setItemInHand(InteractionHand.MAIN_HAND, tool);
         var magicData = MagicData.getPlayerMagicData(player);
-        var baselineSpeed = player.getAttributeValue(AttributeRegistry.CASTING_MOVESPEED);
+        // ForgeのFakePlayerはログイン時の魔法同期データ初期化を通らない。
+        magicData.setSyncedData(new SyncedSpellData(player));
+        var baselineSpeed = player.getAttributeValue(AttributeRegistry.CASTING_MOVESPEED.get());
         helper.assertTrue(spell instanceof ICraftsmansDelightAffectedSpell affectedSpell
                         && affectedSpell.isCraftsmansDelightCastingMobilityEnabled(),
                 spell.getSpellId() + " should enable CraftsmansDelight casting mobility");
@@ -127,7 +131,7 @@ final class CraftsmansDelightCastingMobilityGameTestScenarios extends Apprentice
         helper.assertTrue(player.hasEffect(EffectRegistry.CRAFTSMANS_DELIGHT_MOBILITY.get()) == expectedActive,
                 context + ": unexpected CraftsmansDelight mobility effect state");
         var expectedSpeed = baselineSpeed + (expectedActive ? 0.8D : 0.0D);
-        helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.CASTING_MOVESPEED) - expectedSpeed) < 1.0e-6D,
+        helper.assertTrue(Math.abs(player.getAttributeValue(AttributeRegistry.CASTING_MOVESPEED.get()) - expectedSpeed) < 1.0e-6D,
                 context + ": casting movement speed should be " + expectedSpeed);
     }
 
