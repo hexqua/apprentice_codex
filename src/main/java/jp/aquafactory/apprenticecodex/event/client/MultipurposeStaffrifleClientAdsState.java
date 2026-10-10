@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightClientCompat;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleAdsPacket;
+import net.minecraft.client.CameraType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -57,8 +58,9 @@ public final class MultipurposeStaffrifleClientAdsState {
     }
 
     public static boolean isScoped(@Nullable LivingEntity player) {
+        // Spyglass ImprovementsはisFirstPersonからisScopingを呼ぶため、選択中の視点を直接比較して再帰を避ける。
         return player instanceof LocalPlayer localPlayer
-                && Minecraft.getInstance().options.getCameraType().isFirstPerson()
+                && Minecraft.getInstance().options.getCameraType() == CameraType.FIRST_PERSON
                 && isLocalAdsKeyHeld(localPlayer)
                 && MultipurposeStaffrifle.hasSpyglass(player.getMainHandItem(), player.level().registryAccess());
     }
