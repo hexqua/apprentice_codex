@@ -42,6 +42,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> IRONS_UPGRADE_WHITELIST = createTag("irons_spellbooks", "upgrade_whitelist");
     private static final TagKey<Item> IRONS_INSCRIBED_RUNE = createTag("irons_spellbooks", "inscribed_rune");
     private static final TagKey<Item> CURIOS_RING = createTag("curios", "ring");
+    private static final TagKey<Item> CURIOS_RINGS = createTag("curios", "rings");
     private static final TagKey<Item> CURIOS_BACK = createTag("curios", "back");
     private static final TagKey<Item> CURIOS_BELT = createTag("curios", "belt");
     private static final TagKey<Item> CURIOS_CHARM = createTag("curios", "charm");
@@ -580,6 +581,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SPELL_CAST_PARRYING_RING.get(),
                 ItemRegistry.ATTACKCAST_RING.get()
         );
+        tag(CURIOS_RINGS).add(ItemRegistry.RINGS_ON_RING.get());
         tag(CURIOS_BELT).add(
                 ItemRegistry.PROTECTION_SPELL_SUPPORTER.get(),
                 ItemRegistry.SPELLCASTER_AMMO_POUCH.get(),
