@@ -74,7 +74,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
 ./gradlew.bat runGameTestServerEpicFight
 ```
 
-- `runGameTestServerCompat` は Farmer's Delight / Create / Botania / Lodestone / Malum 連携を確認します。
+- `runGameTestServerCompat` は Farmer's Delight / Create / Botania / Lodestone / Malum / Iron's Arms 'n Artifice 連携を確認します。
 - `runGameTestServerEasyMagic` は Puzzles Lib / Easy Magic 連携を確認します。
 - `runGameTestServerBetterCombat` は Cloth Config / Better Combat 連携を確認します。
 - `runGameTestServerEpicFight` は Epic Fight 連携を確認します。
@@ -107,6 +107,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
   - `runClientEpicFightController`
   - `runClientCompatEasyBetter`
 - `runClientEpicFightController` は Epic Fight / Controlify Forgified / YACL を入れ、実機コントローラー入力を確認する構成です。
+- `runClientCompat` は Iron's Arms 'n Artifice（1.20.1-1.1.1）も含めた連携確認用の構成です。通常構成への導入は不要です。
 - `runClientCompatEasyBetter` は compat + EasyMagic + Better Combat を入れた実環境寄りの手動バランス確認用です。Epic Fight は含めず、自動テスト対象にもしていません。
 - 一時的な組み合わせ確認では Gradle プロパティでも追加できます。
 
@@ -115,7 +116,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
 ./gradlew.bat runClient "-PdevRuntimeMods=epic_fight"
 ```
 
-- `devRuntimeMods` には `compat`, `easy_magic`, `better_combat`, `epic_fight`, `epic_fight_controller`, `compat_easy_better` または個別名（`create`, `botania`, `malum`, `controlify` など）をカンマ区切りで指定できます。
+- `devRuntimeMods` には `compat`, `easy_magic`, `better_combat`, `epic_fight`, `epic_fight_controller`, `compat_easy_better` または個別名（`create`, `botania`, `malum`, `irons_artifice`, `controlify` など）をカンマ区切りで指定できます。
 - Better Combat と Epic Fight は干渉が大きいため、同時投入は通常確認では避けます。
 
 ## GitHub 運用
