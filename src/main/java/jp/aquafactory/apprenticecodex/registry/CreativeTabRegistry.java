@@ -5,6 +5,7 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
+import jp.aquafactory.apprenticecodex.compat.ironsartifice.IronsArtificeCompat;
 import jp.aquafactory.apprenticecodex.compat.patchouli.PatchouliBookSupport;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkState;
 import jp.aquafactory.apprenticecodex.potion.SchoolAffinityPotion;
@@ -52,6 +53,7 @@ public final class CreativeTabRegistry {
 
         addBlockToTab(output);
         addSimpleMaterialToTab(output);
+        addArmsArtificeToTab(output);
         addCalibrationItemToTab(output);
         addFoodsToTab(output);
         addSwingcastStaffToTab(output);
@@ -99,6 +101,13 @@ public final class CreativeTabRegistry {
         for (var source : PartiallyUsedInkState.OfficialInk.values()) {
             output.accept(PartiallyUsedInkState.create(source, source.creativeDefaultCapacity()));
         }
+    }
+
+    private static void addArmsArtificeToTab(CreativeModeTab.Output output) {
+        if (!IronsArtificeCompat.isAvailable()) {
+            return;
+        }
+        output.accept(ItemRegistry.COMMENCE_MAGI_MODULE.get());
     }
 
     private static void addCalibrationItemToTab(CreativeModeTab.Output output) {

@@ -465,6 +465,7 @@ dependencies {
 
     // Iron's Arms 'n Artifice.
     // compat profile または個別指定で読み込み、通常構成では導入不要にする。
+    compileOnly "io.redspace:irons_artifice:${irons_artifice_version}"
     add(optionalRuntimeModuleConfigurations.irons_artifice, "io.redspace:irons_artifice:${irons_artifice_version}")
 
     // JEI.
