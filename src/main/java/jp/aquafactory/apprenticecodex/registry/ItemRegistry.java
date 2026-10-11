@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.ironsartifice.IronsArtificeCompat;
 import jp.aquafactory.apprenticecodex.item.*;
 import jp.aquafactory.apprenticecodex.item.broom.FloatmountBroomItem;
 import jp.aquafactory.apprenticecodex.item.broom.HoverrideBroomItem;
@@ -170,6 +171,8 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> OVERDRIVE_BROOM_ENGINE =
             ITEMS.register("overdrive_broom_engine", OverdriveBroomEngine::new);
     public static final RegistryObject<Item> SPELL_EXTRACT_SHARD = ITEMS.register("spell_extract_shard", SpellExtractShard::new);
+    public static final RegistryObject<Item> COMMENCE_MAGI_MODULE =
+            ITEMS.register("commence_magi_module", IronsArtificeCompat::createCommenceMagiModule);
     public static final RegistryObject<Item> CRYSTALLINE_ARCANE_SHARD = simple("crystalline_arcane_shard");
     public static final RegistryObject<Item> BULLET_RUNE = simple("bullet_rune");
     public static final RegistryObject<Item> MITHRIL_WEAVE_OFFCUTS = simpleFireImmune("mithril_weave_offcuts");

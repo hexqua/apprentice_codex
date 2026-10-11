@@ -435,6 +435,7 @@ dependencies {
     add(optionalRuntimeModuleConfigurations.lodestone, fg.deobf("maven.modrinth:lodestonelib:dRIycWqx"))
     add(optionalRuntimeModuleConfigurations.malum, fg.deobf("maven.modrinth:malum:U88VbrNU"))
 
+    compileOnly fg.deobf("maven.modrinth:yOy4oSzi:${irons_artifice_modrinth_version_id}")
     // 作者Mavenのmapped依存を重複解決しないよう、Forge配布jarをModrinth IDで固定する。
     add(optionalRuntimeModuleConfigurations.irons_artifice, fg.deobf("maven.modrinth:yOy4oSzi:${irons_artifice_modrinth_version_id}"))
 

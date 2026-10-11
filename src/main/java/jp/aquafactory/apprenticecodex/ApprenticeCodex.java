@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex;
 
+import jp.aquafactory.apprenticecodex.event.CommenceMagiModuleConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import jp.aquafactory.apprenticecodex.event.ManaSoulTransducerConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.UndyingEmblemConfigSyncEvents;
@@ -10,6 +11,7 @@ import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateT
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
+import jp.aquafactory.apprenticecodex.compat.ironsartifice.IronsArtificeCompat;
 import jp.aquafactory.apprenticecodex.compat.emf.EmfCompat;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.event.ArcanumInAJarConfigSyncEvents;
@@ -46,6 +48,8 @@ public class ApprenticeCodex
         context.registerConfig(ModConfig.Type.SERVER, ApprenticeCodexServerConfig.SPEC);
 
         var bus = context.getModEventBus();
+        IronsArtificeCompat.register(bus);
+        CommenceMagiModuleConfigSyncEvents.register(bus);
         ManaSoulTransducerConfigSyncEvents.register(bus);
         UndyingEmblemConfigSyncEvents.register(bus);
         ChargedTwinBladeStaffConfigSyncEvents.register(bus);
