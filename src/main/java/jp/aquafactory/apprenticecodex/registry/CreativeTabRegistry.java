@@ -270,6 +270,11 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.SPELL_CAST_PARRYING_RING.get());
         output.accept(ItemRegistry.ATTACKCAST_RING.get());
 
+        // rings(cataclysm)
+        if (ModList.get().isLoaded("cataclysm")) {
+            output.accept(ItemRegistry.RINGS_ON_RING.get());
+        }
+
         // amulet
         output.accept(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get());
         output.accept(ItemRegistry.AUTOCAST_AMULET.get().getDefaultInstance());

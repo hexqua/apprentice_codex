@@ -40,6 +40,7 @@ import jp.aquafactory.apprenticecodex.item.curios.spellcastparryingring.SpellCas
 import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
+import jp.aquafactory.apprenticecodex.item.curios.RingsOnRing;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
@@ -370,6 +371,8 @@ public final class ItemRegistry {
             ITEMS.register("spell_cast_parrying_ring", SpellCastParryingRing::new);
     public static final RegistryObject<Item> ATTACKCAST_RING =
             ITEMS.register("attackcast_ring", AttackcastRing::new);
+    public static final RegistryObject<Item> RINGS_ON_RING =
+            ITEMS.register("rings_on_ring", RingsOnRing::new);
     public static final RegistryObject<Item> ASHEN_CIRCLET =
             ITEMS.register("ashen_circlet", AshenCirclet::new);
     public static final RegistryObject<Item> ENCHANTED_CIRCLET =

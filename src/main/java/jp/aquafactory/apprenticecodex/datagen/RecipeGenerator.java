@@ -370,6 +370,16 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(ItemRegistry.MITHRIL_FREECAST_STAFF.get()), has(ItemRegistry.MITHRIL_FREECAST_STAFF.get()))
                 .save(recipeWriter);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.RINGS_ON_RING.get())
+                .pattern("WS ")
+                .pattern("SRS")
+                .pattern(" S ")
+                .define('R', io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
+                .define('S', ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.get())
+                .define('W', ItemRegistry.WISDOM_SHARD.get())
+                .unlockedBy(getHasName(ItemRegistry.WISDOM_SHARD.get()), has(ItemRegistry.WISDOM_SHARD.get()))
+                .save(recipe -> recipeWriter.accept(new ModLoadedFinishedRecipe(recipe, "cataclysm")));
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.PROTECTION_SPELL_SUPPORTER.get())
                 .pattern(" L ")
                 .pattern("LML")
@@ -2010,6 +2020,47 @@ public final class RecipeGenerator extends RecipeProvider {
             json.addProperty("count", count);
             return json;
         }
+    }
+
+    // Forge 1.20.1ではrecipeとadvancementそれぞれに導入条件を付ける必要がある。
+    private record ModLoadedFinishedRecipe(FinishedRecipe delegate, String modId) implements FinishedRecipe {
+        private JsonArray conditions() {
+            var condition = new JsonObject();
+            condition.addProperty("type", "forge:mod_loaded");
+            condition.addProperty("modid", modId);
+            var result = new JsonArray();
+            result.add(condition);
+            return result;
+        }
+
+        @Override
+        public void serializeRecipeData(JsonObject json) {
+            delegate.serializeRecipeData(json);
+            json.add("conditions", conditions());
+        }
+
+        @Override
+        public ResourceLocation getId() { return delegate.getId(); }
+
+        @Override
+        public RecipeSerializer<?> getType() { return delegate.getType(); }
+
+        @Override
+        public JsonObject serializeAdvancement() {
+            var advancement = delegate.serializeAdvancement();
+            if (advancement == null) return null;
+            var entry = new JsonObject();
+            entry.add("conditions", conditions());
+            entry.add("advancement", advancement);
+            var entries = new JsonArray();
+            entries.add(entry);
+            var result = new JsonObject();
+            result.add("advancements", entries);
+            return result;
+        }
+
+        @Override
+        public ResourceLocation getAdvancementId() { return delegate.getAdvancementId(); }
     }
 
     // Forgeのshaped出力へ本のNBTを付加し、Patchouli未導入時はレシピと進捗を両方除外する。
