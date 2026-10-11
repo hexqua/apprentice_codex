@@ -1,0 +1,30 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "cataclysm"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "R": {
+      "item": "irons_spellbooks:silver_ring"
+    },
+    "S": {
+      "item": "apprenticecodex:mana_enveloped_silver_chunk"
+    },
+    "W": {
+      "item": "apprenticecodex:wisdom_shard"
+    }
+  },
+  "pattern": [
+    "WS ",
+    "SRS",
+    " S "
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:rings_on_ring"
+  }
+}

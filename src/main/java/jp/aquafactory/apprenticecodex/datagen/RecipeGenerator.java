@@ -387,6 +387,16 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(ItemRegistry.MITHRIL_FREECAST_STAFF.get()), has(ItemRegistry.MITHRIL_FREECAST_STAFF.get()))
                 .save(recipeOutput);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.RINGS_ON_RING.get())
+                .pattern("WS ")
+                .pattern("SRS")
+                .pattern(" S ")
+                .define('R', io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
+                .define('S', ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.get())
+                .define('W', ItemRegistry.WISDOM_SHARD.get())
+                .unlockedBy(getHasName(ItemRegistry.WISDOM_SHARD.get()), has(ItemRegistry.WISDOM_SHARD.get()))
+                .save(recipeOutput.withConditions(new ModLoadedCondition("cataclysm")));
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.PROTECTION_SPELL_SUPPORTER.get())
                 .pattern(" L ")
                 .pattern("LML")

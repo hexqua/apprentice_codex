@@ -1,0 +1,38 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "cataclysm"
+    }
+  ],
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "apprenticecodex:rings_on_ring"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_wisdom_shard": {
+      "conditions": {
+        "items": [
+          {
+            "items": "apprenticecodex:wisdom_shard"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_wisdom_shard"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "apprenticecodex:rings_on_ring"
+    ]
+  }
+}
