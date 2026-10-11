@@ -20,7 +20,7 @@
 - Mod ローダー: NeoForge 21.1.228
 - 言語/実行環境: Java 21
 - ビルドツール: Gradle Wrapper（Windows では `./gradlew.bat` を使用）
-- 主要依存 MOD: Iron's Spells 'n Spellbooks（1.21.1-3.16.3）, Iron's Lib（1.21.1-2.1.0）, Curios（9.5.1+1.21.1）, GeckoLib（4.8.3）
+- 主要依存 MOD: Iron's Spells 'n Spellbooks（1.21.1-3.16.3）, Iron's Lib（1.21.1-2.2.0）, Curios（9.5.1+1.21.1）, GeckoLib（4.9.3）
 - ローカルでは `JDK21_HOME` を設定し、必要に応じて `.\scripts\use-java.ps1` で `JAVA_HOME` を切り替える。
 - `1.20.1-main`（1.20.1）を触る場合のみ Java 17 を使う。
 
@@ -94,7 +94,7 @@ Get-ChildItem build\libs\*.jar
 - `runGameTestServer` は専用 world `run/codex_gametest_clean` を毎回初期化してから起動する。通常の手動確認用 `run/world` は削除しない。
 - `runGameTestServer...` はプロファイル間で world と実行ディレクトリを共有するため、初回から必ず直列実行する。別プロセス・別ターミナル・サブエージェントへの分担でも並列起動しない。
 - 1 回の Gradle 呼び出しにつき GameTest task は 1 つとし、先行する Gradle / server プロセスの終了を確認してから次を起動する。実行中の yield は終了ではなく、同じ実行を wait で追跡する。
-- `runGameTestServerCompat` は Farmer's Delight / Create / Lodestone / Malum / Atlas API / Iron's Gems 'n Jewelry 連携の確認に使う。
+- `runGameTestServerCompat` は Farmer's Delight / Create / Lodestone / Malum / Atlas API / Iron's Gems 'n Jewelry / Iron's Arms 'n Artifice 連携の確認に使う。
 - `runGameTestServerCreateSableAeronautics` は Create / Sable / Create Simulated / Create Aeronautics / Create Offroad の導入とサーバー起動確認に使う。
 - `runGameTestServerEasyMagic` は Puzzles Lib / Easy Magic 連携の確認に使う。
 - `runGameTestServerBetterCombat` は Cloth Config / Better Combat 連携の確認に使う。
@@ -112,6 +112,7 @@ Get-ChildItem build\libs\*.jar
 - Botania は 1.21.1 側で API 依存を置いていないため、optional MOD profile には含めない。
 - Better Combat と Epic Fight は干渉が大きいため、通常確認では同時投入しない。
 - optional MOD の runtime 切替は Gradle の実行構成または `-PdevRuntimeMods=...` で行う。`build.gradle` の `runtimeOnly` / `localRuntime` コメントアウト解除運用は使わない。
+- Iron's Arms 'n Artifice（1.21.1-1.1.0）は `compat` / `compat_easy_better` に含め、`-PdevRuntimeMods=irons_artifice` で個別追加もできる。通常構成では導入不要とする。
 - 通常確認で `clean` は付けない。必要時のみ `./gradlew.bat clean build` を使う。
 - `runData` の出力先は `src/generated/resources` であり、`src/generated/resources/.cache` に記録された生成物だけが再生成・差分管理される前提で扱う。
 - 1.21.1 の `runData` は素材定義を上流の型・Codecで生成するため Iron's Gems 'n Jewelry / Atlas API を読み込む。素材と所属タグは `datagen/gems/GemsMaterials.java` で編集し、生成JSONは直接編集しない。今後のIron's Gems向け生成処理も `datagen/gems` に配置する。
@@ -152,7 +153,7 @@ Get-ChildItem build\libs\*.jar
 6. サーバー側の登録、データ読込、レシピ、生成、GameTest 対象構造に影響する変更では `./gradlew.bat runGameTestServer` を成功させる。
 7. `main` から `1.20.1-main` への backport では、1.20.1 側で `./gradlew.bat runGameTestServer` と `./gradlew.bat build` を成功させる。
 8. optional MOD 連携に影響する変更では、対象に応じて特殊 GameTest を追加実行する。client 構成は上記の分担に従い、人間の手動確認に使用する。
-   - Create / Lodestone / Malum / Farmer's Delight / Atlas API / Iron's Gems 'n Jewelry: `./gradlew.bat runGameTestServerCompat`
+   - Create / Lodestone / Malum / Farmer's Delight / Atlas API / Iron's Gems 'n Jewelry / Iron's Arms 'n Artifice: `./gradlew.bat runGameTestServerCompat`
    - Create Aeronautics / Sable / Create Simulated / Create Offroad: `./gradlew.bat runGameTestServerCreateSableAeronautics`
    - Easy Magic / エンチャントメニュー: `./gradlew.bat runGameTestServerEasyMagic`
    - Better Combat / offhand / weapon_attributes: `./gradlew.bat runGameTestServerBetterCombat`

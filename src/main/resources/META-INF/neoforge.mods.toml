@@ -129,6 +129,13 @@ config="mixins.apprenticecodex.json"
     side="BOTH"
 
 [[dependencies.${mod_id}]]
+    modId="irons_artifice"
+    type="optional"
+    versionRange="[${irons_artifice_version},)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
     modId="jei"
     type="optional"
     versionRange="[0,)"
