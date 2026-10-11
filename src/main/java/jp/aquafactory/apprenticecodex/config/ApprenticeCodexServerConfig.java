@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig
 import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ChargedTwinBladeStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.CommenceMagiModuleServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellboundArmsModuleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.HoverrideBroomServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig;
@@ -1087,6 +1088,14 @@ public final class ApprenticeCodexServerConfig {
         var previous = ITEMS_CONFIG.chargedTwinBladeStaffConfig();
         ITEMS_CONFIG.setChargedTwinBladeStaffConfigForGameTest(values);
         return () -> ITEMS_CONFIG.setChargedTwinBladeStaffConfigForGameTest(previous);
+    }
+
+    public static SpellboundArmsModuleServerConfig.Values spellboundArmsModuleConfig() {
+        return ITEMS_CONFIG.spellboundArmsModuleConfig.values();
+    }
+
+    public static AutoCloseable overrideSpellboundArmsModuleForGameTest(SpellboundArmsModuleServerConfig.Values values) {
+        return ITEMS_CONFIG.spellboundArmsModuleConfig.overrideForGameTest(values);
     }
 
     public static CommenceMagiModuleServerConfig.Values commenceMagiModuleConfig() {

@@ -259,6 +259,11 @@ public final class Networks {
                 SyncManaSoulTransducerConfigPacket::handle
         );
         registrar.playToClient(
+                SyncSpellboundArmsModuleConfigPacket.TYPE,
+                SyncSpellboundArmsModuleConfigPacket.STREAM_CODEC,
+                SyncSpellboundArmsModuleConfigPacket::handle
+        );
+        registrar.playToClient(
                 SyncCommenceMagiModuleConfigPacket.TYPE,
                 SyncCommenceMagiModuleConfigPacket.STREAM_CODEC,
                 SyncCommenceMagiModuleConfigPacket::handle

@@ -5,6 +5,7 @@ import io.redspace.irons_artifice.data.ShotComponentMap;
 import io.redspace.irons_artifice.data.ShotComponents;
 import io.redspace.irons_artifice.modifier.GunModifier;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.ironsartifice.IronsArtificeManaCost;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -22,7 +23,7 @@ public final class CommenceMagiModuleModifier implements GunModifier {
     @Override
     public void apply(ShotComponentMap components) {
         components.set(MODULE_COUNT, components.getOrDefault(MODULE_COUNT) + 1);
-        components.getOrCreate(ShotComponents.ON_SHOT).getOrCreate(CommenceMagiModuleManaCost.class, CommenceMagiModuleManaCost::new);
+        components.getOrCreate(ShotComponents.ON_SHOT).getOrCreate(IronsArtificeManaCost.class, IronsArtificeManaCost::new);
         components.getOrCreate(ShotComponents.ON_HIT).getOrCreate(CommenceMagiModuleHeadshotSound.class, CommenceMagiModuleHeadshotSound::new);
     }
 

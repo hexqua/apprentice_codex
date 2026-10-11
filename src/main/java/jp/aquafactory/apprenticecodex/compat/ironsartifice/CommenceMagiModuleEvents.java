@@ -2,26 +2,18 @@ package jp.aquafactory.apprenticecodex.compat.ironsartifice;
 
 import io.redspace.irons_artifice.api.BulletImpactEvent;
 import io.redspace.irons_artifice.api.ComposeShotEvent;
-import io.redspace.irons_artifice.api.GunAboutToShootEvent;
 import io.redspace.irons_artifice.damage.DamageSources;
 import io.redspace.irons_artifice.data.ComponentType;
 import io.redspace.irons_artifice.entity.Bullet;
-import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.player.ClientMagicData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.modifier.commencemagimodule.CommenceMagiModuleConfigState;
 import jp.aquafactory.apprenticecodex.item.modifier.commencemagimodule.CommenceMagiModuleModifier;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
@@ -42,22 +34,6 @@ public final class CommenceMagiModuleEvents {
                 ? CommenceMagiModuleConfigState.values() : ApprenticeCodexServerConfig.commenceMagiModuleConfig();
         profile.components().set(CommenceMagiModuleModifier.HEADSHOT_MULTIPLIER, values.headshotMultiplier(count));
         profile.components().set(CommenceMagiModuleModifier.MANA_COST, values.manaCost());
-    }
-
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onAboutToShoot(GunAboutToShootEvent event) {
-        if (!(event.getEntity() instanceof Player player) || player.hasInfiniteMaterials()) return;
-        int cost = event.getShotProfile().peek(CommenceMagiModuleModifier.MANA_COST);
-        if (event.getShotProfile().peek(CommenceMagiModuleModifier.MODULE_COUNT) == 0 || cost <= 0) return;
-        float mana = player.level().isClientSide ? ClientGate.mana() : MagicData.getPlayerMagicData(player).getMana();
-        if (mana < cost) {
-            event.setCanceled(true);
-            // 上流はclientの発射判定成功時だけC2Sを送るため、clientキャンセル時にも表示が必要。
-            player.displayClientMessage(Component.translatable(
-                    "ui.apprenticecodex.commence_magi_module.insufficient_mana",
-                    Component.translatable("item.apprenticecodex.commence_magi_module"))
-                    .withStyle(ChatFormatting.RED), true);
-        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST, receiveCanceled = true)
@@ -90,10 +66,4 @@ public final class CommenceMagiModuleEvents {
     public record Impact(LivingEntity target, Vec3 position, boolean headshot, boolean consumed) {
     }
 
-    @OnlyIn(Dist.CLIENT)
-    private static final class ClientGate {
-        private static float mana() {
-            return ClientMagicData.getPlayerMana();
-        }
-    }
 }
