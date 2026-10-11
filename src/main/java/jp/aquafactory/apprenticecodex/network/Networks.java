@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.network;
 
+import jp.aquafactory.apprenticecodex.network.packet.SyncSpellboundArmsModuleConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncCommenceMagiModuleConfigPacket;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.network.packet.FlySwatterTrailPacket;
@@ -127,7 +128,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "118";
+    private static final String PROTOCOL_VERSION = "119";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -141,6 +142,8 @@ public final class Networks {
     }
 
     public static void register() {
+        CHANNEL.registerMessage(nextPacketId++, SyncSpellboundArmsModuleConfigPacket.class,
+                SyncSpellboundArmsModuleConfigPacket::encode, SyncSpellboundArmsModuleConfigPacket::decode, SyncSpellboundArmsModuleConfigPacket::handle);
         CHANNEL.registerMessage(nextPacketId++, SyncCommenceMagiModuleConfigPacket.class,
                 SyncCommenceMagiModuleConfigPacket::encode, SyncCommenceMagiModuleConfigPacket::decode,
                 SyncCommenceMagiModuleConfigPacket::handle);

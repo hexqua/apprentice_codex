@@ -108,6 +108,7 @@ public final class CreativeTabRegistry {
             return;
         }
         output.accept(ItemRegistry.COMMENCE_MAGI_MODULE.get());
+        output.accept(ItemRegistry.SPELLBOUND_ARMS_MODULE.get());
     }
 
     private static void addCalibrationItemToTab(CreativeModeTab.Output output) {

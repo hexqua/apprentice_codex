@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.config;
 
+import jp.aquafactory.apprenticecodex.config.item.SpellboundArmsModuleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.CommenceMagiModuleServerConfig;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -1087,6 +1088,14 @@ public final class ApprenticeCodexServerConfig {
         var previous = ITEMS_CONFIG.chargedTwinBladeStaffConfig();
         ITEMS_CONFIG.setChargedTwinBladeStaffConfigForGameTest(values);
         return () -> ITEMS_CONFIG.setChargedTwinBladeStaffConfigForGameTest(previous);
+    }
+
+    public static SpellboundArmsModuleServerConfig.Values spellboundArmsModuleConfig() {
+        return ITEMS_CONFIG.spellboundArmsModuleConfig.values();
+    }
+
+    public static AutoCloseable overrideSpellboundArmsModuleForGameTest(SpellboundArmsModuleServerConfig.Values values) {
+        return ITEMS_CONFIG.spellboundArmsModuleConfig.overrideForGameTest(values);
     }
 
     public static CommenceMagiModuleServerConfig.Values commenceMagiModuleConfig() {

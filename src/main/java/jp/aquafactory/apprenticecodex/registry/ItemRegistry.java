@@ -171,6 +171,8 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> OVERDRIVE_BROOM_ENGINE =
             ITEMS.register("overdrive_broom_engine", OverdriveBroomEngine::new);
     public static final RegistryObject<Item> SPELL_EXTRACT_SHARD = ITEMS.register("spell_extract_shard", SpellExtractShard::new);
+    public static final RegistryObject<Item> SPELLBOUND_ARMS_MODULE =
+            ITEMS.register("spellbound_arms_module", IronsArtificeCompat::createSpellboundArmsModule);
     public static final RegistryObject<Item> COMMENCE_MAGI_MODULE =
             ITEMS.register("commence_magi_module", IronsArtificeCompat::createCommenceMagiModule);
     public static final RegistryObject<Item> CRYSTALLINE_ARCANE_SHARD = simple("crystalline_arcane_shard");

@@ -128,7 +128,7 @@ final class CommenceMagiModuleGameTestScenarios {
                 h.assertTrue(bullets(h, player).isEmpty(), "Canceled shot must not spawn bullets");
                 close(h, MagicData.getPlayerMagicData(player).getMana(), 29, "Canceled shot must preserve mana");
                 h.assertTrue(player.lastActionbar != null && player.lastActionbar.getContents() instanceof TranslatableContents error
-                        && error.getKey().equals("ui.apprenticecodex.commence_magi_module.insufficient_mana")
+                        && error.getKey().equals("ui.apprenticecodex.irons_artifice.insufficient_mana")
                         && player.lastActionbar.getStyle().getColor().getValue() == ChatFormatting.RED.getColor(),
                         "Insufficient mana must display the translated red actionbar error");
             }
