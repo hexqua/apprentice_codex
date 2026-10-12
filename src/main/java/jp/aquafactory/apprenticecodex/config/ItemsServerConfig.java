@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.config.item.ChargedTwinBladeStaffServerCon
 import jp.aquafactory.apprenticecodex.config.item.ChromaticMagiaDressServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.CircuitHeatStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.CommenceMagiModuleServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ManaStabilizerModuleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellboundArmsModuleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.CraftsmansDelightServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ElementalBowServerConfig;
@@ -53,6 +54,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 
 final class ItemsServerConfig {
     final CommenceMagiModuleServerConfig commenceMagiModuleConfig;
+    final ManaStabilizerModuleServerConfig manaStabilizerModuleConfig;
     final SpellboundArmsModuleServerConfig spellboundArmsModuleConfig;
     final QuickcastCartridgeServerConfig quickcastCartridgeConfig;
     final ShootingStarMantleServerConfig shootingStarMantleConfig;
@@ -145,7 +147,8 @@ final class ItemsServerConfig {
             QuickcastCartridgeServerConfig quickcastCartridgeConfig,
             ShootingStarMantleServerConfig shootingStarMantleConfig,
             CommenceMagiModuleServerConfig commenceMagiModuleConfig,
-            SpellboundArmsModuleServerConfig spellboundArmsModuleConfig
+            SpellboundArmsModuleServerConfig spellboundArmsModuleConfig,
+            ManaStabilizerModuleServerConfig manaStabilizerModuleConfig
     ) {
         this.arcaneCinderConfig = arcaneCinderConfig;
         this.absorptionAmplifyAmuletConfig = absorptionAmplifyAmuletConfig;
@@ -193,6 +196,7 @@ final class ItemsServerConfig {
         this.shootingStarMantleConfig = shootingStarMantleConfig;
         this.commenceMagiModuleConfig = commenceMagiModuleConfig;
         this.spellboundArmsModuleConfig = spellboundArmsModuleConfig;
+        this.manaStabilizerModuleConfig = manaStabilizerModuleConfig;
     }
 
     static ItemsServerConfig define(ModConfigSpec.Builder builder) {
@@ -242,6 +246,7 @@ final class ItemsServerConfig {
         var quickcastCartridgeConfig = QuickcastCartridgeServerConfig.define(builder);
         var shootingStarMantleConfig = new ShootingStarMantleServerConfig(builder);
         var commenceMagiModuleConfig = CommenceMagiModuleServerConfig.define(builder);
+        var manaStabilizerModuleConfig = ManaStabilizerModuleServerConfig.define(builder);
         var spellboundArmsModuleConfig = SpellboundArmsModuleServerConfig.define(builder);
         builder.pop();
 
@@ -291,7 +296,8 @@ final class ItemsServerConfig {
                 quickcastCartridgeConfig,
                 shootingStarMantleConfig,
                 commenceMagiModuleConfig,
-                spellboundArmsModuleConfig
+                spellboundArmsModuleConfig,
+                manaStabilizerModuleConfig
         );
     }
 

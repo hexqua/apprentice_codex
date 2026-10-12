@@ -109,6 +109,7 @@ public final class CreativeTabRegistry {
         }
         output.accept(ItemRegistry.COMMENCE_MAGI_MODULE.get());
         output.accept(ItemRegistry.SPELLBOUND_ARMS_MODULE.get());
+        output.accept(ItemRegistry.MANA_STABILIZER_MODULE.get());
     }
 
     private static void addCalibrationItemToTab(CreativeModeTab.Output output) {

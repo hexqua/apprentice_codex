@@ -1,6 +1,9 @@
 package jp.aquafactory.apprenticecodex.compat.ironsartifice;
 
 import jp.aquafactory.apprenticecodex.item.modifier.commencemagimodule.CommenceMagiModuleItem;
+import jp.aquafactory.apprenticecodex.item.modifier.manastabilizermodule.ManaStabilizerModuleItem;
+import jp.aquafactory.apprenticecodex.event.client.ManaStabilizerClientEvents;
+import net.minecraft.server.level.ServerPlayer;
 import jp.aquafactory.apprenticecodex.item.modifier.spellboundarmsmodule.SpellboundArmsModuleItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.damagesource.DamageSource;
@@ -30,6 +33,14 @@ public final class IronsArtificeCompat {
 
     public static Item createSpellboundArmsModule() {
         return isAvailable() ? Loaded.createSpellboundItem() : new Item(new Item.Properties().stacksTo(1));
+    }
+
+    public static Item createManaStabilizerModule() {
+        return isAvailable() ? Loaded.createStabilizerItem() : new Item(new Item.Properties().stacksTo(1));
+    }
+
+    public static void manaStabilizerInput(ServerPlayer player, boolean aiming, boolean hook, long shot) {
+        if (isAvailable()) Loaded.stabilizerInput(player, aiming, hook, shot);
     }
 
     public static void register(IEventBus modEventBus) {
@@ -63,11 +74,19 @@ public final class IronsArtificeCompat {
     private static final class ClientLoaded {
         private static void registerEvents() {
             NeoForge.EVENT_BUS.register(IronsArtificeClientTooltips.class);
+            ManaStabilizerClientEvents.register();
+            NeoForge.EVENT_BUS.register(ManaStabilizerClientEvents.class);
         }
     }
 
     // 戻り値の共通型をJVMが検証する際もModifierItemの継承関係を解決しないよう隔離する。
     private static final class Loaded {
+        private static Item createStabilizerItem() { return new ManaStabilizerModuleItem(); }
+
+        private static void stabilizerInput(ServerPlayer player, boolean aiming, boolean hook, long shot) {
+            ManaStabilizerModuleEvents.input(player, aiming, hook, shot);
+        }
+
         private static Item createItem() {
             return new CommenceMagiModuleItem();
         }
@@ -80,6 +99,7 @@ public final class IronsArtificeCompat {
             NeoForge.EVENT_BUS.register(CommenceMagiModuleEvents.class);
             NeoForge.EVENT_BUS.register(SpellboundArmsModuleEvents.class);
             NeoForge.EVENT_BUS.register(IronsArtificeManaEvents.class);
+            NeoForge.EVENT_BUS.register(ManaStabilizerModuleEvents.class);
             if (ModList.get().isLoaded("lodestone")) LodestoneLoaded.registerEvents();
             if (ModList.get().isLoaded("malum")) MalumLoaded.registerEvents();
             if (FMLEnvironment.dist == Dist.CLIENT) ClientLoaded.registerEvents();

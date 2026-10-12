@@ -185,6 +185,8 @@ public final class ItemRegistry {
     public static final DeferredHolder<Item, Item> SPELL_EXTRACT_SHARD = ITEMS.register("spell_extract_shard", SpellExtractShard::new);
     public static final DeferredHolder<Item, Item> SPELLBOUND_ARMS_MODULE =
             ITEMS.register("spellbound_arms_module", IronsArtificeCompat::createSpellboundArmsModule);
+    public static final DeferredHolder<Item, Item> MANA_STABILIZER_MODULE =
+            ITEMS.register("mana_stabilizer_module", IronsArtificeCompat::createManaStabilizerModule);
     public static final DeferredHolder<Item, Item> COMMENCE_MAGI_MODULE =
             ITEMS.register("commence_magi_module", IronsArtificeCompat::createCommenceMagiModule);
     public static final DeferredHolder<Item, Item> CRYSTALLINE_ARCANE_SHARD = simple("crystalline_arcane_shard");

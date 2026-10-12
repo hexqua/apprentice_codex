@@ -16,6 +16,7 @@ import jp.aquafactory.apprenticecodex.event.ApprenticeDeskConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ArcanumInAJarConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.CircuitHeatStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.CommenceMagiModuleConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.ManaStabilizerModuleConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.SpellboundArmsModuleConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.EquipmentSpellTimingConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.FullautoEchoConfigSyncEvents;
@@ -103,6 +104,7 @@ public class ApprenticeCodex
         GemsCompat.register(modEventBus);
         IronsArtificeCompat.register(modEventBus);
         CommenceMagiModuleConfigSyncEvents.register(modEventBus);
+        ManaStabilizerModuleConfigSyncEvents.register(modEventBus);
         SpellboundArmsModuleConfigSyncEvents.register(modEventBus);
         SableCompat.register(modEventBus);
         EpicFightCompat.register(modEventBus);

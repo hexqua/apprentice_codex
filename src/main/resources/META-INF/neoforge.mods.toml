@@ -15,6 +15,9 @@ description='''${mod_description}'''
 [[mixins]]
 config="mixins.apprenticecodex.json"
 
+[[mixins]]
+config="mixins.apprenticecodex.mana_stabilizer.json"
+
 [[dependencies.apprenticecodex]]
     modId="neoforge"
     mandatory=true
