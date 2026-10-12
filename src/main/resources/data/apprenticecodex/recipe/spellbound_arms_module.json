@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "irons_artifice"
+    }
+  ],
+  "key": {
+    "B": {
+      "item": "irons_artifice:bullet"
+    },
+    "D": {
+      "item": "apprenticecodex:spellstained_diamond"
+    },
+    "E": {
+      "item": "apprenticecodex:spellstained_arcane_ingot"
+    },
+    "A": {
+      "item": "apprenticecodex:arcane_cinder"
+    }
+  },
+  "pattern": [
+    " DD",
+    "EBD",
+    "AE "
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:spellbound_arms_module"
+  },
+  "show_notification": true
+}
