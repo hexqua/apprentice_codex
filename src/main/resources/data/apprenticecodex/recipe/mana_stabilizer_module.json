@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "irons_artifice"
+    }
+  ],
+  "key": {
+    "R": {
+      "item": "apprenticecodex:bullet_rune"
+    },
+    "S": {
+      "item": "apprenticecodex:shock_absorption_plate"
+    },
+    "G": {
+      "item": "irons_artifice:gas_vent_modifier"
+    },
+    "C": {
+      "item": "irons_artifice:clockwork_components"
+    }
+  },
+  "pattern": [
+    " C ",
+    "SRS",
+    " G "
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:mana_stabilizer_module"
+  },
+  "show_notification": true
+}

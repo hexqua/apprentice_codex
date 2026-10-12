@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "123";
+    private static final String PROTOCOL_VERSION = "125";
 
     private Networks() {
     }
@@ -22,6 +22,9 @@ public final class Networks {
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar(PROTOCOL_VERSION);
+        registrar.playToServer(ClientManaStabilizerInputPacket.TYPE, ClientManaStabilizerInputPacket.STREAM_CODEC, ClientManaStabilizerInputPacket::handle);
+        registrar.playToClient(SyncManaStabilizerRecoilPacket.TYPE, SyncManaStabilizerRecoilPacket.STREAM_CODEC, SyncManaStabilizerRecoilPacket::handle);
+        registrar.playToClient(SyncManaStabilizerModuleConfigPacket.TYPE, SyncManaStabilizerModuleConfigPacket.STREAM_CODEC, SyncManaStabilizerModuleConfigPacket::handle);
         registrar.playToClient(LockOnRayTrailPacket.TYPE, LockOnRayTrailPacket.STREAM_CODEC, LockOnRayTrailPacket::handle);
         registrar.playToClient(FlySwatterTrailPacket.TYPE, FlySwatterTrailPacket.STREAM_CODEC, FlySwatterTrailPacket::handle);
         registrar.playToServer(ClientMalumBlackCrystalRevealedPacket.TYPE,
@@ -257,6 +260,16 @@ public final class Networks {
                 SyncManaSoulTransducerConfigPacket.TYPE,
                 SyncManaSoulTransducerConfigPacket.STREAM_CODEC,
                 SyncManaSoulTransducerConfigPacket::handle
+        );
+        registrar.playToClient(
+                SyncSpellboundArmsModuleConfigPacket.TYPE,
+                SyncSpellboundArmsModuleConfigPacket.STREAM_CODEC,
+                SyncSpellboundArmsModuleConfigPacket::handle
+        );
+        registrar.playToClient(
+                SyncCommenceMagiModuleConfigPacket.TYPE,
+                SyncCommenceMagiModuleConfigPacket.STREAM_CODEC,
+                SyncCommenceMagiModuleConfigPacket::handle
         );
         registrar.playToClient(
                 SyncUndyingEmblemConfigPacket.TYPE,

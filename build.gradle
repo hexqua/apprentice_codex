@@ -105,6 +105,7 @@ def optionalRuntimeModuleConfigurations = [
         malum          : 'malumRuntimeOnly',
         atlas_api      : 'atlasApiRuntimeOnly',
         irons_jewelry  : 'ironsJewelryRuntimeOnly',
+        irons_artifice : 'ironsArtificeRuntimeOnly',
 ]
 
 def clientRuntimeModuleConfigurations = [
@@ -113,7 +114,7 @@ def clientRuntimeModuleConfigurations = [
 ]
 
 def optionalRuntimeProfileModules = [
-        compat              : ['create', 'lodestone', 'malum', 'atlas_api', 'irons_jewelry'],
+        compat              : ['create', 'lodestone', 'malum', 'atlas_api', 'irons_jewelry', 'irons_artifice'],
         create_sable_aeronautics: ['create', 'sable', 'create_aeronautics'],
         easy_magic          : ['puzzles_lib', 'easy_magic'],
         better_combat       : ['cloth_config', 'better_combat'],
@@ -121,7 +122,7 @@ def optionalRuntimeProfileModules = [
         malum_epic_fight    : ['lodestone', 'malum', 'epic_fight'],
         epic_fight          : ['epic_fight'],
         epic_fight_controller: ['epic_fight', 'yacl', 'controlify'],
-        compat_easy_better  : ['create', 'lodestone', 'malum', 'atlas_api', 'irons_jewelry', 'puzzles_lib', 'easy_magic', 'cloth_config', 'better_combat'],
+        compat_easy_better  : ['create', 'lodestone', 'malum', 'atlas_api', 'irons_jewelry', 'irons_artifice', 'puzzles_lib', 'easy_magic', 'cloth_config', 'better_combat'],
 ]
 
 def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
@@ -142,10 +143,12 @@ def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
         atlas_api     : ['atlas_api'],
         ironsjewelry  : ['atlas_api', 'irons_jewelry'],
         irons_jewelry : ['atlas_api', 'irons_jewelry'],
+        ironsartifice : ['irons_artifice'],
+        irons_artifice: ['irons_artifice'],
 ]
 
 def optionalRuntimeRequiredModIds = [
-        compat       : 'create,lodestone,malum,atlas_api,irons_jewelry',
+        compat       : 'create,lodestone,malum,atlas_api,irons_jewelry,irons_artifice',
         create_sable_aeronautics: 'create,sable,simulated,aeronautics,offroad,aeronautics_bundled',
         easy_magic   : 'puzzleslib,easymagic',
         better_combat: 'cloth_config,bettercombat',
@@ -460,6 +463,11 @@ dependencies {
     add(optionalRuntimeModuleConfigurations.atlas_api, "io.redspace:atlas_api:${atlas_api_version}")
     add(optionalRuntimeModuleConfigurations.irons_jewelry, "io.redspace:irons_jewelry:${irons_jewelry_version}")
 
+    // Iron's Arms 'n Artifice.
+    // compat profile または個別指定で読み込み、通常構成では導入不要にする。
+    compileOnly "io.redspace:irons_artifice:${irons_artifice_version}"
+    add(optionalRuntimeModuleConfigurations.irons_artifice, "io.redspace:irons_artifice:${irons_artifice_version}")
+
     // JEI.
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
     runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
@@ -525,6 +533,7 @@ tasks.named('processResources', ProcessResources).configure {
             malum_version          : malum_version,
             atlas_api_version      : atlas_api_version,
             irons_jewelry_version  : irons_jewelry_version,
+            irons_artifice_version : irons_artifice_version,
             epicfight_version      : epicfight_version,
             epicfight_mod_version  : epicfight_mod_version,
             emf_version            : emf_version,

@@ -9,6 +9,9 @@ import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerCo
 import jp.aquafactory.apprenticecodex.config.item.ChargedTwinBladeStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ChromaticMagiaDressServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.CircuitHeatStaffServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.CommenceMagiModuleServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ManaStabilizerModuleServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellboundArmsModuleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.CraftsmansDelightServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ElementalBowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
@@ -50,6 +53,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 final class ItemsServerConfig {
+    final CommenceMagiModuleServerConfig commenceMagiModuleConfig;
+    final ManaStabilizerModuleServerConfig manaStabilizerModuleConfig;
+    final SpellboundArmsModuleServerConfig spellboundArmsModuleConfig;
     final QuickcastCartridgeServerConfig quickcastCartridgeConfig;
     final ShootingStarMantleServerConfig shootingStarMantleConfig;
     private final ArcaneCinderServerConfig arcaneCinderConfig;
@@ -139,7 +145,10 @@ final class ItemsServerConfig {
             LuminousDeviceServerConfig luminousDeviceConfig,
             InstantSearchBrazierServerConfig instantSearchBrazierConfig,
             QuickcastCartridgeServerConfig quickcastCartridgeConfig,
-            ShootingStarMantleServerConfig shootingStarMantleConfig
+            ShootingStarMantleServerConfig shootingStarMantleConfig,
+            CommenceMagiModuleServerConfig commenceMagiModuleConfig,
+            SpellboundArmsModuleServerConfig spellboundArmsModuleConfig,
+            ManaStabilizerModuleServerConfig manaStabilizerModuleConfig
     ) {
         this.arcaneCinderConfig = arcaneCinderConfig;
         this.absorptionAmplifyAmuletConfig = absorptionAmplifyAmuletConfig;
@@ -185,6 +194,9 @@ final class ItemsServerConfig {
         this.instantSearchBrazierConfig = instantSearchBrazierConfig;
         this.quickcastCartridgeConfig = quickcastCartridgeConfig;
         this.shootingStarMantleConfig = shootingStarMantleConfig;
+        this.commenceMagiModuleConfig = commenceMagiModuleConfig;
+        this.spellboundArmsModuleConfig = spellboundArmsModuleConfig;
+        this.manaStabilizerModuleConfig = manaStabilizerModuleConfig;
     }
 
     static ItemsServerConfig define(ModConfigSpec.Builder builder) {
@@ -233,6 +245,9 @@ final class ItemsServerConfig {
         var instantSearchBrazierConfig = InstantSearchBrazierServerConfig.define(builder);
         var quickcastCartridgeConfig = QuickcastCartridgeServerConfig.define(builder);
         var shootingStarMantleConfig = new ShootingStarMantleServerConfig(builder);
+        var commenceMagiModuleConfig = CommenceMagiModuleServerConfig.define(builder);
+        var manaStabilizerModuleConfig = ManaStabilizerModuleServerConfig.define(builder);
+        var spellboundArmsModuleConfig = SpellboundArmsModuleServerConfig.define(builder);
         builder.pop();
 
         return new ItemsServerConfig(
@@ -279,7 +294,10 @@ final class ItemsServerConfig {
                 luminousDeviceConfig,
                 instantSearchBrazierConfig,
                 quickcastCartridgeConfig,
-                shootingStarMantleConfig
+                shootingStarMantleConfig,
+                commenceMagiModuleConfig,
+                spellboundArmsModuleConfig,
+                manaStabilizerModuleConfig
         );
     }
 

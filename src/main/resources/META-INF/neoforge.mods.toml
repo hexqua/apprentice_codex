@@ -15,6 +15,9 @@ description='''${mod_description}'''
 [[mixins]]
 config="mixins.apprenticecodex.json"
 
+[[mixins]]
+config="mixins.apprenticecodex.mana_stabilizer.json"
+
 [[dependencies.apprenticecodex]]
     modId="neoforge"
     mandatory=true
@@ -126,6 +129,13 @@ config="mixins.apprenticecodex.json"
     type="optional"
     versionRange="[${irons_jewelry_version},)"
     ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="irons_artifice"
+    type="optional"
+    versionRange="[${irons_artifice_version},)"
+    ordering="NONE"
     side="BOTH"
 
 [[dependencies.${mod_id}]]
