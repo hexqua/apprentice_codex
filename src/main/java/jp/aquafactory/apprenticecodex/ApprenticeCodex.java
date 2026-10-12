@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex;
 
+import jp.aquafactory.apprenticecodex.event.ManaStabilizerModuleConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.SpellboundArmsModuleConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.CommenceMagiModuleConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
@@ -51,6 +52,7 @@ public class ApprenticeCodex
         var bus = context.getModEventBus();
         IronsArtificeCompat.register(bus);
         CommenceMagiModuleConfigSyncEvents.register(bus);
+        ManaStabilizerModuleConfigSyncEvents.register(bus);
         SpellboundArmsModuleConfigSyncEvents.register(bus);
         ManaSoulTransducerConfigSyncEvents.register(bus);
         UndyingEmblemConfigSyncEvents.register(bus);

@@ -1,0 +1,9 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "jp.aquafactory.apprenticecodex.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "plugin": "jp.aquafactory.apprenticecodex.mixin.ManaStabilizerMixinPlugin",
+  "client": ["ManaStabilizerRecoilMixin", "ManaStabilizerCrosshairMixin"],
+  "injectors": {"defaultRequire": 0}
+}

@@ -1,5 +1,8 @@
 package jp.aquafactory.apprenticecodex.network;
 
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaStabilizerRecoilPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientManaStabilizerInputPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaStabilizerModuleConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncSpellboundArmsModuleConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncCommenceMagiModuleConfigPacket;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -128,7 +131,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "119";
+    private static final String PROTOCOL_VERSION = "120";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -142,6 +145,12 @@ public final class Networks {
     }
 
     public static void register() {
+        CHANNEL.registerMessage(nextPacketId++, SyncManaStabilizerRecoilPacket.class,
+                SyncManaStabilizerRecoilPacket::encode, SyncManaStabilizerRecoilPacket::decode, SyncManaStabilizerRecoilPacket::handle);
+        CHANNEL.registerMessage(nextPacketId++, ClientManaStabilizerInputPacket.class,
+                ClientManaStabilizerInputPacket::encode, ClientManaStabilizerInputPacket::decode, ClientManaStabilizerInputPacket::handle);
+        CHANNEL.registerMessage(nextPacketId++, SyncManaStabilizerModuleConfigPacket.class,
+                SyncManaStabilizerModuleConfigPacket::encode, SyncManaStabilizerModuleConfigPacket::decode, SyncManaStabilizerModuleConfigPacket::handle);
         CHANNEL.registerMessage(nextPacketId++, SyncSpellboundArmsModuleConfigPacket.class,
                 SyncSpellboundArmsModuleConfigPacket::encode, SyncSpellboundArmsModuleConfigPacket::decode, SyncSpellboundArmsModuleConfigPacket::handle);
         CHANNEL.registerMessage(nextPacketId++, SyncCommenceMagiModuleConfigPacket.class,
