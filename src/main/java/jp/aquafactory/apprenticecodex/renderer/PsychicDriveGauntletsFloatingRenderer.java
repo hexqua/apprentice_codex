@@ -20,12 +20,12 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class PsychicDriveGauntletsFloatingRenderer
         extends GeoObjectRenderer<PsychicDriveGauntletsFloatingRenderer.Visual> {
-    private static final float DRAWN_SIDE = 0.7F;
-    private static final float DRAWN_FORWARD = -0.5F;
-    private static final float DRAWN_HEIGHT = -0.25F;
+    private static final float DRAWN_SIDE = 0.8F;
+    private static final float DRAWN_FORWARD = -0.1F;
+    private static final float DRAWN_HEIGHT = -0.5F;
     private static final float SHEATHED_SIDE = 0.35F;
-    private static final float SHEATHED_BACK = 0.45F;
-    private static final float SHEATHED_HEIGHT = -0.35F;
+    private static final float SHEATHED_BACK = 0.65F;
+    private static final float SHEATHED_HEIGHT = -0.65F;
     // Blockbenchのbracer中心を基準に回転させ、片側のモデルだけ位置が偏るのを防ぐ。
     private static final float MODEL_CENTER_Y = 4.25F / 16.0F;
     private static final float MODEL_CENTER_Z = 0.25F / 16.0F;
