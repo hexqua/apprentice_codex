@@ -73,6 +73,7 @@ import jp.aquafactory.apprenticecodex.item.magicitem.InstantSearchBrazier;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
 import jp.aquafactory.apprenticecodex.item.magicitem.WoodenWand;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntlets;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
@@ -484,6 +485,8 @@ public final class ItemRegistry {
             ITEMS.register("charged_twin_blade_staff", ChargedTwinBladeStaff::new);
     public static final DeferredHolder<Item, Item> MANA_FORCE_BLADE =
             ITEMS.register("mana_force_blade", ManaForceBlade::new);
+    public static final DeferredHolder<Item, Item> PSYCHIC_DRIVE_GAUNTLETS =
+            ITEMS.register("psychic_drive_gauntlets", PsychicDriveGauntlets::new);
     public static final DeferredHolder<Item, Item> MANA_FORCE_BLADE_SHEATH =
             ITEMS.register("mana_force_blade_sheath", ManaForceBladeSheathItem::new);
     public static final DeferredHolder<Item, Item> SPELL_REAPER_SCYTHE =

@@ -51,6 +51,7 @@ import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import jp.aquafactory.apprenticecodex.renderer.ManaForceBladeSheathLayer;
+import jp.aquafactory.apprenticecodex.renderer.item.PsychicDriveGauntletsItemRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.AshenCircletCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.BroomCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.CircletCurioRenderer;
@@ -406,6 +407,23 @@ public final class ClientModBusEvents {
     }
 
     private static void registerClientExtensions(RegisterClientExtensionsEvent event) {
+        event.registerItem(new IClientItemExtensions() {
+            private PsychicDriveGauntletsItemRenderer renderer;
+
+            @Override
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new PsychicDriveGauntletsItemRenderer();
+                }
+                return renderer;
+            }
+
+            @Override
+            public HumanoidModel.ArmPose getArmPose(@NotNull LivingEntity entity, @NotNull InteractionHand hand,
+                                                   @NotNull ItemStack stack) {
+                return HumanoidModel.ArmPose.EMPTY;
+            }
+        }, ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.get());
         event.registerItem(new IClientItemExtensions() {
             private FloatmountBroomItemRenderer renderer;
 
