@@ -4,6 +4,7 @@ import io.netty.buffer.Unpooled;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Impact;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Phase;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Snapshot;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackEvents;
@@ -197,6 +198,8 @@ public final class PsychicDriveGauntletsAttackGameTests {
         ticks(arm, player, 2, 3);
         helper.assertTrue(arm.phase() == Phase.HOLDING && arm.position().equals(destination),
                 "Flight must stop at its destination");
+        helper.assertTrue(arm.snapshot().impact() == Impact.NONE,
+                "An empty endpoint must not trigger a strike");
         ticks(arm, player, 4, 12);
         helper.assertTrue(arm.phase() == Phase.HOLDING, "Holding must last ten full ticks");
         arm.tick(player, 1, 13);
@@ -220,6 +223,8 @@ public final class PsychicDriveGauntletsAttackGameTests {
         arm.tick(player, 0.5F, 2);
         helper.assertTrue(arm.phase() == Phase.RETURNING && arm.position().equals(departure),
                 "Switching even to an identical stack must start return without teleporting");
+        helper.assertTrue(arm.snapshot().impact() == Impact.NONE,
+                "Recalling before contact must not manufacture an impact");
         player.setPos(player.position().add(1, 0, 0));
         for (int time = 3; time <= 7; time++) arm.tick(player, 0.5F, time);
         helper.assertTrue(arm.available()
@@ -244,6 +249,9 @@ public final class PsychicDriveGauntletsAttackGameTests {
         second.tick(player, 1, 2);
         helper.assertTrue(second.phase() == Phase.HOLDING && Math.abs(target.getHealth() - 92) < 1.0e-6,
                 "Iframe rejection must still count as impact and must not add damage");
+        helper.assertTrue(arm.snapshot().impact() == Impact.ENTITY && arm.snapshot().impactTick() == 1
+                        && second.snapshot().impact() == Impact.ENTITY && second.snapshot().impactTick() == 2,
+                "Both successful damage and iframe rejection must record entity contact at the actual tick");
         ticks(arm, player, 2, 18);
         helper.assertTrue(Math.abs(target.getHealth() - 92) < 1.0e-6,
                 "Holding and return must not deal additional damage");
@@ -367,13 +375,40 @@ public final class PsychicDriveGauntletsAttackGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void blockImpactRequiresArrivalAndEntityContactTakesPriority(GameTestHelper helper) {
+        var player = player(helper);
+        var wall = BlockPos.containing(player.getEyePosition().add(0, 0, 2));
+        helper.getLevel().setBlockAndUpdate(wall, Blocks.STONE.defaultBlockState());
+        var state = new PsychicDriveGauntletsAttackState();
+        helper.assertTrue(state.input(player, Input.PRESS, 100), "Wall attack must launch");
+        helper.assertTrue(state.right().snapshot().impact() == Impact.NONE,
+                "A block aim must not count as impact before arrival");
+        for (int time = 101; time <= 104; time++) state.tick(player, time);
+        var impact = state.right().snapshot();
+        helper.assertTrue(impact.phase() == Phase.HOLDING && impact.impact() == Impact.BLOCK
+                        && impact.impactTick() > 100 && impact.position().equals(impact.destination()),
+                "Reaching the aimed wall must record a block impact");
+
+        var aim = PsychicDriveGauntletsRaycast.aim(player);
+        helper.assertTrue(aim.block(), "The wall must remain the selected endpoint");
+        var arm = new PsychicDriveGauntletsArm(true);
+        arm.launch(player, aim, 1, 200, InteractionHand.MAIN_HAND, 0);
+        var start = PsychicDriveGauntletsPose.position(player, 1, true);
+        target(helper, start.add(0, -0.5, 0.8));
+        ticks(arm, player, 201, 204);
+        helper.assertTrue(arm.snapshot().impact() == Impact.ENTITY,
+                "An entity entering a block-directed flight must take priority over the block endpoint");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void packetsPreserveIndependentArmsAndExplicitReset(GameTestHelper helper) {
         var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
         try {
             var right = new Snapshot(Phase.RETURNING, new Vec3(1.25, -2, 3), 179, -30, 0.5F,
-                    new Vec3(0, 1, 2), new Vec3(3, 4, 5), 10, 12);
-            var left = new Snapshot(Phase.OUTBOUND, new Vec3(-4, 5, 6.75), -179, 45, 1,
-                    new Vec3(-1, -2, -3), new Vec3(-4, -5, -6), 11, 13);
+                    new Vec3(0, 1, 2), new Vec3(3, 4, 5), 10, 12, 0, 12, 0, Impact.ENTITY, 11);
+            var left = new Snapshot(Phase.HOLDING, new Vec3(-4, 5, 6.75), -179, 45, 1,
+                    new Vec3(-1, -2, -3), new Vec3(-4, -5, -6), 11, 13, 0, 0, 0, Impact.BLOCK, 13);
             var id = UUID.randomUUID();
             for (boolean reset : new boolean[] {false, true}) {
                 var packet = new SyncPsychicDriveGauntletsPacket(id, reset, right, left);
