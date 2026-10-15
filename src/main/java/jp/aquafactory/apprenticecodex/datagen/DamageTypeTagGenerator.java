@@ -237,6 +237,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 LUNAR_AIM,
                 ECHO_ARROW,
                 LOCK_ON_RAY,
+                PSYCHIC_DRIVE_GAUNTLETS,
                 SPELL_REAPER_SCYTHE_THROW,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS,
@@ -281,6 +282,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
         tag(MALUM_CAN_SOUL_SHATTER).addTag(CODEX_MAGIC).add(
                 HAUNTED_BONUS,
                 MANA_FORCE_BLADE,
+                PSYCHIC_DRIVE_GAUNTLETS,
                 HOVERRIDE_BROOM,
                 SPELL_REAPER_SCYTHE_THROW,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,

@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.mixin;
 import jp.aquafactory.apprenticecodex.compat.bettercombat.BetterCombatSpellReaperScytheCompat;
 import jp.aquafactory.apprenticecodex.item.spellchargedgreatsword.SpellchargedGreatsword;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowManager;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection;
 import net.bettercombat.api.AttributesContainer;
 import net.bettercombat.api.WeaponAttributes;
 import net.bettercombat.logic.WeaponRegistry;
@@ -65,7 +66,7 @@ public abstract class BetterCombatWeaponRegistryMixin {
             ItemStack stack,
             CallbackInfoReturnable<WeaponAttributes> callback
     ) {
-        if (stack != null && ScytheThrowManager.isThrown(stack)) {
+        if (stack != null && (ScytheThrowManager.isThrown(stack) || PsychicDriveGauntletsSelection.isGauntlets(stack))) {
             callback.setReturnValue(null);
             return;
         }

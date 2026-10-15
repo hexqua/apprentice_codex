@@ -14,6 +14,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -34,8 +36,17 @@ public final class PsychicDriveGauntletsGameTests {
         helper.assertTrue(BuiltInRegistries.ITEM.getKey(item).equals(ResourceLocation.fromNamespaceAndPath(
                 ApprenticeCodex.MODID, "psychic_drive_gauntlets")), "Gauntlets must use their intended content ID");
         helper.assertTrue(stack.getMaxStackSize() == 1, "Gauntlets must have a stack limit of one");
-        helper.assertTrue(item.getDefaultAttributeModifiers(stack).modifiers().isEmpty(),
-                "Gauntlets must not add attribute modifiers");
+        var damage = new double[] {1.0};
+        var speed = new double[] {4.0};
+        stack.getAttributeModifiers().forEach(EquipmentSlot.MAINHAND, (attribute, modifier) -> {
+            if (attribute.equals(Attributes.ATTACK_DAMAGE)) damage[0] += modifier.amount();
+            if (attribute.equals(Attributes.ATTACK_SPEED)) speed[0] += modifier.amount();
+        });
+        helper.assertTrue(Math.abs(damage[0] - 8.0) < 1.0e-6, "Gauntlets must display attack damage eight");
+        helper.assertTrue(Math.abs(speed[0] - 20.0 / 15.0) < 1.0e-6, "Gauntlets must display a fifteen-tick attack speed");
+        stack.getAttributeModifiers().forEach(EquipmentSlot.OFFHAND, (attribute, modifier) ->
+                helper.assertTrue(!attribute.equals(Attributes.ATTACK_DAMAGE) && !attribute.equals(Attributes.ATTACK_SPEED),
+                        "Offhand gauntlets must not add combat attributes"));
         helper.succeed();
     }
 

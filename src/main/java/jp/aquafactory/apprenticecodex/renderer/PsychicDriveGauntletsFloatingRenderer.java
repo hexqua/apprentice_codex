@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import jp.aquafactory.apprenticecodex.model.PsychicDriveGauntletsModel;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsPose;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.util.Mth;
@@ -20,12 +21,6 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class PsychicDriveGauntletsFloatingRenderer
         extends GeoObjectRenderer<PsychicDriveGauntletsFloatingRenderer.Visual> {
-    private static final float DRAWN_SIDE = 0.8F;
-    private static final float DRAWN_FORWARD = -0.1F;
-    private static final float DRAWN_HEIGHT = -0.5F;
-    private static final float SHEATHED_SIDE = 0.35F;
-    private static final float SHEATHED_BACK = 0.65F;
-    private static final float SHEATHED_HEIGHT = -0.65F;
     // Blockbenchのbracer中心を基準に回転させ、片側のモデルだけ位置が偏るのを防ぐ。
     private static final float MODEL_CENTER_Y = 4.25F / 16.0F;
     private static final float MODEL_CENTER_Z = 0.25F / 16.0F;
@@ -40,10 +35,7 @@ public class PsychicDriveGauntletsFloatingRenderer
     }
 
     public static Vec3 offset(float drawnAmount, boolean mirrored) {
-        var side = mirrored ? 1.0F : -1.0F;
-        return new Vec3(side * Mth.lerp(drawnAmount, SHEATHED_SIDE, DRAWN_SIDE),
-                Mth.lerp(drawnAmount, SHEATHED_HEIGHT, DRAWN_HEIGHT),
-                Mth.lerp(drawnAmount, SHEATHED_BACK, DRAWN_FORWARD));
+        return PsychicDriveGauntletsPose.offset(drawnAmount, mirrored);
     }
 
     public void renderSide(PoseStack poseStack, MultiBufferSource buffers, Visual visual,

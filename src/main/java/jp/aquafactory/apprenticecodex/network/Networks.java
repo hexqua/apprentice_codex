@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.network;
 
+import jp.aquafactory.apprenticecodex.network.packet.SyncPsychicDriveGauntletsPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientPsychicDriveGauntletsPacket;
 import java.util.Optional;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.network.packet.AlchemyBrewerWaterSupplyEffectPacket;
@@ -130,7 +132,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "120";
+    private static final String PROTOCOL_VERSION = "121";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
@@ -144,6 +146,10 @@ public final class Networks {
     }
 
     public static void register() {
+        CHANNEL.registerMessage(nextPacketId++, SyncPsychicDriveGauntletsPacket.class,
+                SyncPsychicDriveGauntletsPacket::encode, SyncPsychicDriveGauntletsPacket::decode, SyncPsychicDriveGauntletsPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(nextPacketId++, ClientPsychicDriveGauntletsPacket.class,
+                ClientPsychicDriveGauntletsPacket::encode, ClientPsychicDriveGauntletsPacket::decode, ClientPsychicDriveGauntletsPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(nextPacketId++, SyncManaStabilizerRecoilPacket.class,
                 SyncManaStabilizerRecoilPacket::encode, SyncManaStabilizerRecoilPacket::decode,
                 SyncManaStabilizerRecoilPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
