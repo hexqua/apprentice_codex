@@ -19,7 +19,12 @@ public final class PsychicDriveGauntletsArm {
     public static final int RETURN_TICKS = 5;
     public enum Phase { IDLE, OUTBOUND, HOLDING, RETURNING, CHARGING }
     public record Snapshot(Phase phase, Vec3 position, float yaw, float pitch, float drawnAmount,
-                           Vec3 flightStart, Vec3 destination, long launchTick, long sampleTick, float charge) {
+                           Vec3 flightStart, Vec3 destination, long launchTick, long sampleTick, float charge,
+                           long recoveryStartedTick, float returnRecovery) {
+        public Snapshot(Phase phase, Vec3 position, float yaw, float pitch, float drawnAmount,
+                        Vec3 flightStart, Vec3 destination, long launchTick, long sampleTick, float charge) {
+            this(phase, position, yaw, pitch, drawnAmount, flightStart, destination, launchTick, sampleTick, charge, 0, 0);
+        }
         public Snapshot(Phase phase, Vec3 position, float yaw, float pitch, float drawnAmount,
                         Vec3 flightStart, Vec3 destination, long launchTick, long sampleTick) {
             this(phase, position, yaw, pitch, drawnAmount, flightStart, destination, launchTick, sampleTick, 0);
@@ -37,6 +42,8 @@ public final class PsychicDriveGauntletsArm {
     private ItemStack weapon = ItemStack.EMPTY;
     private int slot;
     private long phaseStarted;
+    private long recoveryStartedTick;
+    private float returnRecovery;
     private long lastTick = Long.MIN_VALUE;
     private float damage;
     private float yaw;
@@ -53,7 +60,8 @@ public final class PsychicDriveGauntletsArm {
     public Phase phase() { return phase; }
     public Vec3 position() { return position; }
     public Snapshot snapshot() {
-        return new Snapshot(phase, position, yaw, pitch, drawnAmount, flightStart, destination, launchTick, lastTick, charge);
+        return new Snapshot(phase, position, yaw, pitch, drawnAmount, flightStart, destination, launchTick, lastTick,
+                charge, recoveryStartedTick, returnRecovery);
     }
 
     public void reserve(Player owner, InteractionHand usedHand, long time) {
@@ -61,6 +69,8 @@ public final class PsychicDriveGauntletsArm {
         original = owner.getItemInHand(hand);
         slot = owner.getInventory().selected;
         phase = Phase.CHARGING;
+        recoveryStartedTick = 0;
+        returnRecovery = 0;
         launchTick = time;
         lastTick = time - 1;
     }
@@ -75,6 +85,8 @@ public final class PsychicDriveGauntletsArm {
         original = ItemStack.EMPTY;
         weapon = ItemStack.EMPTY;
         charge = 0;
+        recoveryStartedTick = 0;
+        returnRecovery = 0;
     }
 
     public void launch(Player owner, Vec3 target, float amount, long time) {
@@ -100,12 +112,19 @@ public final class PsychicDriveGauntletsArm {
         pitch = (float) (-Mth.atan2(direction.y, direction.horizontalDistance()) * Mth.RAD_TO_DEG);
         drawnAmount = 1.0F;
         phase = Phase.OUTBOUND;
+        recoveryStartedTick = 0;
+        returnRecovery = 0;
         phaseStarted = time;
         lastTick = time;
     }
 
     public void recall(long time) {
         if (phase == Phase.IDLE || phase == Phase.RETURNING) return;
+        // 持ち替えによる早期帰還でも、既に回復した分を戻したり飛ばしたりしない。
+        returnRecovery = phase == Phase.HOLDING
+                ? Mth.clamp((float) (time - recoveryStartedTick) / (HOLD_TICKS + RETURN_TICKS),
+                        0, (float) HOLD_TICKS / (HOLD_TICKS + RETURN_TICKS)) : 0;
+        recoveryStartedTick = time;
         phase = Phase.RETURNING;
         phaseStarted = time;
         returnStart = position;
@@ -141,11 +160,13 @@ public final class PsychicDriveGauntletsArm {
                     hit(owner, contact.target());
                     phase = Phase.HOLDING;
                     phaseStarted = time;
+                    recoveryStartedTick = time;
                 } else {
                     position = next;
                     if (position.distanceToSqr(destination) < 1.0e-12) {
                         phase = Phase.HOLDING;
                         phaseStarted = time;
+                        recoveryStartedTick = time;
                     }
                 }
             }

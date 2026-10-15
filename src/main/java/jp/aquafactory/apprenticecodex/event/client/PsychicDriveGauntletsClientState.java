@@ -3,6 +3,8 @@ package jp.aquafactory.apprenticecodex.event.client;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Phase;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Snapshot;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsDisplayMotion;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsHudState;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsHudState.Gauge;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection.Mode;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPsychicDriveGauntletsPacket;
@@ -18,7 +20,9 @@ import java.util.UUID;
 public final class PsychicDriveGauntletsClientState {
     private record State(PsychicDriveGauntletsDisplayMotion right, PsychicDriveGauntletsDisplayMotion left,
                          long received) {}
+    private record HudState(Snapshot right, Snapshot left, double receivedTime) {}
     private static final Map<UUID, State> STATES = new HashMap<>();
+    private static final Map<UUID, HudState> HUD_STATES = new HashMap<>();
     private static final Map<UUID, Mode> MODES = new HashMap<>();
     private static ClientLevel level;
     private static double lastTime;
@@ -28,6 +32,7 @@ public final class PsychicDriveGauntletsClientState {
         var current = Minecraft.getInstance().level;
         if (current != level) {
             STATES.clear();
+            HUD_STATES.clear();
             MODES.clear();
             level = current;
             lastTime = current == null ? 0.0 : current.getGameTime();
@@ -39,19 +44,22 @@ public final class PsychicDriveGauntletsClientState {
         if (packet.reset()) {
             // 死亡・dimension移動は帰還完了と区別し、古い座標へ補間せず即座に破棄する。
             STATES.remove(packet.player());
+            HUD_STATES.remove(packet.player());
             MODES.remove(packet.player());
             return;
         }
         MODES.put(packet.player(), packet.mode());
         if (packet.mode() == Mode.DISABLED) {
             STATES.remove(packet.player());
+            HUD_STATES.remove(packet.player());
             return;
         }
+        var time = clock(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true));
+        HUD_STATES.put(packet.player(), new HudState(packet.right(), packet.left(), time));
         var old = STATES.get(packet.player());
         if (packet.right().phase() == Phase.IDLE && packet.left().phase() == Phase.IDLE) {
             if (old == null) return;
         }
-        var time = clock(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true));
         STATES.put(packet.player(), new State(arm(old == null ? null : old.right, packet.right(), time),
                 arm(old == null ? null : old.left, packet.left(), time), level.getGameTime()));
     }
@@ -70,6 +78,8 @@ public final class PsychicDriveGauntletsClientState {
         reset();
         if (level == null) return;
         MODES.keySet().removeIf(id -> level.getPlayerByUUID(id) == null);
+        // 描画用の期限切れを待機完了と誤認しないよう、HUDは明示同期まで最後の状態を保持する。
+        HUD_STATES.keySet().removeIf(id -> level.getPlayerByUUID(id) == null);
         var time = clock(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true));
         STATES.entrySet().removeIf(entry -> level.getPlayerByUUID(entry.getKey()) == null
                 || level.getGameTime() - entry.getValue().received > 20
@@ -81,7 +91,10 @@ public final class PsychicDriveGauntletsClientState {
         // 自分はinventory変更を即座に反映し、他人の非選択ホットバーはserverの判定を使う。
         if (player == Minecraft.getInstance().player) {
             var mode = PsychicDriveGauntletsSelection.find(player, true).mode();
-            if (mode == Mode.DISABLED) STATES.remove(player.getUUID());
+            if (mode == Mode.DISABLED) {
+                STATES.remove(player.getUUID());
+                HUD_STATES.remove(player.getUUID());
+            }
             return mode;
         }
         return MODES.getOrDefault(player.getUUID(), PsychicDriveGauntletsSelection.find(player, false).mode());
@@ -101,5 +114,16 @@ public final class PsychicDriveGauntletsClientState {
     public static boolean active(UUID player) {
         var partialTick = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
         return get(player, true, partialTick) != null || get(player, false, partialTick) != null;
+    }
+
+    public static Gauge hud(UUID player, boolean right, float partialTick) {
+        reset();
+        var state = HUD_STATES.get(player);
+        if (state == null || level == null) {
+            return PsychicDriveGauntletsHudState.READY;
+        }
+        // 3D側は帰還完了も一tick補間するが、HUDは最新のserver状態へ即座に追従する。
+        return PsychicDriveGauntletsHudState.sample(right ? state.right : state.left,
+                clock(partialTick) - state.receivedTime);
     }
 }

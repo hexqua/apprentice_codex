@@ -846,6 +846,9 @@ public final class ClientModBusEvents {
     }
 
     private static void registerGuiLayers(RegisterGuiLayersEvent event) {
+        event.registerAbove(VanillaGuiLayers.CROSSHAIR,
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "psychic_drive_gauntlets"),
+                PsychicDriveGauntletsHud.INSTANCE);
         // rightHeightを先に消費する行が下に来るため、外套をカートリッジより先に描く。
         event.registerBelow(VanillaGuiLayers.AIR_LEVEL,
                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "shooting_star_mantle"), ShootingStarMantleHud.INSTANCE);

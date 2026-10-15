@@ -48,7 +48,8 @@ public final class PsychicDriveGauntletsDisplayMotion {
         return new Snapshot(phase, position, Mth.rotLerp(progress, from.yaw(), current.yaw()),
                 Mth.lerp(progress, from.pitch(), current.pitch()),
                 Mth.lerp(progress, from.drawnAmount(), current.drawnAmount()),
-                current.flightStart(), current.destination(), current.launchTick(), current.sampleTick(), current.charge());
+                current.flightStart(), current.destination(), current.launchTick(), current.sampleTick(), current.charge(),
+                current.recoveryStartedTick(), current.returnRecovery());
     }
 
     public boolean finished(double time) {

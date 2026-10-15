@@ -11,6 +11,7 @@ import jp.aquafactory.apprenticecodex.event.client.PsychicDriveGauntletsInputEve
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import yesman.epicfight.api.animation.types.AttackAnimation;
+import yesman.epicfight.api.client.camera.EpicFightCameraAPI;
 import yesman.epicfight.api.client.input.InputManager;
 import yesman.epicfight.api.client.input.action.EpicFightInputAction;
 import yesman.epicfight.api.event.EpicFightEventHooks;
@@ -45,6 +46,10 @@ public final class EpicFightClientCompat {
     public static boolean isBattleMode() {
         var clientEngine = ClientEngine.getInstance();
         return clientEngine != null && clientEngine.isEpicFightMode();
+    }
+
+    public static boolean isTpsMode() {
+        return EpicFightCameraAPI.getInstance().isTPSMode();
     }
 
     public static void register() {
