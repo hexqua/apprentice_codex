@@ -129,6 +129,13 @@ public final class PsychicDriveGauntletsInputEvents {
             release();
             return;
         }
+        if (player != null && eligible(minecraft) && PsychicDriveGauntletsSelection.duplicate(player)) {
+            // 初回だけserverへ通知し、重複が解消しても押し直すまで連射を再開しない。
+            if (!pressed && !blockedUntilRelease) press();
+            release();
+            blockedUntilRelease = true;
+            return;
+        }
         if (player == null || level == null || !eligible(minecraft)
                 || (pressed && (player.getMainHandItem() != heldStack || player.getInventory().selected != heldSlot))) {
             release();

@@ -42,13 +42,13 @@ public final class PsychicDriveGauntletsDisplayMotion {
         float progress = (float) Mth.clamp(lastTime - receivedTime, 0.0, 1.0);
         var position = current.phase() == Phase.OUTBOUND
                 ? PsychicDriveGauntletsMotion.outbound(flight.flightStart(), flight.destination(),
-                        (double) flight.sampleTick() - flight.launchTick() + Math.max(0.0, lastTime - flightTime))
+                        (double) flight.sampleTick() - flight.launchTick() + Math.max(0.0, lastTime - flightTime), flight.charge())
                 : from.position().lerp(current.position(), progress);
         var phase = current.phase() == Phase.IDLE && progress < 1.0F ? from.phase() : current.phase();
         return new Snapshot(phase, position, Mth.rotLerp(progress, from.yaw(), current.yaw()),
                 Mth.lerp(progress, from.pitch(), current.pitch()),
                 Mth.lerp(progress, from.drawnAmount(), current.drawnAmount()),
-                current.flightStart(), current.destination(), current.launchTick(), current.sampleTick());
+                current.flightStart(), current.destination(), current.launchTick(), current.sampleTick(), current.charge());
     }
 
     public boolean finished(double time) {

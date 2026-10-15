@@ -527,6 +527,8 @@
   "item.apprenticecodex.scrollcaster_gauntlet.desc.wheel": "[%1$s]でガントレットから詠唱時、スペルホイールで選択されている魔法を詠唱する。",
   "item.apprenticecodex.scrollcaster_gauntlet.desc.gauntlet": "[%1$s]でガントレットから詠唱時、常にこのガントレットで選択されている魔法を詠唱する。",
   "item.apprenticecodex.scrollcaster_gauntlet.school_rune": "このガントレットは\"%s\"の系統に調律されている。",
+  "item.apprenticecodex.psychic_drive_gauntlets.desc.rule": "このアイテムは同時に一つしか動作させられない。",
+  "item.apprenticecodex.psychic_drive_gauntlets.desc.error": "ホットバー及びオフハンドに二つ以上存在するため、動作しない。",
   "item.apprenticecodex.bound_weapon.contain_item.item": "\"%s\"が封じ込まれている。",
   "item.apprenticecodex.bound_weapon.contain_item.hint": "手放すことで中のアイテムが復元される。",
   "item.apprenticecodex.spell_invoke_card.desc": "投げて当たった場所で注入した魔法を発動させる。",
@@ -1366,6 +1368,7 @@
   "ui.apprenticecodex.quickcast_scroll_cartridge.warning_manual_reload": "チャージ不足 - もう一度押すとリロード",
   "ui.apprenticecodex.quickcast_scroll_cartridge.start_manual_reload": "リロード開始 - 攻撃、使用、詠唱でキャンセル",
   "ui.apprenticecodex.shooting_star_mantle.depleted_energy": "外套の魔力が枯渇した！",
+  "ui.apprenticecodex.psychic_drive_gauntlets.duplicate_hotbar": "複数のガントレットが干渉しているため動作しない...",
 
   "ui.apprenticecodex.spell_selector.empty": "選択候補無し",
   "ui.apprenticecodex.luminous_device.clean.desc": "近くの魔術師の光源を掃除",

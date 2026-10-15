@@ -21,8 +21,12 @@ public final class PsychicDriveGauntletsRaycast {
     private PsychicDriveGauntletsRaycast() {}
 
     public static Aim aim(Player owner) {
+        return aim(owner, RANGE);
+    }
+
+    public static Aim aim(Player owner, double range) {
         var start = owner.getEyePosition();
-        var end = start.add(owner.getLookAngle().scale(RANGE));
+        var end = start.add(owner.getLookAngle().scale(range));
         var block = owner.level().clip(new ClipContext(start, end, ClipContext.Block.COLLIDER,
                 ClipContext.Fluid.NONE, owner));
         if (block.getType() != HitResult.Type.MISS) end = block.getLocation();

@@ -51,7 +51,7 @@ public final class PsychicDriveGauntletsGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void selectionFollowsHandsThenLeftmostHotbar(GameTestHelper helper) {
+    public static void selectionRequiresSingleEligibleStack(GameTestHelper helper) {
         var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
                 helper, new BlockPos(0, 2, 0), "psychic_gauntlets_selection");
         var inventory = player.getInventory();
@@ -71,25 +71,31 @@ public final class PsychicDriveGauntletsGameTests {
         helper.assertTrue(selection.mode() == Mode.SHEATHED && selection.stack() == later,
                 "The last hotbar slot must allow sheathed gauntlets");
         inventory.setItem(2, leftmost);
-        helper.assertTrue(PsychicDriveGauntletsSelection.find(player, true).stack() == leftmost,
-                "The leftmost hotbar gauntlets must win");
+        helper.assertTrue(PsychicDriveGauntletsSelection.find(player, true).mode() == Mode.DISABLED,
+                "Multiple hotbar gauntlets must disable presentation");
         helper.assertTrue(PsychicDriveGauntletsSelection.find(player, false).mode() == Mode.HIDDEN,
                 "Remote presentation must not inspect an unsynchronized hotbar");
 
+        inventory.setItem(2, ItemStack.EMPTY);
         inventory.selected = 8;
         selection = PsychicDriveGauntletsSelection.find(player, true);
         helper.assertTrue(selection.mode() == Mode.DRAWN && selection.stack() == later,
-                "Selected mainhand gauntlets must win over earlier hotbar slots");
+                "A sole selected gauntlet must be drawn");
         player.setItemInHand(InteractionHand.OFF_HAND, offhand);
+        helper.assertTrue(PsychicDriveGauntletsSelection.find(player, true).mode() == Mode.DISABLED,
+                "Mainhand plus offhand gauntlets must disable presentation");
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         helper.assertTrue(PsychicDriveGauntletsSelection.find(player, true).stack() == offhand,
-                "Offhand gauntlets must win over mainhand and hotbar gauntlets");
+                "A sole offhand gauntlet must be selected");
         helper.assertTrue(PsychicDriveGauntletsSelection.find(player, false).stack() == offhand,
                 "Remote players must support synchronized offhand gauntlets");
 
         player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
+        player.setItemInHand(InteractionHand.MAIN_HAND, later);
         helper.assertTrue(PsychicDriveGauntletsSelection.find(player, false).mode() == Mode.DRAWN,
                 "Remote players must support synchronized mainhand gauntlets");
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.STICK));
+        inventory.setItem(2, leftmost);
         helper.assertTrue(PsychicDriveGauntletsSelection.find(player, true).mode() == Mode.SHEATHED,
                 "Switching to another item must sheath remaining hotbar gauntlets");
         inventory.setItem(2, ItemStack.EMPTY);

@@ -13,10 +13,17 @@ public final class PsychicDriveGauntletsMotion {
     }
 
     public static Vec3 outbound(Vec3 start, Vec3 destination, double elapsedTicks) {
+        return outbound(start, destination, elapsedTicks, 0);
+    }
+
+    public static Vec3 outbound(Vec3 start, Vec3 destination, double elapsedTicks, float charge) {
         var distance = start.distanceTo(destination);
         if (distance < 1.0e-9) return destination;
-        var reference = referenceDistance(start, destination);
-        var progress = Mth.clamp(elapsedTicks / (reference / BASE_SPEED), 0.0, 1.0);
+        // 曲線全体を射程比で伸ばし、最大射程までの所要時間を通常攻撃とそろえる。
+        var scale = 1.0 + charge;
+        var reference = charge == 0 ? referenceDistance(start, destination)
+                : Math.max(PsychicDriveGauntletsRaycast.RANGE * scale, distance);
+        var progress = Mth.clamp(elapsedTicks / (reference / (BASE_SPEED * scale)), 0.0, 1.0);
         var traveled = reference * progress * (2.0 - progress);
         if (traveled >= distance) return destination;
         return start.lerp(destination, traveled / distance);

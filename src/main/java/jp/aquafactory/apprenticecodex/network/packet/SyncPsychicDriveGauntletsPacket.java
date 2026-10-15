@@ -4,6 +4,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.event.client.PsychicDriveGauntletsClientState;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Phase;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Snapshot;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection.Mode;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -17,7 +18,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public record SyncPsychicDriveGauntletsPacket(UUID player, boolean reset, Snapshot right, Snapshot left) implements CustomPacketPayload {
+public record SyncPsychicDriveGauntletsPacket(UUID player, boolean reset, Snapshot right, Snapshot left, Mode mode,
+                                             boolean useRejected) implements CustomPacketPayload {
+    public SyncPsychicDriveGauntletsPacket(UUID player, boolean reset, Snapshot right, Snapshot left) {
+        this(player, reset, right, left, Mode.HIDDEN, false);
+    }
+    public SyncPsychicDriveGauntletsPacket(UUID player, boolean reset, Snapshot right, Snapshot left, Mode mode) {
+        this(player, reset, right, left, mode, false);
+    }
     public static final Type<SyncPsychicDriveGauntletsPacket> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_psychic_drive_gauntlets"));
     public static final StreamCodec<RegistryFriendlyByteBuf, SyncPsychicDriveGauntletsPacket> STREAM_CODEC =
@@ -26,7 +34,10 @@ public record SyncPsychicDriveGauntletsPacket(UUID player, boolean reset, Snapsh
                 buffer.writeBoolean(packet.reset);
                 write(buffer, packet.right);
                 write(buffer, packet.left);
-            }, buffer -> new SyncPsychicDriveGauntletsPacket(buffer.readUUID(), buffer.readBoolean(), read(buffer), read(buffer)));
+                buffer.writeEnum(packet.mode);
+                buffer.writeBoolean(packet.useRejected);
+            }, buffer -> new SyncPsychicDriveGauntletsPacket(buffer.readUUID(), buffer.readBoolean(), read(buffer), read(buffer),
+                    buffer.readEnum(Mode.class), buffer.readBoolean()));
     private static void write(RegistryFriendlyByteBuf buffer, Snapshot arm) {
         buffer.writeEnum(arm.phase());
         buffer.writeDouble(arm.position().x);
@@ -43,12 +54,13 @@ public record SyncPsychicDriveGauntletsPacket(UUID player, boolean reset, Snapsh
         buffer.writeDouble(arm.destination().z);
         buffer.writeLong(arm.launchTick());
         buffer.writeLong(arm.sampleTick());
+        buffer.writeFloat(arm.charge());
     }
     private static Snapshot read(RegistryFriendlyByteBuf buffer) {
         return new Snapshot(buffer.readEnum(Phase.class), new Vec3(buffer.readDouble(), buffer.readDouble(),
                 buffer.readDouble()), buffer.readFloat(), buffer.readFloat(), buffer.readFloat(),
                 new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble()),
-                new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble()), buffer.readLong(), buffer.readLong());
+                new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble()), buffer.readLong(), buffer.readLong(), buffer.readFloat());
     }
     @Override public @NotNull Type<? extends CustomPacketPayload> type() { return TYPE; }
     public static void handle(SyncPsychicDriveGauntletsPacket packet, IPayloadContext context) {
