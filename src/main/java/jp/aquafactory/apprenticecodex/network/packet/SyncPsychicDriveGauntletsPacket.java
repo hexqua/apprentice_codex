@@ -50,12 +50,15 @@ public record SyncPsychicDriveGauntletsPacket(UUID player, boolean reset, Snapsh
         buffer.writeLong(arm.launchTick());
         buffer.writeLong(arm.sampleTick());
         buffer.writeFloat(arm.charge());
+        buffer.writeLong(arm.recoveryStartedTick());
+        buffer.writeFloat(arm.returnRecovery());
     }
     private static Snapshot read(RegistryFriendlyByteBuf buffer) {
         return new Snapshot(buffer.readEnum(Phase.class), new Vec3(buffer.readDouble(), buffer.readDouble(),
                 buffer.readDouble()), buffer.readFloat(), buffer.readFloat(), buffer.readFloat(),
                 new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble()),
-                new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble()), buffer.readLong(), buffer.readLong(), buffer.readFloat());
+                new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble()), buffer.readLong(), buffer.readLong(),
+                buffer.readFloat(), buffer.readLong(), buffer.readFloat());
     }
     @Override public @NotNull Type<? extends CustomPacketPayload> type() { return TYPE; }
     public static void handle(SyncPsychicDriveGauntletsPacket packet, IPayloadContext context) {
