@@ -40,6 +40,7 @@ public final class PsychicDriveGauntletsClientEvents {
         var minecraft = Minecraft.getInstance();
         var level = minecraft.level;
         resetForLevel(level);
+        PsychicDriveGauntletsClientState.prune();
         if (level == null) {
             return;
         }
@@ -88,14 +89,20 @@ public final class PsychicDriveGauntletsClientEvents {
                 var mirrored = side == 1;
                 var visual = mirrored ? presentation.right : presentation.left;
                 var follow = mirrored ? presentation.rightFollow : presentation.leftFollow;
+                var attack = PsychicDriveGauntletsClientState.get(player.getUUID(), mirrored, partialTick);
+                if (attack == null && PsychicDriveGauntletsSelection.find(player, player == minecraft.player).mode()
+                        == Mode.HIDDEN) continue;
                 var offset = PsychicDriveGauntletsFloatingRenderer.offset(drawnAmount, mirrored)
                         .yRot((180.0F - yaw) * Mth.DEG_TO_RAD);
-                var position = follow.follow(anchor.add(offset), anchor, time, drawnAmount).subtract(cameraPosition);
+                var attachedPosition = follow.follow(anchor.add(offset), anchor, time, drawnAmount);
+                var position = (attack == null ? attachedPosition : attack.position()).subtract(cameraPosition);
                 poseStack.pushPose();
                 poseStack.translate(position.x, position.y, position.z);
                 // 向きは遅らせず、納刀の身体yawと抜刀の視線yawをモード遷移に合わせて繋ぐ。
-                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - yaw));
-                renderer.renderSide(poseStack, buffers, visual, drawnAmount, mirrored, packedLight, partialTick);
+                poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - (attack == null ? yaw : attack.yaw())));
+                if (attack != null) poseStack.mulPose(Axis.XP.rotationDegrees(-attack.pitch()));
+                renderer.renderSide(poseStack, buffers, visual, attack == null ? drawnAmount : attack.drawnAmount(),
+                        mirrored, packedLight, partialTick);
                 poseStack.popPose();
             }
         }
@@ -125,7 +132,8 @@ public final class PsychicDriveGauntletsClientEvents {
 
     private static Presentation update(AbstractClientPlayer player, Minecraft minecraft, double time) {
         var selection = PsychicDriveGauntletsSelection.find(player, player == minecraft.player);
-        if (selection.mode() == Mode.HIDDEN || player.isInvisible() || player.isSpectator()) {
+        if ((selection.mode() == Mode.HIDDEN && !PsychicDriveGauntletsClientState.active(player.getUUID()))
+                || player.isInvisible() || player.isSpectator() || !player.isAlive()) {
             PRESENTATIONS.remove(player.getUUID());
             return null;
         }
@@ -134,7 +142,7 @@ public final class PsychicDriveGauntletsClientEvents {
             presentation = new Presentation(player);
             PRESENTATIONS.put(player.getUUID(), presentation);
         }
-        presentation.transition.update(selection.mode(), time);
+        presentation.transition.update(selection.mode() == Mode.HIDDEN ? Mode.SHEATHED : selection.mode(), time);
         return presentation;
     }
 

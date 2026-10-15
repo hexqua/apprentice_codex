@@ -6,6 +6,8 @@ import jp.aquafactory.apprenticecodex.event.client.ClientSwingMagicAttackTrigger
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntlets;
+import jp.aquafactory.apprenticecodex.event.client.PsychicDriveGauntletsInputEvents;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import yesman.epicfight.api.animation.types.AttackAnimation;
@@ -18,6 +20,7 @@ import yesman.epicfight.api.event.types.player.SkillCastEvent;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.gui.screen.config.ItemsPreferenceScreen;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
+import yesman.epicfight.skill.SkillSlots;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 
 public final class EpicFightClientCompat {
@@ -49,6 +52,7 @@ public final class EpicFightClientCompat {
         ItemsPreferenceScreen.registerWeaponCategorizedItemClasses(
                 MultipurposeStaffrifle.class,
                 FullautoRapidcastSpellrifle.class,
+                PsychicDriveGauntlets.class,
                 AbstractSpellGunItem.class
         );
     }
@@ -132,6 +136,12 @@ public final class EpicFightClientCompat {
     }
 
     private static void onSpellgunSkillCast(SkillCastEvent event) {
+        if (event.getPlayerPatch().getOriginal().getMainHandItem().getItem() instanceof PsychicDriveGauntlets
+                && event.getSkillContainer().getSlot() == SkillSlots.COMBO_ATTACKS) {
+            event.cancel();
+            PsychicDriveGauntletsInputEvents.press();
+            return;
+        }
         if (!EpicFightSpellgunCompat.isMainhandSpellgunBasicAttack(
                 event.getPlayerPatch(),
                 event.getSkillContainer()
