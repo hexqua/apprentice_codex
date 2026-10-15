@@ -99,7 +99,6 @@
     "UtilsMixin"
   ],
   "client": [
-    "PsychicDriveGauntletsHandRendererInvoker",
     "PatchouliBookHeaderMixin",
     "EntityRenderDispatcherMantleBlinkMixin",
     "EntityRendererMantleBlinkNameMixin",

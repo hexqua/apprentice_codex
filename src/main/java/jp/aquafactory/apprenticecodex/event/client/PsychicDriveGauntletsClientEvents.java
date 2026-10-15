@@ -8,15 +8,14 @@ import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGau
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection.Mode;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsTransition;
-import jp.aquafactory.apprenticecodex.mixin.PsychicDriveGauntletsHandRendererInvoker;
 import jp.aquafactory.apprenticecodex.renderer.PsychicDriveGauntletsFloatingRenderer;
+import jp.aquafactory.apprenticecodex.renderer.PsychicDriveGauntletsHandRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -129,12 +128,7 @@ public final class PsychicDriveGauntletsClientEvents {
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         if (player != null && event.getHand() == InteractionHand.MAIN_HAND) {
-            // モデルを隠すだけでは素手の腕が出ないため、所持データを変えず空手の描画を呼ぶ。
-            ((PsychicDriveGauntletsHandRendererInvoker) minecraft.gameRenderer.itemInHandRenderer)
-                    .apprenticecodex$renderGauntletsEmptyHand(player, event.getPartialTick(),
-                            event.getInterpolatedPitch(), event.getHand(), event.getSwingProgress(), ItemStack.EMPTY,
-                            event.getEquipProgress(), event.getPoseStack(), event.getMultiBufferSource(),
-                            event.getPackedLight());
+            PsychicDriveGauntletsHandRenderer.render(event, player);
         }
     }
 
