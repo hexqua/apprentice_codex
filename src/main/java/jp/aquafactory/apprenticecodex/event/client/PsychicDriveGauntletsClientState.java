@@ -3,8 +3,8 @@ package jp.aquafactory.apprenticecodex.event.client;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Phase;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Snapshot;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsDisplayMotion;
-import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection.Mode;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPsychicDriveGauntletsPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -36,10 +36,6 @@ public final class PsychicDriveGauntletsClientState {
     public static void accept(SyncPsychicDriveGauntletsPacket packet) {
         reset();
         if (level == null) return;
-        var player = Minecraft.getInstance().player;
-        if (packet.useRejected() && player != null && packet.player().equals(player.getUUID())) {
-            PsychicDriveGauntletsUseInput.rejectUse();
-        }
         if (packet.reset()) {
             // 死亡・dimension移動は帰還完了と区別し、古い座標へ補間せず即座に破棄する。
             STATES.remove(packet.player());

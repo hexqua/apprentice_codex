@@ -2,42 +2,51 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import io.netty.buffer.Unpooled;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Phase;
-import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackState;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackEvents;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackState.Input;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackState.UseAction;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackState;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsCharge;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsChargeMovement;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsMotion;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsPose;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsRaycast;
-import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection.Mode;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsUseSession;
+import jp.aquafactory.apprenticecodex.network.packet.ClientPsychicDriveGauntletsUsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPsychicDriveGauntletsPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncPsychicDriveGauntletsUseStatePacket;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Cow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.inventory.ChestMenu;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
-import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.network.connection.ConnectionType;
@@ -315,6 +324,185 @@ public final class PsychicDriveGauntletsChargeGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void independentUseIgnoresVanillaUseAndDuplicatePackets(GameTestHelper helper) {
+        var player = player(helper);
+        var state = new PsychicDriveGauntletsAttackState();
+        var hand = InteractionHand.MAIN_HAND;
+        player.getMainHandItem().use(helper.getLevel(), player, hand);
+        helper.assertTrue(!player.isUsingItem(), "Vanilla use must never start a gauntlet charge");
+        helper.assertTrue(!state.useInput(player, UseAction.RELEASE, hand, 1, 0),
+                "Release without a start must do nothing");
+        helper.assertTrue(state.useInput(player, UseAction.START, hand, 1, 100), "Independent start must succeed");
+        state.tick(player, 110);
+        helper.assertTrue(state.charging() && !player.isUsingItem(), "Charge must survive without vanilla use state");
+        helper.assertTrue(state.useInput(player, UseAction.START, hand, 1, 119), "Duplicate start must preserve charge");
+        state.useInput(player, UseAction.RELEASE, InteractionHand.OFF_HAND, 1, 120);
+        state.useInput(player, UseAction.CANCEL, hand, 2, 120);
+        helper.assertTrue(state.charging(), "Wrong hand or session must not end a charge");
+        state.useInput(player, UseAction.RELEASE, hand, 1, 120);
+        helper.assertTrue(state.left().phase() == Phase.OUTBOUND && state.left().snapshot().charge() == 1,
+                "Duplicate start must not reset server elapsed time");
+        var launched = state.left().snapshot();
+        state.useInput(player, UseAction.RELEASE, hand, 1, 121);
+        state.useInput(player, UseAction.START, hand, 1, 122);
+        helper.assertTrue(launched.equals(state.left().snapshot()) && !state.charging(),
+                "Ended sessions must not fire twice or restart");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void rejectedAndCanceledSessionsRequireNewPress(GameTestHelper helper) {
+        var player = player(helper);
+        var hand = InteractionHand.MAIN_HAND;
+        var state = new PsychicDriveGauntletsAttackState();
+        player.getInventory().setItem(8, gauntlets());
+        helper.assertTrue(!state.useInput(player, UseAction.START, hand, 1, 0), "Duplicate source must reject start");
+        player.getInventory().setItem(8, ItemStack.EMPTY);
+        helper.assertTrue(!state.useInput(player, UseAction.START, hand, 1, 20)
+                        && !state.useInput(player, UseAction.START, hand, 2, 20),
+                "A rejected held press must not recover before a terminal input");
+        state.useInput(player, UseAction.CANCEL, hand, 1, 21);
+        helper.assertTrue(state.useInput(player, UseAction.START, hand, 2, 22), "New press must recover");
+        state.useInput(player, UseAction.CANCEL, hand, 2, 42);
+        state.useInput(player, UseAction.RELEASE, hand, 2, 43);
+        helper.assertTrue(!state.active(), "Canceled full charge must never launch on a late release");
+        helper.assertTrue(state.useInput(player, UseAction.START, hand, 3, 44), "Next press must charge");
+        player.setItemInHand(hand, gauntlets());
+        state.useInput(player, UseAction.RELEASE, hand, 3, 64);
+        helper.assertTrue(!state.active(), "Source replacement must reject release even before the next server tick");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void independentChargeDoesNotStopOtherItems(GameTestHelper helper) {
+        var player = player(helper);
+        var state = new PsychicDriveGauntletsAttackState();
+        var gauntlet = player.getMainHandItem();
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.POTION));
+        player.setItemInHand(InteractionHand.OFF_HAND, gauntlet);
+        state.useInput(player, UseAction.START, InteractionHand.OFF_HAND, 1, 0);
+        player.startUsingItem(InteractionHand.MAIN_HAND);
+        state.tick(player, 20);
+        helper.assertTrue(!state.charging() && player.isUsingItem(),
+                "Other item use must cancel the charge without stopping that item");
+        state.useInput(player, UseAction.RELEASE, InteractionHand.OFF_HAND, 1, 21);
+        helper.assertTrue(!state.active(), "Canceled charge must not fire after other item use");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargeMovementStacksAndAlwaysRemovesOnlyItsOwnModifier(GameTestHelper helper) {
+        var player = player(helper);
+        var speed = Objects.requireNonNull(player.getAttribute(Attributes.MOVEMENT_SPEED));
+        var other = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "charge_other_speed_test");
+        speed.addTransientModifier(new AttributeModifier(other, 0.5, Operation.ADD_MULTIPLIED_TOTAL));
+        double original = speed.getValue();
+        PsychicDriveGauntletsChargeMovement.update(player, true);
+        PsychicDriveGauntletsChargeMovement.update(player, true);
+        helper.assertTrue(Math.abs(speed.getValue() - original * 0.8) < 1.0e-6,
+                "Charge slowdown must stack once with other movement modifiers");
+        PsychicDriveGauntletsChargeMovement.update(player, false);
+        helper.assertTrue(Math.abs(speed.getValue() - original) < 1.0e-6 && speed.hasModifier(other),
+                "Charge end must restore movement without removing other modifiers");
+        PsychicDriveGauntletsChargeMovement.update(player, true);
+        player.setHealth(0);
+        PsychicDriveGauntletsChargeMovement.update(player, true);
+        helper.assertTrue(Math.abs(speed.getValue() - original) < 1.0e-6, "Death must remove charge slowdown");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void lifecycleEventsRemoveIndependentChargeMovement(GameTestHelper helper) {
+        var player = player(helper);
+        var speed = Objects.requireNonNull(player.getAttribute(Attributes.MOVEMENT_SPEED));
+        double original = speed.getValue();
+        for (int reason = 0; reason < 3; reason++) {
+            long session = reason + 1;
+            PsychicDriveGauntletsAttackEvents.useInput(player, UseAction.START, InteractionHand.MAIN_HAND, session);
+            helper.assertTrue(Math.abs(speed.getValue() - original * 0.8) < 1.0e-6,
+                    "Accepted server input must apply charge slowdown");
+            switch (reason) {
+                case 0 -> PsychicDriveGauntletsAttackEvents.dimension(
+                        new PlayerEvent.PlayerChangedDimensionEvent(player, Level.OVERWORLD, Level.NETHER));
+                case 1 -> PsychicDriveGauntletsAttackEvents.logout(new PlayerEvent.PlayerLoggedOutEvent(player));
+                case 2 -> PsychicDriveGauntletsAttackEvents.death(new LivingDeathEvent(player, player.damageSources().generic()));
+                default -> throw new IllegalStateException("Unexpected lifecycle test case");
+            }
+            helper.assertTrue(Math.abs(speed.getValue() - original) < 1.0e-6,
+                    "Lifecycle cleanup must remove the charge movement modifier");
+            PsychicDriveGauntletsAttackEvents.useInput(player, UseAction.RELEASE, InteractionHand.MAIN_HAND, session);
+            helper.assertTrue(Math.abs(speed.getValue() - original) < 1.0e-6,
+                    "Late release after cleanup must not restore charge movement");
+        }
+        PsychicDriveGauntletsAttackEvents.logout(new PlayerEvent.PlayerLoggedOutEvent(player));
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void menusAndOtherItemUseRejectIndependentStarts(GameTestHelper helper) {
+        var player = player(helper);
+        var state = new PsychicDriveGauntletsAttackState();
+        player.containerMenu = ChestMenu.oneRow(1, player.getInventory());
+        helper.assertTrue(!state.useInput(player, UseAction.START, InteractionHand.MAIN_HAND, 1, 0),
+                "Open container must reject an independent start");
+        state.useInput(player, UseAction.CANCEL, InteractionHand.MAIN_HAND, 1, 1);
+        player.containerMenu = player.inventoryMenu;
+        helper.assertTrue(state.useInput(player, UseAction.START, InteractionHand.MAIN_HAND, 2, 2),
+                "New press after closing the menu must succeed");
+        player.containerMenu = ChestMenu.oneRow(2, player.getInventory());
+        state.useInput(player, UseAction.RELEASE, InteractionHand.MAIN_HAND, 2, 22);
+        helper.assertTrue(!state.active(), "Opening a menu must reject release before the next state tick");
+        player.containerMenu = player.inventoryMenu;
+        var gauntlet = player.getMainHandItem();
+        player.setItemInHand(InteractionHand.OFF_HAND, gauntlet);
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.POTION));
+        player.startUsingItem(InteractionHand.MAIN_HAND);
+        helper.assertTrue(!state.useInput(player, UseAction.START, InteractionHand.OFF_HAND, 3, 23)
+                        && player.isUsingItem(),
+                "Active item use must reject charge start without stopping the item");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void delayedUseResponsesCannotChangeAnotherPress(GameTestHelper helper) {
+        var session = new PsychicDriveGauntletsUseSession();
+        long first = session.begin(100);
+        session.end();
+        session.accept(first, true);
+        helper.assertTrue(!session.active(), "Late acceptance must not revive a released press");
+        long second = session.begin(200);
+        session.accept(first, false);
+        helper.assertTrue(session.active() && session.elapsed(205) == 5,
+                "Old rejection must not cancel or retime a new press");
+        session.accept(second, false);
+        helper.assertTrue(!session.active(), "Matching rejection must end the current charge");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void independentUsePacketsPreserveSessionAndHand(GameTestHelper helper) {
+        var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess(), ConnectionType.NEOFORGE);
+        try {
+            for (var action : UseAction.values()) {
+                for (var hand : InteractionHand.values()) {
+                    var packet = new ClientPsychicDriveGauntletsUsePacket(action, hand, 123456789L);
+                    ClientPsychicDriveGauntletsUsePacket.STREAM_CODEC.encode(buffer, packet);
+                    helper.assertTrue(packet.equals(ClientPsychicDriveGauntletsUsePacket.STREAM_CODEC.decode(buffer)),
+                            "Use input must preserve action, hand and session");
+                }
+            }
+            for (boolean charging : new boolean[] {false, true}) {
+                var packet = new SyncPsychicDriveGauntletsUseStatePacket(123456789L, charging);
+                SyncPsychicDriveGauntletsUseStatePacket.STREAM_CODEC.encode(buffer, packet);
+                helper.assertTrue(packet.equals(SyncPsychicDriveGauntletsUseStatePacket.STREAM_CODEC.decode(buffer)),
+                        "Use response must preserve session and charge state");
+            }
+            helper.assertTrue(buffer.readableBytes() == 0, "Use codecs must consume complete payloads");
+        } finally { buffer.release(); }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void chargePacketsPreserveDisplayModeAndSpeed(GameTestHelper helper) {
         var player = player(helper);
         var state = new PsychicDriveGauntletsAttackState();
@@ -324,7 +512,7 @@ public final class PsychicDriveGauntletsChargeGameTests {
         try {
             for (var mode : Mode.values()) {
                 var packet = new SyncPsychicDriveGauntletsPacket(player.getUUID(), false,
-                        state.right().snapshot(), state.left().snapshot(), mode, mode == Mode.DISABLED);
+                        state.right().snapshot(), state.left().snapshot(), mode);
                 SyncPsychicDriveGauntletsPacket.STREAM_CODEC.encode(buffer, packet);
                 helper.assertTrue(packet.equals(SyncPsychicDriveGauntletsPacket.STREAM_CODEC.decode(buffer)),
                         "Charge snapshots and authoritative display mode must survive packet encoding");

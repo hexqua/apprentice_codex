@@ -1,21 +1,19 @@
 package jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets;
 
-import jp.aquafactory.apprenticecodex.renderer.item.PsychicDriveGauntletsItemRenderer;
 import jp.aquafactory.apprenticecodex.event.client.PsychicDriveGauntletsUseInput;
+import jp.aquafactory.apprenticecodex.renderer.item.PsychicDriveGauntletsItemRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.UseAnim;
-import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.NotNull;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.client.GeoRenderProvider;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -45,25 +43,10 @@ public class PsychicDriveGauntlets extends Item implements GeoItem {
         var stack = player.getItemInHand(hand);
         // 通常のinteractionが消費しなかった後にだけ呼ばれるItem.useで処理する。
         if (level.isClientSide) return PsychicDriveGauntletsUseInput.use(player, hand);
-        if (PsychicDriveGauntletsSelection.duplicate(player)) {
-            PsychicDriveGauntletsAttackEvents.beginUse(player, hand);
-            return InteractionResultHolder.consume(stack);
-        }
-        if (!PsychicDriveGauntletsSelection.canUse(player, hand)) return InteractionResultHolder.pass(stack);
-        if (PsychicDriveGauntletsAttackEvents.beginUse(player, hand)) player.startUsingItem(hand);
-        return InteractionResultHolder.consume(stack);
+        if (PsychicDriveGauntletsSelection.duplicate(player)
+                || PsychicDriveGauntletsSelection.canUse(player, hand)) return InteractionResultHolder.consume(stack);
+        return InteractionResultHolder.pass(stack);
     }
-
-    @Override
-    public void releaseUsing(@NotNull ItemStack stack, @NotNull Level level, @NotNull LivingEntity entity, int remaining) {
-        if (!level.isClientSide && entity instanceof Player player) PsychicDriveGauntletsAttackEvents.releaseUse(player);
-    }
-
-    @Override
-    public int getUseDuration(@NotNull ItemStack stack, @NotNull LivingEntity entity) { return Integer.MAX_VALUE; }
-
-    @Override
-    public @NotNull UseAnim getUseAnimation(@NotNull ItemStack stack) { return UseAnim.NONE; }
 
     @Override
     public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {

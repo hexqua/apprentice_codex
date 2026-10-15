@@ -2,13 +2,15 @@ package jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackState.Input;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackState.UseAction;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection.Mode;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPsychicDriveGauntletsPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncPsychicDriveGauntletsUseStatePacket;
 import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -32,13 +34,9 @@ public final class PsychicDriveGauntletsAttackEvents {
     private PsychicDriveGauntletsAttackEvents() {}
 
     public static void input(ServerPlayer player, Input input) {
-        if (input == Input.RELEASE || input == Input.CANCEL_USE || input == Input.RESET_USE) {
+        if (input == Input.RELEASE) {
             var entry = STATES.get(player.getUUID());
             if (entry != null && entry.player == player) entry.state.input(player, input, player.level().getGameTime());
-            if (input == Input.CANCEL_USE) {
-                if (PsychicDriveGauntletsSelection.isGauntlets(player.getUseItem())) player.stopUsingItem();
-                if (entry != null && entry.player == player) sync(player, entry.state);
-            }
             return;
         }
         if (!player.isAlive() || player.isSpectator()
@@ -58,25 +56,20 @@ public final class PsychicDriveGauntletsAttackEvents {
                 .withStyle(ChatFormatting.RED), true);
     }
 
-    public static boolean beginUse(Player player, InteractionHand hand) {
+    public static void useInput(ServerPlayer player, UseAction action, InteractionHand hand, long session) {
+        if (session <= 0) return;
         var entry = STATES.compute(player.getUUID(), (id, previous) ->
                 previous != null && previous.player == player ? previous
                         : new Entry(player, new PsychicDriveGauntletsAttackState()));
-        if (!entry.state.usePressed() && PsychicDriveGauntletsSelection.duplicate(player)) duplicateError(player);
-        boolean accepted = entry.state.beginUse(player, hand, player.level().getGameTime());
-        if (player instanceof ServerPlayer server && !(server instanceof FakePlayer)) {
-            var packet = packet(player, entry.state);
-            Networks.sendToTrackingEntityAndSelf(server, new SyncPsychicDriveGauntletsPacket(packet.player(), packet.reset(),
-                    packet.right(), packet.left(), packet.mode(), !accepted));
+        if (action == UseAction.START && !entry.state.usePressed()
+                && PsychicDriveGauntletsSelection.isGauntlets(player.getItemInHand(hand))
+                && PsychicDriveGauntletsSelection.duplicate(player)) duplicateError(player);
+        boolean accepted = entry.state.useInput(player, action, hand, session, player.level().getGameTime());
+        PsychicDriveGauntletsChargeMovement.update(player, entry.state.charging());
+        if (!(player instanceof FakePlayer)) {
+            Networks.sendToPlayer(player, new SyncPsychicDriveGauntletsUseStatePacket(session, accepted));
         }
-        return accepted;
-    }
-
-    public static void releaseUse(Player player) {
-        var entry = STATES.get(player.getUUID());
-        if (entry == null || entry.player != player) return;
-        entry.state.releaseUse(player, player.level().getGameTime());
-        if (player instanceof ServerPlayer server) sync(server, entry.state);
+        sync(player, entry.state);
     }
 
     @SubscribeEvent
@@ -92,13 +85,20 @@ public final class PsychicDriveGauntletsAttackEvents {
             entry = new Entry(player, new PsychicDriveGauntletsAttackState());
             STATES.put(player.getUUID(), entry);
         }
-        if (entry == null || entry.player != player) return;
+        if (entry == null || entry.player != player) {
+            PsychicDriveGauntletsChargeMovement.update(player, false);
+            return;
+        }
         boolean wasActive = entry.state.active();
-        if (entry.state.charging() && !player.isUsingItem()) entry.state.cancelUse();
+        boolean wasCharging = entry.state.charging();
         entry.state.tick(player, player.level().getGameTime());
+        PsychicDriveGauntletsChargeMovement.update(player, entry.state.charging());
+        if (wasCharging && !entry.state.charging() && !(player instanceof FakePlayer)) {
+            Networks.sendToPlayer(player, new SyncPsychicDriveGauntletsUseStatePacket(entry.state.useSession(), false));
+        }
         if (wasActive || entry.state.active() || MODES.get(player.getUUID()) != mode) sync(player, entry.state);
         if (!entry.state.active() && PsychicDriveGauntletsSelection.find(player, true).mode()
-                == Mode.HIDDEN) STATES.remove(player.getUUID());
+                == Mode.HIDDEN && entry.state.useSession() == 0) STATES.remove(player.getUUID());
     }
 
     private static void sync(ServerPlayer player, PsychicDriveGauntletsAttackState state) {
@@ -114,7 +114,9 @@ public final class PsychicDriveGauntletsAttackEvents {
     private static void clear(Player player) {
         MODES.remove(player.getUUID());
         var entry = STATES.remove(player.getUUID());
+        PsychicDriveGauntletsChargeMovement.update(player, false);
         if (entry != null && player instanceof ServerPlayer server && !(server instanceof FakePlayer)) {
+            Networks.sendToPlayer(server, new SyncPsychicDriveGauntletsUseStatePacket(entry.state.useSession(), false));
             var idle = new PsychicDriveGauntletsAttackState();
             Networks.sendToTrackingEntityAndSelf(server, new SyncPsychicDriveGauntletsPacket(player.getUUID(),
                     true, idle.right().snapshot(), idle.left().snapshot()));

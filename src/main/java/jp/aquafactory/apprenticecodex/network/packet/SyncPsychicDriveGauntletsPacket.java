@@ -18,13 +18,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public record SyncPsychicDriveGauntletsPacket(UUID player, boolean reset, Snapshot right, Snapshot left, Mode mode,
-                                             boolean useRejected) implements CustomPacketPayload {
+public record SyncPsychicDriveGauntletsPacket(UUID player, boolean reset, Snapshot right, Snapshot left, Mode mode) implements CustomPacketPayload {
     public SyncPsychicDriveGauntletsPacket(UUID player, boolean reset, Snapshot right, Snapshot left) {
-        this(player, reset, right, left, Mode.HIDDEN, false);
-    }
-    public SyncPsychicDriveGauntletsPacket(UUID player, boolean reset, Snapshot right, Snapshot left, Mode mode) {
-        this(player, reset, right, left, mode, false);
+        this(player, reset, right, left, Mode.HIDDEN);
     }
     public static final Type<SyncPsychicDriveGauntletsPacket> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_psychic_drive_gauntlets"));
@@ -35,9 +31,8 @@ public record SyncPsychicDriveGauntletsPacket(UUID player, boolean reset, Snapsh
                 write(buffer, packet.right);
                 write(buffer, packet.left);
                 buffer.writeEnum(packet.mode);
-                buffer.writeBoolean(packet.useRejected);
             }, buffer -> new SyncPsychicDriveGauntletsPacket(buffer.readUUID(), buffer.readBoolean(), read(buffer), read(buffer),
-                    buffer.readEnum(Mode.class), buffer.readBoolean()));
+                    buffer.readEnum(Mode.class)));
     private static void write(RegistryFriendlyByteBuf buffer, Snapshot arm) {
         buffer.writeEnum(arm.phase());
         buffer.writeDouble(arm.position().x);
