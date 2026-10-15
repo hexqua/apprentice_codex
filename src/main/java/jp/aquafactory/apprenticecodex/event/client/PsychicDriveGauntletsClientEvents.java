@@ -3,6 +3,8 @@ package jp.aquafactory.apprenticecodex.event.client;
 import com.mojang.math.Axis;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsFollow;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Phase;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsCharge;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection.Mode;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsTransition;
@@ -46,7 +48,7 @@ public final class PsychicDriveGauntletsClientEvents {
         }
         PRESENTATIONS.entrySet().removeIf(entry -> level.getPlayerByUUID(entry.getKey()) != entry.getValue().player);
         for (var player : level.players()) {
-            update(player, minecraft, level.getGameTime());
+            update(player, level.getGameTime());
         }
     }
 
@@ -71,7 +73,7 @@ public final class PsychicDriveGauntletsClientEvents {
         }
 
         for (var player : level.players()) {
-            var presentation = update(player, minecraft, time);
+            var presentation = update(player, time);
             if (presentation == null) {
                 continue;
             }
@@ -90,12 +92,18 @@ public final class PsychicDriveGauntletsClientEvents {
                 var visual = mirrored ? presentation.right : presentation.left;
                 var follow = mirrored ? presentation.rightFollow : presentation.leftFollow;
                 var attack = PsychicDriveGauntletsClientState.get(player.getUUID(), mirrored, partialTick);
-                if (attack == null && PsychicDriveGauntletsSelection.find(player, player == minecraft.player).mode()
+                if (attack == null && PsychicDriveGauntletsClientState.mode(player)
                         == Mode.HIDDEN) continue;
                 var offset = PsychicDriveGauntletsFloatingRenderer.offset(drawnAmount, mirrored)
                         .yRot((180.0F - yaw) * Mth.DEG_TO_RAD);
                 var attachedPosition = follow.follow(anchor.add(offset), anchor, time, drawnAmount);
-                var position = (attack == null ? attachedPosition : attack.position()).subtract(cameraPosition);
+                boolean charging = attack != null && attack.phase() == Phase.CHARGING;
+                if (charging) {
+                    var ticks = (double) attack.sampleTick() - attack.launchTick() + partialTick;
+                    attachedPosition = attachedPosition.add(PsychicDriveGauntletsCharge.offset(ticks)
+                            .yRot((180 - viewYaw) * Mth.DEG_TO_RAD));
+                }
+                var position = (attack == null || charging ? attachedPosition : attack.position()).subtract(cameraPosition);
                 poseStack.pushPose();
                 poseStack.translate(position.x, position.y, position.z);
                 // 向きは遅らせず、納刀の身体yawと抜刀の視線yawをモード遷移に合わせて繋ぐ。
@@ -130,9 +138,9 @@ public final class PsychicDriveGauntletsClientEvents {
         }
     }
 
-    private static Presentation update(AbstractClientPlayer player, Minecraft minecraft, double time) {
-        var selection = PsychicDriveGauntletsSelection.find(player, player == minecraft.player);
-        if ((selection.mode() == Mode.HIDDEN && !PsychicDriveGauntletsClientState.active(player.getUUID()))
+    private static Presentation update(AbstractClientPlayer player, double time) {
+        var mode = PsychicDriveGauntletsClientState.mode(player);
+        if (mode == Mode.DISABLED || (mode == Mode.HIDDEN && !PsychicDriveGauntletsClientState.active(player.getUUID()))
                 || player.isInvisible() || player.isSpectator() || !player.isAlive()) {
             PRESENTATIONS.remove(player.getUUID());
             return null;
@@ -142,7 +150,7 @@ public final class PsychicDriveGauntletsClientEvents {
             presentation = new Presentation(player);
             PRESENTATIONS.put(player.getUUID(), presentation);
         }
-        presentation.transition.update(selection.mode() == Mode.HIDDEN ? Mode.SHEATHED : selection.mode(), time);
+        presentation.transition.update(mode == Mode.HIDDEN ? Mode.SHEATHED : mode, time);
         return presentation;
     }
 

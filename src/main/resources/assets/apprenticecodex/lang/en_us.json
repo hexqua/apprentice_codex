@@ -514,6 +514,8 @@
   "item.apprenticecodex.scrollcaster_gauntlet.desc.wheel": "When casting from the gauntlet with [%1$s], it casts the spell selected on the spell wheel.",
   "item.apprenticecodex.scrollcaster_gauntlet.desc.gauntlet": "When casting from the gauntlet with [%1$s], it always casts the spell selected on this gauntlet.",
   "item.apprenticecodex.scrollcaster_gauntlet.school_rune": "This gauntlet is tuned to the \"%s\" school.",
+  "item.apprenticecodex.psychic_drive_gauntlets.desc.rule": "Only one of these items can operate at a time.",
+  "item.apprenticecodex.psychic_drive_gauntlets.desc.error": "Disabled: more than one is in your hotbar or offhand.",
   "item.apprenticecodex.bound_weapon.contain_item.item": "\"%s\" is sealed inside.",
   "item.apprenticecodex.bound_weapon.contain_item.hint": "Let go of the weapon to restore the item inside.",
   "item.apprenticecodex.spell_invoke_card.desc": "Throw it to cast the imbued spell where it lands.",
@@ -1356,6 +1358,7 @@
   "ui.apprenticecodex.quickcast_scroll_cartridge.warning_manual_reload": "No charge - press again to reload",
   "ui.apprenticecodex.quickcast_scroll_cartridge.start_manual_reload": "Reload started - Attack, use an item, or cast to cancel",
   "ui.apprenticecodex.shooting_star_mantle.depleted_energy": "The mantle's energy is depleted!",
+  "ui.apprenticecodex.psychic_drive_gauntlets.duplicate_hotbar": "Multiple gauntlets are interfering with each other...",
 
   "ui.apprenticecodex.spell_selector.empty": "No selectable spells",
   "ui.apprenticecodex.luminous_device.clean.desc": "Clean up nearby magical light sources",

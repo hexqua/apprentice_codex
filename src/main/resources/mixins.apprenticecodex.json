@@ -85,6 +85,9 @@
     "UtilsMixin"
   ],
   "client": [
+    "LocalPlayerPsychicDriveGauntletsMixin",
+    "MinecraftPsychicDriveGauntletsMixin",
+    "MultiPlayerGameModePsychicDriveGauntletsMixin",
     "PsychicDriveGauntletsHandRendererInvoker",
     "PatchouliBookHeaderMixin",
     "EntityRenderDispatcherMantleBlinkMixin",
