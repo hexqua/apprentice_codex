@@ -49,7 +49,7 @@ public final class PsychicDriveGauntletsDisplayMotion {
                 Mth.lerp(progress, from.pitch(), current.pitch()),
                 Mth.lerp(progress, from.drawnAmount(), current.drawnAmount()),
                 current.flightStart(), current.destination(), current.launchTick(), current.sampleTick(), current.charge(),
-                current.recoveryStartedTick(), current.returnRecovery());
+                current.recoveryStartedTick(), current.returnRecovery(), current.impact(), current.impactTick());
     }
 
     public boolean finished(double time) {

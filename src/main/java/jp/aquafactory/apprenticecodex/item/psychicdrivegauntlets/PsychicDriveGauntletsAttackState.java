@@ -45,7 +45,8 @@ public final class PsychicDriveGauntletsAttackState {
         var arm = right.available() ? right : left.available() ? left : null;
         if (arm == null) return false;
         updateTransition(player, time);
-        arm.launch(player, PsychicDriveGauntletsRaycast.aim(player).point(), transition.amount(time), time);
+        arm.launch(player, PsychicDriveGauntletsRaycast.aim(player), transition.amount(time), time,
+                InteractionHand.MAIN_HAND, 0);
         return true;
     }
 
@@ -96,7 +97,7 @@ public final class PsychicDriveGauntletsAttackState {
             return false;
         }
         float charge = PsychicDriveGauntletsCharge.amount(time - useStarted);
-        arm.launch(player, PsychicDriveGauntletsRaycast.aim(player, PsychicDriveGauntletsCharge.range(charge)).point(),
+        arm.launch(player, PsychicDriveGauntletsRaycast.aim(player, PsychicDriveGauntletsCharge.range(charge)),
                 1, time, useHand, charge);
         return true;
     }

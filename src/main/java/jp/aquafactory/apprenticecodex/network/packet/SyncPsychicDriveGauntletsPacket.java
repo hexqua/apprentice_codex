@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.network.packet;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.event.client.PsychicDriveGauntletsClientState;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Impact;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Phase;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Snapshot;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection.Mode;
@@ -52,13 +53,15 @@ public record SyncPsychicDriveGauntletsPacket(UUID player, boolean reset, Snapsh
         buffer.writeFloat(arm.charge());
         buffer.writeLong(arm.recoveryStartedTick());
         buffer.writeFloat(arm.returnRecovery());
+        buffer.writeEnum(arm.impact());
+        buffer.writeLong(arm.impactTick());
     }
     private static Snapshot read(RegistryFriendlyByteBuf buffer) {
         return new Snapshot(buffer.readEnum(Phase.class), new Vec3(buffer.readDouble(), buffer.readDouble(),
                 buffer.readDouble()), buffer.readFloat(), buffer.readFloat(), buffer.readFloat(),
                 new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble()),
                 new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble()), buffer.readLong(), buffer.readLong(),
-                buffer.readFloat(), buffer.readLong(), buffer.readFloat());
+                buffer.readFloat(), buffer.readLong(), buffer.readFloat(), buffer.readEnum(Impact.class), buffer.readLong());
     }
     @Override public @NotNull Type<? extends CustomPacketPayload> type() { return TYPE; }
     public static void handle(SyncPsychicDriveGauntletsPacket packet, IPayloadContext context) {

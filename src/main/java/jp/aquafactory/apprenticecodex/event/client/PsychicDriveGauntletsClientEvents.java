@@ -91,6 +91,7 @@ public final class PsychicDriveGauntletsClientEvents {
                 var visual = mirrored ? presentation.right : presentation.left;
                 var follow = mirrored ? presentation.rightFollow : presentation.leftFollow;
                 var attack = PsychicDriveGauntletsClientState.get(player.getUUID(), mirrored, partialTick);
+                visual.updateAnimation(attack, time);
                 if (attack == null && PsychicDriveGauntletsClientState.mode(player)
                         == Mode.HIDDEN) continue;
                 var offset = PsychicDriveGauntletsFloatingRenderer.offset(drawnAmount, mirrored)

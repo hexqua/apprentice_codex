@@ -16,7 +16,7 @@ public final class PsychicDriveGauntletsRaycast {
     private static final double EPSILON = 1.0e-7;
 
     public record Contact(Entity target, Vec3 point) {}
-    public record Aim(@Nullable Entity target, Vec3 point) {}
+    public record Aim(@Nullable Entity target, Vec3 point, boolean block) {}
 
     private PsychicDriveGauntletsRaycast() {}
 
@@ -31,7 +31,8 @@ public final class PsychicDriveGauntletsRaycast {
                 ClipContext.Fluid.NONE, owner));
         if (block.getType() != HitResult.Type.MISS) end = block.getLocation();
         var contact = firstContact(owner, start, end, true);
-        return contact == null ? new Aim(null, end) : new Aim(contact.target(), contact.point());
+        return contact == null ? new Aim(null, end, block.getType() == HitResult.Type.BLOCK)
+                : new Aim(contact.target(), contact.point(), false);
     }
 
     public static @Nullable Contact firstContact(Player owner, Vec3 start, Vec3 end, boolean checkVisibility) {
