@@ -85,9 +85,6 @@
     "UtilsMixin"
   ],
   "client": [
-    "LocalPlayerPsychicDriveGauntletsMixin",
-    "MinecraftPsychicDriveGauntletsMixin",
-    "MultiPlayerGameModePsychicDriveGauntletsMixin",
     "PsychicDriveGauntletsHandRendererInvoker",
     "PatchouliBookHeaderMixin",
     "EntityRenderDispatcherMantleBlinkMixin",
@@ -113,7 +110,7 @@
     "EpicFightPatchedItemInHandLayerMixin",
     "KeyboardHandlerMixin",
     "LocalPlayerSpellcasterQuiverMixin",
-    "LocalPlayerSpellrifleSprintMixin",
+    "LocalPlayerSprintSuppressionMixin",
     "LocalPlayerParrycastBucklerMixin",
     "MouseHandlerMixin",
     "MinecraftMixin",

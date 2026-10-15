@@ -1,8 +1,8 @@
 package jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets;
 
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection.Mode;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 
 public final class PsychicDriveGauntletsAttackState {
     public static final int REPEAT_TICKS = 15;
@@ -14,6 +14,8 @@ public final class PsychicDriveGauntletsAttackState {
     private PsychicDriveGauntletsArm charging;
     private InteractionHand useHand;
     private long useStarted;
+    private long useSession;
+    private boolean useOpen;
 
     public PsychicDriveGauntletsArm right() { return right; }
     public PsychicDriveGauntletsArm left() { return left; }
@@ -22,11 +24,6 @@ public final class PsychicDriveGauntletsAttackState {
     public boolean charging() { return charging != null; }
 
     public boolean input(Player player, Input input, long time) {
-        if (input == Input.CANCEL_USE) { cancelUse(); return false; }
-        if (input == Input.RESET_USE) {
-            if (charging == null) usePressed = false;
-            return false;
-        }
         if (input == Input.RELEASE) {
             pressed = false;
             return false;
@@ -56,15 +53,14 @@ public final class PsychicDriveGauntletsAttackState {
         if (PsychicDriveGauntletsSelection.duplicate(player)) {
             pressed = false;
             cancelUse();
-            if (PsychicDriveGauntletsSelection.isGauntlets(player.getUseItem())) player.stopUsingItem();
             right.reset();
             left.reset();
             return;
         }
         if (charging != null && (!PsychicDriveGauntletsSelection.canUse(player, useHand)
-                || charging.sourceChanged(player))) {
+                || charging.sourceChanged(player) || player.isUsingItem()
+                || player.containerMenu != player.inventoryMenu)) {
             cancelUse();
-            player.stopUsingItem();
         }
         updateTransition(player, time);
         if (!PsychicDriveGauntletsSelection.isGauntlets(player.getMainHandItem())) pressed = false;
@@ -75,7 +71,8 @@ public final class PsychicDriveGauntletsAttackState {
     public boolean beginUse(Player player, InteractionHand hand, long time) {
         if (usePressed) return false;
         usePressed = true;
-        if (!PsychicDriveGauntletsSelection.canUse(player, hand)) return false;
+        if (!PsychicDriveGauntletsSelection.canUse(player, hand) || player.isUsingItem()
+                || player.containerMenu != player.inventoryMenu) return false;
         charging = left.available() ? left : right.available() ? right : null;
         if (charging == null) return false;
         useHand = hand;
@@ -93,7 +90,8 @@ public final class PsychicDriveGauntletsAttackState {
         charging = null;
         if (arm == null) return false;
         if (time - useStarted < PsychicDriveGauntletsCharge.MIN_TICKS
-                || !PsychicDriveGauntletsSelection.canUse(player, useHand) || arm.sourceChanged(player)) {
+                || !PsychicDriveGauntletsSelection.canUse(player, useHand) || arm.sourceChanged(player)
+                || player.isUsingItem() || player.containerMenu != player.inventoryMenu) {
             arm.reset();
             return false;
         }
@@ -108,11 +106,36 @@ public final class PsychicDriveGauntletsAttackState {
         charging = null;
     }
 
+    public boolean useInput(Player player, UseAction action, InteractionHand hand, long session, long time) {
+        if (session <= 0) return false;
+        if (action == UseAction.START) {
+            // 同一押下の再送は計時を戻さず、拒否した押下も終端要求までは記憶する。
+            if (useOpen || session <= useSession) {
+                return session == useSession && hand == useHand && useOpen && charging();
+            }
+            useSession = session;
+            useHand = hand;
+            useOpen = true;
+            return beginUse(player, hand, time);
+        }
+        if (!useOpen || session != useSession || hand != useHand) return false;
+        useOpen = false;
+        if (action == UseAction.RELEASE) releaseUse(player, time);
+        else {
+            cancelUse();
+            usePressed = false;
+        }
+        return false;
+    }
+
+    public long useSession() { return useSession; }
+
     private void updateTransition(Player player, long time) {
         var mode = PsychicDriveGauntletsSelection.find(player, true).mode();
         // 最後のアイテムを除去しても、攻撃中の腕は納刀位置への帰還を完了させる。
         transition.update(mode == Mode.HIDDEN && active() ? Mode.SHEATHED : mode, time);
     }
 
-    public enum Input { PRESS, REPEAT, RELEASE, CANCEL_USE, RESET_USE }
+    public enum Input { PRESS, REPEAT, RELEASE }
+    public enum UseAction { START, RELEASE, CANCEL }
 }
