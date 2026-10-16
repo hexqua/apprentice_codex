@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "C": {
+      "item": "irons_spellbooks:energized_core"
+    },
+    "M": {
+      "item": "irons_spellbooks:mithril_ingot"
+    },
+    "N": {
+      "item": "apprenticecodex:emberstained_netherite_ingot"
+    },
+    "S": {
+      "item": "minecraft:nether_star"
+    }
+  },
+  "pattern": [
+    "M M",
+    "NSN",
+    "C C"
+  ],
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:psychic_drive_gauntlets"
+  }
+}

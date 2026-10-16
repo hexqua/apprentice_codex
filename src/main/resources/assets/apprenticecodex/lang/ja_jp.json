@@ -514,6 +514,9 @@
   "item.apprenticecodex.scrollcaster_gauntlet.school_rune": "このガントレットは\"%s\"の系統に調律されている。",
   "item.apprenticecodex.psychic_drive_gauntlets.desc.rule": "このアイテムは同時に一つしか動作させられない。",
   "item.apprenticecodex.psychic_drive_gauntlets.desc.error": "ホットバー及びオフハンドに二つ以上存在するため、動作しない。",
+  "item.apprenticecodex.psychic_drive_gauntlets.desc.attack": "利き手に持っている時、[%1$s]でマナを%2$s消費してガントレットで攻撃。",
+  "item.apprenticecodex.psychic_drive_gauntlets.desc.charge": "[%1$s]長押しでマナを最大%2$s消費してガントレットを抉るように溜めて飛ばす。",
+  "item.apprenticecodex.psychic_drive_gauntlets.desc.charge.notice": "溜め攻撃はオフハンドに何も持っていないか、オフハンドに直接持っている時のみ使用できる。",
   "item.apprenticecodex.bound_weapon.contain_item.item": "\"%s\"が封じ込まれている。",
   "item.apprenticecodex.bound_weapon.contain_item.hint": "手放すことで中のアイテムが復元される。",
   "item.apprenticecodex.spell_invoke_card.desc": "投げて当たった場所で注入した魔法を発動させる。",
@@ -1354,6 +1357,7 @@
   "ui.apprenticecodex.quickcast_scroll_cartridge.start_manual_reload": "リロード開始 - 攻撃、使用、詠唱でキャンセル",
   "ui.apprenticecodex.shooting_star_mantle.depleted_energy": "外套の魔力が枯渇した！",
   "ui.apprenticecodex.psychic_drive_gauntlets.duplicate_hotbar": "複数のガントレットが干渉しているため動作しない...",
+  "ui.apprenticecodex.psychic_drive_gauntlets.insufficient_mana": "ガントレットを稼働させるマナが足りない！",
 
   "ui.apprenticecodex.spell_selector.empty": "選択候補無し",
   "ui.apprenticecodex.luminous_device.clean.desc": "近くの魔術師の光源を掃除",
@@ -1428,6 +1432,8 @@
   "death.attack.apprenticecodex.lunar_aim": "%1$sは%2$sの絶技によって仕留められた",
   "death.attack.apprenticecodex.echo_arrow": "%1$sの命は共鳴によって崩壊した",
   "death.attack.apprenticecodex.lock_on_ray": "%1$sは消滅した",
+  "death.attack.apprenticecodex.psychic_drive_gauntlets": "%1$sは%2$sに修正された",
+  "death.attack.apprenticecodex.psychic_drive_gauntlets.item": "%1$sは%2$sの%3$sに修正された",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "見習いの写本",
   "advancements.apprenticecodex.apprentice_codex.root.description": "見習い魔術師としての道筋を歩むことにする。",
@@ -1461,6 +1467,8 @@
   "advancements.apprenticecodex.apprentice_codex.craft_spell_reaper_scythe.description": "スペルリーパーの大鎌を作る",
   "advancements.apprenticecodex.apprentice_codex.craft_spell_side_edge.title": "奥の手は隠しておくものだ",
   "advancements.apprenticecodex.apprentice_codex.craft_spell_side_edge.description": "詠唱補助の刃を作る",
+  "advancements.apprenticecodex.apprentice_codex.craft_psychic_drive_gauntlets.title": "お前も浮かぶぞ！",
+  "advancements.apprenticecodex.apprentice_codex.craft_psychic_drive_gauntlets.description": "サイキックドライブガントレットを作る",
   "advancements.apprenticecodex.apprentice_codex.craft_reflectcast_shield.title": "攻撃は最大の防御なり",
   "advancements.apprenticecodex.apprentice_codex.craft_reflectcast_shield.description": "反射詠唱の盾を作る",
   "advancements.apprenticecodex.apprentice_codex.craft_bulwark_greatshield.title": "ディフェンスに定評のある盾",
@@ -1669,5 +1677,12 @@
   "subtitle.apprenticecodex.sound.vanilla_scythe_catch": "大鎌が手元に戻る",
   "subtitle.apprenticecodex.sound.vanilla_collect_mana": "魔力が集まる",
   "subtitle.apprenticecodex.sound.vanilla_mantle_impulse": "外套で急加速する",
-  "subtitle.apprenticecodex.sound.vanilla_mantle_deplete": "外套の魔力が枯渇する"
+  "subtitle.apprenticecodex.sound.vanilla_mantle_deplete": "外套の魔力が枯渇する",
+  "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_launch": "ガントレットを放つ",
+  "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_impact": "ガントレットが当たる",
+  "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_charge_start": "ガントレットに魔力を溜める",
+  "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_charge_ready": "ガントレットが最大チャージを知らせる",
+  "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_full_launch": "ガントレットを鋭く放つ",
+  "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_full_impact": "ガントレットが鋭く当たる",
+  "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_finish": "ガントレットが貫く"
 }

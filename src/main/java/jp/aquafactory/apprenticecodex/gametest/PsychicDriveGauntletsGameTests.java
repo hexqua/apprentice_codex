@@ -43,7 +43,7 @@ public final class PsychicDriveGauntletsGameTests {
             if (attribute.equals(Attributes.ATTACK_SPEED)) speed[0] += modifier.amount();
         });
         helper.assertTrue(Math.abs(damage[0] - 4.0) < 1.0e-6, "Gauntlets must display attack damage four");
-        helper.assertTrue(Math.abs(speed[0] - 20.0 / 7.0) < 1.0e-6, "Gauntlets must display a seven-tick attack speed");
+        helper.assertTrue(Math.abs(speed[0] - 2.0) < 1.0e-6, "Gauntlets must display a ten-tick attack speed");
         stack.getAttributeModifiers().forEach(EquipmentSlot.OFFHAND, (attribute, modifier) ->
                 helper.assertTrue(!attribute.equals(Attributes.ATTACK_DAMAGE) && !attribute.equals(Attributes.ATTACK_SPEED),
                         "Offhand gauntlets must not add combat attributes"));

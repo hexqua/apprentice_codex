@@ -131,6 +131,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 LUNAR_AIM,
                 HEALING_BLOOM,
                 ECHO_ARROW,
+                PSYCHIC_DRIVE_GAUNTLETS_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC
         );
@@ -172,6 +173,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 ECHO_ARROW,
                 LOCK_ON_RAY,
                 PSYCHIC_DRIVE_GAUNTLETS,
+                PSYCHIC_DRIVE_GAUNTLETS_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC
@@ -239,6 +241,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 ECHO_ARROW,
                 LOCK_ON_RAY,
                 PSYCHIC_DRIVE_GAUNTLETS,
+                PSYCHIC_DRIVE_GAUNTLETS_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS,
@@ -275,6 +278,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 LUNAR_AIM,
                 ECHO_ARROW,
                 HOVERRIDE_BROOM,
+                PSYCHIC_DRIVE_GAUNTLETS_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC
         );
@@ -284,6 +288,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 HAUNTED_BONUS,
                 MANA_FORCE_BLADE,
                 PSYCHIC_DRIVE_GAUNTLETS,
+                PSYCHIC_DRIVE_GAUNTLETS_MAGIC,
                 HOVERRIDE_BROOM,
                 SPELL_REAPER_SCYTHE_THROW,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,

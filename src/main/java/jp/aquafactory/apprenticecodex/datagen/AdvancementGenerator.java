@@ -697,6 +697,19 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         false)
                 .addCriterion("crafted_spell_reaper_scythe", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SPELL_REAPER_SCYTHE.getId()))
                 .save(saver, advancementId("craft_spell_reaper_scythe"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(bladed)
+                .display(ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_psychic_drive_gauntlets.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_psychic_drive_gauntlets.description"),
+                        null,
+                        AdvancementType.CHALLENGE,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_psychic_drive_gauntlets", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.getId()))
+                .save(saver, advancementId("craft_psychic_drive_gauntlets"), existingFileHelper);
         
         var bow = Advancement.Builder.advancement()
                 .parent(root)

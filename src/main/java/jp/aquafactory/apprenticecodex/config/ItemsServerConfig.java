@@ -33,6 +33,7 @@ import jp.aquafactory.apprenticecodex.config.item.MulticastEchoStaffServerConfig
 import jp.aquafactory.apprenticecodex.config.item.MultipurposeStaffrifleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ParrycastBucklerServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.PastelStaffServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.PsychicDriveGauntletsServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.RemoteOwnerCastServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SatelliteFollowcastAmuletServerConfig;
@@ -68,6 +69,7 @@ final class ItemsServerConfig {
     private final ZenithStaffServerConfig zenithStaffConfig;
     private final IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig;
     private final ManaForceBladeServerConfig manaForceBladeConfig;
+    final PsychicDriveGauntletsServerConfig psychicDriveGauntletsConfig;
     private final ParrycastBucklerServerConfig parrycastBucklerConfig;
     private final BulwarkGreatshieldServerConfig bulwarkGreatshieldConfig;
     private final MagiCompressorGadgetServerConfig magiCompressorGadgetConfig;
@@ -112,6 +114,7 @@ final class ItemsServerConfig {
             ZenithStaffServerConfig zenithStaffConfig,
             IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig,
             ManaForceBladeServerConfig manaForceBladeConfig,
+            PsychicDriveGauntletsServerConfig psychicDriveGauntletsConfig,
             ParrycastBucklerServerConfig parrycastBucklerConfig,
             BulwarkGreatshieldServerConfig bulwarkGreatshieldConfig,
             MagiCompressorGadgetServerConfig magiCompressorGadgetConfig,
@@ -160,6 +163,7 @@ final class ItemsServerConfig {
         this.zenithStaffConfig = zenithStaffConfig;
         this.isekaiTravelGuidebookConfig = isekaiTravelGuidebookConfig;
         this.manaForceBladeConfig = manaForceBladeConfig;
+        this.psychicDriveGauntletsConfig = psychicDriveGauntletsConfig;
         this.parrycastBucklerConfig = parrycastBucklerConfig;
         this.bulwarkGreatshieldConfig = bulwarkGreatshieldConfig;
         this.magiCompressorGadgetConfig = magiCompressorGadgetConfig;
@@ -211,6 +215,7 @@ final class ItemsServerConfig {
         var zenithStaffConfig = ZenithStaffServerConfig.define(builder);
         var isekaiTravelGuidebookConfig = IsekaiTravelGuidebookServerConfig.define(builder);
         var manaForceBladeConfig = ManaForceBladeServerConfig.define(builder);
+        var psychicDriveGauntletsConfig = PsychicDriveGauntletsServerConfig.define(builder);
         var parrycastBucklerConfig = ParrycastBucklerServerConfig.define(builder);
         var bulwarkGreatshieldConfig = BulwarkGreatshieldServerConfig.define(builder);
         var magiCompressorGadgetConfig = MagiCompressorGadgetServerConfig.define(builder);
@@ -261,6 +266,7 @@ final class ItemsServerConfig {
                 zenithStaffConfig,
                 isekaiTravelGuidebookConfig,
                 manaForceBladeConfig,
+                psychicDriveGauntletsConfig,
                 parrycastBucklerConfig,
                 bulwarkGreatshieldConfig,
                 magiCompressorGadgetConfig,

@@ -73,6 +73,7 @@ public final class DamageTypes {
     public static final ResourceKey<DamageType> HAUNTED_BONUS = register("haunted_bonus");
     public static final ResourceKey<DamageType> MANA_FORCE_BLADE = register("mana_force_blade");
     public static final ResourceKey<DamageType> PSYCHIC_DRIVE_GAUNTLETS = register("psychic_drive_gauntlets");
+    public static final ResourceKey<DamageType> PSYCHIC_DRIVE_GAUNTLETS_MAGIC = register("psychic_drive_gauntlets_magic");
     public static final ResourceKey<DamageType> HOVERRIDE_BROOM = register("hoverride_broom");
     public static final ResourceKey<DamageType> SPELL_REAPER_SCYTHE_THROW = register("spell_reaper_scythe_throw");
     public static final ResourceKey<DamageType> SPELL_REAPER_SCYTHE_THROW_MAGIC = register("spell_reaper_scythe_throw_magic");
@@ -154,8 +155,10 @@ public final class DamageTypes {
 
         context.register(HAUNTED_BONUS, createTemplate(HAUNTED_BONUS));
         context.register(MANA_FORCE_BLADE, createTemplate(MANA_FORCE_BLADE));
-        context.register(PSYCHIC_DRIVE_GAUNTLETS, createTemplate(PSYCHIC_DRIVE_GAUNTLETS));
         context.register(HOVERRIDE_BROOM, createTemplate(HOVERRIDE_BROOM));
+
+        context.register(PSYCHIC_DRIVE_GAUNTLETS, createTemplate(PSYCHIC_DRIVE_GAUNTLETS));
+        context.register(PSYCHIC_DRIVE_GAUNTLETS_MAGIC, createTemplate(PSYCHIC_DRIVE_GAUNTLETS));
 
         // スペルリーパーの大鎌のメッセージは全て共通になるように意図的に被らせる.
         context.register(SPELL_REAPER_SCYTHE_THROW, createTemplate(SPELL_REAPER_SCYTHE_THROW));
