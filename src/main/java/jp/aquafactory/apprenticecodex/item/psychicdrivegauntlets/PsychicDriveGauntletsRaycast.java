@@ -1,10 +1,13 @@
 package jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets;
 
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -16,7 +19,12 @@ public final class PsychicDriveGauntletsRaycast {
     private static final double EPSILON = 1.0e-7;
 
     public record Contact(Entity target, Vec3 point) {}
-    public record Aim(Vec3 origin, Vec3 point, boolean block) {}
+    public record BlockTarget(BlockPos pos, Direction face, BlockState state) {}
+    public record Aim(Vec3 origin, Vec3 point, boolean block, @Nullable BlockTarget target) {
+        public Aim(Vec3 origin, Vec3 point, boolean block) {
+            this(origin, point, block, null);
+        }
+    }
 
     private PsychicDriveGauntletsRaycast() {}
 
@@ -31,7 +39,9 @@ public final class PsychicDriveGauntletsRaycast {
                 ClipContext.Fluid.NONE, owner));
         if (block.getType() != HitResult.Type.MISS) end = block.getLocation();
         // 敵の手前で終えると、準備・飛翔中に逃げる対象へ追いつけないため、地形だけで終点を決める。
-        return new Aim(start, end, block.getType() == HitResult.Type.BLOCK);
+        boolean hitBlock = block.getType() == HitResult.Type.BLOCK;
+        return new Aim(start, end, hitBlock, hitBlock ? new BlockTarget(block.getBlockPos().immutable(),
+                block.getDirection(), owner.level().getBlockState(block.getBlockPos())) : null);
     }
 
     public static @Nullable Contact firstContact(Player owner, Vec3 start, Vec3 end, Vec3 visibilityOrigin) {

@@ -21,7 +21,7 @@ import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
-import net.neoforged.neoforge.event.server.ServerStoppedEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import java.util.HashMap;
@@ -130,6 +130,10 @@ public final class PsychicDriveGauntletsAttackEvents {
     private static void clear(Player player) {
         MODES.remove(player.getUUID());
         var entry = STATES.remove(player.getUUID());
+        if (entry != null) {
+            entry.state.right().reset();
+            entry.state.left().reset();
+        }
         PsychicDriveGauntletsChargeMovement.update(player, false);
         if (entry != null && player instanceof ServerPlayer server && !(server instanceof FakePlayer)) {
             Networks.sendToPlayer(server, new SyncPsychicDriveGauntletsUseStatePacket(entry.state.useSession(), false));
@@ -158,5 +162,13 @@ public final class PsychicDriveGauntletsAttackEvents {
     @SubscribeEvent public static void logout(PlayerEvent.PlayerLoggedOutEvent event) { clear(event.getEntity()); }
     @SubscribeEvent public static void dimension(PlayerEvent.PlayerChangedDimensionEvent event) { clear(event.getEntity()); }
     @SubscribeEvent public static void clone(PlayerEvent.Clone event) { clear(event.getOriginal()); }
-    @SubscribeEvent public static void stop(ServerStoppedEvent event) { STATES.clear(); MODES.clear(); }
+    // 保存後のStoppedでは拾得禁止状態が残るため、保存前に追従を解除する。
+    @SubscribeEvent public static void stop(ServerStoppingEvent event) {
+        for (var entry : STATES.values()) {
+            entry.state.right().reset();
+            entry.state.left().reset();
+        }
+        STATES.clear();
+        MODES.clear();
+    }
 }
