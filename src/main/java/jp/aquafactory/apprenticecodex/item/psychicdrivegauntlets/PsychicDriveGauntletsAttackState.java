@@ -5,7 +5,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 
 public final class PsychicDriveGauntletsAttackState {
-    public static final int REPEAT_TICKS = 15;
+    public static final int REPEAT_TICKS = 7;
     private final PsychicDriveGauntletsArm right = new PsychicDriveGauntletsArm(true);
     private final PsychicDriveGauntletsArm left = new PsychicDriveGauntletsArm(false);
     private final PsychicDriveGauntletsTransition transition = new PsychicDriveGauntletsTransition();
@@ -39,14 +39,13 @@ public final class PsychicDriveGauntletsAttackState {
             pressed = true;
         } else {
             // 単発クリックに間隔制限がないため、連射間隔もclientだけで管理する。
-            // serverでも計時するとtickのずれで要求を拒否し、次の15tickまで待たせてしまう。
+            // serverでも計時するとtickのずれで要求を拒否し、次の7tickまで待たせてしまう。
             if (!pressed) return false;
         }
         var arm = right.available() ? right : left.available() ? left : null;
         if (arm == null) return false;
         updateTransition(player, time);
-        arm.launch(player, PsychicDriveGauntletsRaycast.aim(player), transition.amount(time), time,
-                InteractionHand.MAIN_HAND, 0);
+        arm.prepare(player, PsychicDriveGauntletsRaycast.aim(player), transition.amount(time), time);
         return true;
     }
 

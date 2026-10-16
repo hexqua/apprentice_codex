@@ -29,7 +29,7 @@ public class PsychicDriveGauntlets extends Item implements GeoItem {
 
     public PsychicDriveGauntlets() {
         super(new Properties().stacksTo(1).attributes(ItemAttributeModifiers.builder()
-                .add(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_ID, 7.0,
+                .add(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_ID, 3.0,
                         AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
                 .add(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_ID,
                         20.0 / PsychicDriveGauntletsAttackState.REPEAT_TICKS - 4.0,

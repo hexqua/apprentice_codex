@@ -23,7 +23,7 @@ public final class PsychicDriveGauntletsAnimationGameTests {
 
     private static Snapshot arm(Phase phase, long launch, Impact impact) {
         return new Snapshot(phase, Vec3.ZERO, 0, 0, 1, Vec3.ZERO, Vec3.ZERO,
-                launch, launch + 2, 0, 0, 0, impact, impact == Impact.NONE ? 0 : launch + 1);
+                launch, launch + 2, 1, 0, 0, impact, impact == Impact.NONE ? 0 : launch + 1);
     }
 
     @GameTest(template = TEMPLATE)
@@ -48,7 +48,7 @@ public final class PsychicDriveGauntletsAnimationGameTests {
         helper.assertTrue(right.revision() == revision && left.stage() == Stage.IDLE,
                 "Strike must not restart or affect the other arm");
         left.update(arm(Phase.HOLDING, 102, Impact.BLOCK), 3);
-        helper.assertTrue(left.stage() == Stage.STRIKE, "Block impact must also trigger strike");
+        helper.assertTrue(left.stage() == Stage.WINDUP, "Block impact must not trigger strike");
         helper.succeed();
     }
 
@@ -87,6 +87,20 @@ public final class PsychicDriveGauntletsAnimationGameTests {
         animation.update(arm(Phase.OUTBOUND, 130, Impact.NONE), 30);
         helper.assertTrue(animation.revision() > revision && animation.stage() == Stage.WINDUP,
                 "A new launch observed in the same stage must restart that stage");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void normalAndPartialChargeContactsSkipStrike(GameTestHelper helper) {
+        for (float charge : new float[] {0, 0.25F, 0.95F}) {
+            for (var impact : new Impact[] {Impact.ENTITY, Impact.BLOCK}) {
+                var animation = new PsychicDriveGauntletsAnimation();
+                animation.update(new Snapshot(Phase.HOLDING, Vec3.ZERO, 0, 0, 1, Vec3.ZERO, Vec3.ZERO,
+                        100, 101, charge, 101, 0, impact, 101), 1);
+                helper.assertTrue(animation.stage() == Stage.WINDUP,
+                        "Normal and partial charge contacts must skip strike");
+            }
+        }
         helper.succeed();
     }
 }

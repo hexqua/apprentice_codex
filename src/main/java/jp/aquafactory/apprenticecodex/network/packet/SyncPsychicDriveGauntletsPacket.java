@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.network.packet;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.event.client.PsychicDriveGauntletsClientState;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Impact;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.MotionData;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Phase;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Snapshot;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection.Mode;
@@ -55,13 +56,32 @@ public record SyncPsychicDriveGauntletsPacket(UUID player, boolean reset, Snapsh
         buffer.writeFloat(arm.returnRecovery());
         buffer.writeEnum(arm.impact());
         buffer.writeLong(arm.impactTick());
+        buffer.writeVarInt(arm.holdTicks());
+        buffer.writeDouble(arm.motion().phaseStartedTick());
+        writeVector(buffer, arm.motion().returnStart());
+        writeVector(buffer, arm.motion().returnEnd());
+        writeVector(buffer, arm.motion().returnSide());
+        buffer.writeFloat(arm.motion().returnPower());
+        buffer.writeFloat(arm.motion().returnTwist());
     }
     private static Snapshot read(RegistryFriendlyByteBuf buffer) {
         return new Snapshot(buffer.readEnum(Phase.class), new Vec3(buffer.readDouble(), buffer.readDouble(),
                 buffer.readDouble()), buffer.readFloat(), buffer.readFloat(), buffer.readFloat(),
                 new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble()),
                 new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble()), buffer.readLong(), buffer.readLong(),
-                buffer.readFloat(), buffer.readLong(), buffer.readFloat(), buffer.readEnum(Impact.class), buffer.readLong());
+                buffer.readFloat(), buffer.readLong(), buffer.readFloat(), buffer.readEnum(Impact.class), buffer.readLong(),
+                buffer.readVarInt(), new MotionData(buffer.readDouble(), readVector(buffer), readVector(buffer), readVector(buffer),
+                        buffer.readFloat(), buffer.readFloat()));
+    }
+
+    private static void writeVector(RegistryFriendlyByteBuf buffer, Vec3 vector) {
+        buffer.writeDouble(vector.x);
+        buffer.writeDouble(vector.y);
+        buffer.writeDouble(vector.z);
+    }
+
+    private static Vec3 readVector(RegistryFriendlyByteBuf buffer) {
+        return new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble());
     }
     @Override public @NotNull Type<? extends CustomPacketPayload> type() { return TYPE; }
     public static void handle(SyncPsychicDriveGauntletsPacket packet, IPayloadContext context) {
