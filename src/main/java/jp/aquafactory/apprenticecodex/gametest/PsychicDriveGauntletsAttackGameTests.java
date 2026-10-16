@@ -100,6 +100,80 @@ public final class PsychicDriveGauntletsAttackGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void aimedStationaryTargetsConnectFromEveryDirection(GameTestHelper helper) {
+        var player = player(helper);
+        // 原点付近では交点計算の加減算で桁落ちしやすいため、構造物の配置座標に依存させない。
+        var center = new Vec3(0.123, player.getY() + 32, 0.789);
+        var cow = target(helper, center.add(0, -0.5, 0));
+        try {
+            assertStationaryContacts(helper, player, cow, center);
+        } finally {
+            // 構造物の外に置くため、GameTestの範囲内cleanupに任せず必ず除去する。
+            cow.discard();
+        }
+        helper.succeed();
+    }
+
+    private static void assertStationaryContacts(GameTestHelper helper, FakePlayer player, Cow cow, Vec3 center) {
+        int missed = 0;
+        String firstMiss = "";
+        // 軸に平行な直線だけでは、照準点を別方向から再判定するときの丸め誤差を検出できない。
+        for (float charge : new float[]{0, 0.5F, 1}) {
+            for (boolean right : new boolean[]{true, false}) {
+                for (int angle = 0; angle < 360; angle++) {
+                    for (int pitch : new int[]{-15, 0, 15}) {
+                        double radians = Math.toRadians(angle);
+                        double elevation = Math.toRadians(pitch);
+                        player.setPos(center.x + Math.sin(radians) * Math.cos(elevation) * 4.3,
+                                center.y + Math.sin(elevation) * 4.3 - player.getEyeHeight(),
+                                center.z - Math.cos(radians) * Math.cos(elevation) * 4.3);
+                        player.setYRot(angle);
+                        player.setXRot(pitch);
+                        player.yBodyRot = angle;
+                        cow.setHealth(100);
+                        var aim = PsychicDriveGauntletsRaycast.aim(player, 6 * (1 + charge));
+                        helper.assertTrue(aim.target() == cow, "Stationary fixture must be selected at angle " + angle);
+                        var arm = new PsychicDriveGauntletsArm(right);
+                        if (charge == 0) arm.prepare(player, aim, 1, 0);
+                        else arm.launch(player, aim, 1, 0, InteractionHand.MAIN_HAND, charge);
+                        ticks(arm, player, 1, 17);
+                        float expectedHealth = charge == 1 ? 84 : 96;
+                        if (cow.getHealth() != expectedHealth) {
+                            missed++;
+                            if (firstMiss.isEmpty()) firstMiss = "angle=" + angle + ", charge=" + charge
+                                    + ", pitch=" + pitch + ", right=" + right + ", aim=" + aim.point()
+                                    + ", health=" + cow.getHealth() + ", arm=" + arm.snapshot();
+                        }
+                    }
+                }
+            }
+        }
+        helper.assertTrue(missed == 0, "Stationary aimed targets must take damage: misses=" + missed + ", " + firstMiss);
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void contactToleranceIncludesRoundingButExcludesSeparatedTargets(GameTestHelper helper) {
+        var box = new AABB(0, 0, 0, 1, 1, 1);
+        var start = new Vec3(0.5, 0.5, -2);
+        var rounded = new Vec3(0.5, 0.5, -1.0e-8);
+        helper.assertTrue(PsychicDriveGauntletsRaycast.intersection(box, start, rounded) != null,
+                "A rounded endpoint immediately outside the surface must still connect");
+        helper.assertTrue(PsychicDriveGauntletsRaycast.intersection(box, rounded, rounded) != null,
+                "A rounded starting point must still count as contact");
+        helper.assertTrue(PsychicDriveGauntletsRaycast.intersection(box, start, new Vec3(0.5, 0.5, -1.0e-5)) == null,
+                "A separated endpoint must remain a miss");
+        var player = player(helper);
+        var cow = target(helper, player.position().add(0, 16, 0));
+        var bounds = cow.getBoundingBox().inflate(PsychicDriveGauntletsRaycast.RADIUS);
+        var surface = new Vec3(bounds.maxX, (bounds.minY + bounds.maxY) / 2, (bounds.minZ + bounds.maxZ) / 2);
+        helper.assertTrue(PsychicDriveGauntletsRaycast.drillTarget(player, surface.add(1.0e-8, 0, 0), cow) == cow,
+                "Drill contact must share the endpoint rounding tolerance");
+        helper.assertTrue(PsychicDriveGauntletsRaycast.drillTarget(player, surface.add(1.0e-5, 0, 0), cow) == null,
+                "Drill contact must reject a target outside the rounding tolerance");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void aimStopsAtWallIncludingInflatedOverhang(GameTestHelper helper) {
         var player = player(helper);
         var eye = player.getEyePosition();
