@@ -144,7 +144,8 @@ public final class PsychicDriveGauntletsEffects {
                 if (PsychicDriveGauntletsVisualState.drilling(arm)) {
                     var emitter = DRILL_EMITTERS.computeIfAbsent(side, ignored -> new PsychicDriveGauntletsVisualState());
                     if (emitter.emitContinuousSpark(arm, now)) {
-                        sparks(arm.position(), direction(arm.destination().subtract(arm.flightStart())), 1);
+                        sparks(arm.position(), direction(arm.destination().subtract(arm.flightStart())),
+                                PsychicDriveGauntletsVisualState.CONTINUOUS_SPARKS);
                     }
                 } else {
                     DRILL_EMITTERS.remove(side);
