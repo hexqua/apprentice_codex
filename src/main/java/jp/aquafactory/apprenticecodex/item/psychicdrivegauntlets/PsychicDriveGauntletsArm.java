@@ -71,6 +71,7 @@ public final class PsychicDriveGauntletsArm {
     private Phase phase = Phase.IDLE;
     private Vec3 position = Vec3.ZERO;
     private Vec3 destination = Vec3.ZERO;
+    private Vec3 visibilityOrigin = Vec3.ZERO;
     private Vec3 flightStart = Vec3.ZERO;
     private long launchTick;
     private Vec3 returnStart = Vec3.ZERO;
@@ -176,7 +177,7 @@ public final class PsychicDriveGauntletsArm {
     }
 
     public void launch(Player owner, Vec3 target, float amount, long time, InteractionHand usedHand, float charged) {
-        launch(owner, new PsychicDriveGauntletsRaycast.Aim(null, target, false), amount, time, usedHand, charged);
+        launch(owner, new PsychicDriveGauntletsRaycast.Aim(owner.getEyePosition(), target, false), amount, time, usedHand, charged);
     }
 
     public void launch(Player owner, PsychicDriveGauntletsRaycast.Aim aim, float amount, long time,
@@ -188,6 +189,7 @@ public final class PsychicDriveGauntletsArm {
                        InteractionHand usedHand, float charged, boolean preparing) {
         if (!available() && phase != Phase.CHARGING) return;
         var target = aim.point();
+        visibilityOrigin = aim.origin();
         aimedAtBlock = aim.block();
         impact = Impact.NONE;
         impactTick = 0;
@@ -290,8 +292,8 @@ public final class PsychicDriveGauntletsArm {
             }
             case OUTBOUND -> {
                 var next = PsychicDriveGauntletsMotion.outbound(flightStart, destination, (double) time - phaseStarted, charge);
-                // 飛行中は壁を再確認しない。埋まった腕や、発射後に遮蔽へ隠れた対象への接触を許容する。
-                var contact = PsychicDriveGauntletsRaycast.firstContact(owner, position, next, false);
+                // 腕自身は地形を通過するが、初発は入力時の目から視線が通る対象だけに当てる。
+                var contact = PsychicDriveGauntletsRaycast.firstContact(owner, position, next, visibilityOrigin);
                 if (contact != null) {
                     position = contact.point();
                     impact = Impact.ENTITY;
@@ -342,6 +344,7 @@ public final class PsychicDriveGauntletsArm {
                         // tickが飛んでも過去の段をまとめて与えず、現在の接触だけを判定する。
                         if (elapsed > (long) nextHit * HIT_INTERVAL) { recall(time); break; }
                         var target = PsychicDriveGauntletsRaycast.drillTarget(owner, position, previousTarget);
+                        // 初発成立後は拳を判定の起点とし、別対象へ切り替わっても目からの遮蔽を再確認しない。
                         boolean finalHit = nextHit == 3;
                         if (target == null || !hit(owner, target, !finalHit)) {
                             recall(time);

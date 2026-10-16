@@ -142,7 +142,7 @@ public final class PsychicDriveGauntletsSingleMotionGameTests {
         var player = player(helper);
         var start = PsychicDriveGauntletsPose.position(player, 1, true);
         var arm = new PsychicDriveGauntletsArm(true);
-        arm.prepare(player, new Aim(null, start.add(0, 0, 6), true), 1, 100);
+        arm.prepare(player, new Aim(player.getEyePosition(), start.add(0, 0, 6), true), 1, 100);
         var halfway = PsychicDriveGauntletsMotion.singlePose(arm.snapshot(), 101);
         equal(helper, halfway.power(), 0.5, "Preparation must have a visible intermediate pose");
         equal(helper, halfway.twist(), 5, "Preparation must twist the whole fist");
@@ -196,7 +196,7 @@ public final class PsychicDriveGauntletsSingleMotionGameTests {
         var player = player(helper);
         var start = PsychicDriveGauntletsPose.position(player, 1, true);
         var arm = new PsychicDriveGauntletsArm(true);
-        arm.launch(player, new Aim(null, start.add(0, 0, 6), true), 1, 100, InteractionHand.MAIN_HAND, 0.5F);
+        arm.launch(player, new Aim(player.getEyePosition(), start.add(0, 0, 6), true), 1, 100, InteractionHand.MAIN_HAND, 0.5F);
         for (int tick = 101; tick <= 105; tick++) arm.tick(player, 1, tick);
         var initial = arm.snapshot();
         helper.assertTrue(initial.phase() == Phase.RETURNING, "The fixture must start at return");
@@ -216,7 +216,7 @@ public final class PsychicDriveGauntletsSingleMotionGameTests {
         var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
         try {
             var other = new PsychicDriveGauntletsArm(false);
-            other.prepare(player, new Aim(null, start.add(0, 0, 3), false), 1, 106);
+            other.prepare(player, new Aim(player.getEyePosition(), start.add(0, 0, 3), false), 1, 106);
             var packet = new SyncPsychicDriveGauntletsPacket(player.getUUID(), false, arm.snapshot(), other.snapshot());
             SyncPsychicDriveGauntletsPacket.STREAM_CODEC.encode(buffer, packet);
             helper.assertTrue(packet.equals(SyncPsychicDriveGauntletsPacket.STREAM_CODEC.decode(buffer)) && !buffer.isReadable(),
@@ -234,7 +234,7 @@ public final class PsychicDriveGauntletsSingleMotionGameTests {
                 var arm = new PsychicDriveGauntletsArm(right);
                 var start = PsychicDriveGauntletsPose.position(player, 1, right);
                 var destination = start.add(0, 0, 6);
-                arm.launch(player, new Aim(null, destination, false), 1, 100, InteractionHand.MAIN_HAND, charge);
+                arm.launch(player, new Aim(player.getEyePosition(), destination, false), 1, 100, InteractionHand.MAIN_HAND, charge);
                 for (int tick = 101; tick <= 103; tick++) arm.tick(player, 1, tick);
                 helper.assertTrue(arm.phase() == Phase.FOLLOW_THROUGH, "A single miss must follow through");
                 var initial = arm.snapshot();
@@ -309,7 +309,7 @@ public final class PsychicDriveGauntletsSingleMotionGameTests {
         var player = player(helper);
         var start = PsychicDriveGauntletsPose.position(player, 1, true);
         var arm = new PsychicDriveGauntletsArm(true);
-        arm.prepare(player, new Aim(null, start.add(0, 0, 6), false), 1, 0);
+        arm.prepare(player, new Aim(player.getEyePosition(), start.add(0, 0, 6), false), 1, 0);
         var cow = target(helper, start.add(32, -0.5, 3));
         player.setPos(player.position().add(64, 0, 0));
         arm.tick(player, 1, 1);

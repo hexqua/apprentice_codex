@@ -102,7 +102,7 @@ public final class PsychicDriveGauntletsHudGameTests {
         for (int holdTicks : new int[] {-1, 0, 1}) {
             var arm = new PsychicDriveGauntletsArm(true);
             var start = PsychicDriveGauntletsPose.position(player, 1, true);
-            arm.launch(player, new PsychicDriveGauntletsRaycast.Aim(null, start.add(0, 0, 6), true),
+            arm.launch(player, new PsychicDriveGauntletsRaycast.Aim(player.getEyePosition(), start.add(0, 0, 6), true),
                     1, 100, InteractionHand.MAIN_HAND, 0);
             int recalled = holdTicks < 0 ? 101 : 103 + holdTicks;
             for (int tick = 101; tick < recalled; tick++) arm.tick(player, 1, tick);
