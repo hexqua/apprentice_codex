@@ -95,7 +95,10 @@ public final class PsychicDriveGauntletsRaycast {
     }
 
     private static boolean containsInclusive(AABB box, Vec3 point) {
-        return point.x >= box.minX && point.x <= box.maxX && point.y >= box.minY
-                && point.y <= box.maxY && point.z >= box.minZ && point.z <= box.maxZ;
+        // 照準の交点を腕から再判定すると、表面の座標が丸めで箱の外へ出る場合がある。
+        // 広域検索・AABB.clipと同じ微小な許容差を終端と継続接触にも適用し、静止対象を取りこぼさない。
+        return point.x >= box.minX - EPSILON && point.x <= box.maxX + EPSILON
+                && point.y >= box.minY - EPSILON && point.y <= box.maxY + EPSILON
+                && point.z >= box.minZ - EPSILON && point.z <= box.maxZ + EPSILON;
     }
 }
