@@ -58,12 +58,34 @@ public final class PsychicDriveGauntletsVisualGameTests {
             var flight = arm(Phase.OUTBOUND, 1, Impact.NONE, 2, 20, 20);
             near(helper, state.aura(charge, 19), 0.08, "Full charge must have its existing aura strength");
             near(helper, state.aura(flight, 20), 0.08, "Launch must preserve the charged aura");
-            var contact = arm(terminal, 1, Impact.ENTITY, 12, 20, 23);
+            var contact = arm(terminal, 1, Impact.BLOCK, 2, 20, 23);
             near(helper, state.aura(contact, 23), 0.08, "Terminal state must start fading from the flight strength");
             near(helper, state.aura(contact, 23.5), 0.06, "Repeated rendering must not extend the fade");
             near(helper, state.aura(contact, 24), 0.04, "Aura must be half strength after one tick");
             near(helper, state.aura(contact, 25), 0, "Aura must disappear after two ticks");
             near(helper, state.aura(contact, 30), 0, "Late snapshots must not revive a finished aura");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void chargedEntityHitKeepsAuraUntilDamageEndsOrIsInterrupted(GameTestHelper helper) {
+        for (int duration : List.of(4, 12)) {
+            var state = new PsychicDriveGauntletsVisualState();
+            near(helper, state.aura(arm(Phase.OUTBOUND, 1, Impact.NONE, 2, 20, 20), 20), 0.08,
+                    "Charged flight must start with the full aura");
+            var contact = drill(20, 23);
+            for (int elapsed = 0; elapsed < duration; elapsed++) {
+                near(helper, state.aura(contact, 23 + elapsed), 0.08,
+                        "Aura must remain at full strength throughout drill damage");
+            }
+            var returning = arm(Phase.RETURNING, 1, Impact.ENTITY, 12, 20, 23 + duration);
+            near(helper, state.aura(returning, 23 + duration), 0.08,
+                    "Finishing or interrupting damage must start fading from full strength");
+            near(helper, state.aura(returning, 24 + duration), 0.04,
+                    "Aura must fade after damage has ended");
+            near(helper, state.aura(returning, 25 + duration), 0,
+                    "Aura must disappear two ticks after damage ends");
         }
         helper.succeed();
     }
@@ -78,8 +100,8 @@ public final class PsychicDriveGauntletsVisualGameTests {
                 "An ordinary attack on the other arm must not acquire an aura");
         near(helper, left.aura(null, 11), 0.0525, "Cancellation must start the same short fade");
         near(helper, left.aura(null, 13), 0, "Cleared snapshots must not keep the aura alive");
-        near(helper, new PsychicDriveGauntletsVisualState().aura(drill(10, 20), 20), 0,
-                "A newly tracked impact must not invent a flight aura");
+        near(helper, new PsychicDriveGauntletsVisualState().aura(drill(10, 20), 20), 0.08,
+                "Tracking an ongoing drill must show its aura even without a flight snapshot");
         helper.succeed();
     }
 
@@ -95,8 +117,9 @@ public final class PsychicDriveGauntletsVisualGameTests {
         }
         helper.assertTrue(emitted.equals(List.of(2, 6, 10)), "Continuous sparks must omit intermediate hit ticks");
         helper.assertTrue(PsychicDriveGauntletsVisualState.INITIAL_SPARKS
-                        + 2 * PsychicDriveGauntletsVisualState.INTERMEDIATE_SPARKS + emitted.size() == 11,
-                "A complete drill must emit eleven new sparks before its finisher");
+                        + 2 * PsychicDriveGauntletsVisualState.INTERMEDIATE_SPARKS
+                        + emitted.size() * PsychicDriveGauntletsVisualState.CONTINUOUS_SPARKS == 18,
+                "A complete drill must emit eighteen sparks before its finisher");
         var delayed = new PsychicDriveGauntletsVisualState();
         helper.assertTrue(!delayed.emitContinuousSpark(sample, 106), "A late first sample must not replay the two-tick spark");
         helper.assertTrue(delayed.emitContinuousSpark(sample, 109), "A future scheduled gap may still emit");

@@ -19,8 +19,9 @@ public final class PsychicDriveGauntletsVisualState {
     public static final float AURA_MIN_STRENGTH = 0.025F;
     public static final float AURA_CHARGE_STRENGTH = 0.055F;
     public static final float AURA_SCALE = 1.035F;
-    public static final int INITIAL_SPARKS = 4;
-    public static final int INTERMEDIATE_SPARKS = 2;
+    public static final int INITIAL_SPARKS = 6;
+    public static final int INTERMEDIATE_SPARKS = 3;
+    public static final int CONTINUOUS_SPARKS = 2;
     public static final float SPARK_RED = 0.72F;
     public static final float SPARK_GREEN = 0.26F;
     public static final float SPARK_BLUE = 1;
@@ -45,8 +46,9 @@ public final class PsychicDriveGauntletsVisualState {
     private long lastDrillTick = Long.MIN_VALUE;
 
     public float aura(@Nullable Snapshot arm, double time) {
+        // 命中後も連続ダメージ中は光膜を保ち、終了・中断で帰還してからフェードする。
         boolean active = arm != null && (arm.phase() == Phase.CHARGING
-                || arm.phase() == Phase.OUTBOUND && arm.charge() > 0);
+                || arm.phase() == Phase.OUTBOUND && arm.charge() > 0 || drilling(arm));
         if (active) {
             powered = true;
             lastAura = AURA_MIN_STRENGTH + Mth.clamp(arm.charge(), 0, 1) * AURA_CHARGE_STRENGTH;
