@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets;
 
+import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
@@ -59,6 +60,7 @@ public record PsychicDriveGauntletsSelection(ItemStack stack, Mode mode) {
     public static boolean canUse(Player player, InteractionHand hand) {
         return player.isAlive() && !player.isSpectator() && !duplicate(player)
                 && isGauntlets(player.getItemInHand(hand))
-                && (hand == InteractionHand.OFF_HAND || physicalOffhand(player).isEmpty());
+                && (hand == InteractionHand.OFF_HAND || physicalOffhand(player).isEmpty()
+                || physicalOffhand(player).getItem() instanceof AbstractOffhandMagicItem);
     }
 }

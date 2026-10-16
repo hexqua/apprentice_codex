@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.netty.buffer.Unpooled;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm;
@@ -51,6 +53,8 @@ public final class PsychicDriveGauntletsHudGameTests {
         player.setYRot(0);
         player.setXRot(0);
         player.yBodyRot = 0;
+        Objects.requireNonNull(player.getAttribute(AttributeRegistry.MAX_MANA)).setBaseValue(100000);
+        MagicData.getPlayerMagicData(player).setMana(100000);
         return player;
     }
 

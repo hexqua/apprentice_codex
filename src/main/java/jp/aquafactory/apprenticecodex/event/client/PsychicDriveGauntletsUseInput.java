@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackState.UseAction;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsCharge;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection;
@@ -146,6 +147,17 @@ public final class PsychicDriveGauntletsUseInput {
     public static void tooltip(ItemTooltipEvent event) {
         if (!PsychicDriveGauntletsSelection.isGauntlets(event.getItemStack())) return;
         event.getToolTip().add(Component.translatable("item.apprenticecodex.psychic_drive_gauntlets.desc.rule")
+                .withStyle(ChatFormatting.GRAY));
+        var options = Minecraft.getInstance().options;
+        event.getToolTip().add(Component.translatable("item.apprenticecodex.psychic_drive_gauntlets.desc.attack",
+                options.keyAttack.getTranslatedKeyMessage().copy().withStyle(ChatFormatting.YELLOW),
+                Component.literal(Integer.toString(ApprenticeCodexServerConfig.psychicDriveGauntletsAttackManaCost()))
+                        .withStyle(ChatFormatting.AQUA)).withStyle(ChatFormatting.GRAY));
+        event.getToolTip().add(Component.translatable("item.apprenticecodex.psychic_drive_gauntlets.desc.charge",
+                options.keyUse.getTranslatedKeyMessage().copy().withStyle(ChatFormatting.YELLOW),
+                Component.literal(Integer.toString(ApprenticeCodexServerConfig.psychicDriveGauntletsChargeManaCostPerTick()
+                        * PsychicDriveGauntletsCharge.MAX_TICKS)).withStyle(ChatFormatting.AQUA)).withStyle(ChatFormatting.GRAY));
+        event.getToolTip().add(Component.translatable("item.apprenticecodex.psychic_drive_gauntlets.desc.charge.notice")
                 .withStyle(ChatFormatting.GRAY));
         if (event.getEntity() != null && PsychicDriveGauntletsSelection.duplicate(event.getEntity())) {
             event.getToolTip().add(Component.translatable("item.apprenticecodex.psychic_drive_gauntlets.desc.error")

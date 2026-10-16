@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets;
 
+import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsEffect.Kind;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
@@ -387,6 +388,17 @@ public final class PsychicDriveGauntletsArm {
         boolean applied = CombatTools.applyUnscaledDamage(target, amount, source, suppressKnockback
                 ? CombatTools.KnockbackTypes.NO_KNOCKBACK : CombatTools.KnockbackTypes.DEFAULT);
         if (applied && target instanceof LivingEntity living) {
+            int haunted = MalumCompatibility.getHauntedLevel(weapon);
+            if (haunted > 0 && living.isAlive()) {
+                // 独自攻撃はMalumの通常近接経路を通らないため、発射時の武器だけから追加分を補完する。
+                // 主手への一時コピーは行わず、副手攻撃や多段でも各命中につき一度だけ適用する。
+                var magicHolder = level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE)
+                        .getHolderOrThrow(DamageTypes.PSYCHIC_DRIVE_GAUNTLETS_MAGIC);
+                var magicSource = new DamageSource(magicHolder, owner, owner, position);
+                CombatTools.applyUnscaledDamage(living, haunted, magicSource, CombatTools.KnockbackTypes.NO_KNOCKBACK);
+            }
+            // 独自攻撃はPlayer.attackを通らないため、火属性などの命中後効果も武器snapshotから適用する。
+            EnchantmentHelper.doPostAttackEffectsWithItemSource(level, living, source, weapon);
             if (suppressKnockback) {
                 // amplifierは0始まり。次段までつなぐ短いSlowness Vで、離脱後の拘束を残さない。
                 living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 5, 4), owner);

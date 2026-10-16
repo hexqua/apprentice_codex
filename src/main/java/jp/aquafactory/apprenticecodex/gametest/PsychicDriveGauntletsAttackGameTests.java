@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.netty.buffer.Unpooled;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
@@ -19,6 +21,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncPsychicDriveGauntletsPa
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.neoforged.fml.ModList;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
@@ -41,6 +44,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import java.util.UUID;
+import java.util.Objects;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -60,6 +64,8 @@ public final class PsychicDriveGauntletsAttackGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.get()));
         // FakePlayerをworldへ追加せず、装備属性更新の代わりに通常装備時の実効値を与える。
         player.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4);
+        Objects.requireNonNull(player.getAttribute(AttributeRegistry.MAX_MANA)).setBaseValue(100000);
+        MagicData.getPlayerMagicData(player).setMana(100000);
         return player;
     }
     private static Cow target(GameTestHelper helper, Vec3 position) {
@@ -264,6 +270,22 @@ public final class PsychicDriveGauntletsAttackGameTests {
         arm.tick(player, 1, 1);
         helper.assertTrue(Math.abs(target.getHealth() - 94) < 1.0e-6,
                 "Damage must use launch attack damage and sharpness three from the copied weapon");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void fireAspectUsesLaunchSnapshotOnContact(GameTestHelper helper) {
+        var player = player(helper);
+        var fireAspect = helper.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT)
+                .getHolderOrThrow(Enchantments.FIRE_ASPECT);
+        player.getMainHandItem().enchant(fireAspect, 1);
+        var start = PsychicDriveGauntletsPose.position(player, 1, true);
+        var target = target(helper, start.add(0, -0.5, 1.2));
+        var arm = new PsychicDriveGauntletsArm(true);
+        arm.launch(player, start.add(0, 0, 6), 1, 0);
+        player.getMainHandItem().remove(DataComponents.ENCHANTMENTS);
+        arm.tick(player, 1, 1);
+        helper.assertTrue(target.isOnFire(), "Fire Aspect must ignite on contact using the launched weapon snapshot");
         helper.succeed();
     }
 

@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.netty.buffer.Unpooled;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Phase;
@@ -73,6 +75,8 @@ public final class PsychicDriveGauntletsChargeGameTests {
         player.yBodyRot = 0;
         // 未追加のFakePlayerでは装備属性更新を行わず、通常装備時の実効値を与える。
         Objects.requireNonNull(player.getAttribute(Attributes.ATTACK_DAMAGE)).setBaseValue(4);
+        Objects.requireNonNull(player.getAttribute(AttributeRegistry.MAX_MANA)).setBaseValue(100000);
+        MagicData.getPlayerMagicData(player).setMana(100000);
         return player;
     }
 
@@ -111,7 +115,7 @@ public final class PsychicDriveGauntletsChargeGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void mainhandRequiresCompletelyEmptyPhysicalOffhand(GameTestHelper helper) {
+    public static void mainhandAllowsEmptyOrMagicPhysicalOffhand(GameTestHelper helper) {
         var player = player(helper);
         helper.assertTrue(PsychicDriveGauntletsSelection.canUse(player, InteractionHand.MAIN_HAND),
                 "An empty offhand must enable mainhand use");
@@ -120,6 +124,9 @@ public final class PsychicDriveGauntletsChargeGameTests {
                 "Even an item with no use action must disable mainhand use");
         helper.assertTrue(new PsychicDriveGauntletsAttackState().input(player, Input.PRESS, 0),
                 "A nonempty offhand must not disable a lone mainhand gauntlet's left attack");
+        player.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(ItemRegistry.EXPLORERS_CANE.get()));
+        helper.assertTrue(PsychicDriveGauntletsSelection.canUse(player, InteractionHand.MAIN_HAND),
+                "An offhand magic item must allow mainhand charging");
         helper.succeed();
     }
 

@@ -631,6 +631,14 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.manaForceBladeImbueDamageMultiplierScale();
     }
 
+    public static int psychicDriveGauntletsAttackManaCost() {
+        return ITEMS_CONFIG.psychicDriveGauntletsConfig.attackManaCost().get();
+    }
+
+    public static int psychicDriveGauntletsChargeManaCostPerTick() {
+        return ITEMS_CONFIG.psychicDriveGauntletsConfig.chargeManaCostPerTick().get();
+    }
+
     public static float manaForceBladeAttackManaCostMultiplier() {
         return ITEMS_CONFIG.manaForceBladeAttackManaCostMultiplier();
     }

@@ -529,6 +529,9 @@
   "item.apprenticecodex.scrollcaster_gauntlet.school_rune": "This gauntlet is tuned to the \"%s\" school.",
   "item.apprenticecodex.psychic_drive_gauntlets.desc.rule": "Only one of these items can operate at a time.",
   "item.apprenticecodex.psychic_drive_gauntlets.desc.error": "Disabled: more than one is in your hotbar or offhand.",
+  "item.apprenticecodex.psychic_drive_gauntlets.desc.attack": "While held in your main hand, press [%1$s] to attack with a gauntlet, consuming %2$s mana.",
+  "item.apprenticecodex.psychic_drive_gauntlets.desc.charge": "Hold [%1$s] to charge and launch a drilling gauntlet attack, consuming up to %2$s mana.",
+  "item.apprenticecodex.psychic_drive_gauntlets.desc.charge.notice": "Charged attacks can only be used with an empty offhand or while holding the gauntlets in your offhand.",
   "item.apprenticecodex.bound_weapon.contain_item.item": "\"%s\" is sealed inside.",
   "item.apprenticecodex.bound_weapon.contain_item.hint": "Let go of the weapon to restore the item inside.",
   "item.apprenticecodex.spell_invoke_card.desc": "Throw it to cast the imbued spell where it lands.",
@@ -1369,6 +1372,7 @@
   "ui.apprenticecodex.quickcast_scroll_cartridge.start_manual_reload": "Reload started - Attack, use an item, or cast to cancel",
   "ui.apprenticecodex.shooting_star_mantle.depleted_energy": "The mantle's energy is depleted!",
   "ui.apprenticecodex.psychic_drive_gauntlets.duplicate_hotbar": "Multiple gauntlets are interfering with each other...",
+  "ui.apprenticecodex.psychic_drive_gauntlets.insufficient_mana": "Not enough mana to operate the gauntlets!",
 
   "ui.apprenticecodex.spell_selector.empty": "No selectable spells",
   "ui.apprenticecodex.luminous_device.clean.desc": "Clean up nearby magical light sources",
@@ -1443,6 +1447,8 @@
   "death.attack.apprenticecodex.lunar_aim": "%1$s was brought down by %2$s's masterful technique",
   "death.attack.apprenticecodex.echo_arrow": "%1$s was undone by resonance",
   "death.attack.apprenticecodex.lock_on_ray": "%1$s was erased from existence",
+  "death.attack.apprenticecodex.psychic_drive_gauntlets": "%1$s was corrected by %2$s",
+  "death.attack.apprenticecodex.psychic_drive_gauntlets.item": "%1$s was corrected by %2$s using %3$s",
 
   "advancements.apprenticecodex.apprentice_codex.root.title": "Apprentice's Codex",
   "advancements.apprenticecodex.apprentice_codex.root.description": "Decide to walk the path of an apprentice mage.",
@@ -1476,6 +1482,8 @@
   "advancements.apprenticecodex.apprentice_codex.craft_spell_reaper_scythe.description": "Craft a Spell-Reaper's Scythe.",
   "advancements.apprenticecodex.apprentice_codex.craft_spell_side_edge.title": "Keep Your Trump Card Hidden",
   "advancements.apprenticecodex.apprentice_codex.craft_spell_side_edge.description": "Craft a Spell-Sided Edge.",
+  "advancements.apprenticecodex.apprentice_codex.craft_psychic_drive_gauntlets.title": "You'll Float Too!",
+  "advancements.apprenticecodex.apprentice_codex.craft_psychic_drive_gauntlets.description": "Craft the Gauntlets of Psychic-drive",
   "advancements.apprenticecodex.apprentice_codex.craft_reflectcast_shield.title": "Attack is the best form of defense",
   "advancements.apprenticecodex.apprentice_codex.craft_reflectcast_shield.description": "Craft a Reflectcast Shield.",
   "advancements.apprenticecodex.apprentice_codex.craft_bulwark_greatshield.title": "A Shield Renowned for Its Defense",
@@ -1684,5 +1692,12 @@
   "subtitle.apprenticecodex.sound.vanilla_scythe_catch": "Scythe returns to hand",
   "subtitle.apprenticecodex.sound.vanilla_collect_mana": "Mana gathers",
   "subtitle.apprenticecodex.sound.vanilla_mantle_impulse": "Mantle propels wearer",
-  "subtitle.apprenticecodex.sound.vanilla_mantle_deplete": "Mantle's energy depletes"
+  "subtitle.apprenticecodex.sound.vanilla_mantle_deplete": "Mantle's energy depletes",
+  "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_launch": "Gauntlet launches",
+  "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_impact": "Gauntlet strikes",
+  "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_charge_start": "Gauntlet gathers mana",
+  "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_charge_ready": "Gauntlet signals full charge",
+  "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_full_launch": "Gauntlet surges forward",
+  "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_full_impact": "Gauntlet strikes hard",
+  "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_finish": "Gauntlet pierces"
 }

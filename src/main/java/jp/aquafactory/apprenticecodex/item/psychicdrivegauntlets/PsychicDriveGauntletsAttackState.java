@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets;
 
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection.Mode;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -14,6 +15,8 @@ public final class PsychicDriveGauntletsAttackState {
     private PsychicDriveGauntletsArm charging;
     private InteractionHand useHand;
     private long useStarted;
+    private int chargePaidTicks;
+    private int chargeManaCostPerTick;
     private long useSession;
     private boolean useOpen;
 
@@ -44,6 +47,9 @@ public final class PsychicDriveGauntletsAttackState {
         }
         var arm = right.available() ? right : left.available() ? left : null;
         if (arm == null) return false;
+        int manaCost = ApprenticeCodexServerConfig.psychicDriveGauntletsAttackManaCost();
+        if (PsychicDriveGauntletsMana.insufficient(player, manaCost)) return false;
+        PsychicDriveGauntletsMana.spend(player, manaCost);
         updateTransition(player, time);
         arm.prepare(player, PsychicDriveGauntletsRaycast.aim(player), transition.amount(time), time);
         return true;
@@ -64,6 +70,7 @@ public final class PsychicDriveGauntletsAttackState {
         }
         updateTransition(player, time);
         if (!PsychicDriveGauntletsSelection.isGauntlets(player.getMainHandItem())) pressed = false;
+        if (charging != null) spendChargeMana(player, time);
         right.tick(player, transition.amount(time), time);
         left.tick(player, transition.amount(time), time);
     }
@@ -73,8 +80,12 @@ public final class PsychicDriveGauntletsAttackState {
         usePressed = true;
         if (!PsychicDriveGauntletsSelection.canUse(player, hand) || player.isUsingItem()
                 || player.containerMenu != player.inventoryMenu) return false;
-        charging = left.available() ? left : right.available() ? right : null;
-        if (charging == null) return false;
+        var arm = left.available() ? left : right.available() ? right : null;
+        if (arm == null) return false;
+        chargeManaCostPerTick = ApprenticeCodexServerConfig.psychicDriveGauntletsChargeManaCostPerTick();
+        if (PsychicDriveGauntletsMana.insufficient(player, chargeManaCostPerTick * PsychicDriveGauntletsCharge.MAX_TICKS)) return false;
+        charging = arm;
+        chargePaidTicks = 0;
         useHand = hand;
         useStarted = time;
         charging.reserve(player, hand, time);
@@ -86,6 +97,7 @@ public final class PsychicDriveGauntletsAttackState {
 
     public boolean releaseUse(Player player, long time) {
         usePressed = false;
+        if (charging != null) spendChargeMana(player, time);
         var arm = charging;
         charging = null;
         if (arm == null) return false;
@@ -104,6 +116,13 @@ public final class PsychicDriveGauntletsAttackState {
     public void cancelUse() {
         if (charging != null) charging.reset();
         charging = null;
+    }
+
+    private void spendChargeMana(Player player, long time) {
+        int ticks = Math.clamp(time - useStarted, 0, PsychicDriveGauntletsCharge.MAX_TICKS);
+        if (ticks <= chargePaidTicks) return;
+        PsychicDriveGauntletsMana.spend(player, (ticks - chargePaidTicks) * chargeManaCostPerTick);
+        chargePaidTicks = ticks;
     }
 
     public boolean useInput(Player player, UseAction action, InteractionHand hand, long session, long time) {
