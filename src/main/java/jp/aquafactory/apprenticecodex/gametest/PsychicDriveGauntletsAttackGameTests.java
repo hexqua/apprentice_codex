@@ -83,17 +83,21 @@ public final class PsychicDriveGauntletsAttackGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void aimUsesNearestInflatedIntersection(GameTestHelper helper) {
+    public static void aimKeepsFullRangeAndFlightUsesNearestAssistedContact(GameTestHelper helper) {
         var player = player(helper);
+        player.setPos(player.position().add(0, 16, 0));
         var eye = player.getEyePosition();
         var near = target(helper, eye.add(0.7, -0.5, 3));
         target(helper, eye.add(0, -0.5, 5));
         var aim = PsychicDriveGauntletsRaycast.aim(player);
-        helper.assertTrue(aim.target() == near, "Aim must select the nearest assisted target");
+        helper.assertTrue(aim.origin().equals(eye) && aim.point().distanceTo(eye.add(player.getLookAngle().scale(6))) < 1.0e-6,
+                "Aim must keep the input eye origin and full-range endpoint despite nearby targets");
+        var contact = PsychicDriveGauntletsRaycast.firstContact(player, eye, aim.point(), eye);
+        helper.assertTrue(contact != null && contact.target() == near, "Flight must select the nearest assisted contact");
         var expected = PsychicDriveGauntletsRaycast.intersection(near.getBoundingBox().inflate(0.5),
-                eye, eye.add(0, 0, 6));
-        helper.assertTrue(expected != null && aim.point().distanceTo(expected) < 1.0e-6,
-                "Aim must use the inflated intersection rather than the target center");
+                eye, aim.point());
+        helper.assertTrue(expected != null && contact != null && contact.point().distanceTo(expected) < 1.0e-6,
+                "Contact must use the inflated intersection rather than the target center");
         helper.assertTrue(near.getBoundingBox().clip(eye, eye.add(0, 0, 6)).isEmpty(),
                 "Assisted target must miss the uninflated center ray");
         helper.succeed();
@@ -132,7 +136,8 @@ public final class PsychicDriveGauntletsAttackGameTests {
                         player.yBodyRot = angle;
                         cow.setHealth(100);
                         var aim = PsychicDriveGauntletsRaycast.aim(player, 6 * (1 + charge));
-                        helper.assertTrue(aim.target() == cow, "Stationary fixture must be selected at angle " + angle);
+                        helper.assertTrue(aim.point().distanceTo(aim.origin().add(player.getLookAngle().scale(6 * (1 + charge)))) < 1.0e-6,
+                                "Stationary targets must not shorten the flight endpoint: " + aim + ", angle=" + angle + ", pitch=" + pitch);
                         var arm = new PsychicDriveGauntletsArm(right);
                         if (charge == 0) arm.prepare(player, aim, 1, 0);
                         else arm.launch(player, aim, 1, 0, InteractionHand.MAIN_HAND, charge);
@@ -181,10 +186,10 @@ public final class PsychicDriveGauntletsAttackGameTests {
         helper.getLevel().setBlockAndUpdate(wall, Blocks.STONE.defaultBlockState());
         var behind = target(helper, new Vec3(eye.x, eye.y - 0.5, wall.getZ() + 1.5));
         var aim = PsychicDriveGauntletsRaycast.aim(player);
-        helper.assertTrue(aim.target() == null && Math.abs(aim.point().z - wall.getZ()) < 1.0e-6,
+        helper.assertTrue(aim.block() && Math.abs(aim.point().z - wall.getZ()) < 1.0e-6,
                 "Wall must stop aiming and exclude hidden targets");
         behind.setPos(eye.x, eye.y - 0.5, wall.getZ() + 0.6);
-        helper.assertTrue(PsychicDriveGauntletsRaycast.aim(player).target() == null,
+        helper.assertTrue(PsychicDriveGauntletsRaycast.firstContact(player, eye, aim.point(), eye) == null,
                 "Inflated bounds protruding through a wall must not enable direct targeting");
         helper.succeed();
     }
@@ -197,14 +202,14 @@ public final class PsychicDriveGauntletsAttackGameTests {
         player.setXRot(-90);
         var eye = player.getEyePosition();
         var aim = PsychicDriveGauntletsRaycast.aim(player);
-        helper.assertTrue(aim.target() == null && aim.point().distanceTo(eye.add(0, 6, 0)) < 1.0e-6,
+        helper.assertTrue(!aim.block() && aim.point().distanceTo(eye.add(0, 6, 0)) < 1.0e-6,
                 "Empty aim must end six blocks from the eyes: " + aim + ", eye=" + eye + ", look=" + player.getLookAngle());
         var box = new AABB(0, 0, 6, 1, 1, 7);
         helper.assertTrue(new Vec3(0.5, 0.5, 6).equals(PsychicDriveGauntletsRaycast.intersection(
                 box, new Vec3(0.5, 0.5, 0), new Vec3(0.5, 0.5, 6))),
                 "A contact exactly at the endpoint must be included");
         target(helper, eye.add(0, 7.5, 0));
-        helper.assertTrue(PsychicDriveGauntletsRaycast.aim(player).target() == null,
+        helper.assertTrue(PsychicDriveGauntletsRaycast.firstContact(player, eye, aim.point(), eye) == null,
                 "Targets beyond the assisted range must not be selected");
         helper.succeed();
     }
@@ -364,19 +369,19 @@ public final class PsychicDriveGauntletsAttackGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void flightAllowsEmbeddedArmAndPostLaunchOcclusion(GameTestHelper helper) {
+    public static void flightAllowsEmbeddedArmWithVisibleTarget(GameTestHelper helper) {
         var player = player(helper);
+        player.setPos(player.position().add(0, 16, 0));
         var start = PsychicDriveGauntletsPose.position(player, 1, true);
         var destination = start.add(0, 0, 6);
         var arm = new PsychicDriveGauntletsArm(true);
         arm.launch(player, destination, 1, 0);
-        var wall = BlockPos.containing(start.add(0, 0, 1));
         helper.getLevel().setBlockAndUpdate(BlockPos.containing(start), Blocks.STONE.defaultBlockState());
-        helper.getLevel().setBlockAndUpdate(wall, Blocks.STONE.defaultBlockState());
         var target = target(helper, start.add(0, -0.5, 4));
         ticks(arm, player, 1, 3);
         helper.assertTrue(arm.phase() == Phase.HOLDING && Math.abs(target.getHealth() - 96) < 1.0e-6,
-                "An embedded arm must fly through blocks and hit a target hidden after launch");
+                "An embedded arm must still hit a target visible from the input eye position: " + arm.snapshot()
+                        + ", health=" + target.getHealth() + ", eye=" + player.getEyePosition() + ", start=" + start);
         helper.succeed();
     }
 
@@ -402,6 +407,108 @@ public final class PsychicDriveGauntletsAttackGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void movingTargetsCanBeHitBeyondTheirOriginalSurface(GameTestHelper helper) {
+        var player = player(helper);
+        for (float charge : new float[]{0, 0.5F, 1}) {
+            for (boolean right : new boolean[]{true, false}) {
+                for (var velocity : new Vec3[]{new Vec3(0, 0, 0.1), new Vec3(0, 0, -0.1), new Vec3(0.1, 0, 0)}) {
+                    player.setPos(player.position().add(0, 5, 0));
+                    var initial = player.getEyePosition().add(0, -0.5, 3);
+                    var cow = target(helper, initial);
+                    var arm = new PsychicDriveGauntletsArm(right);
+                    var aim = PsychicDriveGauntletsRaycast.aim(player, 6 * (1 + charge));
+                    if (charge == 0) arm.prepare(player, aim, 1, 0);
+                    else arm.launch(player, aim, 1, 0, InteractionHand.MAIN_HAND, charge);
+                    for (int tick = 1; tick <= 5; tick++) {
+                        // AIや物理の乱数に依存させず、毎tickの対象移動を明示する。
+                        cow.setPos(initial.add(velocity.scale(tick)));
+                        arm.tick(player, 1, tick);
+                    }
+                    helper.assertTrue(cow.getHealth() < 100,
+                            "Moving targets must connect: charge=" + charge + ", right=" + right + ", velocity=" + velocity);
+                    cow.discard();
+                }
+            }
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void targetsDoNotShortenWallEndpointAndRemovingWallDoesNotExtendIt(GameTestHelper helper) {
+        var player = player(helper);
+        player.setPos(player.position().add(0, 16, 0));
+        var eye = player.getEyePosition();
+        var wall = BlockPos.containing(eye.add(0, 0, 5));
+        helper.getLevel().setBlockAndUpdate(wall, Blocks.STONE.defaultBlockState());
+        var cow = target(helper, eye.add(0, -0.5, 2));
+        var aim = PsychicDriveGauntletsRaycast.aim(player);
+        helper.assertTrue(aim.block() && Math.abs(aim.point().z - wall.getZ()) < 1.0e-6,
+                "A visible target must not shorten the wall endpoint");
+        var arm = new PsychicDriveGauntletsArm(true);
+        arm.prepare(player, aim, 1, 0);
+        cow.discard();
+        helper.getLevel().setBlockAndUpdate(wall, Blocks.AIR.defaultBlockState());
+        ticks(arm, player, 1, 5);
+        helper.assertTrue(arm.position().distanceTo(aim.point()) < 1.0e-6 && arm.snapshot().impact() == Impact.BLOCK,
+                "Removing the wall after input must not extend or replace the accepted endpoint");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void firstHitsRejectNewOcclusionForEveryCharge(GameTestHelper helper) {
+        var player = player(helper);
+        for (float charge : new float[]{0, 0.5F, 1}) {
+            player.setPos(player.position().add(0, 5, 0));
+            var eye = player.getEyePosition();
+            var cow = target(helper, eye.add(0, -0.5, 4));
+            var arm = new PsychicDriveGauntletsArm(true);
+            arm.launch(player, PsychicDriveGauntletsRaycast.aim(player, 6 * (1 + charge)), 1, 0,
+                    InteractionHand.MAIN_HAND, charge);
+            helper.getLevel().setBlockAndUpdate(BlockPos.containing(eye.add(0, 0, 2)), Blocks.STONE.defaultBlockState());
+            ticks(arm, player, 1, 3);
+            helper.assertTrue(cow.getHealth() == 100 && arm.snapshot().impact() != Impact.ENTITY,
+                    "A wall introduced after input must reject first contact for charge " + charge);
+            cow.discard();
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void firstContactSkipsOccludedCandidatesWithoutStopping(GameTestHelper helper) {
+        var player = player(helper);
+        player.setPos(player.position().add(0, 16, 0));
+        var eye = player.getEyePosition();
+        var hidden = target(helper, eye.add(-0.8, -0.5, 1));
+        var visible = target(helper, eye.add(0, -0.5, 4));
+        // 横にある候補だけを覆い、後方の候補への視線は空ける。
+        var wall = BlockPos.containing(eye.add(-0.8, 0, 1));
+        helper.getLevel().setBlockAndUpdate(wall, Blocks.STONE.defaultBlockState());
+        var arm = new PsychicDriveGauntletsArm(true);
+        arm.launch(player, eye.add(0, 0, 6), 1, 0);
+        ticks(arm, player, 1, 3);
+        helper.assertTrue(hidden.getHealth() == 100 && visible.getHealth() == 96,
+                "An occluded candidate must be skipped without stopping the visible later contact");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void firstHitVisibilityUsesInputEyeDespiteMovementAndTurning(GameTestHelper helper) {
+        var player = player(helper);
+        player.setPos(player.position().add(0, 16, 0));
+        var eye = player.getEyePosition();
+        var cow = target(helper, eye.add(0, -0.5, 4));
+        var arm = new PsychicDriveGauntletsArm(true);
+        arm.prepare(player, PsychicDriveGauntletsRaycast.aim(player), 1, 0);
+        helper.getLevel().setBlockAndUpdate(BlockPos.containing(eye.add(0, 0, 2)), Blocks.STONE.defaultBlockState());
+        player.setPos(player.position().add(4, 0, 0));
+        player.setYRot(90);
+        ticks(arm, player, 1, 5);
+        helper.assertTrue(cow.getHealth() == 100 && arm.snapshot().impact() != Impact.ENTITY,
+                "Moving to an unobstructed eye position must not replace the input visibility origin");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void allyProtectionAppliesToAimAndFlight(GameTestHelper helper) {
         var player = player(helper);
         var start = PsychicDriveGauntletsPose.position(player, 1, true);
@@ -414,8 +521,9 @@ public final class PsychicDriveGauntletsAttackGameTests {
         scoreboard.addPlayerToTeam(ally.getScoreboardName(), team);
         try {
             helper.assertTrue(!CombatTools.isValidCombatTarget(player, player), "Owner must not be a valid combat target");
-            helper.assertTrue(PsychicDriveGauntletsRaycast.aim(player).target() == enemy,
-                    "Aim must skip protected allies");
+            var contact = PsychicDriveGauntletsRaycast.firstContact(player, start, start.add(0, 0, 6), player.getEyePosition());
+            helper.assertTrue(contact != null && contact.target() == enemy,
+                    "Contact selection must skip protected allies");
             var arm = new PsychicDriveGauntletsArm(true);
             arm.launch(player, start.add(0, 0, 6), 1, 0);
             ticks(arm, player, 1, 3);

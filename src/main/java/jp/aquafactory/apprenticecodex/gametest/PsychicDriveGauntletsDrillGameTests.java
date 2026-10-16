@@ -20,6 +20,7 @@ import net.minecraft.world.entity.animal.Cow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -131,6 +132,32 @@ public final class PsychicDriveGauntletsDrillGameTests {
                 "Early return must preserve four ticks of drill recovery");
         ticks(arm, player, 6, 10);
         helper.assertTrue(arm.available(), "Early return must finish in five ticks");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void establishedDrillIgnoresOcclusionIncludingReplacementTargets(GameTestHelper helper) {
+        var player = player(helper);
+        var first = target(helper, PsychicDriveGauntletsPose.position(player, 1, true).add(0, -0.5, 2));
+        var arm = launch(player, 1);
+        health(helper, first, 96);
+        // 初発後に目からの視線を塞いでも、成立済みの拳の接触判定は継続する。
+        var wall = BlockPos.containing(player.getEyePosition().add(0, 0, 1));
+        for (int x = -1; x <= 1; x++) {
+            helper.getLevel().setBlockAndUpdate(wall.offset(x, 0, 0), Blocks.STONE.defaultBlockState());
+        }
+        player.setPos(player.position().add(0, 0, -2));
+        helper.assertTrue(PsychicDriveGauntletsRaycast.firstContact(player, arm.position(), arm.position(),
+                        player.getEyePosition()) == null,
+                "The established drill fixture must be occluded from the retreated player");
+        ticks(arm, player, 2, 5);
+        health(helper, first, 92);
+        var replacement = target(helper, first.position());
+        first.setPos(first.position().add(3, 0, 0));
+        ticks(arm, player, 6, 13);
+        health(helper, replacement, 92);
+        helper.assertTrue(arm.phase() == Phase.RETURNING,
+                "Occlusion and replacement must preserve the existing four-hit drill schedule");
         helper.succeed();
     }
 
@@ -253,7 +280,7 @@ public final class PsychicDriveGauntletsDrillGameTests {
         for (float charge : new float[] {0, 1}) {
             var block = new PsychicDriveGauntletsArm(true);
             var start = PsychicDriveGauntletsPose.position(player, 1, true);
-            block.launch(player, new PsychicDriveGauntletsRaycast.Aim(null, start.add(0, 0, 2), true),
+            block.launch(player, new PsychicDriveGauntletsRaycast.Aim(player.getEyePosition(), start.add(0, 0, 2), true),
                     1, 100, InteractionHand.MAIN_HAND, charge);
             for (int tick = 101; block.phase() == Phase.OUTBOUND && tick <= 103; tick++) block.tick(player, 1, tick);
             helper.assertTrue(block.phase() == Phase.HOLDING, "Block contact must first enter holding");

@@ -87,7 +87,7 @@ public final class PsychicDriveGauntletsEffectGameTests {
         var player = player(helper);
         var cow = target(helper, player);
         var arm = new PsychicDriveGauntletsArm(true);
-        var aim = new PsychicDriveGauntletsRaycast.Aim(null,
+        var aim = new PsychicDriveGauntletsRaycast.Aim(player.getEyePosition(),
                 PsychicDriveGauntletsPose.position(player, 1, true).add(0, 0, 6), false);
         arm.prepare(player, aim, 1, 0);
         arm.tick(player, 1, 1);
@@ -205,7 +205,7 @@ public final class PsychicDriveGauntletsEffectGameTests {
                 "Rejected initial damage must only emit weak contact feedback");
         cow.discard();
         var block = new PsychicDriveGauntletsArm(true);
-        block.launch(player, new PsychicDriveGauntletsRaycast.Aim(null,
+        block.launch(player, new PsychicDriveGauntletsRaycast.Aim(player.getEyePosition(),
                 PsychicDriveGauntletsPose.position(player, 1, true).add(0, 0, 2), true),
                 1, 0, InteractionHand.MAIN_HAND, 1);
         kinds(block);
