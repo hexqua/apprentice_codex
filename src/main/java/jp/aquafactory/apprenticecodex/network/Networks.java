@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "132";
+    private static final String PROTOCOL_VERSION = "133";
 
     private Networks() {
     }
@@ -22,6 +22,8 @@ public final class Networks {
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar(PROTOCOL_VERSION);
+        registrar.playToClient(PsychicDriveGauntletsEffectPacket.TYPE, PsychicDriveGauntletsEffectPacket.STREAM_CODEC,
+                PsychicDriveGauntletsEffectPacket::handle);
         registrar.playToServer(ClientPsychicDriveGauntletsUsePacket.TYPE, ClientPsychicDriveGauntletsUsePacket.STREAM_CODEC,
                 ClientPsychicDriveGauntletsUsePacket::handle);
         registrar.playToClient(SyncPsychicDriveGauntletsUseStatePacket.TYPE, SyncPsychicDriveGauntletsUseStatePacket.STREAM_CODEC,

@@ -130,6 +130,21 @@ public final class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_MANTLE_IMPULSE = reg("vanilla_mantle_impulse");
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_MANTLE_DEPLETE = reg("vanilla_mantle_deplete");
 
+    public static final DeferredHolder<SoundEvent, SoundEvent> PSYCHIC_DRIVE_GAUNTLETS_LAUNCH =
+            reg("psychic_drive_gauntlets_launch");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PSYCHIC_DRIVE_GAUNTLETS_IMPACT =
+            reg("psychic_drive_gauntlets_impact");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PSYCHIC_DRIVE_GAUNTLETS_CHARGE_START =
+            reg("psychic_drive_gauntlets_charge_start");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PSYCHIC_DRIVE_GAUNTLETS_CHARGE_READY =
+            reg("psychic_drive_gauntlets_charge_ready");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PSYCHIC_DRIVE_GAUNTLETS_FULL_LAUNCH =
+            reg("psychic_drive_gauntlets_full_launch");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PSYCHIC_DRIVE_GAUNTLETS_FULL_IMPACT =
+            reg("psychic_drive_gauntlets_full_impact");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PSYCHIC_DRIVE_GAUNTLETS_FINISH =
+            reg("psychic_drive_gauntlets_finish");
+
     public static void register(IEventBus modEventBus) {
         SOUND_EVENTS.register(modEventBus);
     }

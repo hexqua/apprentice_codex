@@ -1,4 +1,80 @@
 {
+  "psychic_drive_gauntlets_launch": {
+    "subtitle": "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_launch",
+    "sounds": [
+      {
+        "name": "minecraft:entity.player.attack.sweep",
+        "type": "event",
+        "volume": 0.45,
+        "pitch": 1.15
+      }
+    ]
+  },
+  "psychic_drive_gauntlets_impact": {
+    "subtitle": "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_impact",
+    "sounds": [
+      {
+        "name": "minecraft:entity.player.attack.strong",
+        "type": "event",
+        "volume": 0.65,
+        "pitch": 1
+      }
+    ]
+  },
+  "psychic_drive_gauntlets_charge_start": {
+    "subtitle": "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_charge_start",
+    "sounds": [
+      {
+        "name": "minecraft:item.armor.equip_netherite",
+        "type": "event",
+        "volume": 0.35,
+        "pitch": 1
+      }
+    ]
+  },
+  "psychic_drive_gauntlets_charge_ready": {
+    "subtitle": "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_charge_ready",
+    "sounds": [
+      {
+        "name": "minecraft:random/orb",
+        "volume": 0.8,
+        "pitch": 0.7
+      }
+    ]
+  },
+  "psychic_drive_gauntlets_full_launch": {
+    "subtitle": "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_full_launch",
+    "sounds": [
+      {
+        "name": "minecraft:entity.shulker.shoot",
+        "type": "event",
+        "volume": 0.8,
+        "pitch": 0.9
+      }
+    ]
+  },
+  "psychic_drive_gauntlets_full_impact": {
+    "subtitle": "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_full_impact",
+    "sounds": [
+      {
+        "name": "minecraft:entity.player.attack.strong",
+        "type": "event",
+        "volume": 0.9,
+        "pitch": 0.8
+      }
+    ]
+  },
+  "psychic_drive_gauntlets_finish": {
+    "subtitle": "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_finish",
+    "sounds": [
+      {
+        "name": "minecraft:entity.player.attack.knockback",
+        "type": "event",
+        "volume": 0.85,
+        "pitch": 0.85
+      }
+    ]
+  },
   "echo_arrow_charge": {
     "subtitle": "subtitle.apprenticecodex.sound.echo_arrow_charge",
     "sounds": [

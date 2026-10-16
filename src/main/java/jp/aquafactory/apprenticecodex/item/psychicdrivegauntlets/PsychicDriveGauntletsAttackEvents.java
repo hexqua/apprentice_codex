@@ -5,11 +5,13 @@ import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGau
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackState.UseAction;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection.Mode;
 import jp.aquafactory.apprenticecodex.network.Networks;
+import jp.aquafactory.apprenticecodex.network.packet.PsychicDriveGauntletsEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPsychicDriveGauntletsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPsychicDriveGauntletsUseStatePacket;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -104,6 +106,20 @@ public final class PsychicDriveGauntletsAttackEvents {
     private static void sync(ServerPlayer player, PsychicDriveGauntletsAttackState state) {
         MODES.put(player.getUUID(), PsychicDriveGauntletsSelection.find(player, true).mode());
         if (!(player instanceof FakePlayer)) Networks.sendToTrackingEntityAndSelf(player, packet(player, state));
+        dispatchEffects(player, state.right());
+        dispatchEffects(player, state.left());
+    }
+
+    private static void dispatchEffects(ServerPlayer player, PsychicDriveGauntletsArm arm) {
+        for (var effect : arm.drainEffects()) {
+            if (player instanceof FakePlayer) continue;
+            if (effect.kind() == PsychicDriveGauntletsEffect.Kind.CHARGE_READY) {
+                var sound = effect.sound();
+                if (sound != null) player.playNotifySound(sound, SoundSource.PLAYERS, 1, 1);
+            }
+            // 最大到達の光は周囲にも見せるが、通知音は使用者だけへ送る。
+            Networks.sendToTrackingEntityAndSelf(player, new PsychicDriveGauntletsEffectPacket(player.getUUID(), effect));
+        }
     }
 
     private static SyncPsychicDriveGauntletsPacket packet(Player player, PsychicDriveGauntletsAttackState state) {

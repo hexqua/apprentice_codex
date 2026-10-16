@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets;
 
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsEffect.Kind;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
@@ -15,6 +16,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.phys.Vec3;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class PsychicDriveGauntletsArm {
     public static final int HOLD_TICKS = 2;
@@ -96,6 +100,18 @@ public final class PsychicDriveGauntletsArm {
     private Vec3 drillStart = Vec3.ZERO;
     private Entity previousTarget;
     private int nextHit;
+    private final List<PsychicDriveGauntletsEffect> effects = new ArrayList<>();
+
+    public List<PsychicDriveGauntletsEffect> drainEffects() {
+        var result = List.copyOf(effects);
+        effects.clear();
+        return result;
+    }
+
+    private void effect(Kind kind) {
+        effects.add(new PsychicDriveGauntletsEffect(right, kind, position,
+                destination.subtract(flightStart).normalize(), charge));
+    }
 
     public PsychicDriveGauntletsArm(boolean right) { this.right = right; }
     public boolean available() { return phase == Phase.IDLE; }
@@ -120,6 +136,9 @@ public final class PsychicDriveGauntletsArm {
         launchTick = time;
         phaseStarted = time;
         lastTick = time - 1;
+        charge = 0;
+        position = PsychicDriveGauntletsPose.position(owner, 1, right);
+        effect(Kind.CHARGE_START);
     }
 
     public boolean sourceChanged(Player owner) {
@@ -128,6 +147,7 @@ public final class PsychicDriveGauntletsArm {
     }
 
     public void reset() {
+        effects.clear();
         phase = Phase.IDLE;
         impact = Impact.NONE;
         impactTick = 0;
@@ -151,8 +171,7 @@ public final class PsychicDriveGauntletsArm {
 
     public void prepare(Player owner, PsychicDriveGauntletsRaycast.Aim aim, float amount, long time) {
         if (!available()) return;
-        launch(owner, aim, amount, time, InteractionHand.MAIN_HAND, 0);
-        phase = Phase.PREPARING;
+        begin(owner, aim, amount, time, InteractionHand.MAIN_HAND, 0, true);
     }
 
     public void launch(Player owner, Vec3 target, float amount, long time, InteractionHand usedHand, float charged) {
@@ -161,6 +180,11 @@ public final class PsychicDriveGauntletsArm {
 
     public void launch(Player owner, PsychicDriveGauntletsRaycast.Aim aim, float amount, long time,
                        InteractionHand usedHand, float charged) {
+        begin(owner, aim, amount, time, usedHand, charged, false);
+    }
+
+    private void begin(Player owner, PsychicDriveGauntletsRaycast.Aim aim, float amount, long time,
+                       InteractionHand usedHand, float charged, boolean preparing) {
         if (!available() && phase != Phase.CHARGING) return;
         var target = aim.point();
         aimedAtBlock = aim.block();
@@ -183,7 +207,7 @@ public final class PsychicDriveGauntletsArm {
         yaw = (float) (Mth.atan2(-direction.x, direction.z) * Mth.RAD_TO_DEG);
         pitch = (float) (-Mth.atan2(direction.y, direction.horizontalDistance()) * Mth.RAD_TO_DEG);
         drawnAmount = 1.0F;
-        phase = Phase.OUTBOUND;
+        phase = preparing ? Phase.PREPARING : Phase.OUTBOUND;
         recoveryStartedTick = 0;
         returnRecovery = 0;
         phaseStarted = time;
@@ -193,6 +217,7 @@ public final class PsychicDriveGauntletsArm {
         returnSide = new Vec3(right ? -1 : 1, 0, 0).yRot(-owner.getYRot() * Mth.DEG_TO_RAD);
         returnPower = 0;
         returnTwist = 0;
+        if (!preparing) effect(Kind.LAUNCH);
     }
 
     public void recall(long time) {
@@ -248,9 +273,11 @@ public final class PsychicDriveGauntletsArm {
                     var flightDirection = destination.subtract(flightStart);
                     yaw = (float) (Mth.atan2(-flightDirection.x, flightDirection.z) * Mth.RAD_TO_DEG);
                     pitch = (float) (-Mth.atan2(flightDirection.y, flightDirection.horizontalDistance()) * Mth.RAD_TO_DEG);
+                    effect(Kind.LAUNCH);
                 }
             }
             case CHARGING -> {
+                boolean wasReady = charge >= 1;
                 charge = PsychicDriveGauntletsCharge.amount(time - launchTick);
                 drawnAmount = 1;
                 position = PsychicDriveGauntletsPose.position(owner, 1, right)
@@ -258,6 +285,7 @@ public final class PsychicDriveGauntletsArm {
                                 .yRot((180 - owner.getYRot()) * Mth.DEG_TO_RAD));
                 yaw = owner.getYRot();
                 pitch = 0;
+                if (!wasReady && charge >= 1) effect(Kind.CHARGE_READY);
             }
             case OUTBOUND -> {
                 var next = PsychicDriveGauntletsMotion.outbound(flightStart, destination, (double) time - phaseStarted, charge);
@@ -275,8 +303,12 @@ public final class PsychicDriveGauntletsArm {
                         drillStart = position;
                         previousTarget = contact.target();
                         nextHit = 1;
-                        if (!hit(owner, previousTarget, true)) recall(time);
-                    } else hit(owner, contact.target(), false);
+                        boolean applied = hit(owner, previousTarget, true);
+                        effect(applied ? Kind.DRILL_START : Kind.REJECTED);
+                        if (!applied) recall(time);
+                    } else {
+                        effect(hit(owner, contact.target(), false) ? Kind.IMPACT : Kind.REJECTED);
+                    }
                 } else {
                     position = next;
                     if (position.distanceToSqr(destination) < 1.0e-12) {
@@ -284,6 +316,7 @@ public final class PsychicDriveGauntletsArm {
                         if (aimedAtBlock) {
                             impact = Impact.BLOCK;
                             impactTick = time;
+                            effect(Kind.BLOCK_IMPACT);
                         }
                         phase = Phase.HOLDING;
                         phaseStarted = time;
@@ -312,6 +345,7 @@ public final class PsychicDriveGauntletsArm {
                         if (target == null || !hit(owner, target, !finalHit)) {
                             recall(time);
                         } else {
+                            effect(finalHit ? Kind.FINISH : Kind.DRILL_TICK);
                             previousTarget = target;
                             nextHit++;
                             if (finalHit) recall(time);

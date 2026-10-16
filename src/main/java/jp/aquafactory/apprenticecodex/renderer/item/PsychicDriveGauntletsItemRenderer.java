@@ -1,17 +1,34 @@
 package jp.aquafactory.apprenticecodex.renderer.item;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntlets;
 import jp.aquafactory.apprenticecodex.model.PsychicDriveGauntletsModel;
+import jp.aquafactory.apprenticecodex.renderer.PsychicDriveGauntletsGlowLayer;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
+import software.bernie.geckolib.cache.object.GeoBone;
 
 public class PsychicDriveGauntletsItemRenderer extends GeoItemRenderer<PsychicDriveGauntlets> {
     public PsychicDriveGauntletsItemRenderer() {
         super(new PsychicDriveGauntletsModel<>());
+        addRenderLayer(new PsychicDriveGauntletsGlowLayer<>(this));
+    }
+
+    @Override
+    public void renderRecursively(PoseStack poseStack, PsychicDriveGauntlets item, GeoBone bone, RenderType type,
+                                  MultiBufferSource buffers, VertexConsumer buffer, boolean isReRender,
+                                  float partialTick, int packedLight, int packedOverlay, int colour) {
+        boolean glow = PsychicDriveGauntletsGlowLayer.glowing(bone);
+        super.renderRecursively(poseStack, item, bone, type, buffers, buffer, isReRender, partialTick,
+                glow ? LightTexture.FULL_BRIGHT : packedLight, packedOverlay,
+                glow && (bone.getParent() == null || !PsychicDriveGauntletsGlowLayer.glowing(bone.getParent()))
+                        ? PsychicDriveGauntletsGlowLayer.baseColour(colour) : colour);
     }
 
     @Override

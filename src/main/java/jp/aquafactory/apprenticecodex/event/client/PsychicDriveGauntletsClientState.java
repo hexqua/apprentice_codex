@@ -42,6 +42,7 @@ public final class PsychicDriveGauntletsClientState {
         reset();
         if (level == null) return;
         if (packet.reset()) {
+            PsychicDriveGauntletsEffects.clear(packet.player());
             // 死亡・dimension移動は帰還完了と区別し、古い座標へ補間せず即座に破棄する。
             STATES.remove(packet.player());
             HUD_STATES.remove(packet.player());
@@ -50,6 +51,7 @@ public final class PsychicDriveGauntletsClientState {
         }
         MODES.put(packet.player(), packet.mode());
         if (packet.mode() == Mode.DISABLED) {
+            PsychicDriveGauntletsEffects.clear(packet.player());
             STATES.remove(packet.player());
             HUD_STATES.remove(packet.player());
             return;
