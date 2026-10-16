@@ -37,6 +37,7 @@ import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.Spellcast
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceTooltip;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticle;
 import jp.aquafactory.apprenticecodex.particle.ReticleDotParticle;
+import jp.aquafactory.apprenticecodex.particle.PsychicDriveGauntletsSparkParticle;
 import jp.aquafactory.apprenticecodex.particle.SmashcastDustPillarParticle;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
@@ -335,6 +336,8 @@ public final class ClientModBusEvents {
 
     private static void registerParticleProviders(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(ParticleRegistry.RETICLE_DOT.get(), ReticleDotParticle.Provider::new);
+        event.registerSpriteSet(ParticleRegistry.PSYCHIC_DRIVE_GAUNTLETS_SPARK.get(),
+                PsychicDriveGauntletsSparkParticle.Provider::new);
         event.registerSpriteSet(ParticleRegistry.ADDITIVE_CIRCLE.get(),
                 sprites -> new AdditiveGlowParticle.Provider(sprites, AdditiveGlowParticle.Preset.CIRCLE));
         event.registerSpriteSet(ParticleRegistry.ADDITIVE_RHOMBUS.get(),

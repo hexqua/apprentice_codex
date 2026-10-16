@@ -9,9 +9,12 @@ import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGau
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsMotion;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsMotion.SinglePose;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsPose;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsVisualState;
 import jp.aquafactory.apprenticecodex.model.PsychicDriveGauntletsModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoAnimatable;
@@ -20,6 +23,7 @@ import software.bernie.geckolib.animation.AnimatableManager;
 import software.bernie.geckolib.animation.AnimationController;
 import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
+import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoObjectRenderer;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
@@ -31,6 +35,18 @@ public class PsychicDriveGauntletsFloatingRenderer
 
     public PsychicDriveGauntletsFloatingRenderer() {
         super(new PsychicDriveGauntletsModel<>());
+        addRenderLayer(new PsychicDriveGauntletsGlowLayer<>(this));
+    }
+
+    @Override
+    public void renderRecursively(PoseStack poseStack, Visual visual, GeoBone bone, RenderType type,
+                                  MultiBufferSource buffers, VertexConsumer buffer, boolean isReRender,
+                                  float partialTick, int packedLight, int packedOverlay, int colour) {
+        boolean glow = PsychicDriveGauntletsGlowLayer.glowing(bone);
+        super.renderRecursively(poseStack, visual, bone, type, buffers, buffer, isReRender, partialTick,
+                glow ? LightTexture.FULL_BRIGHT : packedLight, packedOverlay,
+                glow && !isReRender && (bone.getParent() == null || !PsychicDriveGauntletsGlowLayer.glowing(bone.getParent()))
+                        ? PsychicDriveGauntletsGlowLayer.baseColour(colour) : colour);
     }
 
     public RenderType renderType(Visual visual) {
@@ -84,6 +100,35 @@ public class PsychicDriveGauntletsFloatingRenderer
         private boolean singleMotion = true;
         private SinglePose singlePose = SinglePose.REST;
         private RawAnimation appliedAnimation;
+        private Snapshot arm;
+        private double time;
+        private float glowPulse;
+        private final PsychicDriveGauntletsVisualState effects = new PsychicDriveGauntletsVisualState();
+        private float auraStrength;
+
+        public float auraStrength() { return auraStrength; }
+        public void setGlowPulse(float value) { glowPulse = value; }
+
+        public float glowStrength(String root) {
+            if (arm == null) return 0.08F;
+            float strength = switch (arm.phase()) {
+                case CHARGING -> {
+                    float threshold = switch (root) {
+                        case "glow_core" -> 0;
+                        case "glow_drive_ring", "glow_orbit_plates" -> 0.25F;
+                        default -> 0.65F;
+                    };
+                    yield 0.08F + 0.72F * Mth.clamp(
+                            (arm.charge() - threshold) / (1 - threshold), 0, 1);
+                }
+                case OUTBOUND -> arm.charge() >= 1 ? 0.9F : 0.65F;
+                case HOLDING -> arm.charge() >= 1 ? 0.7F : 0.35F;
+                case RETURNING -> 0.08F + 0.3F * (1 - PsychicDriveGauntletsMotion.returnProgress(
+                        time - arm.motion().phaseStartedTick()));
+                default -> 0.08F;
+            };
+            return Math.min(1, strength + glowPulse * 0.35F);
+        }
 
         public Visual(long instanceId) {
             this.instanceId = instanceId;
@@ -94,6 +139,9 @@ public class PsychicDriveGauntletsFloatingRenderer
         }
 
         public void updateAnimation(@Nullable Snapshot arm, double time) {
+            this.arm = arm;
+            this.time = time;
+            auraStrength = effects.aura(arm, time);
             if (arm != null && arm.phase() != Phase.IDLE) {
                 singleMotion = arm.phase() == Phase.CHARGING || arm.charge() < 1;
             }

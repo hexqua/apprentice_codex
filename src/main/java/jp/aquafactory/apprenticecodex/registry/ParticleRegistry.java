@@ -19,6 +19,9 @@ public final class ParticleRegistry {
     public static final RegistryObject<SimpleParticleType> RETICLE_DOT =
             PARTICLES.register("reticle_dot", () -> new SimpleParticleType(true));
 
+    public static final RegistryObject<SimpleParticleType> PSYCHIC_DRIVE_GAUNTLETS_SPARK =
+            PARTICLES.register("psychic_drive_gauntlets_spark", () -> new SimpleParticleType(false));
+
     public static final RegistryObject<ParticleType<AdditiveGlowParticleOptions>> ADDITIVE_CIRCLE =
             PARTICLES.register("additive_circle", () -> new ParticleType<>(false,
                     AdditiveGlowParticleOptions.deserializer()) {

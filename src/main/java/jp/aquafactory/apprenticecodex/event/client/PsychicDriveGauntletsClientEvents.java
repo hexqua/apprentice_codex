@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGau
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsTransition;
 import jp.aquafactory.apprenticecodex.renderer.PsychicDriveGauntletsFloatingRenderer;
 import jp.aquafactory.apprenticecodex.renderer.PsychicDriveGauntletsHandRenderer;
+import jp.aquafactory.apprenticecodex.renderer.PsychicDriveGauntletsGlowLayer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -92,6 +93,7 @@ public final class PsychicDriveGauntletsClientEvents {
                 var follow = mirrored ? presentation.rightFollow : presentation.leftFollow;
                 var attack = PsychicDriveGauntletsClientState.get(player.getUUID(), mirrored, partialTick);
                 visual.updateAnimation(attack, time);
+                visual.setGlowPulse(PsychicDriveGauntletsEffects.flash(player.getUUID(), mirrored, time));
                 if (attack == null && PsychicDriveGauntletsClientState.mode(player)
                         == Mode.HIDDEN) continue;
                 var offset = PsychicDriveGauntletsFloatingRenderer.offset(drawnAmount, mirrored)
@@ -117,6 +119,7 @@ public final class PsychicDriveGauntletsClientEvents {
         // 他の描画のバッファはflushせず、今回使用した描画種別だけを確定する。
         if (!PRESENTATIONS.isEmpty()) {
             buffers.endBatch(renderer.renderType(PRESENTATIONS.values().iterator().next().left));
+            buffers.endBatch(PsychicDriveGauntletsGlowLayer.GLOW);
         }
     }
 
