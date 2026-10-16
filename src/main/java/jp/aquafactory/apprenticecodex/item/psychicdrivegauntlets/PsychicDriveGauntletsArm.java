@@ -28,7 +28,7 @@ public final class PsychicDriveGauntletsArm {
     public static final int DRILL_TICKS = 12;
     private static final int HIT_INTERVAL = 4;
     private static final double DRILL_DISTANCE = 0.2;
-    public enum Phase { IDLE, OUTBOUND, HOLDING, RETURNING, CHARGING, PREPARING, FOLLOW_THROUGH }
+    public enum Phase { IDLE, OUTBOUND, HOLDING, RETURNING, CHARGING, PREPARING, FOLLOW_THROUGH, MINING }
     public enum Impact { NONE, ENTITY, BLOCK }
     // serverでは整数tick、描画用snapshotではclient時計へ写した小数tickを保持する。
     public record MotionData(double phaseStartedTick, Vec3 returnStart, Vec3 returnEnd, Vec3 returnSide,
@@ -42,7 +42,7 @@ public final class PsychicDriveGauntletsArm {
                         long recoveryStartedTick, float returnRecovery, Impact impact, long impactTick, int holdTicks) {
             this(phase, position, yaw, pitch, drawnAmount, flightStart, destination, launchTick, sampleTick,
                     charge, recoveryStartedTick, returnRecovery, impact, impactTick, holdTicks,
-                    new MotionData(phase == Phase.HOLDING || phase == Phase.RETURNING || phase == Phase.FOLLOW_THROUGH ? recoveryStartedTick : launchTick,
+                    new MotionData(phase == Phase.HOLDING || phase == Phase.MINING || phase == Phase.RETURNING || phase == Phase.FOLLOW_THROUGH ? recoveryStartedTick : launchTick,
                             position, position, Vec3.ZERO, 1, 0));
         }
         public Snapshot(Phase phase, Vec3 position, float yaw, float pitch, float drawnAmount,
@@ -102,6 +102,7 @@ public final class PsychicDriveGauntletsArm {
     private Vec3 drillStart = Vec3.ZERO;
     private Entity previousTarget;
     private int nextHit;
+    private PsychicDriveGauntletsMining mining;
     private final List<PsychicDriveGauntletsEffect> effects = new ArrayList<>();
 
     public List<PsychicDriveGauntletsEffect> drainEffects() {
@@ -162,6 +163,8 @@ public final class PsychicDriveGauntletsArm {
     }
 
     private void clearDrill() {
+        if (mining != null) mining.release();
+        mining = null;
         holdTicks = HOLD_TICKS;
         previousTarget = null;
         nextHit = 0;
@@ -197,6 +200,10 @@ public final class PsychicDriveGauntletsArm {
         clearDrill();
         original = owner.getItemInHand(hand);
         weapon = original.copy();
+        if (charged >= 1 && aim.target() != null && owner.level() instanceof ServerLevel level) {
+            mining = new PsychicDriveGauntletsMining(level, aim.target(), aim.point(),
+                    PsychicDriveGauntlets.miningTool(original, level.registryAccess()));
+        }
         slot = owner.getInventory().selected;
         damage = PsychicDriveGauntletsCharge.attackDamage(owner, original);
         charge = charged;
@@ -229,7 +236,7 @@ public final class PsychicDriveGauntletsArm {
         returnPower = pose.power();
         returnTwist = pose.twist();
         // 持ち替えによる早期帰還でも、既に回復した分を戻したり飛ばしたりしない。
-        returnRecovery = phase == Phase.HOLDING || phase == Phase.FOLLOW_THROUGH
+        returnRecovery = phase == Phase.HOLDING || phase == Phase.MINING || phase == Phase.FOLLOW_THROUGH
                 ? Mth.clamp((float) (time - recoveryStartedTick) / (holdTicks + RETURN_TICKS),
                         0, (float) holdTicks / (holdTicks + RETURN_TICKS)) : 0;
         previousTarget = null;
@@ -319,11 +326,16 @@ public final class PsychicDriveGauntletsArm {
                         if (aimedAtBlock) {
                             impact = Impact.BLOCK;
                             impactTick = time;
-                            effect(Kind.BLOCK_IMPACT);
                         }
                         phase = Phase.HOLDING;
                         phaseStarted = time;
                         recoveryStartedTick = time;
+                        if (aimedAtBlock && mining != null && mining.canMine(owner)) {
+                            phase = Phase.MINING;
+                            holdTicks = PsychicDriveGauntletsMining.MINING_TICKS;
+                            drillStart = position;
+                            effect(Kind.DRILL_START);
+                        } else if (aimedAtBlock) effect(Kind.BLOCK_IMPACT);
                         if (!aimedAtBlock && charge < 1) {
                             phase = Phase.FOLLOW_THROUGH;
                             holdTicks = MISS_TICKS;
@@ -336,7 +348,7 @@ public final class PsychicDriveGauntletsArm {
                 }
             }
             case HOLDING -> {
-                if (holdTicks == DRILL_TICKS) {
+                if (impact == Impact.ENTITY && charge >= 1) {
                     long elapsed = time - phaseStarted;
                     position = drillStart.add(destination.subtract(flightStart).normalize()
                             .scale(DRILL_DISTANCE * Mth.clamp((double) elapsed / DRILL_TICKS, 0, 1)));
@@ -357,6 +369,16 @@ public final class PsychicDriveGauntletsArm {
                     }
                 } else if (time - phaseStarted >= holdTicks) recall(time);
             }
+            case MINING -> {
+                if (mining == null || !mining.canMine(owner)) { recall(time); break; }
+                long elapsed = time - phaseStarted;
+                position = drillStart.add(destination.subtract(flightStart).normalize()
+                        .scale(DRILL_DISTANCE * Mth.clamp((double) elapsed / holdTicks, 0, 1)));
+                if (elapsed >= holdTicks) {
+                    effect(mining.finish(owner) ? Kind.FINISH : Kind.REJECTED);
+                    recall(time);
+                } else if (elapsed > 0 && elapsed % HIT_INTERVAL == 0) effect(Kind.DRILL_TICK);
+            }
             case FOLLOW_THROUGH -> {
                 // 余韻中に対象が入り込んでも接触・ダメージ判定は行わない。
                 position = PsychicDriveGauntletsMotion.followingThrough(destination, returnSide, time - phaseStarted);
@@ -370,11 +392,13 @@ public final class PsychicDriveGauntletsArm {
                 yaw = Mth.rotLerp(progress, returnYaw, Mth.rotLerp(amount, owner.yBodyRot, owner.getYRot()));
                 pitch = Mth.lerp(progress, returnPitch, 0.0F);
                 drawnAmount = Mth.lerp(progress, returnDrawnAmount, amount);
+                if (mining != null) mining.follow(owner, position, progress == 1.0F);
                 if (progress == 1.0F) {
                     phase = Phase.IDLE;
                     original = ItemStack.EMPTY;
                     weapon = ItemStack.EMPTY;
                     previousTarget = null;
+                    mining = null;
                 }
             }
             default -> {}

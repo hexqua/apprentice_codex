@@ -122,7 +122,7 @@ public class PsychicDriveGauntletsFloatingRenderer
                             (arm.charge() - threshold) / (1 - threshold), 0, 1);
                 }
                 case OUTBOUND -> arm.charge() >= 1 ? 0.9F : 0.65F;
-                case HOLDING -> arm.charge() >= 1 ? 0.7F : 0.35F;
+                case HOLDING, MINING -> arm.charge() >= 1 ? 0.7F : 0.35F;
                 case RETURNING -> 0.08F + 0.3F * (1 - PsychicDriveGauntletsMotion.returnProgress(
                         time - arm.motion().phaseStartedTick()));
                 default -> 0.08F;

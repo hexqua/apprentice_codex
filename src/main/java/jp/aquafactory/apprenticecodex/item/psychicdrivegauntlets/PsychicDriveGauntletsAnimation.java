@@ -34,7 +34,8 @@ public final class PsychicDriveGauntletsAnimation {
                 }
                 setStage(time - recoverStarted < RECOVER_TICKS ? Stage.RECOVER : Stage.IDLE);
             } else {
-                setStage(arm.charge() >= 1 && arm.impact() == Impact.ENTITY ? Stage.STRIKE : Stage.WINDUP);
+                setStage(arm.charge() >= 1 && (arm.impact() == Impact.ENTITY || arm.phase() == Phase.MINING)
+                        ? Stage.STRIKE : Stage.WINDUP);
             }
         } else if (arm != null && arm.phase() == Phase.CHARGING) {
             setStage(Stage.IDLE);

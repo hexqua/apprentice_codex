@@ -8,6 +8,9 @@ import java.util.UUID;
 
 @Mixin(ItemEntity.class)
 public interface ItemEntityAccessor {
+    @Accessor("pickupDelay")
+    int apprenticecodex$getPickupDelay();
+
     @Accessor("thrower")
     UUID apprenticecodex$getThrower();
 }

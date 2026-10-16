@@ -63,8 +63,8 @@ public final class PsychicDriveGauntletsVisualState {
     }
 
     public static boolean drilling(@Nullable Snapshot arm) {
-        return arm != null && arm.phase() == Phase.HOLDING && arm.charge() >= 1
-                && arm.impact() == Impact.ENTITY && arm.holdTicks() == PsychicDriveGauntletsArm.DRILL_TICKS;
+        return arm != null && arm.charge() >= 1 && (arm.phase() == Phase.MINING
+                || arm.phase() == Phase.HOLDING && arm.impact() == Impact.ENTITY);
     }
 
     public boolean emitContinuousSpark(@Nullable Snapshot arm, double time) {

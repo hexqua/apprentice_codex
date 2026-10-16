@@ -81,7 +81,7 @@ public final class PsychicDriveGauntletsMotion {
                 float progress = (float) Mth.clamp(elapsed, 0, 1);
                 yield new SinglePose(arm.charge() > 0 ? progress : 1, arm.charge() > 0 ? 0 : 10 * (1 - progress));
             }
-            case HOLDING -> new SinglePose(1, 0);
+            case HOLDING, MINING -> new SinglePose(1, 0);
             case FOLLOW_THROUGH -> {
                 float progress = missProgress(elapsed);
                 yield new SinglePose(1 - 0.25F * progress, -5 * progress);
