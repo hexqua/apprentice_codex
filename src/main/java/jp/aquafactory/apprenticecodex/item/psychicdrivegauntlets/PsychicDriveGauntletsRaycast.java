@@ -71,6 +71,29 @@ public final class PsychicDriveGauntletsRaycast {
         // AABB.clipが除外する終端ちょうどの接触も、射程内として扱う。
     }
 
+    public static @Nullable Entity drillTarget(Player owner, Vec3 point, @Nullable Entity previous) {
+        Entity selected = null;
+        double nearest = Double.POSITIVE_INFINITY;
+        var area = new AABB(point, point).inflate(RADIUS + EPSILON);
+        for (var raw : owner.level().getEntities(owner, area,
+                entity -> !entity.isSpectator() && entity.isPickable())) {
+            var target = CombatTools.resolutePartEntity(raw);
+            var box = raw.getBoundingBox();
+            if (!target.isAlive() || target.isRemoved() || !CombatTools.isValidCombatTarget(target, owner)
+                    || !containsInclusive(box.inflate(RADIUS), point)) continue;
+            // 同じ敵を優先するが、その敵が離脱していれば拳の近傍だけで次の対象を選ぶ。
+            if (target == previous) return target;
+            var surface = new Vec3(Mth.clamp(point.x, box.minX, box.maxX),
+                    Mth.clamp(point.y, box.minY, box.maxY), Mth.clamp(point.z, box.minZ, box.maxZ));
+            double distance = point.distanceToSqr(surface);
+            if (distance < nearest || (distance == nearest && selected != null && target.getId() < selected.getId())) {
+                selected = target;
+                nearest = distance;
+            }
+        }
+        return selected;
+    }
+
     private static boolean containsInclusive(AABB box, Vec3 point) {
         return point.x >= box.minX && point.x <= box.maxX && point.y >= box.minY
                 && point.y <= box.maxY && point.z >= box.minZ && point.z <= box.maxZ;

@@ -23,10 +23,10 @@ public final class PsychicDriveGauntletsHudState {
         double elapsed = Math.max(0, time - arm.recoveryStartedTick());
         return switch (arm.phase()) {
             case IDLE -> READY;
-            case OUTBOUND -> new Gauge(0, 0);
+            case PREPARING, OUTBOUND -> new Gauge(0, 0);
             case CHARGING -> new Gauge(1, PsychicDriveGauntletsCharge.amount(time - arm.launchTick()));
-            case HOLDING -> new Gauge((float) Math.min(elapsed, PsychicDriveGauntletsArm.HOLD_TICKS)
-                    / (PsychicDriveGauntletsArm.HOLD_TICKS + PsychicDriveGauntletsArm.RETURN_TICKS), 0);
+            case HOLDING, FOLLOW_THROUGH -> new Gauge((float) Math.min(elapsed, arm.holdTicks())
+                    / (arm.holdTicks() + PsychicDriveGauntletsArm.RETURN_TICKS), 0);
             // serverの待機状態を受信するまでは満タンにしない。
             case RETURNING -> new Gauge(Math.min(Math.nextDown(1.0F), Mth.lerp(
                     (float) Mth.clamp(elapsed / PsychicDriveGauntletsArm.RETURN_TICKS, 0, 1),

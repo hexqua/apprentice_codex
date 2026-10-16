@@ -24,7 +24,6 @@ public final class PsychicDriveGauntletsCharge {
     }
 
     public static double range(float charge) { return PsychicDriveGauntletsRaycast.RANGE * (1 + charge); }
-    public static float damageMultiplier(float charge) { return 1 + 0.5F * charge; }
 
     public static Vec3 offset(double ticks) {
         var charge = amount(ticks);

@@ -26,7 +26,7 @@ public final class PsychicDriveGauntletsMotionGameTests {
     }
 
     private static Snapshot stationary(Phase phase, Vec3 point, long tick) {
-        return new Snapshot(phase, point, 0, 0, 1, START, DESTINATION, 100, tick);
+        return new Snapshot(phase, point, 0, 0, 1, START, DESTINATION, 100, tick, 1);
     }
 
     private static void equal(GameTestHelper helper, Vec3 actual, Vec3 expected, String message) {
@@ -34,16 +34,16 @@ public final class PsychicDriveGauntletsMotionGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void quadraticFlightDeceleratesWithoutChangingFullRangeDuration(GameTestHelper helper) {
+    public static void singleFlightAcceleratesWithoutChangingFullRangeDuration(GameTestHelper helper) {
         var first = PsychicDriveGauntletsMotion.outbound(START, DESTINATION, 1);
         var second = PsychicDriveGauntletsMotion.outbound(START, DESTINATION, 2);
-        equal(helper, first, START.add(0, 0, 10.0 / 3.0), "First tick must use quadratic ease-out");
-        equal(helper, second, START.add(0, 0, 16.0 / 3.0), "Second tick must slow down");
+        equal(helper, first, START.add(0, 0, 4.0 / 3.0), "First tick must use gentle acceleration");
+        equal(helper, second, START.add(0, 0, 10.0 / 3.0), "Second tick must accelerate");
         equal(helper, PsychicDriveGauntletsMotion.outbound(START, DESTINATION, 3), DESTINATION,
                 "Six-block travel must finish in three ticks");
-        helper.assertTrue(first.distanceTo(START) > second.distanceTo(first)
-                        && second.distanceTo(first) > DESTINATION.distanceTo(second),
-                "Travel increments must decrease toward the endpoint");
+        helper.assertTrue(first.distanceTo(START) < second.distanceTo(first)
+                        && second.distanceTo(first) < DESTINATION.distanceTo(second),
+                "Travel increments must increase toward the endpoint");
         equal(helper, PsychicDriveGauntletsMotion.outbound(START, DESTINATION, -1), START,
                 "Negative elapsed time must not move behind the launch point");
         equal(helper, PsychicDriveGauntletsMotion.outbound(START, DESTINATION, 100), DESTINATION,
@@ -57,12 +57,12 @@ public final class PsychicDriveGauntletsMotionGameTests {
         equal(helper, PsychicDriveGauntletsMotion.outbound(START, near, 0.5),
                 PsychicDriveGauntletsMotion.outbound(START, DESTINATION, 0.5),
                 "Near and far attacks must share initial speed");
-        equal(helper, PsychicDriveGauntletsMotion.outbound(START, near, 1), near,
+        equal(helper, PsychicDriveGauntletsMotion.outbound(START, near, 2), near,
                 "A near target must stop the six-block curve early");
         equal(helper, PsychicDriveGauntletsMotion.outbound(START, START, 1), START,
                 "Zero-length flight must remain finite");
         var extended = START.add(0, 0, 6.2);
-        equal(helper, PsychicDriveGauntletsMotion.outbound(START, extended, 3.1), extended,
+        equal(helper, PsychicDriveGauntletsMotion.outbound(START, extended, 3), extended,
                 "An offset arm path slightly beyond six blocks must still reach its target");
         helper.succeed();
     }

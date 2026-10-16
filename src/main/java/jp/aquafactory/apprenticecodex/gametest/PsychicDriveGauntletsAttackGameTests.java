@@ -59,7 +59,7 @@ public final class PsychicDriveGauntletsAttackGameTests {
         player.getInventory().selected = 0;
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.get()));
         // FakePlayerをworldへ追加せず、装備属性更新の代わりに通常装備時の実効値を与える。
-        player.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(8);
+        player.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4);
         return player;
     }
     private static Cow target(GameTestHelper helper, Vec3 position) {
@@ -144,17 +144,15 @@ public final class PsychicDriveGauntletsAttackGameTests {
 
         var held = new PsychicDriveGauntletsAttackState();
         held.input(player, Input.PRESS, 0);
-        for (int time = 1; time < 15; time++) {
+        for (int time = 1; time <= 7; time++) {
             held.tick(player, time);
         }
-        held.tick(player, 15);
-        helper.assertTrue(held.input(player, Input.REPEAT, 15) && !held.left().available(),
-                "The fifteen-tick repeat must use the other arm while the right arm returns");
-        for (int time = 16; time <= 18; time++) held.tick(player, time);
-        helper.assertTrue(held.right().available(), "Empty flight must complete its travel, hold, and return");
-        held.input(player, Input.RELEASE, 18);
-        helper.assertTrue(held.input(player, Input.PRESS, 18) && !held.right().available(),
-                "The returned right arm must regain selection priority");
+        helper.assertTrue(held.input(player, Input.REPEAT, 7) && !held.right().available() && !held.left().available(),
+                "The seven-tick repeat must use the other arm while the right arm returns");
+        for (int time = 8; time <= 14; time++) held.tick(player, time);
+        helper.assertTrue(held.right().available(), "The first arm must return before the next seven-tick repeat");
+        helper.assertTrue(held.input(player, Input.REPEAT, 14) && !held.right().available(),
+                "The next seven-tick repeat must reuse the returned right arm");
         helper.succeed();
     }
 
@@ -164,49 +162,39 @@ public final class PsychicDriveGauntletsAttackGameTests {
         var state = new PsychicDriveGauntletsAttackState();
         helper.assertTrue(!state.input(player, Input.REPEAT, 0), "Repeat must require an active press");
         helper.assertTrue(state.input(player, Input.PRESS, 0), "Press must launch the right arm immediately");
-        for (int time = 1; time <= 14; time++) state.tick(player, time);
-        // clientで15tick経過していても、serverでは14tickの可能性がある。
-        helper.assertTrue(state.input(player, Input.REPEAT, 14) && !state.left().available(),
-                "A repeat arriving before fifteen server ticks must launch an available arm");
+        for (int time = 1; time <= 6; time++) state.tick(player, time);
+        helper.assertTrue(state.input(player, Input.REPEAT, 6) && !state.left().available(),
+                "A client repeat before seven server ticks must use the available left arm");
         for (int attempt = 0; attempt < 20; attempt++) {
-            helper.assertTrue(!state.input(player, Input.REPEAT, 14),
-                    "Repeated requests must not reuse busy arms");
+            helper.assertTrue(!state.input(player, Input.REPEAT, 6), "Busy arms must reject repeated requests");
         }
-        for (int time = 15; time <= 18; time++) state.tick(player, time);
-        helper.assertTrue(state.right().available() && !state.left().available(),
-                "Only the first arm must have completed its return");
-        helper.assertTrue(state.input(player, Input.REPEAT, 18) && !state.right().available(),
-                "Server must not add an interval after the previous repeat");
-        state.input(player, Input.RELEASE, 18);
-        for (int time = 19; time <= 40; time++) state.tick(player, time);
-        helper.assertTrue(state.right().available() && state.left().available(),
-                "Both arms must finish returning before checking the released state");
-        helper.assertTrue(!state.input(player, Input.REPEAT, 40), "Released input must reject repeats");
+        for (int time = 7; time <= 20; time++) state.tick(player, time);
+        helper.assertTrue(state.right().available() && state.left().available(), "Both arms must return");
+        helper.assertTrue(state.input(player, Input.REPEAT, 20), "Server must not add a repeat interval");
+        state.input(player, Input.RELEASE, 20);
+        helper.assertTrue(!state.input(player, Input.REPEAT, 20), "Released input must reject repeats");
         helper.succeed();
     }
 
     @GameTest(template = TEMPLATE)
-    public static void missedFlightHoldsTenAndReturnsFiveTicks(GameTestHelper helper) {
+    public static void missedFlightFollowsThroughThenReturnsInFiveTicks(GameTestHelper helper) {
         var player = player(helper);
         var arm = new PsychicDriveGauntletsArm(true);
         var start = PsychicDriveGauntletsPose.position(player, 1, true);
         var destination = start.add(0, 0, 6);
         arm.launch(player, destination, 1, 0);
         arm.tick(player, 1, 1);
-        helper.assertTrue(Math.abs(arm.position().distanceTo(start) - 10.0 / 3.0) < 1.0e-6,
-                "Quadratic flight must advance ten-thirds of a block on the first tick");
+        helper.assertTrue(Math.abs(arm.position().distanceTo(start) - 4.0 / 3.0) < 1.0e-6,
+                "Accelerating flight must advance four-thirds of a block on the first tick");
         ticks(arm, player, 2, 3);
-        helper.assertTrue(arm.phase() == Phase.HOLDING && arm.position().equals(destination),
-                "Flight must stop at its destination");
-        helper.assertTrue(arm.snapshot().impact() == Impact.NONE,
-                "An empty endpoint must not trigger a strike");
-        ticks(arm, player, 4, 12);
-        helper.assertTrue(arm.phase() == Phase.HOLDING, "Holding must last ten full ticks");
-        arm.tick(player, 1, 13);
-        helper.assertTrue(arm.phase() == Phase.RETURNING, "Return must start ten ticks after impact");
-        ticks(arm, player, 14, 17);
+        helper.assertTrue(arm.phase() == Phase.FOLLOW_THROUGH && arm.position().equals(destination),
+                "An empty endpoint must start harmless follow-through");
+        helper.assertTrue(arm.snapshot().impact() == Impact.NONE, "An empty endpoint must not trigger a strike");
+        ticks(arm, player, 4, 6);
+        helper.assertTrue(arm.phase() == Phase.RETURNING, "A miss must follow through for three ticks");
+        ticks(arm, player, 7, 10);
         helper.assertTrue(!arm.available(), "Arm must remain unavailable until return completes");
-        arm.tick(player, 1, 18);
+        arm.tick(player, 1, 11);
         helper.assertTrue(arm.available() && arm.position().distanceTo(start) < 1.0e-6,
                 "Return must finish in five ticks");
         helper.succeed();
@@ -234,7 +222,7 @@ public final class PsychicDriveGauntletsAttackGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void sweptContactDealsFullDamageOnceAndPreservesIframe(GameTestHelper helper) {
+    public static void sweptContactDealsFullDamageOnceAndBypassesIframe(GameTestHelper helper) {
         var player = player(helper);
         var start = PsychicDriveGauntletsPose.position(player, 1, true);
         var target = target(helper, start.add(0, -0.5, 1.2));
@@ -242,22 +230,22 @@ public final class PsychicDriveGauntletsAttackGameTests {
         var arm = new PsychicDriveGauntletsArm(true);
         arm.launch(player, start.add(0, 0, 6), 1, 0);
         arm.tick(player, 1, 1);
-        helper.assertTrue(arm.phase() == Phase.HOLDING && Math.abs(target.getHealth() - 92) < 1.0e-6,
-                "Swept contact must deal full damage eight without attack-strength scaling");
+        helper.assertTrue(arm.phase() == Phase.HOLDING && Math.abs(target.getHealth() - 96) < 1.0e-6,
+                "Swept contact must deal full damage four without attack-strength scaling");
         var second = new PsychicDriveGauntletsArm(true);
         second.launch(player, start.add(0, 0, 6), 1, 1);
         second.tick(player, 1, 2);
         helper.assertTrue(second.phase() == Phase.HOLDING && Math.abs(target.getHealth() - 92) < 1.0e-6,
-                "Iframe rejection must still count as impact and must not add damage");
+                "The second arm must bypass iframes and deal another four damage");
         helper.assertTrue(arm.snapshot().impact() == Impact.ENTITY && arm.snapshot().impactTick() == 1
                         && second.snapshot().impact() == Impact.ENTITY && second.snapshot().impactTick() == 2,
-                "Both successful damage and iframe rejection must record entity contact at the actual tick");
+                "Both successful hits must record entity contact at the actual tick");
         ticks(arm, player, 2, 18);
         helper.assertTrue(Math.abs(target.getHealth() - 92) < 1.0e-6,
                 "Holding and return must not deal additional damage");
         var type = helper.getLevel().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE)
                 .getHolderOrThrow(DamageTypes.PSYCHIC_DRIVE_GAUNTLETS);
-        helper.assertTrue(!type.is(DamageTypeTags.BYPASSES_COOLDOWN), "Gauntlet damage must preserve normal iframes");
+        helper.assertTrue(type.is(DamageTypeTags.BYPASSES_COOLDOWN), "Gauntlet damage must bypass normal iframes");
         helper.succeed();
     }
 
@@ -274,7 +262,7 @@ public final class PsychicDriveGauntletsAttackGameTests {
         player.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(40);
         player.getMainHandItem().enchant(sharpness, 5);
         arm.tick(player, 1, 1);
-        helper.assertTrue(Math.abs(target.getHealth() - 90) < 1.0e-6,
+        helper.assertTrue(Math.abs(target.getHealth() - 94) < 1.0e-6,
                 "Damage must use launch attack damage and sharpness three from the copied weapon");
         helper.succeed();
     }
@@ -291,7 +279,7 @@ public final class PsychicDriveGauntletsAttackGameTests {
         helper.getLevel().setBlockAndUpdate(wall, Blocks.STONE.defaultBlockState());
         var target = target(helper, start.add(0, -0.5, 4));
         ticks(arm, player, 1, 3);
-        helper.assertTrue(arm.phase() == Phase.HOLDING && Math.abs(target.getHealth() - 92) < 1.0e-6,
+        helper.assertTrue(arm.phase() == Phase.HOLDING && Math.abs(target.getHealth() - 96) < 1.0e-6,
                 "An embedded arm must fly through blocks and hit a target hidden after launch");
         helper.succeed();
     }
@@ -335,7 +323,7 @@ public final class PsychicDriveGauntletsAttackGameTests {
             var arm = new PsychicDriveGauntletsArm(true);
             arm.launch(player, start.add(0, 0, 6), 1, 0);
             ticks(arm, player, 1, 3);
-            helper.assertTrue(ally.getHealth() == 100 && Math.abs(enemy.getHealth() - 92) < 1.0e-6,
+            helper.assertTrue(ally.getHealth() == 100 && Math.abs(enemy.getHealth() - 96) < 1.0e-6,
                     "Flight must pass through an ally and damage the next valid target");
         } finally {
             scoreboard.removePlayerTeam(team);
@@ -352,7 +340,7 @@ public final class PsychicDriveGauntletsAttackGameTests {
         var arm = new PsychicDriveGauntletsArm(true);
         arm.launch(player, start.add(0, 0, 6), 1, 0);
         arm.tick(player, 1, 1);
-        helper.assertTrue(target.getHealth() > 92 && target.getHealth() < 100,
+        helper.assertTrue(target.getHealth() > 96 && target.getHealth() < 100,
                 "Gauntlet attack damage must remain subject to target armor");
         helper.succeed();
     }
@@ -383,7 +371,7 @@ public final class PsychicDriveGauntletsAttackGameTests {
         helper.assertTrue(state.input(player, Input.PRESS, 100), "Wall attack must launch");
         helper.assertTrue(state.right().snapshot().impact() == Impact.NONE,
                 "A block aim must not count as impact before arrival");
-        for (int time = 101; time <= 104; time++) state.tick(player, time);
+        for (int time = 101; (state.right().phase() == Phase.PREPARING || state.right().phase() == Phase.OUTBOUND) && time <= 104; time++) state.tick(player, time);
         var impact = state.right().snapshot();
         helper.assertTrue(impact.phase() == Phase.HOLDING && impact.impact() == Impact.BLOCK
                         && impact.impactTick() > 100 && impact.position().equals(impact.destination()),

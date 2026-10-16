@@ -171,6 +171,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 LUNAR_AIM,
                 ECHO_ARROW,
                 LOCK_ON_RAY,
+                PSYCHIC_DRIVE_GAUNTLETS,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC

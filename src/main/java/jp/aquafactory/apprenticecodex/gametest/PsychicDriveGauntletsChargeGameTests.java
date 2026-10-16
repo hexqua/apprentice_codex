@@ -72,7 +72,7 @@ public final class PsychicDriveGauntletsChargeGameTests {
         player.setXRot(0);
         player.yBodyRot = 0;
         // 未追加のFakePlayerでは装備属性更新を行わず、通常装備時の実効値を与える。
-        Objects.requireNonNull(player.getAttribute(Attributes.ATTACK_DAMAGE)).setBaseValue(8);
+        Objects.requireNonNull(player.getAttribute(Attributes.ATTACK_DAMAGE)).setBaseValue(4);
         return player;
     }
 
@@ -169,7 +169,7 @@ public final class PsychicDriveGauntletsChargeGameTests {
         var state = new PsychicDriveGauntletsAttackState();
         helper.assertTrue(state.beginUse(player, InteractionHand.MAIN_HAND, 0) && state.left().phase() == Phase.CHARGING,
                 "Use must reserve the left arm first");
-        helper.assertTrue(state.input(player, Input.PRESS, 0) && state.right().phase() == Phase.OUTBOUND,
+        helper.assertTrue(state.input(player, Input.PRESS, 0) && state.right().phase() == Phase.PREPARING,
                 "Left attack must still launch the unreserved right arm");
         state.input(player, Input.RELEASE, 0);
         helper.assertTrue(!state.input(player, Input.PRESS, 0), "Attack must not steal the charging arm");
@@ -256,7 +256,7 @@ public final class PsychicDriveGauntletsChargeGameTests {
         damage.addTransientModifier(new AttributeModifier(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID,
                 "charge_test_total"), 0.2, Operation.ADD_MULTIPLIED_TOTAL));
         double original = damage.getValue();
-        helper.assertTrue(Math.abs(PsychicDriveGauntletsCharge.attackDamage(player, player.getOffhandItem()) - 19.8) < 1.0e-5,
+        helper.assertTrue(Math.abs(PsychicDriveGauntletsCharge.attackDamage(player, player.getOffhandItem()) - 12.6) < 1.0e-5,
                 "Offhand damage must replace sword bonus with gauntlet bonus and preserve attribute operation order");
         helper.assertTrue(damage.getValue() == original && player.getMainHandItem() == sword,
                 "Calculating offhand damage must not mutate equipment or player attributes");
@@ -267,7 +267,7 @@ public final class PsychicDriveGauntletsChargeGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void chargeMultipliesEnchantedDamageAndRespectsResistance(GameTestHelper helper) {
+    public static void chargeUsesNormalEnchantedDamageAndRespectsResistance(GameTestHelper helper) {
         var player = player(helper);
         var sharpness = helper.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT)
                 .getHolderOrThrow(Enchantments.SHARPNESS);
@@ -278,8 +278,8 @@ public final class PsychicDriveGauntletsChargeGameTests {
         var arm = new PsychicDriveGauntletsArm(true);
         arm.launch(player, start.add(0, 0, 12), 1, 0, InteractionHand.MAIN_HAND, 1);
         arm.tick(player, 1, 1);
-        helper.assertTrue(Math.abs(cow.getHealth() - 85) < 1.0e-6,
-                "Full charge must multiply enchanted damage ten by one and a half");
+        helper.assertTrue(Math.abs(cow.getHealth() - 94) < 1.0e-6,
+                "Full charge must deal normal enchanted damage six on its first hit");
         helper.assertTrue(cow.getDeltaMovement().lengthSqr() < 1.0e-12,
                 "Full knockback resistance must block the extra charge knockback");
         helper.succeed();
@@ -293,13 +293,14 @@ public final class PsychicDriveGauntletsChargeGameTests {
         var arm = new PsychicDriveGauntletsArm(true);
         arm.launch(player, start.add(0, 0, 12), 1, 0, InteractionHand.MAIN_HAND, 1);
         arm.tick(player, 1, 1);
-        helper.assertTrue(cow.getDeltaMovement().z >= 0.49,
-                "Full charge must supply one enchantment level of forward knockback");
-        var movement = cow.getDeltaMovement();
-        var second = new PsychicDriveGauntletsArm(true);
-        second.launch(player, start.add(0, 0, 12), 1, 1, InteractionHand.MAIN_HAND, 1);
-        second.tick(player, 1, 2);
-        helper.assertTrue(cow.getDeltaMovement().equals(movement), "Iframe rejection must not add charge knockback");
+        for (int tick = 2; tick <= 12; tick++) {
+            arm.tick(player, 1, tick);
+            helper.assertTrue(cow.getDeltaMovement().lengthSqr() < 1.0e-12,
+                    "The first three hits must suppress all attack knockback");
+        }
+        arm.tick(player, 1, 13);
+        helper.assertTrue(cow.getDeltaMovement().z >= 0.49 && arm.phase() == Phase.RETURNING,
+                "Only the final hit must add charge knockback and immediately return");
         helper.succeed();
     }
 
@@ -311,7 +312,8 @@ public final class PsychicDriveGauntletsChargeGameTests {
             var end = new Vec3(0, 0, range);
             for (double tick : new double[] {0, 0.5, 1, 2, 3}) {
                 double progress = PsychicDriveGauntletsMotion.outbound(start, end, tick, charge).z / range;
-                double normal = PsychicDriveGauntletsMotion.outbound(start, new Vec3(0, 0, 6), tick).z / 6;
+                double normal = charge >= 1 ? (tick / 3) * (2 - tick / 3)
+                        : PsychicDriveGauntletsMotion.outbound(start, new Vec3(0, 0, 6), tick).z / 6;
                 helper.assertTrue(Math.abs(progress - normal) < 1.0e-7,
                         "Extended range must preserve normalized flight time at charge " + charge);
             }

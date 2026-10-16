@@ -4,7 +4,10 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAnimation;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Phase;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Snapshot;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsMotion;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsMotion.SinglePose;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsPose;
 import jp.aquafactory.apprenticecodex.model.PsychicDriveGauntletsModel;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -78,6 +81,9 @@ public class PsychicDriveGauntletsFloatingRenderer
         private final PsychicDriveGauntletsAnimation animation = new PsychicDriveGauntletsAnimation();
         private long appliedRevision = -1;
         private double tick;
+        private boolean singleMotion = true;
+        private SinglePose singlePose = SinglePose.REST;
+        private RawAnimation appliedAnimation;
 
         public Visual(long instanceId) {
             this.instanceId = instanceId;
@@ -88,22 +94,36 @@ public class PsychicDriveGauntletsFloatingRenderer
         }
 
         public void updateAnimation(@Nullable Snapshot arm, double time) {
-            animation.update(arm, time);
+            if (arm != null && arm.phase() != Phase.IDLE) {
+                singleMotion = arm.phase() == Phase.CHARGING || arm.charge() < 1;
+            }
+            if (singleMotion) {
+                singlePose = arm == null ? SinglePose.REST : PsychicDriveGauntletsMotion.singlePose(arm, time);
+            } else {
+                animation.update(arm, time);
+                singlePose = SinglePose.REST;
+            }
         }
+
+        public boolean singleMotion() { return singleMotion; }
+        public SinglePose singlePose() { return singlePose; }
 
         @Override
         public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
             controllers.add(new AnimationController<>(this, "pose", 0, state -> {
-                if (appliedRevision != animation.revision()) {
-                    state.getController().forceAnimationReset();
-                    appliedRevision = animation.revision();
-                }
-                return state.setAndContinue(switch (animation.stage()) {
+                // 単発はidleを止めず、server時刻から求めた追加姿勢だけをモデルへ重ねる。
+                var next = singleMotion ? IDLE : switch (animation.stage()) {
                     case IDLE -> IDLE;
                     case WINDUP -> WINDUP;
                     case STRIKE -> STRIKE;
                     case RECOVER -> RECOVER;
-                });
+                };
+                if (appliedAnimation != next || (!singleMotion && appliedRevision != animation.revision())) {
+                    state.getController().forceAnimationReset();
+                }
+                appliedAnimation = next;
+                appliedRevision = animation.revision();
+                return state.setAndContinue(next);
             }));
         }
 
