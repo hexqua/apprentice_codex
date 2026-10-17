@@ -2,22 +2,22 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
     "C": {
-      "item": "irons_spellbooks:energized_core"
+      "item": "apprenticecodex:crystalline_arcane_shard"
     },
-    "M": {
-      "item": "irons_spellbooks:mithril_ingot"
+    "D": {
+      "item": "minecraft:diamond"
     },
-    "N": {
-      "item": "apprenticecodex:emberstained_netherite_ingot"
-    },
-    "S": {
-      "item": "minecraft:nether_star"
+    "W": {
+      "item": "irons_spellbooks:weapon_parts"
     }
   },
   "pattern": [
-    "M M",
-    "NSN",
+    "A A",
+    "DWD",
     "C C"
   ],
   "result": {

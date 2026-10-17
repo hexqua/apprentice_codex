@@ -683,14 +683,14 @@ public final class RecipeGenerator extends RecipeProvider {
                 .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.get())
-                .pattern("M M")
-                .pattern("NSN")
+                .pattern("A A")
+                .pattern("DWD")
                 .pattern("C C")
-                .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_INGOT.get())
-                .define('N', ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get())
-                .define('C', io.redspace.ironsspellbooks.registries.ItemRegistry.ENERGIZED_CORE.get())
-                .define('S', Items.NETHER_STAR)
-                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_INGOT.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()))
+                .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                .define('D', Items.DIAMOND)
+                .define('C', ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get())
+                .define('W', io.redspace.ironsspellbooks.registries.ItemRegistry.WEAPON_PARTS.get())
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.WEAPON_PARTS.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.WEAPON_PARTS.get()))
                 .save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.ELEMENTAL_BOW.get())
