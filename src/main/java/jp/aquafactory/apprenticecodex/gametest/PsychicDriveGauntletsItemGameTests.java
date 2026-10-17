@@ -18,6 +18,7 @@ import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.common.util.FakePlayer;
@@ -106,6 +107,28 @@ public final class PsychicDriveGauntletsItemGameTests {
         state.tick(player, 220);
         helper.assertTrue(state.charging() && data.getMana() == 0 && state.releaseUse(player, 220),
                 "External mana depletion must clamp to zero and preserve a full charge");
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void lootingKeepsVanillaMainHandOnlyLimitation(GameTestHelper helper) {
+        var player = player(helper);
+        var stack = player.getMainHandItem();
+        var looting = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(Enchantments.LOOTING);
+        stack.enchant(looting, 3);
+
+        // Looting は付与を許可するが、副手攻撃の loot 補正は対応コストに見合わないため補完しない。
+        // 剣相当の戦闘エンチャントを Plunder（手持ち全般に効く効果）へ置き換えるのも違和感が大きい。
+        // Malum の Spirit Plunder にも同様の副手制限があるが、ここでは vanilla Looting の参照経路を固定する。
+        // ダメージ・命中後効果へ渡す発射時の武器コピーと、死亡時に装備を参照する loot 計算は別経路である。
+        helper.assertTrue(EnchantmentHelper.getEnchantmentLevel(looting, player) == 3,
+                "Main-hand gauntlets must supply vanilla Looting to equipment-based loot calculations");
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        player.setItemInHand(InteractionHand.OFF_HAND, stack);
+        helper.assertTrue(stack.getEnchantmentLevel(looting) == 3
+                        && EnchantmentHelper.getEnchantmentLevel(looting, player) == 0,
+                "Offhand-only gauntlets intentionally retain vanilla Looting's main-hand limitation");
         helper.succeed();
     }
 
