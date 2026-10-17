@@ -1,27 +1,27 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_mithril_ingot": {
-      "conditions": {
-        "items": [
-          {
-            "items": "irons_spellbooks:mithril_scrap"
-          }
-        ]
-      },
-      "trigger": "minecraft:inventory_changed"
-    },
     "has_the_recipe": {
       "conditions": {
         "recipe": "apprenticecodex:psychic_drive_gauntlets"
       },
       "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_weapon_parts": {
+      "conditions": {
+        "items": [
+          {
+            "items": "irons_spellbooks:weapon_parts"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
     }
   },
   "requirements": [
     [
       "has_the_recipe",
-      "has_mithril_ingot"
+      "has_weapon_parts"
     ]
   ],
   "rewards": {

@@ -69,7 +69,8 @@ public final class GrindRunnerRecipeDataGenerator implements DataProvider {
 
                 recipe(ItemRegistry.FIREWARD_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.CINDER_ESSENCE.get(), 1)),
                 recipe(ItemRegistry.FROSTWARD_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.ICE_CRYSTAL.get(), 1)),
-                recipe(ItemRegistry.POISONWARD_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.NATURE_RUNE.get(), 1))
+                recipe(ItemRegistry.POISONWARD_RING.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 1), result(ItemRegistry.NATURE_RUNE.get(), 1)),
+                recipe(ItemRegistry.RAW_MITHRIL.get(), result(ItemRegistry.MITHRIL_SCRAP.get(), 2))
         );
 
         return CompletableFuture.allOf(recipes.stream()
