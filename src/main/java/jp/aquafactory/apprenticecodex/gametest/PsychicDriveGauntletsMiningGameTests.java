@@ -24,6 +24,7 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
@@ -31,8 +32,11 @@ import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+
+import static jp.aquafactory.apprenticecodex.enchantment.Enchantments.WISDOM;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -77,6 +81,58 @@ public final class PsychicDriveGauntletsMiningGameTests {
 
     private static List<ItemEntity> drops(Fixture fixture) {
         return fixture.player().level().getEntitiesOfClass(ItemEntity.class, new AABB(fixture.pos()).inflate(1));
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void miningPreservesHeldWisdomWithoutChangingTheStoredTool(GameTestHelper helper) {
+        var wisdom = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(WISDOM);
+        for (var hand : InteractionHand.values()) {
+            for (int otherLevel : new int[]{0, 3}) {
+                var fixture = fixture(helper, Blocks.DIAMOND_ORE, new ItemStack(Items.DIAMOND_PICKAXE));
+                fixture.weapon().enchant(wisdom, 1);
+                var other = new ItemStack(ItemRegistry.IRON_SPELLCASTER_GUN.get());
+                if (otherLevel > 0) other.enchant(wisdom, otherLevel);
+                fixture.player().setItemInHand(hand, fixture.weapon());
+                fixture.player().setItemInHand(hand == InteractionHand.MAIN_HAND
+                        ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND, other);
+                var mainHand = fixture.player().getMainHandItem();
+                var offHand = fixture.player().getOffhandItem();
+                var events = new ArrayList<BlockDropsEvent>();
+                Consumer<BlockDropsEvent> listener = event -> {
+                    if (event.getBreaker() != fixture.player()) return;
+                    // 鉱石 XP の乱数を固定し、実際の採掘イベントに対する最終補正を確認する。
+                    event.setDroppedExperience(3);
+                    events.add(event);
+                    helper.assertTrue(ItemStack.isSameItemSameComponents(event.getTool(), fixture.tool()),
+                            "Wisdom must not be transferred to or otherwise change the mining tool");
+                };
+                NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, listener);
+                var arm = new PsychicDriveGauntletsArm(true);
+                try {
+                    arm.launch(fixture.player(), PsychicDriveGauntletsRaycast.aim(fixture.player(), 12),
+                            1, 0, hand, 1);
+                    for (int tick = 1; tick <= 3 && arm.phase() == Phase.OUTBOUND; tick++) {
+                        arm.tick(fixture.player(), 1, tick);
+                    }
+                    helper.assertTrue(arm.phase() == Phase.MINING, "Wisdom gauntlets must start mining from either hand");
+                    ticks(arm, fixture, contact(arm) + 1, contact(arm) + 12);
+                    int expected = otherLevel == 0 ? 4 : 5;
+                    helper.assertTrue(events.size() == 1 && events.getFirst().getDroppedExperience() == expected,
+                            "Mining Wisdom must use the higher original held level and round once: " + hand + ", " + otherLevel);
+                    helper.assertTrue(fixture.player().getMainHandItem() == mainHand
+                                    && fixture.player().getOffhandItem() == offHand,
+                            "Wisdom mining must restore both held stacks");
+                    helper.assertTrue(ItemStack.isSameItemSameComponents(fixture.tool(),
+                                    PsychicDriveGauntlets.miningTool(fixture.weapon(), helper.getLevel().registryAccess())),
+                            "Wisdom mining must preserve the stored tool");
+                } finally {
+                    arm.reset();
+                    NeoForge.EVENT_BUS.unregister(listener);
+                }
+            }
+        }
+        helper.succeed();
     }
 
     @GameTest(template = TEMPLATE)

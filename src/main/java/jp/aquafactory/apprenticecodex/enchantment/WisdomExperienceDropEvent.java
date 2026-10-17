@@ -2,8 +2,10 @@ package jp.aquafactory.apprenticecodex.enchantment;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.event.entity.living.LivingExperienceDropEvent;
 import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -64,7 +66,10 @@ public final class WisdomExperienceDropEvent {
         }
 
         // 1.20.1 Forge では通常採掘 XP の補正口が BreakEvent なので、ブロック破壊分はここでまとめて補正する。
-        event.setExpToDrop(applyWisdomBonus(droppedExperience, getApplicableWisdomBonusUnits(player)));
+        // 幸運は実際の採掘ツール、叡智は一時交換前の手持ちを参照する。
+        var mainHand = event.getLevel() instanceof Level level
+                ? BlockTools.getMainHandForBlockBreak(player, level, event.getPos()) : player.getMainHandItem();
+        event.setExpToDrop(applyWisdomBonus(droppedExperience, getApplicableWisdomBonusUnits(player, mainHand)));
     }
 
     private static int getApplicableHeldWisdomLevel(Player player) {
@@ -107,8 +112,8 @@ public final class WisdomExperienceDropEvent {
         return stack.getEnchantmentLevel(EnchantmentRegistry.WISDOM.get());
     }
 
-    private static int getApplicableWisdomBonusUnits(Player player) {
-        return getApplicableHeldWisdomLevel(player) * HELD_WISDOM_BONUS_UNITS_PER_LEVEL
+    private static int getApplicableWisdomBonusUnits(Player player, ItemStack mainHand) {
+        return Math.max(getHeldWisdomLevel(mainHand), getHeldWisdomLevel(player.getOffhandItem())) * HELD_WISDOM_BONUS_UNITS_PER_LEVEL
                 + (getApplicableArmorWisdomLevel(player) + getApplicableCurioWisdomLevel(player)) * ARMOR_WISDOM_BONUS_UNITS_PER_LEVEL;
     }
 
