@@ -9,8 +9,8 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.config.ServerConfigs;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.SpellManaCostDiscounts;
-import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunAmmoConsumption;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunRecastCompletion;
 import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffManaCostEvent;
 import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffPowerHelper;
@@ -94,8 +94,8 @@ public final class FullautoRapidcastSpellrifleCastEvent {
         }
 
         if (!player.isCreative()) {
-            if (MagiAgentSuitEffects.shouldSkipAmmoConsumption(player)) {
-                if (MagiAgentSuitEffects.shouldSkipStaffrifleManaCostWithAmmo()) {
+            if (SpellgunAmmoConsumption.shouldSkip(player)) {
+                if (SpellgunAmmoConsumption.shouldSkipManaCostWithAmmo()) {
                     event.setManaCost(0);
                 }
                 return;

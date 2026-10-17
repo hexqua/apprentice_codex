@@ -10,6 +10,7 @@
 
   "emf.variable.apprenticecodex.is_hoverride_broom_rider": "描画中のプレイヤーが浮遊走行の箒に騎乗しているか",
 
+  "material.apprenticecodex.bullet_rune": "魔弾のルーン",
   "material.apprenticecodex.spellstained_arcane": "魔術染めの秘術",
   "material.apprenticecodex.emberstained_netherite": "残り火染めのネザライト",
   "material.apprenticecodex.crystalline_arcane": "結晶化した秘術",
@@ -23,6 +24,7 @@
   "action.apprenticecodex.advance_spell_cooldowns.entity": "対象プレイヤーの現在の全魔法クールダウンを%s秒進める",
 
   "attribute.name.apprenticecodex.max_enchantment_table_level": "最大エンチャントテーブルレベル",
+  "attribute.name.apprenticecodex.spellgun_ammo_conservation": "詠唱銃系の弾薬消費確率",
 
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",
   "block.apprenticecodex.personal_shelf_chest" : "パーソナルインターフェース",
@@ -375,6 +377,7 @@
   "item.apprenticecodex.magi_agent_suit.rune_hint": "この防具は術式調整台で系統を調整できる。",
   "item.apprenticecodex.magi_agent_suit.school_rune": "現在\"%s\"の系統に調整されている。",
   "item.apprenticecodex.magi_agent_suit_hood.desc": "詠唱銃と杖銃の弾薬が確率で消費されなくなる。",
+  "item.apprenticecodex.magi_agent_suit_hood.desc.artifice": "Iron's Arms 'n Artifice製の銃に対しても有効。",
   "item.apprenticecodex.magi_agent_suit_coat.desc": "特定の攻撃魔法の系統補正が防具で調整された系統へ変化する。",
   "item.apprenticecodex.magi_agent_suit_leggings.desc": "特定の攻撃魔法の詠唱による移動速度低下を無効化し、中断もされなくなる。",
   "item.apprenticecodex.magi_agent_suit_boots.desc": "特定の攻撃魔法のクールダウンと詠唱時間が短縮される。",

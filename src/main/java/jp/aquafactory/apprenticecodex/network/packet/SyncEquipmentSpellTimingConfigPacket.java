@@ -11,6 +11,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.NotNull;
 
 public final class SyncEquipmentSpellTimingConfigPacket implements CustomPacketPayload {
     public static final Type<SyncEquipmentSpellTimingConfigPacket> TYPE =
@@ -21,6 +22,7 @@ public final class SyncEquipmentSpellTimingConfigPacket implements CustomPacketP
     public static final StreamCodec<RegistryFriendlyByteBuf, SyncEquipmentSpellTimingConfigPacket> STREAM_CODEC =
             StreamCodec.of((buffer, packet) -> encode(packet, buffer), SyncEquipmentSpellTimingConfigPacket::decode);
 
+    private final double magiAgentSuitAmmoNoConsumeChance;
     private final double craftsmansDelightCooldownMultiplier;
     private final double magiAgentSuitBootsCooldownMultiplier;
     private final double magiAgentSuitBootsCastTimeMultiplier;
@@ -28,15 +30,17 @@ public final class SyncEquipmentSpellTimingConfigPacket implements CustomPacketP
     public SyncEquipmentSpellTimingConfigPacket(
             double craftsmansDelightCooldownMultiplier,
             double magiAgentSuitBootsCooldownMultiplier,
-            double magiAgentSuitBootsCastTimeMultiplier
+            double magiAgentSuitBootsCastTimeMultiplier,
+            double magiAgentSuitAmmoNoConsumeChance
     ) {
+        this.magiAgentSuitAmmoNoConsumeChance = magiAgentSuitAmmoNoConsumeChance;
         this.craftsmansDelightCooldownMultiplier = craftsmansDelightCooldownMultiplier;
         this.magiAgentSuitBootsCooldownMultiplier = magiAgentSuitBootsCooldownMultiplier;
         this.magiAgentSuitBootsCastTimeMultiplier = magiAgentSuitBootsCastTimeMultiplier;
     }
 
     @Override
-    public Type<? extends CustomPacketPayload> type() {
+    public @NotNull Type<? extends CustomPacketPayload> type() {
         return TYPE;
     }
 
@@ -44,10 +48,12 @@ public final class SyncEquipmentSpellTimingConfigPacket implements CustomPacketP
         buffer.writeDouble(packet.craftsmansDelightCooldownMultiplier);
         buffer.writeDouble(packet.magiAgentSuitBootsCooldownMultiplier);
         buffer.writeDouble(packet.magiAgentSuitBootsCastTimeMultiplier);
+        buffer.writeDouble(packet.magiAgentSuitAmmoNoConsumeChance);
     }
 
     private static SyncEquipmentSpellTimingConfigPacket decode(FriendlyByteBuf buffer) {
         return new SyncEquipmentSpellTimingConfigPacket(
+                buffer.readDouble(),
                 buffer.readDouble(),
                 buffer.readDouble(),
                 buffer.readDouble()
@@ -68,6 +74,7 @@ public final class SyncEquipmentSpellTimingConfigPacket implements CustomPacketP
         }
 
         private static void handle(SyncEquipmentSpellTimingConfigPacket packet) {
+            EquipmentSpellTimingConfigState.setAmmoNoConsumeChance(packet.magiAgentSuitAmmoNoConsumeChance);
             EquipmentSpellTimingConfigState.set(
                     packet.craftsmansDelightCooldownMultiplier,
                     packet.magiAgentSuitBootsCooldownMultiplier,

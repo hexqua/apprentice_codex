@@ -1,16 +1,19 @@
 package jp.aquafactory.apprenticecodex.event;
 
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
-import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
+import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretEntity;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
 import jp.aquafactory.apprenticecodex.spell.fieldoverseer.FieldOverseerStaffEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconEntity;
 import jp.aquafactory.apprenticecodex.spell.totemofpermafrost.TotemOfPermafrostTotemEntity;
+import net.minecraft.world.entity.EntityType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
+import net.neoforged.neoforge.event.entity.EntityAttributeModificationEvent;
 
 public final class ModEntityAttributeEvent {
     private ModEntityAttributeEvent() {
@@ -18,6 +21,11 @@ public final class ModEntityAttributeEvent {
 
     public static void register(IEventBus modEventBus) {
         modEventBus.addListener(ModEntityAttributeEvent::onEntityAttributeCreation);
+        modEventBus.addListener(ModEntityAttributeEvent::onEntityAttributeModification);
+    }
+
+    private static void onEntityAttributeModification(EntityAttributeModificationEvent event) {
+        event.add(EntityType.PLAYER, ApprenticeAttributeRegistry.SPELLGUN_AMMO_CONSERVATION);
     }
 
     public static void onEntityAttributeCreation(EntityAttributeCreationEvent event) {

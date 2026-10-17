@@ -14,6 +14,16 @@ public final class EquipmentSpellTimingConfigState {
     private static double magiAgentSuitBootsCastTimeMultiplier =
             DEFAULT_MAGI_AGENT_SUIT_BOOTS_CAST_TIME_MULTIPLIER;
 
+    private static double magiAgentSuitAmmoNoConsumeChance = 0.5D;
+
+    public static double magiAgentSuitAmmoNoConsumeChance() {
+        return magiAgentSuitAmmoNoConsumeChance;
+    }
+
+    public static void setAmmoNoConsumeChance(double chance) {
+        magiAgentSuitAmmoNoConsumeChance = Mth.clamp(chance, 0.0D, 1.0D);
+    }
+
     private EquipmentSpellTimingConfigState() {
     }
 
@@ -42,6 +52,7 @@ public final class EquipmentSpellTimingConfigState {
     }
 
     public static void reset() {
+        setAmmoNoConsumeChance(0.5D);
         set(
                 DEFAULT_CRAFTSMANS_DELIGHT_COOLDOWN_MULTIPLIER,
                 DEFAULT_MAGI_AGENT_SUIT_BOOTS_COOLDOWN_MULTIPLIER,

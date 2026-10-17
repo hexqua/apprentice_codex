@@ -1,0 +1,15 @@
+{
+  "bonusParameters": {
+    "irons_jewelry:attribute": {
+      "amount": -0.05,
+      "attribute": "apprenticecodex:spellgun_ammo_conservation",
+      "operation": "add_multiplied_total"
+    }
+  },
+  "descriptionId": "material.apprenticecodex.bullet_rune",
+  "ingredient": {
+    "item": "apprenticecodex:bullet_rune"
+  },
+  "paletteLocation": "apprenticecodex:palettes/rune_bullet",
+  "quality": 1.5
+}

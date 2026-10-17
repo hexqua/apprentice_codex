@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.event;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.EquipmentSpellTimingConfigState;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunAmmoConsumption;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEquipmentSpellTimingConfigPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -67,7 +68,8 @@ public final class EquipmentSpellTimingConfigSyncEvents {
         return new SyncEquipmentSpellTimingConfigPacket(
                 ApprenticeCodexServerConfig.craftsmansDelightCooldownMultiplier(),
                 ApprenticeCodexServerConfig.magiAgentSuitBootsCooldownMultiplier(),
-                ApprenticeCodexServerConfig.magiAgentSuitBootsCastTimeMultiplier()
+                ApprenticeCodexServerConfig.magiAgentSuitBootsCastTimeMultiplier(),
+                ApprenticeCodexServerConfig.magiAgentSuitAmmoNoConsumeChance()
         );
     }
 
@@ -86,7 +88,17 @@ public final class EquipmentSpellTimingConfigSyncEvents {
         }
 
         // 実行中の SERVER config リロードをクライアント側の詠唱予測にも反映する。
-        syncToAllPlayers();
+        EquipmentSpellTimingConfigState.setAmmoNoConsumeChance(
+                ApprenticeCodexServerConfig.magiAgentSuitAmmoNoConsumeChance());
+        var server = ServerLifecycleHooks.getCurrentServer();
+        if (server != null) {
+            server.execute(() -> {
+                for (var player : server.getPlayerList().getPlayers()) {
+                    SpellgunAmmoConsumption.refreshHoodModifier(player);
+                }
+                syncToAllPlayers();
+            });
+        }
     }
 
     @EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)

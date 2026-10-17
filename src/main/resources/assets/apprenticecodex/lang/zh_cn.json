@@ -10,6 +10,7 @@
 
   "emf.variable.apprenticecodex.is_hoverride_broom_rider": "当前渲染的玩家是否正骑乘浮空行驶扫帚",
 
+  "material.apprenticecodex.bullet_rune": "魔弹符文",
   "material.apprenticecodex.spellstained_arcane": "染法奥术",
   "material.apprenticecodex.emberstained_netherite": "残烬染色下界合金",
   "material.apprenticecodex.crystalline_arcane": "结晶奥术",
@@ -23,6 +24,7 @@
   "action.apprenticecodex.advance_spell_cooldowns.entity": "使目标玩家所有正在冷却的法术的冷却时间推进%s秒",
 
   "attribute.name.apprenticecodex.max_enchantment_table_level": "附魔台最高等级",
+  "attribute.name.apprenticecodex.spellgun_ammo_conservation": "施法枪械弹药消耗概率",
 
   "block.apprenticecodex.mage_light_torch": "魔法师火把",
   "block.apprenticecodex.personal_shelf_chest": "个人交互界面",
@@ -375,6 +377,7 @@
   "item.apprenticecodex.magi_agent_suit.rune_hint": "该护甲可在法术校准台调整学派。",
   "item.apprenticecodex.magi_agent_suit.school_rune": "当前已调整至“%s”学派。",
   "item.apprenticecodex.magi_agent_suit_hood.desc": "施法枪与杖枪的弹药有概率不被消耗。",
+  "item.apprenticecodex.magi_agent_suit_hood.desc.artifice": "对Iron's Arms 'n Artifice中的枪械同样有效。",
   "item.apprenticecodex.magi_agent_suit_coat.desc": "特定攻击法术的 SpellPower 学派加成会变为该护甲调整后的学派。",
   "item.apprenticecodex.magi_agent_suit_leggings.desc": "无效化特定攻击法术施法时的移动速度降低，并防止施法被打断。",
   "item.apprenticecodex.magi_agent_suit_boots.desc": "缩短特定攻击法术的冷却时间与施法时间。",
