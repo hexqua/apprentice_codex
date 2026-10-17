@@ -10,6 +10,7 @@ import io.redspace.irons_artifice.item.GunplayManager;
 import io.redspace.irons_artifice.item.MagazineContents;
 import io.redspace.irons_artifice.menu.GunContainer;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -19,6 +20,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
@@ -53,6 +55,12 @@ final class MagiAgentSuitArtificeGameTestScenarios {
             assertChance(h, player, gun, 0.4375);
             player.setItemSlot(EquipmentSlot.HEAD, ItemStack.EMPTY);
             assertChance(h, player, gun, 0.875);
+            player.getAttribute(ApprenticeAttributeRegistry.SPELLGUN_AMMO_CONSERVATION).addTransientModifier(
+                    new AttributeModifier(ResourceLocation.fromNamespaceAndPath("apprenticecodex", "gametest_artifice_ring"),
+                            -0.5, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+            assertChance(h, player, gun, 0.4375);
+            player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_HOOD.get()));
+            assertChance(h, player, gun, 0.21875);
         } finally { player.discard(); }
         h.succeed();
     }

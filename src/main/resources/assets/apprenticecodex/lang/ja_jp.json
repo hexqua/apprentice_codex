@@ -10,6 +10,7 @@
 
   "emf.variable.apprenticecodex.is_hoverride_broom_rider": "描画中のプレイヤーが浮遊走行の箒に騎乗しているか",
 
+  "material.apprenticecodex.bullet_rune": "魔弾のルーン",
   "material.apprenticecodex.spellstained_arcane": "魔術染めの秘術",
   "material.apprenticecodex.emberstained_netherite": "残り火染めのネザライト",
   "material.apprenticecodex.crystalline_arcane": "結晶化した秘術",
@@ -23,6 +24,7 @@
   "action.apprenticecodex.advance_spell_cooldowns.entity": "対象プレイヤーの現在の全魔法クールダウンを%s秒進める",
 
   "attribute.name.apprenticecodex.max_enchantment_table_level": "最大エンチャントテーブルレベル",
+  "attribute.name.apprenticecodex.spellgun_ammo_conservation": "詠唱銃系の弾薬消費確率",
 
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",
   "block.apprenticecodex.personal_shelf_chest" : "パーソナルインターフェース",

@@ -348,7 +348,7 @@ public final class MagicArmorServerConfig {
     private static ModConfigSpec.BooleanValue defineMagiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed(
             ModConfigSpec.Builder builder
     ) {
-        builder.comment("When Magi Agent Suit Hood prevents Staffrifle ammo consumption, also prevent that Staffrifle mana cost.")
+        builder.comment("When the spellgun ammo consumption attribute prevents Staffrifle ammo consumption, also prevent that Staffrifle mana cost.")
                 .push("MagiAgentSuit");
         var value = builder.define(
                 "skipStaffrifleManaCostWhenAmmoNotConsumed",

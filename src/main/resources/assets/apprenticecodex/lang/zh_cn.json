@@ -10,6 +10,7 @@
 
   "emf.variable.apprenticecodex.is_hoverride_broom_rider": "当前渲染的玩家是否正骑乘浮空行驶扫帚",
 
+  "material.apprenticecodex.bullet_rune": "魔弹符文",
   "material.apprenticecodex.spellstained_arcane": "染法奥术",
   "material.apprenticecodex.emberstained_netherite": "残烬染色下界合金",
   "material.apprenticecodex.crystalline_arcane": "结晶奥术",
@@ -23,6 +24,7 @@
   "action.apprenticecodex.advance_spell_cooldowns.entity": "使目标玩家所有正在冷却的法术的冷却时间推进%s秒",
 
   "attribute.name.apprenticecodex.max_enchantment_table_level": "附魔台最高等级",
+  "attribute.name.apprenticecodex.spellgun_ammo_conservation": "施法枪械弹药消耗概率",
 
   "block.apprenticecodex.mage_light_torch": "魔法师火把",
   "block.apprenticecodex.personal_shelf_chest": "个人交互界面",

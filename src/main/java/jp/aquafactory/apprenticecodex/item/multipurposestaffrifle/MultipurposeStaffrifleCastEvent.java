@@ -6,8 +6,8 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunAmmoConsumption;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -52,7 +52,7 @@ public final class MultipurposeStaffrifleCastEvent {
         }
 
         if (!player.isCreative()) {
-            if (MagiAgentSuitEffects.shouldSkipAmmoConsumption(player)) {
+            if (SpellgunAmmoConsumption.shouldSkip(player)) {
                 return;
             }
             SpellGunCastEvent.consumeAmmo(player, player.getInventory(), staffrifle.getAmmoItem(castingItem), staffrifle);

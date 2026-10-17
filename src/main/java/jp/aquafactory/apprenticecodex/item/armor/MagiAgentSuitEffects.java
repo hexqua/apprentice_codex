@@ -10,7 +10,6 @@ import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.IMagiAgentSuitAffectedSpell;
 import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPowerHelper;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -63,18 +62,6 @@ public final class MagiAgentSuitEffects {
         }
 
         return !isWearingSuitPiece(player, ArmorItem.Type.LEGGINGS);
-    }
-
-    public static boolean shouldSkipAmmoConsumption(ServerPlayer player) {
-        var chance = ApprenticeCodexServerConfig.magiAgentSuitAmmoNoConsumeChance();
-        if (chance <= 0.0D || !isWearingSuitPiece(player, ArmorItem.Type.HELMET)) {
-            return false;
-        }
-        return chance >= 1.0D || player.getRandom().nextDouble() < chance;
-    }
-
-    public static boolean shouldSkipStaffrifleManaCostWithAmmo() {
-        return ApprenticeCodexServerConfig.magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed();
     }
 
     public static double resolveSchoolPower(AbstractSpell spell, SchoolType originalSchool, @Nullable LivingEntity caster) {

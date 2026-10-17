@@ -14,6 +14,14 @@ public final class GemsMaterialGameTests {
     }
 
     @GameTest(template = "gametest/basic_floor")
+    public static void bulletRuneScalesAndMultipliesThroughEquippedJewelry(GameTestHelper helper) {
+        if (ModList.get().isLoaded("irons_jewelry")) {
+            GemsBulletRuneGameTestScenarios.verifyEquippedRunes(helper);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = "gametest/basic_floor")
     public static void gemsCooldownActionScalesAndExpiresSpells(GameTestHelper helper) {
         if (ModList.get().isLoaded("irons_jewelry")) {
             GemsCooldownActionGameTestScenarios.verifyScalingAndExpiry(helper);

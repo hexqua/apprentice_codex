@@ -3,16 +3,18 @@ package jp.aquafactory.apprenticecodex.datagen.gems;
 import io.redspace.ironsjewelry.core.actions.ApplyEffectAction;
 import io.redspace.ironsjewelry.core.actions.CreateItemsAction;
 import io.redspace.ironsjewelry.core.data.QualityScalar;
+import io.redspace.ironsjewelry.registry.IronsJewelryRegistries;
 import io.redspace.ironsjewelry.utils.JewelryModTags;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.gems.AdvanceSpellCooldownsAction;
+import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
-import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -28,6 +30,13 @@ public final class GemsMaterials {
     public static List<GemsMaterial> definitions() {
         var operation = AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL;
         return List.of(
+                GemsMaterial.builder(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "bullet_rune"),
+                                "material.apprenticecodex.bullet_rune",
+                                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "palettes/rune_bullet"), 1.5)
+                        .ingredient(Ingredient.of(ItemRegistry.BULLET_RUNE.get()))
+                        .attribute(ApprenticeAttributeRegistry.SPELLGUN_AMMO_CONSERVATION, -0.05, operation)
+                        .tag(TagKey.create(IronsJewelryRegistries.Keys.MATERIAL_REGISTRY_KEY,
+                                ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "rune"))).build(),
                 material("crystalline_arcane", 0.5)
                         .ingredient(Ingredient.of(ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get()))
                         .attribute(AttributeRegistry.SPELL_POWER, 0.03, operation)
