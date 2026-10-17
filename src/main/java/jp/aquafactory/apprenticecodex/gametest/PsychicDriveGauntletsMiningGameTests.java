@@ -9,12 +9,16 @@ import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGau
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsHudState;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsRaycast;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsVisualState;
+import jp.aquafactory.apprenticecodex.mixin.ItemEntityAccessor;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPsychicDriveGauntletsPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.gametest.framework.GameTestInfo;
+import net.minecraft.gametest.framework.GameTestListener;
+import net.minecraft.gametest.framework.GameTestRunner;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -23,7 +27,9 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayer;
@@ -58,7 +64,8 @@ public final class PsychicDriveGauntletsMiningGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, weapon);
         // runtime側の適性検査も確認するため、不正な候補を含む保存内容を直接構築する。
         CalibrationAdjustmentStorage.set(weapon, 2, 3, tool, helper.getLevel().registryAccess());
-        var pos = BlockPos.containing(player.getX(), player.getEyeY(), player.getZ() + 4);
+        // 実tickが必要なドロップも5x5の水平管理範囲に収め、隣接チャンクの状態へ依存させない。
+        var pos = BlockPos.containing(player.getX(), player.getEyeY(), player.getZ() + 2);
         helper.getLevel().setBlockAndUpdate(pos, block.defaultBlockState());
         return new Fixture(player, pos, weapon, tool.copy());
     }
@@ -420,29 +427,143 @@ public final class PsychicDriveGauntletsMiningGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = TEMPLATE)
+    @GameTest(template = TEMPLATE, timeoutTicks = 40)
     public static void carriedDropsIgnoreBlockCollisionUntilReleased(GameTestHelper helper) {
         var fixture = fixture(helper, Blocks.OBSIDIAN, new ItemStack(Items.DIAMOND_PICKAXE));
-        var arm = launch(fixture, 1);
-        long contact = contact(arm);
-        ticks(arm, fixture, contact + 1, contact + 12);
-        var item = drops(fixture).stream().filter(entity -> entity.getItem().is(Items.OBSIDIAN)).findFirst().orElseThrow();
-        var carriedPosition = item.position();
-        // 帰還中のアイテムが壁に押し出されず、解除後には通常tickへ戻ることを実tickで確認する。
-        helper.getLevel().setBlockAndUpdate(BlockPos.containing(carriedPosition), Blocks.STONE.defaultBlockState());
-        int originalAge = item.getAge();
-        helper.runAfterDelay(2, () -> {
+        var observation = new CarriedDropObservation(helper, fixture);
+        // 非同期assertだけのfinallyでは全体timeoutを拾えないため、終了通知でも必ず解放する。
+        helper.testInfo.addListener(observation);
+        observation.start();
+        helper.onEachTick(observation::tick);
+    }
+
+    private static final class CarriedDropObservation implements GameTestListener {
+        private final GameTestHelper helper;
+        private final Fixture fixture;
+        private final List<ItemEntity> minedDrops = new ArrayList<>();
+        private PsychicDriveGauntletsArm arm;
+        private ItemEntity item;
+        private Vec3 carriedPosition;
+        private BlockPos wallPos;
+        private BlockState previousWall;
+        private int originalAge;
+        private int originalTickCount;
+        private int originalCount;
+        private long deadline;
+        private String stage = "setup";
+        private boolean released;
+        private boolean cleaned;
+
+        private CarriedDropObservation(GameTestHelper helper, Fixture fixture) {
+            this.helper = helper;
+            this.fixture = fixture;
+        }
+
+        private void start() {
+            arm = launch(fixture, 1);
+            check(arm.phase() == Phase.MINING, "A valid fixture must start mining");
+            long contact = contact(arm);
             try {
-                helper.assertTrue(!item.isRemoved() && item.position().distanceToSqr(carriedPosition) < 1.0e-6
-                                && item.getAge() == originalAge,
-                        "Carried items must not run physics or merge while held inside a block");
-            } finally { arm.reset(); }
-            helper.runAfterDelay(2, () -> {
-                helper.assertTrue(!item.isRemoved() && item.getAge() > originalAge && !item.isNoGravity(),
-                        "Released items must resume normal ticking");
+                ticks(arm, fixture, contact + 1, contact + 12);
+            } finally {
+                minedDrops.addAll(drops(fixture).stream().filter(drop -> drop.getItem().is(Items.OBSIDIAN)).toList());
+            }
+            check(helper.getLevel().isEmptyBlock(fixture.pos()) && minedDrops.size() == 1,
+                    "Mining must create exactly one obsidian drop");
+            item = minedDrops.getFirst();
+            carriedPosition = item.position();
+            originalAge = item.getAge();
+            originalTickCount = item.tickCount;
+            originalCount = item.getItem().getCount();
+            var relative = helper.relativeVec(item.position());
+            check(relative.x >= 0 && relative.x < 5 && relative.z >= 0 && relative.z < 5,
+                    "Carried drops must remain inside the template's horizontal bounds");
+            check(helper.getLevel().isPositionEntityTicking(item.blockPosition()),
+                    "Carried drops must start in an entity-ticking chunk");
+            wallPos = BlockPos.containing(carriedPosition);
+            previousWall = helper.getLevel().getBlockState(wallPos);
+            helper.getLevel().setBlockAndUpdate(wallPos, Blocks.STONE.defaultBlockState());
+            stage = "carried";
+            deadline = helper.getTick() + 10;
+        }
+
+        private void tick() {
+            if (cleaned || helper.testInfo.isDone()) return;
+            check(!item.isRemoved() && helper.getLevel().getEntity(item.getUUID()) == item
+                            && item.getItem().is(Items.OBSIDIAN) && item.getItem().getCount() == originalCount,
+                    "The original drop must survive without merging or losing items");
+            check(helper.getLevel().isPositionEntityTicking(item.blockPosition()),
+                    "The observed drop must remain in an entity-ticking chunk");
+            if (!released) {
+                check(item.position().distanceToSqr(carriedPosition) < 1.0e-6 && item.getAge() == originalAge
+                                && item.isNoGravity() && item.noPhysics,
+                        "Carried items must preserve position, age, and disabled physics inside a block");
+                // NeoForgeはPreキャンセル前にtickCountを増やすため、age不変だけの偽陽性を防げる。
+                if (item.tickCount - originalTickCount >= 2) {
+                    stage = "release";
+                    arm.reset();
+                    check(!item.isNoGravity() && !item.noPhysics
+                                    && ((ItemEntityAccessor) item).apprenticecodex$getPickupDelay() != 32767,
+                            "Reset must immediately restore gravity, physics, and finite pickup delay");
+                    released = true;
+                    stage = "released ticking";
+                    deadline = helper.getTick() + 10;
+                } else {
+                    check(helper.getTick() < deadline, "Carried items must receive at least two tick attempts within ten ticks");
+                }
+            } else if (item.getAge() > originalAge) {
+                ApprenticeCodex.LOGGER.info("Carried drop tick verification passed: {}", describe());
+                cleanup();
                 helper.succeed();
-            });
-        });
+            } else {
+                check(!item.isNoGravity(), "Released items must retain restored gravity");
+                check(helper.getTick() < deadline, "Released items must resume aging within ten ticks");
+            }
+        }
+
+        private void check(boolean condition, String message) {
+            helper.assertTrue(condition, message + ": " + describe());
+        }
+
+        private String describe() {
+            String state = item == null ? "item=missing, minedDrops=" + minedDrops.size()
+                    : "relative=" + helper.relativeVec(item.position()) + ", absolute=" + item.position()
+                    + ", chunk=" + item.chunkPosition() + ", entityTicking="
+                    + helper.getLevel().isPositionEntityTicking(item.blockPosition())
+                    + ", tickCount=" + item.tickCount + ", originalTickCount=" + originalTickCount
+                    + ", age=" + item.getAge() + ", originalAge=" + originalAge
+                    + ", originalPosition=" + carriedPosition + ", removed=" + item.isRemoved()
+                    + ", count=" + item.getItem().getCount() + ", originalCount=" + originalCount
+                    + ", noGravity=" + item.isNoGravity() + ", noPhysics=" + item.noPhysics
+                    + ", pickupDelay=" + ((ItemEntityAccessor) item).apprenticecodex$getPickupDelay();
+            return "stage=" + stage + ", testTick=" + helper.getTick() + ", target=" + fixture.pos() + ", " + state;
+        }
+
+        private void cleanup() {
+            if (cleaned) return;
+            cleaned = true;
+            try {
+                if (arm != null) arm.reset();
+            } finally {
+                minedDrops.forEach(ItemEntity::discard);
+                if (previousWall != null) helper.getLevel().setBlockAndUpdate(wallPos, previousWall);
+            }
+        }
+
+        @Override
+        public void testStructureLoaded(GameTestInfo info) {}
+
+        @Override
+        public void testPassed(GameTestInfo info, GameTestRunner runner) { cleanup(); }
+
+        @Override
+        public void testFailed(GameTestInfo info, GameTestRunner runner) {
+            ApprenticeCodex.LOGGER.error("Carried drop tick verification failed: " + describe(), info.getError());
+            cleanup();
+        }
+
+        @Override
+        public void testAddedForRerun(GameTestInfo original, GameTestInfo rerun, GameTestRunner runner) { cleanup(); }
     }
 
     @GameTest(template = TEMPLATE)
