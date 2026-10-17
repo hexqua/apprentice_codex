@@ -209,6 +209,13 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SCROLLCASTER_GAUNTLET.get()
         );
         malumMagicCapableWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
+        // Animated はアイテム側で拒否し、機能する Haunted / Spirit Plunder の対象だけ維持する。
+        malumMagicCapableWeaponTag.add(ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.get());
+        malumSoulShatterCapableWeaponTag.add(ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.get());
+        vanillaSwordEnchantableTag.add(ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.get());
+        vanillaFireAspectEnchantableTag.add(ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.get());
+        vanillaSharpWeaponEnchantableTag.add(ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.get());
+        vanillaWeaponEnchantableTag.add(ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.get());
         malumSoulShatterCapableWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         tomagicReversalWeaponTag.add(ItemRegistry.FOCUS_STAFFBOW.get());
         synthesisEnchantableTag.add(ItemRegistry.FOCUS_STAFFBOW.get());

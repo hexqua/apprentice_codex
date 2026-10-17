@@ -6,9 +6,12 @@ import jp.aquafactory.apprenticecodex.event.client.ClientSwingMagicAttackTrigger
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntlets;
+import jp.aquafactory.apprenticecodex.event.client.PsychicDriveGauntletsInputEvents;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import yesman.epicfight.api.animation.types.AttackAnimation;
+import yesman.epicfight.api.client.camera.EpicFightCameraAPI;
 import yesman.epicfight.api.client.input.InputManager;
 import yesman.epicfight.api.client.input.action.EpicFightInputAction;
 import yesman.epicfight.api.event.EpicFightEventHooks;
@@ -18,6 +21,7 @@ import yesman.epicfight.api.event.types.player.SkillCastEvent;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.gui.screen.config.ItemsPreferenceScreen;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
+import yesman.epicfight.skill.SkillSlots;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 
 public final class EpicFightClientCompat {
@@ -44,11 +48,16 @@ public final class EpicFightClientCompat {
         return clientEngine != null && clientEngine.isEpicFightMode();
     }
 
+    public static boolean isTpsMode() {
+        return EpicFightCameraAPI.getInstance().isTPSMode();
+    }
+
     public static void register() {
         // RangedWeaponCapability は Find Weapon の自動判定対象外なので、アイテムクラスを明示登録する。
         ItemsPreferenceScreen.registerWeaponCategorizedItemClasses(
                 MultipurposeStaffrifle.class,
                 FullautoRapidcastSpellrifle.class,
+                PsychicDriveGauntlets.class,
                 AbstractSpellGunItem.class
         );
     }
@@ -132,6 +141,12 @@ public final class EpicFightClientCompat {
     }
 
     private static void onSpellgunSkillCast(SkillCastEvent event) {
+        if (event.getPlayerPatch().getOriginal().getMainHandItem().getItem() instanceof PsychicDriveGauntlets
+                && event.getSkillContainer().getSlot() == SkillSlots.COMBO_ATTACKS) {
+            event.cancel();
+            PsychicDriveGauntletsInputEvents.press();
+            return;
+        }
         if (!EpicFightSpellgunCompat.isMainhandSpellgunBasicAttack(
                 event.getPlayerPatch(),
                 event.getSkillContainer()

@@ -12,6 +12,11 @@ public final class CalibrationAdjustmentEffects {
     private CalibrationAdjustmentEffects() {
     }
 
+    public static List<Component> addMiningFunction() {
+        return List.of(Component.translatable(KEY_PREFIX + "add_mining_function_1"),
+                Component.translatable(KEY_PREFIX + "add_mining_function_2"));
+    }
+
     public static List<Component> addScrollSlot(int count) {
         return line("add_scroll_slot", count);
     }

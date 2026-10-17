@@ -42,6 +42,7 @@ import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDeviceTooltip;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticle;
 import jp.aquafactory.apprenticecodex.particle.ImpactTremorBlockParticle;
 import jp.aquafactory.apprenticecodex.particle.ReticleDotParticle;
+import jp.aquafactory.apprenticecodex.particle.PsychicDriveGauntletsSparkParticle;
 import jp.aquafactory.apprenticecodex.particle.SmashcastDustPillarParticle;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
@@ -51,6 +52,7 @@ import jp.aquafactory.apprenticecodex.registry.MenuRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import jp.aquafactory.apprenticecodex.renderer.ManaForceBladeSheathLayer;
+import jp.aquafactory.apprenticecodex.renderer.item.PsychicDriveGauntletsItemRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.AshenCircletCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.BroomCurioRenderer;
 import jp.aquafactory.apprenticecodex.renderer.curio.CircletCurioRenderer;
@@ -394,6 +396,8 @@ public final class ClientModBusEvents {
 
     private static void registerParticleProviders(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(ParticleRegistry.RETICLE_DOT.get(), ReticleDotParticle.Provider::new);
+        event.registerSpriteSet(ParticleRegistry.PSYCHIC_DRIVE_GAUNTLETS_SPARK.get(),
+                PsychicDriveGauntletsSparkParticle.Provider::new);
         event.registerSpriteSet(ParticleRegistry.ADDITIVE_CIRCLE.get(),
                 sprites -> new AdditiveGlowParticle.Provider(sprites, AdditiveGlowParticle.Preset.CIRCLE));
         event.registerSpriteSet(ParticleRegistry.ADDITIVE_RHOMBUS.get(),
@@ -406,6 +410,23 @@ public final class ClientModBusEvents {
     }
 
     private static void registerClientExtensions(RegisterClientExtensionsEvent event) {
+        event.registerItem(new IClientItemExtensions() {
+            private PsychicDriveGauntletsItemRenderer renderer;
+
+            @Override
+            public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
+                if (renderer == null) {
+                    renderer = new PsychicDriveGauntletsItemRenderer();
+                }
+                return renderer;
+            }
+
+            @Override
+            public HumanoidModel.ArmPose getArmPose(@NotNull LivingEntity entity, @NotNull InteractionHand hand,
+                                                   @NotNull ItemStack stack) {
+                return HumanoidModel.ArmPose.EMPTY;
+            }
+        }, ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.get());
         event.registerItem(new IClientItemExtensions() {
             private FloatmountBroomItemRenderer renderer;
 
@@ -828,6 +849,9 @@ public final class ClientModBusEvents {
     }
 
     private static void registerGuiLayers(RegisterGuiLayersEvent event) {
+        event.registerAbove(VanillaGuiLayers.CROSSHAIR,
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "psychic_drive_gauntlets"),
+                PsychicDriveGauntletsHud.INSTANCE);
         // rightHeightを先に消費する行が下に来るため、外套をカートリッジより先に描く。
         event.registerBelow(VanillaGuiLayers.AIR_LEVEL,
                 ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "shooting_star_mantle"), ShootingStarMantleHud.INSTANCE);
