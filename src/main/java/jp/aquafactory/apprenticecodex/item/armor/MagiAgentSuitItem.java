@@ -9,6 +9,7 @@ import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.ironsartifice.IronsArtificeCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
@@ -259,6 +260,9 @@ public class MagiAgentSuitItem extends ArmorItem
         var descriptionKey = getDescriptionId() + ".desc";
         if (armorType == Type.HELMET) {
             lines.add(Component.translatable(descriptionKey).withStyle(ChatFormatting.GRAY));
+            if (IronsArtificeCompat.isAvailable()) {
+                lines.add(Component.translatable(descriptionKey + ".artifice").withStyle(ChatFormatting.GRAY));
+            }
             return;
         }
 

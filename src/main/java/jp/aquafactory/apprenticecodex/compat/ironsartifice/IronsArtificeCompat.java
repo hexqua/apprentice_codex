@@ -100,6 +100,7 @@ public final class IronsArtificeCompat {
             MinecraftForge.EVENT_BUS.register(SpellboundArmsModuleEvents.class);
             MinecraftForge.EVENT_BUS.register(IronsArtificeManaEvents.class);
             MinecraftForge.EVENT_BUS.register(ManaStabilizerModuleEvents.class);
+            MinecraftForge.EVENT_BUS.register(MagiAgentSuitArtificeEvents.class);
             if (ModList.get().isLoaded("lodestone")) LodestoneLoaded.registerEvents();
             if (ModList.get().isLoaded("malum")) MalumLoaded.registerEvents();
             if (FMLEnvironment.dist == Dist.CLIENT) ClientLoaded.registerEvents();

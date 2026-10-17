@@ -364,6 +364,7 @@
   "item.apprenticecodex.magi_agent_suit.rune_hint": "Tune this armor's school at a Spell Calibration Bench.",
   "item.apprenticecodex.magi_agent_suit.school_rune": "Currently tuned to the \"%s\" school.",
   "item.apprenticecodex.magi_agent_suit_hood.desc": "Spellgun and Staffrifle Ammo has a chance not to be consumed.",
+  "item.apprenticecodex.magi_agent_suit_hood.desc.artifice": "Also applies to guns from Iron's Arms 'n Artifice.",
   "item.apprenticecodex.magi_agent_suit_coat.desc": "Changes SpellPower school bonuses for certain attack spells to this armor's tuned school.",
   "item.apprenticecodex.magi_agent_suit_leggings.desc": "Negates casting movement slowdown for certain attack spells and prevents their casts from being interrupted.",
   "item.apprenticecodex.magi_agent_suit_boots.desc": "Reduces cooldowns and cast times for certain attack spells.",

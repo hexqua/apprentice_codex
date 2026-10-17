@@ -362,6 +362,7 @@
   "item.apprenticecodex.magi_agent_suit.rune_hint": "この防具は術式調整台で系統を調整できる。",
   "item.apprenticecodex.magi_agent_suit.school_rune": "現在\"%s\"の系統に調整されている。",
   "item.apprenticecodex.magi_agent_suit_hood.desc": "詠唱銃と杖銃の弾薬が確率で消費されなくなる。",
+  "item.apprenticecodex.magi_agent_suit_hood.desc.artifice": "Iron's Arms 'n Artifice製の銃に対しても有効。",
   "item.apprenticecodex.magi_agent_suit_coat.desc": "特定の攻撃魔法の系統補正が防具で調整された系統へ変化する。",
   "item.apprenticecodex.magi_agent_suit_leggings.desc": "特定の攻撃魔法の詠唱による移動速度低下を無効化し、中断もされなくなる。",
   "item.apprenticecodex.magi_agent_suit_boots.desc": "特定の攻撃魔法のクールダウンと詠唱時間が短縮される。",
