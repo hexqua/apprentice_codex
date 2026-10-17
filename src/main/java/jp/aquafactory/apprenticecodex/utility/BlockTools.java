@@ -7,6 +7,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
@@ -21,6 +22,11 @@ import net.neoforged.neoforge.event.EventHooks;
 import java.util.Optional;
 
 public final class BlockTools {
+    private static final ThreadLocal<BreakContext> BREAK_CONTEXT = new ThreadLocal<>();
+
+    private record BreakContext(Player player, Level level, BlockPos pos, ItemStack mainHand,
+                                BreakContext previous) {}
+
     private BlockTools(){}
 
     public record PlaceData(BlockPos pos, Direction facing) {}
@@ -82,10 +88,30 @@ public final class BlockTools {
         tryBreakBlockByPlayerHands(level, player, pos, dummyTool);
     }
 
+    /** 採掘ツールへの一時交換で失われる、本来の手持ち効果の参照元を返す。 */
+    public static ItemStack getMainHandForBlockBreak(Player player, Level level, BlockPos pos) {
+        for (var context = BREAK_CONTEXT.get(); context != null; context = context.previous()) {
+            if (context.player() == player && context.level() == level && context.pos().equals(pos)) {
+                return context.mainHand();
+            }
+        }
+        return player.getMainHandItem();
+    }
+
     public static boolean tryBreakBlockByPlayerHands(Level level, ServerPlayer player, BlockPos pos, ItemStack dummyTool){
         if (player != null && !player.isRemoved()) {
             var originalItem = player.getMainHandItem();
             var state = level.getBlockState(pos);
+            var previous = BREAK_CONTEXT.get();
+            var heldItem = originalItem;
+            // 同期イベントから採掘が入れ子になっても、外側のダミーツールを本来の手持ちと誤認しない。
+            for (var context = previous; context != null; context = context.previous()) {
+                if (context.player() == player && context.level() == level) {
+                    heldItem = context.mainHand();
+                    break;
+                }
+            }
+            BREAK_CONTEXT.set(new BreakContext(player, level, pos.immutable(), heldItem, previous));
             try{
                 // ダミーツールをもたせる.
                 player.setItemInHand(InteractionHand.MAIN_HAND, dummyTool);
@@ -98,7 +124,12 @@ public final class BlockTools {
                 return isBroken;
             } finally {
                 // すぐにアイテムをもとに戻す.
-                player.setItemInHand(InteractionHand.MAIN_HAND, originalItem);
+                try {
+                    player.setItemInHand(InteractionHand.MAIN_HAND, originalItem);
+                } finally {
+                    if (previous == null) BREAK_CONTEXT.remove();
+                    else BREAK_CONTEXT.set(previous);
+                }
             }
         } else {
             return level.destroyBlock(pos, true);

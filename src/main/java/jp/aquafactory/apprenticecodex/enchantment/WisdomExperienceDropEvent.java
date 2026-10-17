@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.enchantment;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.utility.BlockTools;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.EventPriority;
@@ -54,7 +55,9 @@ public final class WisdomExperienceDropEvent {
         }
 
         // 1.21.1 NeoForge では採掘 XP の最終補正口が BlockDropsEvent なので、ここで丸め込みまで含めて調整する。
-        event.setDroppedExperience(applyWisdomBonus(droppedExperience, getApplicableWisdomBonusUnits(player)));
+        // 幸運などは event の採掘ツールに任せ、Wisdom は一時交換前の手持ちから判定する。
+        var mainHand = BlockTools.getMainHandForBlockBreak(player, event.getLevel(), event.getPos());
+        event.setDroppedExperience(applyWisdomBonus(droppedExperience, getApplicableWisdomBonusUnits(player, mainHand)));
     }
 
     private static int getApplicableHeldWisdomLevel(Player player) {
@@ -95,8 +98,8 @@ public final class WisdomExperienceDropEvent {
         return Enchantments.getLevel(stack, Enchantments.WISDOM);
     }
 
-    private static int getApplicableWisdomBonusUnits(Player player) {
-        return getApplicableHeldWisdomLevel(player) * HELD_WISDOM_BONUS_UNITS_PER_LEVEL
+    private static int getApplicableWisdomBonusUnits(Player player, ItemStack mainHand) {
+        return Math.max(getHeldWisdomLevel(mainHand), getHeldWisdomLevel(player.getOffhandItem())) * HELD_WISDOM_BONUS_UNITS_PER_LEVEL
                 + (getApplicableArmorWisdomLevel(player) + getApplicableCurioWisdomLevel(player)) * ARMOR_WISDOM_BONUS_UNITS_PER_LEVEL;
     }
 
