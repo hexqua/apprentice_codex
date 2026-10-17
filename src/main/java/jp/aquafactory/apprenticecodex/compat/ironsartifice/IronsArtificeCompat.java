@@ -100,6 +100,7 @@ public final class IronsArtificeCompat {
             NeoForge.EVENT_BUS.register(SpellboundArmsModuleEvents.class);
             NeoForge.EVENT_BUS.register(IronsArtificeManaEvents.class);
             NeoForge.EVENT_BUS.register(ManaStabilizerModuleEvents.class);
+            NeoForge.EVENT_BUS.register(MagiAgentSuitArtificeEvents.class);
             if (ModList.get().isLoaded("lodestone")) LodestoneLoaded.registerEvents();
             if (ModList.get().isLoaded("malum")) MalumLoaded.registerEvents();
             if (FMLEnvironment.dist == Dist.CLIENT) ClientLoaded.registerEvents();

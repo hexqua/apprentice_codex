@@ -305,7 +305,7 @@ public final class MagicArmorServerConfig {
     }
 
     private static ModConfigSpec.DoubleValue defineMagiAgentSuitAmmoNoConsumeChance(ModConfigSpec.Builder builder) {
-        builder.comment("Chance for Magi Agent Suit Hood to prevent Spellgun and Staffrifle ammo consumption. 1.0 = always, 0.0 = disabled.")
+        builder.comment("Chance for Magi Agent Suit Hood to prevent Spellgun, Staffrifle, and Iron's Arms 'n Artifice gun ammo consumption. 1.0 = always, 0.0 = disabled.")
                 .push("MagiAgentSuit");
         var value = builder.defineInRange(
                 "ammoNoConsumeChance",

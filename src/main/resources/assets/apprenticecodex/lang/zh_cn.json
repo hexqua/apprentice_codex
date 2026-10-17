@@ -375,6 +375,7 @@
   "item.apprenticecodex.magi_agent_suit.rune_hint": "该护甲可在法术校准台调整学派。",
   "item.apprenticecodex.magi_agent_suit.school_rune": "当前已调整至“%s”学派。",
   "item.apprenticecodex.magi_agent_suit_hood.desc": "施法枪与杖枪的弹药有概率不被消耗。",
+  "item.apprenticecodex.magi_agent_suit_hood.desc.artifice": "对Iron's Arms 'n Artifice中的枪械同样有效。",
   "item.apprenticecodex.magi_agent_suit_coat.desc": "特定攻击法术的 SpellPower 学派加成会变为该护甲调整后的学派。",
   "item.apprenticecodex.magi_agent_suit_leggings.desc": "无效化特定攻击法术施法时的移动速度降低，并防止施法被打断。",
   "item.apprenticecodex.magi_agent_suit_boots.desc": "缩短特定攻击法术的冷却时间与施法时间。",
