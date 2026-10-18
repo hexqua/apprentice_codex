@@ -149,6 +149,7 @@ public final class RaycastTools {
                 searchBox,
                 e -> e != source
                         && e.isAlive()
+                        && !e.isSpectator()
                         && predicate.test(e)
         );
 
@@ -217,7 +218,7 @@ public final class RaycastTools {
         Vec3 impact = null;
         double closestDistanceSqr = Double.MAX_VALUE;
         for (var candidate : level.getEntities(source, searchBox,
-                e -> e != source && e.isAlive() && predicate.test(e))) {
+                e -> e != source && e.isAlive() && !e.isSpectator() && e.isPickable() && predicate.test(e))) {
             var targetBox = candidate.getBoundingBox();
             var assistedBox = targetBox.inflate(halfWidth);
             var intersection = assistedBox.contains(start) ? Optional.of(start) : assistedBox.clip(start, effectiveEnd);
@@ -356,6 +357,7 @@ public final class RaycastTools {
         return level.getEntities(source, candidates, e ->
                         e != source
                                 && e.isAlive()
+                                && !e.isSpectator()
                                 && predicate.test(e)
                 )
                 .stream()

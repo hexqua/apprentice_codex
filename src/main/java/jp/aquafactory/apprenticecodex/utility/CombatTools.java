@@ -166,6 +166,8 @@ public final class CombatTools {
 
     public static boolean isValidCombatTarget(Entity target, @Nullable Entity owner, CombatTargetPolicy policy) {
         var resolvedTarget = resolutePartEntity(target);
+        // 生存したまま観戦へ移るプレイヤーも、照準・誘導先の共通判定で除外する。
+        if (resolvedTarget.isSpectator()) return false;
         var combatOwner = resolveCombatActor(owner);
 
         if (resolvedTarget == combatOwner && !policy.allowsSelfDamage()) return false;
@@ -383,7 +385,7 @@ public final class CombatTools {
     public static boolean canBeHostileToMe(Entity target, LivingEntity player) {
         if (player == null || target == null) return false;
         if (target == player) return false;
-        if (!target.isAlive()) return false;
+        if (!target.isAlive() || target.isSpectator()) return false;
 
         if (player.isAlliedTo(target) || target.isAlliedTo(player)) {
             return false;
