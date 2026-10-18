@@ -154,10 +154,10 @@ public final class ManaForceReleaseDevice extends Item implements GeoItem, Wisdo
         stopTriggeredAnim(player, GeoItem.getOrAssignId(stack, level), CONTROLLER, "charge");
         triggerAnim(player, GeoItem.getId(stack), CONTROLLER, "release");
 
-        var hit = RaycastTools.raycastFromEye(player, tier.range, 1,
+        var hit = RaycastTools.raycastFromEyeWithAimAssist(player, tier.range, 1,
                 target -> CombatTools.isValidCombatTarget(target, player));
         if (hit.hitEntity() == null) {
-            hit = RaycastTools.raycastFromEye(player, tier.range, 4,
+            hit = RaycastTools.raycastFromEyeWithAimAssist(player, tier.range, 4,
                     target -> CombatTools.isValidCombatTarget(target, player));
         }
         var end = hit.hitPosition();

@@ -221,6 +221,7 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
         var look = caster.getLookAngle().normalize();
 
         // boxWidthは吸い付きやすさに影響するため、ちょっと広めに取る.
+        // TODO: 現APIの幅は候補検索にだけ効く。照準補助APIへの移行はハイライト・着地点への影響を含め後日判断する。
         var result = RaycastTools.raycastFromEye(caster, range, RAYCAST_WIDTH, e -> CombatTools.isValidCombatTarget(e, caster));
 
         Vec3 destination;
