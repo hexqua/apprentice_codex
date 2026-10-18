@@ -132,6 +132,12 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.MANA_SOUL_TRANSDUCER.get()
         );
 
+        var manaDevices = new Item[]{ItemRegistry.NOVICE_MANA_FORCE_RELEASE_DEVICE.get(),
+                        ItemRegistry.ADEPT_MANA_FORCE_RELEASE_DEVICE.get(),
+                        ItemRegistry.MASTER_MANA_FORCE_RELEASE_DEVICE.get()};
+        tag(MALUM_SOUL_HUNTER_WEAPON).add(manaDevices);
+        tag(createTag("malum", "magic_capable_weapon")).add(manaDevices);
+
         // 自前の抽象クラスを継承しないアイテムは後の自動収集から漏れるのでここで直接指定する.
         ironsUpgradeWhitelist.add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),

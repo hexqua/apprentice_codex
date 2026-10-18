@@ -536,7 +536,7 @@
   "item.apprenticecodex.mana_force_release_device.desc_1": "利き手に持っている時、[%s]長押しで溜めることで使用者の全マナを解放して純粋な魔力を対象にぶつける。",
   "item.apprenticecodex.mana_force_release_device.desc_2": "使用時のマナの消費量と系統に応じない魔法威力に応じてダメージが上昇する。",
   "item.apprenticecodex.mana_force_release_device.desc_3": "現在の最大マナで最大%sダメージを与える。",
-  "item.apprenticecodex.mana_force_release_device.desc_4": "使用には最低でも最大マナの%1$d%(%2$s)が必要。",
+  "item.apprenticecodex.mana_force_release_device.desc_4": "使用には最低でも最大マナの%1$s%%(%2$s)が必要。",
   "item.apprenticecodex.mana_force_release_device.low_tier_warning": "%sマナを超える使用分はダメージ変換効率が著しく低下する。",
   "item.apprenticecodex.mana_force_release_device.master_tier_perk": "このデバイスの攻撃は相手の呪文耐性を貫通する。",
   "item.apprenticecodex.wooden_wand.desc": "[%1$s]で耐久力を消費して注入されている魔法を詠唱する。",
@@ -674,6 +674,7 @@
   "entity.apprenticecodex.echo_arrow_arrow": "エコーアロー",
   "entity.apprenticecodex.echo_arrow_core": "残響の核",
   "entity.apprenticecodex.lock_on_ray_laser": "ホーミングレーザー",
+  "entity.apprenticecodex.mana_force_release_bolt": "マナの奔流",
 
   "entity.minecraft.villager.apprenticecodex.errand_mage": "使い走り魔術師",
   "entity.minecraft.zombie_villager.apprenticecodex.errand_mage": "使い走り魔術師",

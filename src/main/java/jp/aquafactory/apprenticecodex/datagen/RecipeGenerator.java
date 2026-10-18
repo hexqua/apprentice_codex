@@ -692,6 +692,39 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.WEAPON_PARTS.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.WEAPON_PARTS.get()))
                 .save(recipeWriter);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.NOVICE_MANA_FORCE_RELEASE_DEVICE.get())
+                .pattern(" IB")
+                .pattern(" SI")
+                .pattern("C  ")
+                .define('B', Items.CUT_COPPER)
+                .define('I', Items.IRON_INGOT)
+                .define('C', Items.COPPER_INGOT)
+                .define('S', Items.STICK)
+                .unlockedBy(getHasName(Items.CUT_COPPER), has(Items.CUT_COPPER))
+                .save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.ADEPT_MANA_FORCE_RELEASE_DEVICE.get())
+                .pattern(" IB")
+                .pattern(" SI")
+                .pattern("C  ")
+                .define('B', Items.DIAMOND)
+                .define('I', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                .define('C', ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get())
+                .define('S', Items.STICK)
+                .unlockedBy(getHasName(Items.DIAMOND), has(Items.DIAMOND))
+                .save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.MASTER_MANA_FORCE_RELEASE_DEVICE.get())
+                .pattern(" IB")
+                .pattern(" SI")
+                .pattern("C  ")
+                .define('B', Items.AMETHYST_SHARD)
+                .define('I', ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get())
+                .define('C', ItemRegistry.WISDOM_SHARD.get())
+                .define('S', Items.STICK)
+                .unlockedBy(getHasName(ItemRegistry.WISDOM_SHARD.get()), has(ItemRegistry.WISDOM_SHARD.get()))
+                .save(recipeOutput);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.ELEMENTAL_BOW.get())
                 .pattern(" AS")
                 .pattern("DMS")
@@ -1388,6 +1421,9 @@ public final class RecipeGenerator extends RecipeProvider {
                 recipeWriter,
                 "arcane_essence_armaments_repair",
                 List.of(
+                        ItemRegistry.NOVICE_MANA_FORCE_RELEASE_DEVICE.get(),
+                        ItemRegistry.ADEPT_MANA_FORCE_RELEASE_DEVICE.get(),
+                        ItemRegistry.MASTER_MANA_FORCE_RELEASE_DEVICE.get(),
                         ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
                         ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
                         ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),

@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex;
 
+import jp.aquafactory.apprenticecodex.event.ManaForceReleaseDeviceConfigSyncEvents;
 import com.mojang.logging.LogUtils;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
@@ -49,6 +50,7 @@ public class ApprenticeCodex
         context.registerConfig(ModConfig.Type.SERVER, ApprenticeCodexServerConfig.SPEC);
 
         var bus = context.getModEventBus();
+        ManaForceReleaseDeviceConfigSyncEvents.register(bus);
         IronsArtificeCompat.register(bus);
         CommenceMagiModuleConfigSyncEvents.register(bus);
         ManaStabilizerModuleConfigSyncEvents.register(bus);

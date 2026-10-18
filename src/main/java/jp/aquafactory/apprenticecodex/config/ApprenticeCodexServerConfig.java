@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.config;
 
+import jp.aquafactory.apprenticecodex.config.item.ManaForceReleaseDeviceServerConfig;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import java.util.List;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -785,6 +786,10 @@ public final class ApprenticeCodexServerConfig {
 
     public static int circuitHeatStaffAdditionalManaReferenceCooldownTicks() {
         return ITEMS_CONFIG.circuitHeatStaffAdditionalManaReferenceCooldownTicks();
+    }
+
+    public static ManaForceReleaseDeviceServerConfig manaForceReleaseDeviceConfig() {
+        return ITEMS_CONFIG.manaForceReleaseDeviceConfig();
     }
 
     public static double ironSwingcastStaffCrystallineArcaneShardDropChance() {

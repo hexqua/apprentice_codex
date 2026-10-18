@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.config;
 
+import jp.aquafactory.apprenticecodex.config.item.ManaForceReleaseDeviceServerConfig;
 import java.util.List;
 import jp.aquafactory.apprenticecodex.config.item.AbsorptionAmplifyAmuletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArcaneCinderServerConfig;
@@ -81,6 +82,7 @@ final class ItemsServerConfig {
     private final FloatmountBroomServerConfig floatmountBroomConfig;
     private final HoverrideBroomServerConfig hoverrideBroomConfig;
     private final IronSwingcastStaffServerConfig ironSwingcastStaffConfig;
+    private final ManaForceReleaseDeviceServerConfig manaForceReleaseDeviceConfig;
     private final SoulstainedSteelSwingcastStaffServerConfig soulstainedSteelSwingcastStaffConfig;
     private final HighTierSwingcastStaffServerConfig highTierSwingcastStaffConfig;
     private final CircuitHeatStaffServerConfig circuitHeatStaffConfig;
@@ -126,6 +128,7 @@ final class ItemsServerConfig {
             FloatmountBroomServerConfig floatmountBroomConfig,
             HoverrideBroomServerConfig hoverrideBroomConfig,
             IronSwingcastStaffServerConfig ironSwingcastStaffConfig,
+            ManaForceReleaseDeviceServerConfig manaForceReleaseDeviceConfig,
             SoulstainedSteelSwingcastStaffServerConfig soulstainedSteelSwingcastStaffConfig,
             HighTierSwingcastStaffServerConfig highTierSwingcastStaffConfig,
             CircuitHeatStaffServerConfig circuitHeatStaffConfig,
@@ -175,6 +178,7 @@ final class ItemsServerConfig {
         this.floatmountBroomConfig = floatmountBroomConfig;
         this.hoverrideBroomConfig = hoverrideBroomConfig;
         this.ironSwingcastStaffConfig = ironSwingcastStaffConfig;
+        this.manaForceReleaseDeviceConfig = manaForceReleaseDeviceConfig;
         this.soulstainedSteelSwingcastStaffConfig = soulstainedSteelSwingcastStaffConfig;
         this.highTierSwingcastStaffConfig = highTierSwingcastStaffConfig;
         this.circuitHeatStaffConfig = circuitHeatStaffConfig;
@@ -227,6 +231,7 @@ final class ItemsServerConfig {
         var floatmountBroomConfig = FloatmountBroomServerConfig.define(builder);
         var hoverrideBroomConfig = HoverrideBroomServerConfig.define(builder);
         var ironSwingcastStaffConfig = IronSwingcastStaffServerConfig.define(builder);
+        var manaForceReleaseDeviceConfig = ManaForceReleaseDeviceServerConfig.define(builder);
         var soulstainedSteelSwingcastStaffConfig = SoulstainedSteelSwingcastStaffServerConfig.define(builder);
         var highTierSwingcastStaffConfig = HighTierSwingcastStaffServerConfig.define(builder);
         var circuitHeatStaffConfig = CircuitHeatStaffServerConfig.define(builder);
@@ -278,6 +283,7 @@ final class ItemsServerConfig {
                 floatmountBroomConfig,
                 hoverrideBroomConfig,
                 ironSwingcastStaffConfig,
+                manaForceReleaseDeviceConfig,
                 soulstainedSteelSwingcastStaffConfig,
                 highTierSwingcastStaffConfig,
                 circuitHeatStaffConfig,
@@ -593,6 +599,10 @@ final class ItemsServerConfig {
 
     int circuitHeatStaffAdditionalManaReferenceCooldownTicks() {
         return circuitHeatStaffConfig.additionalManaReferenceCooldownTicks();
+    }
+
+    ManaForceReleaseDeviceServerConfig manaForceReleaseDeviceConfig() {
+        return manaForceReleaseDeviceConfig;
     }
 
     double ironSwingcastStaffCrystallineArcaneShardDropChance() {

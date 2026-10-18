@@ -20,7 +20,6 @@
     "apprenticecodex:gold_spellcaster_gun",
     "apprenticecodex:diamond_spellcaster_gun",
     "apprenticecodex:malignant_spellcaster_gun",
-    "apprenticecodex:smashcast_scepter",
     "apprenticecodex:copper_swingcast_staff",
     "apprenticecodex:iron_swingcast_staff",
     "apprenticecodex:silver_swingcast_staff",
@@ -32,6 +31,9 @@
     "apprenticecodex:revolvercast_staff",
     "apprenticecodex:crystal_bladed_staff",
     "apprenticecodex:illuminate_stellar_staff",
-    "apprenticecodex:unite_luna_staff"
+    "apprenticecodex:unite_luna_staff",
+    "apprenticecodex:novice_mana_force_release_device",
+    "apprenticecodex:adept_mana_force_release_device",
+    "apprenticecodex:master_mana_force_release_device"
   ]
 }

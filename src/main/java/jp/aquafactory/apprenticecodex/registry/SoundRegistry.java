@@ -20,6 +20,8 @@ public final class SoundRegistry {
     public static final RegistryObject<SoundEvent> RIFLE = reg("rifle");
     public static final RegistryObject<SoundEvent> SUPPRESS_RIFLE = reg("suppress_rifle");
     public static final RegistryObject<SoundEvent> HANDGUN = reg("handgun");
+    public static final RegistryObject<SoundEvent> FORCE_RELEASE_CHARGE = reg("force_release_charge");
+    public static final RegistryObject<SoundEvent> FORCE_RELEASE_FIRE = reg("force_release_fire");
     public static final RegistryObject<SoundEvent> SHOTGUN = reg("shotgun");
     public static final RegistryObject<SoundEvent> MUSKET = reg("musket");
     public static final RegistryObject<SoundEvent> MINIGUN_WARMUP = reg("minigun_warmup");

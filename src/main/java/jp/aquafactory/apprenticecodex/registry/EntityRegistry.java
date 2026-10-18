@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.registry;
 
+import jp.aquafactory.apprenticecodex.item.manaforcereleasedevice.ManaForceReleaseBolt;
+
 import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.SupportedShieldEntity;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -422,6 +424,9 @@ public final class EntityRegistry {
 
     public static final RegistryObject<EntityType<LockOnRayLaserEntity>> LOCK_ON_RAY_LASER =
             regProjectile("lock_on_ray_laser", LockOnRayLaserEntity::new, 128, 1);
+
+    public static final DeferredHolder<EntityType<?>, EntityType<ManaForceReleaseBolt>> MANA_FORCE_RELEASE_BOLT =
+            regProjectile("mana_force_release_bolt", ManaForceReleaseBolt::new, 64, 1);
 
     public static void register(IEventBus bus) {
         ENTITIES.register(bus);

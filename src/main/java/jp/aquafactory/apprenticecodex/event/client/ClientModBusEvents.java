@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
+import jp.aquafactory.apprenticecodex.particle.ManaForceReleaseSparkParticle;
+
 import io.redspace.ironsspellbooks.entity.spells.shield.ShieldRenderer;
 import io.redspace.ironsspellbooks.render.SpellBookCurioRenderer;
 import java.util.concurrent.CompletableFuture;
@@ -334,6 +336,7 @@ public final class ClientModBusEvents {
 
     private static void registerParticleProviders(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(ParticleRegistry.RETICLE_DOT.get(), ReticleDotParticle.Provider::new);
+        event.registerSpriteSet(ParticleRegistry.MANA_FORCE_RELEASE_SPARK.get(), ManaForceReleaseSparkParticle.Provider::new);
         event.registerSpriteSet(ParticleRegistry.PSYCHIC_DRIVE_GAUNTLETS_SPARK.get(),
                 PsychicDriveGauntletsSparkParticle.Provider::new);
         event.registerSpriteSet(ParticleRegistry.ADDITIVE_CIRCLE.get(),
@@ -415,6 +418,8 @@ public final class ClientModBusEvents {
         event.registerEntityRenderer(EntityRegistry.TINY_LUMBERJACK_SAW.get(), TinyLumberjackSawRenderer::new);
         event.registerEntityRenderer(EntityRegistry.ARCANE_BEAM.get(), ArcaneBeamRenderer::new);
         event.registerEntityRenderer(EntityRegistry.SHOCK_BOLT.get(), ShockBoltRenderer::new);
+        event.registerEntityRenderer(EntityRegistry.MANA_FORCE_RELEASE_BOLT.get(), context -> new ShockBoltRenderer(context,
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/mana_force_release_device_bolt.png")));
         event.registerEntityRenderer(EntityRegistry.CATCH_FLAME_IMPACT.get(), NoopRenderer::new);
         event.registerEntityRenderer(EntityRegistry.MANA_SLASH_PROJECTILE.get(), ManaSlashProjectileRenderer::new);
         event.registerEntityRenderer(EntityRegistry.FLY_SWATTER_LAUNCHER.get(), FlySwatterLauncherRenderer::new);
