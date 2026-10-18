@@ -21,6 +21,9 @@ public final class ParticleRegistry {
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> RETICLE_DOT =
             PARTICLES.register("reticle_dot", () -> new SimpleParticleType(true));
 
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> MANA_FORCE_RELEASE_SPARK =
+            PARTICLES.register("mana_force_release_spark", () -> new SimpleParticleType(false));
+
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> PSYCHIC_DRIVE_GAUNTLETS_SPARK =
             PARTICLES.register("psychic_drive_gauntlets_spark", () -> new SimpleParticleType(false));
 

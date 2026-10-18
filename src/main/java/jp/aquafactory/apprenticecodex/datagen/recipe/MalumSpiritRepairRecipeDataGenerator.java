@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.datagen.recipe;
 
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -40,6 +42,9 @@ public final class MalumSpiritRepairRecipeDataGenerator implements DataProvider 
                         "arcane_essence_armaments_repair",
                         0.5F,
                         List.of(
+                                ItemRegistry.NOVICE_MANA_FORCE_RELEASE_DEVICE.get(),
+                                ItemRegistry.ADEPT_MANA_FORCE_RELEASE_DEVICE.get(),
+                                ItemRegistry.MASTER_MANA_FORCE_RELEASE_DEVICE.get(),
                                 jp.aquafactory.apprenticecodex.registry.ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
                                 jp.aquafactory.apprenticecodex.registry.ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
                                 jp.aquafactory.apprenticecodex.registry.ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),

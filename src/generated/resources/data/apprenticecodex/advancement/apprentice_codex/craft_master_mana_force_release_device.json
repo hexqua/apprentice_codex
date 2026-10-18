@@ -1,0 +1,29 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_novice_mana_force_release_device",
+  "criteria": {
+    "craft_master_mana_force_release_device": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:master_mana_force_release_device"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_master_mana_force_release_device.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "apprenticecodex:master_mana_force_release_device"
+    },
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_master_mana_force_release_device.title"
+    }
+  },
+  "requirements": [
+    [
+      "craft_master_mana_force_release_device"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

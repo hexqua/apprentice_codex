@@ -163,6 +163,24 @@ public final class AdvancementGenerator implements AdvancementProvider.Advanceme
                 .addCriterion("crafted_explorers_cane", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.EXPLORERS_CANE.getId()))
                 .save(saver, advancementId("craft_explorers_cane"), existingFileHelper);
 
+        var noviceDevice = Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.NOVICE_MANA_FORCE_RELEASE_DEVICE.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_novice_mana_force_release_device.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_novice_mana_force_release_device.description"),
+                        null, AdvancementType.TASK, true, true, false)
+                .addCriterion("craft_novice_mana_force_release_device", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.NOVICE_MANA_FORCE_RELEASE_DEVICE.getId()))
+                .save(saver, advancementId("craft_novice_mana_force_release_device"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(noviceDevice)
+                .display(ItemRegistry.MASTER_MANA_FORCE_RELEASE_DEVICE.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_master_mana_force_release_device.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_master_mana_force_release_device.description"),
+                        null, AdvancementType.TASK, true, true, false)
+                .addCriterion("craft_master_mana_force_release_device", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.MASTER_MANA_FORCE_RELEASE_DEVICE.getId()))
+                .save(saver, advancementId("craft_master_mana_force_release_device"), existingFileHelper);
+
         var apprenticeMageRobe = Advancement.Builder.advancement()
                 .parent(root)
                 .display(ItemRegistry.APPRENTICE_MAGE_SCARF.get(),

@@ -25,14 +25,20 @@ import java.util.List;
 public class ShockBoltRenderer extends EntityRenderer<ShockBoltEntity> {
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/shock_bolt.png");
-    private static final RenderType RENDER_TYPE =
-            ApprenticeRenderTypes.entityAdditiveGlowNoCull("shock_bolt_additive", TEXTURE);
+    private final RenderType renderType;
+    private final ResourceLocation texture;
 
     private static final float OUTER_WIDTH = 0.24f;
     private static final float INNER_WIDTH = 0.11f;
 
     public ShockBoltRenderer(EntityRendererProvider.Context context) {
+        this(context, TEXTURE);
+    }
+
+    public ShockBoltRenderer(EntityRendererProvider.Context context, ResourceLocation texture) {
         super(context);
+        this.texture = texture;
+        this.renderType = ApprenticeRenderTypes.entityAdditiveGlowNoCull("shock_bolt_additive_" + texture.getPath(), texture);
         shadowRadius = 0.0f;
     }
 
@@ -53,7 +59,7 @@ public class ShockBoltRenderer extends EntityRenderer<ShockBoltEntity> {
             return;
         }
 
-        var consumer = bufferSource.getBuffer(RENDER_TYPE);
+        var consumer = bufferSource.getBuffer(renderType);
         var cameraPos = entityRenderDispatcher.camera.getPosition();
         var visibleStart = totalLength * trimStart;
         var scrollV = -(entity.tickCount + partialTicks) * 0.45f;
@@ -68,7 +74,7 @@ public class ShockBoltRenderer extends EntityRenderer<ShockBoltEntity> {
 
     @Override
     public @NotNull ResourceLocation getTextureLocation(@NotNull ShockBoltEntity entity) {
-        return TEXTURE;
+        return texture;
     }
 
     private static float getTrimStart(float lifeProgress) {
