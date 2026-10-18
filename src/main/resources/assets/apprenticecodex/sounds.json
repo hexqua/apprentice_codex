@@ -1,4 +1,18 @@
 {
+  "force_release_charge": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.force_release_charge",
+    "sounds": [
+      "apprenticecodex:force_release_charge"
+    ]
+  },
+  "force_release_fire": {
+    "category": "player",
+    "subtitle": "subtitle.apprenticecodex.sound.force_release_fire",
+    "sounds": [
+      "apprenticecodex:force_release_fire"
+    ]
+  },
   "psychic_drive_gauntlets_launch": {
     "subtitle": "subtitle.apprenticecodex.sound.psychic_drive_gauntlets_launch",
     "sounds": [
