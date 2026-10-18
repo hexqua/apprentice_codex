@@ -132,6 +132,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 HEALING_BLOOM,
                 ECHO_ARROW,
                 PSYCHIC_DRIVE_GAUNTLETS_MAGIC,
+                MANA_FORCE_RELEASE_DEVICE,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC
         );
@@ -181,6 +182,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
 
         // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効) ※召喚武器は遠距離扱い.
         tag(RANGED_ATTACK).add(
+                MANA_FORCE_RELEASE_DEVICE,
                 ARCANE_BEAM,
                 ARCANE_BLAST,
                 ARCHER_MULTIPLE,
@@ -279,6 +281,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 ECHO_ARROW,
                 HOVERRIDE_BROOM,
                 PSYCHIC_DRIVE_GAUNTLETS_MAGIC,
+                MANA_FORCE_RELEASE_DEVICE,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC
         );
@@ -289,6 +292,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 MANA_FORCE_BLADE,
                 PSYCHIC_DRIVE_GAUNTLETS,
                 PSYCHIC_DRIVE_GAUNTLETS_MAGIC,
+                MANA_FORCE_RELEASE_DEVICE,
                 HOVERRIDE_BROOM,
                 SPELL_REAPER_SCYTHE_THROW,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,
