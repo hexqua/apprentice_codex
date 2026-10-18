@@ -107,10 +107,16 @@ public final class RaycastTools {
         }
     }
 
+    /**
+     * 既存の照準・弾道・移動先を維持する互換API。boxWidthは候補検索幅だけを指定する。
+     * 最終判定はProjectileUtilの固定0.3膨張、命中位置は0.1膨張で再計算し、失敗時は対象中央を返す。
+     * 幅を命中判定にも反映する救済にはraycastFromEyeWithAimAssistを使用する。
+     */
     public static TargetResult raycast(Entity source, Vec3 look, double blockRange, double entityRange, double boxWidth, Predicate<Entity> predicate){
         return raycast(source, look, blockRange, entityRange, boxWidth, ClipContext.Block.COLLIDER, predicate);
     }
 
+    /** {@link #raycast(Entity, Vec3, double, double, double, Predicate)} と同じ互換判定でブロック形状を指定する。 */
     public static TargetResult raycast(Entity source, Vec3 look, double blockRange, double entityRange, double boxWidth,
                                        ClipContext.Block blockShape, Predicate<Entity> predicate){
         var level = source.level();
@@ -143,6 +149,7 @@ public final class RaycastTools {
                 searchBox,
                 e -> e != source
                         && e.isAlive()
+                        && !e.isSpectator()
                         && predicate.test(e)
         );
 
@@ -182,8 +189,76 @@ public final class RaycastTools {
         return raycast(source, look, range, range, boxWidth, blockShape, predicate);
     }
 
+    /** boxWidthは候補検索幅。最終判定と命中位置は既存の {@link #raycast} の仕様を維持する。 */
     public static TargetResult raycastFromEye(Entity source, double range, double boxWidth, Predicate<Entity> predicate) {
         return raycast(source, source.getViewVector(1.0F), range, boxWidth, predicate);
+    }
+
+    /**
+     * 視線への照準補助。全幅assistWidthの半分だけ対象AABBを各軸へ膨張し、最初に交差する有効対象を返す。
+     * 中心線は衝突ブロックで止め、対象上の可視点も射程内かつ停止位置より手前にあることを要求する。
+     * 命中位置は仮想的な膨張箱上ではなく対象内に置き、稲妻などの終点が敵の横に残るのを防ぐ。
+     */
+    public static TargetResult raycastFromEyeWithAimAssist(Entity source, double range, double assistWidth,
+                                                          Predicate<Entity> predicate) {
+        if (!Double.isFinite(range) || range <= 0 || !Double.isFinite(assistWidth) || assistWidth < 0) {
+            throw new IllegalArgumentException("Aim assist requires a positive finite range and a nonnegative finite width");
+        }
+        var level = source.level();
+        var start = source.getEyePosition(1.0F);
+        var forward = source.getViewVector(1.0F).normalize();
+        var end = start.add(forward.scale(range));
+        var blockHit = level.clip(new ClipContext(start, end, ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE, source));
+        var effectiveEnd = blockHit.getType() == HitResult.Type.MISS ? end : blockHit.getLocation();
+        var maxDistance = start.distanceTo(effectiveEnd);
+        var halfWidth = assistWidth / 2;
+        var searchBox = new AABB(start, effectiveEnd).inflate(halfWidth);
+        Entity closest = null;
+        Vec3 impact = null;
+        double closestDistanceSqr = Double.MAX_VALUE;
+        for (var candidate : level.getEntities(source, searchBox,
+                e -> e != source && e.isAlive() && !e.isSpectator() && e.isPickable() && predicate.test(e))) {
+            var targetBox = candidate.getBoundingBox();
+            var assistedBox = targetBox.inflate(halfWidth);
+            var intersection = assistedBox.contains(start) ? Optional.of(start) : assistedBox.clip(start, effectiveEnd);
+            if (intersection.isEmpty()) continue;
+            var distanceSqr = start.distanceToSqr(intersection.get());
+            if (distanceSqr >= closestDistanceSqr) continue;
+            var hitPosition = findAimAssistImpact(level, source, start, forward, range, maxDistance,
+                    targetBox, intersection.get());
+            if (hitPosition == null) continue;
+            closest = candidate;
+            impact = hitPosition;
+            closestDistanceSqr = distanceSqr;
+        }
+        if (closest != null) return new TargetResult(TargetType.LIVING_ENTITY, impact, closest, null);
+        if (blockHit.getType() != HitResult.Type.MISS) {
+            return new TargetResult(TargetType.BLOCK, blockHit.getLocation(), null, blockHit.getBlockPos());
+        }
+        return new TargetResult(TargetType.NONE, end, null, null);
+    }
+
+    @Nullable
+    private static Vec3 findAimAssistImpact(Level level, Entity source, Vec3 start, Vec3 forward,
+                                            double range, double maxDistance, AABB targetBox, Vec3 intersection) {
+        var nearest = new Vec3(Mth.clamp(intersection.x, targetBox.minX, targetBox.maxX),
+                Mth.clamp(intersection.y, targetBox.minY, targetBox.maxY),
+                Mth.clamp(intersection.z, targetBox.minZ, targetBox.maxZ));
+        var points = new ArrayList<Vec3>();
+        points.add(insetTowardsCenter(nearest, targetBox.getCenter()));
+        // 中央だけで遮蔽を決めると、体の一部が見えている敵まで取り逃す。既存の可視点群を共有する。
+        points.addAll(createOcclusionTargetPoints(targetBox));
+        for (var point : points) {
+            var offset = point.subtract(start);
+            var depth = offset.dot(forward);
+            // 膨張箱だけが手前へ伸びても、壁の奥や射程外の実体には命中させない。
+            if (depth < 0 || depth > maxDistance || offset.lengthSqr() > range * range) continue;
+            var blockHit = level.clip(new ClipContext(start, point, ClipContext.Block.COLLIDER,
+                    ClipContext.Fluid.NONE, source));
+            if (blockHit.getType() == HitResult.Type.MISS) return point;
+        }
+        return null;
     }
 
     @Nullable
@@ -282,6 +357,7 @@ public final class RaycastTools {
         return level.getEntities(source, candidates, e ->
                         e != source
                                 && e.isAlive()
+                                && !e.isSpectator()
                                 && predicate.test(e)
                 )
                 .stream()

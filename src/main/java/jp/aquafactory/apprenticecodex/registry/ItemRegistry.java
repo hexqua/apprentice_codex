@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.registry;
 
+import jp.aquafactory.apprenticecodex.item.manaforcereleasedevice.ManaForceReleaseDevice;
+import jp.aquafactory.apprenticecodex.item.manaforcereleasedevice.ManaForceReleaseTier;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.ironsartifice.IronsArtificeCompat;
 import jp.aquafactory.apprenticecodex.item.*;
@@ -499,6 +501,15 @@ public final class ItemRegistry {
             ITEMS.register("spellcharged_greatsword", SpellchargedGreatsword::new);
     public static final DeferredHolder<Item, Item> COPPER_SWINGCAST_STAFF =
             ITEMS.register("copper_swingcast_staff", CopperSwingcastStaff::new);
+    public static final DeferredHolder<Item, Item> NOVICE_MANA_FORCE_RELEASE_DEVICE =
+            ITEMS.register("novice_mana_force_release_device", () -> new ManaForceReleaseDevice(ManaForceReleaseTier.NOVICE));
+
+    public static final DeferredHolder<Item, Item> ADEPT_MANA_FORCE_RELEASE_DEVICE =
+            ITEMS.register("adept_mana_force_release_device", () -> new ManaForceReleaseDevice(ManaForceReleaseTier.ADEPT));
+
+    public static final DeferredHolder<Item, Item> MASTER_MANA_FORCE_RELEASE_DEVICE =
+            ITEMS.register("master_mana_force_release_device", () -> new ManaForceReleaseDevice(ManaForceReleaseTier.MASTER));
+
     public static final DeferredHolder<Item, Item> IRON_SWINGCAST_STAFF =
             ITEMS.register("iron_swingcast_staff", IronSwingcastStaff::new);
     public static final DeferredHolder<Item, Item> SILVER_SWINGCAST_STAFF =

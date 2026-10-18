@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex;
 
+import jp.aquafactory.apprenticecodex.event.ManaForceReleaseDeviceConfigSyncEvents;
 import com.mojang.logging.LogUtils;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
@@ -122,6 +123,7 @@ public class ApprenticeCodex
         LinearBuildConfigSyncEvents.register(modEventBus);
         CircuitHeatStaffConfigSyncEvents.register(modEventBus);
         IronSwingcastStaffConfigSyncEvents.register(modEventBus);
+        ManaForceReleaseDeviceConfigSyncEvents.register(modEventBus);
         HighTierSwingcastStaffConfigSyncEvents.register(modEventBus);
         SoulstainedSteelSwingcastStaffConfigSyncEvents.register(modEventBus);
         SpellgunConfigSyncEvents.register(modEventBus);

@@ -106,7 +106,8 @@ public final class SummonedFirearmTools {
         EntityAimHit closest = null;
         var closestDistanceSqr = Double.MAX_VALUE;
 
-        for (var candidate : level.getEntities(caster, searchBox, e -> e.isAlive() && predicate.test(e))) {
+        for (var candidate : level.getEntities(caster, searchBox,
+                e -> e.isAlive() && !e.isSpectator() && e.isPickable() && predicate.test(e))) {
             // ProjectileUtil は命中座標がエンティティ基準位置へ落ちるため、視線と少し太らせたAABBの交点を使う。
             var hitPosition = candidate.getBoundingBox().inflate(AIM_ASSIST_INFLATE).clip(start, end);
             if (hitPosition.isEmpty()) {

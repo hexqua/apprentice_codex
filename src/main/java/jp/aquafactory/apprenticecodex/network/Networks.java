@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "134";
+    private static final String PROTOCOL_VERSION = "135";
 
     private Networks() {
     }
@@ -390,6 +390,11 @@ public final class Networks {
                 SyncCircuitHeatStaffConfigPacket.TYPE,
                 SyncCircuitHeatStaffConfigPacket.STREAM_CODEC,
                 SyncCircuitHeatStaffConfigPacket::handle
+        );
+        registrar.playToClient(
+                SyncManaForceReleaseDeviceConfigPacket.TYPE,
+                SyncManaForceReleaseDeviceConfigPacket.STREAM_CODEC,
+                SyncManaForceReleaseDeviceConfigPacket::handle
         );
         registrar.playToClient(
                 SyncIronSwingcastStaffConfigPacket.TYPE,

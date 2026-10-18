@@ -1,5 +1,8 @@
 {
   "values": [
+    "apprenticecodex:novice_mana_force_release_device",
+    "apprenticecodex:adept_mana_force_release_device",
+    "apprenticecodex:master_mana_force_release_device",
     "apprenticecodex:enchantress_hat",
     "apprenticecodex:enchantress_robe",
     "apprenticecodex:enchantress_leggings",
@@ -50,6 +53,9 @@
     "apprenticecodex:spell_side_edge_mirror",
     "apprenticecodex:spellcharged_greatsword",
     "apprenticecodex:copper_swingcast_staff",
+    "apprenticecodex:novice_mana_force_release_device",
+    "apprenticecodex:adept_mana_force_release_device",
+    "apprenticecodex:master_mana_force_release_device",
     "apprenticecodex:iron_swingcast_staff",
     "apprenticecodex:silver_swingcast_staff",
     "apprenticecodex:gold_swingcast_staff",

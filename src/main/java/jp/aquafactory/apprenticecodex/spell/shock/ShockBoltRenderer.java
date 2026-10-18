@@ -25,14 +25,21 @@ import java.util.List;
 public class ShockBoltRenderer extends EntityRenderer<ShockBoltEntity> {
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "textures/spell/shock_bolt.png");
-    private static final RenderType RENDER_TYPE =
-            ApprenticeRenderTypes.entityAdditiveGlowNoCull("shock_bolt_additive", TEXTURE);
+    private final RenderType renderType;
+    private final ResourceLocation texture;
 
     private static final float OUTER_WIDTH = 0.24f;
     private static final float INNER_WIDTH = 0.11f;
 
     public ShockBoltRenderer(EntityRendererProvider.Context context) {
+        this(context, TEXTURE);
+    }
+
+    public ShockBoltRenderer(EntityRendererProvider.Context context, ResourceLocation texture) {
         super(context);
+        this.texture = texture;
+        // ねじれた帯の外層・内層が互いを遮らないよう、地形の深度テストだけ残して深度は書き込まない。
+        this.renderType = ApprenticeRenderTypes.entityAdditiveGlowNoCullColorOnly("shock_bolt_additive_" + texture.getPath(), texture);
         shadowRadius = 0.0f;
     }
 
@@ -46,29 +53,26 @@ public class ShockBoltRenderer extends EntityRenderer<ShockBoltEntity> {
 
         var lifeProgress = entity.getLifeProgress(partialTicks);
         var trimStart = getTrimStart(lifeProgress);
-        var alphaScale = getAlphaScale(lifeProgress);
         var points = buildPath(localEnd, entity.getPathSeed());
         var totalLength = getPathLength(points);
         if (totalLength <= 1.0e-4f) {
             return;
         }
 
-        var consumer = bufferSource.getBuffer(RENDER_TYPE);
+        var consumer = bufferSource.getBuffer(renderType);
         var cameraPos = entityRenderDispatcher.camera.getPosition();
         var visibleStart = totalLength * trimStart;
-        var scrollV = -(entity.tickCount + partialTicks) * 0.45f;
+        var sections = BoltRibbonGeometry.build(points, cameraPos.subtract(entity.position()), OUTER_WIDTH * 0.5);
 
-        drawPath(entity, poseStack, consumer, cameraPos, points, visibleStart, scrollV,
-                OUTER_WIDTH, 0.42f, 0.86f, 1.00f, 0.42f * alphaScale);
-        drawPath(entity, poseStack, consumer, cameraPos, points, visibleStart, scrollV + 0.35f,
-                INNER_WIDTH, 0.92f, 0.98f, 1.00f, 0.86f * alphaScale);
+        drawPath(poseStack, consumer, sections, visibleStart, OUTER_WIDTH, 0.42f, 0.86f, 1.00f);
+        drawPath(poseStack, consumer, sections, visibleStart, INNER_WIDTH, 0.92f, 0.98f, 1.00f);
 
         super.render(entity, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
     }
 
     @Override
     public @NotNull ResourceLocation getTextureLocation(@NotNull ShockBoltEntity entity) {
-        return TEXTURE;
+        return texture;
     }
 
     private static float getTrimStart(float lifeProgress) {
@@ -78,11 +82,6 @@ public class ShockBoltRenderer extends EntityRenderer<ShockBoltEntity> {
 
         var progress = Mth.clamp((lifeProgress - 0.35f) / 0.65f, 0.0f, 1.0f);
         return easeInCubic(progress);
-    }
-
-    private static float getAlphaScale(float lifeProgress) {
-        var fadeProgress = Mth.clamp((lifeProgress - 0.55f) / 0.45f, 0.0f, 1.0f);
-        return 1.0f - 0.55f * easeInCubic(fadeProgress);
     }
 
     private static List<Vec3> buildPath(Vec3 localEnd, int seed) {
@@ -136,31 +135,25 @@ public class ShockBoltRenderer extends EntityRenderer<ShockBoltEntity> {
         return clamped * clamped * clamped;
     }
 
-    private static void drawPath(ShockBoltEntity entity, PoseStack poseStack, VertexConsumer consumer, Vec3 cameraPos,
-                                 List<Vec3> points, float visibleStart, float scrollV,
-                                 float width, float red, float green, float blue, float alpha) {
-        var consumed = 0.0f;
-
-        for (var i = 1; i < points.size(); i++) {
-            var start = points.get(i - 1);
-            var end = points.get(i);
-            var segmentLength = (float) start.distanceTo(end);
-            if (segmentLength <= 1.0e-5f) {
-                continue;
-            }
-
-            var segmentVisibleStart = Math.max(0.0f, visibleStart - consumed);
-            if (segmentVisibleStart >= segmentLength) {
-                consumed += segmentLength;
-                continue;
-            }
-
-            var visibleFrom = segmentVisibleStart <= 1.0e-5f
-                    ? start
-                    : start.lerp(end, segmentVisibleStart / segmentLength);
-            drawSegment(entity.position(), poseStack, consumer, cameraPos, visibleFrom, end, width, red, green, blue, alpha,
-                    scrollV + consumed);
-            consumed += segmentLength;
+    private static void drawPath(PoseStack poseStack, VertexConsumer consumer, List<BoltRibbonGeometry.Section> sections,
+                                 float visibleStart, float width, float red, float green, float blue) {
+        var pose = poseStack.last();
+        double halfWidth = width * 0.5;
+        for (int i = 1; i < sections.size(); i++) {
+            var start = sections.get(i - 1);
+            var end = sections.get(i);
+            if (end.distance() < visibleStart) continue;
+            double length = end.distance() - start.distance();
+            double trim = length > 1.0e-6 ? Math.clamp((visibleStart - start.distance()) / length, 0, 1) : 0;
+            var left = start.left(halfWidth).lerp(end.left(halfWidth), trim);
+            var right = start.right(halfWidth).lerp(end.right(halfWidth), trim);
+            var normal = start.normal().lerp(end.normal(), trim).normalize();
+            // 同一断面のUVと法線を共有し、色の帯と照明の両方を折れ目で連続させる。
+            // 長手方向の中央を使うため、元のテクスチャの色を保ったまま接続できる。
+            addVertex(pose.pose(), pose.normal(), consumer, left, 0, 0.5f, red, green, blue, 1, normal);
+            addVertex(pose.pose(), pose.normal(), consumer, right, 1, 0.5f, red, green, blue, 1, normal);
+            addVertex(pose.pose(), pose.normal(), consumer, end.right(halfWidth), 1, 0.5f, red, green, blue, 1, end.normal());
+            addVertex(pose.pose(), pose.normal(), consumer, end.left(halfWidth), 0, 0.5f, red, green, blue, 1, end.normal());
         }
     }
 

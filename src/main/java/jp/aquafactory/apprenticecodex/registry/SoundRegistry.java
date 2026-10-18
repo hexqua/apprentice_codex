@@ -26,6 +26,8 @@ public final class SoundRegistry {
     public static final DeferredHolder<SoundEvent, SoundEvent> VANILLA_SCYTHE_CATCH = reg("vanilla_scythe_catch");
     public static final DeferredHolder<SoundEvent, SoundEvent> SUPPRESS_RIFLE = reg("suppress_rifle");
     public static final DeferredHolder<SoundEvent, SoundEvent> HANDGUN = reg("handgun");
+    public static final DeferredHolder<SoundEvent, SoundEvent> FORCE_RELEASE_CHARGE = reg("force_release_charge");
+    public static final DeferredHolder<SoundEvent, SoundEvent> FORCE_RELEASE_FIRE = reg("force_release_fire");
     public static final DeferredHolder<SoundEvent, SoundEvent> SHOTGUN = reg("shotgun");
     public static final DeferredHolder<SoundEvent, SoundEvent> MUSKET = reg("musket");
     public static final DeferredHolder<SoundEvent, SoundEvent> MINIGUN_WARMUP = reg("minigun_warmup");

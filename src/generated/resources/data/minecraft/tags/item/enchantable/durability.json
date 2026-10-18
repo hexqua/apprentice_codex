@@ -1,5 +1,8 @@
 {
   "values": [
+    "apprenticecodex:novice_mana_force_release_device",
+    "apprenticecodex:adept_mana_force_release_device",
+    "apprenticecodex:master_mana_force_release_device",
     "apprenticecodex:wooden_wand",
     "apprenticecodex:mana_force_blade",
     "apprenticecodex:spell_reaper_scythe",

@@ -182,6 +182,17 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var vanillaMaceEnchantableTag = tag(MINECRAFT_ENCHANTABLE_MACE);
         var vanillaTridentEnchantableTag = tag(MINECRAFT_ENCHANTABLE_TRIDENT);
         var vanillaDurabilityEnchantableTag = tag(MINECRAFT_ENCHANTABLE_DURABILITY);
+        var manaDevices = new Item[]{ItemRegistry.NOVICE_MANA_FORCE_RELEASE_DEVICE.get(),
+                ItemRegistry.ADEPT_MANA_FORCE_RELEASE_DEVICE.get(), ItemRegistry.MASTER_MANA_FORCE_RELEASE_DEVICE.get()};
+        vanillaSwordEnchantableTag.add(manaDevices);
+        vanillaFireAspectEnchantableTag.add(manaDevices);
+        vanillaSharpWeaponEnchantableTag.add(manaDevices);
+        vanillaWeaponEnchantableTag.add(manaDevices);
+        vanillaDurabilityEnchantableTag.add(manaDevices);
+        wisdomEnchantableTag.add(manaDevices);
+        malumMagicCapableWeaponTag.add(manaDevices);
+        malumSoulShatterCapableWeaponTag.add(manaDevices);
+        malumReplenishingEnchantableTag.add(manaDevices);
         // Wooden Wand は Elytra を判定プローブとして使うため、1.21.1 のタグ面も同じ許可範囲へ揃える。
         vanillaDurabilityEnchantableTag.add(ItemRegistry.WOODEN_WAND.get());
         ironsUpgradeWhitelist.add(
