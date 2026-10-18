@@ -133,7 +133,7 @@ public class Shock extends AbstractSpell {
 
     @Nullable
     private TargetingResult resolveRaycastTarget(LivingEntity caster, double range, double width) {
-        var result = RaycastTools.raycastFromEye(
+        var result = RaycastTools.raycastFromEyeWithAimAssist(
                 caster,
                 range,
                 width,

@@ -195,6 +195,42 @@ public final class ManaForceReleaseDeviceGameTests {
     }
 
     @GameTest(template = TEMPLATE)
+    public static void wideFallbackDamagesOffsetTargetAndKeepsThinPriority(GameTestHelper helper) {
+        var player = player(helper, novice());
+        player.setYRot(0);
+        player.setXRot(0);
+        var offset = Objects.requireNonNull(EntityType.ZOMBIE.create(helper.getLevel()));
+        var direct = Objects.requireNonNull(EntityType.ZOMBIE.create(helper.getLevel()));
+        offset.setNoAi(true);
+        offset.setNoGravity(true);
+        offset.setPos(player.position().add(1, 0, 4));
+        direct.setNoAi(true);
+        direct.setNoGravity(true);
+        direct.setPos(player.position().add(0, 0, 6));
+        helper.getLevel().addFreshEntity(offset);
+        helper.getLevel().addFreshEntity(direct);
+        try {
+            novice().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            for (int tick = 0; tick < 40; tick++) player.tickUse();
+            helper.assertTrue(direct.getHealth() < direct.getMaxHealth() && offset.getHealth() == offset.getMaxHealth(),
+                    "The device must prioritize a thin-ray target over a closer wide-only target");
+            direct.discard();
+            player.getCooldowns().removeCooldown(novice());
+            MagicData.getPlayerMagicData(player).setMana(100);
+            novice().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+            for (int tick = 0; tick < 40; tick++) player.tickUse();
+            helper.assertTrue(Math.abs(offset.getHealth() - 12) < 0.01F
+                            && MagicData.getPlayerMagicData(player).getMana() == 0
+                            && player.getMainHandItem().getDamageValue() == 2,
+                    "The wide fallback must deal damage with the normal full mana and durability costs");
+        } finally {
+            offset.discard();
+            direct.discard();
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void durabilityRepairEnchantmentsAndMalumTags(GameTestHelper helper) {
         var player = player(helper, novice());
         var registry = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
