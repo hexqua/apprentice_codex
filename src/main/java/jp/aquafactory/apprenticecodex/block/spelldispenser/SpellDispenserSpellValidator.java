@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.spells.SpellSlot;
 import io.redspace.ironsspellbooks.item.Scroll;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.utility.SpellRecastCompatibility;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -64,7 +65,7 @@ public final class SpellDispenserSpellValidator {
         if (castType != CastType.INSTANT && castType != CastType.LONG && castType != CastType.CONTINUOUS) {
             return new ValidationResult(stack, spellData, FailureReason.UNSUPPORTED_CAST_TYPE);
         }
-        if (spell.getRecastCount(spellData.getLevel(), null) > 0) {
+        if (!SpellRecastCompatibility.hasNoRecastWithoutCaster(spell, spellData.getLevel())) {
             return new ValidationResult(stack, spellData, FailureReason.HAS_RECAST);
         }
         if (SpellDispenserSpellProfileManager.getProfile(spell).isEmpty()) {

@@ -15,6 +15,7 @@ import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
+import jp.aquafactory.apprenticecodex.utility.SpellRecastCompatibility;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -206,7 +207,7 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem
             return false;
         }
 
-        if (tier.requireZeroRecast() && spell.getRecastCount(spellLevel, null) > 0) {
+        if (tier.requireZeroRecast() && !SpellRecastCompatibility.hasNoRecastWithoutCaster(spell, spellLevel)) {
             return false;
         }
 

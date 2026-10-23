@@ -14,6 +14,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.mixin.LivingEntityAccessor;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
+import jp.aquafactory.apprenticecodex.utility.SpellRecastCompatibility;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.InteractionHand;
@@ -110,14 +111,14 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
         }
 
         return SpellGunCastType.from(spell.getCastType()) != null
-                && spell.getRecastCount(spellLevel, null) <= 0;
+                && SpellRecastCompatibility.hasNoRecastWithoutCaster(spell, spellLevel);
     }
 
     @Override
     public boolean supportsManaBypass(@Nullable AbstractSpell spell) {
         return spell != null
                 && (spell.getCastType() == CastType.INSTANT || spell.getCastType() == CastType.LONG)
-                && spell.getRecastCount(1, null) <= 0;
+                && SpellRecastCompatibility.hasNoRecastWithoutCaster(spell, 1);
     }
 
     @Override
