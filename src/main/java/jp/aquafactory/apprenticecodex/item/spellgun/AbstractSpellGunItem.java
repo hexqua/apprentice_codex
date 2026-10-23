@@ -31,6 +31,7 @@ import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
 import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
+import jp.aquafactory.apprenticecodex.utility.SpellRecastCompatibility;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -568,8 +569,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         if (maxCooldownTicks != null && spell.getSpellCooldown() > maxCooldownTicks) {
             return false;
         }
-
-        return !spellGunConfig.requireZeroInstantRecast() || spell.getRecastCount(spellLevel, null) <= 0;
+        return !spellGunConfig.requireZeroInstantRecast() || SpellRecastCompatibility.hasNoRecastWithoutCaster(spell, spellLevel);
     }
 
     public final boolean tryTriggerImbuedSpell(ServerPlayer player, InteractionHand usedHand,

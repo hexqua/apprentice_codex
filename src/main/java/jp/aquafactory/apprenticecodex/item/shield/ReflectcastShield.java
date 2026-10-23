@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.shield;
 
+import jp.aquafactory.apprenticecodex.utility.SpellRecastCompatibility;
+
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
@@ -110,11 +112,11 @@ public class ReflectcastShield extends AbstractImbueShieldItem
                 && (spell.getCastType() == CastType.INSTANT
                 || spell.getCastType() == CastType.LONG
                 || spell.getCastType() == CastType.CONTINUOUS)
-                && spell.getRecastCount(spellLevel, null) <= 0;
+                && SpellRecastCompatibility.hasNoRecastWithoutCaster(spell, spellLevel);
     }
 
     public boolean canUseConfiguredSpell(ItemStack stack, @Nullable AbstractSpell spell, int spellLevel) {
-        if (spell == null || spell == SpellRegistry.none() || spell.getRecastCount(spellLevel, null) > 0) {
+        if (spell == null || spell == SpellRegistry.none() || !SpellRecastCompatibility.hasNoRecastWithoutCaster(spell, spellLevel)) {
             return false;
         }
         return spell.getCastType() == CastType.INSTANT

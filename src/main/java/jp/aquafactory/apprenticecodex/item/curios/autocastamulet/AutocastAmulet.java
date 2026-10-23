@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import jp.aquafactory.apprenticecodex.utility.SpellRecastCompatibility;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -132,7 +133,7 @@ public class AutocastAmulet extends Item implements ICurioItem, ArcaneAnvilImbue
         return spell != null
                 && spell != SpellRegistry.none()
                 && (spell.getCastType() == CastType.INSTANT || spell.getCastType() == CastType.LONG)
-                && spell.getRecastCount(spellLevel, null) <= 0;
+                && SpellRecastCompatibility.hasNoRecastWithoutCaster(spell, spellLevel);
     }
 
     public boolean canAutoCastSpell(ItemStack stack, SpellData spellData) {
@@ -143,7 +144,7 @@ public class AutocastAmulet extends Item implements ICurioItem, ArcaneAnvilImbue
         return spell != null
                 && spell != SpellRegistry.none()
                 && getSupportedCastTypes(stack).contains(SpellGunCastType.from(spell.getCastType()))
-                && spell.getRecastCount(spellLevel, null) <= 0;
+                && SpellRecastCompatibility.hasNoRecastWithoutCaster(spell, spellLevel);
     }
 
     @Override

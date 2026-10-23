@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.shield;
 
+import jp.aquafactory.apprenticecodex.utility.SpellRecastCompatibility;
+
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
@@ -212,13 +214,13 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
     public boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel) {
         return spell != null && spell != SpellRegistry.none()
                 && (spell.getCastType() == CastType.INSTANT || spell.getCastType() == CastType.LONG)
-                && spell.getRecastCount(spellLevel, null) <= 0;
+                && SpellRecastCompatibility.hasNoRecastWithoutCaster(spell, spellLevel);
     }
 
     public boolean canUseConfiguredSpell(ItemStack stack, @Nullable AbstractSpell spell, int spellLevel) {
         return spell != null && spell != SpellRegistry.none()
                 && (spell.getCastType() == CastType.INSTANT || spell.getCastType() == CastType.LONG && hasSilverRing(stack))
-                && spell.getRecastCount(spellLevel, null) <= 0;
+                && SpellRecastCompatibility.hasNoRecastWithoutCaster(spell, spellLevel);
     }
 
     @Override
