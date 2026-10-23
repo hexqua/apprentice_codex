@@ -10,7 +10,6 @@ import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
 import io.redspace.ironsspellbooks.compat.Curios;
-import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.item.UniqueItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
@@ -391,11 +390,6 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios extends ApprenticeCodex
             helper.assertTrue(container != null && container.getMaxSpellCount() == 1
                             && container.isSpellWheel() && !container.mustEquip() && container.isEmpty(),
                     "Spell Reaper Scythe should initialize an empty one-slot spell-wheel container");
-            helper.assertTrue(item.createSpellSlotUpgradeResult(
-                    stack,
-                    (SpellSlotUpgradeItem) io.redspace.ironsspellbooks.registries.ItemRegistry
-                            .LESSER_SPELL_SLOT_UPGRADE.get()
-            ).isEmpty(), "Spell Reaper Scythe should reject spell-slot upgrades");
 
             var mutable = Objects.requireNonNull(container, "Spell Reaper Scythe spell container").mutableCopy();
             helper.assertTrue(mutable.addSpellAtIndex(

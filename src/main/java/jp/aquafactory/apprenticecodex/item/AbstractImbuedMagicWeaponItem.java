@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex.item;
 
-import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
@@ -17,7 +16,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /** 注入魔法の保存・初期化を必要とする右クリック魔法武器の基盤。 */
@@ -138,15 +136,12 @@ public abstract class AbstractImbuedMagicWeaponItem extends AbstractRightClickMa
             return false;
         }
 
-        Predicate<SpellData> trackedStateValidator = this instanceof RestrictedSpellImbuableItem restrictedSpellImbuableItem
-                ? restrictedSpellImbuableItem::canImbueSpell
-                : spellData -> spellData != SpellData.EMPTY && spellData.getSpell() != SpellRegistry.none();
         if (PresetSpellContainerStateHelper.restoreIfNeeded(
                 itemStack,
                 1,
                 false,
                 false,
-                trackedStateValidator
+                SpellCalibrationImbueTarget::isValidCalibrationSpell
         )) {
             return true;
         }

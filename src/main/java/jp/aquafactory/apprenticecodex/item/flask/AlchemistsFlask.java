@@ -11,6 +11,7 @@ import io.redspace.ironsspellbooks.item.consumables.SimpleElixir;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import net.minecraft.world.InteractionHand;
@@ -98,7 +99,7 @@ public class AlchemistsFlask extends AbstractPotionFlaskItem
 
         var spellData = getPrimarySpellData(stack);
         var normalized = ISpellContainer.create(1, false, false).mutableCopy();
-        if (spellData != null && canImbueSpell(spellData)) {
+        if (SpellCalibrationImbueTarget.isValidCalibrationSpell(spellData)) {
             normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, true);
         }
         ISpellContainer.set(stack, normalized.toImmutable());

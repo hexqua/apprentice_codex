@@ -110,7 +110,6 @@
     "ChargedStaffItemInHandRendererMixin",
     "ChargedStaffPlayerRendererMixin",
     "ArrowChargeSpellLayerMixin",
-    "ArcaneAnvilJeiRecipeMixin",
     "BetterCombatItemInHandLayerMixin",
     "BetterCombatItemInHandRendererMixin",
     "ClientMagicDataMixin",

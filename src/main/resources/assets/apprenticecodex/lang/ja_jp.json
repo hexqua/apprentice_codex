@@ -237,6 +237,7 @@
   "item.apprenticecodex.school_affinity.tipped_arrow": "%sの矢",
 
   "item.apprenticecodex.spellgun.tooltip.hint": "ShiftまたはAltキーで詳細を表示",
+  "item.apprenticecodex.spellgun.tooltip.invalid_spell": "注入されている魔法はアイテムに適合していないため詠唱できない。",
   "item.apprenticecodex.spellgun.tooltip.ability_title": "注入した魔法への特殊効果:",
   "item.apprenticecodex.spellgun.tooltip.ability_swingcast_title": "注入した魔法を振って詠唱した時:",
   "item.apprenticecodex.spellgun.tooltip.ability_smashcast_title": "注入した魔法で強打詠唱した時:",
@@ -1325,6 +1326,7 @@
   "ui.apprenticecodex.jumpcast.cannot_long_cast": "%sは跳躍詠唱できない！",
   "ui.apprenticecodex.reflectcast.cannot_cast": "%sは反射詠唱できない！",
   "ui.apprenticecodex.parrycast.cannot_cast": "%sは弾き詠唱できない！",
+  "ui.apprenticecodex.smashcast.cannot_cast": "%sは強打詠唱できない！",
   "ui.apprenticecodex.chargecast.cannot_cast": "%sは強化詠唱できない！",
   "ui.apprenticecodex.chargecast.reject_spell": "%1$sは詠唱を足す余地がなく、強化詠唱できない！",
   "ui.apprenticecodex.chargecast.spell_denylisted": "%1$sは世界の理から拒絶されている...",

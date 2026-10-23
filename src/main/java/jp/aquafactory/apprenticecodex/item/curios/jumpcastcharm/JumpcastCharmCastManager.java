@@ -4,7 +4,6 @@ import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
-import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -59,17 +58,13 @@ public final class JumpcastCharmCastManager {
         }
 
         var spell = spellData.getSpell();
-        if (spell.getCastType() == CastType.LONG) {
+        if (!charm.canImbueSpell(spellData)) {
             sendActionBar(player, Component.translatable(
                     "ui.apprenticecodex.jumpcast.cannot_long_cast",
                     spell.getDisplayName(player)
             ).withStyle(ChatFormatting.RED));
             return false;
         }
-        if (!charm.canImbueSpell(spellData)) {
-            return false;
-        }
-
         var spellLevel = spell.getLevelFor(spellData.getLevel(), player);
         var magicData = MagicData.getPlayerMagicData(player);
         if (magicData == null) {

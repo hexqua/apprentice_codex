@@ -1,13 +1,11 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
-import io.redspace.ironsspellbooks.gui.arcane_anvil.ArcaneAnvilMenu;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
-import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
-import jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator;
-import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
-import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
+import io.redspace.ironsspellbooks.gui.arcane_anvil.ArcaneAnvilMenu;
 import io.redspace.ironsspellbooks.item.Scroll;
+import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.utility.SpellGunSpellValidator;
 import net.minecraft.world.inventory.ItemCombinerMenu;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
@@ -33,7 +31,6 @@ public abstract class ArcaneAnvilMenuMixin {
                 modifierStack
         )) {
             apprentice_codex$normalizeRestrictedSpellImbueResult(itemCombinerMenu, baseStack, modifierStack);
-            apprentice_codex$normalizeSpellSlotUpgradeResult(itemCombinerMenu, baseStack, modifierStack);
             return;
         }
 
@@ -54,7 +51,7 @@ public abstract class ArcaneAnvilMenuMixin {
         }
 
         var spellData = scrollContainer.getSpellAtIndex(0);
-        if (spellData == SpellData.EMPTY || !spellImbueItem.canImbueSpell(spellData)) {
+        if (spellData == SpellData.EMPTY) {
             return;
         }
 
@@ -66,18 +63,4 @@ public abstract class ArcaneAnvilMenuMixin {
         itemCombinerMenu.apprenticecodex$getResultSlots().setItem(0, spellImbueItem.createArcaneAnvilImbueResult(baseStack, spellData));
     }
 
-    @Unique
-    private static void apprentice_codex$normalizeSpellSlotUpgradeResult(ItemCombinerMenuAccessor itemCombinerMenu, ItemStack baseStack, ItemStack modifierStack) {
-        if (!(baseStack.getItem() instanceof SpellSlotUpgradeableItem spellSlotUpgradeableItem)
-                || !(modifierStack.getItem() instanceof SpellSlotUpgradeItem spellSlotUpgradeItem)) {
-            return;
-        }
-
-        var resultStack = spellSlotUpgradeableItem.createSpellSlotUpgradeResult(baseStack, spellSlotUpgradeItem);
-        if (resultStack.isEmpty()) {
-            return;
-        }
-
-        itemCombinerMenu.apprenticecodex$getResultSlots().setItem(0, resultStack);
-    }
 }

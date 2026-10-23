@@ -75,6 +75,7 @@ import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.OffhandAttributeRelocatingItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 
 public abstract class AbstractSpellGunItem extends Item implements IPresetSpellContainer, RestrictedSpellImbuableItem,
@@ -198,7 +199,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
             return false;
         }
 
-        if (PresetSpellContainerStateHelper.restoreIfNeeded(itemStack, 1, false, false, this::canImbueSpell)) {
+        if (PresetSpellContainerStateHelper.restoreIfNeeded(itemStack, 1, false, false, SpellCalibrationImbueTarget::isValidCalibrationSpell)) {
             return true;
         }
 
@@ -274,6 +275,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
                     "item." + ApprenticeCodex.MODID + ".common.spellgun.epicfight.offhand_warning"
             ).withStyle(ChatFormatting.YELLOW));
         }
+        ImbueTooltipHelper.appendInvalidSpellWarning(stack, lines);
         appendSpellGunHelpTooltip(stack, lines);
     }
 
@@ -331,7 +333,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
 
         var spellData = getPrimarySpellData(stack);
         var normalized = ISpellContainer.create(1, false, false).mutableCopy();
-        if (spellData != null && canImbueSpell(spellData)) {
+        if (SpellCalibrationImbueTarget.isValidCalibrationSpell(spellData)) {
             // Arcane Anvil で差し替えた呪文まで固定すると Workbench 抽出不能になるため、preset 以外は removable に戻す。
             normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, false);
             PresetSpellContainerStateHelper.rememberOverridden(stack, spellData);
@@ -345,7 +347,7 @@ public abstract class AbstractSpellGunItem extends Item implements IPresetSpellC
         var spellData = getPrimarySpellData(stack);
         if (spellData == null
                 || spellData.canRemove()
-                || !canImbueSpell(spellData)
+                || !SpellCalibrationImbueTarget.isValidCalibrationSpell(spellData)
                 || matchesConfiguredPresetSpell(spellData)) {
             return false;
         }

@@ -13,6 +13,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.CastAnimationOverrideItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SwingcastStaffCastContext;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -86,6 +87,7 @@ public class AttackcastRing extends Item implements ICurioItem, RestrictedSpellI
             result.add(Component.literal(" ")
                     .append(Component.translatable(getDescriptionId() + ".desc"))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+            ImbueTooltipHelper.appendInvalidSpellWarning(stack, result);
             result.add(Component.empty());
         }
 
@@ -123,7 +125,12 @@ public class AttackcastRing extends Item implements ICurioItem, RestrictedSpellI
         }
 
         var spellData = spellContainer.getSpellAtIndex(0);
+        if (spellData == SpellData.EMPTY) {
+            return false;
+        }
         if (!canImbueSpell(spellData)) {
+            player.displayClientMessage(Component.translatable("ui.apprenticecodex.swingcast.cannot_swing_cast",
+                    spellData.getSpell().getDisplayName(player)).withStyle(ChatFormatting.RED), true);
             return false;
         }
 
@@ -191,7 +198,7 @@ public class AttackcastRing extends Item implements ICurioItem, RestrictedSpellI
 
         var normalized = ISpellContainer.create(1, false, false).mutableCopy();
         var spellData = current.getSpellAtIndex(0);
-        if (spellData != SpellData.EMPTY && canImbueSpell(spellData)) {
+        if (SpellCalibrationImbueTarget.isValidCalibrationSpell(spellData)) {
             normalized.addSpellAtIndex(
                     spellData.getSpell(),
                     spellData.getLevel(),

@@ -10,6 +10,7 @@ import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.AbstractSpellThrowableCardEntity;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffSpellPayload;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastOrigin;
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastRules;
@@ -134,7 +135,7 @@ public abstract class AbstractSpellThrowableCardItem extends Item implements Res
 
         var spellData = current.getSpellAtIndex(0);
         var normalized = ISpellContainer.create(SPELL_SLOT_COUNT, false, false).mutableCopy();
-        if (spellData != SpellData.EMPTY && canImbueSpell(spellData)) {
+        if (SpellCalibrationImbueTarget.isValidCalibrationSpell(spellData)) {
             normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, false);
         }
         ISpellContainer.set(stack, normalized.toImmutable());

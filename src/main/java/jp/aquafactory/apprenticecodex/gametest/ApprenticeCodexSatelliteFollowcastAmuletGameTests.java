@@ -16,7 +16,6 @@ import io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProje
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spelldispenser.SpellDispenserManaHelper;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmuletCastEvent;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -140,8 +139,6 @@ public final class ApprenticeCodexSatelliteFollowcastAmuletGameTests {
         }
         helper.assertTrue(SatelliteFollowcastAmulet.getEnabledSpellSlotCount(stack) == SatelliteFollowcastAmulet.MAX_SPELL_SLOTS,
                 "Satellite Followcast Amulet calibration upgrades should enable four spell slots.");
-        helper.assertFalse(stack.getItem() instanceof SpellSlotUpgradeableItem,
-                "Satellite Followcast Amulet should not be upgraded by Arcane Anvil slot upgrades anymore.");
 
         var legacyStack = new ItemStack(amulet);
         var legacySpells = ISpellContainer.create(2, false, false).mutableCopy();

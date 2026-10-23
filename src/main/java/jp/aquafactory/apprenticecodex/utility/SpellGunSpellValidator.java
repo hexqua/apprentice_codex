@@ -1,11 +1,8 @@
 package jp.aquafactory.apprenticecodex.utility;
 
-import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
-import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.Scroll;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilImbueBlockItem;
 import jp.aquafactory.apprenticecodex.item.ArcaneAnvilScrollImbueBlockItem;
-import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
 import net.minecraft.world.item.ItemStack;
 
 public final class SpellGunSpellValidator {
@@ -20,17 +17,7 @@ public final class SpellGunSpellValidator {
             return modifierItemStack.getItem() instanceof Scroll;
         }
 
-        if (!(baseItemStack.getItem() instanceof RestrictedSpellImbuableItem spellImbueItem)
-                || !(modifierItemStack.getItem() instanceof Scroll)) {
-            return false;
-        }
-
-        var scrollContainer = ISpellContainer.get(modifierItemStack);
-        if (scrollContainer == null) {
-            return false;
-        }
-
-        var spellData = scrollContainer.getSpellAtIndex(0);
-        return spellData != SpellData.EMPTY && !spellImbueItem.canImbueSpell(spellData);
+        // 通常装備の適合条件は注入を拒否せず、術式調整台の受付と装備の発動時に判定する。
+        return false;
     }
 }

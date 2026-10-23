@@ -52,6 +52,7 @@ import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.item.AbstractImbuedMagicWeaponItem;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 
 public final class SmashcastScepter extends AbstractImbuedMagicWeaponItem
@@ -143,7 +144,7 @@ public final class SmashcastScepter extends AbstractImbuedMagicWeaponItem
         }
 
         var normalized = ISpellContainer.create(1, true, false).mutableCopy();
-        if (spellData != SpellData.EMPTY && canImbueSpell(spellData)) {
+        if (SpellCalibrationImbueTarget.isValidCalibrationSpell(spellData)) {
             normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, false);
             PresetSpellContainerStateHelper.rememberOverridden(stack, spellData);
         } else {
@@ -184,7 +185,12 @@ public final class SmashcastScepter extends AbstractImbuedMagicWeaponItem
         }
 
         var spellData = getImbuedSpellData(stack);
-        if (spellData == null || !canImbueSpell(spellData)) {
+        if (spellData == null) {
+            return false;
+        }
+        if (!canImbueSpell(spellData)) {
+            player.displayClientMessage(Component.translatable("ui.apprenticecodex.smashcast.cannot_cast",
+                    spellData.getSpell().getDisplayName(player)).withStyle(ChatFormatting.RED), true);
             return false;
         }
 
@@ -280,7 +286,7 @@ public final class SmashcastScepter extends AbstractImbuedMagicWeaponItem
     @Override
     protected boolean normalizeLegacyOverriddenSpellContainerIfNeeded(ItemStack stack) {
         var spellData = getPrimarySpellData(stack);
-        if (spellData == null || spellData.canRemove() || !canImbueSpell(spellData)) {
+        if (!SpellCalibrationImbueTarget.isValidCalibrationSpell(spellData) || spellData.canRemove()) {
             return false;
         }
 
@@ -397,6 +403,7 @@ public final class SmashcastScepter extends AbstractImbuedMagicWeaponItem
         super.appendHoverText(stack, context, lines, flag);
         lines.add(Component.translatable(getDescriptionId() + ".desc_1").withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable(getDescriptionId() + ".desc_2").withStyle(ChatFormatting.GRAY));
+        ImbueTooltipHelper.appendInvalidSpellWarning(stack, lines);
         appendSmashcastScepterTooltip(lines);
     }
 

@@ -237,6 +237,7 @@
   "item.apprenticecodex.school_affinity.tipped_arrow": "Arrow of %s",
 
   "item.apprenticecodex.spellgun.tooltip.hint": "Hold Shift or Alt for details.",
+  "item.apprenticecodex.spellgun.tooltip.invalid_spell": "The imbued spell is incompatible with this item and cannot be cast.",
   "item.apprenticecodex.spellgun.tooltip.ability_title": "Effects of imbued spell:",
   "item.apprenticecodex.spellgun.tooltip.ability_swingcast_title": "Effects when casting imbued spell with swing:",
   "item.apprenticecodex.spellgun.tooltip.ability_smashcast_title": "Effects when casting imbued spell with smash:",
@@ -1325,6 +1326,7 @@
   "ui.apprenticecodex.jumpcast.cannot_long_cast": "%s cannot be jump-cast!",
   "ui.apprenticecodex.reflectcast.cannot_cast": "%s cannot be reflect-cast!",
   "ui.apprenticecodex.parrycast.cannot_cast": "%s cannot be parry-cast!",
+  "ui.apprenticecodex.smashcast.cannot_cast": "%s cannot be smash-cast!",
   "ui.apprenticecodex.chargecast.cannot_cast": "%s cannot be charge-cast!",
   "ui.apprenticecodex.chargecast.reject_spell": "%1$s has no room for an extended incantation and cannot be charge-cast!",
   "ui.apprenticecodex.chargecast.spell_denylisted": "%1$s is denied by the world's reason...",

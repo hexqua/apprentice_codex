@@ -1,10 +1,12 @@
 package jp.aquafactory.apprenticecodex.item;
 
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.Nullable;
@@ -19,6 +21,21 @@ public final class ImbueTooltipHelper {
     private static final String TOOLTIP_PREFIX = "item." + ApprenticeCodex.MODID + ".spellgun.tooltip.";
 
     private ImbueTooltipHelper() {
+    }
+
+    public static void appendInvalidSpellWarning(ItemStack stack, List<Component> lines) {
+        if (!(stack.getItem() instanceof RestrictedSpellImbuableItem item)
+                || !ISpellContainer.isSpellContainer(stack)) {
+            return;
+        }
+        var container = ISpellContainer.get(stack);
+        if (container == null) {
+            return;
+        }
+        var spellData = container.getSpellAtIndex(0);
+        if (SpellCalibrationImbueTarget.isValidCalibrationSpell(spellData) && !item.canImbueSpell(spellData)) {
+            lines.add(Component.translatable(TOOLTIP_PREFIX + "invalid_spell").withStyle(ChatFormatting.RED));
+        }
     }
 
     public static void appendBlankLineIfNeeded(List<Component> lines) {

@@ -6,7 +6,6 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
-import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
@@ -68,11 +67,10 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
 import jp.aquafactory.apprenticecodex.item.offhand.OffhandMagicModifierHelper;
 
 public class ManaForceBlade extends SwordItem
-        implements GeoItem, IPresetSpellContainer, SpellSlotUpgradeableItem,
+        implements GeoItem, IPresetSpellContainer,
         AttributeEnchantmentPolicy, WisdomPolicy {
     public static final float DISPLAY_ATTACK_DAMAGE = 6.0F;
     public static final int DEFAULT_RELEASE_COOLDOWN_TICKS = 40;
@@ -292,11 +290,6 @@ public class ManaForceBlade extends SwordItem
     @Override
     public boolean canPerformAction(@NotNull ItemStack stack, @NotNull ItemAbility itemAbility) {
         return itemAbility == ItemAbilities.SWORD_SWEEP || super.canPerformAction(stack, itemAbility);
-    }
-
-    @Override
-    public ItemStack createSpellSlotUpgradeResult(ItemStack baseStack, SpellSlotUpgradeItem upgradeItem) {
-        return ItemStack.EMPTY;
     }
 
     @Override

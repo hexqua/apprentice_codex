@@ -2,9 +2,8 @@ package jp.aquafactory.apprenticecodex.item.crystalbladedstaff;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
-import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.item.UniqueItem;
-import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffManaRecoveryManager;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffManaRecoveryManager.PendingLaunchSound;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaffManaRecoveryManager.PendingManaRecovery;
 import jp.aquafactory.apprenticecodex.network.Networks;
@@ -116,7 +115,7 @@ public class CrystalBladedStaff extends AbstractSwingMagicItem implements GeoIte
         // 左クリック発動へ移行した後も既存ワールドの杖が同じ魔法を保持しつつ、wheel には出ないよう正規化する。
         var spellData = spellContainer.getSpellAtIndex(0);
         var normalized = ISpellContainer.create(1, false, false).mutableCopy();
-        if (spellData != SpellData.EMPTY && canImbueSpell(spellData)) {
+        if (SpellCalibrationImbueTarget.isValidCalibrationSpell(spellData)) {
             var locked = matchesConfiguredPresetSpell(spellData) && !spellData.canRemove();
             if (!normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, locked)) {
                 return false;

@@ -13,7 +13,6 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
     private static final String ACCESSORIES_COMPAT_LAYER_PATCHED_VERSION = "0.1.12";
     private static final String EASY_MAGIC_MOD_ID = "easymagic";
     private static final String APOTHEOSIS_MOD_ID = "apotheosis";
-    private static final String JEI_MOD_ID = "jei";
     private static final String PATCHOULI_MOD_ID = "patchouli";
     private static final String EPIC_FIGHT_MOD_ID = "epicfight";
     private static final String BETTER_COMBAT_MOD_ID = "bettercombat";
@@ -24,8 +23,6 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
             "jp.aquafactory.apprenticecodex.mixin.MalumFishingHookMixin";
     private static final String IRONS_JEWELRY_MOD_ID = "irons_jewelry";
     private static final String EASY_MAGIC_MIXIN = "jp.aquafactory.apprenticecodex.mixin.EasyMagicModEnchantmentMenuMixin";
-    private static final String ARCANE_ANVIL_JEI_RECIPE_MIXIN =
-            "jp.aquafactory.apprenticecodex.mixin.ArcaneAnvilJeiRecipeMixin";
     private static final String PATCHOULI_BOOK_HEADER_MIXIN =
             "jp.aquafactory.apprenticecodex.mixin.PatchouliBookHeaderMixin";
     private static final String EPIC_FIGHT_MIXIN_PREFIX = "jp.aquafactory.apprenticecodex.mixin.EpicFight";
@@ -70,12 +67,6 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
             return loadingModList != null
                     && loadingModList.getModFileById(EASY_MAGIC_MOD_ID) != null
                     && loadingModList.getModFileById(APOTHEOSIS_MOD_ID) == null;
-        }
-
-        if (ARCANE_ANVIL_JEI_RECIPE_MIXIN.equals(mixinClassName)) {
-            // JEI未導入環境では対象クラス自体が存在しないため、optional compat は plugin 側で止める。
-            var loadingModList = FMLLoader.getLoadingModList();
-            return loadingModList != null && loadingModList.getModFileById(JEI_MOD_ID) != null;
         }
 
         if (mixinClassName.startsWith(EPIC_FIGHT_MIXIN_PREFIX)) {

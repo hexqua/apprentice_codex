@@ -15,6 +15,7 @@ public interface RestrictedSpellImbuableItem extends SpellCalibrationImbueTarget
 
     boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel);
 
+    // 適合条件は受付・発動用。保存時の正規化では不適合な魔法も保持する。
     void normalizeImbuedSpellContainer(ItemStack stack);
 
     default ItemStack createArcaneAnvilImbueResult(ItemStack baseStack, SpellData spellData) {

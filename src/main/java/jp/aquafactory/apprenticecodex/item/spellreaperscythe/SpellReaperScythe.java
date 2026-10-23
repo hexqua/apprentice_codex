@@ -2,12 +2,10 @@ package jp.aquafactory.apprenticecodex.item.spellreaperscythe;
 
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
-import io.redspace.ironsspellbooks.item.SpellSlotUpgradeItem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
-import jp.aquafactory.apprenticecodex.item.SpellSlotUpgradeableItem;
 import jp.aquafactory.apprenticecodex.renderer.item.SpellReaperScytheRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.ChatFormatting;
@@ -52,7 +50,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public final class SpellReaperScythe extends SwordItem
-        implements GeoItem, IPresetSpellContainer, SpellSlotUpgradeableItem, WisdomPolicy {
+        implements GeoItem, IPresetSpellContainer, WisdomPolicy {
     public static final int DURABILITY = 2031;
     public static final int ENCHANTMENT_VALUE = 15;
     public static final double DISPLAY_ATTACK_DAMAGE = 10.0D;
@@ -283,11 +281,6 @@ public final class SpellReaperScythe extends SwordItem
             return !MalumSpellReaperScytheBridge.isAvailable();
         }
         return super.canPerformAction(stack, itemAbility);
-    }
-
-    @Override
-    public ItemStack createSpellSlotUpgradeResult(ItemStack baseStack, SpellSlotUpgradeItem upgradeItem) {
-        return ItemStack.EMPTY;
     }
 
     @Override

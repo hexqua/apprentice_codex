@@ -8,6 +8,7 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -83,6 +84,7 @@ public class JumpcastCharm extends Item implements ICurioItem, RestrictedSpellIm
                             ImbueTooltipHelper.getJumpKeyName()
                     ))
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW)));
+            ImbueTooltipHelper.appendInvalidSpellWarning(stack, result);
             result.add(Component.empty());
         }
 
@@ -125,7 +127,7 @@ public class JumpcastCharm extends Item implements ICurioItem, RestrictedSpellIm
 
         var normalized = ISpellContainer.create(1, false, false).mutableCopy();
         var spellData = current.getSpellAtIndex(0);
-        if (spellData != SpellData.EMPTY && canImbueSpell(spellData)) {
+        if (SpellCalibrationImbueTarget.isValidCalibrationSpell(spellData)) {
             normalized.addSpellAtIndex(
                     spellData.getSpell(),
                     spellData.getLevel(),

@@ -313,6 +313,7 @@ public abstract class AbstractSwingcastStaffItem extends AbstractSwingMagicItem
                                 @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, context, lines, flag);
         appendAdditionalSwingcastTooltip(stack, context, lines, flag);
+        ImbueTooltipHelper.appendInvalidSpellWarning(stack, lines);
         appendSwingcastStaffTooltip(lines);
     }
 

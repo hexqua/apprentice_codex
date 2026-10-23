@@ -35,6 +35,7 @@ import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
 import jp.aquafactory.apprenticecodex.item.RestrictedSpellImbuableItem;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 
@@ -70,7 +71,7 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
             return false;
         }
 
-        return PresetSpellContainerStateHelper.restoreIfNeeded(itemStack, 1, false, false, this::canImbueSpell);
+        return PresetSpellContainerStateHelper.restoreIfNeeded(itemStack, 1, false, false, SpellCalibrationImbueTarget::isValidCalibrationSpell);
     }
 
     @Override
@@ -184,7 +185,7 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
         }
 
         var normalized = ISpellContainer.create(1, false, false).mutableCopy();
-        if (spellData != SpellData.EMPTY && canImbueSpell(spellData)) {
+        if (SpellCalibrationImbueTarget.isValidCalibrationSpell(spellData)) {
             // Workbench 抽出可否は locked を見るため、差し替え後の呪文は preset 扱いにしない。
             normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, false);
             PresetSpellContainerStateHelper.rememberOverridden(stack, spellData);
@@ -202,7 +203,7 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
 
         var normalized = ISpellContainer.create(1, false, false).mutableCopy();
         var spellData = current.getActiveSpellCount() > 0 ? current.getSpellAtIndex(0) : SpellData.EMPTY;
-        if (spellData != SpellData.EMPTY && canImbueSpell(spellData)) {
+        if (SpellCalibrationImbueTarget.isValidCalibrationSpell(spellData)) {
             // 既存スタックのホイール公開フラグだけを直し、Workbench で設定した魔法と抽出可否は維持する。
             normalized.addSpellAtIndex(spellData.getSpell(), spellData.getLevel(), 0, !spellData.canRemove());
         }
