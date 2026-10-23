@@ -25,6 +25,7 @@ import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
 import jp.aquafactory.apprenticecodex.mixin.LivingEntityAccessor;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.Tag;
@@ -117,6 +118,11 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
         var castTooltip = hasWisdomShard(stack) ? "cast_wisdom" : "cast_default";
         lines.add(ImbueTooltipHelper.translatableGray(
                 "item." + ApprenticeCodex.MODID + ".parrycast_buckler." + castTooltip));
+    }
+
+    @Override
+    protected boolean usesStoredImbuedSpell(ItemStack stack) {
+        return !hasWisdomShard(stack);
     }
 
     @Override
@@ -351,7 +357,8 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
         int level = spell.getLevelFor(spellData.getLevel(), player);
         if (!canUseConfiguredSpell(stack, spell, level)) {
             player.displayClientMessage(Component.translatable(
-                    "ui.apprenticecodex.parrycast.cannot_cast", spell.getDisplayName(player)), true);
+                    "ui.apprenticecodex.parrycast.cannot_cast", spell.getDisplayName(player))
+                    .withStyle(ChatFormatting.RED), true);
             return;
         }
         var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());

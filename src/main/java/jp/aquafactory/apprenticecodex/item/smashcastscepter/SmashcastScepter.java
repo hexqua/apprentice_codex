@@ -403,7 +403,8 @@ public final class SmashcastScepter extends AbstractImbuedMagicWeaponItem
         super.appendHoverText(stack, context, lines, flag);
         lines.add(Component.translatable(getDescriptionId() + ".desc_1").withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable(getDescriptionId() + ".desc_2").withStyle(ChatFormatting.GRAY));
-        ImbueTooltipHelper.appendInvalidSpellWarning(stack, lines);
+        ImbueTooltipHelper.appendInvalidSpellWarning(stack, lines,
+                "item.apprenticecodex.spellgun.tooltip.invalid_spell.smashcast", ChatFormatting.YELLOW);
         appendSmashcastScepterTooltip(lines);
     }
 

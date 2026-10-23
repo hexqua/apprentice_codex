@@ -238,6 +238,7 @@
 
   "item.apprenticecodex.spellgun.tooltip.hint": "按住 Shift 或 Alt 查看详情。",
   "item.apprenticecodex.spellgun.tooltip.invalid_spell": "注入的法术与该物品不兼容，无法施放。",
+  "item.apprenticecodex.spellgun.tooltip.invalid_spell.smashcast": "注入的法术与该权杖不兼容，无法进行强打施法。",
   "item.apprenticecodex.spellgun.tooltip.ability_title": "注入法术效果：",
   "item.apprenticecodex.spellgun.tooltip.ability_swingcast_title": "挥击释放注入法术时的效果：",
   "item.apprenticecodex.spellgun.tooltip.ability_smashcast_title": "以强打释放注入法术时：",
@@ -1326,6 +1327,7 @@
   "ui.apprenticecodex.jumpcast.cannot_long_cast": "%s无法跳跃施法！",
   "ui.apprenticecodex.reflectcast.cannot_cast": "%s无法反射施法！",
   "ui.apprenticecodex.parrycast.cannot_cast": "%s无法招架施法！",
+  "ui.apprenticecodex.shieldcast.cannot_cast": "%s无法通过盾牌施放！",
   "ui.apprenticecodex.smashcast.cannot_cast": "%s无法强打施法！",
   "ui.apprenticecodex.chargecast.cannot_cast": "%s无法强化施法！",
   "ui.apprenticecodex.chargecast.reject_spell": "%1$s没有延长咏唱的余地，无法强化施法！",

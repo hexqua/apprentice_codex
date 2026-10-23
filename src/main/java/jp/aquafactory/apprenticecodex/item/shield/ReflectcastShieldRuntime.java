@@ -17,6 +17,8 @@ import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncReflectcastShieldEffectPacket;
 import jp.aquafactory.apprenticecodex.utility.SpellCooldownHelper;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -61,6 +63,8 @@ public final class ReflectcastShieldRuntime {
         var shield = (ReflectcastShield) stack.getItem();
         var spell = spellData.getSpell();
         if (!shield.canUseConfiguredSpell(stack, spell, spellData.getLevel())) {
+            player.displayClientMessage(Component.translatable("ui.apprenticecodex.reflectcast.cannot_cast",
+                    spell.getDisplayName(player)).withStyle(ChatFormatting.RED), true);
             return false;
         }
 

@@ -108,6 +108,11 @@ public class BulwarkGreatshield extends AbstractImbueShieldItem
     }
 
     @Override
+    protected boolean usesStoredImbuedSpell(ItemStack stack) {
+        return !hasWisdomShardAdjustment(stack);
+    }
+
+    @Override
     protected boolean shouldPrimeImmediateShieldBlock() {
         return false;
     }

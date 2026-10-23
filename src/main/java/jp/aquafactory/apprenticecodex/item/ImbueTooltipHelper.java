@@ -24,6 +24,11 @@ public final class ImbueTooltipHelper {
     }
 
     public static void appendInvalidSpellWarning(ItemStack stack, List<Component> lines) {
+        appendInvalidSpellWarning(stack, lines, TOOLTIP_PREFIX + "invalid_spell", ChatFormatting.RED);
+    }
+
+    public static void appendInvalidSpellWarning(ItemStack stack, List<Component> lines,
+                                                 String translationKey, ChatFormatting color) {
         if (!(stack.getItem() instanceof RestrictedSpellImbuableItem item)
                 || !ISpellContainer.isSpellContainer(stack)) {
             return;
@@ -33,8 +38,9 @@ public final class ImbueTooltipHelper {
             return;
         }
         var spellData = container.getSpellAtIndex(0);
-        if (SpellCalibrationImbueTarget.isValidCalibrationSpell(spellData) && !item.canImbueSpell(spellData)) {
-            lines.add(Component.translatable(TOOLTIP_PREFIX + "invalid_spell").withStyle(ChatFormatting.RED));
+        if (SpellCalibrationImbueTarget.isValidCalibrationSpell(spellData)
+                && (!item.canImbueSpell(spellData) || !item.isCalibrationSpellUsable(stack, spellData))) {
+            lines.add(Component.translatable(translationKey).withStyle(color));
         }
     }
 

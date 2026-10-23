@@ -370,6 +370,9 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
 
     private void appendImbueTargetSpellTooltip(ItemStack stack, List<Component> lines) {
         appendAlwaysVisibleImbueTooltip(stack, lines);
+        if (usesStoredImbuedSpell(stack)) {
+            ImbueTooltipHelper.appendInvalidSpellWarning(stack, lines);
+        }
         ImbueTooltipHelper.appendBlankLineIfNeeded(lines);
         if (ImbueTooltipHelper.appendHintIfDetailsHidden(lines)) {
             return;
@@ -390,6 +393,10 @@ public abstract class AbstractImbueShieldItem extends ShieldItem implements IPre
     }
 
     protected void appendAlwaysVisibleImbueTooltip(ItemStack stack, List<Component> lines) {
+    }
+
+    protected boolean usesStoredImbuedSpell(ItemStack stack) {
+        return true;
     }
 
     private static List<Component> collectImbueShieldAbilityTooltipSection() {

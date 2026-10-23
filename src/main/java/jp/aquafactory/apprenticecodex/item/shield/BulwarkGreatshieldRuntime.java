@@ -12,6 +12,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import jp.aquafactory.apprenticecodex.item.continuouscast.ContinuousCastDurationSimulation;
 import jp.aquafactory.apprenticecodex.mixin.MagicDataAccessor;
 import jp.aquafactory.apprenticecodex.utility.SpellCooldownHelper;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentContents;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
@@ -53,8 +55,12 @@ public final class BulwarkGreatshieldRuntime {
         USE_STATES.put(player.getUUID(), new UseState(true, null));
 
         var spellData = BulwarkGreatshield.resolveCastSpell(player, stack);
-        if (spellData == null || spellData == SpellData.EMPTY
-                || spellData.getSpell().getCastType() != CastType.CONTINUOUS) {
+        if (spellData == null || spellData == SpellData.EMPTY) {
+            return;
+        }
+        if (spellData.getSpell().getCastType() != CastType.CONTINUOUS) {
+            player.displayClientMessage(Component.translatable("ui.apprenticecodex.shieldcast.cannot_cast",
+                    spellData.getSpell().getDisplayName(player)).withStyle(ChatFormatting.RED), true);
             return;
         }
         var magicData = MagicData.getPlayerMagicData(player);

@@ -82,6 +82,12 @@ public class ReflectcastShield extends AbstractImbueShieldItem
     }
 
     @Override
+    protected boolean usesStoredImbuedSpell(ItemStack stack) {
+        // Wisdom Shard構成では注入魔法を参照せず、選択中の魔法を使用する。
+        return !hasWisdomShard(stack);
+    }
+
+    @Override
     protected boolean shouldPrimeImmediateShieldBlock() {
         return false;
     }
