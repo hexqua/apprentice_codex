@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -18,6 +19,21 @@ public final class RemoteEyeBodyControlEvent {
     private static final double POSITION_EPSILON_SQ = 1.0e-6;
 
     private RemoteEyeBodyControlEvent() {
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+
+        var spellData = Capabilities.getSpellDataOrNull(player);
+        if (spellData == null) {
+            return;
+        }
+
+        // 保存済みの本体固定だけが再開しないよう、ログイン時に視点切替の状態も復元する.
+        RemoteEyeSync.syncToClient(player, spellData.get(CodexSpellStateTypeRegister.REMOTE_EYE_STATE));
     }
 
     @SubscribeEvent
