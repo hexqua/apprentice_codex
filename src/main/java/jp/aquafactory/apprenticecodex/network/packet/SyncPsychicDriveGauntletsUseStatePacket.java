@@ -1,32 +1,30 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import java.util.function.Supplier;
+
 import jp.aquafactory.apprenticecodex.event.client.PsychicDriveGauntletsUseInput;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.network.NetworkEvent;
 
-public record SyncPsychicDriveGauntletsUseStatePacket(long session, boolean charging) implements CustomPacketPayload {
-    public static final Type<SyncPsychicDriveGauntletsUseStatePacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_psychic_drive_gauntlets_use_state"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, SyncPsychicDriveGauntletsUseStatePacket> STREAM_CODEC =
-            StreamCodec.of((buffer, packet) -> {
-                buffer.writeLong(packet.session);
-                buffer.writeBoolean(packet.charging);
-            }, buffer -> new SyncPsychicDriveGauntletsUseStatePacket(buffer.readLong(), buffer.readBoolean()));
+public record SyncPsychicDriveGauntletsUseStatePacket(long session, boolean charging) {
+    public static void encode(SyncPsychicDriveGauntletsUseStatePacket packet, FriendlyByteBuf buffer) {
+        buffer.writeLong(packet.session);
+        buffer.writeBoolean(packet.charging);
+    }
 
-    @Override public @NotNull Type<? extends CustomPacketPayload> type() { return TYPE; }
+    public static SyncPsychicDriveGauntletsUseStatePacket decode(FriendlyByteBuf buffer) {
+        return new SyncPsychicDriveGauntletsUseStatePacket(buffer.readLong(), buffer.readBoolean());
+    }
 
-    public static void handle(SyncPsychicDriveGauntletsUseStatePacket packet, IPayloadContext context) {
+    public static void handle(SyncPsychicDriveGauntletsUseStatePacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
+        var context = contextSupplier.get();
         context.enqueueWork(() -> {
             if (FMLEnvironment.dist == Dist.CLIENT) ClientHandler.accept(packet);
         });
+        context.setPacketHandled(true);
     }
 
     @OnlyIn(Dist.CLIENT)

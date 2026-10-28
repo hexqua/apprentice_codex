@@ -1,34 +1,33 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
 import com.mojang.math.Axis;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsFollow;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Phase;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsCharge;
-import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsFollow;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection.Mode;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsTransition;
 import jp.aquafactory.apprenticecodex.renderer.PsychicDriveGauntletsFloatingRenderer;
-import jp.aquafactory.apprenticecodex.renderer.PsychicDriveGauntletsHandRenderer;
 import jp.aquafactory.apprenticecodex.renderer.PsychicDriveGauntletsGlowLayer;
+import jp.aquafactory.apprenticecodex.renderer.PsychicDriveGauntletsHandRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.RenderHandEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RenderHandEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class PsychicDriveGauntletsClientEvents {
     private static final Map<UUID, Presentation> PRESENTATIONS = new HashMap<>();
     private static ClientLevel presentationLevel;
@@ -38,7 +37,8 @@ public final class PsychicDriveGauntletsClientEvents {
     }
 
     @SubscribeEvent
-    public static void onClientTick(ClientTickEvent.Post event) {
+    public static void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
         var minecraft = Minecraft.getInstance();
         var level = minecraft.level;
         resetForLevel(level);
@@ -63,7 +63,7 @@ public final class PsychicDriveGauntletsClientEvents {
         if (level == null) {
             return;
         }
-        var partialTick = event.getPartialTick().getGameTimeDeltaPartialTick(true);
+        var partialTick = event.getPartialTick();
         var time = level.getGameTime() + (double) partialTick;
         var cameraPosition = event.getCamera().getPosition();
         var buffers = minecraft.renderBuffers().bufferSource();

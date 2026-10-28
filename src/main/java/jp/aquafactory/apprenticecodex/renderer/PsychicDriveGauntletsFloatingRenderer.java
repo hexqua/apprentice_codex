@@ -6,24 +6,24 @@ import com.mojang.math.Axis;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAnimation;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Phase;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Snapshot;
-import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsMotion;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsMotion.SinglePose;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsMotion;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsPose;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsVisualState;
 import jp.aquafactory.apprenticecodex.model.PsychicDriveGauntletsModel;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib.animatable.GeoAnimatable;
-import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.animation.AnimatableManager;
-import software.bernie.geckolib.animation.AnimationController;
-import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
+import software.bernie.geckolib.core.animatable.GeoAnimatable;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.renderer.GeoObjectRenderer;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
@@ -41,12 +41,13 @@ public class PsychicDriveGauntletsFloatingRenderer
     @Override
     public void renderRecursively(PoseStack poseStack, Visual visual, GeoBone bone, RenderType type,
                                   MultiBufferSource buffers, VertexConsumer buffer, boolean isReRender,
-                                  float partialTick, int packedLight, int packedOverlay, int colour) {
+                                  float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
         boolean glow = PsychicDriveGauntletsGlowLayer.glowing(bone);
+        boolean dim = glow && !isReRender && (bone.getParent() == null || !PsychicDriveGauntletsGlowLayer.glowing(bone.getParent()));
+        float brightness = dim ? 0.65F : 1;
         super.renderRecursively(poseStack, visual, bone, type, buffers, buffer, isReRender, partialTick,
                 glow ? LightTexture.FULL_BRIGHT : packedLight, packedOverlay,
-                glow && !isReRender && (bone.getParent() == null || !PsychicDriveGauntletsGlowLayer.glowing(bone.getParent()))
-                        ? PsychicDriveGauntletsGlowLayer.baseColour(colour) : colour);
+                red * brightness, green * brightness, blue * brightness, alpha);
     }
 
     public RenderType renderType(Visual visual) {
@@ -68,7 +69,8 @@ public class PsychicDriveGauntletsFloatingRenderer
         poseStack.scale(mirrored ? -1.0F : 1.0F, 1.0F, 1.0F);
         poseStack.translate(-MODEL_CENTER_X, -MODEL_CENTER_Y, 0.0F);
         var type = renderType(visual);
-        render(poseStack, visual, buffers, type, buffers.getBuffer(type), packedLight, partialTick);
+        this.animatable = visual;
+        defaultRender(poseStack, visual, buffers, type, buffers.getBuffer(type), 0, partialTick, packedLight);
         poseStack.popPose();
     }
 
@@ -80,9 +82,9 @@ public class PsychicDriveGauntletsFloatingRenderer
     @Override
     public void preRender(PoseStack poseStack, Visual visual, BakedGeoModel model,
                           @Nullable MultiBufferSource buffers, @Nullable VertexConsumer buffer,
-                          boolean isReRender, float partialTick, int packedLight, int packedOverlay, int colour) {
+                          boolean isReRender, float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
         super.preRender(poseStack, visual, model, buffers, buffer, isReRender, partialTick,
-                packedLight, packedOverlay, colour);
+                packedLight, packedOverlay, red, green, blue, alpha);
         // GeoObjectRendererのブロック中央への既定移動を相殺し、指定した浮遊位置を原点にする。
         poseStack.translate(-0.5F, -0.51F, -0.5F);
     }

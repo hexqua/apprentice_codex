@@ -11,8 +11,8 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import software.bernie.geckolib.renderer.GeoItemRenderer;
 import software.bernie.geckolib.cache.object.GeoBone;
+import software.bernie.geckolib.renderer.GeoItemRenderer;
 
 public class PsychicDriveGauntletsItemRenderer extends GeoItemRenderer<PsychicDriveGauntlets> {
     public PsychicDriveGauntletsItemRenderer() {
@@ -23,12 +23,13 @@ public class PsychicDriveGauntletsItemRenderer extends GeoItemRenderer<PsychicDr
     @Override
     public void renderRecursively(PoseStack poseStack, PsychicDriveGauntlets item, GeoBone bone, RenderType type,
                                   MultiBufferSource buffers, VertexConsumer buffer, boolean isReRender,
-                                  float partialTick, int packedLight, int packedOverlay, int colour) {
+                                  float partialTick, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
         boolean glow = PsychicDriveGauntletsGlowLayer.glowing(bone);
+        boolean dim = glow && (bone.getParent() == null || !PsychicDriveGauntletsGlowLayer.glowing(bone.getParent()));
+        float brightness = dim ? 0.65F : 1;
         super.renderRecursively(poseStack, item, bone, type, buffers, buffer, isReRender, partialTick,
                 glow ? LightTexture.FULL_BRIGHT : packedLight, packedOverlay,
-                glow && (bone.getParent() == null || !PsychicDriveGauntletsGlowLayer.glowing(bone.getParent()))
-                        ? PsychicDriveGauntletsGlowLayer.baseColour(colour) : colour);
+                red * brightness, green * brightness, blue * brightness, alpha);
     }
 
     @Override

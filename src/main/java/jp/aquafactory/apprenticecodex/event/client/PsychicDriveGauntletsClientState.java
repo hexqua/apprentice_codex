@@ -1,10 +1,13 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Phase;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Snapshot;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsDisplayMotion;
-import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsHudState;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsHudState.Gauge;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsHudState;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection.Mode;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPsychicDriveGauntletsPacket;
@@ -12,10 +15,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 public final class PsychicDriveGauntletsClientState {
     private record State(PsychicDriveGauntletsDisplayMotion right, PsychicDriveGauntletsDisplayMotion left,
@@ -56,7 +55,7 @@ public final class PsychicDriveGauntletsClientState {
             HUD_STATES.remove(packet.player());
             return;
         }
-        var time = clock(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true));
+        var time = clock(Minecraft.getInstance().getFrameTime());
         HUD_STATES.put(packet.player(), new HudState(packet.right(), packet.left(), time));
         var old = STATES.get(packet.player());
         if (packet.right().phase() == Phase.IDLE && packet.left().phase() == Phase.IDLE) {
@@ -82,7 +81,7 @@ public final class PsychicDriveGauntletsClientState {
         MODES.keySet().removeIf(id -> level.getPlayerByUUID(id) == null);
         // 描画用の期限切れを待機完了と誤認しないよう、HUDは明示同期まで最後の状態を保持する。
         HUD_STATES.keySet().removeIf(id -> level.getPlayerByUUID(id) == null);
-        var time = clock(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true));
+        var time = clock(Minecraft.getInstance().getFrameTime());
         STATES.entrySet().removeIf(entry -> level.getPlayerByUUID(entry.getKey()) == null
                 || level.getGameTime() - entry.getValue().received > 20
                 || (entry.getValue().right.finished(time) && entry.getValue().left.finished(time)));
@@ -114,7 +113,7 @@ public final class PsychicDriveGauntletsClientState {
         return displayed.phase() == Phase.IDLE ? null : displayed;
     }
     public static boolean active(UUID player) {
-        var partialTick = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
+        var partialTick = Minecraft.getInstance().getFrameTime();
         return get(player, true, partialTick) != null || get(player, false, partialTick) != null;
     }
 

@@ -119,7 +119,7 @@ public final class PsychicDriveGauntletsAttackState {
     }
 
     private void spendChargeMana(Player player, long time) {
-        int ticks = Math.clamp(time - useStarted, 0, PsychicDriveGauntletsCharge.MAX_TICKS);
+        int ticks = (int) Math.max(0, Math.min(time - useStarted, PsychicDriveGauntletsCharge.MAX_TICKS));
         if (ticks <= chargePaidTicks) return;
         PsychicDriveGauntletsMana.spend(player, (ticks - chargePaidTicks) * chargeManaCostPerTick);
         chargePaidTicks = ticks;

@@ -1,25 +1,28 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import io.netty.buffer.Unpooled;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntlets;
-import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Phase;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsHudState;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsRaycast;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsVisualState;
 import jp.aquafactory.apprenticecodex.mixin.ItemEntityAccessor;
-import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPsychicDriveGauntletsPacket;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.GameTestInfo;
 import net.minecraft.gametest.framework.GameTestListener;
-import net.minecraft.gametest.framework.GameTestRunner;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
@@ -30,19 +33,13 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.event.level.BlockDropsEvent;
-import net.neoforged.neoforge.event.level.BlockEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
-
-import static jp.aquafactory.apprenticecodex.enchantment.Enchantments.WISDOM;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -63,7 +60,7 @@ public final class PsychicDriveGauntletsMiningGameTests {
         var weapon = new ItemStack(ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, weapon);
         // runtime側の適性検査も確認するため、不正な候補を含む保存内容を直接構築する。
-        CalibrationAdjustmentStorage.set(weapon, 2, 3, tool, helper.getLevel().registryAccess());
+        CalibrationAdjustmentStorage.set(weapon, 2, 3, tool);
         // 実tickが必要なドロップも5x5の水平管理範囲に収め、隣接チャンクの状態へ依存させない。
         var pos = BlockPos.containing(player.getX(), player.getEyeY(), player.getZ() + 2);
         helper.getLevel().setBlockAndUpdate(pos, block.defaultBlockState());
@@ -92,8 +89,7 @@ public final class PsychicDriveGauntletsMiningGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void miningPreservesHeldWisdomWithoutChangingTheStoredTool(GameTestHelper helper) {
-        var wisdom = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
-                .getOrThrow(WISDOM);
+        var wisdom = EnchantmentRegistry.WISDOM.get();
         for (var hand : InteractionHand.values()) {
             for (int otherLevel : new int[]{0, 3}) {
                 var fixture = fixture(helper, Blocks.DIAMOND_ORE, new ItemStack(Items.DIAMOND_PICKAXE));
@@ -105,16 +101,16 @@ public final class PsychicDriveGauntletsMiningGameTests {
                         ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND, other);
                 var mainHand = fixture.player().getMainHandItem();
                 var offHand = fixture.player().getOffhandItem();
-                var events = new ArrayList<BlockDropsEvent>();
-                Consumer<BlockDropsEvent> listener = event -> {
-                    if (event.getBreaker() != fixture.player()) return;
+                var events = new ArrayList<BlockEvent.BreakEvent>();
+                Consumer<BlockEvent.BreakEvent> listener = event -> {
+                    if (event.getPlayer() != fixture.player()) return;
                     // 鉱石 XP の乱数を固定し、実際の採掘イベントに対する最終補正を確認する。
-                    event.setDroppedExperience(3);
+                    event.setExpToDrop(3);
                     events.add(event);
-                    helper.assertTrue(ItemStack.isSameItemSameComponents(event.getTool(), fixture.tool()),
+                    helper.assertTrue(ItemStack.isSameItemSameTags(event.getPlayer().getMainHandItem(), fixture.tool()),
                             "Wisdom must not be transferred to or otherwise change the mining tool");
                 };
-                NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, listener);
+                MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGHEST, listener);
                 var arm = new PsychicDriveGauntletsArm(true);
                 try {
                     arm.launch(fixture.player(), PsychicDriveGauntletsRaycast.aim(fixture.player(), 12),
@@ -125,17 +121,17 @@ public final class PsychicDriveGauntletsMiningGameTests {
                     helper.assertTrue(arm.phase() == Phase.MINING, "Wisdom gauntlets must start mining from either hand");
                     ticks(arm, fixture, contact(arm) + 1, contact(arm) + 12);
                     int expected = otherLevel == 0 ? 4 : 5;
-                    helper.assertTrue(events.size() == 1 && events.getFirst().getDroppedExperience() == expected,
+                    helper.assertTrue(events.size() == 1 && events.get(0).getExpToDrop() == expected,
                             "Mining Wisdom must use the higher original held level and round once: " + hand + ", " + otherLevel);
                     helper.assertTrue(fixture.player().getMainHandItem() == mainHand
                                     && fixture.player().getOffhandItem() == offHand,
                             "Wisdom mining must restore both held stacks");
-                    helper.assertTrue(ItemStack.isSameItemSameComponents(fixture.tool(),
+                    helper.assertTrue(ItemStack.isSameItemSameTags(fixture.tool(),
                                     PsychicDriveGauntlets.miningTool(fixture.weapon(), helper.getLevel().registryAccess())),
                             "Wisdom mining must preserve the stored tool");
                 } finally {
                     arm.reset();
-                    NeoForge.EVENT_BUS.unregister(listener);
+                    MinecraftForge.EVENT_BUS.unregister(listener);
                 }
             }
         }
@@ -176,19 +172,19 @@ public final class PsychicDriveGauntletsMiningGameTests {
         var lookup = helper.getLevel().registryAccess();
         var tool = new ItemStack(Items.DIAMOND_PICKAXE);
         tool.setDamageValue(125);
-        tool.enchant(lookup.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SILK_TOUCH), 1);
-        tool.enchant(lookup.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SHARPNESS), 3);
+        tool.enchant(Enchantments.SILK_TOUCH, 1);
+        tool.enchant(Enchantments.SHARPNESS, 3);
         helper.assertTrue(item.getCalibrationAdjustmentSlotCount(stack) == 3, "Gauntlets must have three slots");
         for (int slot = 0; slot < 3; slot++) {
-            helper.assertTrue(item.trySetCalibrationAdjustment(stack, slot, tool, lookup), "An empty slot must accept a mining tool");
+            helper.assertTrue(item.trySetCalibrationAdjustment(stack, slot, tool), "An empty slot must accept a mining tool");
             helper.assertTrue(!item.trySetCalibrationAdjustment(stack, (slot + 1) % 3,
-                    new ItemStack(Items.IRON_PICKAXE), lookup), "A second mining tool must be rejected across tool types");
-            var restored = ItemStack.parse(lookup, stack.save(lookup)).orElseThrow();
-            helper.assertTrue(ItemStack.isSameItemSameComponents(tool,
-                    item.getCalibrationAdjustment(restored, slot, lookup)), "Stored tools must preserve all enchantments and damage");
-            helper.assertTrue(item.trySetCalibrationAdjustment(stack, slot, ItemStack.EMPTY, lookup), "Tools must remain removable");
+                    new ItemStack(Items.IRON_PICKAXE)), "A second mining tool must be rejected across tool types");
+            var restored = ItemStack.of(stack.save(new CompoundTag()));
+            helper.assertTrue(ItemStack.isSameItemSameTags(tool,
+                    item.getCalibrationAdjustment(restored, slot)), "Stored tools must preserve all enchantments and damage");
+            helper.assertTrue(item.trySetCalibrationAdjustment(stack, slot, ItemStack.EMPTY), "Tools must remain removable");
         }
-        helper.assertTrue(!item.trySetCalibrationAdjustment(stack, 0, new ItemStack(Items.DIAMOND_AXE), lookup),
+        helper.assertTrue(!item.trySetCalibrationAdjustment(stack, 0, new ItemStack(Items.DIAMOND_AXE)),
                 "Items outside the mining tool tag must be rejected");
         helper.succeed();
     }
@@ -203,11 +199,11 @@ public final class PsychicDriveGauntletsMiningGameTests {
         long contact = contact(arm);
         helper.assertTrue(arm.phase() == Phase.MINING && PsychicDriveGauntletsVisualState.drilling(arm.snapshot()),
                 "A full charge must begin mining and its drilling visuals");
-        var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
+        var buffer = new FriendlyByteBuf(Unpooled.buffer());
         try {
             var packet = new SyncPsychicDriveGauntletsPacket(fixture.player().getUUID(), false, arm.snapshot(), arm.snapshot());
-            SyncPsychicDriveGauntletsPacket.STREAM_CODEC.encode(buffer, packet);
-            helper.assertTrue(packet.equals(SyncPsychicDriveGauntletsPacket.STREAM_CODEC.decode(buffer)),
+            SyncPsychicDriveGauntletsPacket.encode(packet, buffer);
+            helper.assertTrue(packet.equals(SyncPsychicDriveGauntletsPacket.decode(buffer)),
                     "Mining phase and timing must survive synchronization");
         } finally { buffer.release(); }
         ticks(arm, fixture, contact + 1, contact + 11);
@@ -218,16 +214,16 @@ public final class PsychicDriveGauntletsMiningGameTests {
         helper.assertTrue(helper.getLevel().isEmptyBlock(fixture.pos()) && arm.phase() == Phase.RETURNING,
                 "Even obsidian must break after exactly twelve ticks");
         var mined = drops(fixture).stream().filter(entity -> entity.getItem().is(Items.OBSIDIAN)).toList();
-        helper.assertTrue(mined.size() == 1 && mined.getFirst().hasPickUpDelay(), "Only one mined drop must be carried");
+        helper.assertTrue(mined.size() == 1 && mined.get(0).hasPickUpDelay(), "Only one mined drop must be carried");
         arm.tick(fixture.player(), 1, contact + 13);
-        helper.assertTrue(mined.getFirst().position().distanceToSqr(arm.position()) < 1.0e-6,
+        helper.assertTrue(mined.get(0).position().distanceToSqr(arm.position()) < 1.0e-6,
                 "Mined drops must follow the returning arm");
         ticks(arm, fixture, contact + 14, contact + 17);
-        helper.assertTrue(fixture.player().getInventory().countItem(Items.OBSIDIAN) == 1 && mined.getFirst().isRemoved(),
+        helper.assertTrue(fixture.player().getInventory().countItem(Items.OBSIDIAN) == 1 && mined.get(0).isRemoved(),
                 "Returning drops must be picked up exactly once");
         helper.assertTrue(!unrelated.isRemoved() && fixture.player().getInventory().countItem(Items.DIAMOND) == 0,
                 "Nearby pre-existing items must not be collected");
-        helper.assertTrue(ItemStack.isSameItemSameComponents(fixture.tool(),
+        helper.assertTrue(ItemStack.isSameItemSameTags(fixture.tool(),
                 PsychicDriveGauntlets.miningTool(fixture.weapon(), helper.getLevel().registryAccess())),
                 "Mining must not alter the stored tool");
         helper.succeed();
@@ -235,21 +231,20 @@ public final class PsychicDriveGauntletsMiningGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void silkTouchAndAllToolEnchantmentsReachTheNormalMiningPipeline(GameTestHelper helper) {
-        var lookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
         var tool = new ItemStack(Items.DIAMOND_PICKAXE);
         tool.setDamageValue(125);
-        tool.enchant(lookup.getOrThrow(Enchantments.SILK_TOUCH), 1);
-        tool.enchant(lookup.getOrThrow(Enchantments.EFFICIENCY), 5);
-        tool.enchant(lookup.getOrThrow(Enchantments.SHARPNESS), 3);
+        tool.enchant(Enchantments.SILK_TOUCH, 1);
+        tool.enchant(Enchantments.BLOCK_EFFICIENCY, 5);
+        tool.enchant(Enchantments.SHARPNESS, 3);
         var fixture = fixture(helper, Blocks.DIAMOND_ORE, tool);
         boolean[] observed = {false};
-        Consumer<BlockDropsEvent> listener = event -> {
-            if (event.getBreaker() != fixture.player()) return;
+        Consumer<BlockEvent.BreakEvent> listener = event -> {
+            if (event.getPlayer() != fixture.player()) return;
             observed[0] = true;
-            helper.assertTrue(ItemStack.isSameItemSameComponents(event.getTool(), tool),
+            helper.assertTrue(ItemStack.isSameItemSameTags(event.getPlayer().getMainHandItem(), tool),
                     "All tool enchantments must reach the drop pipeline without filtering");
         };
-        NeoForge.EVENT_BUS.addListener(listener);
+        MinecraftForge.EVENT_BUS.addListener(listener);
         try {
             var arm = launch(fixture, 1);
             long contact = contact(arm);
@@ -261,33 +256,32 @@ public final class PsychicDriveGauntletsMiningGameTests {
                     "Silk touch must produce the ore block through normal mining");
             helper.assertTrue(fixture.player().getMainHandItem() == fixture.weapon(), "The original hand must be restored");
             arm.reset();
-        } finally { NeoForge.EVENT_BUS.unregister(listener); }
+        } finally { MinecraftForge.EVENT_BUS.unregister(listener); }
         helper.succeed();
     }
 
     @GameTest(template = TEMPLATE)
     public static void fortuneUsesTheInsertedToolWithoutConsumingItsDurability(GameTestHelper helper) {
         var tool = new ItemStack(Items.DIAMOND_PICKAXE);
-        tool.enchant(helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
-                .getOrThrow(Enchantments.FORTUNE), 3);
+        tool.enchant(Enchantments.BLOCK_FORTUNE, 3);
         var fixture = fixture(helper, Blocks.DIAMOND_ORE, tool);
         boolean[] observed = {false};
-        Consumer<BlockDropsEvent> listener = event -> {
-            if (event.getBreaker() == fixture.player()) {
-                observed[0] = ItemStack.isSameItemSameComponents(event.getTool(), tool);
+        Consumer<BlockEvent.BreakEvent> listener = event -> {
+            if (event.getPlayer() == fixture.player()) {
+                observed[0] = ItemStack.isSameItemSameTags(event.getPlayer().getMainHandItem(), tool);
             }
         };
-        NeoForge.EVENT_BUS.addListener(listener);
+        MinecraftForge.EVENT_BUS.addListener(listener);
         try {
             var arm = launch(fixture, 1);
             ticks(arm, fixture, contact(arm) + 1, contact(arm) + 12);
             helper.assertTrue(observed[0] && drops(fixture).stream().anyMatch(item -> item.getItem().is(Items.DIAMOND)),
                     "Fortune must be supplied to normal ore drops");
-            helper.assertTrue(ItemStack.isSameItemSameComponents(tool,
+            helper.assertTrue(ItemStack.isSameItemSameTags(tool,
                     PsychicDriveGauntlets.miningTool(fixture.weapon(), helper.getLevel().registryAccess())),
                     "Stored durability and enchantments must not change");
             arm.reset();
-        } finally { NeoForge.EVENT_BUS.unregister(listener); }
+        } finally { MinecraftForge.EVENT_BUS.unregister(listener); }
         helper.succeed();
     }
 
@@ -346,7 +340,7 @@ public final class PsychicDriveGauntletsMiningGameTests {
         Consumer<BlockEvent.BreakEvent> listener = event -> {
             if (event.getPlayer() == fixture.player()) event.setCanceled(true);
         };
-        NeoForge.EVENT_BUS.addListener(listener);
+        MinecraftForge.EVENT_BUS.addListener(listener);
         try {
             var arm = launch(fixture, 1);
             ticks(arm, fixture, contact(arm) + 1, contact(arm) + 12);
@@ -354,7 +348,7 @@ public final class PsychicDriveGauntletsMiningGameTests {
                     "Canceled breaks must keep the block and produce no phantom drops");
             helper.assertTrue(fixture.player().getMainHandItem() == fixture.weapon(), "Rejected mining must restore the main hand");
             arm.reset();
-        } finally { NeoForge.EVENT_BUS.unregister(listener); }
+        } finally { MinecraftForge.EVENT_BUS.unregister(listener); }
         helper.succeed();
     }
 
@@ -396,10 +390,10 @@ public final class PsychicDriveGauntletsMiningGameTests {
     @GameTest(template = TEMPLATE)
     public static void canceledDropsAreNotRecreatedOrCarried(GameTestHelper helper) {
         var fixture = fixture(helper, Blocks.OBSIDIAN, new ItemStack(Items.DIAMOND_PICKAXE));
-        Consumer<BlockDropsEvent> listener = event -> {
-            if (event.getBreaker() == fixture.player()) event.setCanceled(true);
+        Consumer<EntityJoinLevelEvent> listener = event -> {
+            if (event.getEntity() instanceof ItemEntity item && item.blockPosition().equals(fixture.pos())) event.setCanceled(true);
         };
-        NeoForge.EVENT_BUS.addListener(listener);
+        MinecraftForge.EVENT_BUS.addListener(listener);
         try {
             var arm = launch(fixture, 1);
             ticks(arm, fixture, contact(arm) + 1, contact(arm) + 17);
@@ -407,7 +401,7 @@ public final class PsychicDriveGauntletsMiningGameTests {
                             && fixture.player().getInventory().countItem(Items.OBSIDIAN) == 0,
                     "Canceled drops must not be recreated during return");
             arm.reset();
-        } finally { NeoForge.EVENT_BUS.unregister(listener); }
+        } finally { MinecraftForge.EVENT_BUS.unregister(listener); }
         helper.succeed();
     }
 
@@ -432,9 +426,24 @@ public final class PsychicDriveGauntletsMiningGameTests {
         var fixture = fixture(helper, Blocks.OBSIDIAN, new ItemStack(Items.DIAMOND_PICKAXE));
         var observation = new CarriedDropObservation(helper, fixture);
         // 非同期assertだけのfinallyでは全体timeoutを拾えないため、終了通知でも必ず解放する。
-        helper.testInfo.addListener(observation);
+        testInfo(helper).addListener(observation);
         observation.start();
         helper.onEachTick(observation::tick);
+    }
+
+    private static GameTestInfo testInfo(GameTestHelper helper) {
+        // 1.20.1はtestInfoを公開しない。型で探して開発環境・難読化環境のフィールド名差を避ける。
+        for (var field : GameTestHelper.class.getDeclaredFields()) {
+            if (field.getType() == GameTestInfo.class) {
+                try {
+                    field.setAccessible(true);
+                    return (GameTestInfo) field.get(helper);
+                } catch (IllegalAccessException exception) {
+                    throw new IllegalStateException("Cannot observe GameTest completion", exception);
+                }
+            }
+        }
+        throw new IllegalStateException("GameTestInfo field not found");
     }
 
     private static final class CarriedDropObservation implements GameTestListener {
@@ -470,7 +479,7 @@ public final class PsychicDriveGauntletsMiningGameTests {
             }
             check(helper.getLevel().isEmptyBlock(fixture.pos()) && minedDrops.size() == 1,
                     "Mining must create exactly one obsidian drop");
-            item = minedDrops.getFirst();
+            item = minedDrops.get(0);
             carriedPosition = item.position();
             originalAge = item.getAge();
             originalTickCount = item.tickCount;
@@ -488,7 +497,7 @@ public final class PsychicDriveGauntletsMiningGameTests {
         }
 
         private void tick() {
-            if (cleaned || helper.testInfo.isDone()) return;
+            if (cleaned || testInfo(helper).isDone()) return;
             check(!item.isRemoved() && helper.getLevel().getEntity(item.getUUID()) == item
                             && item.getItem().is(Items.OBSIDIAN) && item.getItem().getCount() == originalCount,
                     "The original drop must survive without merging or losing items");
@@ -498,7 +507,7 @@ public final class PsychicDriveGauntletsMiningGameTests {
                 check(item.position().distanceToSqr(carriedPosition) < 1.0e-6 && item.getAge() == originalAge
                                 && item.isNoGravity() && item.noPhysics,
                         "Carried items must preserve position, age, and disabled physics inside a block");
-                // NeoForgeはPreキャンセル前にtickCountを増やすため、age不変だけの偽陽性を防げる。
+                // ForgeもcanUpdateの判定前にtickCountを増やすため、age不変だけの偽陽性を防げる。
                 if (item.tickCount - originalTickCount >= 2) {
                     stage = "release";
                     arm.reset();
@@ -554,16 +563,14 @@ public final class PsychicDriveGauntletsMiningGameTests {
         public void testStructureLoaded(GameTestInfo info) {}
 
         @Override
-        public void testPassed(GameTestInfo info, GameTestRunner runner) { cleanup(); }
+        public void testPassed(GameTestInfo info) { cleanup(); }
 
         @Override
-        public void testFailed(GameTestInfo info, GameTestRunner runner) {
+        public void testFailed(GameTestInfo info) {
             ApprenticeCodex.LOGGER.error("Carried drop tick verification failed: " + describe(), info.getError());
             cleanup();
         }
 
-        @Override
-        public void testAddedForRerun(GameTestInfo original, GameTestInfo rerun, GameTestRunner runner) { cleanup(); }
     }
 
     @GameTest(template = TEMPLATE)

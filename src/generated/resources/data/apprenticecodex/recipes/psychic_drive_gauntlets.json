@@ -21,7 +21,7 @@
     "C C"
   ],
   "result": {
-    "count": 1,
-    "id": "apprenticecodex:psychic_drive_gauntlets"
-  }
+    "item": "apprenticecodex:psychic_drive_gauntlets"
+  },
+  "show_notification": true
 }

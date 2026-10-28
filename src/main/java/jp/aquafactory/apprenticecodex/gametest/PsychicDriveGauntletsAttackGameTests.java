@@ -1,31 +1,31 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import io.netty.buffer.Unpooled;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
-import io.netty.buffer.Unpooled;
+import java.util.Objects;
+import java.util.UUID;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
-import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Impact;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Phase;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Snapshot;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackEvents;
-import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackState;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackState.Input;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackState;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsPose;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsRaycast;
-import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.network.packet.ClientPsychicDriveGauntletsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPsychicDriveGauntletsPacket;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.neoforged.fml.ModList;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
@@ -37,14 +37,12 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-
-import java.util.UUID;
-import java.util.Objects;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -64,7 +62,7 @@ public final class PsychicDriveGauntletsAttackGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.get()));
         // FakePlayerをworldへ追加せず、装備属性更新の代わりに通常装備時の実効値を与える。
         player.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(4);
-        Objects.requireNonNull(player.getAttribute(AttributeRegistry.MAX_MANA)).setBaseValue(100000);
+        Objects.requireNonNull(player.getAttribute(AttributeRegistry.MAX_MANA.get())).setBaseValue(100000);
         MagicData.getPlayerMagicData(player).setMana(100000);
         return player;
     }
@@ -110,7 +108,9 @@ public final class PsychicDriveGauntletsAttackGameTests {
         var center = new Vec3(0.123, player.getY() + 32, 0.789);
         var cow = target(helper, center.add(0, -0.5, 0));
         try {
-            assertStationaryContacts(helper, player, cow, center);
+            try (var air = new GameTestAirSpace(helper.getLevel(), new AABB(center, center).inflate(18, 8, 18))) {
+                assertStationaryContacts(helper, player, cow, center);
+            }
         } finally {
             // 構造物の外に置くため、GameTestの範囲内cleanupに任せず必ず除去する。
             cow.discard();
@@ -201,16 +201,18 @@ public final class PsychicDriveGauntletsAttackGameTests {
         player.setPos(player.position().add(0, 16, 0));
         player.setXRot(-90);
         var eye = player.getEyePosition();
-        var aim = PsychicDriveGauntletsRaycast.aim(player);
-        helper.assertTrue(!aim.block() && aim.point().distanceTo(eye.add(0, 6, 0)) < 1.0e-6,
-                "Empty aim must end six blocks from the eyes: " + aim + ", eye=" + eye + ", look=" + player.getLookAngle());
-        var box = new AABB(0, 0, 6, 1, 1, 7);
-        helper.assertTrue(new Vec3(0.5, 0.5, 6).equals(PsychicDriveGauntletsRaycast.intersection(
-                box, new Vec3(0.5, 0.5, 0), new Vec3(0.5, 0.5, 6))),
-                "A contact exactly at the endpoint must be included");
-        target(helper, eye.add(0, 7.5, 0));
-        helper.assertTrue(PsychicDriveGauntletsRaycast.firstContact(player, eye, aim.point(), eye) == null,
-                "Targets beyond the assisted range must not be selected");
+        try (var air = new GameTestAirSpace(helper.getLevel(), new AABB(eye, eye.add(0, 9, 0)).inflate(1))) {
+            var aim = PsychicDriveGauntletsRaycast.aim(player);
+            helper.assertTrue(!aim.block() && aim.point().distanceTo(eye.add(0, 6, 0)) < 1.0e-6,
+                    "Empty aim must end six blocks from the eyes: " + aim + ", eye=" + eye + ", look=" + player.getLookAngle());
+            var box = new AABB(0, 0, 6, 1, 1, 7);
+            helper.assertTrue(new Vec3(0.5, 0.5, 6).equals(PsychicDriveGauntletsRaycast.intersection(
+                    box, new Vec3(0.5, 0.5, 0), new Vec3(0.5, 0.5, 6))),
+                    "A contact exactly at the endpoint must be included");
+            target(helper, eye.add(0, 7.5, 0));
+            helper.assertTrue(PsychicDriveGauntletsRaycast.firstContact(player, eye, aim.point(), eye) == null,
+                    "Targets beyond the assisted range must not be selected");
+        }
         helper.succeed();
     }
 
@@ -337,8 +339,7 @@ public final class PsychicDriveGauntletsAttackGameTests {
     @GameTest(template = TEMPLATE)
     public static void damageUsesLaunchSnapshotEnchantments(GameTestHelper helper) {
         var player = player(helper);
-        var sharpness = helper.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT)
-                .getHolderOrThrow(Enchantments.SHARPNESS);
+        var sharpness = Enchantments.SHARPNESS;
         player.getMainHandItem().enchant(sharpness, 3);
         var start = PsychicDriveGauntletsPose.position(player, 1, true);
         var target = target(helper, start.add(0, -0.5, 1.2));
@@ -355,14 +356,13 @@ public final class PsychicDriveGauntletsAttackGameTests {
     @GameTest(template = TEMPLATE)
     public static void fireAspectUsesLaunchSnapshotOnContact(GameTestHelper helper) {
         var player = player(helper);
-        var fireAspect = helper.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT)
-                .getHolderOrThrow(Enchantments.FIRE_ASPECT);
+        var fireAspect = Enchantments.FIRE_ASPECT;
         player.getMainHandItem().enchant(fireAspect, 1);
         var start = PsychicDriveGauntletsPose.position(player, 1, true);
         var target = target(helper, start.add(0, -0.5, 1.2));
         var arm = new PsychicDriveGauntletsArm(true);
         arm.launch(player, start.add(0, 0, 6), 1, 0);
-        player.getMainHandItem().remove(DataComponents.ENCHANTMENTS);
+        player.getMainHandItem().removeTagKey("Enchantments");
         arm.tick(player, 1, 1);
         helper.assertTrue(target.isOnFire(), "Fire Aspect must ignite on contact using the launched weapon snapshot");
         helper.succeed();
@@ -413,20 +413,23 @@ public final class PsychicDriveGauntletsAttackGameTests {
             for (boolean right : new boolean[]{true, false}) {
                 for (var velocity : new Vec3[]{new Vec3(0, 0, 0.1), new Vec3(0, 0, -0.1), new Vec3(0.1, 0, 0)}) {
                     player.setPos(player.position().add(0, 5, 0));
-                    var initial = player.getEyePosition().add(0, -0.5, 3);
-                    var cow = target(helper, initial);
-                    var arm = new PsychicDriveGauntletsArm(right);
-                    var aim = PsychicDriveGauntletsRaycast.aim(player, 6 * (1 + charge));
-                    if (charge == 0) arm.prepare(player, aim, 1, 0);
-                    else arm.launch(player, aim, 1, 0, InteractionHand.MAIN_HAND, charge);
-                    for (int tick = 1; tick <= 5; tick++) {
-                        // AIや物理の乱数に依存させず、毎tickの対象移動を明示する。
-                        cow.setPos(initial.add(velocity.scale(tick)));
-                        arm.tick(player, 1, tick);
+                    var eye = player.getEyePosition();
+                    try (var air = new GameTestAirSpace(helper.getLevel(), new AABB(eye, eye.add(0, 0, 12)).inflate(2))) {
+                        var initial = player.getEyePosition().add(0, -0.5, 3);
+                        var cow = target(helper, initial);
+                        var arm = new PsychicDriveGauntletsArm(right);
+                        var aim = PsychicDriveGauntletsRaycast.aim(player, 6 * (1 + charge));
+                        if (charge == 0) arm.prepare(player, aim, 1, 0);
+                        else arm.launch(player, aim, 1, 0, InteractionHand.MAIN_HAND, charge);
+                        for (int tick = 1; tick <= 5; tick++) {
+                            // AIや物理の乱数に依存させず、毎tickの対象移動を明示する。
+                            cow.setPos(initial.add(velocity.scale(tick)));
+                            arm.tick(player, 1, tick);
+                        }
+                        helper.assertTrue(cow.getHealth() < 100,
+                                "Moving targets must connect: charge=" + charge + ", right=" + right + ", velocity=" + velocity);
+                        cow.discard();
                     }
-                    helper.assertTrue(cow.getHealth() < 100,
-                            "Moving targets must connect: charge=" + charge + ", right=" + right + ", velocity=" + velocity);
-                    cow.discard();
                 }
             }
         }
@@ -595,7 +598,7 @@ public final class PsychicDriveGauntletsAttackGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void packetsPreserveIndependentArmsAndExplicitReset(GameTestHelper helper) {
-        var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
+        var buffer = new FriendlyByteBuf(Unpooled.buffer());
         try {
             var right = new Snapshot(Phase.RETURNING, new Vec3(1.25, -2, 3), 179, -30, 0.5F,
                     new Vec3(0, 1, 2), new Vec3(3, 4, 5), 10, 12, 0, 12, 0, Impact.ENTITY, 11);
@@ -604,14 +607,14 @@ public final class PsychicDriveGauntletsAttackGameTests {
             var id = UUID.randomUUID();
             for (boolean reset : new boolean[] {false, true}) {
                 var packet = new SyncPsychicDriveGauntletsPacket(id, reset, right, left);
-                SyncPsychicDriveGauntletsPacket.STREAM_CODEC.encode(buffer, packet);
-                helper.assertTrue(packet.equals(SyncPsychicDriveGauntletsPacket.STREAM_CODEC.decode(buffer)),
+                SyncPsychicDriveGauntletsPacket.encode(packet, buffer);
+                helper.assertTrue(packet.equals(SyncPsychicDriveGauntletsPacket.decode(buffer)),
                         "State packets must preserve both arms, player identity, orientation, and reset semantics");
             }
             for (var input : Input.values()) {
                 var packet = new ClientPsychicDriveGauntletsPacket(input);
-                ClientPsychicDriveGauntletsPacket.STREAM_CODEC.encode(buffer, packet);
-                helper.assertTrue(packet.equals(ClientPsychicDriveGauntletsPacket.STREAM_CODEC.decode(buffer)),
+                ClientPsychicDriveGauntletsPacket.encode(packet, buffer);
+                helper.assertTrue(packet.equals(ClientPsychicDriveGauntletsPacket.decode(buffer)),
                         "Input packets must distinguish press, repeat, and release");
             }
             helper.assertTrue(buffer.readableBytes() == 0, "Packet codecs must consume their complete payload");

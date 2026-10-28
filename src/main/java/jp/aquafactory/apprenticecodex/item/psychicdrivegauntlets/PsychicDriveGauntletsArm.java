@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets;
 
-import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
+import java.util.ArrayList;
+import java.util.List;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsEffect.Kind;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
@@ -13,13 +15,12 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.phys.Vec3;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public final class PsychicDriveGauntletsArm {
     public static final int HOLD_TICKS = 2;
@@ -411,11 +412,12 @@ public final class PsychicDriveGauntletsArm {
                 .getHolderOrThrow(DamageTypes.PSYCHIC_DRIVE_GAUNTLETS);
         // 実体弾を持たないため、接触位置を明示して盾の方向判定をプレイヤー位置へ戻さない。
         var source = new DamageSource(holder, owner, owner, position);
-        var amount = EnchantmentHelper.modifyDamage(level, weapon, target, source, damage);
+        var amount = damage + EnchantmentHelper.getDamageBonus(weapon, target instanceof LivingEntity living ? living.getMobType() : MobType.UNDEFINED);
         boolean applied = CombatTools.applyUnscaledDamage(target, amount, source, suppressKnockback
                 ? CombatTools.KnockbackTypes.NO_KNOCKBACK : CombatTools.KnockbackTypes.DEFAULT);
         if (applied && target instanceof LivingEntity living) {
-            int haunted = MalumCompatibility.getHauntedLevel(weapon);
+            var hauntedEnchantment = MalumHauntedCompat.getHauntedEnchantment();
+            int haunted = hauntedEnchantment == null ? 0 : EnchantmentHelper.getItemEnchantmentLevel(hauntedEnchantment, weapon);
             if (haunted > 0 && living.isAlive()) {
                 // 独自攻撃はMalumの通常近接経路を通らないため、発射時の武器だけから追加分を補完する。
                 // 主手への一時コピーは行わず、副手攻撃や多段でも各命中につき一度だけ適用する。
@@ -425,13 +427,15 @@ public final class PsychicDriveGauntletsArm {
                 CombatTools.applyUnscaledDamage(living, haunted, magicSource, CombatTools.KnockbackTypes.NO_KNOCKBACK);
             }
             // 独自攻撃はPlayer.attackを通らないため、火属性などの命中後効果も武器snapshotから適用する。
-            EnchantmentHelper.doPostAttackEffectsWithItemSource(level, living, source, weapon);
+            weapon.getAllEnchantments().forEach((enchantment, rank) -> enchantment.doPostAttack(owner, living, rank));
+            int fireAspect = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.FIRE_ASPECT, weapon);
+            if (fireAspect > 0) living.setSecondsOnFire(fireAspect * 4);
             if (suppressKnockback) {
                 // amplifierは0始まり。次段までつなぐ短いSlowness Vで、離脱後の拘束を残さない。
                 living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 5, 4), owner);
             } else {
                 // 最大溜めは最終段だけ押し出す。耐性とLivingKnockBackEventは通常の経路へ委ねる。
-                var knockback = EnchantmentHelper.modifyKnockback(level, weapon, target, source, 0)
+                var knockback = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.KNOCKBACK, weapon)
                         + (charge >= 1 ? 1 : 0);
                 if (knockback > 0) {
                     var direction = destination.subtract(flightStart).normalize();

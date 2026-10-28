@@ -1,6 +1,7 @@
 {
   "values": [
     "apprenticecodex:spell_reaper_scythe",
+    "apprenticecodex:psychic_drive_gauntlets",
     "apprenticecodex:pastel_staff",
     "apprenticecodex:multicast_echo_staff",
     "apprenticecodex:focus_staffbow",
@@ -31,7 +32,6 @@
     "apprenticecodex:revolvercast_staff",
     "apprenticecodex:crystal_bladed_staff",
     "apprenticecodex:illuminate_stellar_staff",
-    "apprenticecodex:unite_luna_staff",
-    "apprenticecodex:psychic_drive_gauntlets"
+    "apprenticecodex:unite_luna_staff"
   ]
 }

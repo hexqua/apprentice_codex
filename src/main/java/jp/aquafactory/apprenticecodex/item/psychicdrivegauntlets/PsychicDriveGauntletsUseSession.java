@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets;
 
+
 // clientの押下とserver応答を対応付ける。終了済みの応答では次の押下を変更しない。
 public final class PsychicDriveGauntletsUseSession {
     private long id;

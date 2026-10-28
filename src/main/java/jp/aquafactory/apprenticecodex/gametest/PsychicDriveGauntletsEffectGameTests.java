@@ -1,14 +1,20 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
-import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import com.google.gson.JsonParser;
 import io.netty.buffer.Unpooled;
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackState;
-import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsEffect;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsEffect.Kind;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsEffect;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsPose;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsRaycast;
 import jp.aquafactory.apprenticecodex.network.packet.PsychicDriveGauntletsEffectPacket;
@@ -17,7 +23,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
@@ -25,17 +31,9 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Cow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.neoforged.neoforge.network.connection.ConnectionType;
-
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -55,7 +53,7 @@ public final class PsychicDriveGauntletsEffectGameTests {
         player.setYRot(0);
         player.setXRot(0);
         player.yBodyRot = 0;
-        Objects.requireNonNull(player.getAttribute(AttributeRegistry.MAX_MANA)).setBaseValue(100000);
+        Objects.requireNonNull(player.getAttribute(AttributeRegistry.MAX_MANA.get())).setBaseValue(100000);
         MagicData.getPlayerMagicData(player).setMana(100000);
         return player;
     }
@@ -141,8 +139,8 @@ public final class PsychicDriveGauntletsEffectGameTests {
         state.tick(player, 20);
         helper.assertTrue(state.releaseUse(player, 20), "Partial charge fixture must release");
         var effects = state.left().drainEffects();
-        helper.assertTrue(effects.size() == 1 && effects.getFirst().kind() == Kind.LAUNCH
-                        && effects.getFirst().charge() == 0.5F,
+        helper.assertTrue(effects.size() == 1 && effects.get(0).kind() == Kind.LAUNCH
+                        && effects.get(0).charge() == 0.5F,
                 "Partial release must use the normal launch event and preserve charge");
         var cow = target(helper, player);
         var partial = launch(player, 0.5F);
@@ -222,15 +220,15 @@ public final class PsychicDriveGauntletsEffectGameTests {
     @GameTest(template = TEMPLATE)
     public static void effectPacketsPreserveBothSidesAndAllStages(GameTestHelper helper) {
         var player = player(helper);
-        var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess(), ConnectionType.NEOFORGE);
+        var buffer = new FriendlyByteBuf(Unpooled.buffer());
         try {
             for (boolean right : new boolean[] {false, true}) {
                 for (var kind : Kind.values()) {
                     var effect = new PsychicDriveGauntletsEffect(right, kind, player.position(),
                             new Vec3(0.25, -0.5, 0.75), 0.75F);
                     var packet = new PsychicDriveGauntletsEffectPacket(player.getUUID(), effect);
-                    PsychicDriveGauntletsEffectPacket.STREAM_CODEC.encode(buffer, packet);
-                    helper.assertTrue(packet.equals(PsychicDriveGauntletsEffectPacket.STREAM_CODEC.decode(buffer)),
+                    PsychicDriveGauntletsEffectPacket.encode(packet, buffer);
+                    helper.assertTrue(packet.equals(PsychicDriveGauntletsEffectPacket.decode(buffer)),
                             "Effect payload must preserve player, side, stage, position, direction and charge");
                 }
             }

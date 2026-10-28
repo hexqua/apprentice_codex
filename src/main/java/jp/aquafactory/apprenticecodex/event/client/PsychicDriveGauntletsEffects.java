@@ -2,10 +2,15 @@ package jp.aquafactory.apprenticecodex.event.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Phase;
-import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsEffect;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsEffect.Kind;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsEffect;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection.Mode;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsVisualState;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
@@ -21,20 +26,14 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.joml.Vector3f;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class PsychicDriveGauntletsEffects {
     private static final float RED = 0.72F;
     private static final float GREEN = 0.26F;
@@ -117,7 +116,8 @@ public final class PsychicDriveGauntletsEffects {
     }
 
     @SubscribeEvent
-    public static void tick(ClientTickEvent.Post event) {
+    public static void tick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
         resetLevel();
         if (level == null) return;
         long now = level.getGameTime();
@@ -285,7 +285,7 @@ public final class PsychicDriveGauntletsEffects {
         if (level == null) return;
         var minecraft = Minecraft.getInstance();
         var camera = event.getCamera().getPosition();
-        double time = level.getGameTime() + event.getPartialTick().getGameTimeDeltaPartialTick(true);
+        double time = level.getGameTime() + event.getPartialTick();
         var stack = event.getPoseStack();
         var buffers = minecraft.renderBuffers().bufferSource();
         stack.pushPose();
@@ -342,9 +342,9 @@ public final class PsychicDriveGauntletsEffects {
     private static void waveVertex(PoseStack stack, VertexConsumer buffer, Vec3 point, float u, float v,
                                    Vec3 normal, float alpha) {
         var n = stack.last().normal().transform(new Vector3f((float) normal.x, (float) normal.y, (float) normal.z));
-        buffer.addVertex(stack.last().pose(), (float) point.x, (float) point.y, (float) point.z)
-                .setColor(RED * alpha, GREEN * alpha, BLUE * alpha, alpha).setUv(u, v)
-                .setOverlay(OverlayTexture.NO_OVERLAY).setLight(LightTexture.FULL_BRIGHT).setNormal(n.x, n.y, n.z);
+        buffer.vertex(stack.last().pose(), (float) point.x, (float) point.y, (float) point.z)
+                .color(RED * alpha, GREEN * alpha, BLUE * alpha, alpha).uv(u, v)
+                .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BRIGHT).normal(n.x, n.y, n.z).endVertex();
     }
 
     private static void renderTrail(PoseStack stack, VertexConsumer buffer, Trail trail, double time, Vec3 camera) {
@@ -364,7 +364,7 @@ public final class PsychicDriveGauntletsEffects {
     }
 
     private static void trailVertex(PoseStack stack, VertexConsumer buffer, Vec3 point, float alpha) {
-        buffer.addVertex(stack.last().pose(), (float) point.x, (float) point.y, (float) point.z)
-                .setColor(RED * alpha, GREEN * alpha, BLUE * alpha, alpha);
+        buffer.vertex(stack.last().pose(), (float) point.x, (float) point.y, (float) point.z)
+                .color(RED * alpha, GREEN * alpha, BLUE * alpha, alpha).endVertex();
     }
 }

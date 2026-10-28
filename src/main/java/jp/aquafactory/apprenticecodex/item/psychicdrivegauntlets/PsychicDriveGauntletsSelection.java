@@ -1,8 +1,8 @@
 package jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets;
 
 import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 public record PsychicDriveGauntletsSelection(ItemStack stack, Mode mode) {
@@ -46,7 +46,7 @@ public record PsychicDriveGauntletsSelection(ItemStack stack, Mode mode) {
     public static ItemStack physicalOffhand(Player player) {
         // Better Combatの両手武器は論理オフハンドを空にするため、所持数はinventoryで数える。
         var inventory = player.getInventory().offhand;
-        return inventory.isEmpty() ? ItemStack.EMPTY : inventory.getFirst();
+        return inventory.isEmpty() ? ItemStack.EMPTY : inventory.get(0);
     }
 
     public static boolean duplicate(Player player) {

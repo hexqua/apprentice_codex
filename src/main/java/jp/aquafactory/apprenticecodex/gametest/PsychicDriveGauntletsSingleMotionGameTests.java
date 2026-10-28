@@ -1,13 +1,14 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import io.netty.buffer.Unpooled;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
-import io.netty.buffer.Unpooled;
+import java.util.Objects;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Phase;
-import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackState;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackState.Input;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackState;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsDisplayMotion;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsHudState;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsMotion;
@@ -18,18 +19,16 @@ import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Cow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-
-import java.util.Objects;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -49,7 +48,7 @@ public final class PsychicDriveGauntletsSingleMotionGameTests {
         player.setYRot(0);
         player.setXRot(0);
         player.yBodyRot = 0;
-        Objects.requireNonNull(player.getAttribute(AttributeRegistry.MAX_MANA)).setBaseValue(100000);
+        Objects.requireNonNull(player.getAttribute(AttributeRegistry.MAX_MANA.get())).setBaseValue(100000);
         MagicData.getPlayerMagicData(player).setMana(100000);
         return player;
     }
@@ -213,13 +212,13 @@ public final class PsychicDriveGauntletsSingleMotionGameTests {
         var expected = PsychicDriveGauntletsMotion.singlePose(initial, 107.5);
         equal(helper, PsychicDriveGauntletsMotion.singlePose(rendered, 1002.75).power(), expected.power(),
                 "Repeated packets must not restart pose recovery");
-        var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
+        var buffer = new FriendlyByteBuf(Unpooled.buffer());
         try {
             var other = new PsychicDriveGauntletsArm(false);
             other.prepare(player, new Aim(player.getEyePosition(), start.add(0, 0, 3), false), 1, 106);
             var packet = new SyncPsychicDriveGauntletsPacket(player.getUUID(), false, arm.snapshot(), other.snapshot());
-            SyncPsychicDriveGauntletsPacket.STREAM_CODEC.encode(buffer, packet);
-            helper.assertTrue(packet.equals(SyncPsychicDriveGauntletsPacket.STREAM_CODEC.decode(buffer)) && !buffer.isReadable(),
+            SyncPsychicDriveGauntletsPacket.encode(packet, buffer);
+            helper.assertTrue(packet.equals(SyncPsychicDriveGauntletsPacket.decode(buffer)) && !buffer.isReadable(),
                     "Preparation, return path and captured pose must survive the complete packet codec");
         } finally { buffer.release(); }
         helper.succeed();
@@ -260,11 +259,11 @@ public final class PsychicDriveGauntletsSingleMotionGameTests {
                 equal(helper, endPose.twist(), -5, "Return must retain the outward twist");
                 equal(helper, display.sample(1003.25).position().distanceTo(arm.position()), 0,
                         "Follow-through and return positions must connect");
-                var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
+                var buffer = new FriendlyByteBuf(Unpooled.buffer());
                 try {
                     var packet = new SyncPsychicDriveGauntletsPacket(player.getUUID(), false, initial, arm.snapshot());
-                    SyncPsychicDriveGauntletsPacket.STREAM_CODEC.encode(buffer, packet);
-                    helper.assertTrue(packet.equals(SyncPsychicDriveGauntletsPacket.STREAM_CODEC.decode(buffer)),
+                    SyncPsychicDriveGauntletsPacket.encode(packet, buffer);
+                    helper.assertTrue(packet.equals(SyncPsychicDriveGauntletsPacket.decode(buffer)),
                             "Follow-through and return must survive the packet codec");
                 } finally { buffer.release(); }
                 for (int tick = 107; tick <= 111; tick++) arm.tick(player, 1, tick);

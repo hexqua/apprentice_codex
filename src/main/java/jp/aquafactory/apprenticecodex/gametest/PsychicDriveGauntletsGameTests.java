@@ -2,8 +2,8 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsFollow;
-import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection.Mode;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsSelection;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsTransition;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
@@ -12,13 +12,13 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -38,13 +38,13 @@ public final class PsychicDriveGauntletsGameTests {
         helper.assertTrue(stack.getMaxStackSize() == 1, "Gauntlets must have a stack limit of one");
         var damage = new double[] {1.0};
         var speed = new double[] {4.0};
-        stack.getAttributeModifiers().forEach(EquipmentSlot.MAINHAND, (attribute, modifier) -> {
-            if (attribute.equals(Attributes.ATTACK_DAMAGE)) damage[0] += modifier.amount();
-            if (attribute.equals(Attributes.ATTACK_SPEED)) speed[0] += modifier.amount();
+        stack.getAttributeModifiers(EquipmentSlot.MAINHAND).forEach( (attribute, modifier) -> {
+            if (attribute.equals(Attributes.ATTACK_DAMAGE)) damage[0] += modifier.getAmount();
+            if (attribute.equals(Attributes.ATTACK_SPEED)) speed[0] += modifier.getAmount();
         });
         helper.assertTrue(Math.abs(damage[0] - 4.0) < 1.0e-6, "Gauntlets must display attack damage four");
         helper.assertTrue(Math.abs(speed[0] - 2.0) < 1.0e-6, "Gauntlets must display a ten-tick attack speed");
-        stack.getAttributeModifiers().forEach(EquipmentSlot.OFFHAND, (attribute, modifier) ->
+        stack.getAttributeModifiers(EquipmentSlot.OFFHAND).forEach( (attribute, modifier) ->
                 helper.assertTrue(!attribute.equals(Attributes.ATTACK_DAMAGE) && !attribute.equals(Attributes.ATTACK_SPEED),
                         "Offhand gauntlets must not add combat attributes"));
         helper.succeed();

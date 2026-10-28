@@ -9,14 +9,16 @@
     }
   },
   "display": {
+    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_psychic_drive_gauntlets.description"
     },
     "frame": "challenge",
+    "hidden": false,
     "icon": {
-      "count": 1,
-      "id": "apprenticecodex:psychic_drive_gauntlets"
+      "item": "apprenticecodex:psychic_drive_gauntlets"
     },
+    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_psychic_drive_gauntlets.title"
     }

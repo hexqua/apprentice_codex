@@ -1,13 +1,14 @@
 package jp.aquafactory.apprenticecodex.compat.epicfight;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import java.util.UUID;
 import jp.aquafactory.apprenticecodex.event.client.ClientSpellgunInputEvent;
 import jp.aquafactory.apprenticecodex.event.client.ClientSwingMagicAttackTrigger;
-import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
-import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
-import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
-import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntlets;
 import jp.aquafactory.apprenticecodex.event.client.PsychicDriveGauntletsInputEvents;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
+import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntlets;
+import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import yesman.epicfight.api.animation.types.AttackAnimation;
@@ -22,8 +23,6 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.entity.eventlistener.AnimationBeginEvent;
 import yesman.epicfight.world.entity.eventlistener.PlayerEventListener.EventType;
 import yesman.epicfight.world.entity.eventlistener.SkillCastEvent;
-
-import java.util.UUID;
 
 public final class EpicFightClientCompat {
     public static final String MOD_ID = "epicfight";
@@ -141,8 +140,8 @@ public final class EpicFightClientCompat {
 
     private static void onBasicAttackSkillCast(SkillCastEvent event) {
         if (event.getPlayerPatch().getOriginal().getMainHandItem().getItem() instanceof PsychicDriveGauntlets
-                && event.getSkillContainer().getSlot() == SkillSlots.COMBO_ATTACKS) {
-            event.cancel();
+                && event.getSkillContainer().getSlot() == SkillSlots.BASIC_ATTACK) {
+            event.setCanceled(true);
             PsychicDriveGauntletsInputEvents.press();
             return;
         }

@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets;
 
+import java.util.ArrayList;
+import java.util.List;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsRaycast.BlockTarget;
 import jp.aquafactory.apprenticecodex.mixin.ItemEntityAccessor;
@@ -10,28 +12,20 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.level.BlockDropsEvent;
-import net.neoforged.neoforge.event.tick.EntityTickEvent;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Set;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
 /** 採掘条件と回収を腕の戦闘処理から分け、loader固有のドロップ捕捉をここに閉じ込める。 */
-@EventBusSubscriber(modid = ApprenticeCodex.MODID)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class PsychicDriveGauntletsMining {
     public static final int MINING_TICKS = 12;
     private static final ThreadLocal<Capture> CAPTURE = new ThreadLocal<>();
-    private static final Set<ItemEntity> CARRIED_ITEMS = Collections.newSetFromMap(new IdentityHashMap<>());
-    private record Capture(ServerPlayer owner, BlockTarget target, List<BlockDropsEvent> events) {}
-    private record Carried(ItemEntity item, boolean noGravity, boolean noPhysics, int pickupDelay) {
+    private record Capture(ServerPlayer owner, BlockTarget target, List<ItemEntity> items) {}
+    private record Carried(ItemEntity item, boolean noGravity, boolean noPhysics, int pickupDelay, boolean canUpdate) {
         void restore() {
-            CARRIED_ITEMS.remove(item);
+            item.canUpdate(canUpdate);
             item.setNoGravity(noGravity);
             item.noPhysics = noPhysics;
             item.setPickUpDelay(pickupDelay);
@@ -78,22 +72,20 @@ public final class PsychicDriveGauntletsMining {
             // 通常のplayer採掘経路を使い、保護イベント・幸運・シルクタッチ・外部エンチャントを尊重する。
             boolean broken = BlockTools.tryBreakBlockByPlayerHands(level, player, target.pos(), tool.copy());
             if (!broken || level.getBlockState(target.pos()) == target.state()) return false;
-            for (var event : capture.events()) {
-                if (event.isCanceled()) continue;
-                for (var item : event.getDrops()) {
-                    // event後の変更とspawn拒否を確認し、実際に生成されたドロップだけを追跡する。
-                    if (item.isRemoved() || level.getEntity(item.getUUID()) != item
-                            || carried.stream().anyMatch(entry -> entry.item() == item)) continue;
-                    carried.add(new Carried(item, item.isNoGravity(), item.noPhysics,
-                            ((ItemEntityAccessor) item).apprenticecodex$getPickupDelay()));
-                    CARRIED_ITEMS.add(item);
-                    item.setNoGravity(true);
-                    item.noPhysics = true;
-                    item.setNeverPickUp();
-                    item.setDeltaMovement(Vec3.ZERO);
-                    item.teleportTo(contact.x, contact.y, contact.z);
-                    item.hasImpulse = true;
-                }
+            for (var item : capture.items()) {
+                // spawn拒否や後続listenerの変更を確認し、実際に生成されたドロップだけを追跡する。
+                if (item.isRemoved() || level.getEntity(item.getUUID()) != item
+                        || carried.stream().anyMatch(entry -> entry.item() == item)) continue;
+                carried.add(new Carried(item, item.isNoGravity(), item.noPhysics,
+                        ((ItemEntityAccessor) item).apprenticecodex$getPickupDelay(), item.canUpdate()));
+                // ServerLevelはcanUpdateの判定前にtickCountを進める。物理・寿命・合流だけ止め、元の更新可否も復元する。
+                item.canUpdate(false);
+                item.setNoGravity(true);
+                item.noPhysics = true;
+                item.setNeverPickUp();
+                item.setDeltaMovement(Vec3.ZERO);
+                item.teleportTo(contact.x, contact.y, contact.z);
+                item.hasImpulse = true;
             }
             return true;
         } finally {
@@ -103,18 +95,13 @@ public final class PsychicDriveGauntletsMining {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void captureDrops(BlockDropsEvent event) {
+    public static void captureDrops(EntityJoinLevelEvent event) {
         var capture = CAPTURE.get();
-        if (capture != null && event.getBreaker() == capture.owner()
-                && event.getLevel() == capture.owner().level() && event.getPos().equals(capture.target().pos())
-                && event.getState() == capture.target().state()) capture.events().add(event);
-    }
-
-    @SubscribeEvent
-    public static void holdCarriedItem(EntityTickEvent.Pre event) {
-        // ItemEntity.tickはnoPhysicsを上書きするため、帰還中だけ通常の物理・合流処理を止める。
-        if (event.getEntity() instanceof ItemEntity item && !item.level().isClientSide
-                && CARRIED_ITEMS.contains(item)) event.setCanceled(true);
+        // ForgeにはBlockDropsEventがないため、この採掘呼出し中に対象位置からspawnするitemに限定する。
+        if (capture != null && event.getLevel() == capture.owner().level()
+                && event.getEntity() instanceof ItemEntity item && item.blockPosition().equals(capture.target().pos())) {
+            capture.items().add(item);
+        }
     }
 
     public void follow(Player owner, Vec3 position, boolean arrived) {
@@ -125,7 +112,7 @@ public final class PsychicDriveGauntletsMining {
         for (var entry : carried) {
             var item = entry.item();
             if (item.isRemoved()) {
-                CARRIED_ITEMS.remove(item);
+                entry.restore();
                 continue;
             }
             var destination = arrived ? owner.position() : position;

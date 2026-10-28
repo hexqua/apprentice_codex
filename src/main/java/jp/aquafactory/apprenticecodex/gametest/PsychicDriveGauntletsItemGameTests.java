@@ -1,15 +1,16 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackState;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackState.Input;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackState.UseAction;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsAttackState;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -20,13 +21,11 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.neoforged.fml.ModList;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-
-import java.util.ArrayList;
-import java.util.List;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.registries.ForgeRegistries;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -114,8 +113,7 @@ public final class PsychicDriveGauntletsItemGameTests {
     public static void lootingKeepsVanillaMainHandOnlyLimitation(GameTestHelper helper) {
         var player = player(helper);
         var stack = player.getMainHandItem();
-        var looting = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
-                .getOrThrow(Enchantments.LOOTING);
+        var looting = Enchantments.MOB_LOOTING;
         stack.enchant(looting, 3);
 
         // Looting は付与を許可するが、副手攻撃の loot 補正は対応コストに見合わないため補完しない。
@@ -137,26 +135,26 @@ public final class PsychicDriveGauntletsItemGameTests {
         var player = player(helper);
         var stack = player.getMainHandItem();
         var item = stack.getItem();
-        helper.assertTrue(stack.getRarity() == Rarity.EPIC && stack.has(DataComponents.FIRE_RESISTANT)
+        helper.assertTrue(stack.getRarity() == Rarity.EPIC && item.isFireResistant()
                         && !stack.isDamageableItem() && item.getEnchantmentValue(stack) == 22 && stack.isEnchantable(),
                 "Gauntlets must be epic, fire resistant, non-damageable and enchantable at value 22");
-        var registry = helper.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT);
+        var registry = ForgeRegistries.ENCHANTMENTS;
         for (var key : List.of(Enchantments.SHARPNESS, Enchantments.SMITE, Enchantments.BANE_OF_ARTHROPODS,
-                Enchantments.KNOCKBACK, Enchantments.FIRE_ASPECT, Enchantments.LOOTING)) {
-            var enchantment = registry.getHolderOrThrow(key);
-            helper.assertTrue(stack.supportsEnchantment(enchantment) && stack.isPrimaryItemFor(enchantment),
-                    "Sword combat enchantment must be applicable: " + key.location());
+                Enchantments.KNOCKBACK, Enchantments.FIRE_ASPECT, Enchantments.MOB_LOOTING)) {
+            var enchantment = key;
+            helper.assertTrue(enchantment.canApplyAtEnchantingTable(stack),
+                    "Sword combat enchantment must be applicable: " + registry.getKey(key));
         }
         for (var key : List.of(Enchantments.SWEEPING_EDGE, Enchantments.UNBREAKING, Enchantments.MENDING,
-                Enchantments.VANISHING_CURSE, Enchantments.EFFICIENCY, Enchantments.POWER)) {
-            var enchantment = registry.getHolderOrThrow(key);
+                Enchantments.VANISHING_CURSE, Enchantments.BLOCK_EFFICIENCY, Enchantments.POWER_ARROWS)) {
+            var enchantment = key;
             var book = new ItemStack(Items.ENCHANTED_BOOK);
-            book.enchant(enchantment, 1);
-            helper.assertTrue(!stack.supportsEnchantment(enchantment) && !stack.isPrimaryItemFor(enchantment)
+            EnchantmentHelper.setEnchantments(Map.of(enchantment, 1), book);
+            helper.assertTrue(!enchantment.canApplyAtEnchantingTable(stack)
                             && !stack.isBookEnchantable(book),
-                    "Excluded enchantment must be rejected by all application paths: " + key.location());
+                    "Excluded enchantment must be rejected by all application paths: " + registry.getKey(key));
         }
-        var sharpness = registry.getHolderOrThrow(Enchantments.SHARPNESS);
+        var sharpness = Enchantments.SHARPNESS;
         var first = stack.copy();
         first.enchant(sharpness, 1);
         var second = first.copy();
@@ -170,14 +168,14 @@ public final class PsychicDriveGauntletsItemGameTests {
         if (ModList.get().isLoaded("malum")) {
             ids.add(ResourceLocation.fromNamespaceAndPath("malum", "spirit_plunder"));
             ids.add(ResourceLocation.fromNamespaceAndPath("malum", "haunted"));
-            var animated = registry.getHolder(ResourceLocation.fromNamespaceAndPath("malum", "animated")).orElseThrow();
-            helper.assertTrue(!stack.supportsEnchantment(animated) && !stack.isPrimaryItemFor(animated),
+            var animated = registry.getValue(ResourceLocation.fromNamespaceAndPath("malum", "animated"));
+            helper.assertTrue(!animated.canApplyAtEnchantingTable(stack),
                     "Animated must remain excluded even with Malum loaded");
         }
         for (var id : ids) {
-            var enchantment = registry.getHolder(id).orElseThrow();
+            var enchantment = registry.getValue(id);
             var book = new ItemStack(Items.ENCHANTED_BOOK);
-            book.enchant(enchantment, 1);
+            EnchantmentHelper.setEnchantments(Map.of(enchantment, 1), book);
             menu.getSlot(0).set(stack.copy());
             menu.getSlot(1).set(book);
             menu.createResult();

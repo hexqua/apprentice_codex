@@ -5,18 +5,22 @@ import com.mojang.blaze3d.platform.GlStateManager.SourceFactor;
 import com.mojang.blaze3d.systems.RenderSystem;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightClientCompat;
-import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsHudState;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsHudState.Gauge;
-import net.minecraft.client.DeltaTracker;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsHudState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.LayeredDraw;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.neoforged.fml.ModList;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RenderGuiOverlayEvent;
+import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
 
-public final class PsychicDriveGauntletsHud implements LayeredDraw.Layer {
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+public final class PsychicDriveGauntletsHud {
     public static final PsychicDriveGauntletsHud INSTANCE = new PsychicDriveGauntletsHud();
     private static final ResourceLocation LEFT = texture("left");
     private static final ResourceLocation RIGHT = texture("right");
@@ -29,18 +33,21 @@ public final class PsychicDriveGauntletsHud implements LayeredDraw.Layer {
 
     private PsychicDriveGauntletsHud() {}
 
-    @Override
-    public void render(@NotNull GuiGraphics graphics, @NotNull DeltaTracker deltaTracker) {
+    @SubscribeEvent
+    public static void onRender(RenderGuiOverlayEvent.Post event) {
+        if (event.getOverlay() == VanillaGuiOverlay.CROSSHAIR.type()) INSTANCE.render(event.getGuiGraphics(), event.getPartialTick());
+    }
+
+    public void render(@NotNull GuiGraphics graphics, float partialTick) {
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         if (player == null || minecraft.level == null || minecraft.options.hideGui || minecraft.screen != null
                 || minecraft.getCameraEntity() != player || !PsychicDriveGauntletsHudState.canDisplay(player)) return;
         if (!minecraft.options.getCameraType().isFirstPerson()
                 && !(ModList.get().isLoaded(EpicFightClientCompat.MOD_ID) && EpicFightClientCompat.isTpsMode())) return;
-        if (minecraft.getDebugOverlay().showDebugScreen() && !player.isReducedDebugInfo()
+        if (minecraft.options.renderDebug && !player.isReducedDebugInfo()
                 && !minecraft.options.reducedDebugInfo().get()) return;
 
-        var partialTick = deltaTracker.getGameTimeDeltaPartialTick(true);
         var left = PsychicDriveGauntletsClientState.hud(player.getUUID(), false, partialTick);
         var right = PsychicDriveGauntletsClientState.hud(player.getUUID(), true, partialTick);
         int center = graphics.guiWidth() / 2;

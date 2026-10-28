@@ -1,8 +1,10 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import io.netty.buffer.Unpooled;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
-import io.netty.buffer.Unpooled;
+import java.util.Objects;
+import java.util.UUID;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm.Phase;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm;
@@ -23,12 +25,10 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncPsychicDriveGauntletsPa
 import jp.aquafactory.apprenticecodex.network.packet.SyncPsychicDriveGauntletsUseStatePacket;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
@@ -38,22 +38,20 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Cow;
+import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.fml.ModList;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-import net.neoforged.neoforge.network.connection.ConnectionType;
-
-import java.util.Objects;
+import net.minecraft.world.phys.AABB;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -75,7 +73,7 @@ public final class PsychicDriveGauntletsChargeGameTests {
         player.yBodyRot = 0;
         // 未追加のFakePlayerでは装備属性更新を行わず、通常装備時の実効値を与える。
         Objects.requireNonNull(player.getAttribute(Attributes.ATTACK_DAMAGE)).setBaseValue(4);
-        Objects.requireNonNull(player.getAttribute(AttributeRegistry.MAX_MANA)).setBaseValue(100000);
+        Objects.requireNonNull(player.getAttribute(AttributeRegistry.MAX_MANA.get())).setBaseValue(100000);
         MagicData.getPlayerMagicData(player).setMana(100000);
         return player;
     }
@@ -97,7 +95,7 @@ public final class PsychicDriveGauntletsChargeGameTests {
         player.getInventory().setItem(9, gauntlets());
         helper.assertTrue(!PsychicDriveGauntletsSelection.duplicate(player), "Storage inventory must allow spares");
         player.getInventory().setItem(8, gauntlets());
-        player.getInventory().getItem(8).set(DataComponents.CUSTOM_NAME, Component.literal("Spare"));
+        player.getInventory().getItem(8).setHoverName(Component.literal("Spare"));
         helper.assertTrue(PsychicDriveGauntletsSelection.find(player, true).mode() == Mode.DISABLED,
                 "A nonselected hotbar copy must disable all gauntlets");
         helper.assertTrue(!new PsychicDriveGauntletsAttackState().input(player, Input.PRESS, 0),
@@ -253,15 +251,10 @@ public final class PsychicDriveGauntletsChargeGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, sword);
         var damage = Objects.requireNonNull(player.getAttribute(Attributes.ATTACK_DAMAGE));
         damage.setBaseValue(1);
-        sword.forEachModifier(EquipmentSlot.MAINHAND, (type, modifier) -> {
-            if (type.equals(Attributes.ATTACK_DAMAGE)) damage.addOrUpdateTransientModifier(modifier);
-        });
-        damage.addTransientModifier(new AttributeModifier(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID,
-                "charge_test_flat"), 3, Operation.ADD_VALUE));
-        damage.addTransientModifier(new AttributeModifier(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID,
-                "charge_test_base"), 0.5, Operation.ADD_MULTIPLIED_BASE));
-        damage.addTransientModifier(new AttributeModifier(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID,
-                "charge_test_total"), 0.2, Operation.ADD_MULTIPLIED_TOTAL));
+        sword.getAttributeModifiers(EquipmentSlot.MAINHAND).get(Attributes.ATTACK_DAMAGE).forEach(damage::addTransientModifier);
+        damage.addTransientModifier(new AttributeModifier(UUID.fromString("4615ae73-f424-4d26-917f-7e6ba4e5f0a0"), "charge_test_flat", 3, Operation.ADDITION));
+        damage.addTransientModifier(new AttributeModifier(UUID.fromString("4615ae73-f424-4d26-917f-7e6ba4e5f0a1"), "charge_test_base", 0.5, Operation.MULTIPLY_BASE));
+        damage.addTransientModifier(new AttributeModifier(UUID.fromString("4615ae73-f424-4d26-917f-7e6ba4e5f0a2"), "charge_test_total", 0.2, Operation.MULTIPLY_TOTAL));
         double original = damage.getValue();
         helper.assertTrue(Math.abs(PsychicDriveGauntletsCharge.attackDamage(player, player.getOffhandItem()) - 12.6) < 1.0e-5,
                 "Offhand damage must replace sword bonus with gauntlet bonus and preserve attribute operation order");
@@ -276,8 +269,7 @@ public final class PsychicDriveGauntletsChargeGameTests {
     @GameTest(template = TEMPLATE)
     public static void chargeUsesNormalEnchantedDamageAndRespectsResistance(GameTestHelper helper) {
         var player = player(helper);
-        var sharpness = helper.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT)
-                .getHolderOrThrow(Enchantments.SHARPNESS);
+        var sharpness = Enchantments.SHARPNESS;
         player.getMainHandItem().enchant(sharpness, 3);
         var start = PsychicDriveGauntletsPose.position(player, 1, true);
         var cow = target(helper, start.add(0, -0.5, 2));
@@ -327,8 +319,11 @@ public final class PsychicDriveGauntletsChargeGameTests {
         }
         var player = player(helper);
         player.setXRot(-90);
-        helper.assertTrue(Math.abs(PsychicDriveGauntletsRaycast.aim(player, 12).point().distanceTo(player.getEyePosition()) - 12) < 1.0e-6,
-                "Full-charge empty aim must reach twelve blocks");
+        try (var air = new GameTestAirSpace(helper.getLevel(),
+                new AABB(player.getEyePosition(), player.getEyePosition().add(0, 12, 0)).inflate(1))) {
+            helper.assertTrue(Math.abs(PsychicDriveGauntletsRaycast.aim(player, 12).point().distanceTo(player.getEyePosition()) - 12) < 1.0e-6,
+                    "Full-charge empty aim must reach twelve blocks");
+        }
         helper.succeed();
     }
 
@@ -403,15 +398,15 @@ public final class PsychicDriveGauntletsChargeGameTests {
     public static void chargeMovementStacksAndAlwaysRemovesOnlyItsOwnModifier(GameTestHelper helper) {
         var player = player(helper);
         var speed = Objects.requireNonNull(player.getAttribute(Attributes.MOVEMENT_SPEED));
-        var other = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "charge_other_speed_test");
-        speed.addTransientModifier(new AttributeModifier(other, 0.5, Operation.ADD_MULTIPLIED_TOTAL));
+        var other = UUID.fromString("28139d44-77e8-4b58-bc6c-bec10da621fb");
+        speed.addTransientModifier(new AttributeModifier(other, "charge_other_speed_test", 0.5, Operation.MULTIPLY_TOTAL));
         double original = speed.getValue();
         PsychicDriveGauntletsChargeMovement.update(player, true);
         PsychicDriveGauntletsChargeMovement.update(player, true);
         helper.assertTrue(Math.abs(speed.getValue() - original * 0.8) < 1.0e-6,
                 "Charge slowdown must stack once with other movement modifiers");
         PsychicDriveGauntletsChargeMovement.update(player, false);
-        helper.assertTrue(Math.abs(speed.getValue() - original) < 1.0e-6 && speed.hasModifier(other),
+        helper.assertTrue(Math.abs(speed.getValue() - original) < 1.0e-6 && speed.getModifier(other) != null,
                 "Charge end must restore movement without removing other modifiers");
         PsychicDriveGauntletsChargeMovement.update(player, true);
         player.setHealth(0);
@@ -490,20 +485,20 @@ public final class PsychicDriveGauntletsChargeGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void independentUsePacketsPreserveSessionAndHand(GameTestHelper helper) {
-        var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess(), ConnectionType.NEOFORGE);
+        var buffer = new FriendlyByteBuf(Unpooled.buffer());
         try {
             for (var action : UseAction.values()) {
                 for (var hand : InteractionHand.values()) {
                     var packet = new ClientPsychicDriveGauntletsUsePacket(action, hand, 123456789L);
-                    ClientPsychicDriveGauntletsUsePacket.STREAM_CODEC.encode(buffer, packet);
-                    helper.assertTrue(packet.equals(ClientPsychicDriveGauntletsUsePacket.STREAM_CODEC.decode(buffer)),
+                    ClientPsychicDriveGauntletsUsePacket.encode(packet, buffer);
+                    helper.assertTrue(packet.equals(ClientPsychicDriveGauntletsUsePacket.decode(buffer)),
                             "Use input must preserve action, hand and session");
                 }
             }
             for (boolean charging : new boolean[] {false, true}) {
                 var packet = new SyncPsychicDriveGauntletsUseStatePacket(123456789L, charging);
-                SyncPsychicDriveGauntletsUseStatePacket.STREAM_CODEC.encode(buffer, packet);
-                helper.assertTrue(packet.equals(SyncPsychicDriveGauntletsUseStatePacket.STREAM_CODEC.decode(buffer)),
+                SyncPsychicDriveGauntletsUseStatePacket.encode(packet, buffer);
+                helper.assertTrue(packet.equals(SyncPsychicDriveGauntletsUseStatePacket.decode(buffer)),
                         "Use response must preserve session and charge state");
             }
             helper.assertTrue(buffer.readableBytes() == 0, "Use codecs must consume complete payloads");
@@ -517,13 +512,13 @@ public final class PsychicDriveGauntletsChargeGameTests {
         var state = new PsychicDriveGauntletsAttackState();
         state.beginUse(player, InteractionHand.MAIN_HAND, 100);
         state.tick(player, 119);
-        var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess(), ConnectionType.NEOFORGE);
+        var buffer = new FriendlyByteBuf(Unpooled.buffer());
         try {
             for (var mode : Mode.values()) {
                 var packet = new SyncPsychicDriveGauntletsPacket(player.getUUID(), false,
                         state.right().snapshot(), state.left().snapshot(), mode);
-                SyncPsychicDriveGauntletsPacket.STREAM_CODEC.encode(buffer, packet);
-                helper.assertTrue(packet.equals(SyncPsychicDriveGauntletsPacket.STREAM_CODEC.decode(buffer)),
+                SyncPsychicDriveGauntletsPacket.encode(packet, buffer);
+                helper.assertTrue(packet.equals(SyncPsychicDriveGauntletsPacket.decode(buffer)),
                         "Charge snapshots and authoritative display mode must survive packet encoding");
             }
             helper.assertTrue(buffer.readableBytes() == 0, "Charge packet decoding must consume the entire payload");

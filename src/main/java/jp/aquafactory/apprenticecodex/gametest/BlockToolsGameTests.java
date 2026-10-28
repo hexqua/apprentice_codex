@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.utility.BlockTools;
@@ -10,12 +11,10 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.level.BlockEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-
-import java.util.function.Consumer;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.level.BlockEvent;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -66,7 +65,7 @@ public final class BlockToolsGameTests {
                 if (fail) throw failure;
                 event.setCanceled(true);
             };
-            NeoForge.EVENT_BUS.addListener(listener);
+            MinecraftForge.EVENT_BUS.addListener(listener);
             try {
                 try {
                     boolean broken = BlockTools.tryBreakBlockByPlayerHands(level, player, outerPos, outerTool);
@@ -84,7 +83,7 @@ public final class BlockToolsGameTests {
                                 && BlockTools.getMainHandForBlockBreak(player, level, innerPos).isEmpty(),
                         "Completed, canceled, or failed breaks must not leak held contexts");
             } finally {
-                NeoForge.EVENT_BUS.unregister(listener);
+                MinecraftForge.EVENT_BUS.unregister(listener);
             }
         }
         helper.succeed();

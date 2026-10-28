@@ -1,6 +1,10 @@
 package jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets;
 
-import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
+import java.util.Optional;
+import java.util.function.Consumer;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.event.client.PsychicDriveGauntletsUseInput;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
@@ -9,14 +13,17 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
+import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.PsychicDriveGauntletsItemRenderer;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraft.core.Holder;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
@@ -25,32 +32,28 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.common.Tags;
+import net.minecraftforge.client.extensions.common.IClientItemExtensions;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.animatable.client.GeoRenderProvider;
-import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.animation.AnimatableManager;
-import software.bernie.geckolib.animation.AnimationController;
-import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.core.animation.AnimatableManager;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
-
-import java.util.Optional;
-import java.util.function.Consumer;
 
 public class PsychicDriveGauntlets extends Item implements GeoItem, WisdomPolicy, NonDamageableAnvilMergeItem,
         SpellCalibrationAdjustmentTarget {
     public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     private static final CalibrationAdjustmentProfile CALIBRATION_PROFILE = CalibrationAdjustmentProfile.of(
-            CalibrationAdjustmentRule.unique("mining_tool", stack -> stack.is(Tags.Items.MINING_TOOL_TOOLS),
+            CalibrationAdjustmentRule.unique("mining_tool", stack -> stack.is(ItemTags.PICKAXES),
                     CalibrationAdjustmentHint.taggedItems(
                             "container.apprenticecodex.spell_calibration_bench.tooltip.item_hint_mining_tools",
-                            Tags.Items.MINING_TOOL_TOOLS, () -> Items.DIAMOND_PICKAXE))
+                            ItemTags.PICKAXES, () -> Items.DIAMOND_PICKAXE))
                     .withEffectLines(CalibrationAdjustmentEffects.addMiningFunction()));
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
@@ -72,21 +75,25 @@ public class PsychicDriveGauntlets extends Item implements GeoItem, WisdomPolicy
     public static ItemStack miningTool(ItemStack stack, HolderLookup.Provider lookup) {
         if (!(stack.getItem() instanceof PsychicDriveGauntlets gauntlets)) return ItemStack.EMPTY;
         for (int slot = 0; slot < CALIBRATION_ADJUSTMENT_SLOT_COUNT; slot++) {
-            var tool = gauntlets.getCalibrationAdjustment(stack, slot, lookup);
-            if (tool.is(Tags.Items.MINING_TOOL_TOOLS)) return tool;
+            var tool = gauntlets.getCalibrationAdjustment(stack, slot);
+            if (tool.is(ItemTags.PICKAXES)) return tool;
         }
         return ItemStack.EMPTY;
     }
 
     public PsychicDriveGauntlets() {
-        super(new Properties().stacksTo(1).rarity(Rarity.EPIC).fireResistant().attributes(ItemAttributeModifiers.builder()
-                .add(Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_ID, 3.0,
-                        AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
-                .add(Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_ID,
+        super(new Properties().stacksTo(1).rarity(Rarity.EPIC).fireResistant());
+    }
+
+    @Override
+    public @NotNull Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(@NotNull EquipmentSlot slot) {
+        if (slot != EquipmentSlot.MAINHAND) return super.getDefaultAttributeModifiers(slot);
+        return ImmutableMultimap.of(
+                Attributes.ATTACK_DAMAGE, new AttributeModifier(BASE_ATTACK_DAMAGE_UUID, "Weapon modifier", 3.0,
+                        AttributeModifier.Operation.ADDITION),
+                Attributes.ATTACK_SPEED, new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Weapon modifier",
                         20.0 / (PsychicDriveGauntletsMotion.PREPARE_TICKS + PsychicDriveGauntletsArm.MISS_TICKS
-                                + PsychicDriveGauntletsArm.RETURN_TICKS) - 4.0,
-                        AttributeModifier.Operation.ADD_VALUE), EquipmentSlotGroup.MAINHAND)
-                .build()));
+                                + PsychicDriveGauntletsArm.RETURN_TICKS) - 4.0, AttributeModifier.Operation.ADDITION));
     }
 
     @Override
@@ -96,24 +103,19 @@ public class PsychicDriveGauntlets extends Item implements GeoItem, WisdomPolicy
     public int getEnchantmentValue(@NotNull ItemStack stack) { return 22; }
 
     @Override
-    public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
-        var id = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
-        if (enchantment.is(Enchantments.SWEEPING_EDGE) || MalumCompatibility.ANIMATED.equals(id)
-                || new ItemStack(Items.ELYTRA).supportsEnchantment(enchantment)) return false;
-        return enchantment.is(jp.aquafactory.apprenticecodex.enchantment.Enchantments.WISDOM)
-                || MalumCompatibility.SPIRIT_PLUNDER.equals(id) || MalumCompatibility.HAUNTED.equals(id)
-                || new ItemStack(Items.DIAMOND_SWORD).supportsEnchantment(enchantment);
-    }
-
-    @Override
-    public boolean isPrimaryItemFor(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
-        return supportsEnchantment(stack, enchantment);
+    public boolean canApplyAtEnchantingTable(@NotNull ItemStack stack, @NotNull Enchantment enchantment) {
+        var id = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
+        if (enchantment == Enchantments.SWEEPING_EDGE || MalumHauntedCompat.isAnimatedEnchantment(id)
+                || enchantment.canApplyAtEnchantingTable(new ItemStack(Items.ELYTRA))) return false;
+        return enchantment == EnchantmentRegistry.WISDOM.get()
+                || "malum:spirit_plunder".equals(String.valueOf(id)) || MalumHauntedCompat.isHauntedEnchantment(id)
+                || enchantment.canApplyAtEnchantingTable(new ItemStack(Items.DIAMOND_SWORD));
     }
 
     @Override
     public boolean isBookEnchantable(@NotNull ItemStack stack, @NotNull ItemStack book) {
-        return super.isBookEnchantable(stack, book) && EnchantmentHelper.getEnchantmentsForCrafting(book)
-                .keySet().stream().allMatch(enchantment -> supportsEnchantment(stack, enchantment));
+        return super.isBookEnchantable(stack, book) && EnchantmentHelper.getEnchantments(book)
+                .keySet().stream().allMatch(enchantment -> canApplyAtEnchantingTable(stack, enchantment));
     }
 
     @Override
@@ -128,12 +130,18 @@ public class PsychicDriveGauntlets extends Item implements GeoItem, WisdomPolicy
     }
 
     @Override
-    public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
-        consumer.accept(new GeoRenderProvider() {
+    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+        consumer.accept(new IClientItemExtensions() {
             private PsychicDriveGauntletsItemRenderer renderer;
 
             @Override
-            public BlockEntityWithoutLevelRenderer getGeoItemRenderer() {
+            public HumanoidModel.ArmPose getArmPose(@NotNull LivingEntity entity, @NotNull InteractionHand hand,
+                                                   @NotNull ItemStack stack) {
+                return HumanoidModel.ArmPose.EMPTY;
+            }
+
+            @Override
+            public BlockEntityWithoutLevelRenderer getCustomRenderer() {
                 if (renderer == null) {
                     renderer = new PsychicDriveGauntletsItemRenderer();
                 }

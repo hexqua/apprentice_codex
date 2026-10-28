@@ -10,9 +10,9 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import software.bernie.geckolib.animatable.GeoAnimatable;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
+import software.bernie.geckolib.core.animatable.GeoAnimatable;
 import software.bernie.geckolib.renderer.GeoRenderer;
 import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
 
@@ -57,7 +57,7 @@ public final class PsychicDriveGauntletsGlowLayer<T extends GeoAnimatable> exten
         // SRC_ALPHA加算なのでRGBまで弱めず、透明度だけで発光量を制御する。
         int colour = value << 24 | 0xFFFFFF;
         getRenderer().renderCubesOfBone(poseStack, bone, buffers.getBuffer(GLOW),
-                LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, colour);
+                LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, 1, 1, 1, value / 255.0F);
         // ボーンごとの別buffer描画後はGeckoLibが続ける元のbufferを復元する。
         buffers.getBuffer(renderType);
     }
@@ -76,7 +76,7 @@ public final class PsychicDriveGauntletsGlowLayer<T extends GeoAnimatable> exten
         poseStack.scale(scale, scale, scale);
         getRenderer().reRender(model, poseStack, buffers, animatable, GLOW, buffers.getBuffer(GLOW),
                 partialTick, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
-                value << 24 | 0xFFFFFF);
+                1, 1, 1, value / 255.0F);
         poseStack.popPose();
     }
 }

@@ -1,10 +1,10 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
-public record PsychicDriveGauntletsServerConfig(ModConfigSpec.IntValue attackManaCost,
-                                               ModConfigSpec.IntValue chargeManaCostPerTick) {
-    public static PsychicDriveGauntletsServerConfig define(ModConfigSpec.Builder builder) {
+public record PsychicDriveGauntletsServerConfig(ForgeConfigSpec.IntValue attackManaCost,
+                                               ForgeConfigSpec.IntValue chargeManaCostPerTick) {
+    public static PsychicDriveGauntletsServerConfig define(ForgeConfigSpec.Builder builder) {
         builder.push("PsychicDriveGauntlets");
         var attack = builder.comment("Mana consumed immediately when a normal gauntlet attack starts.")
                 .defineInRange("attackManaCost", 20, 0, 10000);

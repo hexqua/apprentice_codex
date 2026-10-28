@@ -38,12 +38,13 @@ public final class PsychicDriveGauntletsCharge {
         // 装備を一時交換すると外部MODの装備eventや属性cacheを汚すため、独立した属性で再計算する。
         var calculated = new AttributeInstance(Attributes.ATTACK_DAMAGE, ignored -> {});
         calculated.replaceFrom(attribute);
-        owner.getMainHandItem().forEachModifier(EquipmentSlot.MAINHAND, (type, modifier) -> {
-            if (type.equals(Attributes.ATTACK_DAMAGE)) calculated.removeModifier(modifier.id());
-        });
-        weapon.forEachModifier(EquipmentSlot.MAINHAND, (type, modifier) -> {
-            if (type.equals(Attributes.ATTACK_DAMAGE)) calculated.addOrUpdateTransientModifier(modifier);
-        });
+        for (var modifier : owner.getMainHandItem().getAttributeModifiers(EquipmentSlot.MAINHAND).get(Attributes.ATTACK_DAMAGE)) {
+            calculated.removeModifier(modifier.getId());
+        }
+        for (var modifier : weapon.getAttributeModifiers(EquipmentSlot.MAINHAND).get(Attributes.ATTACK_DAMAGE)) {
+            calculated.removeModifier(modifier.getId());
+            calculated.addTransientModifier(modifier);
+        }
         return (float) calculated.getValue();
     }
 }

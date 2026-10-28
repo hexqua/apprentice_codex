@@ -1,14 +1,17 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
+import java.util.ArrayList;
+import java.util.Objects;
+import java.util.Map;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumHauntedCompat;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsArm;
 import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntletsPose;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
@@ -20,16 +23,12 @@ import net.minecraft.world.entity.animal.Cow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.neoforged.fml.ModList;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.function.Consumer;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -38,9 +37,8 @@ public final class PsychicDriveGauntletsHauntedGameTests {
     private static final String TEMPLATE = "gametest/basic_floor";
     private PsychicDriveGauntletsHauntedGameTests() {}
 
-    private static Holder<Enchantment> haunted(GameTestHelper helper) {
-        return helper.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT)
-                .getHolder(MalumCompatibility.HAUNTED).orElseThrow();
+    private static Enchantment haunted(GameTestHelper helper) {
+        return Objects.requireNonNull(MalumHauntedCompat.getHauntedEnchantment());
     }
 
     private static FakePlayer player(GameTestHelper helper, InteractionHand hand, int level) {
@@ -78,23 +76,23 @@ public final class PsychicDriveGauntletsHauntedGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void hauntedUsesWeaponSnapshotOncePerHitInEitherHand(GameTestHelper helper) {
-        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) { helper.succeed(); return; }
+        if (!ModList.get().isLoaded("malum")) { helper.succeed(); return; }
         for (var hand : InteractionHand.values()) {
             for (float charge : new float[] {0, 1}) {
                 var player = player(helper, hand, 2);
                 var cow = target(helper, player);
                 var sources = new ArrayList<DamageSource>();
-                Consumer<LivingIncomingDamageEvent> listener = event -> {
+                Consumer<LivingHurtEvent> listener = event -> {
                     if (event.getEntity() == cow && event.getSource().is(DamageTypes.PSYCHIC_DRIVE_GAUNTLETS_MAGIC)) {
                         sources.add(event.getSource());
                         helper.assertTrue(event.getAmount() == 2, "Haunted must use the launched level without attack cooldown scaling");
                     }
                 };
-                NeoForge.EVENT_BUS.addListener(listener);
+                MinecraftForge.EVENT_BUS.addListener(listener);
                 try {
                     var arm = launch(player, hand, charge);
                     // 同一stackへの付与変更は攻撃を取り消さず、飛行中のsnapshotの独立性を検証できる。
-                    player.getItemInHand(hand).enchant(haunted(helper), 1);
+                    EnchantmentHelper.setEnchantments(Map.of(haunted(helper), 1), player.getItemInHand(hand));
                     var main = player.getMainHandItem();
                     var off = player.getOffhandItem();
                     var mainBefore = main.copy();
@@ -112,7 +110,7 @@ public final class PsychicDriveGauntletsHauntedGameTests {
                                     && ItemStack.matches(mainBefore, main) && ItemStack.matches(offBefore, off),
                             "Haunted must never mutate either equipped item");
                 } finally {
-                    NeoForge.EVENT_BUS.unregister(listener);
+                    MinecraftForge.EVENT_BUS.unregister(listener);
                     cow.discard();
                     player.discard();
                 }
@@ -123,23 +121,23 @@ public final class PsychicDriveGauntletsHauntedGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void rejectedPhysicalHitDoesNotApplyHaunted(GameTestHelper helper) {
-        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) { helper.succeed(); return; }
+        if (!ModList.get().isLoaded("malum")) { helper.succeed(); return; }
         var player = player(helper, InteractionHand.MAIN_HAND, 2);
         var cow = target(helper, player);
         int[] magicHits = {0};
-        Consumer<LivingIncomingDamageEvent> listener = event -> {
+        Consumer<LivingHurtEvent> listener = event -> {
             if (event.getEntity() != cow) return;
             if (event.getSource().is(DamageTypes.PSYCHIC_DRIVE_GAUNTLETS)) event.setCanceled(true);
             if (event.getSource().is(DamageTypes.PSYCHIC_DRIVE_GAUNTLETS_MAGIC)) magicHits[0]++;
         };
-        NeoForge.EVENT_BUS.addListener(listener);
+        MinecraftForge.EVENT_BUS.addListener(listener);
         try {
             var arm = launch(player, InteractionHand.MAIN_HAND, 1);
             for (int tick = 1; tick <= 18; tick++) arm.tick(player, 1, tick);
             helper.assertTrue(cow.getHealth() == 100 && magicHits[0] == 0,
                     "A rejected physical hit must not bypass protection through Haunted");
         } finally {
-            NeoForge.EVENT_BUS.unregister(listener);
+            MinecraftForge.EVENT_BUS.unregister(listener);
             cow.discard();
             player.discard();
         }
@@ -148,16 +146,14 @@ public final class PsychicDriveGauntletsHauntedGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void offhandAttackDoesNotBorrowMainhandHaunted(GameTestHelper helper) {
-        if (!ModList.get().isLoaded(MalumCompatibility.MOD_ID)) { helper.succeed(); return; }
+        if (!ModList.get().isLoaded("malum")) { helper.succeed(); return; }
         var player = player(helper, InteractionHand.OFF_HAND, 0);
         var sword = new ItemStack(Items.DIAMOND_SWORD);
         sword.enchant(haunted(helper), 2);
         player.setItemInHand(InteractionHand.MAIN_HAND, sword);
         // 主手の補正を副手計算で除去できるよう、基礎値へ合算せず装備modifierとして再現する。
         var damage = Objects.requireNonNull(player.getAttribute(Attributes.ATTACK_DAMAGE));
-        sword.forEachModifier(EquipmentSlot.MAINHAND, (attribute, modifier) -> {
-            if (attribute.equals(Attributes.ATTACK_DAMAGE)) damage.addOrUpdateTransientModifier(modifier);
-        });
+        sword.getAttributeModifiers(EquipmentSlot.MAINHAND).get(Attributes.ATTACK_DAMAGE).forEach(damage::addTransientModifier);
         var cow = target(helper, player);
         try {
             var arm = launch(player, InteractionHand.OFF_HAND, 0);
