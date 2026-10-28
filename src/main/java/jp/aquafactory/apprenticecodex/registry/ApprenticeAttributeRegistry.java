@@ -15,6 +15,11 @@ public final class ApprenticeAttributeRegistry {
     public static final DeferredRegister<Attribute> ATTRIBUTES =
             DeferredRegister.create(ForgeRegistries.ATTRIBUTES, ApprenticeCodex.MODID);
 
+    // ForgeにはPercentageAttribute/属性のsentimentがないため、同じ範囲と同期をRangedAttributeで維持する。
+    public static final RegistryObject<Attribute> SPELLGUN_AMMO_CONSERVATION =
+            ATTRIBUTES.register("spellgun_ammo_conservation", () -> new RangedAttribute(
+                    "attribute.name." + ApprenticeCodex.MODID + ".spellgun_ammo_conservation", 1, 0, 1).setSyncable(true));
+
     public static final RegistryObject<Attribute> MAX_ENCHANTMENT_TABLE_LEVEL =
             ATTRIBUTES.register(
                     "max_enchantment_table_level",

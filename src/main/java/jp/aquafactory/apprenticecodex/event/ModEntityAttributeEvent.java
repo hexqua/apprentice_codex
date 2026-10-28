@@ -2,21 +2,29 @@ package jp.aquafactory.apprenticecodex.event;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
-import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
+import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretEntity;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
 import jp.aquafactory.apprenticecodex.spell.fieldoverseer.FieldOverseerStaffEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconEntity;
 import jp.aquafactory.apprenticecodex.spell.totemofpermafrost.TotemOfPermafrostTotemEntity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
+import net.minecraftforge.event.entity.EntityAttributeModificationEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public final class ModEntityAttributeEvent {
     private ModEntityAttributeEvent() {
+    }
+
+    @SubscribeEvent
+    public static void onEntityAttributeModification(EntityAttributeModificationEvent event) {
+        event.add(EntityType.PLAYER, ApprenticeAttributeRegistry.SPELLGUN_AMMO_CONSERVATION.get());
     }
 
     @SubscribeEvent

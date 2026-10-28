@@ -5,24 +5,22 @@ import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastType;
+import java.util.List;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
-import jp.aquafactory.apprenticecodex.item.ammo.EmptyCasingReturnPolicy;
-import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
-import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
+import jp.aquafactory.apprenticecodex.item.ammo.EmptyCasingReturnPolicy;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-
-import java.util.List;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class SpellGunCastEvent {
@@ -57,7 +55,7 @@ public final class SpellGunCastEvent {
         if (!player.isCreative()) {
             var ammoItem = spellGunItem.getAmmoItem(castingItem, spellGunItem.getPrimarySpellData(castingItem));
             if (ammoItem != null) {
-                if (MagiAgentSuitEffects.shouldSkipAmmoConsumption(player)) {
+                if (SpellgunAmmoConsumption.shouldSkip(player)) {
                     return;
                 }
                 consumeAmmo(player, player.getInventory(), ammoItem, spellGunItem);

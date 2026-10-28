@@ -10,6 +10,7 @@
 
   "emf.variable.apprenticecodex.is_hoverride_broom_rider": "描画中のプレイヤーが浮遊走行の箒に騎乗しているか",
 
+  "attribute.name.apprenticecodex.spellgun_ammo_conservation": "詠唱銃系の弾薬消費確率",
   "attribute.name.apprenticecodex.max_enchantment_table_level": "最大エンチャントテーブルレベル",
 
   "block.apprenticecodex.mage_light_torch" : "魔術師の松明",

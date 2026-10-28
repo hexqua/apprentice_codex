@@ -1,10 +1,5 @@
 package jp.aquafactory.apprenticecodex.network;
 
-import jp.aquafactory.apprenticecodex.network.packet.PsychicDriveGauntletsEffectPacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncPsychicDriveGauntletsUseStatePacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientPsychicDriveGauntletsUsePacket;
-import jp.aquafactory.apprenticecodex.network.packet.SyncPsychicDriveGauntletsPacket;
-import jp.aquafactory.apprenticecodex.network.packet.ClientPsychicDriveGauntletsPacket;
 import java.util.Optional;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.network.packet.AlchemyBrewerWaterSupplyEffectPacket;
@@ -36,6 +31,8 @@ import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifl
 import jp.aquafactory.apprenticecodex.network.packet.ClientMultipurposeStaffrifleCastPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientOpenSpellcasterAccessoryCasePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientOpenStorageStabilizerEnderChestPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientPsychicDriveGauntletsPacket;
+import jp.aquafactory.apprenticecodex.network.packet.ClientPsychicDriveGauntletsUsePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientQuickcastCartridgePacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSpellMovementInputPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ClientSpellgunCastPacket;
@@ -53,6 +50,7 @@ import jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket;
 import jp.aquafactory.apprenticecodex.network.packet.LockOnRayTrailPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaManeuverGearFallEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ManaSiphonOrbEffectPacket;
+import jp.aquafactory.apprenticecodex.network.packet.PsychicDriveGauntletsEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.ScytheRecallEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SenseEvilHighlightsPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SpellrifleMuzzleParticlePacket;
@@ -104,6 +102,8 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncMantlePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMirageAvoidanceStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMultipurposeStaffrifleFireEffectPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncPhotonSiphonCombatStatePacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncPsychicDriveGauntletsPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncPsychicDriveGauntletsUseStatePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncQuickBlinkPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncQuickcastCartridgePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncReflectcastShieldEffectPacket;
@@ -135,7 +135,7 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "125";
+    private static final String PROTOCOL_VERSION = "126";
     private static int nextPacketId = 0;
 
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(

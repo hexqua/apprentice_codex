@@ -9,7 +9,10 @@ import io.redspace.irons_artifice.item.GunItem;
 import io.redspace.irons_artifice.item.GunplayManager;
 import io.redspace.irons_artifice.item.MagazineContents;
 import io.redspace.irons_artifice.menu.GunContainer;
+import java.util.UUID;
+import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -19,17 +22,15 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.util.FakePlayer;
-
-import java.util.UUID;
-import java.util.function.Consumer;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.eventbus.api.EventPriority;
 
 final class MagiAgentSuitArtificeGameTestScenarios {
     private MagiAgentSuitArtificeGameTestScenarios() {}
@@ -53,6 +54,12 @@ final class MagiAgentSuitArtificeGameTestScenarios {
             assertChance(h, player, gun, 0.4375);
             player.setItemSlot(EquipmentSlot.HEAD, ItemStack.EMPTY);
             assertChance(h, player, gun, 0.875);
+            player.getAttribute(ApprenticeAttributeRegistry.SPELLGUN_AMMO_CONSERVATION.get()).addTransientModifier(
+                    new AttributeModifier(UUID.fromString("43c53b3b-7428-409c-b870-6cf8ef08a857"), "gametest_artifice_ring",
+                            -0.5, AttributeModifier.Operation.MULTIPLY_TOTAL));
+            assertChance(h, player, gun, 0.4375);
+            player.setItemSlot(EquipmentSlot.HEAD, new ItemStack(ItemRegistry.MAGI_AGENT_SUIT_HOOD.get()));
+            assertChance(h, player, gun, 0.21875);
         } finally { player.discard(); }
         h.succeed();
     }
@@ -66,7 +73,7 @@ final class MagiAgentSuitArtificeGameTestScenarios {
         Consumer<AmmoEvent.Consume> observer = event -> {
             if (event.getEntity() == player && event.isCanceled()) refunded[0]++;
         };
-        NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, true, AmmoEvent.Consume.class, observer);
+        MinecraftForge.EVENT_BUS.addListener(EventPriority.LOWEST, true, AmmoEvent.Consume.class, observer);
         try (var ignored = ApprenticeCodexServerConfig.useMagiAgentSuitAmmoConfigOverrideForGameTest(1, false)) {
             h.assertTrue(GunplayManager.tryFire(player, new Vec3(0, 0, 1)) == FireOutcome.EMPTY_MAGAZINE,
                     "Hood must not allow firing an empty magazine");
@@ -83,7 +90,7 @@ final class MagiAgentSuitArtificeGameTestScenarios {
                     && message.getKey().equals("irons_artifice.tooltip.refunded_ammo"),
                     "Hood must use the native ammo refund notification without an Enchanted Bullet modifier");
         } finally {
-            NeoForge.EVENT_BUS.unregister(observer);
+            MinecraftForge.EVENT_BUS.unregister(observer);
             h.getLevel().getEntitiesOfClass(Bullet.class, AABB.ofSize(player.position(), 40, 40, 40),
                     bullet -> bullet.getOwner() == player).forEach(Bullet::discard);
             player.discard();

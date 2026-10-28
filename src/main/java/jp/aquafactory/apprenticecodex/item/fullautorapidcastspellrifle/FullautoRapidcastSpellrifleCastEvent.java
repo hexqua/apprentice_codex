@@ -9,8 +9,8 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.config.ServerConfigs;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.SpellManaCostDiscounts;
-import jp.aquafactory.apprenticecodex.item.armor.MagiAgentSuitEffects;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunAmmoConsumption;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunRecastCompletion;
 import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffManaCostEvent;
 import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaffPowerHelper;
@@ -19,12 +19,12 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncFullautoRapidcastSpellr
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
-import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID)
 public final class FullautoRapidcastSpellrifleCastEvent {
@@ -94,8 +94,8 @@ public final class FullautoRapidcastSpellrifleCastEvent {
         }
 
         if (!player.isCreative()) {
-            if (MagiAgentSuitEffects.shouldSkipAmmoConsumption(player)) {
-                if (MagiAgentSuitEffects.shouldSkipStaffrifleManaCostWithAmmo()) {
+            if (SpellgunAmmoConsumption.shouldSkip(player)) {
+                if (SpellgunAmmoConsumption.shouldSkipManaCostWithAmmo()) {
                     event.setManaCost(0);
                 }
                 return;

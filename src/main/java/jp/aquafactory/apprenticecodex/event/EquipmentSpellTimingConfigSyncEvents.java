@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.event;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.EquipmentSpellTimingConfigState;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunAmmoConsumption;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEquipmentSpellTimingConfigPacket;
 import net.minecraft.server.level.ServerPlayer;
@@ -61,7 +62,8 @@ public final class EquipmentSpellTimingConfigSyncEvents {
         return new SyncEquipmentSpellTimingConfigPacket(
                 ApprenticeCodexServerConfig.craftsmansDelightCooldownMultiplier(),
                 ApprenticeCodexServerConfig.magiAgentSuitBootsCooldownMultiplier(),
-                ApprenticeCodexServerConfig.magiAgentSuitBootsCastTimeMultiplier()
+                ApprenticeCodexServerConfig.magiAgentSuitBootsCastTimeMultiplier(),
+                ApprenticeCodexServerConfig.magiAgentSuitAmmoNoConsumeChance()
         );
     }
 
@@ -86,8 +88,13 @@ public final class EquipmentSpellTimingConfigSyncEvents {
                 return;
             }
 
-            // Forge 1.20.1 does not automatically mirror runtime SERVER config reloads to connected clients.
-            syncToAllPlayers();
+            // 装備を付け直さずに設定変更を反映し、接続中clientへ同じ値を同期する。
+            EquipmentSpellTimingConfigState.setAmmoNoConsumeChance(ApprenticeCodexServerConfig.magiAgentSuitAmmoNoConsumeChance());
+            var server = ServerLifecycleHooks.getCurrentServer();
+            if (server != null) server.execute(() -> {
+                for (var player : server.getPlayerList().getPlayers()) SpellgunAmmoConsumption.refreshHoodModifier(player);
+                syncToAllPlayers();
+            });
         }
     }
 
