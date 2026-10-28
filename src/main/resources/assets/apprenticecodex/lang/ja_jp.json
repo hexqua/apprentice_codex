@@ -329,6 +329,7 @@
   "item.apprenticecodex.spell_dispenser.creative_tooltip": "クリエイティブバージョン",
   "item.apprenticecodex.spellcaster_accessory_case.desc_1": "スニークしながら使うと設置が可能。",
   "item.apprenticecodex.spellcaster_accessory_case.desc_2": "インベントリ画面で右クリックすることで直接開く事ができる。",
+  "item.apprenticecodex.spellcaster_accessory_case.incompatible_acl": "Accessoriesには正式対応していないため、正常に動作しない場合がある。",
   "item.apprenticecodex.magnetic_stability_anchor.desc": "%1$dx%2$dx%3$dの範囲内にあるアイテムをオートマグネット対象外にする。",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "この杖は現在ロードストーンを指し示している。",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "この杖は現在次元に合わせた振る舞いをしている。",
@@ -802,6 +803,7 @@
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.enabled.hint": "オフに切り替えると素材が揃っていても調合を開始しなくなる",
   "container.apprenticecodex.spellcaster_accessory_case": "詠唱者の装身具入れ",
 
+  "chat.apprenticecodex.warning_incompatible_acl": "[Apprentice's Codex] Accessories Compatibility Layerには正式対応していないため、Curios装備が正しく動作しない場合があります。",
   "chat.apprenticecodex.spell_dispenser.cast_failed.title": "近くのスペルディスペンサーが魔法詠唱に失敗した",
   "chat.apprenticecodex.spell_dispenser.cast_failed.reason.no_scroll": "理由: 魔法のスクロールが設定されていない",
   "chat.apprenticecodex.spell_dispenser.cast_failed.reason.invalid_spell": "理由: %sはスペルディスペンサーで使用できない",

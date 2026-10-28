@@ -9,6 +9,7 @@ import java.util.Locale;
 
 public final class ApprenticeCodexClientConfig {
     public static final ModConfigSpec SPEC;
+    private static final ModConfigSpec.BooleanValue SUPPRESS_ACCESSORIES_COMPATIBILITY_LAYER_WARNING;
     private static final ModConfigSpec.BooleanValue ENABLE_APPRENTICE_MAGE_ROBE_CAPE_ANIMATION;
     private static final ModConfigSpec.BooleanValue ENABLE_SPELLGUN_AMMO_HUD;
     private static final ModConfigSpec.BooleanValue ENABLE_MANA_FORCE_BLADE_HOTBAR_SHEATH_RENDERING;
@@ -129,6 +130,13 @@ public final class ApprenticeCodexClientConfig {
                 .define("disableEssenceSmokerParticleTextureAnalysis", false);
         builder.pop();
 
+        builder.push("Compatibility");
+        SUPPRESS_ACCESSORIES_COMPATIBILITY_LAYER_WARNING = builder
+                .comment("Suppress the unsupported Accessories Compatibility Layer chat warning on world connection.",
+                        "This does not hide item tooltip warnings or server startup warnings.")
+                .define("suppressAccessoriesCompatibilityLayerWarning", false);
+        builder.pop();
+
         SPEC = builder.build();
     }
 
@@ -197,6 +205,10 @@ public final class ApprenticeCodexClientConfig {
 
     public static int spellcasterAccessoryCaseMaxVisibleCuriosColumns() {
         return SPELLCASTER_ACCESSORY_CASE_MAX_VISIBLE_CURIOS_COLUMNS.get();
+    }
+
+    public static boolean suppressAccessoriesCompatibilityLayerWarning() {
+        return SUPPRESS_ACCESSORIES_COMPATIBILITY_LAYER_WARNING.get();
     }
 
     private static String normalizeEpicFightWeaponCategory(String categoryName) {

@@ -329,6 +329,7 @@
   "item.apprenticecodex.spell_dispenser.creative_tooltip": "创造版",
   "item.apprenticecodex.spellcaster_accessory_case.desc_1": "潜行时使用即可放置。",
   "item.apprenticecodex.spellcaster_accessory_case.desc_2": "在物品栏界面中右键点击即可直接打开。",
+  "item.apprenticecodex.spellcaster_accessory_case.incompatible_acl": "未正式支持 Accessories，此物品可能无法正常工作。",
   "item.apprenticecodex.magnetic_stability_anchor.desc": "使%1$dx%2$dx%3$d范围内的物品不受自动磁吸影响。",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "当前指向同维度的磁石。",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "当前根据所在维度调整指向。",
@@ -802,6 +803,7 @@
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.enabled.hint": "关闭后，即使材料齐全也不会开始酿造。",
   "container.apprenticecodex.spellcaster_accessory_case": "施法者饰品盒",
 
+  "chat.apprenticecodex.warning_incompatible_acl": "[Apprentice's Codex] 未正式支持 Accessories Compatibility Layer，Curios 装备可能无法正常工作。",
   "chat.apprenticecodex.spell_dispenser.cast_failed.title": "附近的法术发射器施法失败。",
   "chat.apprenticecodex.spell_dispenser.cast_failed.reason.no_scroll": "原因：未放置法术卷轴。",
   "chat.apprenticecodex.spell_dispenser.cast_failed.reason.invalid_spell": "原因：%s无法在法术发射器中使用。",

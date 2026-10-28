@@ -1,7 +1,10 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import java.util.LinkedHashMap;
+import java.util.Objects;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.accessories.AccessoriesCompatibility;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.registry.CreativeTabRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -24,11 +27,9 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurio;
+
 import top.theillusivec4.curios.common.event.CuriosEventHandler;
 import top.theillusivec4.curios.common.inventory.CurioStacksHandler;
-
-import java.util.LinkedHashMap;
-import java.util.Objects;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -40,6 +41,11 @@ public final class RingsOnRingGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void ringsStackModifiersAndRemoveIndividually(GameTestHelper helper) {
+        if (AccessoriesCompatibility.isUnsupportedLayerLoaded()) {
+            ApprenticeCodex.LOGGER.info("Skipping ringsStackModifiersAndRemoveIndividually: Accessories Compatibility Layer is not supported.");
+            helper.succeed();
+            return;
+        }
         var player = createPlayer(helper, "rings_stack_test");
         var inventory = CuriosApi.getCuriosInventory(player).orElseThrow();
         var ringSlots = inventory.getStacksHandler("ring").orElseThrow();
@@ -82,6 +88,11 @@ public final class RingsOnRingGameTests {
 
     @GameTest(template = TEMPLATE)
     public static void ringsUseSeparateSlotAndIgnoreCosmetics(GameTestHelper helper) {
+        if (AccessoriesCompatibility.isUnsupportedLayerLoaded()) {
+            ApprenticeCodex.LOGGER.info("Skipping ringsUseSeparateSlotAndIgnoreCosmetics: Accessories Compatibility Layer is not supported.");
+            helper.succeed();
+            return;
+        }
         var player = createPlayer(helper, "rings_slot_test");
         var stack = new ItemStack(ItemRegistry.RINGS_ON_RING.get());
         helper.assertTrue(stack.is(TagKey.create(Registries.ITEM,
