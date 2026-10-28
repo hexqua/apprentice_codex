@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
+import jp.aquafactory.apprenticecodex.compat.accessories.AccessoriesCompatWorkaroundSupport;
 import jp.aquafactory.apprenticecodex.item.broom.BroomCurioSupport;
 import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Dynamic;
@@ -21,13 +22,13 @@ public abstract class AccessoriesCompatCuriosSlotBasedPredicateMixin {
     @Final
     private ResourceLocation location;
 
-    @Dynamic("Accessories Compatibility Layer 0.1.12のCuriosSlotBasedPredicate#isValid")
+    @Dynamic("Accessories Compatibility LayerのCuriosSlotBasedPredicate#isValid")
     @Inject(
             method = "isValid(Lnet/minecraft/world/level/Level;Lio/wispforest/accessories/api/slot/SlotType;"
                     + "ILnet/minecraft/world/item/ItemStack;)Lnet/fabricmc/fabric/api/util/TriState;",
             at = @At("RETURN"),
             cancellable = true,
-            require = 1
+            require = 0
     )
     private void apprenticecodex$keepUnrelatedBackItemsValid(CallbackInfoReturnable<Object> cir) {
         if (!BroomCurioSupport.CALIBRATED_BROOM_PREDICATE.equals(location)) {
@@ -35,7 +36,11 @@ public abstract class AccessoriesCompatCuriosSlotBasedPredicateMixin {
         }
 
         var result = cir.getReturnValue();
-        if (!(result instanceof Enum<?> enumResult) || !"FALSE".equals(enumResult.name())) {
+        if (!(result instanceof Enum<?> enumResult)) {
+            AccessoriesCompatWorkaroundSupport.warnDisabled("Unexpected predicate result type");
+            return;
+        }
+        if (!"FALSE".equals(enumResult.name())) {
             return;
         }
 
@@ -47,5 +52,6 @@ public abstract class AccessoriesCompatCuriosSlotBasedPredicateMixin {
                 return;
             }
         }
+        AccessoriesCompatWorkaroundSupport.warnDisabled("DEFAULT predicate result is unavailable");
     }
 }
