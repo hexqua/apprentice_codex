@@ -413,7 +413,7 @@ public final class PsychicDriveGauntletsArm {
         // 実体弾を持たないため、接触位置を明示して盾の方向判定をプレイヤー位置へ戻さない。
         var source = new DamageSource(holder, owner, owner, position);
         var amount = damage + EnchantmentHelper.getDamageBonus(weapon, target instanceof LivingEntity living ? living.getMobType() : MobType.UNDEFINED);
-        boolean applied = CombatTools.applyUnscaledDamage(target, amount, source, suppressKnockback
+        boolean applied = PsychicDriveGauntletsDamage.applyPhysical(target, amount, source, suppressKnockback
                 ? CombatTools.KnockbackTypes.NO_KNOCKBACK : CombatTools.KnockbackTypes.DEFAULT);
         if (applied && target instanceof LivingEntity living) {
             var hauntedEnchantment = MalumHauntedCompat.getHauntedEnchantment();
