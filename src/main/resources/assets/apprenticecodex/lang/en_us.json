@@ -329,6 +329,7 @@
   "item.apprenticecodex.spell_dispenser.creative_tooltip": "Creative version",
   "item.apprenticecodex.spellcaster_accessory_case.desc_1": "Can be placed by using it while sneaking.",
   "item.apprenticecodex.spellcaster_accessory_case.desc_2": "Can be opened directly by right-clicking it in the inventory screen.",
+  "item.apprenticecodex.spellcaster_accessory_case.incompatible_acl": "Accessories is not officially supported. This item may not function correctly.",
   "item.apprenticecodex.magnetic_stability_anchor.desc": "Prevents Auto Magnet from collecting items within a %1$dx%2$dx%3$d area.",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_same_dimension": "Currently pointing at the lodestone.",
   "item.apprenticecodex.explorers_cane.tooltip.lodestone_other_dimension": "Currently behaving according to the current dimension.",
@@ -802,6 +803,7 @@
   "container.apprenticecodex.alchemy_brewer.auto_brew_button.enabled.hint": "Turn off to prevent new brews from starting.",
   "container.apprenticecodex.spellcaster_accessory_case": "Spellcaster's Accessory Case",
 
+  "chat.apprenticecodex.warning_incompatible_acl": "[Apprentice's Codex] Accessories Compatibility Layer is not officially supported. Curios equipment may not function correctly.",
   "chat.apprenticecodex.spell_dispenser.cast_failed.title": "A nearby Spell Dispenser failed to cast a spell.",
   "chat.apprenticecodex.spell_dispenser.cast_failed.reason.no_scroll": "Reason: No spell scroll is set.",
   "chat.apprenticecodex.spell_dispenser.cast_failed.reason.invalid_spell": "Reason: %s cannot be used with a Spell Dispenser.",

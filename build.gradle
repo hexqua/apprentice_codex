@@ -91,6 +91,9 @@ def gameTestServerWorldDir = layout.projectDirectory.dir("run/${gameTestServerWo
 def requiredOptionalModsProperty = 'apprenticecodex.requiredOptionalMods'
 
 def optionalRuntimeModuleConfigurations = [
+        accessories    : 'accessoriesRuntimeOnly',
+        accessories_compat_layer: 'accessoriesCompatLayerRuntimeOnly',
+        owo_lib        : 'owoLibRuntimeOnly',
         create         : 'createRuntimeOnly',
         sable          : 'sableRuntimeOnly',
         create_aeronautics: 'createAeronauticsRuntimeOnly',
@@ -114,6 +117,7 @@ def clientRuntimeModuleConfigurations = [
 ]
 
 def optionalRuntimeProfileModules = [
+        incompatibles       : ['accessories', 'accessories_compat_layer', 'owo_lib'],
         compat              : ['create', 'lodestone', 'malum', 'atlas_api', 'irons_jewelry', 'irons_artifice'],
         create_sable_aeronautics: ['create', 'sable', 'create_aeronautics'],
         easy_magic          : ['puzzles_lib', 'easy_magic'],
@@ -148,6 +152,7 @@ def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
 ]
 
 def optionalRuntimeRequiredModIds = [
+        incompatibles: 'accessories,accessories_compat_layer,owo',
         compat       : 'create,lodestone,malum,atlas_api,irons_jewelry,irons_artifice',
         create_sable_aeronautics: 'create,sable,simulated,aeronautics,offroad,aeronautics_bundled',
         easy_magic   : 'puzzleslib,easymagic',
@@ -213,6 +218,11 @@ neoForge {
             programArguments.addAll '--world', gameTestServerWorldName
         }
 
+        clientIncompatibles {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
         clientCompat {
             client()
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
@@ -251,6 +261,14 @@ neoForge {
         clientCompatEasyBetter {
             client()
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        gameTestServerIncompatibles {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            systemProperty requiredOptionalModsProperty, optionalRuntimeRequiredModIds.incompatibles
+            systemProperty 'apprenticecodex.incompatiblesTests', 'true'
+            programArguments.addAll '--world', gameTestServerWorldName
         }
 
         gameTestServerCompat {
@@ -350,10 +368,12 @@ configurations {
     }
 }
 
-['client', 'clientCompat', 'clientCreateSableAeronautics', 'clientEasyMagic', 'clientBetterCombat', 'clientEpicFight', 'clientMalumEpicFight', 'clientEpicFightController', 'clientCompatEasyBetter'].each {
+['client', 'clientIncompatibles', 'clientCompat', 'clientCreateSableAeronautics', 'clientEasyMagic', 'clientBetterCombat', 'clientEpicFight', 'clientMalumEpicFight', 'clientEpicFightController', 'clientCompatEasyBetter'].each {
     extendRunJavaClasspathWithClientRuntimeModules(it)
 }
 
+extendRunJavaClasspathWithOptionalRuntimeModules('clientIncompatibles', expandOptionalRuntimeModules(['incompatibles']))
+extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerIncompatibles', expandOptionalRuntimeModules(['incompatibles']))
 extendRunJavaClasspathWithOptionalRuntimeModules('clientCompat', expandOptionalRuntimeModules(['compat']))
 extendRunJavaClasspathWithOptionalRuntimeModules('clientCreateSableAeronautics', expandOptionalRuntimeModules(['create_sable_aeronautics']))
 extendRunJavaClasspathWithOptionalRuntimeModules('clientEasyMagic', expandOptionalRuntimeModules(['easy_magic']))
@@ -380,6 +400,13 @@ if (devRuntimeMods != null && !devRuntimeMods.trim().isEmpty()) {
 }
 
 dependencies {
+
+    add(optionalRuntimeModuleConfigurations.accessories,
+            "maven.modrinth:accessories:${accessories_modrinth_version_id}")
+    add(optionalRuntimeModuleConfigurations.accessories_compat_layer,
+            "maven.modrinth:accessories-compat-layer:${accessories_compat_layer_modrinth_version_id}")
+    add(optionalRuntimeModuleConfigurations.owo_lib,
+            "maven.modrinth:owo-lib:${owo_lib_modrinth_version_id}")
 
     // ISSへの強依存を追加.
     implementation "io.redspace:irons_spellbooks:${irons_spells_version}"

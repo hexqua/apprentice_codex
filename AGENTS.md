@@ -47,6 +47,7 @@
 ```powershell
 .\scripts\use-java.ps1
 ./gradlew.bat runGameTestServerCompat
+./gradlew.bat runGameTestServerIncompatibles
 ./gradlew.bat runGameTestServerCreateSableAeronautics
 ./gradlew.bat runGameTestServerEasyMagic
 ./gradlew.bat runGameTestServerBetterCombat
@@ -63,6 +64,7 @@
 ```powershell
 .\scripts\use-java.ps1
 ./gradlew.bat runClientCompat
+./gradlew.bat runClientIncompatibles
 ./gradlew.bat runClientCreateSableAeronautics
 ./gradlew.bat runClientEasyMagic
 ./gradlew.bat runClientBetterCombat
@@ -95,6 +97,9 @@ Get-ChildItem build\libs\*.jar
 - `runGameTestServer...` はプロファイル間で world と実行ディレクトリを共有するため、初回から必ず直列実行する。別プロセス・別ターミナル・サブエージェントへの分担でも並列起動しない。
 - 1 回の Gradle 呼び出しにつき GameTest task は 1 つとし、先行する Gradle / server プロセスの終了を確認してから次を起動する。実行中の yield は終了ではなく、同じ実行を wait で追跡する。
 - `runGameTestServerCompat` は Farmer's Delight / Create / Lodestone / Malum / Atlas API / Iron's Gems 'n Jewelry / Iron's Arms 'n Artifice 連携の確認に使う。
+- `runClientIncompatibles` / `runGameTestServerIncompatibles` は、通常構成に公式非対応MODを追加し、正しく動作**しない**ことと非対応警告を確認する専用構成。互換性の保証や修正を目的とせず、通常の `compat` とは区別する。現時点では Accessories 1.1.0-beta.54 / Accessories Compatibility Layer 0.1.13 と必須の owo-lib 0.12.15.6-beta.1 を追加する。NeoForgeは21.1.228のままとする。
+- `incompatibles` に将来の非対応MODを追加するときは、runtime module・依存・必須MOD IDを同時に更新する。通常構成や `compat` には自動追加しない。`-PdevRuntimeMods=incompatibles` で通常clientへ一時追加することもできる。
+- `runGameTestServerIncompatibles` では、非対応として省略する4件と、`required = false` の上流修正検知用テストを区別する。任意テストは `AccessoriesIncompatibilityGameTests` と別シナリオクラスに配置し、正しい挙動を期待して、現在の非互換が残る間は失敗してよい。任意失敗を非互換の観測として報告し、Gradle成功や必須テスト成功を連携正常の証拠にしない。任意テストはこの構成だけで検証し、通常構成では成功として省略する。
 - `runGameTestServerCreateSableAeronautics` は Create / Sable / Create Simulated / Create Aeronautics / Create Offroad の導入とサーバー起動確認に使う。
 - `runGameTestServerEasyMagic` は Puzzles Lib / Easy Magic 連携の確認に使う。
 - `runGameTestServerBetterCombat` は Cloth Config / Better Combat 連携の確認に使う。

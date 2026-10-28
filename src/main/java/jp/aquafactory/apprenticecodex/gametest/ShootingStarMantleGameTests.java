@@ -466,6 +466,48 @@ public final class ShootingStarMantleGameTests {
         helper.succeed();
     }
 
+    @GameTest(template = TEMPLATE)
+    public static void equipmentSearchHonorsAvailableActiveStatesAndFunctionalBackOrder(GameTestHelper helper) {
+        var player = player(helper, "mantle_search_boundaries");
+        var inventory = CuriosApi.getCuriosInventory(player).orElseThrow();
+        inventory.addTransientSlotModifier("back",
+                ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "gametest/mantle_search"),
+                1, AttributeModifier.Operation.ADD_VALUE);
+        inventory.setEquippedCurio("back", 1, new ItemStack(ItemRegistry.SHOOTING_STAR_MANTLE.get()));
+        var back = inventory.getCurios().get("back");
+        var first = back.getStacks().getStackInSlot(0);
+        var second = back.getStacks().getStackInSlot(1);
+        helper.assertTrue(ShootingStarMantleRuntime.findEquipped(player) == first,
+                "Search must return the actual stack at the lowest functional back index even without active state information");
+
+        var activeStates = back.getActiveStates();
+        // 状態情報を提供しない実装には、未実装の無効化操作を要求しない。
+        if (activeStates.size() >= 2) {
+            try {
+                activeStates.set(0, false);
+                helper.assertTrue(ShootingStarMantleRuntime.findEquipped(player) == second,
+                        "Search must skip an explicitly inactive earlier mantle");
+                activeStates.set(1, false);
+                helper.assertTrue(ShootingStarMantleRuntime.findEquipped(player).isEmpty(),
+                        "Search must reject all explicitly inactive mantles");
+            } finally {
+                activeStates.set(0, true);
+                activeStates.set(1, true);
+            }
+        }
+
+        back.getCosmeticStacks().setStackInSlot(0, first.copy());
+        inventory.setEquippedCurio("ring", 0, first.copy());
+        inventory.setEquippedCurio("back", 0, ItemStack.EMPTY);
+        helper.assertTrue(ShootingStarMantleRuntime.findEquipped(player) == second,
+                "Search must return the remaining functional mantle rather than a cosmetic or non-back mantle");
+        inventory.setEquippedCurio("back", 1, ItemStack.EMPTY);
+        helper.assertTrue(ShootingStarMantleRuntime.findEquipped(player).isEmpty(),
+                "Cosmetic and non-back mantles must not count as equipped");
+        ShootingStarMantleRuntime.clear(player);
+        helper.succeed();
+    }
+
     private static ServerPlayer serverPlayer(GameTestHelper helper) {
         // FakePlayerはstartRidingを常に拒否するため、乗車検証には接続付きServerPlayerが必要。
         var level = helper.getLevel();

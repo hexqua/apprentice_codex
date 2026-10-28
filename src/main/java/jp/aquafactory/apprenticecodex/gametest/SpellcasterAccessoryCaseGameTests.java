@@ -3,6 +3,7 @@ package jp.aquafactory.apprenticecodex.gametest;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spellcasteraccessorycase.SpellcasterAccessoryCaseBlock;
 import jp.aquafactory.apprenticecodex.block.spellcasteraccessorycase.SpellcasterAccessoryCaseBlockEntity;
+import jp.aquafactory.apprenticecodex.compat.accessories.AccessoriesCompatibility;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCase;
 import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCaseMenu;
@@ -663,6 +664,11 @@ public final class SpellcasterAccessoryCaseGameTests {
 
     @GameTest(template = TEMPLATE, timeoutTicks = 40)
     public static void accessoryCaseMenuRebuildsWhenCuriosSlotCountChanges(GameTestHelper helper) {
+        if (AccessoriesCompatibility.isUnsupportedLayerLoaded()) {
+            ApprenticeCodex.LOGGER.info("Skipping accessoryCaseMenuRebuildsWhenCuriosSlotCountChanges: Accessories Compatibility Layer is not supported.");
+            helper.succeed();
+            return;
+        }
         var player = ApprenticeCodexGameTestScenarios.createEquipmentTestPlayer(
                 helper,
                 new BlockPos(0, 2, 0),

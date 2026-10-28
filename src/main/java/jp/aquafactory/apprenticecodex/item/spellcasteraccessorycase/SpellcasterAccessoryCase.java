@@ -1,6 +1,8 @@
 package jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase;
 
+import java.util.List;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.accessories.AccessoriesCompatibility;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
@@ -31,9 +33,8 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
-import top.theillusivec4.curios.api.CuriosApi;
 
-import java.util.List;
+import top.theillusivec4.curios.api.CuriosApi;
 
 public final class SpellcasterAccessoryCase extends BlockItem {
     public static final int ROW_COUNT = 3;
@@ -54,6 +55,7 @@ public final class SpellcasterAccessoryCase extends BlockItem {
             @NotNull List<Component> lines,
             @NotNull TooltipFlag flag
     ) {
+        AccessoriesCompatibility.appendCaseWarning(lines);
         super.appendHoverText(stack, context, lines, flag);
         lines.add(Component.translatable("item.apprenticecodex.spellcaster_accessory_case.desc_1").withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable("item.apprenticecodex.spellcaster_accessory_case.desc_2").withStyle(ChatFormatting.GRAY));

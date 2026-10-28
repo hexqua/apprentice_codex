@@ -24,7 +24,9 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import top.theillusivec4.curios.api.CuriosApi;
+import top.theillusivec4.curios.api.SlotResult;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -64,17 +66,13 @@ public final class ShootingStarMantleRuntime {
     }
 
     public static ItemStack findEquipped(Player player) {
-        return CuriosApi.getCuriosInventory(player).map(inventory -> {
-            var back = inventory.getCurios().get("back");
-            if (back != null) {
-                for (int i = 0; i < back.getStacks().getSlots(); i++) {
-                    var stack = back.getStacks().getStackInSlot(i);
-                    if (back.getActiveStates().size() > i && back.getActiveStates().get(i)
-                            && stack.getItem() instanceof ShootingStarMantle) return stack;
-                }
-            }
-            return ItemStack.EMPTY;
-        }).orElse(ItemStack.EMPTY);
+        // active state情報がない実装もあるため、無効枠の判定はCurios標準検索に任せる。
+        return CuriosApi.getCuriosInventory(player)
+                .flatMap(inventory -> inventory.findCurios("back").stream()
+                        .filter(result -> result.stack().getItem() instanceof ShootingStarMantle)
+                        .min(Comparator.comparingInt(result -> result.slotContext().index())))
+                .map(SlotResult::stack)
+                .orElse(ItemStack.EMPTY);
     }
 
     public static boolean conflict(Player player) {

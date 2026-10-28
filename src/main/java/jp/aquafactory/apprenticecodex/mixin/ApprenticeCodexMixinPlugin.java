@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.mixin;
 
+import jp.aquafactory.apprenticecodex.compat.accessories.AccessoriesCompatWorkaroundSupport;
 import net.neoforged.fml.loading.FMLLoader;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
@@ -10,7 +11,6 @@ import java.util.Set;
 
 public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
     private static final String ACCESSORIES_COMPAT_LAYER_MOD_ID = "accessories_compat_layer";
-    private static final String ACCESSORIES_COMPAT_LAYER_PATCHED_VERSION = "0.1.12";
     private static final String EASY_MAGIC_MOD_ID = "easymagic";
     private static final String APOTHEOSIS_MOD_ID = "apotheosis";
     private static final String JEI_MOD_ID = "jei";
@@ -61,8 +61,8 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
             }
 
             var modFile = loadingModList.getModFileById(ACCESSORIES_COMPAT_LAYER_MOD_ID);
-            // 上流実装へ直接介入するため、調査済みの0.1.12以外には適用しない。
-            return modFile != null && ACCESSORIES_COMPAT_LAYER_PATCHED_VERSION.equals(modFile.versionString());
+            // 将来版へ個別追従せず、既存パッチと構造が整合する場合だけ適用する。
+            return modFile != null && AccessoriesCompatWorkaroundSupport.canApply(targetClassName, modFile.versionString());
         }
 
         if (EASY_MAGIC_MIXIN.equals(mixinClassName)) {
@@ -123,5 +123,9 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
+        if (ACCESSORIES_COMPAT_CURIOS_SLOT_PREDICATE_MIXIN.equals(mixinClassName)
+                && !AccessoriesCompatWorkaroundSupport.hasInjection(targetClass)) {
+            AccessoriesCompatWorkaroundSupport.warnDisabled("Injection was not applied");
+        }
     }
 }

@@ -2,15 +2,18 @@ package jp.aquafactory.apprenticecodex.gametest;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
+import java.util.List;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.accessories.AccessoriesCompatibility;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
-import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
-import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
-import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
 import jp.aquafactory.apprenticecodex.item.ammo.BowAmmoConsumptionNotification;
+import jp.aquafactory.apprenticecodex.item.ammo.BowCastAmmoResolver;
+import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiverPickupEvent;
-import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
+import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
+import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
@@ -27,9 +30,8 @@ import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import top.theillusivec4.curios.api.CuriosApi;
-import top.theillusivec4.curios.api.SlotContext;
 
-import java.util.List;
+import top.theillusivec4.curios.api.SlotContext;
 
 import static jp.aquafactory.apprenticecodex.gametest.BowGameTestSupport.*;
 final class SpellcasterQuiverGameTestScenarios {
@@ -61,6 +63,11 @@ final class SpellcasterQuiverGameTestScenarios {
     }
 
     static void spellcasterQuiverAllowsOnlyOneEquippedAcrossSlots(GameTestHelper helper) {
+        if (AccessoriesCompatibility.isUnsupportedLayerLoaded()) {
+            ApprenticeCodex.LOGGER.info("Skipping spellcasterQuiverAllowsOnlyOneEquippedAcrossSlots: Accessories Compatibility Layer is not supported.");
+            helper.succeed();
+            return;
+        }
         helper.succeedIf(() -> {
             var quiverItem = (SpellcasterQuiver) ItemRegistry.SPELLCASTER_QUIVER.get();
 
