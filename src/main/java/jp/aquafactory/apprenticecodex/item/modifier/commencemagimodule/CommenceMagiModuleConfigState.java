@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.item.modifier.commencemagimodule;
 
-import jp.aquafactory.apprenticecodex.config.item.CommenceMagiModuleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.CommenceMagiModuleServerConfig.Values;
+import jp.aquafactory.apprenticecodex.config.item.CommenceMagiModuleServerConfig;
 
 public final class CommenceMagiModuleConfigState {
     private static Values values = CommenceMagiModuleServerConfig.DEFAULTS;

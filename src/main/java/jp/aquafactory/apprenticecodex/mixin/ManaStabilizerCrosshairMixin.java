@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 public abstract class ManaStabilizerCrosshairMixin {
     // 目標幅は変更せず、回復支援で縮む表示だけを速く追従させる。拡大時は上流の補間を維持する。
     @ModifyArgs(method = "updateCrosshairCursor", at = @At(value = "INVOKE",
-            target = "Lnet/minecraft/util/Mth;lerp(FFF)F"), require = 0)
+            target = "Lnet/minecraft/util/Mth;lerp(FFF)F", remap = true), require = 0)
     private static void closeFaster(Args args) {
         float current = args.get(1);
         float target = args.get(2);

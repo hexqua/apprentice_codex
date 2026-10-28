@@ -7,8 +7,8 @@ import jp.aquafactory.apprenticecodex.item.modifier.spellboundarmsmodule.Spellbo
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public final class IronsArtificeClientTooltips {
     private IronsArtificeClientTooltips() {}

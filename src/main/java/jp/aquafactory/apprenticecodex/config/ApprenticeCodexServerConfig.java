@@ -1,24 +1,25 @@
 package jp.aquafactory.apprenticecodex.config;
 
-import jp.aquafactory.apprenticecodex.config.item.ManaStabilizerModuleServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.SpellboundArmsModuleServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.CommenceMagiModuleServerConfig;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
+import java.util.List;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.config.block.ArcanumInAJarServerConfig;
 import jp.aquafactory.apprenticecodex.config.block.AlchemyBrewerServerConfig;
+import jp.aquafactory.apprenticecodex.config.block.ArcanumInAJarServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ChargedTwinBladeStaffServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.CommenceMagiModuleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.HoverrideBroomServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ManaStabilizerModuleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellReaperScytheServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellboundArmsModuleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.CatchFlameServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.ChargedTwinBladeStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.LinearBuildServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
@@ -29,8 +30,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
-
-import java.util.List;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public final class ApprenticeCodexServerConfig {

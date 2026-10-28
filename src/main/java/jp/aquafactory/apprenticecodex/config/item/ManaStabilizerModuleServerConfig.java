@@ -1,13 +1,13 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 public final class ManaStabilizerModuleServerConfig {
     public static final Values DEFAULTS = new Values(0.7, 0.75, -0.5, 0.75, 1);
-    private final ModConfigSpec.DoubleValue movement, recoil, spread, recovery, mana;
+    private final ForgeConfigSpec.DoubleValue movement, recoil, spread, recovery, mana;
     private Values override;
 
-    private ManaStabilizerModuleServerConfig(ModConfigSpec.Builder builder) {
+    private ManaStabilizerModuleServerConfig(ForgeConfigSpec.Builder builder) {
         builder.push("ManaStabilizerModule");
         movement = builder.comment("Movement speed multiplier while aiming, independent of module count.")
                 .defineInRange("adsMovementSpeedMultiplier", 0.7, 0, 1);
@@ -22,7 +22,7 @@ public final class ManaStabilizerModuleServerConfig {
         builder.pop();
     }
 
-    public static ManaStabilizerModuleServerConfig define(ModConfigSpec.Builder builder) {
+    public static ManaStabilizerModuleServerConfig define(ForgeConfigSpec.Builder builder) {
         return new ManaStabilizerModuleServerConfig(builder);
     }
 

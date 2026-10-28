@@ -21,6 +21,11 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.damage.DamageSources;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.compat.ironsartifice.IronsArtificeClientTooltips;
 import jp.aquafactory.apprenticecodex.compat.ironsartifice.IronsArtificeManaEvents;
 import jp.aquafactory.apprenticecodex.compat.ironsartifice.SpellboundArmsModuleEvents;
@@ -32,10 +37,9 @@ import jp.aquafactory.apprenticecodex.item.modifier.spellboundarmsmodule.Spellbo
 import jp.aquafactory.apprenticecodex.network.packet.SyncSpellboundArmsModuleConfigPacket;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
@@ -55,17 +59,11 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.fml.ModList;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.function.Consumer;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.fml.ModList;
 
 final class SpellboundArmsModuleGameTestScenarios {
     private SpellboundArmsModuleGameTestScenarios() {}
@@ -73,9 +71,9 @@ final class SpellboundArmsModuleGameTestScenarios {
     static void powerStacksAndSchoolSelection(GameTestHelper h) throws Exception {
         var player = player(h);
         try (var ignored = ApprenticeCodexServerConfig.overrideSpellboundArmsModuleForGameTest(SpellboundArmsModuleServerConfig.DEFAULTS)) {
-            attribute(player, AttributeRegistry.SPELL_POWER, 1.25);
-            attribute(player, AttributeRegistry.FIRE_SPELL_POWER, 1.5);
-            attribute(player, AttributeRegistry.ICE_SPELL_POWER, 2);
+            attribute(player, AttributeRegistry.SPELL_POWER.get(), 1.25);
+            attribute(player, AttributeRegistry.FIRE_SPELL_POWER.get(), 1.5);
+            attribute(player, AttributeRegistry.ICE_SPELL_POWER.get(), 2);
             for (int count = 0; count <= 3; count++) {
                 var gun = gun(count, 0, true);
                 var profile = compose(player, gun);
@@ -84,19 +82,19 @@ final class SpellboundArmsModuleGameTestScenarios {
                 close(h, profile.value(ShotComponents.DAMAGE), base * (count == 0 ? 1 : 1 + 1.5 * (0.5 + (count - 1) * 0.15)), "Composed damage must include the diminished spell bonus and other modifiers");
                 if (count > 0) h.assertTrue(profile.peek(SpellboundArmsModuleEvents.POWER).school() == SchoolRegistry.ICE.get(), "Highest school must be selected");
             }
-            attribute(player, AttributeRegistry.ICE_SPELL_POWER, 1.5);
+            attribute(player, AttributeRegistry.ICE_SPELL_POWER.get(), 1.5);
             h.assertTrue(SpellboundArmsModuleEvents.power(player).school() == SchoolRegistry.FIRE.get(), "School ties must be ordered by identifier");
-            attribute(player, AttributeRegistry.FIRE_SPELL_POWER, 1);
-            attribute(player, AttributeRegistry.ICE_SPELL_POWER, 0.75);
+            attribute(player, AttributeRegistry.FIRE_SPELL_POWER.get(), 1);
+            attribute(player, AttributeRegistry.ICE_SPELL_POWER.get(), 0.75);
             h.assertTrue(SpellboundArmsModuleEvents.power(player).school() == null, "No school at or below neutral must be selected");
             close(h, SpellboundArmsModuleEvents.power(player).multiplier(), 1.25, "General power must work without school");
-            attribute(player, AttributeRegistry.SPELL_POWER, 1);
+            attribute(player, AttributeRegistry.SPELL_POWER.get(), 1);
             var single = compose(player, gun(1, 0, false));
             var stacked = compose(player, gun(3, 0, false));
             close(h, single.value(ShotComponents.DAMAGE), stacked.value(ShotComponents.DAMAGE), "Neutral power must not grant a stacking damage bonus");
             h.assertTrue(IronsArtificeManaEvents.cost(single, false) == IronsArtificeManaEvents.cost(stacked, false),
                     "Stacking must not independently multiply mana cost");
-            attribute(player, AttributeRegistry.SPELL_POWER, 0);
+            attribute(player, AttributeRegistry.SPELL_POWER.get(), 0);
             try (var ignoredZeroDamage = ApprenticeCodexServerConfig.overrideSpellboundArmsModuleForGameTest(new Values(1, 0, 1, 0.25))) {
                 var zero = compose(player, gun(1, 0, true));
                 close(h, zero.value(ShotComponents.DAMAGE), 0, "Full power penalty must permit a zero damage multiplier");
@@ -110,18 +108,18 @@ final class SpellboundArmsModuleGameTestScenarios {
     static void resistanceAndFiredSnapshot(GameTestHelper h) throws Exception {
         var player = player(h);
         try (var ignored = ApprenticeCodexServerConfig.overrideSpellboundArmsModuleForGameTest(SpellboundArmsModuleServerConfig.DEFAULTS)) {
-            attribute(player, AttributeRegistry.SPELL_POWER, 1.25);
-            attribute(player, AttributeRegistry.FIRE_SPELL_POWER, 2);
+            attribute(player, AttributeRegistry.SPELL_POWER.get(), 1.25);
+            attribute(player, AttributeRegistry.FIRE_SPELL_POWER.get(), 2);
             var profile = compose(player, gun(2, 1, false));
             double composed = profile.value(ShotComponents.DAMAGE);
-            attribute(player, AttributeRegistry.SPELL_POWER, 4);
-            attribute(player, AttributeRegistry.ICE_SPELL_POWER, 4);
+            attribute(player, AttributeRegistry.SPELL_POWER.get(), 4);
+            attribute(player, AttributeRegistry.ICE_SPELL_POWER.get(), 4);
             h.assertTrue(profile.peek(SpellboundArmsModuleEvents.POWER).school() == SchoolRegistry.FIRE.get(), "Fired school must survive attribute changes");
             var bullet = bullet(h, player, profile.copy());
             var target = target(h, player);
             try {
-                attribute(target, AttributeRegistry.SPELL_RESIST, 1.5);
-                attribute(target, AttributeRegistry.FIRE_MAGIC_RESIST, 1.5);
+                attribute(target, AttributeRegistry.SPELL_RESIST.get(), 1.5);
+                attribute(target, AttributeRegistry.FIRE_MAGIC_RESIST.get(), 1.5);
                 double resist = DamageSources.getResist(target, SchoolRegistry.FIRE.get());
                 double damage = bullet.resolveDamage();
                 bullet.hit(new EntityHitResult(target, target.getEyePosition()));
@@ -144,14 +142,14 @@ final class SpellboundArmsModuleGameTestScenarios {
                 } finally { other.discard(); }
                 close(h, profile.value(ShotComponents.DAMAGE), composed, "Resistance must not mutate shared damage");
             } finally { bullet.discard(); target.discard(); }
-            attribute(player, AttributeRegistry.FIRE_SPELL_POWER, 1);
-            attribute(player, AttributeRegistry.ICE_SPELL_POWER, 1);
+            attribute(player, AttributeRegistry.FIRE_SPELL_POWER.get(), 1);
+            attribute(player, AttributeRegistry.ICE_SPELL_POWER.get(), 1);
             var general = compose(player, gun(1, 0, false));
             var plainBullet = bullet(h, player, general);
             var plainTarget = target(h, player);
             try {
-                attribute(plainTarget, AttributeRegistry.SPELL_RESIST, 2);
-                attribute(plainTarget, AttributeRegistry.FIRE_MAGIC_RESIST, 4);
+                attribute(plainTarget, AttributeRegistry.SPELL_RESIST.get(), 2);
+                attribute(plainTarget, AttributeRegistry.FIRE_MAGIC_RESIST.get(), 4);
                 plainTarget.hurt(io.redspace.irons_artifice.damage.DamageSources.bullet(h.getLevel(), plainBullet, player), 10);
                 close(h, 1000 - plainTarget.getHealth(), 10 * DamageSources.getResist(plainTarget, null), "Null school must use only general resistance");
             } finally { plainBullet.discard(); plainTarget.discard(); }
@@ -163,7 +161,7 @@ final class SpellboundArmsModuleGameTestScenarios {
         var player = player(h);
         try (var ignored = ApprenticeCodexServerConfig.overrideSpellboundArmsModuleForGameTest(new Values(0.5, 0.15, 0.1001, 0.25));
              var ignoredCommence = ApprenticeCodexServerConfig.overrideCommenceMagiModuleForGameTest(new CommenceMagiModuleServerConfig.Values(100, 25, 7))) {
-            attribute(player, AttributeRegistry.SPELL_POWER, 2.5);
+            attribute(player, AttributeRegistry.SPELL_POWER.get(), 2.5);
             var gun = gun(2, 2, true);
             player.setItemInHand(InteractionHand.MAIN_HAND, gun);
             var profile = compose(player, gun);
@@ -198,11 +196,11 @@ final class SpellboundArmsModuleGameTestScenarios {
             FireDelayState.clear(player);
             mana(player, cost);
             Consumer<GunAboutToShootEvent> cancel = event -> { if (event.getEntity() == player) event.setCanceled(true); };
-            NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, cancel);
+            MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGHEST, cancel);
             try {
                 h.assertTrue(!GunplayManager.tryFire(player, new Vec3(0, 0, 1)).fired(), "External cancellation must reject firing");
                 close(h, MagicData.getPlayerMagicData(player).getMana(), cost, "External cancellation must preserve total mana");
-            } finally { NeoForge.EVENT_BUS.unregister(cancel); }
+            } finally { MinecraftForge.EVENT_BUS.unregister(cancel); }
             player.gameMode.changeGameModeForPlayer(GameType.CREATIVE);
             mana(player, 0);
             h.assertTrue(GunplayManager.tryFire(player, new Vec3(0, 0, 1)).fired(), "Creative must remain exempt from combined mana");
@@ -214,10 +212,10 @@ final class SpellboundArmsModuleGameTestScenarios {
         var player = player(h);
         var target = target(h, player);
         try (var ignored = ApprenticeCodexServerConfig.overrideSpellboundArmsModuleForGameTest(SpellboundArmsModuleServerConfig.DEFAULTS)) {
-            attribute(player, AttributeRegistry.SPELL_POWER, 1.25);
-            attribute(player, AttributeRegistry.FIRE_SPELL_POWER, 2);
-            attribute(target, AttributeRegistry.SPELL_RESIST, 1.5);
-            attribute(target, AttributeRegistry.FIRE_MAGIC_RESIST, 1.5);
+            attribute(player, AttributeRegistry.SPELL_POWER.get(), 1.25);
+            attribute(player, AttributeRegistry.FIRE_SPELL_POWER.get(), 2);
+            attribute(target, AttributeRegistry.SPELL_RESIST.get(), 1.5);
+            attribute(target, AttributeRegistry.FIRE_MAGIC_RESIST.get(), 1.5);
             var profile = compose(player, gun(2, 0, false));
             var bullet = bullet(h, player, profile);
             double damage = bullet.resolveDamage();
@@ -250,22 +248,22 @@ final class SpellboundArmsModuleGameTestScenarios {
     static void tooltipsColorsAndConfigSync(GameTestHelper h) throws Exception {
         var player = player(h);
         var previous = SpellboundArmsModuleConfigState.values();
-        var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), h.getLevel().registryAccess());
+        var buffer = new FriendlyByteBuf(Unpooled.buffer());
         try (var ignored = ApprenticeCodexServerConfig.overrideSpellboundArmsModuleForGameTest(new Values(0.5, 0.15, 1, 0.25))) {
             var values = new Values(0.5, 0.15, 1, 0.25);
-            SyncSpellboundArmsModuleConfigPacket.STREAM_CODEC.encode(buffer, new SyncSpellboundArmsModuleConfigPacket(values));
-            SpellboundArmsModuleConfigState.set(SyncSpellboundArmsModuleConfigPacket.STREAM_CODEC.decode(buffer).values());
+            SyncSpellboundArmsModuleConfigPacket.encode(new SyncSpellboundArmsModuleConfigPacket(values), buffer);
+            SpellboundArmsModuleConfigState.set(SyncSpellboundArmsModuleConfigPacket.decode(buffer).values());
             h.assertTrue(SpellboundArmsModuleConfigState.values().equals(values), "Config codec must preserve all four coefficients");
             var module = new ItemStack(ItemRegistry.SPELLBOUND_ARMS_MODULE.get());
             var lines = new ArrayList<Component>();
-            module.getItem().appendHoverText(module, Item.TooltipContext.EMPTY, lines, TooltipFlag.NORMAL);
-            var args = translatable(lines.get(2).getSiblings().getFirst()).getArgs();
+            module.getItem().appendHoverText(module, null, lines, TooltipFlag.NORMAL);
+            var args = translatable(lines.get(2).getSiblings().get(0)).getArgs();
             h.assertTrue(args[0].equals("100") && args[1].equals("0"), "Unavailable player must use neutral tooltip arguments");
-            attribute(player, AttributeRegistry.SPELL_POWER, 1.25);
-            IronsArtificeClientTooltips.onTooltip(new ItemTooltipEvent(module, player, lines, TooltipFlag.NORMAL, Item.TooltipContext.EMPTY));
-            args = translatable(lines.get(2).getSiblings().getFirst()).getArgs();
+            attribute(player, AttributeRegistry.SPELL_POWER.get(), 1.25);
+            IronsArtificeClientTooltips.onTooltip(new ItemTooltipEvent(module, player, lines, TooltipFlag.NORMAL));
+            args = translatable(lines.get(2).getSiblings().get(0)).getArgs();
             h.assertTrue(args[0].equals("112.5") && args[1].equals("3.8"), "Tooltip must show the diminished initial and additional bonus percentages");
-            attribute(player, AttributeRegistry.FIRE_SPELL_POWER, 2);
+            attribute(player, AttributeRegistry.FIRE_SPELL_POWER.get(), 2);
             var gun = gun(1, 1, false);
             new GunContainer(gun).setItem(2, new ItemStack(artificeItem("frozen_jacket_modifier")));
             var profile = compose(player, gun);
@@ -274,14 +272,14 @@ final class SpellboundArmsModuleGameTestScenarios {
             var gunLines = new ArrayList<Component>();
             gunLines.add(Component.literal(" ").append(Component.translatable("irons_artifice.tooltip.ammo_capacity", 5)));
             gunLines.add(Component.translatable("irons_artifice.tooltip.modifier_count", 5));
-            IronsArtificeClientTooltips.onTooltip(new ItemTooltipEvent(gun, player, gunLines, TooltipFlag.NORMAL, Item.TooltipContext.EMPTY));
-            var manaLine = translatable(gunLines.get(1).getSiblings().getFirst());
+            IronsArtificeClientTooltips.onTooltip(new ItemTooltipEvent(gun, player, gunLines, TooltipFlag.NORMAL));
+            var manaLine = translatable(gunLines.get(1).getSiblings().get(0));
             h.assertTrue(manaLine.getKey().equals("item.apprenticecodex.irons_artifice.tooltip.mana_cost"), "Mana must appear immediately after ammo capacity");
             var expected = Component.literal(Integer.toString(IronsArtificeManaEvents.cost(profile, true))).getString();
             h.assertTrue(((Component) manaLine.getArgs()[0]).getString().equals(expected), "Displayed total must match shared mana calculation");
             SpellboundArmsModuleConfigState.set(new Values(0.5, 0.15, 0, 0));
             lines.clear();
-            module.getItem().appendHoverText(module, Item.TooltipContext.EMPTY, lines, TooltipFlag.NORMAL);
+            module.getItem().appendHoverText(module, null, lines, TooltipFlag.NORMAL);
             h.assertTrue(lines.size() == 5, "Zero coefficient must hide only the mana description");
             SpellboundArmsModuleConfigState.reset();
             h.assertTrue(SpellboundArmsModuleConfigState.values().equals(SpellboundArmsModuleServerConfig.DEFAULTS), "Disconnect reset must restore defaults");
@@ -302,12 +300,12 @@ final class SpellboundArmsModuleGameTestScenarios {
         return player;
     }
 
-    private static void attribute(LivingEntity entity, Holder<Attribute> key, double value) {
+    private static void attribute(LivingEntity entity, Attribute key, double value) {
         Objects.requireNonNull(entity.getAttribute(key)).setBaseValue(value);
     }
 
     private static void mana(FakePlayer player, float value) {
-        attribute(player, AttributeRegistry.MAX_MANA, 10000);
+        attribute(player, AttributeRegistry.MAX_MANA.get(), 10000);
         MagicData.getPlayerMagicData(player).setMana(value);
     }
 

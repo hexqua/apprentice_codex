@@ -3,13 +3,12 @@ package jp.aquafactory.apprenticecodex.item.modifier.manastabilizermodule;
 import io.redspace.irons_artifice.data.ComponentType;
 import io.redspace.irons_artifice.data.ShotComponentMap;
 import io.redspace.irons_artifice.modifier.GunModifier;
+import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.ironsartifice.SpellboundArmsModuleEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-
-import java.util.function.Consumer;
 
 public final class ManaStabilizerModuleModifier implements GunModifier {
     public static final ComponentType<Integer> MODULE_COUNT = new ComponentType<>(

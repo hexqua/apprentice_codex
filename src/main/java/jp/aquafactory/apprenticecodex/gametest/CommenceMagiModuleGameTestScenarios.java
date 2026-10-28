@@ -19,10 +19,15 @@ import io.redspace.irons_artifice.menu.GunContainer;
 import io.redspace.irons_artifice.registry.EntityRegistry;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.compat.ironsartifice.CommenceMagiModuleEvents;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.CommenceMagiModuleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.CommenceMagiModuleServerConfig.Values;
+import jp.aquafactory.apprenticecodex.config.item.CommenceMagiModuleServerConfig;
 import jp.aquafactory.apprenticecodex.item.modifier.commencemagimodule.CommenceMagiModuleConfigState;
 import jp.aquafactory.apprenticecodex.item.modifier.commencemagimodule.CommenceMagiModuleModifier;
 import jp.aquafactory.apprenticecodex.network.packet.SyncCommenceMagiModuleConfigPacket;
@@ -31,7 +36,7 @@ import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
@@ -49,15 +54,10 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.util.FakePlayer;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.function.Consumer;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.eventbus.api.EventPriority;
 
 final class CommenceMagiModuleGameTestScenarios {
     private CommenceMagiModuleGameTestScenarios() {
@@ -152,7 +152,7 @@ final class CommenceMagiModuleGameTestScenarios {
             FireDelayState.clear(player);
             h.assertTrue(GunplayManager.tryFire(player, new Vec3(0, 0, 1)).fired(), "Exactly enough mana must permit another shot");
             close(h, MagicData.getPlayerMagicData(player).getMana(), 0, "Second shot must exhaust mana");
-            var firedProfile = bullets(h, player).getFirst().getProfile();
+            var firedProfile = bullets(h, player).get(0).getProfile();
             container.removeItemNoUpdate(0);
             container.removeItemNoUpdate(1);
             container.setChanged();
@@ -185,7 +185,7 @@ final class CommenceMagiModuleGameTestScenarios {
                 h.getLevel().addFreshEntity(mob);
                 h.assertTrue(GunplayManager.tryFire(mob, new Vec3(0, 0, 1)).fired(), "Mobs must be exempt from mana requirements");
                 var mobBullets = h.getLevel().getEntitiesOfClass(Bullet.class, AABB.ofSize(mob.position(), 20, 20, 20), b -> b.getOwner() == mob);
-                h.assertTrue(!mobBullets.isEmpty() && mobBullets.getFirst().getProfile().peek(CommenceMagiModuleModifier.HEADSHOT_MULTIPLIER) == 2, "Mob bullets must retain the headshot modifier");
+                h.assertTrue(!mobBullets.isEmpty() && mobBullets.get(0).getProfile().peek(CommenceMagiModuleModifier.HEADSHOT_MULTIPLIER) == 2, "Mob bullets must retain the headshot modifier");
                 mobBullets.forEach(Bullet::discard);
             }
         } finally { mob.discard(); cleanup(h, player); }
@@ -195,7 +195,13 @@ final class CommenceMagiModuleGameTestScenarios {
     static void canceledShotAndImpactHaveNoEffect(GameTestHelper h) throws Exception {
         var player = player(h);
         Consumer<GunAboutToShootEvent> cancelShot = event -> { if (event.getEntity() == player) event.setCanceled(true); };
-        Consumer<BulletImpactEvent> cancelImpact = event -> { if (event.getBullet().getOwner() == player) event.setCanceled(true); };
+        Consumer<BulletImpactEvent> cancelImpact = event -> {
+            if (event.getBullet().getOwner() == player) {
+                // Arms 1.20.1はImpactResultを参照せず、Eventのcancelフラグだけで命中を拒否する。
+                Event impactEvent = event;
+                impactEvent.setCanceled(true);
+            }
+        };
         try (var ignored = ApprenticeCodexServerConfig.overrideCommenceMagiModuleForGameTest(CommenceMagiModuleServerConfig.DEFAULTS)) {
             var gun = equip(player, 1);
             mana(player, 60);
@@ -203,42 +209,42 @@ final class CommenceMagiModuleGameTestScenarios {
             h.assertTrue(GunplayManager.tryFire(player, new Vec3(0, 0, 1)) == FireOutcome.EMPTY_MAGAZINE, "Empty magazine must prevent firing");
             close(h, MagicData.getPlayerMagicData(player).getMana(), 60, "Empty magazine must not consume mana");
             MagazineContents.set(gun, new MagazineContents(5));
-            NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, cancelShot);
+            MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGHEST, cancelShot);
             try {
                 h.assertTrue(GunplayManager.tryFire(player, new Vec3(0, 0, 1)) == FireOutcome.EVENT_CANCELLED, "External cancellation must prevent firing");
                 close(h, MagicData.getPlayerMagicData(player).getMana(), 60, "External cancellation must not consume mana");
-            } finally { NeoForge.EVENT_BUS.unregister(cancelShot); }
+            } finally { MinecraftForge.EVENT_BUS.unregister(cancelShot); }
             var bullet = bullet(h, player, profile(player, 1));
             var target = target(h, player);
-            NeoForge.EVENT_BUS.addListener(EventPriority.HIGHEST, cancelImpact);
+            MinecraftForge.EVENT_BUS.addListener(EventPriority.HIGHEST, cancelImpact);
             try {
                 bullet.hit(new EntityHitResult(target, target.getEyePosition()));
                 close(h, target.getHealth(), 1000, "Canceled impact must not hurt target");
                 h.assertTrue(bullet.getProfile().peek(CommenceMagiModuleEvents.IMPACT) == null, "Canceled impact must leave no headshot state");
-            } finally { NeoForge.EVENT_BUS.unregister(cancelImpact); bullet.discard(); target.discard(); }
+            } finally { MinecraftForge.EVENT_BUS.unregister(cancelImpact); bullet.discard(); target.discard(); }
         } finally { cleanup(h, player); }
         h.succeed();
     }
 
     static void tooltipAndConfigSyncPreserveValues(GameTestHelper h) {
         var previous = CommenceMagiModuleConfigState.values();
-        var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), h.getLevel().registryAccess());
+        var buffer = new FriendlyByteBuf(Unpooled.buffer());
         try {
             var values = new Values(150, 40, 7);
-            SyncCommenceMagiModuleConfigPacket.STREAM_CODEC.encode(buffer, new SyncCommenceMagiModuleConfigPacket(values));
-            var decoded = SyncCommenceMagiModuleConfigPacket.STREAM_CODEC.decode(buffer);
+            SyncCommenceMagiModuleConfigPacket.encode(new SyncCommenceMagiModuleConfigPacket(values), buffer);
+            var decoded = SyncCommenceMagiModuleConfigPacket.decode(buffer);
             h.assertTrue(decoded.values().equals(values), "Config packet must preserve all values");
             CommenceMagiModuleConfigState.set(decoded.values());
             var lines = tooltip();
             h.assertTrue(lines.size() == 5 && lines.get(1).getContents() instanceof TranslatableContents heading
                     && heading.getKey().equals("irons_artifice.tooltip.when_used_as_modifier")
                     && lines.get(1).getStyle().getColor().getValue() == ChatFormatting.GRAY.getColor(), "Modifier must use the standard heading");
-            h.assertTrue(lines.get(2).getString().startsWith(" ") && lines.get(2).getSiblings().getFirst().getContents() instanceof TranslatableContents initial
+            h.assertTrue(lines.get(2).getString().startsWith(" ") && lines.get(2).getSiblings().get(0).getContents() instanceof TranslatableContents initial
                     && initial.getArgs()[0].equals(150), "Initial bonus must be indented and use synced config");
-            h.assertTrue(lines.get(3).getString().startsWith(" ") && lines.get(3).getSiblings().getFirst().getContents() instanceof TranslatableContents additional
+            h.assertTrue(lines.get(3).getString().startsWith(" ") && lines.get(3).getSiblings().get(0).getContents() instanceof TranslatableContents additional
                     && additional.getArgs()[0].equals(40), "Additional bonus must use synced config");
-            h.assertTrue(lines.get(2).getSiblings().getFirst().getStyle().getColor().getValue() == ChatFormatting.GREEN.getColor(), "Bonus description must be green");
-            h.assertTrue(lines.get(4).getSiblings().getFirst().getStyle().getColor().getValue() == ChatFormatting.RED.getColor(), "Mana description must be red");
+            h.assertTrue(lines.get(2).getSiblings().get(0).getStyle().getColor().getValue() == ChatFormatting.GREEN.getColor(), "Bonus description must be green");
+            h.assertTrue(lines.get(4).getSiblings().get(0).getStyle().getColor().getValue() == ChatFormatting.RED.getColor(), "Mana description must be red");
             CommenceMagiModuleConfigState.set(new Values(150, 40, 0));
             h.assertTrue(tooltip().size() == 4, "Zero cost must hide the mana description");
             CommenceMagiModuleConfigState.reset();
@@ -249,7 +255,7 @@ final class CommenceMagiModuleGameTestScenarios {
 
     private static List<Component> tooltip() {
         var lines = new ArrayList<Component>();
-        ItemRegistry.COMMENCE_MAGI_MODULE.get().appendHoverText(new ItemStack(ItemRegistry.COMMENCE_MAGI_MODULE.get()), Item.TooltipContext.EMPTY, lines, TooltipFlag.NORMAL);
+        ItemRegistry.COMMENCE_MAGI_MODULE.get().appendHoverText(new ItemStack(ItemRegistry.COMMENCE_MAGI_MODULE.get()), null, lines, TooltipFlag.NORMAL);
         return lines;
     }
 
@@ -262,7 +268,7 @@ final class CommenceMagiModuleGameTestScenarios {
     }
 
     private static void mana(FakePlayer player, float amount) {
-        Objects.requireNonNull(player.getAttribute(AttributeRegistry.MAX_MANA)).setBaseValue(1000);
+        Objects.requireNonNull(player.getAttribute(AttributeRegistry.MAX_MANA.get())).setBaseValue(1000);
         MagicData.getPlayerMagicData(player).setMana(amount);
     }
 

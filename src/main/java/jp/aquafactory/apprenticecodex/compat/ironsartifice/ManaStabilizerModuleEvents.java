@@ -5,39 +5,36 @@ import io.redspace.irons_artifice.data.RecoilState;
 import io.redspace.irons_artifice.data.ShotComponents;
 import io.redspace.irons_artifice.data.ValueModifier;
 import io.redspace.irons_artifice.item.GunItem;
-import io.redspace.irons_artifice.item.ReloadState;
 import io.redspace.irons_artifice.item.PendingShot;
+import io.redspace.irons_artifice.item.ReloadState;
 import io.redspace.irons_artifice.menu.GunContainer;
-import io.redspace.irons_artifice.registry.DataAttachmentRegistry;
 import io.redspace.irons_artifice.modifier.ModifierItem;
 import io.redspace.irons_artifice.modifier.modifiers.BayonetAttachmentModifier;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.network.SyncManaPacket;
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import io.redspace.ironsspellbooks.setup.PacketDistributor;
+import java.util.Map;
+import java.util.UUID;
+import java.util.WeakHashMap;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.item.modifier.manastabilizermodule.ManaStabilizerModuleModifier;
 import jp.aquafactory.apprenticecodex.item.modifier.manastabilizermodule.ManaStabilizerModuleItem;
+import jp.aquafactory.apprenticecodex.item.modifier.manastabilizermodule.ManaStabilizerModuleModifier;
 import jp.aquafactory.apprenticecodex.item.modifier.manastabilizermodule.ManaStabilizerRecovery;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaStabilizerRecoilPacket;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
-
-import java.util.Map;
-import java.util.WeakHashMap;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public final class ManaStabilizerModuleEvents {
-    private static final ResourceLocation MOVEMENT = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "mana_stabilizer_ads_movement");
+    private static final UUID MOVEMENT = UUID.fromString("1c2e9b05-32e8-4e97-9ce8-80c2cf0c5b69");
     private static final Map<ServerPlayer, State> STATES = new WeakHashMap<>();
     private static final class State {
         ItemStack stack;
@@ -49,7 +46,9 @@ public final class ManaStabilizerModuleEvents {
     public static int count(ItemStack stack) {
         if (!(stack.getItem() instanceof GunItem)) return 0;
         int result = 0;
-        for (ItemStack modifier : new GunContainer(stack).getItems()) {
+        var container = new GunContainer(stack);
+        for (int slot = 0; slot < container.getContainerSize(); slot++) {
+            var modifier = container.getItem(slot);
             if (modifier.getItem() instanceof ManaStabilizerModuleItem) result++;
         }
         return result;
@@ -62,7 +61,9 @@ public final class ManaStabilizerModuleEvents {
     }
 
     private static boolean hasBayonet(ItemStack stack) {
-        for (ItemStack modifier : new GunContainer(stack).getItems()) {
+        var container = new GunContainer(stack);
+        for (int slot = 0; slot < container.getContainerSize(); slot++) {
+            var modifier = container.getItem(slot);
             if (modifier.getItem() instanceof ModifierItem item && item.getModifier() instanceof BayonetAttachmentModifier) return true;
         }
         return false;
@@ -92,9 +93,9 @@ public final class ManaStabilizerModuleEvents {
         if (!aiming) { speed.removeModifier(MOVEMENT); return; }
         player.setSprinting(false);
         var previous = speed.getModifier(MOVEMENT);
-        if (previous == null || previous.amount() != amount) {
+        if (previous == null || previous.getAmount() != amount) {
             speed.removeModifier(MOVEMENT);
-            speed.addTransientModifier(new AttributeModifier(MOVEMENT, amount, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+            speed.addTransientModifier(new AttributeModifier(MOVEMENT, "Mana Stabilizer ADS movement", amount, AttributeModifier.Operation.MULTIPLY_TOTAL));
         }
     }
 
@@ -130,8 +131,9 @@ public final class ManaStabilizerModuleEvents {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onTick(PlayerTickEvent.Post event) {
-        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+    public static void onTick(TickEvent.PlayerTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
+        if (!(event.player instanceof ServerPlayer player)) return;
         boolean aiming = active(player);
         movement(player, aiming);
         State state = STATES.get(player);
@@ -146,14 +148,14 @@ public final class ManaStabilizerModuleEvents {
             double cost = values.manaCostPerTick() * count(player.getMainHandItem());
             var magic = MagicData.getPlayerMagicData(player);
             boolean needsPayment = ManaStabilizerRecovery.needsPayment(recoil.pitch(), recoil.yaw(), step);
-            paid = !needsPayment || player.hasInfiniteMaterials() || cost == 0 || magic.getMana() >= cost;
-            if (needsPayment && paid && !player.hasInfiniteMaterials() && cost > 0) {
+            paid = !needsPayment || player.getAbilities().instabuild || cost == 0 || magic.getMana() >= cost;
+            if (needsPayment && paid && !player.getAbilities().instabuild && cost > 0) {
                 magic.setMana((float) Math.max(0, magic.getMana() - cost));
                 if (!(player instanceof FakePlayer)) PacketDistributor.sendToPlayer(player, new SyncManaPacket(magic));
             }
             var next = ManaStabilizerRecovery.recover(recoil.pitch(), recoil.yaw(), step, paid);
             recoil = new RecoilState(next.x, next.y, now);
-            player.setData(DataAttachmentRegistry.RECOIL, recoil);
+            RecoilState.set(player, recoil);
         }
         // 上流の1tick保留が解消するまで、その射撃より古い反動を確定結果として返さない。
         if (state.hook && PendingShot.get(player).isEmpty() && !(player instanceof FakePlayer)) Networks.sendToPlayer(player, new SyncManaStabilizerRecoilPacket(

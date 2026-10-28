@@ -1,15 +1,15 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 public final class CommenceMagiModuleServerConfig {
     public static final Values DEFAULTS = new Values(100, 25, 30);
-    private final ModConfigSpec.IntValue initialBonus;
-    private final ModConfigSpec.IntValue additionalBonus;
-    private final ModConfigSpec.IntValue manaCost;
+    private final ForgeConfigSpec.IntValue initialBonus;
+    private final ForgeConfigSpec.IntValue additionalBonus;
+    private final ForgeConfigSpec.IntValue manaCost;
     private Values override;
 
-    private CommenceMagiModuleServerConfig(ModConfigSpec.Builder builder) {
+    private CommenceMagiModuleServerConfig(ForgeConfigSpec.Builder builder) {
         builder.push("CommenceMagiModule");
         initialBonus = builder.comment("Additional headshot damage percentage provided by the first module.")
                 .defineInRange("initialHeadshotBonusPercent", 100, 0, Integer.MAX_VALUE);
@@ -20,7 +20,7 @@ public final class CommenceMagiModuleServerConfig {
         builder.pop();
     }
 
-    public static CommenceMagiModuleServerConfig define(ModConfigSpec.Builder builder) {
+    public static CommenceMagiModuleServerConfig define(ForgeConfigSpec.Builder builder) {
         return new CommenceMagiModuleServerConfig(builder);
     }
 

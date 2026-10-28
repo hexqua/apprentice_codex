@@ -10,6 +10,9 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.damage.DamageSources;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellboundArmsModuleServerConfig.Values;
@@ -19,14 +22,10 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.jetbrains.annotations.Nullable;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.function.Consumer;
 
 public final class SpellboundArmsModuleEvents {
     public static final ComponentType<Power> POWER = new ComponentType<>(
@@ -43,11 +42,11 @@ public final class SpellboundArmsModuleEvents {
 
     public static Power power(@Nullable LivingEntity shooter) {
         if (shooter == null) return Power.NEUTRAL;
-        double general = shooter.getAttributes().hasAttribute(AttributeRegistry.SPELL_POWER)
-                ? shooter.getAttributeValue(AttributeRegistry.SPELL_POWER) : 1;
+        double general = shooter.getAttributes().hasAttribute(AttributeRegistry.SPELL_POWER.get())
+                ? shooter.getAttributeValue(AttributeRegistry.SPELL_POWER.get()) : 1;
         SchoolType selected = null;
         double highest = 1;
-        for (SchoolType school : SchoolRegistry.REGISTRY) {
+        for (SchoolType school : SchoolRegistry.REGISTRY.get().getValues()) {
             double value = school.getPowerFor(shooter);
             if (value > highest || (value == highest && value > 1
                     && school.getId().toString().compareTo(selected.getId().toString()) < 0)) {
@@ -81,7 +80,7 @@ public final class SpellboundArmsModuleEvents {
     }
 
     @SubscribeEvent(priority = EventPriority.LOW)
-    public static void onDamage(LivingIncomingDamageEvent event) {
+    public static void onDamage(LivingHurtEvent event) {
         if (event.getEntity().level().isClientSide || !(event.getSource().getDirectEntity() instanceof Bullet bullet)
                 || bullet.getProfile().peek(SpellboundArmsModuleModifier.MODULE_COUNT) <= 0
                 || IronsArtificeCompat.defersSpellResistance(event.getSource())) return;

@@ -1,20 +1,20 @@
 package jp.aquafactory.apprenticecodex.compat.ironsartifice;
 
+import jp.aquafactory.apprenticecodex.event.client.ManaStabilizerClientEvents;
 import jp.aquafactory.apprenticecodex.item.modifier.commencemagimodule.CommenceMagiModuleItem;
 import jp.aquafactory.apprenticecodex.item.modifier.manastabilizermodule.ManaStabilizerModuleItem;
-import jp.aquafactory.apprenticecodex.event.client.ManaStabilizerClientEvents;
-import net.minecraft.server.level.ServerPlayer;
 import jp.aquafactory.apprenticecodex.item.modifier.spellboundarmsmodule.SpellboundArmsModuleItem;
-import net.minecraft.world.item.Item;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import team.lodestar.lodestone.registry.common.tag.LodestoneDamageTypeTags;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModList;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.neoforged.neoforge.common.NeoForge;
 
 public final class IronsArtificeCompat {
     public static final String MOD_ID = "irons_artifice";
@@ -61,21 +61,21 @@ public final class IronsArtificeCompat {
         }
 
         private static void registerEvents() {
-            NeoForge.EVENT_BUS.register(SpellboundArmsLodestoneEvents.class);
+            MinecraftForge.EVENT_BUS.register(SpellboundArmsLodestoneEvents.class);
         }
     }
 
     private static final class MalumLoaded {
         private static void registerEvents() {
-            NeoForge.EVENT_BUS.register(SpellboundArmsMalumEvents.class);
+            MinecraftForge.EVENT_BUS.register(SpellboundArmsMalumEvents.class);
         }
     }
 
     private static final class ClientLoaded {
         private static void registerEvents() {
-            NeoForge.EVENT_BUS.register(IronsArtificeClientTooltips.class);
+            MinecraftForge.EVENT_BUS.register(IronsArtificeClientTooltips.class);
             ManaStabilizerClientEvents.register();
-            NeoForge.EVENT_BUS.register(ManaStabilizerClientEvents.class);
+            MinecraftForge.EVENT_BUS.register(ManaStabilizerClientEvents.class);
         }
     }
 
@@ -96,10 +96,10 @@ public final class IronsArtificeCompat {
         }
 
         private static void registerEvents() {
-            NeoForge.EVENT_BUS.register(CommenceMagiModuleEvents.class);
-            NeoForge.EVENT_BUS.register(SpellboundArmsModuleEvents.class);
-            NeoForge.EVENT_BUS.register(IronsArtificeManaEvents.class);
-            NeoForge.EVENT_BUS.register(ManaStabilizerModuleEvents.class);
+            MinecraftForge.EVENT_BUS.register(CommenceMagiModuleEvents.class);
+            MinecraftForge.EVENT_BUS.register(SpellboundArmsModuleEvents.class);
+            MinecraftForge.EVENT_BUS.register(IronsArtificeManaEvents.class);
+            MinecraftForge.EVENT_BUS.register(ManaStabilizerModuleEvents.class);
             if (ModList.get().isLoaded("lodestone")) LodestoneLoaded.registerEvents();
             if (ModList.get().isLoaded("malum")) MalumLoaded.registerEvents();
             if (FMLEnvironment.dist == Dist.CLIENT) ClientLoaded.registerEvents();

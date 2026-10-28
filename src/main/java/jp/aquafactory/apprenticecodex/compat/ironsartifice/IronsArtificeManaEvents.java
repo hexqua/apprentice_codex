@@ -18,10 +18,10 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.bus.api.SubscribeEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public final class IronsArtificeManaEvents {
     public static final ComponentType<Integer> MANA_COST = new ComponentType<>(
@@ -64,7 +64,7 @@ public final class IronsArtificeManaEvents {
         var profile = event.getShotProfile();
         int cost = cost(profile, shooter.level().isClientSide);
         profile.components().set(MANA_COST, cost);
-        if (!(shooter instanceof Player player) || player.hasInfiniteMaterials() || cost <= 0) return;
+        if (!(shooter instanceof Player player) || player.getAbilities().instabuild || cost <= 0) return;
         float mana = player.level().isClientSide ? ClientGate.mana() : MagicData.getPlayerMagicData(player).getMana();
         if (mana < cost) {
             event.setCanceled(true);

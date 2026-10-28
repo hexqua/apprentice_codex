@@ -1,16 +1,16 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 public final class SpellboundArmsModuleServerConfig {
     public static final Values DEFAULTS = new Values(0.5, 0.15, 1.0, 0.25);
-    private final ModConfigSpec.DoubleValue firstModuleMultiplier;
-    private final ModConfigSpec.DoubleValue additionalModuleMultiplier;
-    private final ModConfigSpec.DoubleValue normalManaCostMultiplier;
-    private final ModConfigSpec.DoubleValue magicManaCostMultiplier;
+    private final ForgeConfigSpec.DoubleValue firstModuleMultiplier;
+    private final ForgeConfigSpec.DoubleValue additionalModuleMultiplier;
+    private final ForgeConfigSpec.DoubleValue normalManaCostMultiplier;
+    private final ForgeConfigSpec.DoubleValue magicManaCostMultiplier;
     private Values override;
 
-    private SpellboundArmsModuleServerConfig(ModConfigSpec.Builder builder) {
+    private SpellboundArmsModuleServerConfig(ForgeConfigSpec.Builder builder) {
         builder.push("SpellboundArmsModule");
         firstModuleMultiplier = builder.comment("Fraction of the spell power bonus applied by the first module.")
                 .defineInRange("firstModuleMultiplier", 0.5, 0.0, Double.MAX_VALUE);
@@ -23,7 +23,7 @@ public final class SpellboundArmsModuleServerConfig {
         builder.pop();
     }
 
-    public static SpellboundArmsModuleServerConfig define(ModConfigSpec.Builder builder) {
+    public static SpellboundArmsModuleServerConfig define(ForgeConfigSpec.Builder builder) {
         return new SpellboundArmsModuleServerConfig(builder);
     }
 

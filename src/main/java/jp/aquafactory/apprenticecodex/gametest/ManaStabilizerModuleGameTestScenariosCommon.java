@@ -23,7 +23,7 @@ final class ManaStabilizerModuleGameTestScenariosCommon {
         node.fields.add(new FieldNode(Opcodes.ACC_STATIC, "pitch", "F", null, null));
         node.fields.add(new FieldNode(Opcodes.ACC_STATIC, "yaw", "F", null, null));
         node.methods.add(new MethodNode(Opcodes.ACC_STATIC, "applyRecoil", "(Lio/redspace/irons_artifice/gun/ShotProfile;)V", null, null));
-        MethodNode tick = new MethodNode(Opcodes.ACC_STATIC, "onClientTick", "(Lnet/neoforged/neoforge/client/event/ClientTickEvent$Post;)V", null, null);
+        MethodNode tick = new MethodNode(Opcodes.ACC_STATIC, "onClientTick", "(Lnet/minecraftforge/event/TickEvent$ClientTickEvent;)V", null, null);
         node.methods.add(tick);
         h.assertTrue(!ManaStabilizerMixinPlugin.compatible(node), "Missing injection point must disable the mixin");
         tick.instructions.add(new MethodInsnNode(Opcodes.INVOKESTATIC, node.name, "updateCameraCursor", "()V", false));

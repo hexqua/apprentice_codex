@@ -8,16 +8,17 @@ import io.redspace.irons_artifice.item.GunItem;
 import io.redspace.irons_artifice.item.GunplayManager;
 import io.redspace.irons_artifice.item.MagazineContents;
 import io.redspace.irons_artifice.menu.GunContainer;
-import io.redspace.irons_artifice.registry.DataAttachmentRegistry;
-import io.redspace.irons_artifice.registry.DataComponentRegistry;
 import io.redspace.irons_artifice.utils.RecoilHelper;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
+import java.util.ArrayList;
+import java.util.UUID;
 import jp.aquafactory.apprenticecodex.compat.ironsartifice.ManaStabilizerModuleEvents;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.ManaStabilizerModuleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaStabilizerModuleServerConfig.Values;
+import jp.aquafactory.apprenticecodex.config.item.ManaStabilizerModuleServerConfig;
 import jp.aquafactory.apprenticecodex.item.modifier.manastabilizermodule.ManaStabilizerModuleModifier;
 import jp.aquafactory.apprenticecodex.item.modifier.manastabilizermodule.ManaStabilizerRecovery;
+import jp.aquafactory.apprenticecodex.mixin.ManaStabilizerMixinPlugin;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -25,21 +26,16 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Unit;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.TickEvent;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
-import jp.aquafactory.apprenticecodex.mixin.ManaStabilizerMixinPlugin;
-
-import java.util.ArrayList;
-import java.util.UUID;
 
 final class ManaStabilizerModuleGameTestScenarios {
     private ManaStabilizerModuleGameTestScenarios() {}
@@ -69,7 +65,7 @@ final class ManaStabilizerModuleGameTestScenarios {
         h.assertTrue(ManaStabilizerModuleEvents.active(player), "ADS must start without a recovery hook");
         h.runAfterDelay(10, () -> {
             try {
-                ManaStabilizerModuleEvents.onTick(new PlayerTickEvent.Post(player));
+                ManaStabilizerModuleEvents.onTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
                 h.assertTrue(!ManaStabilizerModuleEvents.active(player), "ADS must expire after ten ticks without input");
                 close(h, player.getAttributeValue(Attributes.MOVEMENT_SPEED), player.getAttribute(Attributes.MOVEMENT_SPEED).getBaseValue(), "Expired ADS must remove movement penalty");
                 h.succeed();
@@ -88,9 +84,9 @@ final class ManaStabilizerModuleGameTestScenarios {
                 close(h, ads.value(ShotComponents.CAMERA_RECOIL_MULTIPLIER), Math.pow(0.75, n), "ADS recoil must stack multiplicatively");
                 close(h, ads.value(ShotComponents.SPREAD), base.value(ShotComponents.SPREAD) - 0.5 * n, "ADS spread must retain its negative sign");
                 close(h, player.getAttributeValue(Attributes.MOVEMENT_SPEED) / player.getAttribute(Attributes.MOVEMENT_SPEED).getBaseValue(), 0.7, "Movement must not stack");
-                stack.set(DataComponentRegistry.GUN_SPYGLASS, Unit.INSTANCE);
+                stack.getOrCreateTag().putBoolean(GunItem.GUN_SPYGLASS_TAG_KEY, true);
                 h.assertTrue(!ManaStabilizerModuleEvents.active(player), "Scope must suppress stabilization");
-                stack.remove(DataComponentRegistry.GUN_SPYGLASS);
+                stack.removeTagKey(GunItem.GUN_SPYGLASS_TAG_KEY);
                 var container = new GunContainer(stack);
                 container.setItem(n, new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("irons_artifice", "bayonet_attachment_modifier"))));
                 container.setChanged();
@@ -101,7 +97,7 @@ final class ManaStabilizerModuleGameTestScenarios {
             gun(player, 1);
             ManaStabilizerModuleEvents.input(player, true, true, 4);
             player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
-            ManaStabilizerModuleEvents.onTick(new PlayerTickEvent.Post(player));
+            ManaStabilizerModuleEvents.onTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
             h.assertTrue(!ManaStabilizerModuleEvents.active(player), "Switching items must clear ADS");
         } finally { player.discard(); }
         h.succeed();
@@ -114,19 +110,19 @@ final class ManaStabilizerModuleGameTestScenarios {
             long now = h.getLevel().getGameTime();
             for (boolean hook : new boolean[]{false, true}) {
                 magic.setMana(1);
-                player.setData(DataAttachmentRegistry.RECOIL, new RecoilState(3, 4, now));
+                RecoilState.set(player, new RecoilState(3, 4, now));
                 ManaStabilizerModuleEvents.input(player, true, hook, 0);
-                ManaStabilizerModuleEvents.onTick(new PlayerTickEvent.Post(player));
+                ManaStabilizerModuleEvents.onTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
                 close(h, magic.getMana(), 1, "Insufficient mana and disabled hooks must not charge");
-                close(h, player.getData(DataAttachmentRegistry.RECOIL).pitch(), 3, "Unpaid recovery must retain normal recoil");
+                close(h, RecoilState.current(player, h.getLevel().getGameTime()).pitch(), 3, "Unpaid recovery must retain normal recoil");
             }
             magic.setMana(2);
-            ManaStabilizerModuleEvents.onTick(new PlayerTickEvent.Post(player));
+            ManaStabilizerModuleEvents.onTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
             close(h, magic.getMana(), 0, "Two modules must charge two mana per assisted tick");
-            close(h, player.getData(DataAttachmentRegistry.RECOIL).pitch(), 2.1, "Recovery must scale with count");
-            player.setData(DataAttachmentRegistry.RECOIL, new RecoilState(0.3f, 0.4f, now));
-            ManaStabilizerModuleEvents.onTick(new PlayerTickEvent.Post(player));
-            close(h, player.getData(DataAttachmentRegistry.RECOIL).pitch(), 0, "Final recovery must be free");
+            close(h, RecoilState.current(player, h.getLevel().getGameTime()).pitch(), 2.1, "Recovery must scale with count");
+            RecoilState.set(player, new RecoilState(0.3f, 0.4f, now));
+            ManaStabilizerModuleEvents.onTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            close(h, RecoilState.current(player, h.getLevel().getGameTime()).pitch(), 0, "Final recovery must be free");
             var stack = gun(player, 1);
             var container = new GunContainer(stack);
             container.setItem(1, ItemRegistry.COMMENCE_MAGI_MODULE.get().getDefaultInstance());
@@ -135,12 +131,12 @@ final class ManaStabilizerModuleGameTestScenarios {
             ManaStabilizerModuleEvents.input(player, true, true, 0);
             h.assertTrue(GunplayManager.tryFire(player, new Vec3(0, 0, 1)).fired(), "Existing firing cost must be affordable before assistance");
             close(h, magic.getMana(), 0, "Existing firing cost must be charged first");
-            var recoil = player.getData(DataAttachmentRegistry.RECOIL);
-            ManaStabilizerModuleEvents.onTick(new PlayerTickEvent.Post(player));
-            close(h, player.getData(DataAttachmentRegistry.RECOIL).pitch(), recoil.pitch(), "Assistance must not run when firing exhausted mana");
+            var recoil = RecoilState.current(player, h.getLevel().getGameTime());
+            ManaStabilizerModuleEvents.onTick(new TickEvent.PlayerTickEvent(TickEvent.Phase.END, player));
+            close(h, RecoilState.current(player, h.getLevel().getGameTime()).pitch(), recoil.pitch(), "Assistance must not run when firing exhausted mana");
             h.assertTrue(!GunplayManager.tryFire(player, new Vec3(0, 0, 1)).fired(), "Immediate repeated shot must fail its firing gate");
             close(h, magic.getMana(), 0, "Failed shots must not add mana costs");
-            close(h, player.getData(DataAttachmentRegistry.RECOIL).pitch(), recoil.pitch(), "Failed shots must not add recoil");
+            close(h, RecoilState.current(player, h.getLevel().getGameTime()).pitch(), recoil.pitch(), "Failed shots must not add recoil");
         } finally { player.discard(); }
         h.succeed();
     }

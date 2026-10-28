@@ -630,6 +630,7 @@ tasks.named('assemble').configure {
 mixin {
     add sourceSets.main, "mixins.${mod_id}.refmap.json"
     config "mixins.${mod_id}.json"
+    config "mixins.${mod_id}.mana_stabilizer.json"
 }
 
 publishing {

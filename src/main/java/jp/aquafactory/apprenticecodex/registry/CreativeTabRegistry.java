@@ -3,6 +3,9 @@ package jp.aquafactory.apprenticecodex.registry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
 import jp.aquafactory.apprenticecodex.compat.ironsartifice.IronsArtificeCompat;
@@ -21,10 +24,6 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
-
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
 
 public final class CreativeTabRegistry {
     private CreativeTabRegistry() {}

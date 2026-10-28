@@ -14,9 +14,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public final class CommenceMagiModuleEvents {
     public static final ComponentType<Impact> IMPACT = new ComponentType<>(
@@ -50,7 +50,7 @@ public final class CommenceMagiModuleEvents {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onDamage(LivingIncomingDamageEvent event) {
+    public static void onDamage(LivingHurtEvent event) {
         if (event.getEntity().level().isClientSide || !event.getSource().is(DamageSources.BULLET_DAMAGE_TYPE)
                 || !(event.getSource().getDirectEntity() instanceof Bullet bullet)) return;
         var impact = bullet.getProfile().peek(IMPACT);

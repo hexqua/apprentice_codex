@@ -14,11 +14,11 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec2;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
-import net.neoforged.neoforge.client.event.InputEvent;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
+import net.minecraftforge.client.event.ComputeFovModifierEvent;
+import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public final class ManaStabilizerClientEvents {
     private static LocalPlayer lastPlayer;
@@ -87,7 +87,7 @@ public final class ManaStabilizerClientEvents {
             }
         }
         double cost = values.manaCostPerTick() * count;
-        boolean paid = player.hasInfiniteMaterials() || cost == 0 || ClientMagicData.getPlayerMana() >= cost;
+        boolean paid = player.getAbilities().instabuild || cost == 0 || ClientMagicData.getPlayerMana() >= cost;
         boolean assisted = step > 0 && (paid || !ManaStabilizerRecovery.needsPayment(pitch, yaw, step));
         return trackRecovery(pitch, yaw, ManaStabilizerRecovery.recover(pitch, yaw, step, paid), assisted);
     }
@@ -108,7 +108,8 @@ public final class ManaStabilizerClientEvents {
     }
 
     @SubscribeEvent
-    public static void tick(ClientTickEvent.Post event) {
+    public static void tick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
         var player = Minecraft.getInstance().player;
         if (player != lastPlayer) { reset(); lastPlayer = player; }
         if (player == null) return;

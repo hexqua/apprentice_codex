@@ -1,28 +1,24 @@
 package jp.aquafactory.apprenticecodex.network.packet;
 
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.jetbrains.annotations.NotNull;
+import java.util.function.Supplier;
 import jp.aquafactory.apprenticecodex.event.client.ManaStabilizerClientEvents;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.fml.ModList;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.network.NetworkEvent;
 
-public record SyncManaStabilizerRecoilPacket(long tick, long revision, long shot, float pitch, float yaw, boolean paid) implements CustomPacketPayload {
-    public static final Type<SyncManaStabilizerRecoilPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "sync_mana_stabilizer_recoil"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, SyncManaStabilizerRecoilPacket> STREAM_CODEC = StreamCodec.of(
-            (buffer, packet) -> { buffer.writeLong(packet.tick()); buffer.writeVarLong(packet.revision()); buffer.writeVarLong(packet.shot()); buffer.writeFloat(packet.pitch()); buffer.writeFloat(packet.yaw()); buffer.writeBoolean(packet.paid()); },
-            buffer -> new SyncManaStabilizerRecoilPacket(buffer.readLong(), buffer.readVarLong(), buffer.readVarLong(), buffer.readFloat(), buffer.readFloat(), buffer.readBoolean()));
-    @Override
-    public @NotNull Type<? extends CustomPacketPayload> type() { return TYPE; }
-    public static void handle(SyncManaStabilizerRecoilPacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            if (FMLEnvironment.dist == Dist.CLIENT && ModList.get().isLoaded("irons_artifice")) ManaStabilizerClientEvents.accept(packet);
-        });
+public record SyncManaStabilizerRecoilPacket(long tick, long revision, long shot, float pitch, float yaw, boolean paid) {
+    public static void encode(SyncManaStabilizerRecoilPacket packet, FriendlyByteBuf buffer) { buffer.writeLong(packet.tick()); buffer.writeVarLong(packet.revision()); buffer.writeVarLong(packet.shot()); buffer.writeFloat(packet.pitch()); buffer.writeFloat(packet.yaw()); buffer.writeBoolean(packet.paid()); }
+    public static SyncManaStabilizerRecoilPacket decode(FriendlyByteBuf buffer) { return new SyncManaStabilizerRecoilPacket(buffer.readLong(), buffer.readVarLong(), buffer.readVarLong(), buffer.readFloat(), buffer.readFloat(), buffer.readBoolean()); }
+    public static void handle(SyncManaStabilizerRecoilPacket packet, Supplier<NetworkEvent.Context> contextSupplier) {
+        var context = contextSupplier.get();
+        context.enqueueWork(() -> { if (FMLEnvironment.dist == Dist.CLIENT && ModList.get().isLoaded("irons_artifice")) ClientHandler.accept(packet); });
+        context.setPacketHandled(true);
+    }
+    @OnlyIn(Dist.CLIENT)
+    private static final class ClientHandler {
+        private static void accept(SyncManaStabilizerRecoilPacket packet) { ManaStabilizerClientEvents.accept(packet); }
     }
 }
-
