@@ -1,13 +1,15 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
-import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
@@ -26,9 +28,6 @@ import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 public final class ItemTagGenerator extends ItemTagsProvider {
     private static TagKey<Item> createTag(String namespace, String path) {

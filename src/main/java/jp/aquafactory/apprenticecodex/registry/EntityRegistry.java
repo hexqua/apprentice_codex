@@ -1,35 +1,36 @@
 package jp.aquafactory.apprenticecodex.registry;
 
-import jp.aquafactory.apprenticecodex.item.manaforcereleasedevice.ManaForceReleaseBolt;
-
-import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.SupportedShieldEntity;
-
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity;
+import jp.aquafactory.apprenticecodex.entity.broom.AbstractBroomEntity;
+import jp.aquafactory.apprenticecodex.entity.broom.FloatmountBroomEntity;
+import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomEntity;
+import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
+import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.SpellAutonomyCardEntity;
+import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.SpellInvokeCardEntity;
 import jp.aquafactory.apprenticecodex.item.antimanaarrow.AntiManaArrowEntity;
+import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.SupportedShieldEntity;
+import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeProjectileEntity;
+import jp.aquafactory.apprenticecodex.item.manaforcereleasedevice.ManaForceReleaseBolt;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowEntity;
-import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamEntity;
+import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
 import jp.aquafactory.apprenticecodex.spell.anchorblink.AnchorBlinkDaggerEntity;
+import jp.aquafactory.apprenticecodex.spell.arcanebeam.ArcaneBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.archermultiple.ArcherMultipleBowEntity;
 import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashLauncherEntity;
 import jp.aquafactory.apprenticecodex.spell.artisansmash.ArtisanSmashShellEntity;
 import jp.aquafactory.apprenticecodex.spell.assistwings.AssistWingsWingEntity;
 import jp.aquafactory.apprenticecodex.spell.automagnet.AutoMagnetFamiliarEntity;
 import jp.aquafactory.apprenticecodex.spell.autoturret.AutoTurretEntity;
-import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemyShotgunEntity;
-import jp.aquafactory.apprenticecodex.entity.ChargedTwinBladeStaffThrownEntity;
-import jp.aquafactory.apprenticecodex.entity.broom.AbstractBroomEntity;
-import jp.aquafactory.apprenticecodex.entity.broom.FloatmountBroomEntity;
-import jp.aquafactory.apprenticecodex.entity.broom.HoverrideBroomEntity;
-import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.SpellAutonomyCardEntity;
-import jp.aquafactory.apprenticecodex.entity.spellthrowablecard.SpellInvokeCardEntity;
 import jp.aquafactory.apprenticecodex.spell.bloodbrand.BloodBrandKunai;
 import jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodyArrowEntity;
 import jp.aquafactory.apprenticecodex.spell.bloodyarrow.BloodyArrowOrbEntity;
+import jp.aquafactory.apprenticecodex.spell.breachingenemy.BreachingEnemyShotgunEntity;
 import jp.aquafactory.apprenticecodex.spell.bulletstream.BulletStreamMinigunEntity;
+import jp.aquafactory.apprenticecodex.spell.catchflame.CatchFlameImpactEntity;
+import jp.aquafactory.apprenticecodex.spell.combustionjet.CombustionJetWaveEntity;
 import jp.aquafactory.apprenticecodex.spell.commencefire.CommenceFireRifleEntity;
 import jp.aquafactory.apprenticecodex.spell.companiontrunk.CompanionTrunkEntity;
-import jp.aquafactory.apprenticecodex.spell.combustionjet.CombustionJetWaveEntity;
-import jp.aquafactory.apprenticecodex.spell.catchflame.CatchFlameImpactEntity;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsCoreEntity;
 import jp.aquafactory.apprenticecodex.spell.demicreatorwings.DemicreatorWingsWingEntity;
@@ -39,43 +40,42 @@ import jp.aquafactory.apprenticecodex.spell.echoarrow.EchoArrowEntity;
 import jp.aquafactory.apprenticecodex.spell.extract.ExtractPotionProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.featherrush.FeatherRushWingEntity;
+import jp.aquafactory.apprenticecodex.spell.fieldoverseer.FieldOverseerStaffEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterLauncherEntity;
 import jp.aquafactory.apprenticecodex.spell.flyswatter.FlySwatterProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.fujin.FujinKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.fujin.FujinSlashProjectileEntity;
-import jp.aquafactory.apprenticecodex.spell.fieldoverseer.FieldOverseerStaffEntity;
 import jp.aquafactory.apprenticecodex.spell.gracedrain.GracedRainCloudEntity;
 import jp.aquafactory.apprenticecodex.spell.grindrunner.GrindRunnerWheelEntity;
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import jp.aquafactory.apprenticecodex.spell.heavenlyfist.HeavenlyFistFistEntity;
 import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.illuminatestellar.IlluminateStellarStarEntity;
-import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.inscribeice.InscribeIceDaggerEntity;
 import jp.aquafactory.apprenticecodex.spell.lethalassault.LethalAssaultRifleEntity;
 import jp.aquafactory.apprenticecodex.spell.lightningarrow.LightningArrowEntity;
-import jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAimArrowEntity;
 import jp.aquafactory.apprenticecodex.spell.lockonray.LockOnRayLaserEntity;
+import jp.aquafactory.apprenticecodex.spell.lunaraim.LunarAimArrowEntity;
 import jp.aquafactory.apprenticecodex.spell.magicspear.MagicSpearMissileEntity;
-import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
 import jp.aquafactory.apprenticecodex.spell.manaslash.ManaSlashProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.mantisleap.MantisLeapBladeEntity;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLightChargeCutEntity;
 import jp.aquafactory.apprenticecodex.spell.moonlight.MoonLightKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.mysticshield.MysticShieldShieldEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxChargeBeamEntity;
 import jp.aquafactory.apprenticecodex.spell.phalanxcharge.PhalanxWeaponryEntity;
-import jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowEntity;
-import jp.aquafactory.apprenticecodex.spell.shiden.ShidenKatanaEntity;
-import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.precisionjack.PrecisionJackKnifeEntity;
 import jp.aquafactory.apprenticecodex.spell.quickarms.QuickArmsHandgunEntity;
+import jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowEntity;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconEntity;
 import jp.aquafactory.apprenticecodex.spell.servantgaze.ServantGazeProjectileEntity;
 import jp.aquafactory.apprenticecodex.spell.servantgaze.ServantGazeStaffEntity;
+import jp.aquafactory.apprenticecodex.spell.shiden.ShidenKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.shock.ShockBoltEntity;
 import jp.aquafactory.apprenticecodex.spell.silentassassin.SilentAssassinRifleEntity;
 import jp.aquafactory.apprenticecodex.spell.skyedge.SkyEdgeProjectileEntity;
+import jp.aquafactory.apprenticecodex.spell.slashblade.SlashBladeKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.thermalprocess.ThermalProcessThrowerEntity;
 import jp.aquafactory.apprenticecodex.spell.thermalslice.ThermalSliceKatanaEntity;
 import jp.aquafactory.apprenticecodex.spell.tinylumberjack.TinyLumberjackSawEntity;
@@ -83,8 +83,6 @@ import jp.aquafactory.apprenticecodex.spell.tirovolley.TiroVolleyMusketEntity;
 import jp.aquafactory.apprenticecodex.spell.totemofpermafrost.TotemOfPermafrostTotemEntity;
 import jp.aquafactory.apprenticecodex.spell.uniteluna.UniteLunaMoonEntity;
 import jp.aquafactory.apprenticecodex.spell.worldflatter.WorldFlatterDrillEntity;
-import jp.aquafactory.apprenticecodex.entity.spelldispenser.SpellDispenserAnchorEntity;
-import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -425,7 +423,7 @@ public final class EntityRegistry {
     public static final RegistryObject<EntityType<LockOnRayLaserEntity>> LOCK_ON_RAY_LASER =
             regProjectile("lock_on_ray_laser", LockOnRayLaserEntity::new, 128, 1);
 
-    public static final DeferredHolder<EntityType<?>, EntityType<ManaForceReleaseBolt>> MANA_FORCE_RELEASE_BOLT =
+    public static final RegistryObject<EntityType<ManaForceReleaseBolt>> MANA_FORCE_RELEASE_BOLT =
             regProjectile("mana_force_release_bolt", ManaForceReleaseBolt::new, 64, 1);
 
     public static void register(IEventBus bus) {

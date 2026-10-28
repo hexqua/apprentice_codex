@@ -2,21 +2,20 @@ package jp.aquafactory.apprenticecodex.item.manaforcereleasedevice;
 
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import java.util.List;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.event.client.CastBarHudRenderer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
-import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RenderGuiOverlayEvent;
+import net.minecraftforge.client.gui.overlay.VanillaGuiOverlay;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
-import java.util.List;
-
-@EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, value = Dist.CLIENT)
 public final class ManaForceReleaseDeviceTooltip {
     private static final String PREFIX = "item.apprenticecodex.mana_force_release_device.";
 
@@ -28,8 +27,8 @@ public final class ManaForceReleaseDeviceTooltip {
         var player = Minecraft.getInstance().player;
         var config = ManaForceReleaseClientConfig.values();
         if (player != null) {
-            var damage = item.damage(player.getAttributeValue(AttributeRegistry.MAX_MANA),
-                    player.getAttributeValue(AttributeRegistry.SPELL_POWER), config);
+            var damage = item.damage(player.getAttributeValue(AttributeRegistry.MAX_MANA.get()),
+                    player.getAttributeValue(AttributeRegistry.SPELL_POWER.get()), config);
             lines.add(Component.translatable(PREFIX + "desc_3",
                     Component.literal(Utils.stringTruncation(damage, 2)).withStyle(ChatFormatting.GREEN))
                     .withStyle(ChatFormatting.GRAY));
@@ -47,14 +46,14 @@ public final class ManaForceReleaseDeviceTooltip {
     }
 
     @SubscribeEvent
-    public static void renderCharge(RenderGuiLayerEvent.Post event) {
-        if (!VanillaGuiLayers.CROSSHAIR.equals(event.getName())) return;
+    public static void renderCharge(RenderGuiOverlayEvent.Post event) {
+        if (event.getOverlay() != VanillaGuiOverlay.CROSSHAIR.type()) return;
         var minecraft = Minecraft.getInstance();
         var player = minecraft.player;
         if (player == null || player.isSpectator() || minecraft.options.hideGui || !player.isUsingItem()
                 || player.getUsedItemHand() != InteractionHand.MAIN_HAND
                 || !(player.getUseItem().getItem() instanceof ManaForceReleaseDevice)) return;
-        float remaining = Math.max(0, player.getUseItemRemainingTicks() - minecraft.getTimer().getGameTimeDeltaPartialTick(false));
+        float remaining = Math.max(0, player.getUseItemRemainingTicks() - event.getPartialTick());
         CastBarHudRenderer.render(event.getGuiGraphics(), minecraft.font,
                 minecraft.getWindow().getGuiScaledWidth(), minecraft.getWindow().getGuiScaledHeight(),
                 1 - remaining / ManaForceReleaseDevice.CHARGE_TICKS, Utils.timeFromTicks(remaining, 1));

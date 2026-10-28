@@ -21,7 +21,7 @@
     "C  "
   ],
   "result": {
-    "count": 1,
-    "id": "apprenticecodex:adept_mana_force_release_device"
-  }
+    "item": "apprenticecodex:adept_mana_force_release_device"
+  },
+  "show_notification": true
 }

@@ -1,10 +1,9 @@
 package jp.aquafactory.apprenticecodex.utility;
 
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 
 public final class SpellRecastCompatibility {
     private static final Set<Class<? extends AbstractSpell>> WARNED_SPELL_CLASSES = ConcurrentHashMap.newKeySet();

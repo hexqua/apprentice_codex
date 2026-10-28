@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex.network;
 
-import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceReleaseDeviceConfigPacket;
 import java.util.Optional;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.network.packet.AlchemyBrewerWaterSupplyEffectPacket;
@@ -90,6 +89,7 @@ import jp.aquafactory.apprenticecodex.network.packet.SyncLinearBuildConfigPacket
 import jp.aquafactory.apprenticecodex.network.packet.SyncLuminousDeviceConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMageLightConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceBladeConfigPacket;
+import jp.aquafactory.apprenticecodex.network.packet.SyncManaForceReleaseDeviceConfigPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearJumpPacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaManeuverGearSlidePacket;
 import jp.aquafactory.apprenticecodex.network.packet.SyncManaShieldCharmConfigPacket;

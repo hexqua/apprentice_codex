@@ -10,6 +10,10 @@ import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Locale;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.*;
@@ -18,9 +22,9 @@ import jp.aquafactory.apprenticecodex.mixin.LivingEntityAccessor;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import jp.aquafactory.apprenticecodex.utility.SpellRecastCompatibility;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ShieldItem;
@@ -28,11 +32,6 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Locale;
 
 public abstract class AbstractImbueShieldItem extends ShieldItem implements IPresetSpellContainer, RestrictedSpellImbuableItem,
         ManaBypassSpellItem, CastAnimationOverrideItem, WisdomPolicy {

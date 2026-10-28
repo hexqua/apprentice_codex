@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex.config;
 
-import jp.aquafactory.apprenticecodex.config.item.ManaForceReleaseDeviceServerConfig;
 import java.util.List;
 import jp.aquafactory.apprenticecodex.config.item.AbsorptionAmplifyAmuletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ArcaneCinderServerConfig;
@@ -25,6 +24,7 @@ import jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagiCompressorGadgetServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagicArmorServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaForceBladeServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ManaForceReleaseDeviceServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaManeuverGearServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaShieldCharmServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaSoulTransducerServerConfig;

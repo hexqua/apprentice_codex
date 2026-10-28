@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex;
 
-import jp.aquafactory.apprenticecodex.event.ManaForceReleaseDeviceConfigSyncEvents;
 import com.mojang.logging.LogUtils;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
 import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
@@ -17,6 +16,7 @@ import jp.aquafactory.apprenticecodex.event.FullautoEchoConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.HighTierSwingcastStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.InstantSearchBrazierConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.IronSwingcastStaffConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.ManaForceReleaseDeviceConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ManaSoulTransducerConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ManaStabilizerModuleConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.SoulstainedSteelSwingcastStaffConfigSyncEvents;

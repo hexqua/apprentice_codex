@@ -701,7 +701,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('C', Items.COPPER_INGOT)
                 .define('S', Items.STICK)
                 .unlockedBy(getHasName(Items.CUT_COPPER), has(Items.CUT_COPPER))
-                .save(recipeOutput);
+                .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.ADEPT_MANA_FORCE_RELEASE_DEVICE.get())
                 .pattern(" IB")
@@ -712,7 +712,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('C', ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get())
                 .define('S', Items.STICK)
                 .unlockedBy(getHasName(Items.DIAMOND), has(Items.DIAMOND))
-                .save(recipeOutput);
+                .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.MASTER_MANA_FORCE_RELEASE_DEVICE.get())
                 .pattern(" IB")
@@ -723,7 +723,7 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('C', ItemRegistry.WISDOM_SHARD.get())
                 .define('S', Items.STICK)
                 .unlockedBy(getHasName(ItemRegistry.WISDOM_SHARD.get()), has(ItemRegistry.WISDOM_SHARD.get()))
-                .save(recipeOutput);
+                .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.ELEMENTAL_BOW.get())
                 .pattern(" AS")

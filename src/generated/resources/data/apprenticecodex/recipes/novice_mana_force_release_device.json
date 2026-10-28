@@ -21,7 +21,7 @@
     "C  "
   ],
   "result": {
-    "count": 1,
-    "id": "apprenticecodex:novice_mana_force_release_device"
-  }
+    "item": "apprenticecodex:novice_mana_force_release_device"
+  },
+  "show_notification": true
 }

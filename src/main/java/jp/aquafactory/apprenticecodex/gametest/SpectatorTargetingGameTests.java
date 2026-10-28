@@ -3,6 +3,10 @@ package jp.aquafactory.apprenticecodex.gametest;
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.function.Predicate;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.manaforcereleasedevice.ManaForceReleaseDevice;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -24,14 +28,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.function.Predicate;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)

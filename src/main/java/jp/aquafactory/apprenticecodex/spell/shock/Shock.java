@@ -9,6 +9,8 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
+import java.util.List;
+import java.util.Optional;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
@@ -28,9 +30,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-import java.util.Optional;
 
 public class Shock extends AbstractSpell {
     private static final double THIN_RAYCAST_WIDTH = 1.0;

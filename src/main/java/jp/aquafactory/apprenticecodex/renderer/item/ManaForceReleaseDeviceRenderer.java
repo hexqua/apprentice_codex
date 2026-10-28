@@ -15,7 +15,7 @@ import org.joml.Matrix4f;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.renderer.GeoItemRenderer;
-import software.bernie.geckolib.util.RenderUtil;
+import software.bernie.geckolib.util.RenderUtils;
 
 public final class ManaForceReleaseDeviceRenderer extends GeoItemRenderer<ManaForceReleaseDevice> {
     private int glowPass;
@@ -25,8 +25,8 @@ public final class ManaForceReleaseDeviceRenderer extends GeoItemRenderer<ManaFo
     @Override
     public void postRender(PoseStack poseStack, ManaForceReleaseDevice item, BakedGeoModel model,
                            MultiBufferSource source, VertexConsumer buffer, boolean isReRender, float partialTick,
-                           int light, int overlay, int colour) {
-        super.postRender(poseStack, item, model, source, buffer, isReRender, partialTick, light, overlay, colour);
+                           int light, int overlay, float red, float green, float blue, float alpha) {
+        super.postRender(poseStack, item, model, source, buffer, isReRender, partialTick, light, overlay, red, green, blue, alpha);
         if (isReRender) return;
         var texture = getGeoModel().getTextureResource(item);
         var types = new RenderType[]{
@@ -36,13 +36,11 @@ public final class ManaForceReleaseDeviceRenderer extends GeoItemRenderer<ManaFo
         var level = Minecraft.getInstance().level;
         float time = level == null ? 0 : level.getGameTime() + partialTick;
         float brightness = 0.8F + 0.2F * Mth.sin(time * Mth.TWO_PI / 40);
-        int channel = (int) (255 * brightness);
-        int rgb = 0xFF000000 | channel << 16 | channel << 8 | channel;
         try {
             for (int i = 0; i < types.length; i++) {
                 glowPass = i + 1;
                 reRender(model, poseStack, source, item, types[i], source.getBuffer(types[i]), partialTick,
-                        LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, rgb);
+                        LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, brightness, brightness, brightness, 1);
             }
         } finally {
             glowPass = 0;
@@ -52,14 +50,14 @@ public final class ManaForceReleaseDeviceRenderer extends GeoItemRenderer<ManaFo
     @Override
     public void renderRecursively(PoseStack poseStack, ManaForceReleaseDevice item, GeoBone bone,
                                   RenderType renderType, MultiBufferSource source, VertexConsumer buffer,
-                                  boolean isReRender, float partialTick, int light, int overlay, int colour) {
+                                  boolean isReRender, float partialTick, int light, int overlay, float red, float green, float blue, float alpha) {
         int category = category(bone);
         if ((glowPass == 0 && category == 0) || (glowPass != 0 && category == glowPass)) {
             super.renderRecursively(poseStack, item, bone, renderType, source, buffer, isReRender,
-                    partialTick, light, overlay, colour);
+                    partialTick, light, overlay, red, green, blue, alpha);
         } else {
             renderChildBonesOnly(poseStack, item, bone, renderType, source, buffer, isReRender,
-                    partialTick, light, overlay, colour);
+                    partialTick, light, overlay, red, green, blue, alpha);
         }
     }
 
@@ -79,16 +77,16 @@ public final class ManaForceReleaseDeviceRenderer extends GeoItemRenderer<ManaFo
     private void renderChildBonesOnly(PoseStack poseStack, ManaForceReleaseDevice animatable, GeoBone bone,
                                       RenderType renderType, MultiBufferSource bufferSource, VertexConsumer buffer,
                                       boolean isReRender, float partialTick, int packedLight, int packedOverlay,
-                                      int colour) {
+                                      float red, float green, float blue, float alpha) {
         poseStack.pushPose();
 
         if (bone.isTrackingMatrices()) {
             Matrix4f poseState = new Matrix4f(poseStack.last().pose());
-            bone.setModelSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
-            bone.setLocalSpaceMatrix(RenderUtil.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
+            bone.setModelSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.modelRenderTranslations));
+            bone.setLocalSpaceMatrix(RenderUtils.invertAndMultiplyMatrices(poseState, this.itemRenderTranslations));
         }
 
-        RenderUtil.prepMatrixForBone(poseStack, bone);
+        RenderUtils.prepMatrixForBone(poseStack, bone);
         renderChildBones(
                 poseStack,
                 animatable,
@@ -100,7 +98,7 @@ public final class ManaForceReleaseDeviceRenderer extends GeoItemRenderer<ManaFo
                 partialTick,
                 packedLight,
                 packedOverlay,
-                colour
+                red, green, blue, alpha
         );
         poseStack.popPose();
     }

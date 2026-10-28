@@ -1,9 +1,9 @@
 package jp.aquafactory.apprenticecodex.spell.shock;
 
-import net.minecraft.world.phys.Vec3;
-
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
 
 /** 折れ線の中心位置を保ち、色の帯まで前後の区間で共有する描画用断面。 */
 final class BoltRibbonGeometry {
@@ -15,7 +15,7 @@ final class BoltRibbonGeometry {
     static List<Section> build(List<Vec3> path, Vec3 camera, double halfWidth) {
         var points = new ArrayList<Vec3>();
         for (var point : path) {
-            if (points.isEmpty() || points.getLast().distanceToSqr(point) > EPSILON * EPSILON) {
+            if (points.isEmpty() || points.get(points.size() - 1).distanceToSqr(point) > EPSILON * EPSILON) {
                 points.add(point);
             }
         }
@@ -32,7 +32,7 @@ final class BoltRibbonGeometry {
             var side = direction.cross(view.normalize());
             if (side.lengthSqr() < EPSILON * EPSILON) {
                 // 視線と区間が重なると幅方向を決められないため、前の区間を優先して安定させる。
-                var reference = sides.isEmpty() ? new Vec3(0, 1, 0) : sides.getLast();
+                var reference = sides.isEmpty() ? new Vec3(0, 1, 0) : sides.get(sides.size() - 1);
                 side = reference.subtract(direction.scale(reference.dot(direction)));
                 if (side.lengthSqr() < EPSILON * EPSILON) {
                     side = direction.cross(new Vec3(1, 0, 0));
@@ -49,7 +49,7 @@ final class BoltRibbonGeometry {
 
         var sections = new ArrayList<Section>();
         double distance = 0;
-        sections.add(section(points.getFirst(), sides.getFirst(), normals.getFirst(), distance));
+        sections.add(section(points.get(0), sides.get(0), normals.get(0), distance));
         for (int i = 1; i < points.size() - 1; i++) {
             distance += lengths.get(i - 1);
             var point = points.get(i);
@@ -61,7 +61,7 @@ final class BoltRibbonGeometry {
             var denominator = bisector.dot(before);
             double extension = denominator > EPSILON ? 1.0 / denominator : Double.POSITIVE_INFINITY;
             double shortLength = Math.min(lengths.get(i - 1), lengths.get(i));
-            double limit = Math.clamp(shortLength / (2.0 * halfWidth), 1.0, MITER_LIMIT);
+            double limit = Mth.clamp(shortLength / (2.0 * halfWidth), 1.0, MITER_LIMIT);
             if (extension <= limit) {
                 sections.add(section(point, bisector.scale(extension), normal, distance));
             } else {
@@ -76,8 +76,8 @@ final class BoltRibbonGeometry {
                         outerRight ? after : inner, normal, distance));
             }
         }
-        distance += lengths.getLast();
-        sections.add(section(points.getLast(), sides.getLast(), normals.getLast(), distance));
+        distance += lengths.get(lengths.size() - 1);
+        sections.add(section(points.get(points.size() - 1), sides.get(sides.size() - 1), normals.get(normals.size() - 1), distance));
         return sections;
     }
 

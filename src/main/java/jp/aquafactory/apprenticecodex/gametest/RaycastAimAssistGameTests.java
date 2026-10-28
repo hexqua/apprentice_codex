@@ -3,6 +3,8 @@ package jp.aquafactory.apprenticecodex.gametest;
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import java.util.Objects;
+import java.util.UUID;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
@@ -16,12 +18,9 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-
-import java.util.Objects;
-import java.util.UUID;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -170,7 +169,8 @@ public final class RaycastAimAssistGameTests {
         var right = forward.cross(new Vec3(0, 1, 0)).normalize();
         var target = target(helper, player, Vec3.ZERO);
         target.setPos(player.getEyePosition().add(forward.scale(5)).add(right.scale(1)).add(0, -0.9, 0));
-        try {
+        try (var air = new GameTestAirSpace(helper.getLevel(),
+                new AABB(player.getEyePosition(), player.getEyePosition().add(forward.scale(8))).inflate(3))) {
             helper.assertTrue(RaycastTools.raycastFromEyeWithAimAssist(player, 8, 4, e -> e == target).hitEntity() == target,
                     "Aim assist must also capture offset targets along a diagonal upward view");
             var empty = RaycastTools.raycastFromEyeWithAimAssist(player, 8, 4, e -> false);

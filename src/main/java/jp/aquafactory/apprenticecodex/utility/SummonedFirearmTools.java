@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.utility;
 
+import java.util.Optional;
+import java.util.function.Predicate;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -10,9 +12,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-
-import java.util.Optional;
-import java.util.function.Predicate;
 
 public final class SummonedFirearmTools {
     private static final double AIM_SEARCH_WIDTH = 0.875D;

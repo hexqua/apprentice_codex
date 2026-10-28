@@ -8,14 +8,14 @@
   ],
   "durabilityPercentage": 0.5,
   "inputs": [
+    "apprenticecodex:novice_mana_force_release_device",
+    "apprenticecodex:adept_mana_force_release_device",
+    "apprenticecodex:master_mana_force_release_device",
     "apprenticecodex:apprentice_mage_scarf",
     "apprenticecodex:apprentice_mage_torso",
     "apprenticecodex:apprentice_mage_leggings",
     "apprenticecodex:apprentice_mage_boots",
-    "apprenticecodex:reflectcast_shield",
-    "apprenticecodex:novice_mana_force_release_device",
-    "apprenticecodex:adept_mana_force_release_device",
-    "apprenticecodex:master_mana_force_release_device"
+    "apprenticecodex:reflectcast_shield"
   ],
   "itemIdRegex": "",
   "modIdRegex": "",

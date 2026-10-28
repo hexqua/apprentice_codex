@@ -1,7 +1,5 @@
 package jp.aquafactory.apprenticecodex.item.spellgun;
 
-import jp.aquafactory.apprenticecodex.item.ammo.EmptyCasingReturnPolicy;
-
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
@@ -13,9 +11,20 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
-import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.BooleanSupplier;
+import java.util.function.IntSupplier;
+import java.util.function.Supplier;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
@@ -24,11 +33,12 @@ import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.*;
+import jp.aquafactory.apprenticecodex.item.ammo.EmptyCasingReturnPolicy;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetData;
 import jp.aquafactory.apprenticecodex.utility.BlockTargetingHelper;
+import jp.aquafactory.apprenticecodex.utility.InitialSpellContainerHelper;
 import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
 import jp.aquafactory.apprenticecodex.utility.PresetSpellContainerStateHelper;
 import jp.aquafactory.apprenticecodex.utility.SpellRecastCompatibility;
@@ -39,6 +49,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -52,25 +63,12 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraft.tags.TagKey;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.function.BooleanSupplier;
-import java.util.function.IntSupplier;
-import java.util.function.Supplier;
 
 public abstract class AbstractSpellGunItem extends Item implements IPresetSpellContainer, RestrictedSpellImbuableItem,
         ManaBypassSpellItem, CastAnimationOverrideItem, NonDamageableAnvilMergeItem,

@@ -1,7 +1,5 @@
 package jp.aquafactory.apprenticecodex.registry;
 
-import jp.aquafactory.apprenticecodex.item.manaforcereleasedevice.ManaForceReleaseDevice;
-import jp.aquafactory.apprenticecodex.item.manaforcereleasedevice.ManaForceReleaseTier;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.ironsartifice.IronsArtificeCompat;
 import jp.aquafactory.apprenticecodex.item.*;
@@ -58,8 +56,9 @@ import jp.aquafactory.apprenticecodex.item.magicitem.InstantSearchBrazier;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
 import jp.aquafactory.apprenticecodex.item.magicitem.WoodenWand;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
-import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntlets;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeSheathItem;
+import jp.aquafactory.apprenticecodex.item.manaforcereleasedevice.ManaForceReleaseDevice;
+import jp.aquafactory.apprenticecodex.item.manaforcereleasedevice.ManaForceReleaseTier;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
@@ -73,6 +72,7 @@ import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.offhand.SilverSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.SoulstainedSteelSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.pastelstaff.PastelStaff;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntlets;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;

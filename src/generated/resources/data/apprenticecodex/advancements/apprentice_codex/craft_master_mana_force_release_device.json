@@ -9,13 +9,17 @@
     }
   },
   "display": {
+    "announce_to_chat": true,
     "description": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_master_mana_force_release_device.description"
     },
+    "frame": "task",
+    "hidden": false,
     "icon": {
-      "count": 1,
-      "id": "apprenticecodex:master_mana_force_release_device"
+      "item": "apprenticecodex:master_mana_force_release_device",
+      "nbt": "{Damage:0}"
     },
+    "show_toast": true,
     "title": {
       "translate": "advancements.apprenticecodex.apprentice_codex.craft_master_mana_force_release_device.title"
     }

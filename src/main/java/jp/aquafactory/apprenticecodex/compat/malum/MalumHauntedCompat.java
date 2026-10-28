@@ -8,6 +8,7 @@ import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBlad
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.item.manaforcereleasedevice.ManaForceReleaseDevice;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff;
 import jp.aquafactory.apprenticecodex.item.pastelstaff.PastelStaff;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
@@ -67,6 +68,7 @@ public final class MalumHauntedCompat {
                 || item instanceof AbstractRightClickMagicWeaponItem
                 || item instanceof FocusStaffbow
                 || item instanceof ChargedTwinBladeStaff
+                || item instanceof ManaForceReleaseDevice
                 || item instanceof ManaForceBlade
                 || item instanceof ScrollcasterGauntlet;
     }

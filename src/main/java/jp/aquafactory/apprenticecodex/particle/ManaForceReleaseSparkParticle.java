@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.particle;
 
+import java.util.List;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
@@ -12,8 +13,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 public final class ManaForceReleaseSparkParticle extends TextureSheetParticle {
     private final float startSize;

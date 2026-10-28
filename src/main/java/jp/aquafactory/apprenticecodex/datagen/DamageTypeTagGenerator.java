@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
+import java.util.concurrent.CompletableFuture;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
@@ -11,9 +12,6 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.concurrent.CompletableFuture;
-
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.*;
 
 public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {

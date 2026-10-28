@@ -1,7 +1,5 @@
 package jp.aquafactory.apprenticecodex.event.client;
 
-import jp.aquafactory.apprenticecodex.particle.ManaForceReleaseSparkParticle;
-
 import io.redspace.ironsspellbooks.entity.spells.shield.ShieldRenderer;
 import io.redspace.ironsspellbooks.render.SpellBookCurioRenderer;
 import java.util.concurrent.CompletableFuture;
@@ -45,6 +43,7 @@ import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowRenderer
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticle;
 import jp.aquafactory.apprenticecodex.particle.AdditiveRhombusParticle;
 import jp.aquafactory.apprenticecodex.particle.ImpactTremorBlockParticle;
+import jp.aquafactory.apprenticecodex.particle.ManaForceReleaseSparkParticle;
 import jp.aquafactory.apprenticecodex.particle.MuzzleFlashParticle;
 import jp.aquafactory.apprenticecodex.particle.PsychicDriveGauntletsSparkParticle;
 import jp.aquafactory.apprenticecodex.particle.ReticleDotParticle;

@@ -1,7 +1,7 @@
 package jp.aquafactory.apprenticecodex.config.item;
 
 import jp.aquafactory.apprenticecodex.item.manaforcereleasedevice.ManaForceReleaseTier;
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
 
 public final class ManaForceReleaseDeviceServerConfig {
     public record Values(double noviceMultiplier, double adeptMultiplier, double masterMultiplier,
@@ -21,13 +21,13 @@ public final class ManaForceReleaseDeviceServerConfig {
         }
     }
 
-    private final ModConfigSpec.DoubleValue noviceMultiplier;
-    private final ModConfigSpec.DoubleValue adeptMultiplier;
-    private final ModConfigSpec.DoubleValue masterMultiplier;
-    private final ModConfigSpec.DoubleValue noviceSoftCap;
-    private final ModConfigSpec.DoubleValue adeptSoftCap;
+    private final ForgeConfigSpec.DoubleValue noviceMultiplier;
+    private final ForgeConfigSpec.DoubleValue adeptMultiplier;
+    private final ForgeConfigSpec.DoubleValue masterMultiplier;
+    private final ForgeConfigSpec.DoubleValue noviceSoftCap;
+    private final ForgeConfigSpec.DoubleValue adeptSoftCap;
 
-    private ManaForceReleaseDeviceServerConfig(ModConfigSpec.Builder builder) {
+    private ManaForceReleaseDeviceServerConfig(ForgeConfigSpec.Builder builder) {
         builder.push("ManaForceReleaseDevice");
         noviceMultiplier = builder.comment("Novice special attack damage multiplier.")
                 .defineInRange("noviceDamageMultiplier", 1.0, 0.0, 10000.0);
@@ -42,7 +42,7 @@ public final class ManaForceReleaseDeviceServerConfig {
         builder.pop();
     }
 
-    public static ManaForceReleaseDeviceServerConfig define(ModConfigSpec.Builder builder) {
+    public static ManaForceReleaseDeviceServerConfig define(ForgeConfigSpec.Builder builder) {
         return new ManaForceReleaseDeviceServerConfig(builder);
     }
 

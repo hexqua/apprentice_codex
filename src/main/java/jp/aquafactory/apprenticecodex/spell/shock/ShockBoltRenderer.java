@@ -2,6 +2,8 @@ package jp.aquafactory.apprenticecodex.spell.shock;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import java.util.ArrayList;
+import java.util.List;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.renderer.ApprenticeRenderTypes;
 import net.minecraft.client.renderer.LightTexture;
@@ -17,9 +19,6 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ShockBoltRenderer extends EntityRenderer<ShockBoltEntity> {
     private static final ResourceLocation TEXTURE =
@@ -143,7 +142,7 @@ public class ShockBoltRenderer extends EntityRenderer<ShockBoltEntity> {
             var end = sections.get(i);
             if (end.distance() < visibleStart) continue;
             double length = end.distance() - start.distance();
-            double trim = length > 1.0e-6 ? Math.clamp((visibleStart - start.distance()) / length, 0, 1) : 0;
+            double trim = length > 1.0e-6 ? Mth.clamp((visibleStart - start.distance()) / length, 0, 1) : 0;
             var left = start.left(halfWidth).lerp(end.left(halfWidth), trim);
             var right = start.right(halfWidth).lerp(end.right(halfWidth), trim);
             var normal = start.normal().lerp(end.normal(), trim).normalize();

@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.utility;
 
+import java.util.*;
+import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -14,9 +16,6 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-import java.util.function.Predicate;
 
 public final class RaycastTools {
     private static final double ORIENTED_BOX_EPSILON = 1.0E-7D;

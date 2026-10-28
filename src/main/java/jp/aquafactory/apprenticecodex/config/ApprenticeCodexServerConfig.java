@@ -1,6 +1,5 @@
 package jp.aquafactory.apprenticecodex.config;
 
-import jp.aquafactory.apprenticecodex.config.item.ManaForceReleaseDeviceServerConfig;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import java.util.List;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -12,6 +11,7 @@ import jp.aquafactory.apprenticecodex.config.item.ChargedTwinBladeStaffServerCon
 import jp.aquafactory.apprenticecodex.config.item.CommenceMagiModuleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.HoverrideBroomServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ManaForceReleaseDeviceServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaStabilizerModuleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellReaperScytheServerConfig;

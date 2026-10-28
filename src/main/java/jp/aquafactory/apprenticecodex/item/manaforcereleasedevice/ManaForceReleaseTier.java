@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.item.manaforcereleasedevice;
 
+
 public enum ManaForceReleaseTier {
     NOVICE("novice", 6, 250, 14, 16),
     ADEPT("adept", 7, 1561, 10, 24),

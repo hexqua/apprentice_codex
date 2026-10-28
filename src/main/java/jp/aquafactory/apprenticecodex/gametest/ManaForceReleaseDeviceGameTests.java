@@ -6,13 +6,14 @@ import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.config.item.ManaForceReleaseDeviceServerConfig.Values;
 import jp.aquafactory.apprenticecodex.item.manaforcereleasedevice.ManaForceReleaseDevice;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
@@ -24,14 +25,10 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.common.ItemAbilities;
-import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import net.minecraftforge.common.ToolActions;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
@@ -51,7 +48,7 @@ public final class ManaForceReleaseDeviceGameTests {
         var player = new DevicePlayer(helper.getLevel());
         player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
         player.setPos(helper.absoluteVec(BlockPos.containing(1, 18, 1).getCenter()));
-        Objects.requireNonNull(player.getAttribute(AttributeRegistry.MAX_MANA)).setBaseValue(100);
+        Objects.requireNonNull(player.getAttribute(AttributeRegistry.MAX_MANA.get())).setBaseValue(100);
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(item));
         MagicData.getPlayerMagicData(player).setMana(100);
         return player;
@@ -110,7 +107,7 @@ public final class ManaForceReleaseDeviceGameTests {
         var player = player(helper, novice());
         var stack = player.getMainHandItem();
         var data = MagicData.getPlayerMagicData(player);
-        Objects.requireNonNull(player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION)).setBaseValue(50);
+        Objects.requireNonNull(player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION.get())).setBaseValue(50);
         novice().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
         for (int tick = 0; tick < 39; tick++) player.tickUse();
         helper.assertTrue(data.getMana() == 100 && stack.getDamageValue() == 0 && player.isUsingItem(),
@@ -174,10 +171,9 @@ public final class ManaForceReleaseDeviceGameTests {
         target.setNoGravity(true);
         target.setPos(player.position().add(0, 0, 5));
         helper.getLevel().addFreshEntity(target);
-        var sharpness = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
-                .getOrThrow(Enchantments.SHARPNESS);
+        var sharpness = Enchantments.SHARPNESS;
         player.getMainHandItem().enchant(sharpness, 5);
-        Objects.requireNonNull(player.getAttribute(AttributeRegistry.LIGHTNING_SPELL_POWER)).setBaseValue(100);
+        Objects.requireNonNull(player.getAttribute(AttributeRegistry.LIGHTNING_SPELL_POWER.get())).setBaseValue(100);
         novice().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
         for (int tick = 0; tick < 40; tick++) player.tickUse();
         helper.assertTrue(Math.abs(target.getHealth() - 12) < 0.01F,
@@ -233,20 +229,19 @@ public final class ManaForceReleaseDeviceGameTests {
     @GameTest(template = TEMPLATE)
     public static void durabilityRepairEnchantmentsAndMalumTags(GameTestHelper helper) {
         var player = player(helper, novice());
-        var registry = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
         for (var item : new Item[]{novice(), ItemRegistry.ADEPT_MANA_FORCE_RELEASE_DEVICE.get(),
                 ItemRegistry.MASTER_MANA_FORCE_RELEASE_DEVICE.get()}) {
             var stack = new ItemStack(item);
-            helper.assertTrue(stack.isDamageableItem() && stack.canPerformAction(ItemAbilities.SWORD_SWEEP)
-                            && stack.is(MalumCompatibility.SOUL_SHATTER_CAPABLE_WEAPON)
-                            && stack.is(MalumCompatibility.MAGIC_CAPABLE_WEAPON),
+            helper.assertTrue(stack.isDamageableItem() && stack.canPerformAction(ToolActions.SWORD_SWEEP)
+                            && stack.is(ManaForceReleaseDevice.MALUM_SOUL_HUNTER_WEAPON)
+                            && stack.is(ManaForceReleaseDevice.MALUM_MAGIC_CAPABLE_WEAPON),
                     "Each device must be durable, sweep-capable, and Malum-compatible");
             helper.assertTrue(item.isValidRepairItem(stack,
                             new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_ESSENCE.get())),
                     "All devices must accept arcane essence as repair material");
             for (var key : List.of(Enchantments.SHARPNESS, Enchantments.SWEEPING_EDGE,
-                    Enchantments.LOOTING, Enchantments.UNBREAKING, Enchantments.MENDING)) {
-                helper.assertTrue(stack.supportsEnchantment(registry.getOrThrow(key)),
+                    Enchantments.MOB_LOOTING, Enchantments.UNBREAKING, Enchantments.MENDING)) {
+                helper.assertTrue(key.canApplyAtEnchantingTable(stack),
                         "Sword and durability enchantments must be supported");
             }
             stack.mineBlock(helper.getLevel(), Blocks.STONE.defaultBlockState(), player.blockPosition(), player);
@@ -254,7 +249,7 @@ public final class ManaForceReleaseDeviceGameTests {
             helper.assertTrue(!item.isValidRepairItem(stack, new ItemStack(Items.DIAMOND)),
                     "Crafting materials must not replace the agreed arcane essence repair material");
             var target = Objects.requireNonNull(EntityType.ZOMBIE.create(helper.getLevel()));
-            item.postHurtEnemy(stack, target, player);
+            item.hurtEnemy(stack, target, player);
             helper.assertTrue(stack.getDamageValue() == 1, "A normal melee hit must consume one durability");
         }
         helper.succeed();
@@ -264,8 +259,7 @@ public final class ManaForceReleaseDeviceGameTests {
     public static void specialAttackRespectsUnbreaking(GameTestHelper helper) {
         var player = player(helper, novice());
         var stack = player.getMainHandItem();
-        var unbreaking = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
-                .getOrThrow(Enchantments.UNBREAKING);
+        var unbreaking = Enchantments.UNBREAKING;
         stack.enchant(unbreaking, 3);
         player.getRandom().setSeed(12345);
         for (int shot = 0; shot < 30; shot++) {
