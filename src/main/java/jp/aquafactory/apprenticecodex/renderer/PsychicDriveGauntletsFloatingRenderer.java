@@ -66,7 +66,12 @@ public class PsychicDriveGauntletsFloatingRenderer
         // GeckoLibはBlockbenchのXを反転して読む。正スケール側の内側は描画座標の+Xになる。
         // 新モデルは親指がX側にあるため、横回転を加えず内側を身体へ向けたまま拳を下げる。
         poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F * storedAmount));
-        poseStack.scale(mirrored ? -1.0F : 1.0F, 1.0F, 1.0F);
+        if (mirrored) {
+            // 1.20.1のPoseStack.scaleは負の行列式で法線の近似補正が破綻するため、
+            // 単位反転を位置・法線へ直接適用し、1.21.1と同じ法線の長さを保つ。
+            poseStack.last().pose().scale(-1.0F, 1.0F, 1.0F);
+            poseStack.last().normal().scale(-1.0F, 1.0F, 1.0F);
+        }
         poseStack.translate(-MODEL_CENTER_X, -MODEL_CENTER_Y, 0.0F);
         var type = renderType(visual);
         this.animatable = visual;
