@@ -45,6 +45,7 @@ import jp.aquafactory.apprenticecodex.spell.callbroom.CallBroomDeploymentManager
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -78,6 +79,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.BubbleColumnBlock;
 import net.minecraft.world.level.block.SculkSensorBlock;
+import net.minecraft.world.level.block.entity.SculkSensorBlockEntity;
 import net.minecraft.world.level.block.state.properties.SculkSensorPhase;
 import net.minecraft.world.level.gameevent.BlockPositionSource;
 import net.minecraft.world.level.gameevent.DynamicGameEventListener;
@@ -182,6 +184,7 @@ public final class FloatmountBroomGameTests {
     @GameTest(template = TEMPLATE, batch = "apprenticecodex.broom_deep_sensor_isolated", timeoutTicks = 100)
     public static void deepSensorSilencesMountedBroomFlightVibration(GameTestHelper helper) {
         GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
+            prepareVibrationIsolation(helper);
             var broom = spawnBroom(helper, 1.5D);
             var player = serverRider(helper, "floatmount_deep_sensor_rider");
             var senseSensor = EffectRegistry.SENSE_SENSOR.get();
@@ -189,11 +192,30 @@ public final class FloatmountBroomGameTests {
             mountForVibrationTest(helper, broom, player);
             placeVibrationSensor(helper);
 
+            var vibrations = new ArrayList<String>();
+            for (int tick = 1; tick <= 35; tick++) {
+                int observedTick = tick;
+                helper.runAfterDelay(tick, () -> {
+                    var entity = helper.getBlockEntity(VIBRATION_SENSOR_POS);
+                    if (entity instanceof SculkSensorBlockEntity sensor) {
+                        var info = sensor.getVibrationData().getCurrentVibration();
+                        if (info != null) vibrations.add("tick=" + observedTick + ", event="
+                                + BuiltInRegistries.GAME_EVENT.getKey(info.gameEvent()) + ", pos=" + info.pos()
+                                + ", source=" + info.getEntity(helper.getLevel()).orElse(null));
+                    }
+                });
+            }
             helper.runAfterDelay(35, () -> {
                 helper.assertFalse(isVibrationSensorActive(helper),
-                        "Deep Sensor should silence player-sourced broom flight vibrations");
-                player.stopRiding();
-                helper.succeed();
+                        "Deep Sensor should silence player-sourced broom flight vibrations: observed=" + vibrations
+                                + ", effect=" + player.getEffect(senseSensor) + ", riding=" + player.isPassenger());
+                player.removeEffect(senseSensor);
+                helper.runAfterDelay(15, () -> {
+                    helper.assertTrue(isVibrationSensorActive(helper),
+                            "The isolated sensor must still receive broom flight after Deep Sensor is removed");
+                    player.stopRiding();
+                    helper.succeed();
+                });
             });
         });
     }
@@ -2711,6 +2733,19 @@ public final class FloatmountBroomGameTests {
         player.setPos(broom.getX(), broom.getY(), broom.getZ());
         helper.assertTrue(player.startRiding(broom, true), "Broom vibration test rider should mount directly");
         return player;
+    }
+
+    private static void prepareVibrationIsolation(GameTestHelper helper) {
+        // 前のbatchから落下してきたitemのHIT_GROUND等を遮り、室内の箒由来振動だけを測る。
+        for (var position : BlockPos.betweenClosed(-1, 0, -1, 5, 7, 5)) {
+            boolean boundary = position.getX() == -1 || position.getX() == 5
+                    || position.getY() == 0 || position.getY() == 7
+                    || position.getZ() == -1 || position.getZ() == 5;
+            helper.setBlock(position, boundary ? Blocks.WHITE_WOOL : Blocks.AIR);
+        }
+        var interior = new AABB(helper.absolutePos(new BlockPos(0, 1, 0)),
+                helper.absolutePos(new BlockPos(5, 7, 5)));
+        helper.getLevel().getEntitiesOfClass(ItemEntity.class, interior).forEach(ItemEntity::discard);
     }
 
     private static void placeVibrationSensor(GameTestHelper helper) {
