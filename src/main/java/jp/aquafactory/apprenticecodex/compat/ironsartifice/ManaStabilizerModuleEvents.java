@@ -102,8 +102,8 @@ public final class ManaStabilizerModuleEvents {
     @SubscribeEvent
     public static void onDimensionChanged(PlayerEvent.PlayerChangedDimensionEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            State state = STATES.get(player);
-            if (state != null) { state.aiming = false; state.hook = false; }
+            // clientはLocalPlayerの交代で射撃番号を0へ戻すため、serverの同期状態も作り直す。
+            STATES.remove(player);
             movement(player, false);
         }
     }

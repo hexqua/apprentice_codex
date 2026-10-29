@@ -11,6 +11,7 @@ import io.redspace.irons_artifice.menu.GunContainer;
 import io.redspace.irons_artifice.utils.RecoilHelper;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.UUID;
 import jp.aquafactory.apprenticecodex.compat.ironsartifice.ManaStabilizerModuleEvents;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -30,10 +31,12 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
@@ -71,6 +74,42 @@ final class ManaStabilizerModuleGameTestScenarios {
                 h.succeed();
             } finally { player.discard(); }
         });
+    }
+    static void dimensionChangeResetsShotAcknowledgement(GameTestHelper h) throws Exception {
+        var player = player(h);
+        try {
+            gun(player, 1);
+            ManaStabilizerModuleEvents.input(player, true, true, 12);
+            h.assertTrue(ManaStabilizerModuleEvents.active(player), "ADS must be active before dimension change");
+            // FakePlayerへ補正packetは送られないため、対応番号だけを内部状態から観測する。
+            var statesField = ManaStabilizerModuleEvents.class.getDeclaredField("STATES");
+            statesField.setAccessible(true);
+            var states = (Map<?, ?>) statesField.get(null);
+            var acknowledgedShot = states.get(player).getClass().getDeclaredField("acknowledgedShot");
+            acknowledgedShot.setAccessible(true);
+            h.assertTrue(acknowledgedShot.getLong(states.get(player)) == 12,
+                    "Pre-transfer shot acknowledgement must reach twelve");
+
+            ManaStabilizerModuleEvents.onDimensionChanged(
+                    new PlayerEvent.PlayerChangedDimensionEvent(player, Level.OVERWORLD, Level.NETHER));
+            h.assertTrue(!ManaStabilizerModuleEvents.active(player), "Dimension change must clear ADS");
+            close(h, player.getAttributeValue(Attributes.MOVEMENT_SPEED),
+                    player.getAttribute(Attributes.MOVEMENT_SPEED).getBaseValue(),
+                    "Dimension change must remove the ADS movement penalty");
+            ManaStabilizerModuleEvents.input(player, true, true, 0);
+            h.assertTrue(acknowledgedShot.getLong(states.get(player)) == 0,
+                    "The new client must receive shot zero instead of the pre-transfer acknowledgement");
+            ManaStabilizerModuleEvents.input(player, true, true, 1);
+            h.assertTrue(acknowledgedShot.getLong(states.get(player)) == 1,
+                    "The first post-transfer shot must be acknowledged immediately");
+            ManaStabilizerModuleEvents.input(player, true, true, 0);
+            h.assertTrue(acknowledgedShot.getLong(states.get(player)) == 1,
+                    "Older input must not roll back acknowledgements within the new session");
+        } finally {
+            ManaStabilizerModuleEvents.onLogout(new PlayerEvent.PlayerLoggedOutEvent(player));
+            player.discard();
+        }
+        h.succeed();
     }
     static void adsAndPriority(GameTestHelper h) throws Exception {
         var player = player(h);

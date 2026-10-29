@@ -42,4 +42,10 @@ public final class ManaStabilizerModuleGameTests {
         if (!IronsArtificeCompat.isAvailable()) { h.succeed(); return; }
         ManaStabilizerModuleGameTestScenarios.lostInputExpires(h);
     }
+
+    @GameTest(template = "gametest/basic_floor", batch = "apprenticecodex.mana_stabilizer")
+    public static void dimensionChangeResetsShotAcknowledgement(GameTestHelper h) throws Exception {
+        if (!IronsArtificeCompat.isAvailable()) { h.succeed(); return; }
+        ManaStabilizerModuleGameTestScenarios.dimensionChangeResetsShotAcknowledgement(h);
+    }
 }
