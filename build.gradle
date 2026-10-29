@@ -37,6 +37,7 @@ def optionalRuntimeModuleConfigurations = [
         yacl           : 'yaclRuntimeOnly',
         lodestone      : 'lodestoneRuntimeOnly',
         malum          : 'malumRuntimeOnly',
+        irons_artifice : 'ironsArtificeRuntimeOnly',
 ]
 
 def clientRuntimeModuleConfigurations = [
@@ -45,14 +46,14 @@ def clientRuntimeModuleConfigurations = [
 ]
 
 def optionalRuntimeProfileModules = [
-        compat              : ['create', 'botania', 'lodestone', 'malum'],
+        compat              : ['create', 'botania', 'lodestone', 'malum', 'irons_artifice'],
         easy_magic          : ['puzzles_lib', 'easy_magic'],
         better_combat       : ['cloth_config', 'better_combat'],
         malum_better_combat : ['lodestone', 'malum', 'cloth_config', 'better_combat'],
         malum_epic_fight    : ['lodestone', 'malum', 'epic_fight'],
         epic_fight          : ['epic_fight'],
         epic_fight_controller: ['epic_fight', 'yacl', 'controlify'],
-        compat_easy_better  : ['create', 'botania', 'lodestone', 'malum', 'puzzles_lib', 'easy_magic', 'cloth_config', 'better_combat'],
+        compat_easy_better  : ['create', 'botania', 'lodestone', 'malum', 'irons_artifice', 'puzzles_lib', 'easy_magic', 'cloth_config', 'better_combat'],
 ]
 
 def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
@@ -66,12 +67,14 @@ def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
         botania       : ['botania'],
         lodestone     : ['lodestone'],
         malum         : ['lodestone', 'malum'],
+        ironsartifice : ['irons_artifice'],
+        irons_artifice: ['irons_artifice'],
 ]
 
 def optionalRuntimeRequiredModIds = [
         malum_epic_fight: 'lodestone,malum,epicfight',
         malum_better_combat: 'lodestone,malum,cloth_config,bettercombat',
-        compat        : 'create,botania,lodestone,malum',
+        compat        : 'create,botania,lodestone,malum,irons_artifice',
         easy_magic    : 'puzzleslib,easymagic',
         better_combat : 'cloth_config,bettercombat',
         epic_fight    : 'epicfight',
@@ -89,6 +92,7 @@ def optionalRuntimeModuleModIds = [
         yacl           : 'yet_another_config_lib_v3',
         lodestone      : 'lodestone',
         malum          : 'malum',
+        irons_artifice : 'irons_artifice',
 ]
 
 def clientRuntimeModuleModIds = [
@@ -431,6 +435,10 @@ dependencies {
     add(optionalRuntimeModuleConfigurations.lodestone, fg.deobf("maven.modrinth:lodestonelib:dRIycWqx"))
     add(optionalRuntimeModuleConfigurations.malum, fg.deobf("maven.modrinth:malum:U88VbrNU"))
 
+    compileOnly fg.deobf("maven.modrinth:yOy4oSzi:${irons_artifice_modrinth_version_id}")
+    // 作者Mavenのmapped依存を重複解決しないよう、Forge配布jarをModrinth IDで固定する。
+    add(optionalRuntimeModuleConfigurations.irons_artifice, fg.deobf("maven.modrinth:yOy4oSzi:${irons_artifice_modrinth_version_id}"))
+
     // JEI.
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
@@ -458,6 +466,7 @@ tasks.named('processResources', ProcessResources).configure {
             forge_version: forge_version, forge_version_range: forge_version_range,
             loader_version_range: loader_version_range, create_version: create_version,
             irons_spells_version: irons_spells_version, irons_lib_version: irons_lib_version,
+            irons_artifice_version: irons_artifice_version,
             botania_version: botania_version, jade_version: jade_version,
             lodestone_version: lodestone_version, malum_version: malum_version,
             epicfight_version: epicfight_version, emf_version: emf_version,
@@ -621,6 +630,7 @@ tasks.named('assemble').configure {
 mixin {
     add sourceSets.main, "mixins.${mod_id}.refmap.json"
     config "mixins.${mod_id}.json"
+    config "mixins.${mod_id}.mana_stabilizer.json"
 }
 
 publishing {

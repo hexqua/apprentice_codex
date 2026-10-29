@@ -2,14 +2,16 @@ package jp.aquafactory.apprenticecodex.datagen;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import java.util.List;
+import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.patchouli.PatchouliBookSupport;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.RequirementsStrategy;
 import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
-import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
@@ -28,9 +30,6 @@ import net.minecraftforge.common.crafting.PartialNBTIngredient;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-import java.util.function.Consumer;
 
 public final class RecipeGenerator extends RecipeProvider {
     private static final TagKey<Item> IRONS_WIZARD_BASE_HELMET = ironItemTag("wizard_base_helmet");
@@ -370,6 +369,16 @@ public final class RecipeGenerator extends RecipeProvider {
                 .unlockedBy(getHasName(ItemRegistry.MITHRIL_FREECAST_STAFF.get()), has(ItemRegistry.MITHRIL_FREECAST_STAFF.get()))
                 .save(recipeWriter);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.RINGS_ON_RING.get())
+                .pattern("WS ")
+                .pattern("SRS")
+                .pattern(" S ")
+                .define('R', io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get())
+                .define('S', ItemRegistry.MANA_ENVELOPED_SILVER_CHUNK.get())
+                .define('W', ItemRegistry.WISDOM_SHARD.get())
+                .unlockedBy(getHasName(ItemRegistry.WISDOM_SHARD.get()), has(ItemRegistry.WISDOM_SHARD.get()))
+                .save(recipe -> recipeWriter.accept(new ModLoadedFinishedRecipe(recipe, "cataclysm")));
+
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.PROTECTION_SPELL_SUPPORTER.get())
                 .pattern(" L ")
                 .pattern("LML")
@@ -670,6 +679,50 @@ public final class RecipeGenerator extends RecipeProvider {
                 .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
                 .define('M', io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get())
                 .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.MITHRIL_SCRAP.get()))
+                .save(recipeWriter);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.get())
+                .pattern("A A")
+                .pattern("DWD")
+                .pattern("C C")
+                .define('A', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                .define('D', Items.DIAMOND)
+                .define('C', ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get())
+                .define('W', io.redspace.ironsspellbooks.registries.ItemRegistry.WEAPON_PARTS.get())
+                .unlockedBy(getHasName(io.redspace.ironsspellbooks.registries.ItemRegistry.WEAPON_PARTS.get()), has(io.redspace.ironsspellbooks.registries.ItemRegistry.WEAPON_PARTS.get()))
+                .save(recipeWriter);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.NOVICE_MANA_FORCE_RELEASE_DEVICE.get())
+                .pattern(" IB")
+                .pattern(" SI")
+                .pattern("C  ")
+                .define('B', Items.CUT_COPPER)
+                .define('I', Items.IRON_INGOT)
+                .define('C', Items.COPPER_INGOT)
+                .define('S', Items.STICK)
+                .unlockedBy(getHasName(Items.CUT_COPPER), has(Items.CUT_COPPER))
+                .save(recipeWriter);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.ADEPT_MANA_FORCE_RELEASE_DEVICE.get())
+                .pattern(" IB")
+                .pattern(" SI")
+                .pattern("C  ")
+                .define('B', Items.DIAMOND)
+                .define('I', io.redspace.ironsspellbooks.registries.ItemRegistry.ARCANE_INGOT.get())
+                .define('C', ItemRegistry.CRYSTALLINE_ARCANE_SHARD.get())
+                .define('S', Items.STICK)
+                .unlockedBy(getHasName(Items.DIAMOND), has(Items.DIAMOND))
+                .save(recipeWriter);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.MASTER_MANA_FORCE_RELEASE_DEVICE.get())
+                .pattern(" IB")
+                .pattern(" SI")
+                .pattern("C  ")
+                .define('B', Items.AMETHYST_SHARD)
+                .define('I', ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get())
+                .define('C', ItemRegistry.WISDOM_SHARD.get())
+                .define('S', Items.STICK)
+                .unlockedBy(getHasName(ItemRegistry.WISDOM_SHARD.get()), has(ItemRegistry.WISDOM_SHARD.get()))
                 .save(recipeWriter);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.COMBAT, ItemRegistry.ELEMENTAL_BOW.get())
@@ -1368,6 +1421,9 @@ public final class RecipeGenerator extends RecipeProvider {
                 recipeWriter,
                 "arcane_essence_armaments_repair",
                 List.of(
+                        ItemRegistry.NOVICE_MANA_FORCE_RELEASE_DEVICE.get(),
+                        ItemRegistry.ADEPT_MANA_FORCE_RELEASE_DEVICE.get(),
+                        ItemRegistry.MASTER_MANA_FORCE_RELEASE_DEVICE.get(),
                         ItemRegistry.APPRENTICE_MAGE_SCARF.get(),
                         ItemRegistry.APPRENTICE_MAGE_TORSO.get(),
                         ItemRegistry.APPRENTICE_MAGE_LEGGINGS.get(),
@@ -2010,6 +2066,47 @@ public final class RecipeGenerator extends RecipeProvider {
             json.addProperty("count", count);
             return json;
         }
+    }
+
+    // Forge 1.20.1ではrecipeとadvancementそれぞれに導入条件を付ける必要がある。
+    private record ModLoadedFinishedRecipe(FinishedRecipe delegate, String modId) implements FinishedRecipe {
+        private JsonArray conditions() {
+            var condition = new JsonObject();
+            condition.addProperty("type", "forge:mod_loaded");
+            condition.addProperty("modid", modId);
+            var result = new JsonArray();
+            result.add(condition);
+            return result;
+        }
+
+        @Override
+        public void serializeRecipeData(JsonObject json) {
+            delegate.serializeRecipeData(json);
+            json.add("conditions", conditions());
+        }
+
+        @Override
+        public ResourceLocation getId() { return delegate.getId(); }
+
+        @Override
+        public RecipeSerializer<?> getType() { return delegate.getType(); }
+
+        @Override
+        public JsonObject serializeAdvancement() {
+            var advancement = delegate.serializeAdvancement();
+            if (advancement == null) return null;
+            var entry = new JsonObject();
+            entry.add("conditions", conditions());
+            entry.add("advancement", advancement);
+            var entries = new JsonArray();
+            entries.add(entry);
+            var result = new JsonObject();
+            result.add("advancements", entries);
+            return result;
+        }
+
+        @Override
+        public ResourceLocation getAdvancementId() { return delegate.getAdvancementId(); }
     }
 
     // Forgeのshaped出力へ本のNBTを付加し、Patchouli未導入時はレシピと進捗を両方除外する。

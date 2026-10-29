@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
+import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
@@ -7,8 +8,8 @@ import jp.aquafactory.apprenticecodex.utility.AdvancementTools;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.advancements.FrameType;
-import net.minecraft.advancements.critereon.EntityPredicate;
 import net.minecraft.advancements.critereon.EntityEquipmentPredicate;
+import net.minecraft.advancements.critereon.EntityPredicate;
 import net.minecraft.advancements.critereon.ImpossibleTrigger;
 import net.minecraft.advancements.critereon.InventoryChangeTrigger;
 import net.minecraft.advancements.critereon.ItemPredicate;
@@ -24,8 +25,6 @@ import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.common.data.ForgeAdvancementProvider;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.function.Consumer;
 
 public final class AdvancementGenerator implements ForgeAdvancementProvider.AdvancementGenerator {
     private static final ResourceLocation IRONS_SPELLBOOK_EQUIP_ADVANCEMENT = ResourceLocation.fromNamespaceAndPath("irons_spellbooks", "irons_spellbooks/spell_book_equip");
@@ -151,6 +150,24 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         false)
                 .addCriterion("crafted_explorers_cane", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.EXPLORERS_CANE.getId()))
                 .save(saver, advancementId("craft_explorers_cane"), existingFileHelper);
+
+        var noviceDevice = Advancement.Builder.advancement()
+                .parent(root)
+                .display(ItemRegistry.NOVICE_MANA_FORCE_RELEASE_DEVICE.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_novice_mana_force_release_device.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_novice_mana_force_release_device.description"),
+                        null, FrameType.TASK, true, true, false)
+                .addCriterion("craft_novice_mana_force_release_device", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.NOVICE_MANA_FORCE_RELEASE_DEVICE.getId()))
+                .save(saver, advancementId("craft_novice_mana_force_release_device"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(noviceDevice)
+                .display(ItemRegistry.MASTER_MANA_FORCE_RELEASE_DEVICE.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_master_mana_force_release_device.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_master_mana_force_release_device.description"),
+                        null, FrameType.TASK, true, true, false)
+                .addCriterion("craft_master_mana_force_release_device", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.MASTER_MANA_FORCE_RELEASE_DEVICE.getId()))
+                .save(saver, advancementId("craft_master_mana_force_release_device"), existingFileHelper);
 
         var apprenticeMageRobe = Advancement.Builder.advancement()
                 .parent(root)
@@ -697,6 +714,19 @@ public final class AdvancementGenerator implements ForgeAdvancementProvider.Adva
                         false)
                 .addCriterion("crafted_spell_reaper_scythe", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.SPELL_REAPER_SCYTHE.getId()))
                 .save(saver, advancementId("craft_spell_reaper_scythe"), existingFileHelper);
+
+        Advancement.Builder.advancement()
+                .parent(bladed)
+                .display(ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.get(),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_psychic_drive_gauntlets.title"),
+                        Component.translatable("advancements.apprenticecodex.apprentice_codex.craft_psychic_drive_gauntlets.description"),
+                        null,
+                        FrameType.CHALLENGE,
+                        true,
+                        true,
+                        false)
+                .addCriterion("crafted_psychic_drive_gauntlets", RecipeCraftedTrigger.TriggerInstance.craftedItem(ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.getId()))
+                .save(saver, advancementId("craft_psychic_drive_gauntlets"), existingFileHelper);
         
         var bow = Advancement.Builder.advancement()
                 .parent(root)

@@ -1,0 +1,34 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "item": "irons_artifice:bullet"
+    },
+    "L": {
+      "item": "irons_spellbooks:lightning_bottle"
+    },
+    "E": {
+      "item": "irons_spellbooks:arcane_essence"
+    },
+    "A": {
+      "item": "apprenticecodex:arcane_cinder"
+    }
+  },
+  "pattern": [
+    " LL",
+    "EBL",
+    "AE "
+  ],
+  "result": {
+    "count": 1,
+    "item": "apprenticecodex:commence_magi_module"
+  },
+  "show_notification": true,
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "irons_artifice"
+    }
+  ]
+}

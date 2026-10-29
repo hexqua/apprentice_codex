@@ -4,22 +4,20 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
+import java.util.List;
+import java.util.function.Supplier;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.EquipmentSpellTimingConfigState;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.spell.IMagiAgentSuitAffectedSpell;
 import jp.aquafactory.apprenticecodex.spell.divinepossession.DivinePossessionPowerHelper;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-import java.util.function.Supplier;
 
 public final class MagiAgentSuitEffects {
     private static final List<Supplier<? extends AbstractSpell>> TARGET_SPELLS = List.of(
@@ -63,18 +61,6 @@ public final class MagiAgentSuitEffects {
         }
 
         return !isWearingSuitPiece(player, ArmorItem.Type.LEGGINGS);
-    }
-
-    public static boolean shouldSkipAmmoConsumption(ServerPlayer player) {
-        var chance = ApprenticeCodexServerConfig.magiAgentSuitAmmoNoConsumeChance();
-        if (chance <= 0.0D || !isWearingSuitPiece(player, ArmorItem.Type.HELMET)) {
-            return false;
-        }
-        return chance >= 1.0D || player.getRandom().nextDouble() < chance;
-    }
-
-    public static boolean shouldSkipStaffrifleManaCostWithAmmo() {
-        return ApprenticeCodexServerConfig.magiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed();
     }
 
     public static double resolveSchoolPower(AbstractSpell spell, SchoolType originalSchool, @Nullable LivingEntity caster) {

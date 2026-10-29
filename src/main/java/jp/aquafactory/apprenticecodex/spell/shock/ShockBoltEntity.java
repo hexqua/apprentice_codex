@@ -89,7 +89,7 @@ public class ShockBoltEntity extends Entity {
         return Mth.clamp((tickCount + partialTick) / Math.max(1.0f, getLifeTicks()), 0.0f, 1.0f);
     }
 
-    private void spawnImpactParticles() {
+    protected void spawnImpactParticles() {
         var impactPosition = getEndPosition();
         var incoming = impactPosition.subtract(position());
         ShockImpactParticles.spawn(level(), impactPosition, incoming, ShockImpactParticles.Palette.SHOCK);

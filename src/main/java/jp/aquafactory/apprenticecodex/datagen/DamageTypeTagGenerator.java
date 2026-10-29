@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
+import java.util.concurrent.CompletableFuture;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
@@ -11,9 +12,6 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.concurrent.CompletableFuture;
-
 import static jp.aquafactory.apprenticecodex.damage.DamageTypes.*;
 
 public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
@@ -131,6 +129,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 LUNAR_AIM,
                 HEALING_BLOOM,
                 ECHO_ARROW,
+                PSYCHIC_DRIVE_GAUNTLETS_MAGIC,
+                MANA_FORCE_RELEASE_DEVICE,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC
         );
@@ -171,6 +171,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 LUNAR_AIM,
                 ECHO_ARROW,
                 LOCK_ON_RAY,
+                PSYCHIC_DRIVE_GAUNTLETS,
+                PSYCHIC_DRIVE_GAUNTLETS_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC
@@ -178,6 +180,7 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
 
         // RANGED_ATTACK: 遠距離攻撃扱い(現状はガーディアンのトゲ無効) ※召喚武器は遠距離扱い.
         tag(RANGED_ATTACK).add(
+                MANA_FORCE_RELEASE_DEVICE,
                 ARCANE_BEAM,
                 ARCANE_BLAST,
                 ARCHER_MULTIPLE,
@@ -237,6 +240,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 LUNAR_AIM,
                 ECHO_ARROW,
                 LOCK_ON_RAY,
+                PSYCHIC_DRIVE_GAUNTLETS,
+                PSYCHIC_DRIVE_GAUNTLETS_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS,
@@ -273,6 +278,8 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
                 LUNAR_AIM,
                 ECHO_ARROW,
                 HOVERRIDE_BROOM,
+                PSYCHIC_DRIVE_GAUNTLETS_MAGIC,
+                MANA_FORCE_RELEASE_DEVICE,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,
                 SPELL_REAPER_SCYTHE_THROW_CONTINUOUS_MAGIC
         );
@@ -281,6 +288,9 @@ public final class DamageTypeTagGenerator extends TagsProvider<DamageType> {
         tag(MALUM_CAN_SOUL_SHATTER).addTag(CODEX_MAGIC).add(
                 HAUNTED_BONUS,
                 MANA_FORCE_BLADE,
+                PSYCHIC_DRIVE_GAUNTLETS,
+                PSYCHIC_DRIVE_GAUNTLETS_MAGIC,
+                MANA_FORCE_RELEASE_DEVICE,
                 HOVERRIDE_BROOM,
                 SPELL_REAPER_SCYTHE_THROW,
                 SPELL_REAPER_SCYTHE_THROW_MAGIC,

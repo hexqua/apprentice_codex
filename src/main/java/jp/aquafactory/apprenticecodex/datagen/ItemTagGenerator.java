@@ -1,13 +1,15 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
-import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
 import jp.aquafactory.apprenticecodex.enchantment.PlunderTarget;
+import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
-import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.AbstractRightClickMagicWeaponItem;
+import jp.aquafactory.apprenticecodex.item.offhand.AbstractOffhandMagicItem;
 import jp.aquafactory.apprenticecodex.item.spellgun.AbstractSpellGunItem;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
@@ -27,9 +29,6 @@ import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-
 public final class ItemTagGenerator extends ItemTagsProvider {
     private static TagKey<Item> createTag(String namespace, String path) {
         return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(namespace, path));
@@ -40,6 +39,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
     private static final TagKey<Item> IRONS_UPGRADE_WHITELIST = createTag("irons_spellbooks", "upgrade_whitelist");
     private static final TagKey<Item> IRONS_INSCRIBED_RUNE = createTag("irons_spellbooks", "inscribed_rune");
     private static final TagKey<Item> CURIOS_RING = createTag("curios", "ring");
+    private static final TagKey<Item> CURIOS_RINGS = createTag("curios", "rings");
     private static final TagKey<Item> CURIOS_BACK = createTag("curios", "back");
     private static final TagKey<Item> CURIOS_BELT = createTag("curios", "belt");
     private static final TagKey<Item> CURIOS_CHARM = createTag("curios", "charm");
@@ -131,6 +131,12 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.MANA_SOUL_TRANSDUCER.get()
         );
 
+        var manaDevices = new Item[]{ItemRegistry.NOVICE_MANA_FORCE_RELEASE_DEVICE.get(),
+                        ItemRegistry.ADEPT_MANA_FORCE_RELEASE_DEVICE.get(),
+                        ItemRegistry.MASTER_MANA_FORCE_RELEASE_DEVICE.get()};
+        tag(MALUM_SOUL_HUNTER_WEAPON).add(manaDevices);
+        tag(createTag("malum", "magic_capable_weapon")).add(manaDevices);
+
         // 自前の抽象クラスを継承しないアイテムは後の自動収集から漏れるのでここで直接指定する.
         ironsUpgradeWhitelist.add(
                 ItemRegistry.ENDER_GRIMOIRE.get(),
@@ -151,7 +157,9 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(createTag("malum", "scythe")).add(ItemRegistry.SPELL_REAPER_SCYTHE.get());
         tag(createTag("malum", "magic_capable_weapon")).add(ItemRegistry.SPELL_REAPER_SCYTHE.get());
         tag(MALUM_SOUL_HUNTER_WEAPON).add(ItemRegistry.SPELL_REAPER_SCYTHE.get());
+        tag(createTag("malum", "magic_capable_weapon")).add(ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.get());
         var malumSoulHunterWeaponTag = tag(MALUM_SOUL_HUNTER_WEAPON);
+        malumSoulHunterWeaponTag.add(ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.get());
         malumSoulHunterWeaponTag.add(
                 ItemRegistry.PASTEL_STAFF.get(),
                 ItemRegistry.MULTICAST_ECHO_STAFF.get(),
@@ -249,6 +257,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 ItemRegistry.SPELL_CAST_PARRYING_RING.get(),
                 ItemRegistry.ATTACKCAST_RING.get()
         );
+        tag(CURIOS_RINGS).add(ItemRegistry.RINGS_ON_RING.get());
         tag(CURIOS_BELT).add(
                 ItemRegistry.PROTECTION_SPELL_SUPPORTER.get(),
                 ItemRegistry.SPELLCASTER_AMMO_POUCH.get(),

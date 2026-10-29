@@ -304,7 +304,7 @@ public final class MagicArmorServerConfig {
     }
 
     private static ForgeConfigSpec.DoubleValue defineMagiAgentSuitAmmoNoConsumeChance(ForgeConfigSpec.Builder builder) {
-        builder.comment("Chance for Magi Agent Suit Hood to prevent Spellgun and Staffrifle ammo consumption. 1.0 = always, 0.0 = disabled.")
+        builder.comment("Chance for Magi Agent Suit Hood to prevent Spellgun, Staffrifle, and Iron's Arms 'n Artifice gun ammo consumption. 1.0 = always, 0.0 = disabled.")
                 .push("MagiAgentSuit");
         var value = builder.defineInRange(
                 "ammoNoConsumeChance",
@@ -347,7 +347,7 @@ public final class MagicArmorServerConfig {
     private static ForgeConfigSpec.BooleanValue defineMagiAgentSuitSkipStaffrifleManaCostWhenAmmoNotConsumed(
             ForgeConfigSpec.Builder builder
     ) {
-        builder.comment("When Magi Agent Suit Hood prevents Staffrifle ammo consumption, also prevent that Staffrifle mana cost.")
+        builder.comment("When the spellgun ammo consumption attribute prevents Staffrifle ammo consumption, also prevent that Staffrifle mana cost.")
                 .push("MagiAgentSuit");
         var value = builder.define(
                 "skipStaffrifleManaCostWhenAmmoNotConsumed",

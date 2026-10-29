@@ -6,6 +6,16 @@ import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.*;
 import io.redspace.ironsspellbooks.capabilities.magic.CooldownInstance;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.WeakHashMap;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
@@ -16,16 +26,17 @@ import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentRule;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
-import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
-import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
+import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
-import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.item.TriggeredSpellCastHelper;
+import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.ParrycastBucklerRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicAttributeModifierHelper;
+import jp.aquafactory.apprenticecodex.utility.SpellRecastCompatibility;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -56,17 +67,6 @@ import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
-
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.WeakHashMap;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 public class ParrycastBuckler extends AbstractImbueShieldItem
         implements GeoItem, SpellCalibrationAdjustmentTarget, AttributeEnchantmentPolicy {
@@ -212,13 +212,13 @@ public class ParrycastBuckler extends AbstractImbueShieldItem
     public boolean canImbueSpell(@Nullable AbstractSpell spell, int spellLevel) {
         return spell != null && spell != SpellRegistry.none()
                 && (spell.getCastType() == CastType.INSTANT || spell.getCastType() == CastType.LONG)
-                && spell.getRecastCount(spellLevel, null) <= 0;
+                && SpellRecastCompatibility.hasNoRecastWithoutCaster(spell, spellLevel);
     }
 
     public boolean canUseConfiguredSpell(ItemStack stack, @Nullable AbstractSpell spell, int spellLevel) {
         return spell != null && spell != SpellRegistry.none()
                 && (spell.getCastType() == CastType.INSTANT || spell.getCastType() == CastType.LONG && hasSilverRing(stack))
-                && spell.getRecastCount(spellLevel, null) <= 0;
+                && SpellRecastCompatibility.hasNoRecastWithoutCaster(spell, spellLevel);
     }
 
     @Override

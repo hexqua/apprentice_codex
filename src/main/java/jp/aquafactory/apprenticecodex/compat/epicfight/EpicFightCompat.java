@@ -39,6 +39,7 @@ public final class EpicFightCompat {
             registerCompat(CHARGED_TWIN_BLADE_STAFF_COMPAT_CLASS, modEventBus);
             registerCompat(MULTIPURPOSE_STAFFRIFLE_COMPAT_CLASS, modEventBus);
             registerCompat(FULLAUTO_RAPIDCAST_SPELLRIFLE_COMPAT_CLASS, modEventBus);
+            registerCompat("jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightPsychicDriveGauntletsCompat", modEventBus);
             registerCompat(SMASHCAST_SCEPTER_COMPAT_CLASS, modEventBus);
             registerCompat("jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightSpellReaperScytheCompat", modEventBus);
             registerCompat(SCROLLCASTER_GAUNTLET_COMPAT_CLASS, modEventBus);

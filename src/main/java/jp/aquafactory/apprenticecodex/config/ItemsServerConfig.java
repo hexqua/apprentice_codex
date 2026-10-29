@@ -9,10 +9,12 @@ import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerCo
 import jp.aquafactory.apprenticecodex.config.item.ChargedTwinBladeStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ChromaticMagiaDressServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.CircuitHeatStaffServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.CommenceMagiModuleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.CraftsmansDelightServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ElementalBowServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FocusStaffbowServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.FullautoRapidcastSpellrifleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.HighTierSwingcastStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.HoverrideBroomServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.InstantSearchBrazierServerConfig;
@@ -22,25 +24,28 @@ import jp.aquafactory.apprenticecodex.config.item.LuminousDeviceServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagiCompressorGadgetServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MagicArmorServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaForceBladeServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ManaForceReleaseDeviceServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaManeuverGearServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaShieldCharmServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaSoulTransducerServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ManaStabilizerModuleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ManaThrusterServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MulticastEchoStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.MultipurposeStaffrifleServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.FullautoRapidcastSpellrifleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ParrycastBucklerServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.PastelStaffServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.PsychicDriveGauntletsServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.ShootingStarMantleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.RemoteOwnerCastServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SatelliteFollowcastAmuletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.ScarletThirstServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ShootingStarMantleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SoulstainedSteelSwingcastStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellCastParryingRingServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellReaperScytheServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellboundArmsModuleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.UndyingEmblemServerConfig;
@@ -50,6 +55,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
 
 final class ItemsServerConfig {
+    final CommenceMagiModuleServerConfig commenceMagiModuleConfig;
+    final ManaStabilizerModuleServerConfig manaStabilizerModuleConfig;
+    final SpellboundArmsModuleServerConfig spellboundArmsModuleConfig;
     final QuickcastCartridgeServerConfig quickcastCartridgeConfig;
     final ShootingStarMantleServerConfig shootingStarMantleConfig;
     private final ArcaneCinderServerConfig arcaneCinderConfig;
@@ -62,6 +70,7 @@ final class ItemsServerConfig {
     private final ZenithStaffServerConfig zenithStaffConfig;
     private final IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig;
     private final ManaForceBladeServerConfig manaForceBladeConfig;
+    final PsychicDriveGauntletsServerConfig psychicDriveGauntletsConfig;
     private final ParrycastBucklerServerConfig parrycastBucklerConfig;
     private final BulwarkGreatshieldServerConfig bulwarkGreatshieldConfig;
     private final MagiCompressorGadgetServerConfig magiCompressorGadgetConfig;
@@ -73,6 +82,7 @@ final class ItemsServerConfig {
     private final FloatmountBroomServerConfig floatmountBroomConfig;
     private final HoverrideBroomServerConfig hoverrideBroomConfig;
     private final IronSwingcastStaffServerConfig ironSwingcastStaffConfig;
+    private final ManaForceReleaseDeviceServerConfig manaForceReleaseDeviceConfig;
     private final SoulstainedSteelSwingcastStaffServerConfig soulstainedSteelSwingcastStaffConfig;
     private final HighTierSwingcastStaffServerConfig highTierSwingcastStaffConfig;
     private final CircuitHeatStaffServerConfig circuitHeatStaffConfig;
@@ -106,6 +116,7 @@ final class ItemsServerConfig {
             ZenithStaffServerConfig zenithStaffConfig,
             IsekaiTravelGuidebookServerConfig isekaiTravelGuidebookConfig,
             ManaForceBladeServerConfig manaForceBladeConfig,
+            PsychicDriveGauntletsServerConfig psychicDriveGauntletsConfig,
             ParrycastBucklerServerConfig parrycastBucklerConfig,
             BulwarkGreatshieldServerConfig bulwarkGreatshieldConfig,
             MagiCompressorGadgetServerConfig magiCompressorGadgetConfig,
@@ -117,6 +128,7 @@ final class ItemsServerConfig {
             FloatmountBroomServerConfig floatmountBroomConfig,
             HoverrideBroomServerConfig hoverrideBroomConfig,
             IronSwingcastStaffServerConfig ironSwingcastStaffConfig,
+            ManaForceReleaseDeviceServerConfig manaForceReleaseDeviceConfig,
             SoulstainedSteelSwingcastStaffServerConfig soulstainedSteelSwingcastStaffConfig,
             HighTierSwingcastStaffServerConfig highTierSwingcastStaffConfig,
             CircuitHeatStaffServerConfig circuitHeatStaffConfig,
@@ -139,7 +151,10 @@ final class ItemsServerConfig {
             LuminousDeviceServerConfig luminousDeviceConfig,
             InstantSearchBrazierServerConfig instantSearchBrazierConfig,
             QuickcastCartridgeServerConfig quickcastCartridgeConfig,
-            ShootingStarMantleServerConfig shootingStarMantleConfig
+            ShootingStarMantleServerConfig shootingStarMantleConfig,
+            CommenceMagiModuleServerConfig commenceMagiModuleConfig,
+            SpellboundArmsModuleServerConfig spellboundArmsModuleConfig,
+            ManaStabilizerModuleServerConfig manaStabilizerModuleConfig
     ) {
         this.arcaneCinderConfig = arcaneCinderConfig;
         this.absorptionAmplifyAmuletConfig = absorptionAmplifyAmuletConfig;
@@ -151,6 +166,7 @@ final class ItemsServerConfig {
         this.zenithStaffConfig = zenithStaffConfig;
         this.isekaiTravelGuidebookConfig = isekaiTravelGuidebookConfig;
         this.manaForceBladeConfig = manaForceBladeConfig;
+        this.psychicDriveGauntletsConfig = psychicDriveGauntletsConfig;
         this.parrycastBucklerConfig = parrycastBucklerConfig;
         this.bulwarkGreatshieldConfig = bulwarkGreatshieldConfig;
         this.magiCompressorGadgetConfig = magiCompressorGadgetConfig;
@@ -162,6 +178,7 @@ final class ItemsServerConfig {
         this.floatmountBroomConfig = floatmountBroomConfig;
         this.hoverrideBroomConfig = hoverrideBroomConfig;
         this.ironSwingcastStaffConfig = ironSwingcastStaffConfig;
+        this.manaForceReleaseDeviceConfig = manaForceReleaseDeviceConfig;
         this.soulstainedSteelSwingcastStaffConfig = soulstainedSteelSwingcastStaffConfig;
         this.highTierSwingcastStaffConfig = highTierSwingcastStaffConfig;
         this.circuitHeatStaffConfig = circuitHeatStaffConfig;
@@ -185,6 +202,9 @@ final class ItemsServerConfig {
         this.instantSearchBrazierConfig = instantSearchBrazierConfig;
         this.quickcastCartridgeConfig = quickcastCartridgeConfig;
         this.shootingStarMantleConfig = shootingStarMantleConfig;
+        this.commenceMagiModuleConfig = commenceMagiModuleConfig;
+        this.spellboundArmsModuleConfig = spellboundArmsModuleConfig;
+        this.manaStabilizerModuleConfig = manaStabilizerModuleConfig;
     }
 
     static ItemsServerConfig define(ForgeConfigSpec.Builder builder) {
@@ -199,6 +219,7 @@ final class ItemsServerConfig {
         var zenithStaffConfig = ZenithStaffServerConfig.define(builder);
         var isekaiTravelGuidebookConfig = IsekaiTravelGuidebookServerConfig.define(builder);
         var manaForceBladeConfig = ManaForceBladeServerConfig.define(builder);
+        var psychicDriveGauntletsConfig = PsychicDriveGauntletsServerConfig.define(builder);
         var parrycastBucklerConfig = ParrycastBucklerServerConfig.define(builder);
         var bulwarkGreatshieldConfig = BulwarkGreatshieldServerConfig.define(builder);
         var magiCompressorGadgetConfig = MagiCompressorGadgetServerConfig.define(builder);
@@ -210,6 +231,7 @@ final class ItemsServerConfig {
         var floatmountBroomConfig = FloatmountBroomServerConfig.define(builder);
         var hoverrideBroomConfig = HoverrideBroomServerConfig.define(builder);
         var ironSwingcastStaffConfig = IronSwingcastStaffServerConfig.define(builder);
+        var manaForceReleaseDeviceConfig = ManaForceReleaseDeviceServerConfig.define(builder);
         var soulstainedSteelSwingcastStaffConfig = SoulstainedSteelSwingcastStaffServerConfig.define(builder);
         var highTierSwingcastStaffConfig = HighTierSwingcastStaffServerConfig.define(builder);
         var circuitHeatStaffConfig = CircuitHeatStaffServerConfig.define(builder);
@@ -233,6 +255,9 @@ final class ItemsServerConfig {
         var instantSearchBrazierConfig = InstantSearchBrazierServerConfig.define(builder);
         var quickcastCartridgeConfig = QuickcastCartridgeServerConfig.define(builder);
         var shootingStarMantleConfig = new ShootingStarMantleServerConfig(builder);
+        var commenceMagiModuleConfig = CommenceMagiModuleServerConfig.define(builder);
+        var manaStabilizerModuleConfig = ManaStabilizerModuleServerConfig.define(builder);
+        var spellboundArmsModuleConfig = SpellboundArmsModuleServerConfig.define(builder);
         builder.pop();
 
         return new ItemsServerConfig(
@@ -246,6 +271,7 @@ final class ItemsServerConfig {
                 zenithStaffConfig,
                 isekaiTravelGuidebookConfig,
                 manaForceBladeConfig,
+                psychicDriveGauntletsConfig,
                 parrycastBucklerConfig,
                 bulwarkGreatshieldConfig,
                 magiCompressorGadgetConfig,
@@ -257,6 +283,7 @@ final class ItemsServerConfig {
                 floatmountBroomConfig,
                 hoverrideBroomConfig,
                 ironSwingcastStaffConfig,
+                manaForceReleaseDeviceConfig,
                 soulstainedSteelSwingcastStaffConfig,
                 highTierSwingcastStaffConfig,
                 circuitHeatStaffConfig,
@@ -279,7 +306,10 @@ final class ItemsServerConfig {
                 luminousDeviceConfig,
                 instantSearchBrazierConfig,
                 quickcastCartridgeConfig,
-                shootingStarMantleConfig
+                shootingStarMantleConfig,
+                commenceMagiModuleConfig,
+                spellboundArmsModuleConfig,
+                manaStabilizerModuleConfig
         );
     }
 
@@ -569,6 +599,10 @@ final class ItemsServerConfig {
 
     int circuitHeatStaffAdditionalManaReferenceCooldownTicks() {
         return circuitHeatStaffConfig.additionalManaReferenceCooldownTicks();
+    }
+
+    ManaForceReleaseDeviceServerConfig manaForceReleaseDeviceConfig() {
+        return manaForceReleaseDeviceConfig;
     }
 
     double ironSwingcastStaffCrystallineArcaneShardDropChance() {

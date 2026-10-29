@@ -6,6 +6,12 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentEffects;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentHints;
@@ -19,6 +25,7 @@ import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.renderer.item.ReflectcastShieldRenderer;
+import jp.aquafactory.apprenticecodex.utility.SpellRecastCompatibility;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -39,13 +46,6 @@ import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
-
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 public class ReflectcastShield extends AbstractImbueShieldItem
         implements GeoItem, SpellCalibrationAdjustmentTarget {
@@ -110,11 +110,11 @@ public class ReflectcastShield extends AbstractImbueShieldItem
                 && (spell.getCastType() == CastType.INSTANT
                 || spell.getCastType() == CastType.LONG
                 || spell.getCastType() == CastType.CONTINUOUS)
-                && spell.getRecastCount(spellLevel, null) <= 0;
+                && SpellRecastCompatibility.hasNoRecastWithoutCaster(spell, spellLevel);
     }
 
     public boolean canUseConfiguredSpell(ItemStack stack, @Nullable AbstractSpell spell, int spellLevel) {
-        if (spell == null || spell == SpellRegistry.none() || spell.getRecastCount(spellLevel, null) > 0) {
+        if (spell == null || spell == SpellRegistry.none() || !SpellRecastCompatibility.hasNoRecastWithoutCaster(spell, spellLevel)) {
             return false;
         }
         return spell.getCastType() == CastType.INSTANT

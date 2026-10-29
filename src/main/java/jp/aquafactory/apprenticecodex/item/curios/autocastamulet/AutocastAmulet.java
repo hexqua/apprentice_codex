@@ -6,6 +6,10 @@ import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.compat.Curios;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Optional;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceHelper;
 import jp.aquafactory.apprenticecodex.enchantment.TranscendenceTarget;
@@ -21,6 +25,7 @@ import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastType;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.TagRegistry;
+import jp.aquafactory.apprenticecodex.utility.SpellRecastCompatibility;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -40,11 +45,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
-
-import java.util.EnumSet;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Optional;
 
 public class AutocastAmulet extends Item implements ICurioItem, ArcaneAnvilImbueBlockItem,
         StoredSpellCalibrationImbueTarget, SpellCalibrationAdjustmentTarget, TranscendenceTarget {
@@ -132,7 +132,7 @@ public class AutocastAmulet extends Item implements ICurioItem, ArcaneAnvilImbue
         return spell != null
                 && spell != SpellRegistry.none()
                 && (spell.getCastType() == CastType.INSTANT || spell.getCastType() == CastType.LONG)
-                && spell.getRecastCount(spellLevel, null) <= 0;
+                && SpellRecastCompatibility.hasNoRecastWithoutCaster(spell, spellLevel);
     }
 
     public boolean canAutoCastSpell(ItemStack stack, SpellData spellData) {
@@ -143,7 +143,7 @@ public class AutocastAmulet extends Item implements ICurioItem, ArcaneAnvilImbue
         return spell != null
                 && spell != SpellRegistry.none()
                 && getSupportedCastTypes(stack).contains(SpellGunCastType.from(spell.getCastType()))
-                && spell.getRecastCount(spellLevel, null) <= 0;
+                && SpellRecastCompatibility.hasNoRecastWithoutCaster(spell, spellLevel);
     }
 
     @Override

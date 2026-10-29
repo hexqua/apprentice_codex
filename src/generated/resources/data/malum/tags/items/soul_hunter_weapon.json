@@ -1,6 +1,10 @@
 {
   "values": [
+    "apprenticecodex:novice_mana_force_release_device",
+    "apprenticecodex:adept_mana_force_release_device",
+    "apprenticecodex:master_mana_force_release_device",
     "apprenticecodex:spell_reaper_scythe",
+    "apprenticecodex:psychic_drive_gauntlets",
     "apprenticecodex:pastel_staff",
     "apprenticecodex:multicast_echo_staff",
     "apprenticecodex:focus_staffbow",

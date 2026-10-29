@@ -110,3 +110,10 @@ description='''${mod_description}'''
     versionRange="[${emf_version},)"
     ordering="AFTER"
     side="CLIENT"
+
+[[dependencies.${mod_id}]]
+    modId="irons_artifice"
+    mandatory=false
+    versionRange="[${irons_artifice_version},)"
+    ordering="AFTER"
+    side="BOTH"

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "item": "minecraft:diamond"
+    },
+    "C": {
+      "item": "apprenticecodex:crystalline_arcane_shard"
+    },
+    "I": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "S": {
+      "item": "minecraft:stick"
+    }
+  },
+  "pattern": [
+    " IB",
+    " SI",
+    "C  "
+  ],
+  "result": {
+    "item": "apprenticecodex:adept_mana_force_release_device"
+  },
+  "show_notification": true
+}

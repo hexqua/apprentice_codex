@@ -5,6 +5,12 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.entity.mobs.IMagicSummon;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import javax.annotation.Nullable;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.event.KnockbackControlEvent;
@@ -12,32 +18,25 @@ import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.effect.MobEffects;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.boss.enderdragon.EndCrystal;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ClipContext;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.entity.PartEntity;
 import net.minecraftforge.fml.ModList;
-import net.minecraftforge.common.MinecraftForge;
-
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 public final class CombatTools {
     private CombatTools() {}
@@ -166,6 +165,8 @@ public final class CombatTools {
 
     public static boolean isValidCombatTarget(Entity target, @Nullable Entity owner, CombatTargetPolicy policy) {
         var resolvedTarget = resolutePartEntity(target);
+        // 生存したまま観戦へ移るプレイヤーも、照準・誘導先の共通判定で除外する。
+        if (resolvedTarget.isSpectator()) return false;
         var combatOwner = resolveCombatActor(owner);
 
         if (resolvedTarget == combatOwner && !policy.allowsSelfDamage()) return false;
@@ -383,7 +384,7 @@ public final class CombatTools {
     public static boolean canBeHostileToMe(Entity target, LivingEntity player) {
         if (player == null || target == null) return false;
         if (target == player) return false;
-        if (!target.isAlive()) return false;
+        if (!target.isAlive() || target.isSpectator()) return false;
 
         if (player.isAlliedTo(target) || target.isAlliedTo(player)) {
             return false;

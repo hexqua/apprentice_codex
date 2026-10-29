@@ -9,16 +9,18 @@ import io.redspace.ironsspellbooks.api.spells.SpellAnimations;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.api.util.AnimationHolder;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import java.util.List;
+import java.util.Optional;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.capability.Capabilities;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.config.DamageMultiplierKey;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
 import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
-import jp.aquafactory.apprenticecodex.spell.IMulticastUnsupportedSpell;
 import jp.aquafactory.apprenticecodex.spell.ICastHighlightSpell;
+import jp.aquafactory.apprenticecodex.spell.IMulticastUnsupportedSpell;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
@@ -34,9 +36,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
-import java.util.Optional;
 
 public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity> implements ICastHighlightSpell, IMulticastUnsupportedSpell {
     private static final double RAYCAST_WIDTH = 1.0;
@@ -221,6 +220,7 @@ public class MantisLeap extends AbstractSummonWeaponSpell<MantisLeapBladeEntity>
         var look = caster.getLookAngle().normalize();
 
         // boxWidthは吸い付きやすさに影響するため、ちょっと広めに取る.
+        // TODO: 現APIの幅は候補検索にだけ効く。照準補助APIへの移行はハイライト・着地点への影響を含め後日判断する。
         var result = RaycastTools.raycastFromEye(caster, range, RAYCAST_WIDTH, e -> CombatTools.isValidCombatTarget(e, caster));
 
         Vec3 destination;

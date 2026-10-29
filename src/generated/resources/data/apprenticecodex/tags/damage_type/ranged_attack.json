@@ -1,5 +1,6 @@
 {
   "values": [
+    "apprenticecodex:mana_force_release_device",
     "apprenticecodex:arcane_beam",
     "apprenticecodex:arcane_blast",
     "apprenticecodex:archer_multiple",
@@ -59,6 +60,8 @@
     "apprenticecodex:lunar_aim",
     "apprenticecodex:echo_arrow",
     "apprenticecodex:lock_on_ray",
+    "apprenticecodex:psychic_drive_gauntlets",
+    "apprenticecodex:psychic_drive_gauntlets_magic",
     "apprenticecodex:spell_reaper_scythe_throw",
     "apprenticecodex:spell_reaper_scythe_throw_magic",
     "apprenticecodex:spell_reaper_scythe_throw_continuous",

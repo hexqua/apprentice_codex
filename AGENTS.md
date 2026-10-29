@@ -20,7 +20,7 @@
 - Mod ローダー: Minecraft Forge 47.4.10
 - 言語/実行環境: Java 17
 - ビルドツール: Gradle Wrapper（Windows では `./gradlew.bat` を使用）
-- 主要依存 MOD: Iron's Spells 'n Spellbooks（1.20.1-3.16.3）, Iron's Lib（1.20.1-2.1.0）, Curios（5.14.1+1.20.1）, GeckoLib（4.8.3）
+- 主要依存 MOD: Iron's Spells 'n Spellbooks（1.20.1-3.16.3）, Iron's Lib（1.20.1-2.2.0）, Curios（5.14.1+1.20.1）, GeckoLib（4.8.3）
 - ローカルでは `JDK17_HOME` を設定し、必要に応じて `.\scripts\use-java.ps1` で `JAVA_HOME` を切り替える。
 - `main`（1.21.1 / NeoForge）からの backport 作業でも、このブランチの実装と検証には Java 17 を使う。
 
@@ -83,7 +83,7 @@ Get-ChildItem build\libs\*.jar
 - `runGameTestServer` は専用 world `run/codex_gametest_clean` を毎回初期化してから起動する。通常の手動確認用 `run/world` は削除しない。
 - `runGameTestServer...` はプロファイル間で world と実行ディレクトリを共有するため、初回から必ず直列実行する。別プロセス・別ターミナル・サブエージェントへの分担でも並列起動しない。
 - 1 回の Gradle 呼び出しにつき GameTest task は 1 つとし、先行する Gradle / server プロセスの終了を確認してから次を起動する。実行中の yield は終了ではなく、同じ実行を wait で追跡する。
-- `runGameTestServerCompat` は Farmer's Delight / Create / Botania / Lodestone / Malum 連携の確認に使う。
+- `runGameTestServerCompat` は Farmer's Delight / Create / Botania / Lodestone / Malum / Iron's Arms 'n Artifice 連携の確認に使う。
 - `runGameTestServerEasyMagic` は Puzzles Lib / Easy Magic 連携の確認に使う。
 - `runGameTestServerBetterCombat` は Cloth Config / Better Combat 連携の確認に使う。
 - `runGameTestServerMalumBetterCombat` は Lodestone / Malum / Cloth Config / Better Combat の組み合わせ連携確認に使う。
@@ -97,6 +97,7 @@ Get-ChildItem build\libs\*.jar
 - `runClientCompatEasyBetter` は compat + EasyMagic + Better Combat を入れた実環境寄りの手動バランス確認用。Epic Fight は含めず、自動テスト対象にも含めない。
 - Better Combat と Epic Fight は干渉が大きいため、通常確認では同時投入しない。
 - optional MOD の runtime 切替は Gradle の実行構成または `-PdevRuntimeMods=...` で行う。`build.gradle` の `runtimeOnly` コメントアウト解除運用は使わない。
+- Iron's Arms 'n Artifice（1.20.1-1.1.1）は `compat` / `compat_easy_better` に含め、`-PdevRuntimeMods=irons_artifice` でも追加できる。通常構成では導入不要とする。
 - 通常確認で `clean` は付けない。必要時のみ `./gradlew.bat clean build` を使う。
 
 ### クライアント検証の分担
@@ -134,7 +135,7 @@ Get-ChildItem build\libs\*.jar
 6. サーバー側の登録、データ読込、レシピ、生成、GameTest 対象構造に影響する変更では `./gradlew.bat runGameTestServer` を成功させる。
 7. `main` からの backport では、影響範囲にかかわらず Java 17 で `./gradlew.bat runGameTestServer` と `./gradlew.bat build` を成功させる。
 8. optional MOD 連携に影響する変更では、対象に応じて特殊 GameTest を追加実行する。client 構成は上記の分担に従い、人間の手動確認に使用する。
-   - Create / Botania / Lodestone / Malum / Farmer's Delight: `./gradlew.bat runGameTestServerCompat`
+   - Create / Botania / Lodestone / Malum / Iron's Arms 'n Artifice / Farmer's Delight: `./gradlew.bat runGameTestServerCompat`
    - EasyMagic / エンチャントメニュー: `./gradlew.bat runGameTestServerEasyMagic`
    - Better Combat / offhand / weapon_attributes: `./gradlew.bat runGameTestServerBetterCombat`
    - Malum + Better Combat / 大鎌コンボ切替: `./gradlew.bat runGameTestServerMalumBetterCombat`

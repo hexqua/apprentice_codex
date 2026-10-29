@@ -1,5 +1,7 @@
 package jp.aquafactory.apprenticecodex.utility;
 
+import java.util.Optional;
+import java.util.function.Predicate;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -10,9 +12,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-
-import java.util.Optional;
-import java.util.function.Predicate;
 
 public final class SummonedFirearmTools {
     private static final double AIM_SEARCH_WIDTH = 0.875D;
@@ -106,7 +105,8 @@ public final class SummonedFirearmTools {
         EntityAimHit closest = null;
         var closestDistanceSqr = Double.MAX_VALUE;
 
-        for (var candidate : level.getEntities(caster, searchBox, e -> e.isAlive() && predicate.test(e))) {
+        for (var candidate : level.getEntities(caster, searchBox,
+                e -> e.isAlive() && !e.isSpectator() && e.isPickable() && predicate.test(e))) {
             // ProjectileUtil は命中座標がエンティティ基準位置へ落ちるため、視線と少し太らせたAABBの交点を使う。
             var hitPosition = candidate.getBoundingBox().inflate(AIM_ASSIST_INFLATE).clip(start, end);
             if (hitPosition.isEmpty()) {

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "A": {
+      "item": "irons_spellbooks:arcane_ingot"
+    },
+    "C": {
+      "item": "apprenticecodex:crystalline_arcane_shard"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "W": {
+      "item": "irons_spellbooks:weapon_parts"
+    }
+  },
+  "pattern": [
+    "A A",
+    "DWD",
+    "C C"
+  ],
+  "result": {
+    "item": "apprenticecodex:psychic_drive_gauntlets"
+  },
+  "show_notification": true
+}

@@ -1,0 +1,32 @@
+{
+  "parent": "apprenticecodex:apprentice_codex/craft_crystal_bladed_staff",
+  "criteria": {
+    "crafted_psychic_drive_gauntlets": {
+      "conditions": {
+        "recipe_id": "apprenticecodex:psychic_drive_gauntlets"
+      },
+      "trigger": "minecraft:recipe_crafted"
+    }
+  },
+  "display": {
+    "announce_to_chat": true,
+    "description": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_psychic_drive_gauntlets.description"
+    },
+    "frame": "challenge",
+    "hidden": false,
+    "icon": {
+      "item": "apprenticecodex:psychic_drive_gauntlets"
+    },
+    "show_toast": true,
+    "title": {
+      "translate": "advancements.apprenticecodex.apprentice_codex.craft_psychic_drive_gauntlets.title"
+    }
+  },
+  "requirements": [
+    [
+      "crafted_psychic_drive_gauntlets"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

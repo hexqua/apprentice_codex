@@ -1,21 +1,28 @@
 package jp.aquafactory.apprenticecodex.item.armor;
 
-import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
+import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.IPresetSpellContainer;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
-import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.ironsartifice.IronsArtificeCompat;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;
+import jp.aquafactory.apprenticecodex.item.EquipmentSpellTimingConfigState;
 import jp.aquafactory.apprenticecodex.item.ImbueTooltipHelper;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.item.SpellCalibrationImbueTarget;
 import jp.aquafactory.apprenticecodex.item.StoredSpellCalibrationImbueTarget;
+import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunAmmoConsumption;
+import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
 import jp.aquafactory.apprenticecodex.renderer.armor.MagiAgentSuitRenderer;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
@@ -45,10 +52,6 @@ import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.renderer.GeoArmorRenderer;
 import software.bernie.geckolib.util.GeckoLibUtil;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Consumer;
 
 public class MagiAgentSuitItem extends ArmorItem
         implements GeoItem, IPresetSpellContainer, SpellCalibrationAdjustmentTarget,
@@ -153,6 +156,10 @@ public class MagiAgentSuitItem extends ArmorItem
                 armorType,
                 ApprenticeCodexServerConfig.magiAgentSuitSpellPowerBonus()
         );
+        if (getType() == Type.HELMET) {
+            builder.put(ApprenticeAttributeRegistry.SPELLGUN_AMMO_CONSERVATION.get(),
+                    SpellgunAmmoConsumption.hoodModifier(EquipmentSpellTimingConfigState.magiAgentSuitAmmoNoConsumeChance()));
+        }
         var schoolPowerAttribute = getResolvedSchoolPowerAttribute(stack);
         if (schoolPowerAttribute != null) {
             MagiAgentSuitStats.addSchoolSpellPowerModifier(
@@ -259,6 +266,9 @@ public class MagiAgentSuitItem extends ArmorItem
         var descriptionKey = getDescriptionId() + ".desc";
         if (armorType == Type.HELMET) {
             lines.add(Component.translatable(descriptionKey).withStyle(ChatFormatting.GRAY));
+            if (IronsArtificeCompat.isAvailable()) {
+                lines.add(Component.translatable(descriptionKey + ".artifice").withStyle(ChatFormatting.GRAY));
+            }
             return;
         }
 

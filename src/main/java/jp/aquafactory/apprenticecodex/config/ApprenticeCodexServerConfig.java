@@ -1,21 +1,26 @@
 package jp.aquafactory.apprenticecodex.config;
 
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
+import java.util.List;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.config.block.ArcanumInAJarServerConfig;
 import jp.aquafactory.apprenticecodex.config.block.AlchemyBrewerServerConfig;
+import jp.aquafactory.apprenticecodex.config.block.ArcanumInAJarServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ChargedTwinBladeStaffServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.CommenceMagiModuleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.FloatmountBroomServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.HoverrideBroomServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ManaForceReleaseDeviceServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.ManaStabilizerModuleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.QuickcastCartridgeServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellReaperScytheServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.ArchivistsGrimoireServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellStainedRunicTabletServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.SpellboundArmsModuleServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellchargedGreatswordServerConfig;
 import jp.aquafactory.apprenticecodex.config.item.SpellgunServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.CatchFlameServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.SpellThrowableCardServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.ChargecastCatalystbookServerConfig;
-import jp.aquafactory.apprenticecodex.config.item.ChargedTwinBladeStaffServerConfig;
 import jp.aquafactory.apprenticecodex.config.spell.LinearBuildServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentType;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbowChargeSettings;
@@ -26,8 +31,6 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
-
-import java.util.List;
 
 @Mod.EventBusSubscriber(modid = ApprenticeCodex.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public final class ApprenticeCodexServerConfig {
@@ -628,6 +631,14 @@ public final class ApprenticeCodexServerConfig {
         return ITEMS_CONFIG.manaForceBladeImbueDamageMultiplierScale();
     }
 
+    public static int psychicDriveGauntletsAttackManaCost() {
+        return ITEMS_CONFIG.psychicDriveGauntletsConfig.attackManaCost().get();
+    }
+
+    public static int psychicDriveGauntletsChargeManaCostPerTick() {
+        return ITEMS_CONFIG.psychicDriveGauntletsConfig.chargeManaCostPerTick().get();
+    }
+
     public static float manaForceBladeAttackManaCostMultiplier() {
         return ITEMS_CONFIG.manaForceBladeAttackManaCostMultiplier();
     }
@@ -775,6 +786,10 @@ public final class ApprenticeCodexServerConfig {
 
     public static int circuitHeatStaffAdditionalManaReferenceCooldownTicks() {
         return ITEMS_CONFIG.circuitHeatStaffAdditionalManaReferenceCooldownTicks();
+    }
+
+    public static ManaForceReleaseDeviceServerConfig manaForceReleaseDeviceConfig() {
+        return ITEMS_CONFIG.manaForceReleaseDeviceConfig();
     }
 
     public static double ironSwingcastStaffCrystallineArcaneShardDropChance() {
@@ -1086,6 +1101,30 @@ public final class ApprenticeCodexServerConfig {
         var previous = ITEMS_CONFIG.chargedTwinBladeStaffConfig();
         ITEMS_CONFIG.setChargedTwinBladeStaffConfigForGameTest(values);
         return () -> ITEMS_CONFIG.setChargedTwinBladeStaffConfigForGameTest(previous);
+    }
+
+    public static SpellboundArmsModuleServerConfig.Values spellboundArmsModuleConfig() {
+        return ITEMS_CONFIG.spellboundArmsModuleConfig.values();
+    }
+
+    public static AutoCloseable overrideSpellboundArmsModuleForGameTest(SpellboundArmsModuleServerConfig.Values values) {
+        return ITEMS_CONFIG.spellboundArmsModuleConfig.overrideForGameTest(values);
+    }
+
+    public static ManaStabilizerModuleServerConfig.Values manaStabilizerModuleConfig() {
+        return ITEMS_CONFIG.manaStabilizerModuleConfig.values();
+    }
+
+    public static AutoCloseable overrideManaStabilizerModuleForGameTest(ManaStabilizerModuleServerConfig.Values values) {
+        return ITEMS_CONFIG.manaStabilizerModuleConfig.overrideForGameTest(values);
+    }
+
+    public static CommenceMagiModuleServerConfig.Values commenceMagiModuleConfig() {
+        return ITEMS_CONFIG.commenceMagiModuleConfig.values();
+    }
+
+    public static AutoCloseable overrideCommenceMagiModuleForGameTest(CommenceMagiModuleServerConfig.Values values) {
+        return ITEMS_CONFIG.commenceMagiModuleConfig.overrideForGameTest(values);
     }
 
     public static SpellReaperScytheServerConfig.Values spellReaperScytheConfig() {

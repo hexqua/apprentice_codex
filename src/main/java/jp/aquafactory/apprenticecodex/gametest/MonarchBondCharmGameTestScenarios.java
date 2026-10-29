@@ -21,6 +21,7 @@ import jp.aquafactory.apprenticecodex.spell.fieldoverseer.FieldOverseerStaffEnti
 import jp.aquafactory.apprenticecodex.spell.healingbloom.HealingBloomEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -310,9 +311,17 @@ final class MonarchBondCharmGameTestScenarios extends ApprenticeCodexGameTestSce
             var anchorPos = helper.absolutePos(new BlockPos(0, 2, 0));
             helper.setBlock(new BlockPos(0, 1, 0), Blocks.STONE);
             var staff = createFieldOverseerTestEntity(helper, owner, anchorPos, 100.0F, 40);
-            helper.spawnWithNoFreeWill(EntityType.HUSK, new BlockPos(0, 2, 3));
+            // 転送距離だけを測り、標的探索・攻撃成立・近隣テストの敵へ依存させない。
+            var saved = staff.saveWithoutId(new CompoundTag());
+            saved.putFloat("CurrentMana", 60.0F);
+            saved.putDouble("TargetingRadius", 0.0D);
+            staff.readAdditionalSaveData(saved);
+            int startedTick = staff.tickCount;
 
             helper.runAfterDelay(55, () -> {
+                helper.assertTrue(staff.isAlive() && helper.getLevel().getEntity(staff.getUUID()) == staff
+                                && staff.tickCount - startedTick >= 5,
+                        "Field Overseer transfer fixture must receive at least one five-tick transfer interval");
                 helper.assertTrue(Math.abs(staff.getCurrentMana() - expectedStaffMana) <= EPSILON,
                         "Field Overseer mana transfer range should depend on Monarch Bond: expected="
                                 + expectedStaffMana + ", actual=" + staff.getCurrentMana());

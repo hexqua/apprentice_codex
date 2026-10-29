@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "B": {
+      "item": "minecraft:cut_copper"
+    },
+    "C": {
+      "item": "minecraft:copper_ingot"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "S": {
+      "item": "minecraft:stick"
+    }
+  },
+  "pattern": [
+    " IB",
+    " SI",
+    "C  "
+  ],
+  "result": {
+    "item": "apprenticecodex:novice_mana_force_release_device"
+  },
+  "show_notification": true
+}

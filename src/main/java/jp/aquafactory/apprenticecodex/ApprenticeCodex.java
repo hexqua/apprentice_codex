@@ -1,24 +1,28 @@
 package jp.aquafactory.apprenticecodex;
 
-import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
-import jp.aquafactory.apprenticecodex.event.ManaSoulTransducerConfigSyncEvents;
-import jp.aquafactory.apprenticecodex.event.UndyingEmblemConfigSyncEvents;
-
 import com.mojang.logging.LogUtils;
-import jp.aquafactory.apprenticecodex.config.ApprenticeCodexClientConfig;
 import jp.aquafactory.apprenticecodex.capability.codexspelldata.CodexSpellStateTypeRegister;
-import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
-import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
 import jp.aquafactory.apprenticecodex.compat.emf.EmfCompat;
 import jp.aquafactory.apprenticecodex.compat.epicfight.EpicFightCompat;
+import jp.aquafactory.apprenticecodex.compat.ironsartifice.IronsArtificeCompat;
+import jp.aquafactory.apprenticecodex.compat.malum.MalumSpellReaperScytheBridge;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexClientConfig;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexCommonConfig;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.event.ArcanumInAJarConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.CommenceMagiModuleConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.FullautoEchoConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.HighTierSwingcastStaffConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.InstantSearchBrazierConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.IronSwingcastStaffConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.ManaForceReleaseDeviceConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.ManaSoulTransducerConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.ManaStabilizerModuleConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.SoulstainedSteelSwingcastStaffConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.SpellboundArmsModuleConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.SpellgunConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.UndyingEmblemConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.client.ClientModBusEvents;
 import jp.aquafactory.apprenticecodex.item.broom.BroomCurioSupport;
 import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaffConfigSyncEvents;
@@ -46,6 +50,11 @@ public class ApprenticeCodex
         context.registerConfig(ModConfig.Type.SERVER, ApprenticeCodexServerConfig.SPEC);
 
         var bus = context.getModEventBus();
+        ManaForceReleaseDeviceConfigSyncEvents.register(bus);
+        IronsArtificeCompat.register(bus);
+        CommenceMagiModuleConfigSyncEvents.register(bus);
+        ManaStabilizerModuleConfigSyncEvents.register(bus);
+        SpellboundArmsModuleConfigSyncEvents.register(bus);
         ManaSoulTransducerConfigSyncEvents.register(bus);
         UndyingEmblemConfigSyncEvents.register(bus);
         ChargedTwinBladeStaffConfigSyncEvents.register(bus);

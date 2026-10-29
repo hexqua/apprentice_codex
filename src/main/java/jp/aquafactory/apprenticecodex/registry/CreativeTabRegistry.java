@@ -3,8 +3,12 @@ package jp.aquafactory.apprenticecodex.registry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.create.CreateCompat;
+import jp.aquafactory.apprenticecodex.compat.ironsartifice.IronsArtificeCompat;
 import jp.aquafactory.apprenticecodex.compat.patchouli.PatchouliBookSupport;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkState;
 import jp.aquafactory.apprenticecodex.potion.SchoolAffinityPotion;
@@ -20,10 +24,6 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
-
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
 
 public final class CreativeTabRegistry {
     private CreativeTabRegistry() {}
@@ -52,6 +52,7 @@ public final class CreativeTabRegistry {
 
         addBlockToTab(output);
         addSimpleMaterialToTab(output);
+        addArmsArtificeToTab(output);
         addCalibrationItemToTab(output);
         addFoodsToTab(output);
         addSwingcastStaffToTab(output);
@@ -99,6 +100,15 @@ public final class CreativeTabRegistry {
         for (var source : PartiallyUsedInkState.OfficialInk.values()) {
             output.accept(PartiallyUsedInkState.create(source, source.creativeDefaultCapacity()));
         }
+    }
+
+    private static void addArmsArtificeToTab(CreativeModeTab.Output output) {
+        if (!IronsArtificeCompat.isAvailable()) {
+            return;
+        }
+        output.accept(ItemRegistry.COMMENCE_MAGI_MODULE.get());
+        output.accept(ItemRegistry.SPELLBOUND_ARMS_MODULE.get());
+        output.accept(ItemRegistry.MANA_STABILIZER_MODULE.get());
     }
 
     private static void addCalibrationItemToTab(CreativeModeTab.Output output) {
@@ -194,6 +204,10 @@ public final class CreativeTabRegistry {
     }
 
     private static void addUniqueMagicWeaponToTab(CreativeModeTab.Output output) {
+        output.accept(ItemRegistry.NOVICE_MANA_FORCE_RELEASE_DEVICE.get());
+        output.accept(ItemRegistry.ADEPT_MANA_FORCE_RELEASE_DEVICE.get());
+        output.accept(ItemRegistry.MASTER_MANA_FORCE_RELEASE_DEVICE.get());
+        output.accept(ItemRegistry.PSYCHIC_DRIVE_GAUNTLETS.get());
         output.accept(ItemRegistry.MANA_FORCE_BLADE.get());
         output.accept(ItemRegistry.SPELLCHARGED_GREATSWORD.get());
         output.accept(ItemRegistry.SPELL_REAPER_SCYTHE.get());
@@ -269,6 +283,11 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.CRAFTSMANS_DELIGHT.get());
         output.accept(ItemRegistry.SPELL_CAST_PARRYING_RING.get());
         output.accept(ItemRegistry.ATTACKCAST_RING.get());
+
+        // rings(cataclysm)
+        if (ModList.get().isLoaded("cataclysm")) {
+            output.accept(ItemRegistry.RINGS_ON_RING.get());
+        }
 
         // amulet
         output.accept(ItemRegistry.ABSORPTION_AMPLIFY_AMULET.get());

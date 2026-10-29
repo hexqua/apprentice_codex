@@ -1,57 +1,67 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.compat.ironsartifice.IronsArtificeCompat;
 import jp.aquafactory.apprenticecodex.item.*;
-import jp.aquafactory.apprenticecodex.item.broom.FloatmountBroomItem;
-import jp.aquafactory.apprenticecodex.item.broom.HoverrideBroomItem;
+import jp.aquafactory.apprenticecodex.item.antimanaarrow.AntiManaArrowItem;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.CrudeInkItem;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkItem;
 import jp.aquafactory.apprenticecodex.item.armor.*;
 import jp.aquafactory.apprenticecodex.item.blockitem.*;
+import jp.aquafactory.apprenticecodex.item.blockitem.CreativeSpellDispenserItem;
 import jp.aquafactory.apprenticecodex.item.boundweapon.BoundBowItem;
 import jp.aquafactory.apprenticecodex.item.boundweapon.BoundSwordItem;
-import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff;
+import jp.aquafactory.apprenticecodex.item.broom.FloatmountBroomItem;
+import jp.aquafactory.apprenticecodex.item.broom.HoverrideBroomItem;
 import jp.aquafactory.apprenticecodex.item.chargecastcatalystbook.ChargecastCatalystbook;
+import jp.aquafactory.apprenticecodex.item.chargedtwinbladestaff.ChargedTwinBladeStaff;
 import jp.aquafactory.apprenticecodex.item.circuitheatstaff.CircuitHeatStaff;
 import jp.aquafactory.apprenticecodex.item.crystalbladedstaff.CrystalBladedStaff;
-import jp.aquafactory.apprenticecodex.item.curios.manamaneuvergear.ManaManeuverGear;
-import jp.aquafactory.apprenticecodex.item.curios.manasoultransducer.ManaSoulTransducer;
-import jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm.MonarchBondCharm;
-import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastScrollCartridge;
-import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.ShootingStarMantle;
-import jp.aquafactory.apprenticecodex.item.curios.undyingemblem.UndyingEmblem;
-import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCase;
-import jp.aquafactory.apprenticecodex.item.blockitem.CreativeSpellDispenserItem;
-import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRing;
-import jp.aquafactory.apprenticecodex.item.curios.circlets.AshenCirclet;
-import jp.aquafactory.apprenticecodex.item.curios.circlets.EnchantedCirclet;
-import jp.aquafactory.apprenticecodex.item.curios.jumpcastcharm.JumpcastCharm;
-import jp.aquafactory.apprenticecodex.item.curios.magicompressorgadget.MagiCompressorGadget;
-import jp.aquafactory.apprenticecodex.item.curios.manashieldcharm.ManaShieldCharm;
-import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
-import jp.aquafactory.apprenticecodex.item.curios.manathruster.ManaThruster;
-import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
+import jp.aquafactory.apprenticecodex.item.curios.RingsOnRing;
+import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
 import jp.aquafactory.apprenticecodex.item.curios.absorptionamplifyamulet.AbsorptionAmplifyAmulet;
 import jp.aquafactory.apprenticecodex.item.curios.archivistsgrimoire.ArchivistsGrimoire;
+import jp.aquafactory.apprenticecodex.item.curios.attackcastring.AttackcastRing;
+import jp.aquafactory.apprenticecodex.item.curios.autocastamulet.AutocastAmulet;
+import jp.aquafactory.apprenticecodex.item.curios.circlets.AshenCirclet;
+import jp.aquafactory.apprenticecodex.item.curios.circlets.EnchantedCirclet;
+import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
+import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
 import jp.aquafactory.apprenticecodex.item.curios.explorerscodex.ExplorersCodex;
 import jp.aquafactory.apprenticecodex.item.curios.isekaitravelguidebook.IsekaiTravelGuidebook;
+import jp.aquafactory.apprenticecodex.item.curios.jumpcastcharm.JumpcastCharm;
+import jp.aquafactory.apprenticecodex.item.curios.magicompressorgadget.MagiCompressorGadget;
+import jp.aquafactory.apprenticecodex.item.curios.manamaneuvergear.ManaManeuverGear;
+import jp.aquafactory.apprenticecodex.item.curios.manashieldcharm.ManaShieldCharm;
+import jp.aquafactory.apprenticecodex.item.curios.manasoultransducer.ManaSoulTransducer;
+import jp.aquafactory.apprenticecodex.item.curios.manathruster.ManaThruster;
+import jp.aquafactory.apprenticecodex.item.curios.monarchbondcharm.MonarchBondCharm;
+import jp.aquafactory.apprenticecodex.item.curios.protectionspellsupporter.ProtectionSpellSupporter;
+import jp.aquafactory.apprenticecodex.item.curios.quickcastscrollcartridge.QuickcastScrollCartridge;
 import jp.aquafactory.apprenticecodex.item.curios.satellitefollowcastamulet.SatelliteFollowcastAmulet;
-import jp.aquafactory.apprenticecodex.item.curios.spellcastparryingring.SpellCastParryingRing;
-import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
+import jp.aquafactory.apprenticecodex.item.curios.shootingstarmantle.ShootingStarMantle;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.item.curios.spellcasterquiver.SpellcasterQuiver;
+import jp.aquafactory.apprenticecodex.item.curios.spellcastparryingring.SpellCastParryingRing;
+import jp.aquafactory.apprenticecodex.item.curios.spellstainedrunictablet.SpellStainedRunicTablet;
+import jp.aquafactory.apprenticecodex.item.curios.undyingemblem.UndyingEmblem;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
+import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
+import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
 import jp.aquafactory.apprenticecodex.item.focusstaffbow.FocusStaffbow;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.item.luminousdevice.LuminousDevice;
 import jp.aquafactory.apprenticecodex.item.magicitem.GrimoireManifest;
 import jp.aquafactory.apprenticecodex.item.magicitem.InstantSearchBrazier;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
 import jp.aquafactory.apprenticecodex.item.magicitem.WoodenWand;
 import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBlade;
+import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeSheathItem;
+import jp.aquafactory.apprenticecodex.item.manaforcereleasedevice.ManaForceReleaseDevice;
+import jp.aquafactory.apprenticecodex.item.manaforcereleasedevice.ManaForceReleaseTier;
 import jp.aquafactory.apprenticecodex.item.mithrilfreecaststaff.MithrilFreecastStaff;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaff;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
-import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.item.offhand.CopperSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.DiamondSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.ExplorersCane;
@@ -61,37 +71,33 @@ import jp.aquafactory.apprenticecodex.item.offhand.NetheriteSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.PhotonSiphon;
 import jp.aquafactory.apprenticecodex.item.offhand.SilverSpellAmplifier;
 import jp.aquafactory.apprenticecodex.item.offhand.SoulstainedSteelSpellAmplifier;
-import jp.aquafactory.apprenticecodex.item.curios.craftsmansdelight.CraftsmansDelight;
-import jp.aquafactory.apprenticecodex.item.curios.endergrimoire.EnderGrimoire;
-import jp.aquafactory.apprenticecodex.item.curios.ScarletThirst;
-import jp.aquafactory.apprenticecodex.item.flask.AlchemistsFlask;
-import jp.aquafactory.apprenticecodex.item.flask.SpellcastersFlask;
-import jp.aquafactory.apprenticecodex.item.manaforceblade.ManaForceBladeSheathItem;
 import jp.aquafactory.apprenticecodex.item.pastelstaff.PastelStaff;
+import jp.aquafactory.apprenticecodex.item.psychicdrivegauntlets.PsychicDriveGauntlets;
 import jp.aquafactory.apprenticecodex.item.revolvercaststaff.RevolvercastStaff;
 import jp.aquafactory.apprenticecodex.item.scrollcastergauntlet.ScrollcasterGauntlet;
-import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
-import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
 import jp.aquafactory.apprenticecodex.item.shield.BulwarkGreatshield;
+import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
+import jp.aquafactory.apprenticecodex.item.shield.ReflectcastShield;
 import jp.aquafactory.apprenticecodex.item.smashcastscepter.SmashcastScepter;
+import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCase;
 import jp.aquafactory.apprenticecodex.item.spellchargedgreatsword.SpellchargedGreatsword;
-import jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScythe;
-import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdge;
-import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeMirror;
-import jp.aquafactory.apprenticecodex.item.spellthrowablecard.SpellAutonomyCard;
-import jp.aquafactory.apprenticecodex.item.spellthrowablecard.SpellInvokeCard;
 import jp.aquafactory.apprenticecodex.item.spellgun.CopperSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.DiamondSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.GoldSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.IronSpellcasterGun;
 import jp.aquafactory.apprenticecodex.item.spellgun.MalignantSpellcasterGun;
+import jp.aquafactory.apprenticecodex.item.spellreaperscythe.SpellReaperScythe;
+import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdge;
+import jp.aquafactory.apprenticecodex.item.spellsideedge.SpellSideEdgeMirror;
+import jp.aquafactory.apprenticecodex.item.spellthrowablecard.SpellAutonomyCard;
+import jp.aquafactory.apprenticecodex.item.spellthrowablecard.SpellInvokeCard;
 import jp.aquafactory.apprenticecodex.item.swingstaff.CopperSwingcastStaff;
 import jp.aquafactory.apprenticecodex.item.swingstaff.DiamondSwingcastStaff;
 import jp.aquafactory.apprenticecodex.item.swingstaff.GoldSwingcastStaff;
 import jp.aquafactory.apprenticecodex.item.swingstaff.IronSwingcastStaff;
 import jp.aquafactory.apprenticecodex.item.swingstaff.NetheriteSwingcastStaff;
-import jp.aquafactory.apprenticecodex.item.swingstaff.SoulstainedSteelSwingcastStaff;
 import jp.aquafactory.apprenticecodex.item.swingstaff.SilverSwingcastStaff;
+import jp.aquafactory.apprenticecodex.item.swingstaff.SoulstainedSteelSwingcastStaff;
 import jp.aquafactory.apprenticecodex.item.zenithstaff.ZenithStaff;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.food.FoodProperties;
@@ -100,7 +106,6 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemNameBlockItem;
 import net.minecraft.world.level.block.Block;
-import jp.aquafactory.apprenticecodex.item.antimanaarrow.AntiManaArrowItem;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -169,6 +174,12 @@ public final class ItemRegistry {
     public static final RegistryObject<Item> OVERDRIVE_BROOM_ENGINE =
             ITEMS.register("overdrive_broom_engine", OverdriveBroomEngine::new);
     public static final RegistryObject<Item> SPELL_EXTRACT_SHARD = ITEMS.register("spell_extract_shard", SpellExtractShard::new);
+    public static final RegistryObject<Item> SPELLBOUND_ARMS_MODULE =
+            ITEMS.register("spellbound_arms_module", IronsArtificeCompat::createSpellboundArmsModule);
+    public static final RegistryObject<Item> MANA_STABILIZER_MODULE =
+            ITEMS.register("mana_stabilizer_module", IronsArtificeCompat::createManaStabilizerModule);
+    public static final RegistryObject<Item> COMMENCE_MAGI_MODULE =
+            ITEMS.register("commence_magi_module", IronsArtificeCompat::createCommenceMagiModule);
     public static final RegistryObject<Item> CRYSTALLINE_ARCANE_SHARD = simple("crystalline_arcane_shard");
     public static final RegistryObject<Item> BULLET_RUNE = simple("bullet_rune");
     public static final RegistryObject<Item> MITHRIL_WEAVE_OFFCUTS = simpleFireImmune("mithril_weave_offcuts");
@@ -370,6 +381,8 @@ public final class ItemRegistry {
             ITEMS.register("spell_cast_parrying_ring", SpellCastParryingRing::new);
     public static final RegistryObject<Item> ATTACKCAST_RING =
             ITEMS.register("attackcast_ring", AttackcastRing::new);
+    public static final RegistryObject<Item> RINGS_ON_RING =
+            ITEMS.register("rings_on_ring", RingsOnRing::new);
     public static final RegistryObject<Item> ASHEN_CIRCLET =
             ITEMS.register("ashen_circlet", AshenCirclet::new);
     public static final RegistryObject<Item> ENCHANTED_CIRCLET =
@@ -460,6 +473,8 @@ public final class ItemRegistry {
             ITEMS.register("charged_twin_blade_staff", ChargedTwinBladeStaff::new);
     public static final RegistryObject<Item> MANA_FORCE_BLADE =
             ITEMS.register("mana_force_blade", ManaForceBlade::new);
+    public static final RegistryObject<Item> PSYCHIC_DRIVE_GAUNTLETS =
+            ITEMS.register("psychic_drive_gauntlets", PsychicDriveGauntlets::new);
     public static final RegistryObject<Item> MANA_FORCE_BLADE_SHEATH =
             ITEMS.register("mana_force_blade_sheath", ManaForceBladeSheathItem::new);
     public static final RegistryObject<Item> SPELL_REAPER_SCYTHE =
@@ -472,6 +487,15 @@ public final class ItemRegistry {
             ITEMS.register("spellcharged_greatsword", SpellchargedGreatsword::new);
     public static final RegistryObject<Item> COPPER_SWINGCAST_STAFF =
             ITEMS.register("copper_swingcast_staff", CopperSwingcastStaff::new);
+    public static final RegistryObject<Item> NOVICE_MANA_FORCE_RELEASE_DEVICE =
+            ITEMS.register("novice_mana_force_release_device", () -> new ManaForceReleaseDevice(ManaForceReleaseTier.NOVICE));
+
+    public static final RegistryObject<Item> ADEPT_MANA_FORCE_RELEASE_DEVICE =
+            ITEMS.register("adept_mana_force_release_device", () -> new ManaForceReleaseDevice(ManaForceReleaseTier.ADEPT));
+
+    public static final RegistryObject<Item> MASTER_MANA_FORCE_RELEASE_DEVICE =
+            ITEMS.register("master_mana_force_release_device", () -> new ManaForceReleaseDevice(ManaForceReleaseTier.MASTER));
+
     public static final RegistryObject<Item> IRON_SWINGCAST_STAFF =
             ITEMS.register("iron_swingcast_staff", IronSwingcastStaff::new);
     public static final RegistryObject<Item> SILVER_SWINGCAST_STAFF =
