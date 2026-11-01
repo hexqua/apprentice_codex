@@ -1,0 +1,81 @@
+{
+  "name": "patchouli.apprenticecodex.apprentices_memo.entry.mana_force_release_device.name",
+  "category": "apprenticecodex:weapons_and_shields",
+  "icon": "apprenticecodex:novice_mana_force_release_device",
+  "pages": [
+    {
+      "type": "patchouli:spotlight",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.mana_force_release_device.page.p001.title",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.mana_force_release_device.page.p001.text",
+      "item": "apprenticecodex:novice_mana_force_release_device,apprenticecodex:adept_mana_force_release_device,apprenticecodex:master_mana_force_release_device"
+    },
+    {
+      "type": "patchouli:text",
+      "text": {
+        "translate": "patchouli.apprenticecodex.apprentices_memo.entry.mana_force_release_device.page.p002.text",
+        "with": [
+          {
+            "translate": "spell.irons_spellbooks.counterspell"
+          },
+          {
+            "translate": "entity.minecraft.witch"
+          }
+        ]
+      }
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:novice_mana_force_release_device",
+      "text": {
+        "translate": "patchouli.apprenticecodex.apprentices_memo.entry.mana_force_release_device.page.p003.text",
+        "with": [
+          {
+            "translate": "item.apprenticecodex.novice_mana_force_release_device"
+          }
+        ]
+      }
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "apprenticecodex:novice_mana_force_release_device",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.mana_force_release_device.page.p004.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:adept_mana_force_release_device",
+      "text": {
+        "translate": "patchouli.apprenticecodex.apprentices_memo.entry.mana_force_release_device.page.p005.text",
+        "with": [
+          {
+            "translate": "item.apprenticecodex.adept_mana_force_release_device"
+          }
+        ]
+      }
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "apprenticecodex:adept_mana_force_release_device",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.mana_force_release_device.page.p006.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:master_mana_force_release_device",
+      "text": {
+        "translate": "patchouli.apprenticecodex.apprentices_memo.entry.mana_force_release_device.page.p007.text",
+        "with": [
+          {
+            "translate": "item.apprenticecodex.master_mana_force_release_device"
+          },
+          {
+            "translate": "entity.minecraft.witch"
+          }
+        ]
+      }
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "apprenticecodex:master_mana_force_release_device",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.mana_force_release_device.page.p008.text"
+    }
+  ]
+}
