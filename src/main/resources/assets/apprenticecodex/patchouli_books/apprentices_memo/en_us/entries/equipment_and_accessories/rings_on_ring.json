@@ -1,0 +1,18 @@
+{
+  "name": "item.apprenticecodex.rings_on_ring",
+  "category": "apprenticecodex:equipment_and_accessories",
+  "icon": "apprenticecodex:rings_on_ring",
+  "flag": "mod:cataclysm",
+  "pages": [
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:rings_on_ring",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.rings_on_ring.page.p001.text"
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "apprenticecodex:rings_on_ring",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.rings_on_ring.page.p002.text"
+    }
+  ]
+}
