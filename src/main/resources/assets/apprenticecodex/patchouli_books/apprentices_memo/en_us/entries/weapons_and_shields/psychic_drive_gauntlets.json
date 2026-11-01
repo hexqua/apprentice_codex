@@ -1,0 +1,29 @@
+{
+  "name": "item.apprenticecodex.psychic_drive_gauntlets",
+  "category": "apprenticecodex:weapons_and_shields",
+  "icon": "apprenticecodex:psychic_drive_gauntlets",
+  "pages": [
+    {
+      "type": "patchouli:spotlight",
+      "item": "apprenticecodex:psychic_drive_gauntlets",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.psychic_drive_gauntlets.page.p001.text"
+    },
+    {
+      "type": "patchouli:crafting",
+      "recipe": "apprenticecodex:psychic_drive_gauntlets",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.psychic_drive_gauntlets.page.p002.text"
+    },
+    {
+      "type": "patchouli:spotlight",
+      "item": "tag:c:tools/mining_tool",
+      "title": "patchouli.apprenticecodex.apprentices_memo.entry.psychic_drive_gauntlets.page.p003.title",
+      "text": "patchouli.apprenticecodex.apprentices_memo.entry.psychic_drive_gauntlets.page.p003.text"
+    },
+    {
+      "type": "patchouli:relations",
+      "entries": [
+        "apprenticecodex:devices/spell_calibration_bench"
+      ]
+    }
+  ]
+}
