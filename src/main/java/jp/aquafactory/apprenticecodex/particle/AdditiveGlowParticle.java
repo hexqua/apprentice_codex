@@ -5,12 +5,11 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.SpriteSet;
-import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import org.jetbrains.annotations.NotNull;
 
-public class AdditiveGlowParticle extends TextureSheetParticle {
+public class AdditiveGlowParticle extends LayeredAdditiveParticle {
     private static final float TAU = (float) (Math.PI * 2.0);
 
     private final Preset preset;
