@@ -41,6 +41,7 @@ import jp.aquafactory.apprenticecodex.item.shield.ParrycastBuckler;
 import jp.aquafactory.apprenticecodex.item.spellcasteraccessorycase.SpellcasterAccessoryCaseScreen;
 import jp.aquafactory.apprenticecodex.item.spellreaperscythe.ScytheThrowRenderer;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticle;
+import jp.aquafactory.apprenticecodex.particle.LayeredAdditiveGlowParticle;
 import jp.aquafactory.apprenticecodex.particle.AdditiveRhombusParticle;
 import jp.aquafactory.apprenticecodex.particle.ImpactTremorBlockParticle;
 import jp.aquafactory.apprenticecodex.particle.ManaForceReleaseSparkParticle;
@@ -343,7 +344,7 @@ public final class ClientModBusEvents {
         event.registerSpriteSet(ParticleRegistry.ADDITIVE_RHOMBUS.get(),
                 sprites -> new AdditiveRhombusParticle.Provider(sprites, AdditiveRhombusParticle.Preset.RHOMBUS));
         event.registerSpriteSet(ParticleRegistry.ADDITIVE_SPARK.get(),
-                sprites -> new AdditiveGlowParticle.Provider(sprites, AdditiveGlowParticle.Preset.SPARK));
+                sprites -> new LayeredAdditiveGlowParticle.Provider(sprites, AdditiveGlowParticle.Preset.SPARK));
         event.registerSpriteSet(ParticleRegistry.MUZZLE_FLASH.get(), MuzzleFlashParticle.Provider::new);
         event.registerSpecial(ParticleRegistry.IMPACT_TREMOR_BLOCK.get(), new ImpactTremorBlockParticle.Provider());
         event.registerSpecial(ParticleRegistry.SMASHCAST_DUST_PILLAR.get(), new SmashcastDustPillarParticle.Provider());

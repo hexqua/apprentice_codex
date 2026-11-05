@@ -1,5 +1,6 @@
 {
   "textures": [
-    "apprenticecodex:glow_square"
+    "apprenticecodex:glow_square_blur",
+    "apprenticecodex:glow_circle"
   ]
 }

@@ -6,7 +6,6 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.SpriteSet;
-import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.Mth;
@@ -16,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public final class PsychicDriveGauntletsSparkParticle extends TextureSheetParticle {
+public final class PsychicDriveGauntletsSparkParticle extends LayeredAdditiveParticle {
     private final float startSize;
     private final int initialLifetime;
     private boolean bounced;
@@ -35,7 +34,9 @@ public final class PsychicDriveGauntletsSparkParticle extends TextureSheetPartic
         hasPhysics = true;
         setSize(startSize * 2, startSize * 2);
         setParticleSpeed(xd, yd, zd);
-        pickSprite(sprites);
+        setLayerSprites(sprites);
+        roll = random.nextFloat() * Mth.TWO_PI;
+        oRoll = roll;
         alpha = 0.8F;
     }
 
