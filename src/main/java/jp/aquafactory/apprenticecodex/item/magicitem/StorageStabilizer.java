@@ -20,6 +20,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -117,7 +118,18 @@ public final class StorageStabilizer extends Item implements IPresetSpellContain
         }
 
         if (player instanceof ServerPlayer serverPlayer) {
-            tryOpenEnderChest(serverPlayer);
+            var sourceMenu = serverPlayer.containerMenu;
+            var server = serverPlayer.server;
+            // clicked の途中で menu を置換すると、元の menu の同期停止が解除されない。
+            // execute は server thread 上では即時実行されるため、必ずキューへ積む tell を使う。
+            server.tell(new TickTask(server.getTickCount(), () -> {
+                if (!serverPlayer.isAlive() || serverPlayer.hasDisconnected()
+                        || serverPlayer.containerMenu != sourceMenu
+                        || slot.getItem() != stack || !sourceMenu.getCarried().isEmpty()) {
+                    return;
+                }
+                tryOpenEnderChest(serverPlayer);
+            }));
         }
         return true;
     }
