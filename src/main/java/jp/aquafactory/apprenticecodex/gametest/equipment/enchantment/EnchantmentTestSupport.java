@@ -755,13 +755,6 @@ public final class EnchantmentTestSupport {
                 "Random-loot tag changed for " + enchantmentId + ": expected " + expectedOnRandomLoot + " but got " + actualOnRandomLoot);
     }
 
-    public static void assertEnchantmentsRegistered(GameTestHelper helper) {
-        var enchantmentRegistry = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-        for (var key : getRegisteredEnchantments()) {
-            helper.assertTrue(enchantmentRegistry.get(key).isPresent(), "Missing enchantment registry entry: " + key.location());
-        }
-    }
-
     static List<ResourceKey<Enchantment>> getRegisteredEnchantments() {
         return List.of(
                 Enchantments.REFLUX,

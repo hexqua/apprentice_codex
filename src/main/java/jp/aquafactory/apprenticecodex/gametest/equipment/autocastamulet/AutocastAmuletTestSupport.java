@@ -21,8 +21,6 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
 import static jp.aquafactory.apprenticecodex.gametest.support.SpellTestSupport.createSpellScroll;
 
-import static jp.aquafactory.apprenticecodex.gametest.support.SpellTestSupport.createSpellScroll;
-
 public final class AutocastAmuletTestSupport {
     private AutocastAmuletTestSupport() {}
 

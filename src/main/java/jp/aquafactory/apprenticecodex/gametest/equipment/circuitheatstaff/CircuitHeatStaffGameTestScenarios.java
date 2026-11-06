@@ -4,9 +4,7 @@ import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.magic.MagicHelper;
 import io.redspace.ironsspellbooks.api.magic.SpellSelectionManager;
-import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
-import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import java.util.List;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
@@ -22,9 +20,6 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.EquipmentSlotGroup;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
@@ -35,9 +30,6 @@ import net.neoforged.neoforge.common.NeoForge;
 
 import static jp.aquafactory.apprenticecodex.gametest.equipment.circuitheatstaff.CircuitHeatStaffBypassScenarios.createCircuitHeatStaffBypassTestContext;
 import static jp.aquafactory.apprenticecodex.gametest.equipment.circuitheatstaff.CircuitHeatStaffBypassScenarios.postCircuitHeatStaffSpellOnCastEvent;
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.assertExactEnchantmentSurfaces;
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.expectedCircuitHeatStaffEnchantments;
-import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.assertModifierAmount;
 import static jp.aquafactory.apprenticecodex.gametest.support.EntityTestSupport.placeWaterTestBasin;
 import static jp.aquafactory.apprenticecodex.gametest.support.EntityTestSupport.spawnItem;
 import static jp.aquafactory.apprenticecodex.gametest.support.EntityTestSupport.spawnNoGravityItem;
@@ -46,75 +38,6 @@ import static jp.aquafactory.apprenticecodex.gametest.support.SpellContainerTest
 
 final class CircuitHeatStaffGameTestScenarios {
     private CircuitHeatStaffGameTestScenarios() {
-    }
-
-    static void circuitHeatStaffKeepsExpectedStatsAndOverheatState(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.CIRCUIT_HEAT_STAFF.get());
-            var item = (CircuitHeatStaff) stack.getItem();
-            var modifiers = item.getDefaultAttributeModifiers(stack);
-
-            assertModifierAmount(
-                    helper,
-                    modifiers,
-                    Attributes.ATTACK_DAMAGE.value(),
-                    EquipmentSlotGroup.MAINHAND,
-                    3.0D,
-                    AttributeModifier.Operation.ADD_VALUE,
-                    "Circuit Heat Staff attack damage modifier changed"
-            );
-            assertModifierAmount(
-                    helper,
-                    modifiers,
-                    Attributes.ATTACK_SPEED.value(),
-                    EquipmentSlotGroup.MAINHAND,
-                    -3.0D,
-                    AttributeModifier.Operation.ADD_VALUE,
-                    "Circuit Heat Staff attack speed modifier changed"
-            );
-            assertModifierAmount(
-                    helper,
-                    modifiers,
-                    AttributeRegistry.SPELL_POWER.value(),
-                    EquipmentSlotGroup.MAINHAND,
-                    0.10D,
-                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                    "Circuit Heat Staff spell power modifier changed"
-            );
-            assertModifierAmount(
-                    helper,
-                    modifiers,
-                    AttributeRegistry.FIRE_SPELL_POWER.value(),
-                    EquipmentSlotGroup.MAINHAND,
-                    0.05D,
-                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                    "Circuit Heat Staff fire spell power modifier changed"
-            );
-            assertModifierAmount(
-                    helper,
-                    modifiers,
-                    AttributeRegistry.LIGHTNING_SPELL_POWER.value(),
-                    EquipmentSlotGroup.MAINHAND,
-                    0.05D,
-                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                    "Circuit Heat Staff lightning spell power modifier changed"
-            );
-            helper.assertFalse(ISpellContainer.isSpellContainer(stack),
-                    "Circuit Heat Staff should not expose an imbue spell container");
-
-            CircuitHeatStaff.startStaffOverheat(stack, helper.getLevel(), 20 * 45);
-            var remainingOverheatTicks = CircuitHeatStaff.getStaffOverheatRemainingTicks(stack, helper.getLevel());
-            helper.assertTrue(remainingOverheatTicks == 20 * 45,
-                    "Circuit Heat Staff item overheat should keep the requested duration: "
-                            + remainingOverheatTicks);
-
-            assertExactEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    expectedCircuitHeatStaffEnchantments(helper.getLevel().registryAccess(), stack),
-                    "Circuit Heat Staff"
-            );
-        });
     }
 
     public static void circuitHeatStaffClampsPersistedFutureItemOverheat(GameTestHelper helper) {

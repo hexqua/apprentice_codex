@@ -18,7 +18,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 
 import static jp.aquafactory.apprenticecodex.gametest.equipment.flask.FlaskScenarios.createFilledSpellcastersFlask;
 import static jp.aquafactory.apprenticecodex.gametest.support.SpellTestSupport.createSpellScroll;
-import static jp.aquafactory.apprenticecodex.gametest.support.SpellTestSupport.createSpellScroll;
 
 public final class ComparatorScenarios {
     private ComparatorScenarios() {}

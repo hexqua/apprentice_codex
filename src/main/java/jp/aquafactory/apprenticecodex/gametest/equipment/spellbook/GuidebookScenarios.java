@@ -30,7 +30,6 @@ import static jp.aquafactory.apprenticecodex.gametest.support.InventoryTestSuppo
 import static jp.aquafactory.apprenticecodex.gametest.support.SpellTestSupport.assertSpellData;
 import static jp.aquafactory.apprenticecodex.gametest.support.UpgradeTestSupport.createUpgradeData;
 import static jp.aquafactory.apprenticecodex.gametest.support.WorkbenchTestSupport.createInitializedPresetStack;
-import static jp.aquafactory.apprenticecodex.gametest.support.WorkbenchTestSupport.createInitializedPresetStack;
 
 final class GuidebookScenarios {
     private GuidebookScenarios() {}

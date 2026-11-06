@@ -12,8 +12,8 @@ public final class EquipmentGameTests {
     private EquipmentGameTests() {}
 
     @GameTest(template = "gametest/basic_floor")
-    public static void spellSideEdgeStartsWithEdgeDancerAndExpectedStats(GameTestHelper helper) {
-        SpellSideEdgeGameTestScenarios.spellSideEdgeStartsWithEdgeDancerAndExpectedStats(helper);
+    public static void spellSideEdgeStartsWithLockedEdgeDancerAndPassesRightClick(GameTestHelper helper) {
+        SpellSideEdgeGameTestScenarios.spellSideEdgeStartsWithLockedEdgeDancerAndPassesRightClick(helper);
     }
 
     @GameTest(template = "gametest/basic_floor")

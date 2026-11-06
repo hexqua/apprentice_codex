@@ -22,7 +22,6 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
 import static jp.aquafactory.apprenticecodex.gametest.support.PlayerTestSupport.createEquipmentTestPlayer;
 import static jp.aquafactory.apprenticecodex.gametest.support.SpellContainerTestSupport.setSingleUnlockedSpell;
-import static jp.aquafactory.apprenticecodex.gametest.support.SpellContainerTestSupport.setSingleUnlockedSpell;
 
 final class CircuitHeatStaffBypassScenarios {
     private CircuitHeatStaffBypassScenarios() {}

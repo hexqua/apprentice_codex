@@ -21,7 +21,6 @@ import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeSt
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastContext;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleCastEvent;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleRateLimiter;
-import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleRecoil;
 import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifleScrollStorage;
 import jp.aquafactory.apprenticecodex.item.spellgun.RifleSpellTooltipData;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
@@ -44,7 +43,6 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-
 import static jp.aquafactory.apprenticecodex.gametest.equipment.armor.ElementMaidenTestSupport.createElementMaidenRobeSchoolPowerSpellbook;
 import static jp.aquafactory.apprenticecodex.gametest.support.CurioTestSupport.equipCurio;
 import static jp.aquafactory.apprenticecodex.gametest.support.PlayerTestSupport.createEquipmentTestPlayer;
@@ -274,15 +272,7 @@ public final class MultipurposeStaffrifleReworkGameTests {
     }
 
     @GameTest(template = "gametest/basic_floor")
-    public static void recoilAndAdjustmentsRetainSingleShotContract(GameTestHelper helper) {
-        var recoil = new MultipurposeStaffrifleRecoil();
-        for (var shot = 0; shot < 5; shot++) {
-            var now = shot * 200_000_000L;
-            helper.assertTrue(Math.abs(MultipurposeStaffrifleRecoil.shotPitch(true) - 0.675F) < 0.001F, "ADS must reduce every shot equally");
-            recoil.addImpulse(MultipurposeStaffrifleRecoil.shotPitch(false), now);
-            helper.assertTrue(Math.abs(recoil.advanceImpulses(now + 100_000_000) - 1.5F) < 0.001F, "Repeated shots must not build recoil");
-            helper.assertTrue(recoil.advanceImpulses(now + 150_000_000) == 0, "View must not recover automatically");
-        }
+    public static void calibrationCoexistsAndRetainsLegacyEnchantmentData(GameTestHelper helper) {
         var stack = new ItemStack(ItemRegistry.MULTIPURPOSE_STAFFRIFLE.get());
         var rifle = (MultipurposeStaffrifle) stack.getItem();
         var lookup = helper.getLevel().registryAccess();

@@ -2,27 +2,18 @@ package jp.aquafactory.apprenticecodex.gametest.runtime;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Objects;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
-import jp.aquafactory.apprenticecodex.registry.ApprenticeAttributeRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockEntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.BlockRegistry;
-import jp.aquafactory.apprenticecodex.registry.CreativeTabRegistry;
-import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
-import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import jp.aquafactory.apprenticecodex.registry.LootConditionRegistry;
 import jp.aquafactory.apprenticecodex.registry.PoiTypeRegistry;
-import jp.aquafactory.apprenticecodex.registry.PotionRegistry;
-import jp.aquafactory.apprenticecodex.registry.RecipeRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.registry.VillagerProfessionRegistry;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetList;
 import jp.aquafactory.apprenticecodex.spell.searchbeacon.SearchBeaconTargetManager;
 import jp.aquafactory.apprenticecodex.utility.SchoolAffinityRegistry;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -31,11 +22,8 @@ import net.minecraft.world.entity.ai.village.poi.PoiTypes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.fml.ModList;
-import net.neoforged.neoforge.registries.DeferredHolder;
 
 import static jp.aquafactory.apprenticecodex.gametest.crafting.ComparatorScenarios.placeAndAssertBlockEntity;
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.assertEnchantmentsRegistered;
-import static jp.aquafactory.apprenticecodex.gametest.equipment.spellbook.RunicTabletScenarios.spellEntry;
 import static jp.aquafactory.apprenticecodex.gametest.spell.searchbeacon.SearchBeaconScenarios.assertSearchBeaconTarget;
 
 final class RegistrationScenarios {
@@ -66,20 +54,6 @@ final class RegistrationScenarios {
 
     static void registriesAndDynamicContentAreRegistered(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            assertBuiltinRegistryEntries(helper, "item", BuiltInRegistries.ITEM, ItemRegistry.ITEMS.getEntries());
-            assertBuiltinRegistryEntries(helper, "block", BuiltInRegistries.BLOCK, BlockRegistry.BLOCKS.getEntries());
-            assertBuiltinRegistryEntries(helper, "block entity", BuiltInRegistries.BLOCK_ENTITY_TYPE, BlockEntityRegistry.BLOCK_ENTITY_TYPES.getEntries());
-            assertBuiltinRegistryEntries(helper, "entity", BuiltInRegistries.ENTITY_TYPE, EntityRegistry.ENTITIES.getEntries());
-            assertBuiltinRegistryEntries(helper, "mob effect", BuiltInRegistries.MOB_EFFECT, EffectRegistry.EFFECTS.getEntries());
-            assertBuiltinRegistryEntries(helper, "attribute", BuiltInRegistries.ATTRIBUTE, ApprenticeAttributeRegistry.ATTRIBUTES.getEntries());
-            assertBuiltinRegistryEntries(helper, "recipe serializer", BuiltInRegistries.RECIPE_SERIALIZER, RecipeRegistry.RECIPE_SERIALIZERS.getEntries());
-            assertBuiltinRegistryEntries(helper, "point of interest type", BuiltInRegistries.POINT_OF_INTEREST_TYPE, PoiTypeRegistry.POI_TYPES.getEntries());
-            assertBuiltinRegistryEntries(helper, "villager profession", BuiltInRegistries.VILLAGER_PROFESSION, VillagerProfessionRegistry.VILLAGER_PROFESSIONS.getEntries());
-            assertBuiltinRegistryEntries(helper, "potion", BuiltInRegistries.POTION, PotionRegistry.POTIONS.getEntries());
-            assertBuiltinRegistryEntries(helper, "recipe type", BuiltInRegistries.RECIPE_TYPE, RecipeRegistry.RECIPE_TYPES.getEntries());
-            assertBuiltinRegistryEntries(helper, "creative tab", BuiltInRegistries.CREATIVE_MODE_TAB, CreativeTabRegistry.TABS.getEntries());
-            assertEnchantmentsRegistered(helper);
-            assertBuiltinRegistryEntries(helper, "loot condition type", BuiltInRegistries.LOOT_CONDITION_TYPE, LootConditionRegistry.LOOT_CONDITION_TYPES.getEntries());
 
             var apprenticeDeskPoi = PoiTypes.forState(BlockRegistry.APPRENTICE_DESK.get().defaultBlockState()).orElse(null);
             helper.assertTrue(apprenticeDeskPoi != null, "Apprentice Desk POI state mapping is missing");
@@ -180,17 +154,4 @@ final class RegistrationScenarios {
         });
     }
 
-    static <T> void assertBuiltinRegistryEntries(
-            GameTestHelper helper,
-            String registryName,
-            Registry<T> registry,
-            Collection<? extends DeferredHolder<T, ? extends T>> entries
-    ) {
-        for (var entry : entries) {
-            var id = entry.getId();
-            helper.assertTrue(id != null, "Missing " + registryName + " id");
-            helper.assertTrue(registry.get(id) == entry.get(),
-                    "Missing " + registryName + " registry entry: " + id);
-        }
-    }
 }

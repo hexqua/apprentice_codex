@@ -12,11 +12,6 @@ public final class EquipmentGameTests {
     private EquipmentGameTests() {}
 
     @GameTest(template = "gametest/basic_floor")
-    public static void goldSpellcasterGunImbuedSpellStaysRemovableAfterNormalization(GameTestHelper helper) {
-        EquipmentSpellGunGameTestScenarios.goldSpellcasterGunImbuedSpellStaysRemovableAfterNormalization(helper);
-    }
-
-    @GameTest(template = "gametest/basic_floor")
     public static void spellcasterGunRecastImbueRestrictionsMatchTier(GameTestHelper helper) {
         EquipmentSpellGunGameTestScenarios.spellcasterGunRecastImbueRestrictionsMatchTier(helper);
     }
@@ -27,13 +22,8 @@ public final class EquipmentGameTests {
     }
 
     @GameTest(template = "gametest/basic_floor")
-    public static void reflectcastShieldCastRestrictionsFollowCalibration(GameTestHelper helper) {
-        EquipmentSpellGunGameTestScenarios.reflectcastShieldCastRestrictionsFollowCalibration(helper);
-    }
-
-    @GameTest(template = "gametest/basic_floor")
-    public static void spellgunServerConfigDefaultsMatchBalanceValues(GameTestHelper helper) {
-        EquipmentSpellGunGameTestScenarios.spellgunServerConfigDefaultsMatchBalanceValues(helper);
+    public static void spellgunCooldownAdjustmentPreservesMinimumAndCastTime(GameTestHelper helper) {
+        EquipmentSpellGunGameTestScenarios.spellgunCooldownAdjustmentPreservesMinimumAndCastTime(helper);
     }
 
     @GameTest(template = "gametest/basic_floor")
@@ -52,11 +42,6 @@ public final class EquipmentGameTests {
     }
 
     @GameTest(template = "gametest/basic_floor")
-    public static void spellcasterGunsRemoveBaseSpellPowerButKeepSurge(GameTestHelper helper) {
-        EquipmentSpellGunGameTestScenarios.spellcasterGunsRemoveBaseSpellPowerButKeepSurge(helper);
-    }
-
-    @GameTest(template = "gametest/basic_floor")
     public static void spellcasterGunsAcceptOnlySilverSpellAmplifierCalibration(GameTestHelper helper) {
         EquipmentSpellGunGameTestScenarios.spellcasterGunsAcceptOnlySilverSpellAmplifierCalibration(helper);
     }
@@ -64,21 +49,6 @@ public final class EquipmentGameTests {
     @GameTest(template = "gametest/basic_floor")
     public static void spellcasterGunsKeepCalibrationBenchImbueOperationalAndSafe(GameTestHelper helper) {
         EquipmentSpellGunGameTestScenarios.spellcasterGunsKeepCalibrationBenchImbueOperationalAndSafe(helper);
-    }
-
-    @GameTest(template = "gametest/basic_floor")
-    public static void silverSpellAmplifierMovesAllSpellgunAttributesToOffhand(GameTestHelper helper) {
-        EquipmentSpellGunGameTestScenarios.silverSpellAmplifierMovesAllSpellgunAttributesToOffhand(helper);
-    }
-
-    @GameTest(template = "gametest/basic_floor")
-    public static void silverSpellAmplifierKeepsDualSpellgunModifiersIndependent(GameTestHelper helper) {
-        EquipmentSpellGunGameTestScenarios.silverSpellAmplifierKeepsDualSpellgunModifiersIndependent(helper);
-    }
-
-    @GameTest(template = "gametest/basic_floor")
-    public static void silverSpellAmplifierMovesUpgradeOrbModifiersToOffhand(GameTestHelper helper) {
-        EquipmentSpellGunGameTestScenarios.silverSpellAmplifierMovesUpgradeOrbModifiersToOffhand(helper);
     }
 
     @GameTest(template = "gametest/basic_floor")
@@ -104,11 +74,6 @@ public final class EquipmentGameTests {
     @GameTest(template = "gametest/basic_floor")
     public static void spellcasterGunTooltipsUseCommonOperationDescriptions(GameTestHelper helper) {
         EquipmentSpellGunGameTestScenarios.spellcasterGunTooltipsUseCommonOperationDescriptions(helper);
-    }
-
-    @GameTest(template = "gametest/basic_floor")
-    public static void spellcasterRoundTooltipsUseSharedKeys(GameTestHelper helper) {
-        EquipmentSpellGunGameTestScenarios.spellcasterRoundTooltipsUseSharedKeys(helper);
     }
 
     @GameTest(template = "gametest/basic_floor")
@@ -152,16 +117,6 @@ public final class EquipmentGameTests {
     }
 
     @GameTest(template = "gametest/basic_floor")
-    public static void multipurposeStaffrifleKeepsExpectedStats(GameTestHelper helper) {
-        MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleKeepsExpectedStats(helper);
-    }
-
-    @GameTest(template = "gametest/basic_floor")
-    public static void multipurposeStaffrifleTooltipShowsControlsBeforeShiftHint(GameTestHelper helper) {
-        MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleTooltipShowsControlsBeforeShiftHint(helper);
-    }
-
-    @GameTest(template = "gametest/basic_floor")
     public static void multipurposeStaffriflePreservesNormalCooldown(GameTestHelper helper) {
         MultipurposeStaffrifleGameTestScenarios.multipurposeStaffriflePreservesNormalCooldown(helper);
     }
@@ -169,11 +124,6 @@ public final class EquipmentGameTests {
     @GameTest(template = "gametest/basic_floor")
     public static void multipurposeStaffrifleRateLimitIgnoresLegacyPersistentNbt(GameTestHelper helper) {
         MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleRateLimitIgnoresLegacyPersistentNbt(helper);
-    }
-
-    @GameTest(template = "gametest/basic_floor")
-    public static void multipurposeStaffrifleUsesDedicatedAmmoAndCasingReturnPolicy(GameTestHelper helper) {
-        MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleUsesDedicatedAmmoAndCasingReturnPolicy(helper);
     }
 
     @GameTest(template = "gametest/basic_floor")
@@ -186,8 +136,4 @@ public final class EquipmentGameTests {
         MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleCastsAtZeroMana(helper);
     }
 
-    @GameTest(template = "gametest/basic_floor")
-    public static void multipurposeStaffrifleInstantCastConsumesAmmoAndAppliesCooldownPolicy(GameTestHelper helper) {
-        MultipurposeStaffrifleGameTestScenarios.multipurposeStaffrifleInstantCastConsumesAmmoAndAppliesCooldownPolicy(helper);
-    }
 }

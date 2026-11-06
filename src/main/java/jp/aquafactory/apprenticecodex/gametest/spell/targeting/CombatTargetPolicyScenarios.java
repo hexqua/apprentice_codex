@@ -17,8 +17,6 @@ import net.minecraft.world.phys.Vec3;
 
 import static jp.aquafactory.apprenticecodex.gametest.support.PlayerTestSupport.createEquipmentTestPlayer;
 
-import static jp.aquafactory.apprenticecodex.gametest.support.PlayerTestSupport.createEquipmentTestPlayer;
-
 final class CombatTargetPolicyScenarios {
     private CombatTargetPolicyScenarios() {}
 

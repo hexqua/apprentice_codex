@@ -12,7 +12,6 @@ import net.minecraft.world.item.Items;
 
 import static jp.aquafactory.apprenticecodex.gametest.support.PlayerTestSupport.createEquipmentTestPlayer;
 import static jp.aquafactory.apprenticecodex.gametest.support.SpellContainerTestSupport.setSingleUnlockedSpell;
-import static jp.aquafactory.apprenticecodex.gametest.support.SpellContainerTestSupport.setSingleUnlockedSpell;
 
 final class FocusStaffbowAmmoScenarios {
     private FocusStaffbowAmmoScenarios() {}

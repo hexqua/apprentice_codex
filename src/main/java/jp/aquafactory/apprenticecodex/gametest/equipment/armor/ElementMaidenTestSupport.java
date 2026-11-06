@@ -20,7 +20,6 @@ import net.minecraft.world.item.ItemStack;
 import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.describeModifiers;
 import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.sumModifierAmount;
 import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.toModifierMultimap;
-import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.toModifierMultimap;
 
 public final class ElementMaidenTestSupport {
     private ElementMaidenTestSupport() {}

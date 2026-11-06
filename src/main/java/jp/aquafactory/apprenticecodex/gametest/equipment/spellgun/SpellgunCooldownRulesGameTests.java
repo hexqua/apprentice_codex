@@ -11,7 +11,6 @@ import io.redspace.ironsspellbooks.capabilities.magic.RecastInstance;
 import io.redspace.ironsspellbooks.capabilities.magic.RecastResult;
 import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
 import io.redspace.ironsspellbooks.config.ServerConfigs;
-import java.util.Objects;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.item.WeaponImbueCooldownHelper;
@@ -31,7 +30,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-
+import java.util.Objects;
 import static jp.aquafactory.apprenticecodex.gametest.support.CurioTestSupport.equipRingCurio;
 import static jp.aquafactory.apprenticecodex.gametest.support.PlayerTestSupport.createEquipmentTestPlayer;
 
@@ -56,16 +55,24 @@ public final class SpellgunCooldownRulesGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "gametest/basic_floor")
+    @GameTest(template = "gametest/basic_floor", batch = "apprenticecodex.spellgun_config")
     public static void fullautoEquipmentOrderMatchesPreview(GameTestHelper helper) throws Exception {
         var spell = new LongEquipmentSpell();
         var stack = new ItemStack(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
         ModConfigSpec.IntValue threshold = ApprenticeCodexServerConfig.SPEC.getValues()
                 .get("Items.FullautoRapidcastSpellrifle.cooldownBypassThresholdTicks");
         int previousThreshold = threshold.get();
+        ModConfigSpec.IntValue reductionConfig = ApprenticeCodexServerConfig.SPEC.getValues()
+                .get("Items.FullautoRapidcastSpellrifle.cooldownReductionTicks");
+        ModConfigSpec.IntValue floor = ApprenticeCodexServerConfig.SPEC.getValues()
+                .get("Items.FullautoRapidcastSpellrifle.reducedCooldownMinimumTicks");
+        int previousReduction = reductionConfig.get();
+        int previousFloor = floor.get();
         double previousSword = ServerConfigs.SWORDS_CD_MULTIPLIER.get();
         try {
             threshold.set(0);
+            reductionConfig.set(17);
+            floor.set(7);
             for (int equipment = 0; equipment < 4; equipment++) {
                 var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "gun_cd_equipment_" + equipment);
                 var magic = MagicData.getPlayerMagicData(player);
@@ -78,6 +85,7 @@ public final class SpellgunCooldownRulesGameTests {
                     ServerConfigs.SWORDS_CD_MULTIPLIER.set(sword);
                     for (double reduction : new double[]{1, 1.5}) {
                         Objects.requireNonNull(player.getAttribute(AttributeRegistry.COOLDOWN_REDUCTION)).setBaseValue(reduction);
+                        Objects.requireNonNull(player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION)).setBaseValue(reduction);
                         int castTime = spell.getCastType() == CastType.LONG ? spell.getEffectiveCastTime(1, player) : 0;
                         int effective = WeaponImbueCooldownHelper.getEffectiveSpellCooldown(spell, player, CastSource.SWORD);
                         var event = new SpellCooldownAddedEvent.Pre(
@@ -88,15 +96,21 @@ public final class SpellgunCooldownRulesGameTests {
                         try (var ignored = FullautoRapidcastSpellrifleCastContext.open(player.getUUID(), stack, spell, false)) {
                             NeoForge.EVENT_BUS.post(event);
                         }
-                        int expected = FullautoCooldownPolicy.resolve(spell.getSpellCooldown(), effective, castTime);
+                        int combined = effective + castTime;
+                        int expected = Math.min(combined, Math.max(7, combined - 17));
                         helper.assertTrue(event.getEffectiveCooldown() == expected,
-                                "Fullauto event must match preview after equipment reduction: " + event.getEffectiveCooldown() + " != " + expected);
+                                "Fullauto event must apply non-default config after equipment and cast speed: " + event.getEffectiveCooldown() + " != " + expected);
+                        helper.assertTrue(((FullautoRapidcastSpellrifle) stack.getItem())
+                                        .resolveSpecialCooldownTicks(spell.getSpellCooldown(), effective, castTime) == expected,
+                                "Fullauto item preview must use the same server config");
                     }
                 }
                 magic.resetCastingState();
             }
         } finally {
             threshold.set(previousThreshold);
+            reductionConfig.set(previousReduction);
+            floor.set(previousFloor);
             ServerConfigs.SWORDS_CD_MULTIPLIER.set(previousSword);
         }
         helper.succeed();

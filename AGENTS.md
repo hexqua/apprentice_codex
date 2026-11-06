@@ -43,6 +43,7 @@
 .\scripts\use-java.ps1
 ./gradlew.bat runGameTestServer
 ```
+- 機能・計算の自動テストは原則として GameTest にまとめ、各 `runGameTestServer...` を対応構成のテスト一式を確認する入口とする。純粋計算もワールド状態に依存しない独立した GameTest とし、JUnit等の別基盤は単体での高速な反復実行が必要になった時点で、全件実行の入口を維持する方法も含めて再検討する。
 - optional MOD 連携 GameTest:
 ```powershell
 .\scripts\use-java.ps1

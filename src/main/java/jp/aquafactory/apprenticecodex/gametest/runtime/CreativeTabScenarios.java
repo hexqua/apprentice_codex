@@ -8,7 +8,6 @@ import jp.aquafactory.apprenticecodex.gametest.support.SpellTestSupport;
 import jp.aquafactory.apprenticecodex.registry.CreativeTabRegistry;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.resources.ResourceLocation;
 
 final class CreativeTabScenarios {
     private CreativeTabScenarios() {}

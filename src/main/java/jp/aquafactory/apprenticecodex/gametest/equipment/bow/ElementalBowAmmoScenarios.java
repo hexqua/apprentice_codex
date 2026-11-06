@@ -14,7 +14,6 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import static jp.aquafactory.apprenticecodex.gametest.equipment.bow.ElementalBowSelectionTestSupport.assertElementalBowSelection;
 import static jp.aquafactory.apprenticecodex.gametest.equipment.bow.ElementalBowSelectionTestSupport.setElementalBowShotSelection;
 import static jp.aquafactory.apprenticecodex.gametest.support.PlayerTestSupport.createEquipmentTestPlayer;
-import static jp.aquafactory.apprenticecodex.gametest.support.PlayerTestSupport.createEquipmentTestPlayer;
 
 final class ElementalBowAmmoScenarios {
     private ElementalBowAmmoScenarios() {}

@@ -38,7 +38,6 @@ import static jp.aquafactory.apprenticecodex.gametest.support.SpellTestSupport.c
 import static jp.aquafactory.apprenticecodex.gametest.support.TooltipTestSupport.assertTooltipTranslationKey;
 import static jp.aquafactory.apprenticecodex.gametest.support.UpgradeTestSupport.assertUpgradeable;
 import static jp.aquafactory.apprenticecodex.gametest.support.WorkbenchTestSupport.createSpellcasterWorkbenchMenuWithInputs;
-import static jp.aquafactory.apprenticecodex.gametest.support.WorkbenchTestSupport.createSpellcasterWorkbenchMenuWithInputs;
 
 public final class ArchivistsGrimoireScenarios {
     private ArchivistsGrimoireScenarios() {}

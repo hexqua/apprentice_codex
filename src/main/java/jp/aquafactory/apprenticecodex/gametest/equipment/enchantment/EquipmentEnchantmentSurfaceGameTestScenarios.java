@@ -106,7 +106,6 @@ import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.Ench
 import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.addExpectedMalumReplenishingIfPresent;
 import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.addExpectedMalumSpiritPlunderIfPresent;
 import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.allRegisteredEnchantmentIds;
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.assertApprenticeEnchantmentFlags;
 import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.assertCategoryEnchantments;
 import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.assertExactEnchantmentSurfaces;
 import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.collectAllowedEnchantments;
@@ -1344,27 +1343,6 @@ final class EquipmentEnchantmentSurfaceGameTestScenarios {
                 item -> item instanceof AlchemistsFlask,
                 expectedAlchemistsFlaskEnchantments()
         ));
-    }
-    static void apprenticeEnchantmentsKeepExpectedAcquisitionFlags(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            assertApprenticeEnchantmentFlags(helper, Enchantments.ALACRITY, false, true, true, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.REFLUX, false, true, true, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.RESERVOIR, false, true, true, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.SURGE, false, true, true, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.ATTUNEMENT, false, true, true, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.TENSE, false, true, true, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.WISDOM, false, true, true, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.PLUNDER, false, true, true, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.TRANSCENDENCE, true, false, true, true);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.GUZZLE, false, true, false, false);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.LARGE_MUG, false, true, false, false);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.RED_ENERGY, false, true, false, false);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.GLOW_ENERGY, false, true, false, false);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.SYNTHESIS, false, true, false, false);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.SHELL, false, true, false, false);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.SYNCHRONIZATION, false, true, false, false);
-            assertApprenticeEnchantmentFlags(helper, Enchantments.NEUTRALIZATION, false, true, false, false);
-        });
     }
     public static void randomApplicableBookEnchantmentsExcludeFlaskEnchantments(GameTestHelper helper) {
         helper.succeedIf(() -> {

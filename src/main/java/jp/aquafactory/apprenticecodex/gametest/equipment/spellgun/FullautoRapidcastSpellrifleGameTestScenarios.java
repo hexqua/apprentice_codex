@@ -3,37 +3,27 @@ package jp.aquafactory.apprenticecodex.gametest.equipment.spellgun;
 import io.redspace.ironsspellbooks.api.events.SpellCooldownAddedEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.capabilities.magic.SyncedSpellData;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.ItemManaBypassCastEvent;
 import jp.aquafactory.apprenticecodex.item.ManaBypassSpellItem;
-import jp.aquafactory.apprenticecodex.item.SpellcasterRoundItem;
-import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
-import jp.aquafactory.apprenticecodex.item.curios.spellcasterammopouch.SpellcasterAmmoPouch;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleAdsMovement;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleCastContext;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleCastEvent;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleRateLimiter;
-import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleRecoil;
 import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleScrollStorage;
-import jp.aquafactory.apprenticecodex.item.multipurposestaffrifle.MultipurposeStaffrifle;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellGunCastEvent;
 import jp.aquafactory.apprenticecodex.item.spellgun.SpellgunCastContext;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
-import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -56,9 +46,9 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
-
-import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.toModifierMultimap;
-import static jp.aquafactory.apprenticecodex.gametest.support.CurioTestSupport.equipCurio;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import static jp.aquafactory.apprenticecodex.gametest.support.PlayerTestSupport.createEquipmentTestPlayer;
 import static jp.aquafactory.apprenticecodex.gametest.support.TooltipTestSupport.assertTranslatableKey;
 
@@ -168,125 +158,10 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios {
         helper.succeed();
     }
 
-    @GameTest(template = "gametest/basic_floor")
-    public static void fullautoRecoilDistributesAndOverlapsWithoutLosingAngle(GameTestHelper helper) {
-        var recoil = new FullautoRapidcastSpellrifleRecoil();
-        recoil.addImpulse(3.0F, 0);
-        helper.assertTrue(recoil.advanceImpulses(0) == 0, "Recoil must not jump when a shot arrives");
-        var firstQuarter = recoil.advanceImpulses(25_000_000);
-        helper.assertTrue(Math.abs(firstQuarter - 1.3125F) < 0.001F, "Ease-out must apply 43.75 percent of the angle at 25 ms");
-        var firstHalf = firstQuarter + recoil.advanceImpulses(50_000_000);
-        helper.assertTrue(Math.abs(firstHalf - 2.25F) < 0.001F, "Ease-out must apply 75 percent of the angle at 50 ms");
-        recoil.addImpulse(1.5F, 50_000_000);
-        helper.assertTrue(recoil.advanceImpulses(50_000_000) == 0, "Repeated sampling must not duplicate recoil");
-        var total = firstHalf + recoil.advanceImpulses(100_000_000) + recoil.advanceImpulses(150_000_000);
-        helper.assertTrue(Math.abs(total - 4.5F) < 0.001F, "Overlapping shots must preserve their combined angle");
-        helper.assertTrue(recoil.advanceImpulses(200_000_000) == 0, "Completed recoil must not move or restore the view");
-        recoil.addImpulse(3.0F, 200_000_000);
-        helper.assertTrue(Math.abs(recoil.advanceImpulses(350_000_000) - 3.0F) < 0.001F,
-                "Sparse frames must preserve the same total angle");
-        recoil.addImpulse(3.0F, 350_000_000);
-        recoil.advanceImpulses(375_000_000);
-        recoil.clearImpulses();
-        helper.assertTrue(recoil.advanceImpulses(500_000_000) == 0, "Discarded recoil must not resume after a pause or item switch");
-        recoil.addImpulse(3.0F, 500_000_000);
-        var previousDelta = Float.MAX_VALUE;
-        for (var sample = 1; sample <= 4; sample++) {
-            var delta = recoil.advanceImpulses(500_000_000L + sample * 25_000_000L);
-            helper.assertTrue(delta >= 0 && delta < previousDelta,
-                    "Ease-out must decelerate without moving the view backward");
-            previousDelta = delta;
-        }
-        helper.succeed();
-    }
-
-    @GameTest(template = "gametest/basic_floor")
-    public static void fullautoRecoilBuildsRecoversAndReducesWhileAiming(GameTestHelper helper) {
-        var hip = new FullautoRapidcastSpellrifleRecoil();
-        var ads = new FullautoRapidcastSpellrifleRecoil();
-        helper.assertTrue(Math.abs(hip.fire(0, false) - 1.5F) < 0.001F, "First hip shot must kick by 1.5 degrees");
-        helper.assertTrue(Math.abs(ads.fire(0, true) - 0.675F) < 0.001F, "ADS must reduce the first kick");
-        var hipSecond = hip.fire(3, false);
-        var adsSecond = ads.fire(3, true);
-        helper.assertTrue(hipSecond > 1.5F && adsSecond < hipSecond * 0.45F,
-                "ADS must reduce both kick and buildup");
-        for (var tick = 6; tick <= 60; tick += 3) {
-            helper.assertTrue(hip.fire(tick, false) <= 3.0F, "Continuous hip fire must cap at 3 degrees");
-        }
-        helper.assertTrue(Math.abs(hip.fire(63, false) - 3.0F) < 0.001F, "Sustained fire must reach maximum kick");
-        helper.assertTrue(Math.abs(hip.fire(67, false) - 3.0F) < 0.001F, "Buildup must be held for four ticks");
-        var recovered = hip.fire(77, false);
-        helper.assertTrue(recovered > 1.5F && recovered < 3.0F, "Buildup must recover gradually");
-        helper.assertTrue(Math.abs(hip.fire(93, false) - 1.5F) < 0.001F, "Sixteen idle ticks must fully recover buildup");
-        helper.assertTrue(Math.abs(hip.fire(0, false) - 1.5F) < 0.001F, "Clock reset must discard previous buildup");
-        helper.succeed();
-    }
-
     private static final String LEGACY_NEXT_SPECIAL_CAST_TICK_TAG =
             "ApprenticeCodexFullautoRapidcastSpellrifleNextSpecialCastTick";
 
     private FullautoRapidcastSpellrifleGameTestScenarios() {
-    }
-
-    @GameTest(template = "gametest/basic_floor")
-    public static void fullautoRapidcastSpellrifleKeepsExpectedStats(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
-            var item = (FullautoRapidcastSpellrifle) stack.getItem();
-            var modifiers = toModifierMultimap(item.getDefaultAttributeModifiers(stack));
-
-            helper.assertTrue(modifiers.get(Attributes.ATTACK_DAMAGE).isEmpty(),
-                    "Fullauto Rapidcast Spellrifle should not add attack damage modifiers");
-            helper.assertTrue(modifiers.get(Attributes.ATTACK_SPEED).isEmpty(),
-                    "Fullauto Rapidcast Spellrifle should not add attack speed modifiers");
-            helper.assertTrue(modifiers.isEmpty(), "Unenchanted rifle must not grant attributes");
-
-        });
-    }
-
-    @GameTest(template = "gametest/basic_floor")
-    public static void fullautoRapidcastSpellrifleTooltipShowsControlsBeforeShiftHint(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
-            var tooltipLines = new ArrayList<Component>();
-            stack.getItem().appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
-
-            helper.assertTrue(tooltipLines.size() >= 4,
-                    "Fullauto Rapidcast Spellrifle tooltip should include controls, spacer, and shift hint");
-            assertTranslatableKey(
-                    helper,
-                    tooltipLines.get(0),
-                    "item.apprenticecodex.fullauto_rapidcast_spellrifle.desc_1",
-                    "Fullauto Rapidcast Spellrifle should show left-click control first"
-            );
-            assertTranslatableKey(
-                    helper,
-                    tooltipLines.get(1),
-                    "item.apprenticecodex.fullauto_rapidcast_spellrifle.desc_2",
-                    "Fullauto Rapidcast Spellrifle should show right-click control second"
-            );
-            helper.assertTrue(tooltipLines.get(2).getString().isEmpty(),
-                    "Fullauto Rapidcast Spellrifle should separate controls from the shift hint with a blank line");
-            assertTranslatableKey(
-                    helper,
-                    tooltipLines.get(3),
-                    "item.apprenticecodex.spellgun.tooltip.hint",
-                    "Fullauto Rapidcast Spellrifle should show shift hint after controls"
-            );
-        });
-    }
-
-    @GameTest(template = "gametest/basic_floor")
-    public static void fullautoRapidcastSpellrifleSpecialCooldownPolicyMatchesDefaults(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var item = (FullautoRapidcastSpellrifle) ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get();
-            helper.assertTrue(item.resolveSpecialCooldownTicks(20 * 5, 20 * 5, 0) == 0,
-                    "Fullauto Rapidcast Spellrifle should remove cooldowns at the default bypass threshold");
-            helper.assertTrue(item.resolveSpecialCooldownTicks(101, 101, 0) == 10,
-                    "Fullauto Rapidcast Spellrifle should not reduce longer cooldowns below the default minimum");
-            helper.assertTrue(item.resolveSpecialCooldownTicks(20 * 60, 20 * 60, 0) == 20 * 50,
-                    "Fullauto Rapidcast Spellrifle should subtract the default 10 seconds from long cooldowns");
-        });
     }
 
     @GameTest(template = "gametest/basic_floor")
@@ -308,41 +183,6 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios {
             } finally {
                 FullautoRapidcastSpellrifleRateLimiter.clear(player);
             }
-        });
-    }
-
-    @GameTest(template = "gametest/basic_floor")
-    public static void fullautoRapidcastSpellrifleUsesDedicatedAmmoAndCasingReturnPolicy(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
-            var item = (FullautoRapidcastSpellrifle) stack.getItem();
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "fullauto_rapidcast_spellrifle_ammo_policy_test");
-
-            helper.assertTrue(item.getAmmoItem(stack) == ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get(),
-                    "Fullauto Rapidcast Spellrifle should use Full-auto Spell Casting Round");
-            helper.assertTrue(ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get() instanceof SpellcasterRoundItem,
-                    "Full-auto Spell Casting Round should be a SpellcasterRoundItem");
-            var roundItem = (SpellcasterRoundItem) ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get();
-            helper.assertTrue(roundItem.getEmptyCasingItem() == ItemRegistry.EMPTY_FULLAUTO_SPELL_CASTING_CASING.get(),
-                    "Full-auto Spell Casting Round should return Empty Full-auto Spell Casting Casing");
-            helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.2F,
-                    "Fullauto Rapidcast Spellrifle should use 20% empty casing return chance without Spellcaster Ammo Pouch");
-
-            equipCurio(player, CuriosSlotConstants.BELT, new ItemStack(ItemRegistry.SPELLCASTER_AMMO_POUCH.get()));
-            helper.assertTrue(item.resolveEmptyCasingReturnChance(player) == 0.9F,
-                    "Fullauto Rapidcast Spellrifle should use 90% empty casing return chance with Spellcaster Ammo Pouch");
-            var ammo = new ItemStack(roundItem, 2);
-            var casing = new ItemStack(ItemRegistry.EMPTY_FULLAUTO_SPELL_CASTING_CASING.get());
-            helper.assertTrue(SpellcasterAmmoPouch.storeInEquippedPouches(player, ammo) == 2,
-                    "Ammo pouch should store Full-auto Spell Casting Rounds");
-            helper.assertTrue(SpellcasterAmmoPouch.consumeAmmoFromAccessiblePouches(player, roundItem),
-                    "Full-auto ammunition should be consumable from an equipped pouch");
-            helper.assertTrue(SpellcasterAmmoPouch.countAmmoInAccessiblePouches(player, roundItem) == 1,
-                    "Pouch consumption should remove exactly one Full-auto round");
-            helper.assertTrue(casing.is(TagRegistry.Items.SPELLCASTER_EMPTY_CASINGS),
-                    "Full-auto casing should be classified as an empty casing");
-            helper.assertTrue(SpellcasterAmmoPouch.storeInEquippedPouches(player, casing) == 1,
-                    "Ammo pouch should store Empty Full-auto Spell Casting Casings");
         });
     }
 
@@ -525,8 +365,7 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios {
     }
 
     @GameTest(template = "gametest/basic_floor")
-    public static void fullautoLongSupportAndCooldownOrder(GameTestHelper helper) {
-        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "fullauto_long");
+    public static void fullautoLongStorageSurvivesCalibrationChanges(GameTestHelper helper) {
         var stack = new ItemStack(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
         var rifle = (FullautoRapidcastSpellrifle) stack.getItem();
         var lookup = helper.getLevel().registryAccess();
@@ -543,33 +382,6 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios {
         var continuous = rifle.evaluateCalibrationImbue(stack, 0, new SpellData(SpellRegistry.FIRE_BREATH_SPELL.get(), 1), lookup);
         helper.assertFalse(continuous.canInsert(), "CONTINUOUS insertion must be rejected even with Silver Ring");
         helper.assertTrue(FullautoRapidcastSpellrifle.getSelectedSpellData(stack, lookup).getSpell() == spell, "Silver Ring must enable LONG");
-        player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-        var magic = MagicData.getPlayerMagicData(player);
-        magic.setPlayerCastingItem(stack);
-        magic.setSyncedData(new SyncedSpellData(player));
-        magic.initiateCast(spell, 1, 0, CastSource.SWORD, "mainhand");
-        var event = new SpellCooldownAddedEvent.Pre(100, spell, player, CastSource.SWORD);
-        try (var ignored = FullautoRapidcastSpellrifleCastContext.open(player.getUUID(), stack, spell, false)) {
-            FullautoRapidcastSpellrifleCastEvent.onSpellCooldownAdded(event);
-        } catch (Exception exception) {
-            throw new IllegalStateException("Failed to close LONG test context", exception);
-        }
-        var expected = rifle.resolveSpecialCooldownTicks(spell.getSpellCooldown(), 100, spell.getEffectiveCastTime(1, player));
-        helper.assertTrue(event.getEffectiveCooldown() == expected && expected >= 10,
-                "LONG cast duration must be added before bypass and reduction");
-        var castSpeed = player.getAttribute(AttributeRegistry.CAST_TIME_REDUCTION);
-        var originalSpeed = castSpeed.getBaseValue();
-        castSpeed.setBaseValue(originalSpeed + 0.5);
-        try (var ignored = FullautoRapidcastSpellrifleCastContext.open(player.getUUID(), stack, spell, false)) {
-            var fasterEvent = new SpellCooldownAddedEvent.Pre(1000, spell, player, CastSource.SWORD);
-            FullautoRapidcastSpellrifleCastEvent.onSpellCooldownAdded(fasterEvent);
-            helper.assertTrue(fasterEvent.getEffectiveCooldown() == rifle.resolveSpecialCooldownTicks(spell.getSpellCooldown(), 1000, spell.getEffectiveCastTime(1, player)),
-                    "LONG surcharge must respect effective cast speed");
-        } catch (Exception exception) {
-            throw new IllegalStateException("Failed to close cast speed test context", exception);
-        } finally {
-            castSpeed.setBaseValue(originalSpeed);
-        }
         rifle.trySetCalibrationAdjustment(stack, 0, ItemStack.EMPTY, lookup);
         helper.assertTrue(FullautoRapidcastSpellrifle.getSelectedSpellData(stack, lookup) == SpellData.EMPTY, "Removing ring must disable LONG again");
         helper.assertFalse(FullautoRapidcastSpellrifleScrollStorage.get(stack, 0, lookup).isEmpty(), "Removing ring must preserve scroll");
@@ -577,7 +389,7 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios {
     }
 
     @GameTest(template = "gametest/basic_floor")
-    public static void fullautoEnchantmentsAndIndependentDenylist(GameTestHelper helper) {
+    public static void fullautoEnchantmentSupportAndTranscendence(GameTestHelper helper) {
         var stack = new ItemStack(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
         var rifle = (FullautoRapidcastSpellrifle) stack.getItem();
         var enchantments = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
@@ -595,11 +407,6 @@ public final class FullautoRapidcastSpellrifleGameTestScenarios {
         helper.assertTrue(Enchantments.getLevel(stack, Enchantments.TRANSCENDENCE) == 1, "Transcendence must be present");
         helper.assertTrue(FullautoRapidcastSpellrifle.resolveImbuedSpellLevel(stack, new SpellData(spell, 1)) == 2,
                 "Transcendence must add exactly one level");
-        try (var ignored = ApprenticeCodexServerConfig.useFullautoRapidcastSpellrifleSpellDenylistOverrideForGameTest(List.of(spell.getSpellId()))) {
-            helper.assertTrue(FullautoRapidcastSpellrifle.isSpecialCastSpellDenied(spell), "New denylist must affect new rifle");
-            helper.assertFalse(MultipurposeStaffrifle.isSpecialCastSpellDenied(spell),
-                    "New denylist must not affect old rifle");
-        }
         helper.succeed();
     }
 

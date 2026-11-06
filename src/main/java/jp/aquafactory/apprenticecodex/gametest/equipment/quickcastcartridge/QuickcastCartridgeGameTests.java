@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.gametest.equipment.spellgun;
+package jp.aquafactory.apprenticecodex.gametest.equipment.quickcastcartridge;
 
 import io.redspace.ironsspellbooks.api.events.SpellPreCastEvent;
 import io.redspace.ironsspellbooks.api.magic.MagicData;

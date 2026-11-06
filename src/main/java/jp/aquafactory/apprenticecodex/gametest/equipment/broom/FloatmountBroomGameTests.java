@@ -119,26 +119,6 @@ public final class FloatmountBroomGameTests {
     private FloatmountBroomGameTests() {
     }
 
-    @GameTest(template = TEMPLATE)
-    public static void registrationsResolveDedicatedTypes(GameTestHelper helper) {
-        helper.assertTrue(ItemRegistry.FLOATMOUNT_BROOM.get() instanceof FloatmountBroomItem,
-                "Floatmount Broom item should use its dedicated implementation");
-        var broom = EntityRegistry.FLOATMOUNT_BROOM.get().create(helper.getLevel());
-        helper.assertTrue(broom instanceof FloatmountBroomEntity,
-                "Floatmount Broom entity type should create its dedicated entity");
-        helper.succeed();
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void hoverrideRegistrationsResolveDedicatedTypes(GameTestHelper helper) {
-        helper.assertTrue(ItemRegistry.HOVERRIDE_BROOM.get() instanceof HoverrideBroomItem,
-                "Hoverride Broom item should use its dedicated implementation");
-        var broom = EntityRegistry.HOVERRIDE_BROOM.get().create(helper.getLevel());
-        helper.assertTrue(broom instanceof HoverrideBroomEntity,
-                "Hoverride Broom entity type should create its dedicated entity");
-        helper.succeed();
-    }
-
     @GameTest(template = TEMPLATE, timeoutTicks = 90)
     public static void mountedFloatmountRepeatedlyEmitsFlightVibrationWhileStationary(GameTestHelper helper) {
         var broom = spawnBroom(helper, 1.5D);

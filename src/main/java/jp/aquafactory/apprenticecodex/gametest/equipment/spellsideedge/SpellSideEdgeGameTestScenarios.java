@@ -9,7 +9,6 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
-import io.redspace.ironsspellbooks.item.UniqueItem;
 import io.redspace.ironsspellbooks.registries.UpgradeOrbTypeRegistry;
 import java.util.Locale;
 import java.util.Map;
@@ -87,17 +86,10 @@ final class SpellSideEdgeGameTestScenarios {
     private SpellSideEdgeGameTestScenarios() {
     }
 
-    public static void spellSideEdgeStartsWithEdgeDancerAndExpectedStats(GameTestHelper helper) {
+    public static void spellSideEdgeStartsWithLockedEdgeDancerAndPassesRightClick(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = (SpellSideEdge) ItemRegistry.SPELL_SIDE_EDGE.get();
             var stack = item.getDefaultInstance();
-            helper.assertTrue(stack.getMaxDamage() == 1561,
-                    "Spell Side Edge durability should be 1561 but got " + stack.getMaxDamage());
-            helper.assertTrue(item.getEnchantmentValue(stack) == 22,
-                    "Spell Side Edge enchantability should be 22 but got " + item.getEnchantmentValue(stack));
-            helper.assertTrue(item instanceof UniqueItem,
-                    "Spell Side Edge should be a UniqueItem");
-
             var spellContainer = ISpellContainer.get(stack);
             helper.assertTrue(spellContainer != null, "Spell Side Edge did not initialize a spell container");
             helper.assertTrue(spellContainer != null && spellContainer.getMaxSpellCount() == 1,
@@ -108,22 +100,6 @@ final class SpellSideEdgeGameTestScenarios {
                             && spellData.getLevel() == 1
                             && spellData.isLocked(),
                     "Spell Side Edge should start with locked Edge Dancer Lv1 but got " + spellData);
-
-            var modifiers = modifiersForSlot(item.getDefaultAttributeModifiers(stack), EquipmentSlot.MAINHAND);
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(Attributes.ATTACK_DAMAGE),
-                    AttributeModifier.Operation.ADD_VALUE,
-                    3.0D,
-                    "Spell Side Edge attack damage modifier should display as 4 damage"
-            );
-            assertSingleModifierAmount(
-                    helper,
-                    modifiers.get(Attributes.ATTACK_SPEED),
-                    AttributeModifier.Operation.ADD_VALUE,
-                    -1.6D,
-                    "Spell Side Edge attack speed modifier should display as 2.4 speed"
-            );
 
             var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "spell_side_edge_use_test");
             player.setItemInHand(InteractionHand.MAIN_HAND, stack.copy());

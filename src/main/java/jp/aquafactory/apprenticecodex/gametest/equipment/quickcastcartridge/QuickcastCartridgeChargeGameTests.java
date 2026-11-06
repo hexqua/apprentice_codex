@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.gametest.equipment.spellgun;
+package jp.aquafactory.apprenticecodex.gametest.equipment.quickcastcartridge;
 
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
@@ -24,6 +24,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.gametest.framework.GameTestInfo;
+import net.minecraft.gametest.framework.GameTestListener;
+import net.minecraft.gametest.framework.GameTestRunner;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.level.ServerPlayer;
@@ -66,7 +69,7 @@ public final class QuickcastCartridgeChargeGameTests {
             }
         };
         manual.setPos(helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 2, 0))));
-        preparePlayer(manual, 1000);
+        preparePlayer(helper, manual, 1000);
         var early = prepare(helper, "reload_early_fx", 10);
         var tied = prepare(helper, "reload_tied_fx", 1000);
         var interrupted = prepare(helper, "reload_stop_fx", 10);
@@ -167,7 +170,7 @@ public final class QuickcastCartridgeChargeGameTests {
 
     private static FakePlayer prepare(GameTestHelper helper, String name, long wait) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), name);
-        return preparePlayer(player, wait);
+        return preparePlayer(helper, player, wait);
     }
 
     private static FakePlayer prepareDamageable(GameTestHelper helper, String name) {
@@ -185,11 +188,24 @@ public final class QuickcastCartridgeChargeGameTests {
             throw new IllegalStateException("Failed to disable spawn protection for GameTest", exception);
         }
         player.setPos(helper.absoluteVec(Vec3.atBottomCenterOf(new BlockPos(0, 2, 0))));
-        return preparePlayer(player, 1000);
+        return preparePlayer(helper, player, 1000);
     }
 
     private static FakePlayer preparePlayer(
-            FakePlayer player, long wait) {
+            GameTestHelper helper, FakePlayer player, long wait) {
+        // 最終callbackへ到達しないassertion失敗やtimeoutでも予約・再装填の共有状態を残さない。
+        helper.testInfo.addListener(new GameTestListener() {
+            @Override public void testStructureLoaded(GameTestInfo test) {}
+            @Override public void testPassed(GameTestInfo test, GameTestRunner runner) {
+                QuickcastCartridgeCharge.forget(player);
+            }
+            @Override public void testFailed(GameTestInfo test, GameTestRunner runner) {
+                QuickcastCartridgeCharge.forget(player);
+            }
+            @Override public void testAddedForRerun(GameTestInfo previous, GameTestInfo next, GameTestRunner runner) {
+                QuickcastCartridgeCharge.forget(player);
+            }
+        });
         var stack = new ItemStack(ItemRegistry.QUICKCAST_SCROLL_CARTRIDGE.get());
         QuickcastScrollCartridge.setCalibrationScroll(stack, 0, createSpellScroll(SpellRegistry.MAGIC_MISSILE_SPELL.get()));
         equipCurio(player, "back", stack);
@@ -291,14 +307,6 @@ public final class QuickcastCartridgeChargeGameTests {
 
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void chargeTimeAndPersistence(GameTestHelper helper) {
-        helper.assertTrue(QuickcastCartridgeChargeState.recoveryTicks(101, 1.5, 60) == 152,
-                "Recovery must ceil the scaled full cooldown");
-        helper.assertTrue(QuickcastCartridgeChargeState.recoveryTicks(0, 1, 60) == 60,
-                "Recovery must respect the minimum");
-        helper.assertTrue(QuickcastCartridgeChargeState.recoveryTicks(Integer.MAX_VALUE, Double.MAX_VALUE, 60) == Long.MAX_VALUE,
-                "Recovery multiplication must saturate");
-        helper.assertTrue(QuickcastCartridgeChargeState.addTime(Long.MAX_VALUE - 1, 60) == Long.MAX_VALUE,
-                "Recovery timestamp addition must saturate");
         var player = prepare(helper, "cartridge_saved", 500);
         long until = QuickcastCartridgeCharge.state(player).recoveryUntil();
         var saved = Capabilities.getSpellDataOrNull(player).saveAll();

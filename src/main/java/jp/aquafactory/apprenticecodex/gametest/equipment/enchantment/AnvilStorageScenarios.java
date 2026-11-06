@@ -13,7 +13,6 @@ import net.minecraft.world.item.enchantment.Enchantments;
 
 import static jp.aquafactory.apprenticecodex.gametest.support.PlayerTestSupport.createEquipmentTestPlayer;
 import static jp.aquafactory.apprenticecodex.gametest.support.SpellTestSupport.createSpellScroll;
-import static jp.aquafactory.apprenticecodex.gametest.support.SpellTestSupport.createSpellScroll;
 
 final class AnvilStorageScenarios {
     private AnvilStorageScenarios() {}
