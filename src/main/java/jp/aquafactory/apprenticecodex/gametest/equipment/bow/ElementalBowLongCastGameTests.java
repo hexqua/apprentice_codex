@@ -12,6 +12,7 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.capabilities.magic.TargetEntityCastData;
 import io.redspace.ironsspellbooks.compat.Curios;
 import io.redspace.ironsspellbooks.registries.DataAttachmentRegistry;
 import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
@@ -59,6 +60,7 @@ import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.network.registration.NetworkRegistry;
 import net.neoforged.neoforge.network.registration.NetworkRegistry;
 
 @GameTestHolder(ApprenticeCodex.MODID)
@@ -375,14 +377,19 @@ public final class ElementalBowLongCastGameTests {
         var target = EntityType.ZOMBIE.create(h.getLevel());
         target.setNoAi(true);
         target.setNoGravity(true);
-        target.setPos(player.position().add(0, 0, 5));
+        // 水平位置を5×5のtemplate内に保ち、配置先chunkによる検索対象の登録漏れを避ける。
+        target.setPos(player.position().add(0, 0, 1.5));
         target.addEffect(new MobEffectInstance(MobEffectRegistry.GUIDING_BOLT, 200));
         h.getLevel().addFreshEntity(target);
+        h.assertTrue(h.getLevel().isPositionEntityTicking(target.blockPosition()),
+                "Target lock fixture must remain in an entity-ticking chunk");
         begin(h, player, hand);
         var captured = magic.getAdditionalCastData();
         h.assertTrue(captured != null, "Drawing must create targeting data before release");
         if (captured instanceof LunarAimCastData lunar) h.assertTrue(target.getUUID().equals(lunar.targetId()), "Lunar Aim must lock at draw start");
         if (captured instanceof SacredArrowCastData sacred) h.assertTrue(target.getUUID().equals(sacred.targetId()), "Sacred Arrow must lock at draw start");
+        if (captured instanceof TargetEntityCastData targeted) h.assertTrue(target.getUUID().equals(targeted.getTargetUUID()),
+                "Precondition targeting must lock the fixture target at draw start");
         player.setYRot(180);
         int ticks = ElementalBow.resolveMagicRequiredDrawTicks(stack) + 10;
         long startedAt = h.getLevel().getGameTime();
