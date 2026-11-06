@@ -1,8 +1,10 @@
 package jp.aquafactory.apprenticecodex.gametest;
 
 import com.mojang.authlib.GameProfile;
+import io.netty.channel.embedded.EmbeddedChannel;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.magicitem.StorageStabilizer;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
@@ -10,12 +12,21 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.Connection;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.TextColor;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
+import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.inventory.ClickAction;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -24,8 +35,10 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.neoforge.network.registration.NetworkRegistry;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.OptionalInt;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -63,17 +76,90 @@ public final class StorageStabilizerGameTests {
         );
 
         helper.assertTrue(handled, "Storage Stabilizer inventory secondary click should be handled");
-        helper.assertTrue(player.containerMenu instanceof ChestMenu chestMenu && chestMenu.getRowCount() == 3,
-                "Storage Stabilizer inventory secondary click should open a vanilla three-row chest menu");
-        helper.assertTrue(player.containerMenu.getSlot(0).getItem().is(Items.DIAMOND),
-                "Storage Stabilizer menu should use the player's Ender Chest inventory");
-        helper.assertTrue(magicData.getMana() == 10.0F,
-                "Storage Stabilizer should consume the configured Summon Ender Chest mana cost");
-        helper.assertFalse(magicData.isCasting(),
-                "Storage Stabilizer inventory Ender Chest should not start a spell cast");
-        helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(enderChestSpell),
-                "Storage Stabilizer should ignore and preserve an existing Summon Ender Chest cooldown");
-        helper.succeed();
+        helper.assertTrue(player.containerMenu == player.inventoryMenu,
+                "Storage Stabilizer should defer opening until the inventory click has completed");
+        helper.runAfterDelay(2, () -> {
+            helper.assertTrue(player.containerMenu instanceof ChestMenu chestMenu && chestMenu.getRowCount() == 3,
+                    "Storage Stabilizer inventory secondary click should open a vanilla three-row chest menu");
+            helper.assertTrue(player.containerMenu.getSlot(0).getItem().is(Items.DIAMOND),
+                    "Storage Stabilizer menu should use the player's Ender Chest inventory");
+            helper.assertTrue(magicData.getMana() == 10.0F,
+                    "Storage Stabilizer should consume the configured Summon Ender Chest mana cost");
+            helper.assertFalse(magicData.isCasting(),
+                    "Storage Stabilizer inventory Ender Chest should not start a spell cast");
+            helper.assertTrue(magicData.getPlayerCooldowns().isOnCooldown(enderChestSpell),
+                    "Storage Stabilizer should ignore and preserve an existing Summon Ender Chest cooldown");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void inventoryClickPacketPreservesSlotSynchronizationAfterClosing(GameTestHelper helper) {
+        var profile = new GameProfile(UUID.randomUUID(), "storage_stabilizer_sync_test");
+        var cookie = CommonListenerCookie.createInitial(profile, false);
+        var player = new ServerPlayer(helper.getLevel().getServer(), helper.getLevel(), profile, cookie.clientInformation());
+        var connection = new Connection(PacketFlow.SERVERBOUND);
+        var channel = new EmbeddedChannel(connection);
+        NetworkRegistry.configureMockConnection(connection);
+        var packets = new ArrayList<Packet<?>>();
+        new ServerGamePacketListenerImpl(helper.getLevel().getServer(), connection, player, cookie) {
+            @Override
+            public void send(Packet<?> packet) {
+                packets.add(packet);
+            }
+        };
+        player.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
+        player.getInventory().setItem(SOURCE_SLOT, new ItemStack(ItemRegistry.STORAGE_STABILIZER.get()));
+        MagicData.getPlayerMagicData(player).setMana(StorageStabilizer.getEnderChestManaCost() + 10.0F);
+        player.initInventoryMenu();
+
+        // item hook の直呼びでは、vanilla が同期を停止・再開する間の menu 置換を検出できない。
+        var menu = player.inventoryMenu;
+        var sourceMenuSlot = menu.findSlot(player.getInventory(), SOURCE_SLOT).orElseThrow();
+        player.connection.handleContainerClick(new ServerboundContainerClickPacket(
+                menu.containerId, menu.getStateId(), sourceMenuSlot, 1, ClickType.PICKUP,
+                ItemStack.EMPTY, new Int2ObjectOpenHashMap<>()
+        ));
+        helper.runAfterDelay(2, () -> {
+            try {
+                helper.assertTrue(player.containerMenu instanceof ChestMenu,
+                        "Inventory click packet should open the Ender Chest after the click completes");
+                player.doCloseContainer();
+                helper.assertTrue(player.containerMenu == menu,
+                        "Closing the Ender Chest should restore the original inventory menu");
+                packets.clear();
+                player.getInventory().setItem(9, new ItemStack(Items.DIAMOND));
+                menu.broadcastChanges();
+                var targetMenuSlot = menu.findSlot(player.getInventory(), 9).orElseThrow();
+                helper.assertTrue(packets.stream().anyMatch(packet ->
+                                packet instanceof ClientboundContainerSetSlotPacket update
+                                        && update.getContainerId() == menu.containerId
+                                        && update.getSlot() == targetMenuSlot && update.getItem().is(Items.DIAMOND)),
+                        "Inventory changes after closing the Ender Chest must still send slot update packets");
+                helper.succeed();
+            } finally {
+                channel.finishAndReleaseAll();
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void deferredInventoryOpenRejectsRemovedSource(GameTestHelper helper) {
+        var player = new MenuTrackingFakePlayer(helper, new BlockPos(0, 2, 0));
+        var stabilizer = new ItemStack(ItemRegistry.STORAGE_STABILIZER.get());
+        player.getInventory().setItem(SOURCE_SLOT, stabilizer);
+        var initialMana = StorageStabilizer.getEnderChestManaCost() + 10.0F;
+        MagicData.getPlayerMagicData(player).setMana(initialMana);
+        stabilizer.getItem().overrideOtherStackedOnMe(stabilizer, ItemStack.EMPTY,
+                new Slot(player.getInventory(), SOURCE_SLOT, 0, 0), ClickAction.SECONDARY, player, SlotAccess.NULL);
+        player.getInventory().setItem(SOURCE_SLOT, new ItemStack(Items.STICK));
+        helper.runAfterDelay(2, () -> {
+            helper.assertTrue(player.containerMenu == player.inventoryMenu,
+                    "Deferred opening must reject a source item removed before execution");
+            helper.assertTrue(MagicData.getPlayerMagicData(player).getMana() == initialMana,
+                    "Rejected deferred opening must not consume mana");
+            helper.succeed();
+        });
     }
 
     private static final class MenuTrackingFakePlayer extends FakePlayer {
@@ -85,6 +171,11 @@ public final class StorageStabilizerGameTests {
             gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
             var absolutePos = helper.absoluteVec(Vec3.atBottomCenterOf(pos));
             setPos(absolutePos.x, absolutePos.y, absolutePos.z);
+        }
+
+        @Override
+        public boolean hasDisconnected() {
+            return false;
         }
 
         @Override
