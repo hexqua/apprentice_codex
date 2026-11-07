@@ -143,6 +143,10 @@ public final class CreateGameTestHooks {
         asHarness(harness).context.disabled = disabled;
     }
 
+    public static CompoundTag copySpellDispenserData(Object harness) {
+        return asHarness(harness).context.blockEntityData.copy();
+    }
+
     public static boolean hasRunningContinuousCast(Object harness) {
         return SpellDispenserMovementBehaviour.hasRunningContinuousCast(asHarness(harness).context);
     }
