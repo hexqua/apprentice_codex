@@ -1,17 +1,13 @@
-package jp.aquafactory.apprenticecodex.gametest.spell.targeting;
+package jp.aquafactory.apprenticecodex.gametest.spell.targeting.aim;
 
-import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
-import java.util.Objects;
-import java.util.UUID;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.Blocks;
@@ -22,30 +18,16 @@ import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
+import static jp.aquafactory.apprenticecodex.gametest.spell.targeting.aim.AimTestSupport.*;
+
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
 @SuppressWarnings("unused")
 public final class RaycastAimAssistGameTests {
-    private static final String TEMPLATE = "gametest/basic_floor";
 
-    private RaycastAimAssistGameTests() {}
-
-    private static FakePlayer player(GameTestHelper helper) {
-        var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "aim_assist_test"));
-        player.setPos(helper.absoluteVec(new BlockPos(4, 18, 1).getCenter()));
-        player.setYRot(0);
-        player.setXRot(0);
-        return player;
+    private RaycastAimAssistGameTests() {
     }
 
-    private static Zombie target(GameTestHelper helper, FakePlayer player, Vec3 offset) {
-        var target = Objects.requireNonNull(EntityType.ZOMBIE.create(helper.getLevel()));
-        target.setNoAi(true);
-        target.setNoGravity(true);
-        target.setPos(player.position().add(offset));
-        helper.getLevel().addFreshEntity(target);
-        return target;
-    }
 
     @GameTest(template = TEMPLATE)
     public static void legacyWidthDoesNotWidenFinalHitAndKeepsImpactRules(GameTestHelper helper) {
@@ -58,13 +40,13 @@ public final class RaycastAimAssistGameTests {
                 helper.assertTrue(RaycastTools.raycast(player, forward, 8, width, e -> e == target).hitEntity() == null,
                         "Legacy candidate widths must not widen the fixed final hit margin");
             }
-            target.setPos(player.position().add(0.5, 0, 5));
+            move(helper, target, player.position().add(0.5, 0, 5));
             var fallback = RaycastTools.raycast(player, forward, 8, 1, e -> e == target);
             helper.assertTrue(fallback.hitEntity() == target
                             && fallback.hitPosition().distanceToSqr(target.getBoundingBox().getCenter()) < 1.0E-8,
                     "Legacy fixed 0.3 hit margin must retain its center fallback outside the 0.1 impact box: result="
                             + fallback + ", box=" + target.getBoundingBox() + ", eye=" + player.getEyePosition());
-            target.setPos(player.position().add(0, 0, 5));
+            move(helper, target, player.position().add(0, 0, 5));
             var direct = RaycastTools.raycast(player, forward, 8, 1, e -> e == target);
             helper.assertTrue(direct.hitEntity() == target
                             && Math.abs(direct.hitPosition().z - (target.getBoundingBox().minZ - 0.1)) < 1.0E-6,
@@ -73,7 +55,7 @@ public final class RaycastAimAssistGameTests {
             var pos = player.position();
             player.setBoundingBox(new AABB(pos.x - 0.01, pos.y, pos.z - 0.01,
                     pos.x + 0.01, pos.y + 2, pos.z + 0.01));
-            target.setPos(pos.add(0.5, 0, 5));
+            move(helper, target, pos.add(0.5, 0, 5));
             helper.assertTrue(RaycastTools.raycast(player, forward, 8, 0.1, e -> e == target).hitEntity() == null
                             && RaycastTools.raycast(player, forward, 8, 4, e -> e == target).hitEntity() == target,
                     "Legacy width must still control candidate inclusion");
@@ -93,10 +75,10 @@ public final class RaycastAimAssistGameTests {
             var wide = RaycastTools.raycastFromEyeWithAimAssist(player, 8, 4, e -> e == target);
             helper.assertTrue(wide.hitEntity() == target && target.getBoundingBox().contains(wide.hitPosition()),
                     "Wide aim assist must capture the offset target and return a point inside its actual box");
-            target.setPos(player.position().add(3, 0, 5));
+            move(helper, target, player.position().add(3, 0, 5));
             helper.assertTrue(RaycastTools.raycastFromEyeWithAimAssist(player, 8, 4, e -> e == target).hitEntity() == null,
                     "Targets outside the assist width must remain misses");
-            target.setPos(player.position());
+            move(helper, target, player.position());
             helper.assertTrue(RaycastTools.raycastFromEyeWithAimAssist(player, 8, 1, e -> e == target).hitEntity() == target,
                     "Aim assist must handle an eye starting inside the target");
         } finally {
@@ -113,7 +95,7 @@ public final class RaycastAimAssistGameTests {
         try {
             helper.assertTrue(RaycastTools.raycastFromEyeWithAimAssist(player, 8, 4, e -> e == target).hitEntity() == null,
                     "An inflated box entering range must not capture an out-of-range target");
-            target.setPos(player.position().add(0, 0, 5));
+            move(helper, target, player.position().add(0, 0, 5));
             helper.getLevel().setBlockAndUpdate(wall, Blocks.STONE.defaultBlockState());
             var blocked = RaycastTools.raycastFromEyeWithAimAssist(player, 8, 4, e -> e == target);
             helper.assertTrue(blocked.hitType() == RaycastTools.TargetType.BLOCK,
@@ -177,7 +159,7 @@ public final class RaycastAimAssistGameTests {
                 + ", entityTicking=" + level.isPositionEntityTicking(target.blockPosition())
                 + ", uuidTracked=" + (level.getEntity(target.getUUID()) == target)
                 + ", spatiallyQueryable=" + level.getEntitiesOfClass(Zombie.class,
-                        target.getBoundingBox(), entity -> entity == target).contains(target)
+                target.getBoundingBox(), entity -> entity == target).contains(target)
                 + ", centerSight=" + centerSight;
     }
 
@@ -189,7 +171,7 @@ public final class RaycastAimAssistGameTests {
         var forward = player.getViewVector(1).normalize();
         var right = forward.cross(new Vec3(0, 1, 0)).normalize();
         var target = target(helper, player, Vec3.ZERO);
-        target.setPos(player.getEyePosition().add(forward.scale(5)).add(right.scale(1)).add(0, -0.9, 0));
+        move(helper, target, player.getEyePosition().add(forward.scale(5)).add(right.scale(1)).add(0, -0.9, 0));
         try {
             helper.assertTrue(RaycastTools.raycastFromEyeWithAimAssist(player, 8, 4, e -> e == target).hitEntity() == target,
                     "Aim assist must also capture offset targets along a diagonal upward view");

@@ -1,0 +1,81 @@
+package jp.aquafactory.apprenticecodex.gametest.spell.targeting.combat;
+
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.gametest.spell.targeting.support.TargetingTestFixture;
+import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import net.minecraft.core.BlockPos;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+
+@GameTestHolder(ApprenticeCodex.MODID)
+@PrefixGameTestTemplate(false)
+public final class DamageKnockbackGameTests {
+    private static final String TEMPLATE = "gametest/combat_queries";
+
+    private DamageKnockbackGameTests() {
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void failedNoKnockbackDamageDoesNotSuppressLaterKnockback(GameTestHelper helper) {
+        try (var scope = TargetingTestFixture.of(helper)) {
+            var target = scope.track(helper.spawn(EntityType.ZOMBIE, new BlockPos(8, 4, 8)));
+            target.setNoAi(true);
+            target.setNoGravity(true);
+            scope.assertVisible(target);
+            target.setInvulnerable(true);
+
+            var applied = CombatTools.applyDamage(
+                    target,
+                    2.0F,
+                    helper.getLevel().damageSources().generic(),
+                    null,
+                    CombatTools.KnockbackTypes.NO_KNOCKBACK
+            );
+            helper.assertFalse(applied, "Invulnerable target should reject test damage");
+
+            target.setInvulnerable(false);
+            target.setDeltaMovement(Vec3.ZERO);
+            target.knockback(0.5D, 1.0D, 0.0D);
+            helper.assertTrue(
+                    target.getDeltaMovement().horizontalDistanceSqr() > 1.0e-8D,
+                    "Failed no-knockback damage should not suppress a later knockback"
+            );
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = TEMPLATE)
+    public static void successfulNoKnockbackDamageSuppressesOnlyDamageKnockback(GameTestHelper helper) {
+        try (var scope = TargetingTestFixture.of(helper)) {
+            var target = scope.track(helper.spawn(EntityType.ZOMBIE, new BlockPos(8, 4, 8)));
+            target.setNoAi(true);
+            target.setNoGravity(true);
+            scope.assertVisible(target);
+            target.setDeltaMovement(Vec3.ZERO);
+
+            var applied = CombatTools.applyDamage(
+                    target,
+                    2.0F,
+                    helper.getLevel().damageSources().generic(),
+                    null,
+                    CombatTools.KnockbackTypes.NO_KNOCKBACK
+            );
+            helper.assertTrue(applied, "Damage should be applied to the test target");
+            helper.assertTrue(
+                    target.getDeltaMovement().horizontalDistanceSqr() <= 1.0e-8D,
+                    "No-knockback damage should suppress its automatic knockback"
+            );
+
+            target.knockback(0.5D, 1.0D, 0.0D);
+            helper.assertTrue(
+                    target.getDeltaMovement().horizontalDistanceSqr() > 1.0e-8D,
+                    "No-knockback damage should allow an explicit follow-up knockback"
+            );
+        }
+        helper.succeed();
+    }
+}

@@ -1,13 +1,10 @@
-package jp.aquafactory.apprenticecodex.gametest.spell.targeting;
+package jp.aquafactory.apprenticecodex.gametest.spell.targeting.aim;
 
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.spells.CastSource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.function.Predicate;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.gametest.spell.targeting.support.TargetingTestFixture;
 import jp.aquafactory.apprenticecodex.item.manaforcereleasedevice.ManaForceReleaseDevice;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
@@ -16,12 +13,10 @@ import jp.aquafactory.apprenticecodex.spell.tirovolley.TiroVolley;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.RaycastTools;
 import jp.aquafactory.apprenticecodex.utility.SummonedFirearmTools;
-import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.item.ItemStack;
@@ -32,13 +27,20 @@ import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.function.Predicate;
+
+import static jp.aquafactory.apprenticecodex.gametest.spell.targeting.aim.AimTestSupport.*;
+
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
 @SuppressWarnings("unused")
 public final class SpectatorTargetingGameTests {
-    private static final String TEMPLATE = "gametest/basic_floor";
 
-    private SpectatorTargetingGameTests() {}
+    private SpectatorTargetingGameTests() {
+    }
 
     private static final class Scene implements AutoCloseable {
         private final GameTestHelper helper;
@@ -48,9 +50,8 @@ public final class SpectatorTargetingGameTests {
 
         private Scene(GameTestHelper helper) {
             this.helper = helper;
-            caster = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "spectator_caster"));
+            caster = AimTestSupport.player(helper);
             caster.gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
-            caster.setPos(helper.absoluteVec(new BlockPos(4, 18, 1).getCenter()));
             caster.setYRot(0);
             caster.setXRot(0);
             spectator = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "spectator_target"));
@@ -61,25 +62,18 @@ public final class SpectatorTargetingGameTests {
 
         private void add(Entity entity) {
             entities.add(entity);
-            helper.getLevel().addFreshEntity(entity);
+            TargetingTestFixture.of(helper).add(entity);
         }
 
         private Zombie target(Vec3 offset, boolean pickable) {
-            var target = new Zombie(EntityType.ZOMBIE, helper.getLevel()) {
-                @Override
-                public boolean isPickable() { return pickable; }
-            };
-            target.setNoAi(true);
-            target.setNoGravity(true);
-            target.setPos(caster.position().add(offset));
-            add(target);
-            return target;
+            return AimTestSupport.target(helper, caster, offset, pickable);
         }
 
         @Override
         public void close() {
             entities.forEach(Entity::discard);
             caster.discard();
+            TargetingTestFixture.of(helper).close();
         }
     }
 
@@ -113,12 +107,12 @@ public final class SpectatorTargetingGameTests {
         try (var scene = new Scene(helper)) {
             var target = scene.target(new Vec3(0, 0, 5), true);
             Predicate<Entity> candidates = e -> e == scene.spectator || e == target;
-            helper.assertTrue(RaycastTools.raycastFromEye(scene.caster, 8, 1, candidates).hitEntity() == target,
-                    "Legacy rays must pass through spectators even without a combat predicate");
-            helper.assertTrue(RaycastTools.raycastFromEyeWithAimAssist(scene.caster, 8, 1, candidates).hitEntity() == target,
-                    "Assisted rays must pass through spectators even without a combat predicate");
-            helper.assertTrue(SummonedFirearmTools.resolveAssistedAim(scene.caster, 8, candidates).hitEntity() == target,
-                    "Summoned firearm aim must pass through spectators");
+            assertHit(helper, RaycastTools.raycastFromEye(scene.caster, 8, 1, candidates), target,
+                    "Legacy rays must pass through spectators even without a combat predicate", scene.spectator, target);
+            assertHit(helper, RaycastTools.raycastFromEyeWithAimAssist(scene.caster, 8, 1, candidates), target,
+                    "Assisted rays must pass through spectators even without a combat predicate", scene.spectator, target);
+            assertHit(helper, SummonedFirearmTools.resolveAssistedAim(scene.caster, 8, candidates), target,
+                    "Summoned firearm aim must pass through spectators", scene.spectator, target);
             helper.assertTrue(RaycastTools.findNearestEntityInForwardBox(helper.getLevel(), scene.caster,
                             new Vec3(0, 0, 1), 8, 2, 2, candidates, true).orElse(null) == target,
                     "Forward-box selection must skip a nearer spectator");
@@ -174,7 +168,7 @@ public final class SpectatorTargetingGameTests {
             var data = MagicData.getPlayerMagicData(scene.caster);
             // 中心線の敵と広い補助だけで拾う敵の両方を、手前のspectator越しに攻撃する。
             for (double offset : new double[]{0, 1}) {
-                target.setPos(scene.caster.position().add(offset, 0, 5));
+                move(helper, target, scene.caster.position().add(offset, 0, 5));
                 target.setHealth(target.getMaxHealth());
                 target.invulnerableTime = 0;
                 SpellRegistry.SHOCK.get().onCast(helper.getLevel(), 1, scene.caster, CastSource.SPELLBOOK, data);
