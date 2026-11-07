@@ -160,8 +160,9 @@ public final class EchoStaffContextGameTests {
             magicData.setAdditionalCastData(null);
         });
 
+        // 手動のplayer更新は毎tickの駆動へ分離し、待機条件では状態だけを観測する。
+        helper.onEachTick(() -> tickEcho(helper, player));
         helper.succeedWhen(() -> {
-            tickEcho(helper, player);
             var magicData = MagicData.getPlayerMagicData(player);
             var cooldown = magicData.getPlayerCooldowns().getSpellCooldowns().get(spell.getSpellId());
             var expectedCooldown = expectedMulticastEchoStaffCooldown(spell, player, CastSource.SPELLBOOK, amplifier);

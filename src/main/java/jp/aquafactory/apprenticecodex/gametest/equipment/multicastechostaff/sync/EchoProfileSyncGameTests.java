@@ -1,8 +1,7 @@
-package jp.aquafactory.apprenticecodex.gametest.equipment.multicastechostaff;
+package jp.aquafactory.apprenticecodex.gametest.equipment.multicastechostaff.sync;
 
 import io.netty.buffer.Unpooled;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
-import java.util.List;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfileManager;
 import jp.aquafactory.apprenticecodex.network.packet.SyncEchoProfileSpellIdsPacket;
@@ -12,10 +11,13 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
+import java.util.List;
+
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
 public final class EchoProfileSyncGameTests {
-    private EchoProfileSyncGameTests() {}
+    private EchoProfileSyncGameTests() {
+    }
 
     @GameTest(template = "gametest/basic_floor", batch = "apprenticecodex.echo_tooltip_sync")
     public static void echoProfileSyncReplacesAndClearsClientIds(GameTestHelper helper) {
