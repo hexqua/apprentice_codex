@@ -13,6 +13,7 @@ import io.redspace.ironsspellbooks.util.ModTags;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
@@ -26,6 +27,7 @@ import jp.aquafactory.apprenticecodex.spell.lockonray.LockOnRayCurve;
 import jp.aquafactory.apprenticecodex.spell.lockonray.LockOnRayEvents;
 import jp.aquafactory.apprenticecodex.spell.lockonray.LockOnRayLaserEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.SectionPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.Connection;
@@ -36,6 +38,7 @@ import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -43,8 +46,12 @@ import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.event.entity.ProjectileImpactEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -53,7 +60,8 @@ import net.neoforged.neoforge.network.registration.NetworkRegistry;
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
 public final class LockOnRayGameTests {
-    private static final String TEMPLATE = "gametest/basic_floor";
+    // 112×8×32の射線領域。chunk境界付近の起点から64block先の標的と後方・横方向の弧まで収める。
+    private static final String TEMPLATE = "gametest/lock_on_ray_lane";
     private static final String BATCH = "apprenticecodex.lock_on_ray";
 
     @GameTest(template = TEMPLATE, batch = BATCH)
@@ -191,24 +199,65 @@ public final class LockOnRayGameTests {
 
     @GameTest(template = TEMPLATE, batch = BATCH)
     public static void hermiteArrivalAndMovingTarget(GameTestHelper h) {
-        for (double distance : List.of(4.0, 16.0, 64.0)) {
-            for (boolean moving : List.of(false, true)) {
-                try (var s = new Scene(h)) {
-                    var target = s.zombie(distance, 0);
-                    var laser = s.laser(target);
-                    int arrival = 5 + (int) Math.round(laser.position().distanceTo(target.getBoundingBox().getCenter()) / 16);
-                    var start = laser.position(); step(laser);
-                    h.assertTrue(laser.getX() < start.x - 2, "Laser must arc at least two blocks behind the caster on its first tick");
-                    for (int i = 1; i < arrival && !laser.isRemoved(); i++) {
-                        if (moving) target.setPos(target.position().add(0, 0, 0.2));
-                        step(laser);
+        var base = h.absoluteVec(new Vec3(16, 3, 8));
+        // world原点が変わってもchunkの両端を通し、移動標的は必ずZ境界をまたぐ。
+        for (int xPhase : List.of(0, 15)) {
+            var origin = base.add(Math.floorMod(xPhase - Mth.floor(base.x), 16), 0,
+                    Math.floorMod(15 - Mth.floor(base.z), 16) + 0.8);
+            for (double distance : List.of(4.0, 16.0, 64.0)) {
+                for (boolean moving : List.of(false, true)) {
+                    try (var s = new Scene(h, origin)) {
+                        var target = s.zombie(distance, 0);
+                        int initialChunkZ = SectionPos.blockToSectionCoord(target.blockPosition().getZ());
+                        var laser = s.laser(target);
+                        var trace = new ArrayList<String>();
+                        var impacts = new ArrayList<String>();
+                        Consumer<ProjectileImpactEvent> observer = event -> {
+                            if (event.getProjectile() == laser && event.getRayTraceResult() instanceof EntityHitResult hit) {
+                                impacts.add(hit.getEntity().getType() + ":expected=" + (hit.getEntity() == target)
+                                        + ":canceled=" + event.isCanceled());
+                            }
+                        };
+                        NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, true, ProjectileImpactEvent.class, observer);
+                        try {
+                            int arrival = 5 + (int) Math.round(laser.position().distanceTo(target.getBoundingBox().getCenter()) / 16);
+                            trace.add(arrivalState(h, laser, target));
+                            var start = laser.position();
+                            step(laser);
+                            trace.add(arrivalState(h, laser, target));
+                            h.assertTrue(laser.getX() < start.x - 2,
+                                    "Laser must arc at least two blocks behind the caster on its first tick: " + trace);
+                            for (int i = 1; i < arrival && !laser.isRemoved(); i++) {
+                                if (moving) target.setPos(target.position().add(0, 0, 0.2));
+                                s.assertTracked(target);
+                                step(laser);
+                                trace.add(arrivalState(h, laser, target));
+                            }
+                            var context = "distance=" + distance + ", moving=" + moving + ", xPhase=" + xPhase
+                                    + ", arrival=" + arrival + ", impacts=" + impacts + ", trace=" + trace;
+                            h.assertTrue(laser.isRemoved() && target.getHealth() < 20,
+                                    "Laser must reach a live target by its distance-derived arrival time: " + context);
+                            h.assertTrue(laser.tickCount >= arrival - 1,
+                                    "Unobstructed laser must not arrive substantially early: " + context);
+                            if (moving) h.assertTrue(SectionPos.blockToSectionCoord(target.blockPosition().getZ()) != initialChunkZ,
+                                    "Moving target fixture must cross a chunk boundary: " + context);
+                        } finally {
+                            NeoForge.EVENT_BUS.unregister(observer);
+                        }
                     }
-                    h.assertTrue(laser.isRemoved() && target.getHealth() < 20, "Laser must reach a live target by its distance-derived arrival time");
-                    h.assertTrue(laser.tickCount >= arrival - 1, "Unobstructed laser must not arrive substantially early");
                 }
             }
         }
         h.succeed();
+    }
+
+    private static String arrivalState(GameTestHelper helper, LockOnRayLaserEntity laser, Zombie target) {
+        var level = helper.getLevel();
+        return "tick=" + laser.tickCount + ", laser=" + laser.position() + ", removed=" + laser.isRemoved()
+                + ", target=" + target.position() + ", health=" + target.getHealth()
+                + ", lookup=" + (level.getEntity(target.getUUID()) == target)
+                + ", chunkLoaded=" + level.hasChunkAt(target.blockPosition())
+                + ", entityTicking=" + level.isPositionEntityTicking(target.blockPosition());
     }
 
     @GameTest(template = TEMPLATE, batch = BATCH)
@@ -346,16 +395,42 @@ public final class LockOnRayGameTests {
         final List<Entity> entities = new ArrayList<>();
 
         Scene(GameTestHelper helper) {
-            this.helper = helper;
-            origin = helper.absoluteVec(new Vec3(2, 30, 2));
-            owner = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "lock_ray_test"));
-            owner.setPos(origin); owner.setYRot(-90); owner.setXRot(0); owner.setNoGravity(true); add(owner);
-            data = MagicData.getPlayerMagicData(owner);
-            // FakePlayerは通常ログインを通らないため、詠唱状態の同期データを明示初期化する。
-            data.setSyncedData(new SyncedSpellData(owner));
+            this(helper, helper.absoluteVec(new Vec3(16, 3, 16)));
         }
 
-        void add(Entity entity) { entities.add(entity); helper.getLevel().addFreshEntity(entity); }
+        Scene(GameTestHelper helper, Vec3 absoluteOrigin) {
+            this.helper = helper;
+            origin = absoluteOrigin;
+            owner = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "lock_ray_test"));
+            owner.setPos(origin); owner.setYRot(-90); owner.setXRot(0); owner.setNoGravity(true);
+            try {
+                add(owner);
+                data = MagicData.getPlayerMagicData(owner);
+                // FakePlayerは通常ログインを通らないため、詠唱状態の同期データを明示初期化する。
+                data.setSyncedData(new SyncedSpellData(owner));
+            } catch (RuntimeException | Error failure) {
+                entities.forEach(Entity::discard);
+                throw failure;
+            }
+        }
+
+        void add(Entity entity) {
+            entities.add(entity);
+            var level = helper.getLevel();
+            helper.assertTrue(level.isPositionEntityTicking(entity.blockPosition()),
+                    "Lock On Ray fixture must be entity-ticking before spawn: " + entity.getType() + " at " + entity.position());
+            helper.assertTrue(level.addFreshEntity(entity), "Fixture entity must be added: " + entity.getType());
+            assertTracked(entity);
+        }
+        void assertTracked(Entity entity) {
+            var level = helper.getLevel();
+            helper.assertTrue(helper.getBounds().contains(entity.position()),
+                    "Fixture entity must remain inside its declared template: " + entity.position());
+            helper.assertTrue(level.isPositionEntityTicking(entity.blockPosition()),
+                    "Fixture entity must remain entity-ticking: " + entity.position());
+            helper.assertTrue(level.getEntity(entity.getUUID()) == entity,
+                    "Fixture entity must resolve through the server UUID lookup: " + entity.getType() + " at " + entity.position());
+        }
         Zombie zombie(double x, double z) {
             var zombie = EntityType.ZOMBIE.create(helper.getLevel());
             zombie.setPos(origin.add(x, 0, z)); zombie.setNoAi(true); zombie.setNoGravity(true);
