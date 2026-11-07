@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.gametest.crafting.calibration;
+package jp.aquafactory.apprenticecodex.gametest.crafting.extraction;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.gametest.framework.GameTest;
@@ -8,8 +8,8 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
-public final class CoreGameTests {
-    private CoreGameTests() {}
+public final class SpellExtractionGameTests {
+    private SpellExtractionGameTests() {}
 
     @GameTest(template = "gametest/basic_floor")
     public static void spellcasterWorkbenchExtractsEligibleSingleSlotSpells(GameTestHelper helper) {

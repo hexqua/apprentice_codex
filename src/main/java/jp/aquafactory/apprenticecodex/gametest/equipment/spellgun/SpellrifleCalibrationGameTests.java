@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.gametest.crafting.calibration;
+package jp.aquafactory.apprenticecodex.gametest.equipment.spellgun;
 
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
@@ -26,7 +26,7 @@ import static jp.aquafactory.apprenticecodex.gametest.support.PlayerTestSupport.
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
-public final class SpellCalibrationAcceptanceGameTests {
+public final class SpellrifleCalibrationGameTests {
     @GameTest(template = "gametest/basic_floor")
     public static void rifleAcceptanceIsIndependentOfSilverRing(GameTestHelper helper) {
         var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "rifle_acceptance");
