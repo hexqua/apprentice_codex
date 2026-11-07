@@ -9,13 +9,6 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
@@ -39,8 +32,6 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -53,6 +44,9 @@ import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public final class BowGameTestSupport {
     static final String VANILLA_NAMESPACE = "minecraft";
@@ -68,10 +62,6 @@ public final class BowGameTestSupport {
     static final TagKey<Item> CURIOS_CHARM = TagKey.create(
             Registries.ITEM,
             ResourceLocation.fromNamespaceAndPath("curios", CuriosSlotConstants.CHARM)
-    );
-    static final ResourceLocation FOCUS_STAFFBOW_OVERCHARGE_MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(
-            ApprenticeCodex.MODID,
-            "focus_staffbow_overcharge"
     );
     static final ResourceLocation MALUM_ANIMATED =
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "animated");
@@ -95,36 +85,6 @@ public final class BowGameTestSupport {
         return player;
     }
 
-    static void setFocusStaffbowArrowCatalyst(FakePlayer player, ItemStack arrowStack) {
-        player.getInventory().setItem(1, arrowStack.copy());
-    }
-
-    static ApprenticeCodexServerConfig.GameTestConfigOverride useFocusStaffbowConfigOverrideForGameTest(
-            boolean enableContinuousFocusedCast,
-            boolean enableManaLoan,
-            boolean enableArrowCatalystRequirement,
-            double pendingMaxLoanManaRatio,
-            List<String> spellDenylist,
-            boolean enableSpellAllowlist,
-            List<String> spellAllowlist
-    ) {
-        return ApprenticeCodexServerConfig.useFocusStaffbowConfigOverrideForGameTest(
-                enableContinuousFocusedCast,
-                enableManaLoan,
-                enableArrowCatalystRequirement,
-                List.of("minecraft:arrow"),
-                3.0D,
-                2.0D,
-                20,
-                2.0D,
-                1.0D,
-                pendingMaxLoanManaRatio,
-                spellDenylist,
-                enableSpellAllowlist,
-                spellAllowlist
-        );
-    }
-
     public static ApprenticeCodexServerConfig.GameTestConfigOverride useElementalBowConfigOverrideForGameTest(
             double magicReadyDrawTicksMultiplier,
             double overheatAdditionalManaLinearMultiplier,
@@ -139,21 +99,6 @@ public final class BowGameTestSupport {
                 overheatDurationMultiplier,
                 overheatDurationMinTicks,
                 overheatDurationCapTicks);
-    }
-
-    static int getFocusStaffbowArrowCount(Player player) {
-        int count = 0;
-        for (var stack : player.getInventory().items) {
-            if (stack.getItem() instanceof ArrowItem) {
-                count += stack.getCount();
-            }
-        }
-        for (var stack : player.getInventory().offhand) {
-            if (stack.getItem() instanceof ArrowItem) {
-                count += stack.getCount();
-            }
-        }
-        return count;
     }
 
     public static void equipCurio(FakePlayer player, String slotId, ItemStack stack) {
