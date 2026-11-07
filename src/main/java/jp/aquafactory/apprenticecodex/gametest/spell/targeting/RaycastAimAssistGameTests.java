@@ -142,12 +142,17 @@ public final class RaycastAimAssistGameTests {
                 }
             }
             var hit = RaycastTools.raycastFromEyeWithAimAssist(player, 8, 4, e -> e == hidden || e == visible);
+            var diagnostics = " [tick=" + helper.getTick() + ", result=" + hit
+                    + ", eye=" + player.getEyePosition() + ", bounds=" + helper.getBounds()
+                    + ", wall=" + wallOrigin + ":" + helper.getLevel().getBlockState(wallOrigin)
+                    + ", hidden={" + targetDiagnostics(helper, player, hidden)
+                    + "}, visible={" + targetDiagnostics(helper, player, visible) + "}]";
             helper.assertTrue(hit.hitEntity() == visible,
-                    "A hidden offset candidate must not block selection of a farther visible candidate");
+                    "A hidden offset candidate must not block selection of a farther visible candidate" + diagnostics);
             var sight = helper.getLevel().clip(new ClipContext(player.getEyePosition(),
                     hit.hitPosition(), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
             helper.assertTrue(sight.getType() == HitResult.Type.MISS,
-                    "The assisted impact itself must be visible from the eye");
+                    "The assisted impact itself must be visible from the eye: sight=" + sight + diagnostics);
         } finally {
             hidden.discard();
             visible.discard();
@@ -158,6 +163,22 @@ public final class RaycastAimAssistGameTests {
             }
         }
         helper.succeed();
+    }
+
+    private static String targetDiagnostics(GameTestHelper helper, FakePlayer player, Zombie target) {
+        var level = helper.getLevel();
+        var centerSight = level.clip(new ClipContext(player.getEyePosition(), target.getBoundingBox().getCenter(),
+                ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player));
+        // UUID検索と空間検索の可視性は異なるため、chunkと両方の検索結果を失敗時に比較できるようにする。
+        return "pos=" + target.position() + ", box=" + target.getBoundingBox()
+                + ", alive=" + target.isAlive() + ", removed=" + target.isRemoved()
+                + ", insideTemplate=" + helper.getBounds().contains(target.position())
+                + ", chunkLoaded=" + level.hasChunkAt(target.blockPosition())
+                + ", entityTicking=" + level.isPositionEntityTicking(target.blockPosition())
+                + ", uuidTracked=" + (level.getEntity(target.getUUID()) == target)
+                + ", spatiallyQueryable=" + level.getEntitiesOfClass(Zombie.class,
+                        target.getBoundingBox(), entity -> entity == target).contains(target)
+                + ", centerSight=" + centerSight;
     }
 
     @GameTest(template = TEMPLATE)

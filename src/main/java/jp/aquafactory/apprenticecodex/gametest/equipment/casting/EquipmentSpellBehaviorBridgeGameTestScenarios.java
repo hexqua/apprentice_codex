@@ -817,18 +817,27 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios {
             castTouchDig(helper, context, 1, true);
             var activatorCount = MalumSpellweavingGameTestHelper.countActivators(
                     helper.getLevel(), new AABB(context.targetPos()).inflate(4.0D));
+            var activatorDiagnostics = MalumSpellweavingGameTestHelper.activatorDiagnostics(
+                    helper.getLevel(), new AABB(context.targetPos()).inflate(4.0D), context.player());
             helper.assertTrue(activatorCount == 1,
                     "CraftsmansDelight Touch Dig should create one Spellweaving activator for adjacent dirt: "
-                            + activatorCount);
+                            + activatorCount + " [" + activatorDiagnostics.get() + "]");
 
-            helper.getLevel().getEntitiesOfClass(
+            var directDrops = helper.getLevel().getEntitiesOfClass(
                     ItemEntity.class,
                     AABB.ofSize(Vec3.atCenterOf(context.targetPos()), 3.0D, 3.0D, 3.0D)
-            ).forEach(ItemEntity::discard);
+            );
+            var removedDirectDirt = directDrops.stream()
+                    .filter(entity -> entity.getItem().is(Items.DIRT))
+                    .mapToInt(entity -> entity.getItem().getCount()).sum();
+            directDrops.forEach(ItemEntity::discard);
 
             helper.succeedWhen(() -> {
                 helper.assertTrue(helper.getLevel().getBlockState(context.neighborPos()).isAir(),
-                        "Spellweaving should destroy dirt adjacent to the successful Touch Dig target");
+                        "Spellweaving should destroy dirt adjacent to the successful Touch Dig target"
+                                + " [tick=" + helper.getTick() + ", neighbor=" + context.neighborPos()
+                                + ", state=" + helper.getLevel().getBlockState(context.neighborPos())
+                                + ", " + activatorDiagnostics.get() + "]");
                 var inventoryDrops = context.player().getInventory().countItem(Items.DIRT);
                 var worldDrops = helper.getLevel().getEntitiesOfClass(
                                 ItemEntity.class,
@@ -838,7 +847,11 @@ final class EquipmentSpellBehaviorBridgeGameTestScenarios {
                         .mapToInt(itemEntity -> itemEntity.getItem().getCount())
                         .sum();
                 helper.assertTrue(inventoryDrops + worldDrops > 0,
-                        "Spellweaving should preserve a dirt drop when the held pickaxe is not the normal matching tool");
+                        "Spellweaving should preserve a dirt drop when the held pickaxe is not the normal matching tool"
+                                + " [tick=" + helper.getTick() + ", inventoryDirt=" + inventoryDrops
+                                + ", worldDirt=" + worldDrops + ", removedDirectDirt=" + removedDirectDirt
+                                + ", neighbor=" + context.neighborPos() + ", bounds=" + helper.getBounds()
+                                + ", " + activatorDiagnostics.get() + "]");
             });
         });
     }
