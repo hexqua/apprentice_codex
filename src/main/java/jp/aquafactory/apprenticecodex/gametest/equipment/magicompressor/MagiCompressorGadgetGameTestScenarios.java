@@ -23,7 +23,7 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.common.util.FakePlayer;
 
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.createEnchantedBook;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.createEnchantedBook;
 import static jp.aquafactory.apprenticecodex.gametest.integration.create.CreateProcessingTestSupport.CREATE_MOD_ID;
 import static jp.aquafactory.apprenticecodex.gametest.support.CurioTestSupport.equipCurio;
 import static jp.aquafactory.apprenticecodex.gametest.support.PlayerTestSupport.createEquipmentTestPlayer;

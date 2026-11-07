@@ -23,8 +23,8 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.neoforged.neoforge.common.NeoForge;
 
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.assertExactEnchantmentSurfaces;
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.registryIdSet;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.assertExactEnchantmentSurfaces;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.registryIdSet;
 import static jp.aquafactory.apprenticecodex.gametest.support.CurioTestSupport.CURIOS_CHARM;
 import static jp.aquafactory.apprenticecodex.gametest.support.CurioTestSupport.assertManaShieldCharmEquipped;
 import static jp.aquafactory.apprenticecodex.gametest.support.CurioTestSupport.equipCurio;

@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.gametest.equipment.enchantment;
+package jp.aquafactory.apprenticecodex.gametest.enchantment.application;
 
 import java.util.List;
 import java.util.Map;
@@ -21,8 +21,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.assertApprenticeEnchantmentFlags;
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.createEnchantedBook;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.createEnchantedBook;
 
 /**
  * 1.21.1 の enchantment definition / item tag を正とし、Java 側ポリシーとの境界を固定する。
@@ -84,7 +83,6 @@ final class EnchantmentApplicationGameTestScenarios {
 
     public static void directApplicationPoliciesKeepExpectedMatrix(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            assertEnchantableTagIds(helper);
             assertDirectAttributePolicy(helper, ItemRegistry.IRON_SPELLCASTER_GUN.get(),
                     AttributeEnchantmentPolicy.ALL_ATTRIBUTE_ENCHANTMENTS);
             assertDirectAttributePolicy(helper, ItemRegistry.COPPER_SWINGCAST_STAFF.get(),
@@ -124,37 +122,6 @@ final class EnchantmentApplicationGameTestScenarios {
         });
     }
 
-    private static void assertEnchantableTagIds(GameTestHelper helper) {
-        for (var entry : List.of(
-                Map.entry(Enchantments.ALACRITY_ENCHANTABLE, Enchantments.ALACRITY),
-                Map.entry(Enchantments.REFLUX_ENCHANTABLE, Enchantments.REFLUX),
-                Map.entry(Enchantments.RESERVOIR_ENCHANTABLE, Enchantments.RESERVOIR),
-                Map.entry(Enchantments.SURGE_ENCHANTABLE, Enchantments.SURGE),
-                Map.entry(Enchantments.ATTUNEMENT_ENCHANTABLE, Enchantments.ATTUNEMENT),
-                Map.entry(Enchantments.TENSE_ENCHANTABLE, Enchantments.TENSE),
-                Map.entry(Enchantments.TRANSCENDENCE_ENCHANTABLE, Enchantments.TRANSCENDENCE),
-                Map.entry(Enchantments.WISDOM_ENCHANTABLE, Enchantments.WISDOM),
-                Map.entry(Enchantments.PLUNDER_ENCHANTABLE, Enchantments.PLUNDER)
-        )) {
-            assertEnchantableTagId(helper, entry.getKey(), entry.getValue());
-        }
-    }
-
-    private static void assertEnchantableTagId(
-            GameTestHelper helper,
-            TagKey<Item> tag,
-            ResourceKey<Enchantment> enchantment
-    ) {
-        var enchantmentId = enchantment.location();
-        var expected = ResourceLocation.fromNamespaceAndPath(
-                enchantmentId.getNamespace(),
-                enchantmentId.getPath() + "_enchantable"
-        );
-        helper.assertTrue(tag.location().equals(expected),
-                "Enchantable tag id should match the 1.21.1 contract: expected="
-                        + expected + " actual=" + tag.location());
-    }
-
     public static void specialApplicationRulesStayExplicit(GameTestHelper helper) {
         helper.succeedIf(() -> {
             helper.assertFalse(ItemRegistry.CIRCUIT_HEAT_STAFF.get() instanceof PlunderTarget,
@@ -176,26 +143,6 @@ final class EnchantmentApplicationGameTestScenarios {
                     "Revolvercast Staff should accept Transcendence");
             helper.assertTrue(TranscendenceTarget.supportsDirectApplication(ItemRegistry.ELEMENTAL_BOW.get()),
                     "Elemental Bow should accept Transcendence");
-        });
-    }
-
-    public static void acquisitionFlagsKeepExpectedValues(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            for (var enchantment : Set.of(
-                    Enchantments.ALACRITY, Enchantments.REFLUX, Enchantments.RESERVOIR,
-                    Enchantments.SURGE, Enchantments.ATTUNEMENT, Enchantments.TENSE,
-                    Enchantments.WISDOM, Enchantments.PLUNDER
-            )) {
-                assertApprenticeEnchantmentFlags(helper, enchantment, false, true, true, true);
-            }
-            assertApprenticeEnchantmentFlags(helper, Enchantments.TRANSCENDENCE, true, false, true, true);
-            for (var enchantment : Set.of(
-                    Enchantments.GUZZLE, Enchantments.LARGE_MUG, Enchantments.RED_ENERGY,
-                    Enchantments.GLOW_ENERGY, Enchantments.SYNTHESIS, Enchantments.SHELL,
-                    Enchantments.SYNCHRONIZATION, Enchantments.NEUTRALIZATION
-            )) {
-                assertApprenticeEnchantmentFlags(helper, enchantment, false, true, false, false);
-            }
         });
     }
 

@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.gametest.equipment.enchantment;
+package jp.aquafactory.apprenticecodex.gametest.enchantment.application;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.gametest.framework.GameTest;
@@ -8,8 +8,8 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
-public final class CoreGameTests {
-    private CoreGameTests() {}
+public final class AnvilStorageGameTests {
+    private AnvilStorageGameTests() {}
 
     @GameTest(template = "gametest/basic_floor")
     public static void nonDamageableAnvilMergeRejectsStoredRightContents(GameTestHelper helper) {

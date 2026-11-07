@@ -18,8 +18,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.assertCategoryEnchantments;
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.expectedRightClickMagicWeaponEnchantments;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.assertCategoryEnchantments;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.expectedRightClickMagicWeaponEnchantments;
 import static jp.aquafactory.apprenticecodex.gametest.support.PlayerTestSupport.createEquipmentTestPlayer;
 import static jp.aquafactory.apprenticecodex.gametest.support.TooltipTestSupport.assertTooltipKeyAt;
 import static jp.aquafactory.apprenticecodex.gametest.support.TooltipTestSupport.assertTooltipKeyUsesColor;

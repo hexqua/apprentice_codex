@@ -54,6 +54,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.ModList;
 
 import static jp.aquafactory.apprenticecodex.gametest.equipment.bow.BowGameTestSupport.*;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.createEnchantedBook;
 
 final class FocusStaffbowGameTestScenarios {
     private FocusStaffbowGameTestScenarios() {

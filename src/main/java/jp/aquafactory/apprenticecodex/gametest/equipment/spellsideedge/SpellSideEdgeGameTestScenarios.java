@@ -66,8 +66,8 @@ import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.assertExactEnchantmentSurfaces;
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.expectedSpellSideEdgeEnchantments;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.assertExactEnchantmentSurfaces;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.expectedSpellSideEdgeEnchantments;
 import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.assertSingleModifierAmount;
 import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.describeModifiers;
 import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.sumModifierAmount;

@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.gametest.equipment.enchantment;
+package jp.aquafactory.apprenticecodex.gametest.enchantment.support;
 
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -9,7 +9,6 @@ import java.util.function.Predicate;
 import jp.aquafactory.apprenticecodex.enchantment.AttributeEnchantmentPolicy;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
-import jp.aquafactory.apprenticecodex.item.armor.ElementMaidenRobeItem;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
@@ -143,7 +142,7 @@ public final class EnchantmentTestSupport {
         }
     }
 
-    static void assertReferenceItemEnchantmentsWithRequiredExtras(
+    public static void assertReferenceItemEnchantmentsWithRequiredExtras(
             GameTestHelper helper,
             ItemStack stack,
             ItemStack referenceStack,
@@ -203,7 +202,7 @@ public final class EnchantmentTestSupport {
         assertExtraEnchantments(helper, stack, rejectedEnchantments, false, false, false, false, expectedAnvil, message);
     }
 
-    static void assertExtraEnchantments(
+    public static void assertExtraEnchantments(
             GameTestHelper helper,
             ItemStack stack,
             Set<ResourceLocation> enchantmentIds,
@@ -230,7 +229,7 @@ public final class EnchantmentTestSupport {
         }
     }
 
-    static void assertSingleEnchantmentSurfaces(
+    public static void assertSingleEnchantmentSurfaces(
             GameTestHelper helper,
             ItemStack stack,
             Holder<Enchantment> enchantment,
@@ -271,7 +270,7 @@ public final class EnchantmentTestSupport {
                 .toList();
     }
 
-    static Set<ResourceLocation> expectedSpellGunEnchantments(ItemStack stack) {
+    public static Set<ResourceLocation> expectedSpellGunEnchantments(ItemStack stack) {
         var expectedEnchantments = registryIdSet(
                 Enchantments.ALACRITY,
                 Enchantments.REFLUX,
@@ -303,7 +302,7 @@ public final class EnchantmentTestSupport {
         return expectedEnchantments;
     }
 
-    static Set<ResourceLocation> expectedReferencePrimaryEnchantments(
+    public static Set<ResourceLocation> expectedReferencePrimaryEnchantments(
             RegistryAccess registryAccess,
             ItemStack referenceStack,
             Set<ResourceLocation> requiredExtraEnchantments
@@ -315,7 +314,7 @@ public final class EnchantmentTestSupport {
         );
     }
 
-    static Set<ResourceLocation> expectedReferenceSupportedEnchantments(
+    public static Set<ResourceLocation> expectedReferenceSupportedEnchantments(
             RegistryAccess registryAccess,
             ItemStack referenceStack,
             Set<ResourceLocation> requiredExtraEnchantments
@@ -327,7 +326,7 @@ public final class EnchantmentTestSupport {
         );
     }
 
-    static Set<ResourceLocation> expectedReferenceDefinitionEnchantments(
+    public static Set<ResourceLocation> expectedReferenceDefinitionEnchantments(
             RegistryAccess registryAccess,
             ItemStack referenceStack,
             Set<ResourceLocation> requiredExtraEnchantments
@@ -339,7 +338,7 @@ public final class EnchantmentTestSupport {
         );
     }
 
-    static Set<ResourceLocation> expectedReferenceBookEnchantments(
+    public static Set<ResourceLocation> expectedReferenceBookEnchantments(
             RegistryAccess registryAccess,
             ItemStack referenceStack,
             Set<ResourceLocation> requiredExtraEnchantments
@@ -351,7 +350,7 @@ public final class EnchantmentTestSupport {
         );
     }
 
-    static Set<ResourceLocation> expectedReferenceEnchantments(
+    public static Set<ResourceLocation> expectedReferenceEnchantments(
             RegistryAccess registryAccess,
             Set<ResourceLocation> requiredExtraEnchantments,
             Predicate<Holder<Enchantment>> predicate
@@ -423,20 +422,6 @@ public final class EnchantmentTestSupport {
         return expectedEnchantments;
     }
 
-    public static Set<ResourceLocation> expectedCircuitHeatStaffEnchantments(RegistryAccess registryAccess, ItemStack stack) {
-        var expectedEnchantments = collectAllowedEnchantments(
-                registryAccess,
-                enchantment -> enchantment.value().canEnchant(new ItemStack(Items.DIAMOND_SWORD))
-                        && !isDurabilityTargetEnchantment(enchantment)
-        );
-        expectedEnchantments.addAll(registryIdSet(
-                Enchantments.WISDOM
-        ));
-        addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedEnchantments);
-        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
-        return expectedEnchantments;
-    }
-
     public static Set<ResourceLocation> expectedSpellSideEdgeEnchantments(RegistryAccess registryAccess, ItemStack stack) {
         var expectedEnchantments = collectAllowedEnchantments(
                 registryAccess,
@@ -454,32 +439,7 @@ public final class EnchantmentTestSupport {
         return expectedEnchantments;
     }
 
-    static Set<ResourceLocation> expectedMultipurposeStaffrifleEnchantments(ItemStack stack) {
-        var expectedEnchantments = registryIdSet(
-                Enchantments.ALACRITY,
-                Enchantments.REFLUX,
-                Enchantments.RESERVOIR,
-                Enchantments.TRANSCENDENCE,
-                Enchantments.TENSE,
-                Enchantments.WISDOM,
-                Enchantments.PLUNDER
-        );
-        addExpectedMalumSpiritPlunderIfPresent(stack, expectedEnchantments);
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedReflectcastShieldEnchantments(RegistryAccess registryAccess, ItemStack stack) {
-        var expectedEnchantments = collectAllowedEnchantments(
-                registryAccess,
-                enchantment -> enchantment.value().canEnchant(new ItemStack(Items.SHIELD))
-        );
-        expectedEnchantments.addAll(registryIdSet(
-                Enchantments.WISDOM
-        ));
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> requiredElementalBowExtraEnchantments() {
+    public static Set<ResourceLocation> requiredElementalBowExtraEnchantments() {
         return registryIdSet(
                 Enchantments.TRANSCENDENCE,
                 Enchantments.WISDOM,
@@ -488,47 +448,30 @@ public final class EnchantmentTestSupport {
         );
     }
 
-    static Set<ResourceLocation> requiredStaffExtraEnchantments() {
+    public static Set<ResourceLocation> requiredStaffExtraEnchantments() {
         return registryIdSet(
                 Enchantments.WISDOM
         );
     }
 
-    static Set<ResourceLocation> staffMiningEnchantments() {
+    public static Set<ResourceLocation> staffMiningEnchantments() {
         return registryIdSet(
                 net.minecraft.world.item.enchantment.Enchantments.FORTUNE,
                 net.minecraft.world.item.enchantment.Enchantments.SILK_TOUCH
         );
     }
 
-    static Set<ResourceLocation> rejectedPastelStaffExtraEnchantments() {
+    public static Set<ResourceLocation> rejectedPastelStaffExtraEnchantments() {
         return registryIdSet(
                 Enchantments.TRANSCENDENCE
         );
     }
 
-    static Set<ResourceLocation> requiredMalumMagicCapableWeaponEnchantments() {
+    public static Set<ResourceLocation> requiredMalumMagicCapableWeaponEnchantments() {
         return Set.of(MALUM_HAUNTED, MALUM_ANIMATED);
     }
 
-    static Set<ResourceLocation> expectedFlaskEnchantments() {
-        return registryIdSet(
-                Enchantments.GUZZLE,
-                Enchantments.LARGE_MUG,
-                Enchantments.RED_ENERGY,
-                Enchantments.GLOW_ENERGY
-        );
-    }
-
-    static Set<ResourceLocation> expectedAlchemistsFlaskEnchantments() {
-        return registryIdSet(
-                Enchantments.LARGE_MUG,
-                Enchantments.RED_ENERGY,
-                Enchantments.GLOW_ENERGY
-        );
-    }
-
-    static Set<ResourceLocation> expectedRandomBookLootEnchantments() {
+    public static Set<ResourceLocation> expectedRandomBookLootEnchantments() {
         return registryIdSet(
                 Enchantments.ALACRITY,
                 Enchantments.REFLUX,
@@ -542,63 +485,7 @@ public final class EnchantmentTestSupport {
         );
     }
 
-    static Set<ResourceLocation> expectedEnchantressRobeEnchantments(RegistryAccess registryAccess, ItemStack stack) {
-        var probeStack = createArmorProbeStack(stack);
-        var expectedEnchantments = collectAllowedEnchantments(
-                registryAccess,
-                enchantment -> enchantment.value().canEnchant(probeStack)
-        );
-        expectedEnchantments.addAll(registryIdSet(Enchantments.WISDOM));
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedStealthRuneArmorEnchantments(RegistryAccess registryAccess, ItemStack stack) {
-        var probeStack = createArmorProbeStack(stack);
-        var expectedEnchantments = collectAllowedEnchantments(
-                registryAccess,
-                enchantment -> enchantment.value().canEnchant(probeStack)
-        );
-        expectedEnchantments.addAll(registryIdSet(Enchantments.WISDOM));
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedChromaticMagiaDressEnchantments(RegistryAccess registryAccess, ItemStack stack) {
-        var probeStack = createArmorProbeStack(stack);
-        var expectedEnchantments = collectAllowedEnchantments(
-                registryAccess,
-                enchantment -> enchantment.value().canEnchant(probeStack)
-        );
-        expectedEnchantments.addAll(registryIdSet(Enchantments.WISDOM));
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedElementMaidenRobeEnchantments(RegistryAccess registryAccess, ItemStack stack) {
-        var probeStack = createArmorProbeStack(stack);
-        var expectedEnchantments = collectAllowedEnchantments(
-                registryAccess,
-                enchantment -> enchantment.value().canEnchant(probeStack)
-        );
-        expectedEnchantments.addAll(registryIdSet(Enchantments.WISDOM));
-        if (stack.getItem() instanceof ElementMaidenRobeItem robeItem && robeItem.hasImbueSlot()) {
-            expectedEnchantments.addAll(registryIdSet(
-                    Enchantments.SURGE,
-                    Enchantments.ATTUNEMENT
-            ));
-        }
-        return expectedEnchantments;
-    }
-
-    static Set<ResourceLocation> expectedMagiAgentSuitEnchantments(RegistryAccess registryAccess, ItemStack stack) {
-        var probeStack = createArmorProbeStack(stack);
-        var expectedEnchantments = collectAllowedEnchantments(
-                registryAccess,
-                enchantment -> enchantment.value().canEnchant(probeStack)
-        );
-        expectedEnchantments.addAll(registryIdSet(Enchantments.WISDOM));
-        return expectedEnchantments;
-    }
-
-    static ItemStack createArmorProbeStack(ItemStack stack) {
+    public static ItemStack createArmorProbeStack(ItemStack stack) {
         if (!(stack.getItem() instanceof ArmorItem armorItem)) {
             throw new IllegalArgumentException("Expected armor item for enchantment probe: " + stack);
         }
@@ -621,7 +508,7 @@ public final class EnchantmentTestSupport {
         return ids;
     }
 
-    static Set<ResourceLocation> collectAllowedEnchantments(
+    public static Set<ResourceLocation> collectAllowedEnchantments(
             RegistryAccess registryAccess,
             Predicate<Holder<Enchantment>> predicate
     ) {
@@ -670,17 +557,17 @@ public final class EnchantmentTestSupport {
     ) {
     }
 
-    static boolean isDurabilityTargetEnchantment(Holder<Enchantment> enchantment) {
+    public static boolean isDurabilityTargetEnchantment(Holder<Enchantment> enchantment) {
         return enchantment.value().canEnchant(new ItemStack(Items.ELYTRA));
     }
 
-    static void addExpectedMalumSpiritPlunderIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
+    public static void addExpectedMalumSpiritPlunderIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
         if (ModList.get().isLoaded(MALUM_MOD_ID) && stack.is(MALUM_SOUL_SHATTER_CAPABLE_WEAPON)) {
             expectedEnchantments.add(MALUM_SPIRIT_PLUNDER);
         }
     }
 
-    static void addExpectedMalumReplenishingIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
+    public static void addExpectedMalumReplenishingIfPresent(ItemStack stack, Set<ResourceLocation> expectedEnchantments) {
         if (ModList.get().isLoaded(MALUM_MOD_ID)
                 && stack.is(TagKey.create(Registries.ITEM,
                 ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "enchantable/replenishing")))) {
@@ -695,7 +582,7 @@ public final class EnchantmentTestSupport {
         }
     }
 
-    static void assertMalumMagicCapableWeaponEnchantmentAccepted(
+    public static void assertMalumMagicCapableWeaponEnchantmentAccepted(
             GameTestHelper helper,
             ItemStack stack,
             Holder<Enchantment> enchantment,
@@ -718,7 +605,7 @@ public final class EnchantmentTestSupport {
         }
     }
 
-    static String describeEnchantmentDifference(
+    public static String describeEnchantmentDifference(
             Set<ResourceLocation> expectedEnchantments,
             Set<ResourceLocation> actualEnchantments
     ) {
@@ -731,7 +618,7 @@ public final class EnchantmentTestSupport {
         return "missing=" + missingEnchantments + ", unexpected=" + unexpectedEnchantments;
     }
 
-    static void assertApprenticeEnchantmentFlags(
+    public static void assertApprenticeEnchantmentFlags(
             GameTestHelper helper,
             ResourceKey<Enchantment> enchantmentKey,
             boolean expectedTreasureOnly,
@@ -755,22 +642,4 @@ public final class EnchantmentTestSupport {
                 "Random-loot tag changed for " + enchantmentId + ": expected " + expectedOnRandomLoot + " but got " + actualOnRandomLoot);
     }
 
-    static List<ResourceKey<Enchantment>> getRegisteredEnchantments() {
-        return List.of(
-                Enchantments.REFLUX,
-                Enchantments.RESERVOIR,
-                Enchantments.ALACRITY,
-                Enchantments.TENSE,
-                Enchantments.SURGE,
-                Enchantments.ATTUNEMENT,
-                Enchantments.TRANSCENDENCE,
-                Enchantments.WISDOM,
-                Enchantments.PLUNDER,
-                Enchantments.GUZZLE,
-                Enchantments.LARGE_MUG,
-                Enchantments.RED_ENERGY,
-                Enchantments.GLOW_ENERGY,
-                Enchantments.SYNTHESIS
-        );
-    }
 }

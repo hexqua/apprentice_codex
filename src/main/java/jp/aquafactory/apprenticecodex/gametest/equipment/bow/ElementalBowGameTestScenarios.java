@@ -39,6 +39,9 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.GameType;
 
 import static jp.aquafactory.apprenticecodex.gametest.equipment.bow.BowGameTestSupport.*;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.createEnchantedBook;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.assertReferenceItemEnchantmentsWithRequiredExtras;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.requiredElementalBowExtraEnchantments;
 
 final class ElementalBowGameTestScenarios {
     private ElementalBowGameTestScenarios() {

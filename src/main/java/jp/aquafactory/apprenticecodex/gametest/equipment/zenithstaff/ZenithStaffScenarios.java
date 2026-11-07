@@ -31,7 +31,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.util.FakePlayer;
 
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.createEnchantedBook;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.createEnchantedBook;
 import static jp.aquafactory.apprenticecodex.gametest.support.CurioTestSupport.equipCurio;
 import static jp.aquafactory.apprenticecodex.gametest.support.CurioTestSupport.equipRingCurio;
 import static jp.aquafactory.apprenticecodex.gametest.support.PlayerTestSupport.createEquipmentTestPlayer;

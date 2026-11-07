@@ -63,11 +63,11 @@ import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.allRegisteredEnchantmentIds;
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.assertExactEnchantmentSurfaces;
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.expectedEnchantedCircletEnchantments;
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.expectedOffhandEnchantments;
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.getRegisteredItemStacks;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.allRegisteredEnchantmentIds;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.assertExactEnchantmentSurfaces;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.expectedEnchantedCircletEnchantments;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.expectedOffhandEnchantments;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.getRegisteredItemStacks;
 import static jp.aquafactory.apprenticecodex.gametest.equipment.spellbook.ArchivistsGrimoireScenarios.createBlockDropsExperienceEvent;
 import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.assertCurioModifierAmount;
 import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.assertModifierAmount;

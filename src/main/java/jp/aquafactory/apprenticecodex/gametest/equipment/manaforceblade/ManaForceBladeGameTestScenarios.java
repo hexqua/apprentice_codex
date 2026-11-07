@@ -34,10 +34,10 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 import org.jetbrains.annotations.Nullable;
 
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent;
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.assertRejectedExtraEnchantments;
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.assertRequiredExtraEnchantments;
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.registryIdSet;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.assertRejectedExtraEnchantments;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.assertRequiredExtraEnchantments;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.registryIdSet;
 import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.assertSingleModifierAmount;
 import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.describeModifiers;
 import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.toModifierMultimap;

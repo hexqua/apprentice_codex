@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.gametest.equipment.enchantment;
+package jp.aquafactory.apprenticecodex.gametest.enchantment.attribute;
 
 import com.google.common.collect.ImmutableMultimap;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
@@ -55,24 +55,21 @@ final class AttributeEnchantmentPolicyGameTestScenarios {
         });
     }
 
-    public static void configuredAmountsPerLevelKeepDefaultsAndScaleLinearly(GameTestHelper helper) {
+    public static void configuredAmountsPerLevelScaleLinearly(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            var expectedDefaults = Map.of(
-                    AttributeEnchantmentType.ALACRITY, 0.02D,
-                    AttributeEnchantmentType.REFLUX, 0.05D,
-                    AttributeEnchantmentType.RESERVOIR, 20.0D,
-                    AttributeEnchantmentType.SURGE, 0.02D,
-                    AttributeEnchantmentType.ATTUNEMENT, 0.03D,
-                    AttributeEnchantmentType.TENSE, 0.04D
+            var configuredAmounts = Map.of(
+                    AttributeEnchantmentType.ALACRITY, 0.137D,
+                    AttributeEnchantmentType.REFLUX, 0.271D,
+                    AttributeEnchantmentType.RESERVOIR, 37.5D,
+                    AttributeEnchantmentType.SURGE, 0.193D,
+                    AttributeEnchantmentType.ATTUNEMENT, 0.223D,
+                    AttributeEnchantmentType.TENSE, 0.311D
             );
             var level = 3;
 
             for (var type : AttributeEnchantmentType.values()) {
-                var expectedDefault = expectedDefaults.get(type);
-                helper.assertTrue(Math.abs(type.amountPerLevel() - expectedDefault) < EPSILON,
-                        "Attribute enchantment default amount changed: " + type);
-
-                var configuredAmount = expectedDefault + 0.013D;
+                var previousAmount = type.amountPerLevel();
+                var configuredAmount = configuredAmounts.get(type);
                 try (var ignored = ApprenticeCodexServerConfig
                         .useAttributeEnchantmentAmountPerLevelOverrideForGameTest(type, configuredAmount)) {
                     helper.assertTrue(Math.abs(type.amountPerLevel() - configuredAmount) < EPSILON,
@@ -100,7 +97,7 @@ final class AttributeEnchantmentPolicyGameTestScenarios {
                     );
                 }
 
-                helper.assertTrue(Math.abs(type.amountPerLevel() - expectedDefault) < EPSILON,
+                helper.assertTrue(Math.abs(type.amountPerLevel() - previousAmount) < EPSILON,
                         "Attribute enchantment config override was not restored: " + type);
             }
         });

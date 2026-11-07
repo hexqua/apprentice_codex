@@ -56,8 +56,8 @@ import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 
 import static jp.aquafactory.apprenticecodex.gametest.equipment.chargedtwinbladestaff.TwinBladeDamageTestSupport.assertChargedTwinBladeStaffThrownDamage;
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.assertExactEnchantmentSurfaces;
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.expectedChargedTwinBladeStaffEnchantments;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.assertExactEnchantmentSurfaces;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.expectedChargedTwinBladeStaffEnchantments;
 import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.assertSingleModifierAmount;
 import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.describeModifiers;
 import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.sumModifierAmount;

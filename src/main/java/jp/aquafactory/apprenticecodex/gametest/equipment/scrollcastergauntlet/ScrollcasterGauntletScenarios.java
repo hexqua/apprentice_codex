@@ -63,8 +63,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.common.NeoForge;
 
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.createEnchantedBook;
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.getEnchantmentLevel;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.createEnchantedBook;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.getEnchantmentLevel;
 import static jp.aquafactory.apprenticecodex.gametest.integration.malum.MalumTestSupport.MALUM_ANIMATED;
 import static jp.aquafactory.apprenticecodex.gametest.integration.malum.MalumTestSupport.MALUM_HAUNTED;
 import static jp.aquafactory.apprenticecodex.gametest.integration.malum.MalumTestSupport.MALUM_MOD_ID;

@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.gametest.equipment.enchantment;
+package jp.aquafactory.apprenticecodex.gametest.enchantment.attribute;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -34,6 +35,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -101,8 +103,6 @@ final class AttributeEnchantmentEffectGameTestScenarios {
                             equipmentCase,
                             type,
                             stacks,
-                            baseModifiers,
-                            levelOneModifiers,
                             schoolPowerAttributes
                     );
                     var baseMatching = matchingModifiers(baseModifiers, attribute, type.operation());
@@ -133,6 +133,12 @@ final class AttributeEnchantmentEffectGameTestScenarios {
                 }
             }
 
+            try (var fixture = new AttributeEquipmentFixture(helper, Set.of(AttributeRegistry.MAX_MANA))) {
+                fixture.assertIndependentSlots(
+                        createInitializedPresetStack(ItemRegistry.COPPER_SPELL_AMPLIFIER.get()),
+                        createInitializedPresetStack(ItemRegistry.ENCHANTED_CIRCLET.get()), AttributeRegistry.MAX_MANA);
+            }
+
             helper.assertTrue(coveredTypes.equals(EnumSet.allOf(AttributeEnchantmentType.class)),
                     "Missing candidates for merging with existing attributes: missing="
                             + EnumSet.complementOf(coveredTypes) + ", covered=" + coveredTypes);
@@ -141,16 +147,18 @@ final class AttributeEnchantmentEffectGameTestScenarios {
 
     private static void assertEffectsForTarget(GameTestHelper helper, TargetKind targetKind) {
         helper.succeedIf(() -> {
-            var wearer = helper.spawn(EntityType.PIG, new BlockPos(0, 2, 0));
-            var schoolPowerAttributes = resolveSchoolPowerAttributes();
+            var watched = resolveSchoolPowerAttributes();
+            var attributes = new LinkedHashSet<>(watched);
+            attributes.addAll(Set.of(AttributeRegistry.COOLDOWN_REDUCTION, AttributeRegistry.MANA_REGEN,
+                    AttributeRegistry.MAX_MANA, AttributeRegistry.SPELL_POWER, AttributeRegistry.CAST_TIME_REDUCTION));
             var targetCases = createCases(helper).stream()
-                    .filter(equipmentCase -> equipmentCase.target().kind() == targetKind)
-                    .toList();
+                    .filter(equipmentCase -> equipmentCase.target().kind() == targetKind).toList();
             helper.assertFalse(targetCases.isEmpty(), "No attribute enchantment test cases found for: " + targetKind);
-
-            for (var equipmentCase : targetCases) {
-                for (var type : equipmentCase.enchantments()) {
-                    assertEffect(helper, wearer, equipmentCase, type, schoolPowerAttributes);
+            try (var fixture = new AttributeEquipmentFixture(helper, attributes)) {
+                for (var equipmentCase : targetCases) {
+                    for (var type : equipmentCase.enchantments()) {
+                        assertEffect(helper, fixture, equipmentCase, type, watched);
+                    }
                 }
             }
         });
@@ -158,11 +166,12 @@ final class AttributeEnchantmentEffectGameTestScenarios {
 
     private static void assertEffect(
             GameTestHelper helper,
-            LivingEntity wearer,
+            AttributeEquipmentFixture fixture,
             EquipmentCase equipmentCase,
             AttributeEnchantmentType type,
             Set<Holder<Attribute>> schoolPowerAttributes
     ) {
+        var wearer = fixture.player();
         var stacks = createLevelStacks(helper, equipmentCase, type);
         var baseModifiers = equipmentCase.target().getModifiers(wearer, stacks.levelZero());
         var levelOneModifiers = equipmentCase.target().getModifiers(wearer, stacks.levelOne());
@@ -172,8 +181,6 @@ final class AttributeEnchantmentEffectGameTestScenarios {
                 equipmentCase,
                 type,
                 stacks,
-                baseModifiers,
-                levelOneModifiers,
                 schoolPowerAttributes
         );
 
@@ -198,6 +205,9 @@ final class AttributeEnchantmentEffectGameTestScenarios {
                 2
         );
 
+        fixture.assertLevels(stacks.levelZero(), stacks.levelOne(), stacks.levelTwo(),
+                equipmentCase.target().slot(), attribute, type, describeCase(equipmentCase, type));
+
         for (var wrongSlot : EquipmentSlot.values()) {
             if (equipmentCase.target().usesVanillaSlot(wrongSlot)) {
                 continue;
@@ -211,36 +221,31 @@ final class AttributeEnchantmentEffectGameTestScenarios {
             EquipmentCase equipmentCase,
             AttributeEnchantmentType type,
             LevelStacks stacks,
-            Multimap<Holder<Attribute>, AttributeModifier> baseModifiers,
-            Multimap<Holder<Attribute>, AttributeModifier> levelOneModifiers,
             Set<Holder<Attribute>> schoolPowerAttributes
     ) {
         if (type != AttributeEnchantmentType.ATTUNEMENT) {
-            var attribute = type.resolveAttribute(stacks.levelZero());
-            helper.assertTrue(attribute != null,
-                    describeCase(equipmentCase, type) + " could not resolve the target attribute");
-            return attribute;
+            return switch (type) {
+                case ALACRITY -> AttributeRegistry.COOLDOWN_REDUCTION;
+                case REFLUX -> AttributeRegistry.MANA_REGEN;
+                case RESERVOIR -> AttributeRegistry.MAX_MANA;
+                case SURGE -> AttributeRegistry.SPELL_POWER;
+                case TENSE -> AttributeRegistry.CAST_TIME_REDUCTION;
+                case ATTUNEMENT -> throw new IllegalStateException("Attunement must resolve its fixture spell school");
+            };
         }
 
-        // GameTestでは注入元のschoolがEvocationとして復元される場合があるため、school IDを期待値にしない。
-        // 同一Stackのレベル差分から、実際に増えた登録済みschool power Attributeを追跡する。
-        var baseSnapshot = ModifierSnapshot.from(baseModifiers);
-        var levelOneSnapshot = ModifierSnapshot.from(levelOneModifiers);
-        var candidates = schoolPowerAttributes.stream()
-                .filter(attribute -> amountsDifferBy(
-                        baseSnapshot,
-                        levelOneSnapshot,
-                        new ModifierKey(attribute, type.operation()),
-                        type.amountPerLevel()
-                ))
-                .toList();
-        helper.assertTrue(candidates.size() == 1,
-                describeCase(equipmentCase, type)
-                        + " did not resolve exactly one increased school power attribute: candidates="
-                        + describeAttributes(candidates)
-                        + ", base=" + describeModifiers(baseModifiers)
-                        + ", level1=" + describeModifiers(levelOneModifiers));
-        return candidates.get(0);
+        var container = ISpellContainer.get(stacks.levelZero());
+        helper.assertTrue(container != null && container.getSpellAtIndex(0) != SpellData.EMPTY,
+                describeCase(equipmentCase, type) + " must have an imbued spell before checking Attunement");
+        var school = container.getSpellAtIndex(0).getSpell().getSchoolType();
+        helper.assertTrue(school != null, "The fixture spell must resolve its school");
+        var expectedId = ResourceLocation.fromNamespaceAndPath(school.getId().getNamespace(),
+                school.getId().getPath() + "_spell_power");
+        var expected = BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(
+                ResourceKey.create(Registries.ATTRIBUTE, expectedId));
+        helper.assertTrue(schoolPowerAttributes.contains(expected),
+                "The fixture school must have a registered school power attribute: " + expectedId);
+        return expected;
     }
 
     private static void assertOnlyExpectedAmountChanged(
@@ -479,10 +484,6 @@ final class AttributeEnchantmentEffectGameTestScenarios {
                 + ", enchantment=" + type.enchantmentKey().location();
     }
 
-    private static String describeAttributes(Collection<Holder<Attribute>> attributes) {
-        return attributes.stream().map(attribute -> BuiltInRegistries.ATTRIBUTE.getKey(attribute.value()))
-                .toList().toString();
-    }
 
     private static String describeKey(ModifierKey key) {
         return BuiltInRegistries.ATTRIBUTE.getKey(key.attribute().value()) + "@" + key.operation();

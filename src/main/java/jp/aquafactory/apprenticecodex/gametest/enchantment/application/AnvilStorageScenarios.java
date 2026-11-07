@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.gametest.equipment.enchantment;
+package jp.aquafactory.apprenticecodex.gametest.enchantment.application;
 
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentStorage;

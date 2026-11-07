@@ -86,7 +86,7 @@ import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.level.ExplosionKnockbackEvent;
 
-import static jp.aquafactory.apprenticecodex.gametest.equipment.enchantment.EnchantmentTestSupport.createEnchantedBook;
+import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.createEnchantedBook;
 import static jp.aquafactory.apprenticecodex.gametest.integration.create.CreateDispenserTestSupport.invokeCreateGameTestHook;
 import static jp.aquafactory.apprenticecodex.gametest.support.CurioTestSupport.equipCurio;
 import static jp.aquafactory.apprenticecodex.gametest.support.CurioTestSupport.equipRingCurio;

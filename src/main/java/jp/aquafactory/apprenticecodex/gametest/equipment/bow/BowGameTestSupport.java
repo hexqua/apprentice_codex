@@ -11,26 +11,19 @@ import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
-import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
-import jp.aquafactory.apprenticecodex.item.NonDamageableAnvilMergeItem;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowScrollStorage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -39,7 +32,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -51,12 +43,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
-import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -185,108 +174,6 @@ public final class BowGameTestSupport {
                     var summonOwner = weapon.getOwner();
                     return summonOwner != null && owner.getUUID().equals(summonOwner.getUUID());
                 }
-        );
-    }
-
-    static void assertExactEnchantmentSurfaces(
-            GameTestHelper helper,
-            ItemStack stack,
-            Set<ResourceLocation> expectedEnchantments,
-            String itemName
-    ) {
-        assertExactEnchantmentSurfaces(
-                helper,
-                stack,
-                expectedEnchantments,
-                    expectedEnchantments,
-                    expectedEnchantments,
-                    expectedEnchantments,
-                    expectedEnchantments,
-                    itemName
-        );
-    }
-
-    static void assertExactEnchantmentSurfaces(
-            GameTestHelper helper,
-            ItemStack stack,
-            Set<ResourceLocation> expectedPrimaryEnchantments,
-            Set<ResourceLocation> expectedSupportedEnchantments,
-            Set<ResourceLocation> expectedDefinitionEnchantments,
-            Set<ResourceLocation> expectedBookEnchantments,
-            Set<ResourceLocation> expectedAnvilEnchantments,
-            String itemName
-    ) {
-        var item = stack.getItem();
-        var registryAccess = helper.getLevel().registryAccess();
-
-        var actualPrimaryEnchantments = collectAllowedEnchantments(
-                registryAccess,
-                enchantment -> item.isPrimaryItemFor(stack, enchantment)
-        );
-        helper.assertTrue(actualPrimaryEnchantments.equals(expectedPrimaryEnchantments),
-                itemName + " primary enchantments changed: "
-                        + describeEnchantmentDifference(expectedPrimaryEnchantments, actualPrimaryEnchantments));
-
-        var actualSupportedEnchantments = collectAllowedEnchantments(
-                registryAccess,
-                enchantment -> item.supportsEnchantment(stack, enchantment)
-        );
-        helper.assertTrue(actualSupportedEnchantments.equals(expectedSupportedEnchantments),
-                itemName + " supported enchantments changed: "
-                        + describeEnchantmentDifference(expectedSupportedEnchantments, actualSupportedEnchantments));
-
-        var actualDefinitionEnchantments = collectAllowedEnchantments(
-                registryAccess,
-                enchantment -> enchantment.value().canEnchant(stack)
-        );
-        helper.assertTrue(actualDefinitionEnchantments.equals(expectedDefinitionEnchantments),
-                itemName + " enchantment definition support changed: "
-                        + describeEnchantmentDifference(expectedDefinitionEnchantments, actualDefinitionEnchantments));
-
-        var actualBookEnchantments = collectAllowedEnchantments(
-                registryAccess,
-                enchantment -> item.isBookEnchantable(stack, createEnchantedBook(enchantment))
-        );
-        helper.assertTrue(actualBookEnchantments.equals(expectedBookEnchantments),
-                itemName + " book enchantments changed: "
-                        + describeEnchantmentDifference(expectedBookEnchantments, actualBookEnchantments));
-
-        if (item instanceof NonDamageableAnvilMergeItem mergeItem) {
-            var actualAnvilEnchantments = collectAllowedEnchantments(
-                    registryAccess,
-                    enchantment -> mergeItem.isAnvilMergeEnchantmentAllowed(stack, enchantment)
-            );
-            helper.assertTrue(actualAnvilEnchantments.equals(expectedAnvilEnchantments),
-                    itemName + " anvil enchantments changed: "
-                            + describeEnchantmentDifference(expectedAnvilEnchantments, actualAnvilEnchantments));
-        }
-    }
-
-    @SafeVarargs
-    static Set<ResourceLocation> registryIdSet(ResourceKey<Enchantment>... enchantments) {
-        var ids = new LinkedHashSet<ResourceLocation>();
-        for (var enchantment : enchantments) {
-            ids.add(enchantment.location());
-        }
-        return ids;
-    }
-
-    static List<ResourceKey<Enchantment>> getRegisteredEnchantments() {
-        return List.of(
-                Enchantments.REFLUX,
-                Enchantments.RESERVOIR,
-                Enchantments.ALACRITY,
-                Enchantments.TENSE,
-                Enchantments.SURGE,
-                Enchantments.ATTUNEMENT,
-                Enchantments.TRANSCENDENCE,
-                Enchantments.WISDOM,
-                Enchantments.PLUNDER,
-                Enchantments.GUZZLE,
-                Enchantments.LARGE_MUG,
-                Enchantments.RED_ENERGY,
-                Enchantments.GLOW_ENERGY,
-                Enchantments.SYNTHESIS
         );
     }
 
@@ -420,47 +307,6 @@ public final class BowGameTestSupport {
         helper.assertFalse(present, message + " (unexpected tooltip key=" + key + ")");
     }
 
-    static Set<ResourceLocation> collectAllowedEnchantments(
-            RegistryAccess registryAccess,
-            Predicate<Holder<Enchantment>> predicate
-    ) {
-        var allowedEnchantments = new LinkedHashSet<ResourceLocation>();
-        var enchantments = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).listElements()
-                .sorted(Comparator.comparing(holder -> holder.key().location().toString()))
-                .toList();
-
-        for (var enchantment : enchantments) {
-            if (predicate.test(enchantment)) {
-                allowedEnchantments.add(enchantment.key().location());
-            }
-        }
-        return allowedEnchantments;
-    }
-
-    static ItemStack createEnchantedBook(Holder<Enchantment> enchantment) {
-        return createEnchantedBook(enchantment, 1);
-    }
-
-    static ItemStack createEnchantedBook(Holder<Enchantment> enchantment, int level) {
-        var book = new ItemStack(Items.ENCHANTED_BOOK);
-        book.enchant(enchantment, level);
-        return book;
-    }
-
-
-    static String describeEnchantmentDifference(
-            Set<ResourceLocation> expectedEnchantments,
-            Set<ResourceLocation> actualEnchantments
-    ) {
-        var missingEnchantments = new LinkedHashSet<>(expectedEnchantments);
-        missingEnchantments.removeAll(actualEnchantments);
-
-        var unexpectedEnchantments = new LinkedHashSet<>(actualEnchantments);
-        unexpectedEnchantments.removeAll(expectedEnchantments);
-
-        return "missing=" + missingEnchantments + ", unexpected=" + unexpectedEnchantments;
-    }
-
     static double sumModifierAmount(
             Collection<AttributeModifier> modifiers,
             AttributeModifier.Operation operation
@@ -566,62 +412,9 @@ public final class BowGameTestSupport {
                 message + ": expected " + expectedAmount + " but got " + actualAmount);
     }
 
-    static void assertReferenceItemEnchantmentsWithRequiredExtras(
-            GameTestHelper helper,
-            ItemStack stack,
-            ItemStack referenceStack,
-            Set<ResourceLocation> requiredExtraEnchantments,
-            String itemName
-    ) {
-        var registryAccess = helper.getLevel().registryAccess();
-        var expectedPrimaryEnchantments = expectedReferencePrimaryEnchantments(registryAccess, referenceStack, requiredExtraEnchantments);
-        var expectedSupportedEnchantments = expectedReferenceSupportedEnchantments(registryAccess, referenceStack, requiredExtraEnchantments);
-        var expectedDefinitionEnchantments = expectedReferenceDefinitionEnchantments(registryAccess, referenceStack, requiredExtraEnchantments);
-        var expectedBookEnchantments = expectedReferenceBookEnchantments(registryAccess, referenceStack, requiredExtraEnchantments);
-
-        assertExactEnchantmentSurfaces(
-                helper,
-                stack,
-                expectedPrimaryEnchantments,
-                expectedSupportedEnchantments,
-                expectedDefinitionEnchantments,
-                expectedBookEnchantments,
-                expectedSupportedEnchantments,
-                itemName
-        );
-
-        var enchantmentLookup = registryAccess.lookupOrThrow(Registries.ENCHANTMENT);
-        for (var enchantmentId : requiredExtraEnchantments) {
-            assertSingleEnchantmentSurfaces(
-                    helper,
-                    stack,
-                    enchantmentLookup.getOrThrow(ResourceKey.create(Registries.ENCHANTMENT, enchantmentId)),
-                    true,
-                    true,
-                    true,
-                    true,
-                    stack.getItem() instanceof NonDamageableAnvilMergeItem ? Boolean.TRUE : null,
-                    itemName + " required extra enchantment"
-            );
-        }
-    }
-
     static @Nullable CompoundTag getCustomDataTag(ItemStack stack) {
         var customData = stack.get(DataComponents.CUSTOM_DATA);
         return customData == null ? null : customData.copyTag();
-    }
-
-    static int getEnchantmentLevel(ItemStack stack, Holder<Enchantment> enchantment) {
-        return EnchantmentHelper.getEnchantmentsForCrafting(stack).getLevel(enchantment);
-    }
-
-    static Set<ResourceLocation> requiredElementalBowExtraEnchantments() {
-        return registryIdSet(
-                Enchantments.TRANSCENDENCE,
-                Enchantments.WISDOM,
-                Enchantments.PLUNDER,
-                Enchantments.SYNTHESIS
-        );
     }
 
     public static ApprenticeCodexServerConfig.GameTestConfigOverride useElementalBowSpellConfig(GameTestHelper helper) {
@@ -674,87 +467,6 @@ public final class BowGameTestSupport {
         return builder.build();
     }
 
-
-    static void assertSingleEnchantmentSurfaces(
-            GameTestHelper helper,
-            ItemStack stack,
-            Holder<Enchantment> enchantment,
-            boolean expectedPrimary,
-            boolean expectedSupported,
-            boolean expectedDefinitionSupport,
-            boolean expectedBook,
-            Boolean expectedAnvil,
-            String message
-    ) {
-        var item = stack.getItem();
-        var enchantmentId = enchantment.unwrapKey().orElseThrow().location();
-
-        helper.assertTrue(item.isPrimaryItemFor(stack, enchantment) == expectedPrimary,
-                message + " primary rule changed for " + enchantmentId + ": expected " + expectedPrimary);
-        helper.assertTrue(item.supportsEnchantment(stack, enchantment) == expectedSupported,
-                message + " supported rule changed for " + enchantmentId + ": expected " + expectedSupported);
-        helper.assertTrue(enchantment.value().canEnchant(stack) == expectedDefinitionSupport,
-                message + " definition support changed for " + enchantmentId + ": expected " + expectedDefinitionSupport);
-        helper.assertTrue(item.isBookEnchantable(stack, createEnchantedBook(enchantment)) == expectedBook,
-                message + " book rule changed for " + enchantmentId + ": expected " + expectedBook);
-
-        if (expectedAnvil != null) {
-            helper.assertTrue(item instanceof NonDamageableAnvilMergeItem,
-                    message + " anvil expectation requires NonDamageableAnvilMergeItem");
-            var actualAnvil = ((NonDamageableAnvilMergeItem) item).isAnvilMergeEnchantmentAllowed(stack, enchantment);
-            helper.assertTrue(actualAnvil == expectedAnvil,
-                    message + " anvil rule changed for " + enchantmentId + ": expected " + expectedAnvil);
-        }
-    }
-
-    static Set<ResourceLocation> expectedReferenceBookEnchantments(
-            RegistryAccess registryAccess,
-            ItemStack referenceStack,
-            Set<ResourceLocation> requiredExtraEnchantments
-    ) {
-        return expectedReferenceEnchantments(
-                registryAccess,
-                requiredExtraEnchantments,
-                enchantment -> referenceStack.getItem().isBookEnchantable(referenceStack, createEnchantedBook(enchantment))
-        );
-    }
-
-    static Set<ResourceLocation> expectedReferenceDefinitionEnchantments(
-            RegistryAccess registryAccess,
-            ItemStack referenceStack,
-            Set<ResourceLocation> requiredExtraEnchantments
-    ) {
-        return expectedReferenceEnchantments(
-                registryAccess,
-                requiredExtraEnchantments,
-                enchantment -> enchantment.value().canEnchant(referenceStack)
-        );
-    }
-
-    static Set<ResourceLocation> expectedReferencePrimaryEnchantments(
-            RegistryAccess registryAccess,
-            ItemStack referenceStack,
-            Set<ResourceLocation> requiredExtraEnchantments
-    ) {
-        return expectedReferenceEnchantments(
-                registryAccess,
-                requiredExtraEnchantments,
-                enchantment -> referenceStack.getItem().isPrimaryItemFor(referenceStack, enchantment)
-        );
-    }
-
-    static Set<ResourceLocation> expectedReferenceSupportedEnchantments(
-            RegistryAccess registryAccess,
-            ItemStack referenceStack,
-            Set<ResourceLocation> requiredExtraEnchantments
-    ) {
-        return expectedReferenceEnchantments(
-                registryAccess,
-                requiredExtraEnchantments,
-                enchantment -> referenceStack.getItem().supportsEnchantment(referenceStack, enchantment)
-        );
-    }
-
     static @Nullable String normalizeElementalBowModeId(@Nullable String mode) {
         if (mode == null || mode.isBlank()) {
             return mode;
@@ -764,14 +476,4 @@ public final class BowGameTestSupport {
                 : ResourceLocation.fromNamespaceAndPath("irons_spellbooks", mode).toString();
     }
 
-
-    static Set<ResourceLocation> expectedReferenceEnchantments(
-            RegistryAccess registryAccess,
-            Set<ResourceLocation> requiredExtraEnchantments,
-            Predicate<Holder<Enchantment>> predicate
-    ) {
-        var expectedEnchantments = collectAllowedEnchantments(registryAccess, predicate);
-        expectedEnchantments.addAll(requiredExtraEnchantments);
-        return expectedEnchantments;
-    }
 }

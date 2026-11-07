@@ -325,16 +325,11 @@ public final class FlaskScenarios {
                     io.redspace.ironsspellbooks.registries.PotionRegistry.INSTANT_MANA_ONE.get()
             );
             var flask = new ItemStack(ItemRegistry.ALCHEMISTS_FLASK.get());
-            helper.assertTrue(SpellcastersFlask.getMaxDoseCapacity(flask) == 16,
-                    "Alchemist's Flask base capacity mismatch: " + SpellcastersFlask.getMaxDoseCapacity(flask));
-
-            registryAccess.lookupOrThrow(Registries.ENCHANTMENT)
-                    .get(Enchantments.LARGE_MUG)
-                    .ifPresent(enchantment -> {
-                        flask.enchant(enchantment, 1);
-                        helper.assertTrue(SpellcastersFlask.getMaxDoseCapacity(flask) == 20,
-                                "Alchemist's Flask Large Mug bonus mismatch: " + SpellcastersFlask.getMaxDoseCapacity(flask));
-                    });
+            flask.enchant(registryAccess.lookupOrThrow(Registries.ENCHANTMENT)
+                    .getOrThrow(Enchantments.LARGE_MUG), 1);
+            var fullFlask = SpellcastersFlask.copyWithAddedDoses(flask, splashPotion, 25);
+            helper.assertTrue(SpellcastersFlask.getStoredDoseCount(fullFlask) == 20,
+                    "Large Mug must increase the actual fill limit to twenty doses");
 
             var filledFlask = SpellcastersFlask.copyWithAddedDoses(flask, splashPotion, 16);
             helper.assertTrue(!filledFlask.isEmpty(), "Alchemist's Flask failed to store sixteen splash potion doses");
