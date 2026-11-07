@@ -13,7 +13,9 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/** 自分の射手・弾・召喚物だけを追跡し、非同期テストの全終了経路で解放する。 */
+/**
+ * 自分の射手・弾・召喚物だけを追跡し、非同期テストの全終了経路で解放する。
+ */
 public final class BowTestScope implements AutoCloseable {
     private static final Map<GameTestHelper, BowTestScope> ACTIVE = new IdentityHashMap<>();
     private final GameTestHelper helper;
@@ -38,10 +40,24 @@ public final class BowTestScope implements AutoCloseable {
         };
         NeoForge.EVENT_BUS.addListener(listener);
         helper.testInfo.addListener(new GameTestListener() {
-            @Override public void testStructureLoaded(GameTestInfo test) {}
-            @Override public void testPassed(GameTestInfo test, GameTestRunner runner) { close(); }
-            @Override public void testFailed(GameTestInfo test, GameTestRunner runner) { close(); }
-            @Override public void testAddedForRerun(GameTestInfo previous, GameTestInfo next, GameTestRunner runner) { close(); }
+            @Override
+            public void testStructureLoaded(GameTestInfo test) {
+            }
+
+            @Override
+            public void testPassed(GameTestInfo test, GameTestRunner runner) {
+                close();
+            }
+
+            @Override
+            public void testFailed(GameTestInfo test, GameTestRunner runner) {
+                close();
+            }
+
+            @Override
+            public void testAddedForRerun(GameTestInfo previous, GameTestInfo next, GameTestRunner runner) {
+                close();
+            }
         });
     }
 
@@ -52,16 +68,36 @@ public final class BowTestScope implements AutoCloseable {
 
     public <T> T capture(Supplier<T> operation) {
         ++captureDepth;
-        try { return operation.get(); }
-        finally { --captureDepth; }
+        try {
+            return operation.get();
+        } finally {
+            --captureDepth;
+        }
     }
 
-    public void run(Runnable operation) { capture(() -> { operation.run(); return null; }); }
+    public void run(Runnable operation) {
+        capture(() -> {
+            operation.run();
+            return null;
+        });
+    }
 
-    public void onClose(Runnable operation) { cleanup.add(operation); }
+    public void onClose(Runnable operation) {
+        cleanup.add(operation);
+    }
 
     public <T extends Entity> List<T> entities(Class<T> type) {
         return owned.stream().filter(type::isInstance).map(type::cast).filter(entity -> !entity.isRemoved()).toList();
+    }
+
+    public static void tickOwned(Entity entity, boolean advanceAge) {
+        // owner APIを持たない生成物も、自分の同期tick中に生まれたものとして捕捉する。
+        var scope = ACTIVE.values().stream().filter(candidate -> candidate.owned.contains(entity)).findFirst().orElseThrow();
+        scope.run(() -> {
+            if (advanceAge) entity.tickCount++;
+            entity.tick();
+        });
+        if (!entity.isRemoved()) scope.assertInside(entity);
     }
 
     public void assertInside(Entity entity) {
@@ -69,14 +105,16 @@ public final class BowTestScope implements AutoCloseable {
                 "Owned entity must stay inside its bow fixture: " + entity.getType() + " at " + entity.position());
     }
 
-    @Override public void close() {
+    @Override
+    public void close() {
         if (closed) return;
         closed = true;
         Throwable failure = null;
         try {
             for (var i = cleanup.size() - 1; i >= 0; --i) {
-                try { cleanup.get(i).run(); }
-                catch (RuntimeException | Error thrown) {
+                try {
+                    cleanup.get(i).run();
+                } catch (RuntimeException | Error thrown) {
                     if (failure == null) failure = thrown;
                     else failure.addSuppressed(thrown);
                 }
