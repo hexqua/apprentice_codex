@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static jp.aquafactory.apprenticecodex.gametest.equipment.multicastechostaff.MulticastEchoStaffScenarios.*;
+import static jp.aquafactory.apprenticecodex.gametest.equipment.multicastechostaff.support.EchoStaffCastSupport.*;
 import static jp.aquafactory.apprenticecodex.gametest.spell.senseevil.SenseEvilScenarios.spawnPositionedZombie;
 import static jp.aquafactory.apprenticecodex.gametest.spell.summonweapon.echo.EchoWeaponTestSupport.*;
 
