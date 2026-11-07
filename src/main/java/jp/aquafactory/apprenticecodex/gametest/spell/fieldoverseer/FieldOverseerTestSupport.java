@@ -26,10 +26,10 @@ public final class FieldOverseerTestSupport {
                 ((FieldOverseer) SpellRegistry.FIELD_OVERSEER.get()).getDuration());
     }
 
-    private static FieldOverseerStaffEntity createDurationBoundFieldOverseer(
+    public static FieldOverseerStaffEntity createForDuration(
             GameTestHelper helper, FakePlayer owner, int spellLevel, BlockPos anchorPos, int duration) {
         return createDurationBoundFieldOverseer(
-                helper, owner, spellLevel, helper.absolutePos(anchorPos), 100.0F, 40, duration);
+                helper, owner, spellLevel, DeployedSpellTestFixture.of(helper).absolute(anchorPos), 100.0F, 40, duration);
     }
 
     private static FieldOverseerStaffEntity createDurationBoundFieldOverseer(

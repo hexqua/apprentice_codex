@@ -122,7 +122,9 @@ public final class DeployedSpellTestFixture implements AutoCloseable {
     public void assertVisible(Entity entity) {
         helper.assertTrue(helper.getBounds().contains(entity.position()), "Fixture entity must be inside the structure: " + entity.getType() + " at " + entity.position());
         helper.assertTrue(helper.getLevel().hasChunkAt(entity.blockPosition()), "Fixture entity chunk must be loaded: " + entity.blockPosition());
-        helper.assertTrue(helper.getLevel().getEntity(entity.getUUID()) == entity, "Fixture entity must be visible by UUID: " + entity.getType());
+        helper.assertTrue(helper.getLevel().getEntity(entity.getUUID()) == entity, "Fixture entity must be visible by UUID: " + entity.getType()
+                        + ", removed=" + entity.isRemoved() + ", lookup=" + helper.getLevel().getEntity(entity.getUUID())
+                        + ", gameTime=" + helper.getLevel().getGameTime());
     }
 
     public <T extends Entity> T add(T entity) {
