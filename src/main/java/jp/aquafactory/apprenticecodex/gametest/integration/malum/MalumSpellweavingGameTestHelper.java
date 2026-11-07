@@ -2,7 +2,7 @@ package jp.aquafactory.apprenticecodex.gametest.integration.malum;
 
 import com.sammy.malum.common.entity.activator.SpellweaverToolEffectActivatorEntity;
 import com.sammy.malum.common.item.curiosities.tools.spellweaver.SpellweavingPickaxeItem;
-import java.util.function.Supplier;
+import jp.aquafactory.apprenticecodex.gametest.support.MiningTestScope;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -10,8 +10,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
+
+import java.util.function.Supplier;
 
 public final class MalumSpellweavingGameTestHelper {
     private MalumSpellweavingGameTestHelper() {
@@ -26,14 +26,15 @@ public final class MalumSpellweavingGameTestHelper {
         }
     }
 
-    public static int countActivators(Level level, AABB bounds) {
-        return level.getEntitiesOfClass(SpellweaverToolEffectActivatorEntity.class, bounds).size();
+    public static int countActivators(MiningTestScope scope, Player owner) {
+        return (int) scope.entities(SpellweaverToolEffectActivatorEntity.class).stream()
+                .filter(entity -> owner.getUUID().equals(entity.getOwner())).count();
     }
 
-    public static Supplier<String> activatorDiagnostics(ServerLevel level, AABB bounds, Player owner) {
+    public static Supplier<String> activatorDiagnostics(ServerLevel level, MiningTestScope scope, Player owner) {
         // 検索範囲外への移動や削除後も、生成時に捕捉した実体から運搬状態を調べる。
-        var activators = level.getEntitiesOfClass(SpellweaverToolEffectActivatorEntity.class, bounds,
-                entity -> owner.getUUID().equals(entity.getOwner()));
+        var activators = scope.entities(SpellweaverToolEffectActivatorEntity.class).stream()
+                .filter(entity -> owner.getUUID().equals(entity.getOwner())).toList();
         return () -> "ownerPos=" + owner.position() + ", ownerAlive=" + owner.isAlive()
                 + ", ownerTracked=" + (level.getEntity(owner.getUUID()) == owner)
                 + ", activators=" + activators.stream().map(entity -> describeActivator(level, entity)).toList();
