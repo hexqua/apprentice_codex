@@ -33,7 +33,7 @@ public final class FocusStaffbowConfigGameTests {
     @GameTest(template = "gametest/bow_casting", batch = "apprenticecodex.focus_staffbow_arrow_config")
     public static void focusStaffbowArrowRequirementConfigAllowsArrowlessCasting(GameTestHelper helper) {
         var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
-        override[0] = useFocusStaffbowConfigOverrideForGameTest(helper, 
+        override[0] = useFocusStaffbowConfigOverrideForGameTest(helper,
                 true,
                 true,
                 false,
@@ -81,7 +81,7 @@ public final class FocusStaffbowConfigGameTests {
     @GameTest(template = "gametest/bow_casting", batch = "apprenticecodex.focus_staffbow_continuous_config")
     public static void focusStaffbowContinuousConfigRejectsWithoutConsumingArrow(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            try (var ignored = useFocusStaffbowConfigOverrideForGameTest(helper, 
+            try (var ignored = useFocusStaffbowConfigOverrideForGameTest(helper,
                     false,
                     true,
                     true,
@@ -114,7 +114,7 @@ public final class FocusStaffbowConfigGameTests {
     @GameTest(template = "gametest/bow_casting", batch = "apprenticecodex.focus_staffbow_loan_config")
     public static void focusStaffbowManaLoanConfigRejectsBorrowedPendingCast(GameTestHelper helper) {
         var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
-        override[0] = useFocusStaffbowConfigOverrideForGameTest(helper, 
+        override[0] = useFocusStaffbowConfigOverrideForGameTest(helper,
                 true,
                 false,
                 true,
@@ -169,7 +169,7 @@ public final class FocusStaffbowConfigGameTests {
     @GameTest(template = "gametest/bow_casting", batch = "apprenticecodex.focus_staffbow_loan_ratio_config")
     public static void focusStaffbowLoanRatioConfigRejectsExcessBorrowing(GameTestHelper helper) {
         var override = new ApprenticeCodexServerConfig.GameTestConfigOverride[1];
-        override[0] = useFocusStaffbowConfigOverrideForGameTest(helper, 
+        override[0] = useFocusStaffbowConfigOverrideForGameTest(helper,
                 true,
                 true,
                 true,
@@ -225,7 +225,7 @@ public final class FocusStaffbowConfigGameTests {
     public static void focusStaffbowSpellDenylistBlocksBeforeAmmo(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spell = SpellRegistry.MANA_SLASH.get();
-            try (var ignored = useFocusStaffbowConfigOverrideForGameTest(helper, 
+            try (var ignored = useFocusStaffbowConfigOverrideForGameTest(helper,
                     true,
                     true,
                     true,
@@ -259,7 +259,7 @@ public final class FocusStaffbowConfigGameTests {
     public static void focusStaffbowSpellAllowlistBlocksMissingSpellBeforeAmmo(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var spell = SpellRegistry.MANA_SLASH.get();
-            try (var ignored = useFocusStaffbowConfigOverrideForGameTest(helper, 
+            try (var ignored = useFocusStaffbowConfigOverrideForGameTest(helper,
                     true,
                     true,
                     true,

@@ -1,4 +1,4 @@
-package jp.aquafactory.apprenticecodex.gametest.equipment.bow;
+package jp.aquafactory.apprenticecodex.gametest.equipment.bow.elemental;
 
 import com.mojang.serialization.JsonOps;
 import io.netty.buffer.Unpooled;
@@ -7,9 +7,6 @@ import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.spellcalibrationbench.SpellCalibrationBenchMenu;
 import jp.aquafactory.apprenticecodex.compat.jei.SpellCalibrationAdjustmentJeiRecipe;
@@ -39,6 +36,10 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+
 @GameTestHolder(ApprenticeCodex.MODID)
 @PrefixGameTestTemplate(false)
 public final class ElementalBowRuneGameTests {
@@ -57,7 +58,7 @@ public final class ElementalBowRuneGameTests {
         if (recovery) item.trySetCalibrationAdjustment(stack, 2,
                 new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.COOLDOWN_RUNE.get()), lookup);
         for (int slot = 0; slot < 2; slot++) ElementalBow.setCalibrationScroll(stack, slot,
-                BowGameTestSupport.createSpellScroll(SpellRegistry.FIRE_ARROW_SPELL.get()), lookup);
+                ElementalBowTestSupport.createSpellScroll(SpellRegistry.FIRE_ARROW_SPELL.get()), lookup);
         select(stack, 0);
         return stack;
     }
@@ -69,11 +70,11 @@ public final class ElementalBowRuneGameTests {
         });
     }
 
-    @GameTest(template = "gametest/basic_floor")
+    @GameTest(template = "gametest/bow_casting")
     public static void elementalBowInstantCastKeepsRuneAndCooldownScope(GameTestHelper helper) {
-        try (var config = BowGameTestSupport.useElementalBowSpellConfig(helper);
+        try (var config = ElementalBowTestSupport.useElementalBowSpellConfig(helper);
              var manaConfig = ApprenticeCodexServerConfig.overrideElementalBowSchoolRuneManaCostMultiplierForGameTest(2)) {
-            var player = BowGameTestSupport.createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "bow_instant");
+            var player = ElementalBowTestSupport.createEquipmentTestPlayer(helper, new BlockPos(12, 2, 12), "bow_instant");
             var spell = SpellRegistry.getSpell("irons_spellbooks:blood_step");
             var stack = bow(helper, true, false);
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
@@ -113,7 +114,7 @@ public final class ElementalBowRuneGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "gametest/basic_floor")
+    @GameTest(template = "gametest/bow_casting")
     public static void elementalBowReloadRejectsContinuousModes(GameTestHelper helper) throws ReflectiveOperationException {
         var previous = ElementalBowModeManager.createSnapshot();
         var instant = ResourceLocation.parse("irons_spellbooks:blood_step");
@@ -146,7 +147,7 @@ public final class ElementalBowRuneGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "gametest/basic_floor")
+    @GameTest(template = "gametest/bow_casting")
     public static void elementalBowRuneConfigSyncUpdatesExistingJeiRecipe(GameTestHelper helper) {
         double previous = ElementalBowClientConfigState.schoolRuneManaCostMultiplier();
         var buffer = new FriendlyByteBuf(Unpooled.buffer());
@@ -180,9 +181,9 @@ public final class ElementalBowRuneGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "gametest/basic_floor")
+    @GameTest(template = "gametest/bow_casting")
     public static void elementalBowRunesShareThreeAdjustmentSlots(GameTestHelper helper) {
-        var player = BowGameTestSupport.createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "bow_rune_bench");
+        var player = ElementalBowTestSupport.createEquipmentTestPlayer(helper, new BlockPos(12, 2, 12), "bow_rune_bench");
         var stack = bow(helper, true, true);
         var menu = new SpellCalibrationBenchMenu(0, player.getInventory());
         menu.getSlot(0).set(stack);
@@ -203,19 +204,19 @@ public final class ElementalBowRuneGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "gametest/basic_floor")
+    @GameTest(template = "gametest/bow_casting")
     public static void elementalBowRuneManaIncludesHeatAndHonorsConfig(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            try (var spells = BowGameTestSupport.useElementalBowSpellConfig(helper);
-                 var heat = BowGameTestSupport.useElementalBowConfigOverrideForGameTest(1, .2, .08, 1, 0, 0)) {
+            try (var spells = ElementalBowTestSupport.useElementalBowSpellConfig(helper);
+                 var heat = ElementalBowTestSupport.useElementalBowConfigOverrideForGameTest(1, .2, .08, 1, 0, 0)) {
                 for (double multiplier : new double[]{1, 1.25, 2, 10}) {
                     try (var config = ApprenticeCodexServerConfig.overrideElementalBowSchoolRuneManaCostMultiplierForGameTest(multiplier)) {
-                        var player = BowGameTestSupport.createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "bow_rune_mana");
+                        var player = ElementalBowTestSupport.createEquipmentTestPlayer(helper, new BlockPos(12, 2, 12), "bow_rune_mana");
                         player.getAttribute(AttributeRegistry.MAX_MANA).setBaseValue(20000);
                         var stack = bow(helper, true, true);
                         if (multiplier == 1.25 || multiplier == 10) {
                             ElementalBow.setCalibrationScroll(stack, 0,
-                                    BowGameTestSupport.createSpellScroll(SpellRegistry.MAGIC_ARROW_SPELL.get()),
+                                    ElementalBowTestSupport.createSpellScroll(SpellRegistry.MAGIC_ARROW_SPELL.get()),
                                     helper.getLevel().registryAccess());
                         }
                         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
@@ -250,10 +251,10 @@ public final class ElementalBowRuneGameTests {
         });
     }
 
-    @GameTest(template = "gametest/basic_floor")
+    @GameTest(template = "gametest/bow_casting")
     public static void elementalBowSchoolPowerScopeIsIsolated(GameTestHelper helper) {
-        var player = BowGameTestSupport.createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "bow_rune_power");
-        var other = BowGameTestSupport.createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "bow_rune_other");
+        var player = ElementalBowTestSupport.createEquipmentTestPlayer(helper, new BlockPos(12, 2, 12), "bow_rune_power");
+        var other = ElementalBowTestSupport.createEquipmentTestPlayer(helper, new BlockPos(12, 2, 12), "bow_rune_other");
         var stack = bow(helper, true, false);
         var spell = SpellRegistry.MAGIC_ARROW_SPELL.get();
         player.getAttribute(AttributeRegistry.FIRE_SPELL_POWER).setBaseValue(3);
@@ -283,11 +284,11 @@ public final class ElementalBowRuneGameTests {
         helper.succeed();
     }
 
-    @GameTest(template = "gametest/basic_floor")
+    @GameTest(template = "gametest/bow_casting")
     public static void elementalBowRecoveryUsesPlayerSlotNumbers(GameTestHelper helper) {
         helper.succeedIf(() -> {
-            try (var spells = BowGameTestSupport.useElementalBowSpellConfig(helper)) {
-                var player = BowGameTestSupport.createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "bow_recovery_slots");
+            try (var spells = ElementalBowTestSupport.useElementalBowSpellConfig(helper)) {
+                var player = ElementalBowTestSupport.createEquipmentTestPlayer(helper, new BlockPos(12, 2, 12), "bow_recovery_slots");
                 player.getAttribute(AttributeRegistry.MAX_MANA).setBaseValue(20000);
                 var first = bow(helper, false, true);
                 var second = bow(helper, false, true);
@@ -324,10 +325,10 @@ public final class ElementalBowRuneGameTests {
         });
     }
 
-    @GameTest(template = "gametest/basic_floor")
+    @GameTest(template = "gametest/bow_casting")
     public static void elementalBowUnrunedHeatSynchronizesWorstState(GameTestHelper helper) {
-        try (var config = BowGameTestSupport.useElementalBowConfigOverrideForGameTest(1, .2, .08, 1, 0, 0)) {
-            var player = BowGameTestSupport.createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "bow_worst_heat");
+        try (var config = ElementalBowTestSupport.useElementalBowConfigOverrideForGameTest(1, .2, .08, 1, 0, 0)) {
+            var player = ElementalBowTestSupport.createEquipmentTestPlayer(helper, new BlockPos(12, 2, 12), "bow_worst_heat");
             for (int i = 0; i < 3; i++) ElementalBowOverheatManager.applyOverheatAfterCast(player, 200, 0, true);
             ElementalBowOverheatManager.applyOverheatAfterCast(player, 400, 1, true);
             long longest = ElementalBowOverheatManager.getState(player, 1, true).expireGameTime();

@@ -1,12 +1,13 @@
-package jp.aquafactory.apprenticecodex.gametest.equipment.bow;
+package jp.aquafactory.apprenticecodex.gametest.equipment.bow.elemental;
 
-import java.util.Objects;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
 
 import static jp.aquafactory.apprenticecodex.gametest.support.InventoryTestSupport.getCustomDataTag;
 
@@ -23,7 +24,7 @@ final class ElementalBowSelectionTestSupport {
     }
 
     static void setElementalBowMode(ItemStack stack, String mode) {
-        BowGameTestSupport.setElementalBowMode(stack, mode);
+        ElementalBowTestSupport.setElementalBowMode(stack, mode);
     }
 
     static void assertElementalBowSelection(
@@ -75,7 +76,7 @@ final class ElementalBowSelectionTestSupport {
     }
 
     static void setElementalBowShotSelection(ItemStack stack, String shotMode, @Nullable ResourceLocation selectionId) {
-        BowGameTestSupport.setElementalBowShotSelection(stack, shotMode, selectionId);
+        ElementalBowTestSupport.setElementalBowShotSelection(stack, shotMode, selectionId);
     }
 
     static @Nullable String normalizeElementalBowModeId(@Nullable String mode) {

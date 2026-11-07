@@ -1,8 +1,10 @@
-package jp.aquafactory.apprenticecodex.gametest.equipment.bow;
+package jp.aquafactory.apprenticecodex.gametest.equipment.bow.elemental;
 
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
@@ -10,19 +12,24 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.neoforged.neoforge.gametest.GameTestHolder;
+import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-import static jp.aquafactory.apprenticecodex.gametest.equipment.bow.ElementalBowSelectionTestSupport.assertElementalBowSelection;
-import static jp.aquafactory.apprenticecodex.gametest.equipment.bow.ElementalBowSelectionTestSupport.setElementalBowShotSelection;
-import static jp.aquafactory.apprenticecodex.gametest.support.PlayerTestSupport.createEquipmentTestPlayer;
+import static jp.aquafactory.apprenticecodex.gametest.equipment.bow.elemental.ElementalBowSelectionTestSupport.assertElementalBowSelection;
+import static jp.aquafactory.apprenticecodex.gametest.equipment.bow.elemental.ElementalBowSelectionTestSupport.setElementalBowShotSelection;
+import static jp.aquafactory.apprenticecodex.gametest.equipment.bow.elemental.ElementalBowTestSupport.createEquipmentTestPlayer;
 
-final class ElementalBowAmmoScenarios {
-    private ElementalBowAmmoScenarios() {}
+@GameTestHolder(ApprenticeCodex.MODID)
+@PrefixGameTestTemplate(false)
+public final class ElementalBowAmmoGameTests {
+    private ElementalBowAmmoGameTests() {}
 
-    static void elementalBowVanillaModeInfinityDoesNotConsumeNormalArrows(GameTestHelper helper) {
+    @GameTest(template = "gametest/bow_casting")
+    public static void elementalBowVanillaModeInfinityDoesNotConsumeNormalArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var registryAccess = helper.getLevel().registryAccess();
             var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.INFINITY);
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_vanilla_infinity_preserve_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(12, 2, 12), "elemental_bow_vanilla_infinity_preserve_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.enchant(infinity, 1);
             player.setItemInHand(InteractionHand.MAIN_HAND, stack);
@@ -38,11 +45,12 @@ final class ElementalBowAmmoScenarios {
         });
     }
 
-    static void elementalBowArrowModeInfinityDoesNotConsumeNormalArrows(GameTestHelper helper) {
+    @GameTest(template = "gametest/bow_casting")
+    public static void elementalBowArrowModeInfinityDoesNotConsumeNormalArrows(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var registryAccess = helper.getLevel().registryAccess();
             var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.INFINITY);
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_arrow_infinity_preserve_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(12, 2, 12), "elemental_bow_arrow_infinity_preserve_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.enchant(infinity, 1);
             setElementalBowShotSelection(stack, "arrow", null);
@@ -59,11 +67,12 @@ final class ElementalBowAmmoScenarios {
         });
     }
 
-    static void elementalBowSpecialModeConsumesLastArrowAndKeepsSelection(GameTestHelper helper) {
+    @GameTest(template = "gametest/bow_casting")
+    public static void elementalBowSpecialModeConsumesLastArrowAndKeepsSelection(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var registryAccess = helper.getLevel().registryAccess();
             var infinity = registryAccess.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.INFINITY);
-            var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "elemental_bow_special_arrow_test");
+            var player = createEquipmentTestPlayer(helper, new BlockPos(12, 2, 12), "elemental_bow_special_arrow_test");
             var stack = new ItemStack(ItemRegistry.ELEMENTAL_BOW.get());
             stack.enchant(infinity, 1);
             setElementalBowShotSelection(stack, "special", ResourceLocation.fromNamespaceAndPath("minecraft", "spectral_arrow"));

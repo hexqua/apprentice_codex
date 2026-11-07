@@ -1,7 +1,5 @@
 package jp.aquafactory.apprenticecodex.gametest.equipment.bow;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
 import com.mojang.authlib.GameProfile;
 import io.redspace.ironsspellbooks.api.config.SpellConfigManager;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
@@ -14,29 +12,17 @@ import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
 import jp.aquafactory.apprenticecodex.item.curios.CuriosSlotConstants;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBow;
 import jp.aquafactory.apprenticecodex.item.elementalbow.ElementalBowScrollStorage;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextColor;
-import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.entity.EquipmentSlotGroup;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -45,8 +31,9 @@ import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.CuriosApi;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 public final class BowGameTestSupport {
     static final String VANILLA_NAMESPACE = "minecraft";
@@ -122,40 +109,6 @@ public final class BowGameTestSupport {
         );
     }
 
-    static void assertElementalBowSelection(
-            GameTestHelper helper,
-            ItemStack stack,
-            @Nullable String expectedShotMode,
-            @Nullable ResourceLocation expectedSelectionId,
-            String message
-    ) {
-        var tag = getCustomDataTag(stack);
-        var actualShotMode = tag != null && tag.contains("ElementalBowShotMode")
-                ? tag.getString("ElementalBowShotMode")
-                : null;
-        ResourceLocation actualSelectionId = null;
-        if (tag != null) {
-            if ("magic".equals(actualShotMode) && tag.contains("ElementalBowMode")) {
-                actualSelectionId = ResourceLocation.tryParse(tag.getString("ElementalBowMode"));
-            } else if (tag.contains("ElementalBowAmmoSelection")) {
-                actualSelectionId = ResourceLocation.tryParse(tag.getString("ElementalBowAmmoSelection"));
-            } else if (actualShotMode == null && tag.contains("ElementalBowMode")) {
-                actualSelectionId = ResourceLocation.tryParse(tag.getString("ElementalBowMode"));
-            }
-        }
-        helper.assertTrue(
-                Objects.equals(actualShotMode, expectedShotMode) && Objects.equals(actualSelectionId, "magic".equals(expectedShotMode) ? elementalBowSlotId(expectedSelectionId) : expectedSelectionId),
-                message + ": expected shotMode=" + expectedShotMode + ", selection=" + expectedSelectionId
-                        + " but got shotMode=" + actualShotMode + ", selection=" + actualSelectionId
-        );
-    }
-
-    static String describeElementalBowSelectionView(ElementalBow.ModeSelectionView view) {
-        return view.selection().selectionId() == null
-                ? view.selection().shotMode()
-                : view.selection().shotMode() + ":" + view.selection().selectionId();
-    }
-
     @Nullable
     public static ElementalBow.ModeSelectionView findElementalBowSelectionView(
             ServerPlayer player,
@@ -193,82 +146,6 @@ public final class BowGameTestSupport {
         });
     }
 
-    static void assertTranslatableKey(
-            GameTestHelper helper,
-            Component component,
-            String expectedKey,
-            String message
-    ) {
-        helper.assertTrue(
-                component.getContents() instanceof TranslatableContents contents
-                        && expectedKey.equals(contents.getKey()),
-                message + ": expected " + expectedKey + " but got " + component
-        );
-    }
-
-    static void assertTooltipKeyAt(
-            GameTestHelper helper,
-            ItemStack stack,
-            int index,
-            String expectedKey,
-            String message
-    ) {
-        var tooltipLines = new ArrayList<Component>();
-        stack.getItem().appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
-        helper.assertTrue(tooltipLines.size() > index,
-                message + " (tooltip line count=" + tooltipLines.size() + ")");
-        assertTranslatableKey(helper, tooltipLines.get(index), expectedKey, message);
-    }
-
-    static void assertTooltipKeyUsesColor(
-            GameTestHelper helper,
-            ItemStack stack,
-            String expectedKey,
-            ChatFormatting expectedColor,
-            String message
-    ) {
-        var tooltipLines = new ArrayList<Component>();
-        stack.getItem().appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
-        var matchingLine = tooltipLines.stream()
-                .filter(component -> component.getContents() instanceof TranslatableContents contents
-                        && expectedKey.equals(contents.getKey()))
-                .findFirst();
-        helper.assertTrue(matchingLine.isPresent(),
-                message + " (missing tooltip key=" + expectedKey + ")");
-        if (matchingLine.isPresent()) {
-            var expectedTextColor = TextColor.fromLegacyFormat(expectedColor);
-            helper.assertTrue(Objects.equals(expectedTextColor, matchingLine.get().getStyle().getColor()),
-                    message + " (expected=" + expectedTextColor + ", actual="
-                            + matchingLine.get().getStyle().getColor() + ")");
-        }
-    }
-
-    static void assertTooltipKeyAbsent(GameTestHelper helper, ItemStack stack, String key, String message) {
-        var tooltipLines = new ArrayList<Component>();
-        stack.getItem().appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), tooltipLines, TooltipFlag.Default.NORMAL);
-        var present = tooltipLines.stream()
-                .anyMatch(component -> component.getContents() instanceof TranslatableContents contents
-                        && key.equals(contents.getKey()));
-        helper.assertFalse(present, message + " (unexpected tooltip key=" + key + ")");
-    }
-
-    static double sumModifierAmount(
-            Collection<AttributeModifier> modifiers,
-            AttributeModifier.Operation operation
-    ) {
-        return modifiers.stream()
-                .filter(modifier -> modifier.operation() == operation)
-                .mapToDouble(AttributeModifier::amount)
-                .sum();
-    }
-
-    static String describeModifiers(Multimap<Holder<Attribute>, AttributeModifier> modifiers) {
-        return modifiers.entries().stream()
-                .map(entry -> BuiltInRegistries.ATTRIBUTE.getKey(entry.getKey().value()) + "="
-                        + entry.getValue().amount() + "@" + entry.getValue().operation())
-                .collect(Collectors.joining(", "));
-    }
-
     public static ItemStack createSpellScroll(AbstractSpell spell) {
         var stack = new ItemStack(ItemRegistry.SCROLL.get());
         ISpellContainer.createScrollContainer(spell, 1, stack);
@@ -289,78 +166,8 @@ public final class BowGameTestSupport {
         ISpellContainer.set(stack, mutable.toImmutable());
     }
 
-    static void assertSpellData(
-            GameTestHelper helper,
-            SpellData spellData,
-            AbstractSpell expectedSpell,
-            int expectedLevel,
-            String message
-    ) {
-        helper.assertTrue(spellData != SpellData.EMPTY,
-                message + " (spell data is empty)");
-        helper.assertTrue(spellData.getSpell() == expectedSpell,
-                message + " (spell mismatch: " + spellData.getSpell().getSpellResource() + ")");
-        helper.assertTrue(spellData.getLevel() == expectedLevel,
-                message + " (level mismatch: " + spellData.getLevel() + ")");
-    }
-
-    static void assertSpellData(
-            GameTestHelper helper,
-            ISpellContainer spellContainer,
-            int index,
-            AbstractSpell expectedSpell,
-            int expectedLevel,
-            boolean expectedLocked,
-            String message
-    ) {
-        var spellData = spellContainer.getSpellAtIndex(index);
-        helper.assertTrue(spellData != SpellData.EMPTY,
-                message + " (spell slot is empty at index " + index + ")");
-        helper.assertTrue(spellData.getSpell() == expectedSpell,
-                message + " (spell mismatch: " + spellData.getSpell().getSpellResource() + ")");
-        helper.assertTrue(spellData.getLevel() == expectedLevel,
-                message + " (level mismatch: " + spellData.getLevel() + ")");
-        helper.assertTrue(spellData.isLocked() == expectedLocked,
-                message + " (locked mismatch: " + spellData.isLocked() + ")");
-    }
-
     static final ResourceLocation MALUM_HAUNTED =
             ResourceLocation.fromNamespaceAndPath(MALUM_MOD_ID, "haunted");
-
-    static void assertModifierAmount(
-            GameTestHelper helper,
-            ItemAttributeModifiers modifiers,
-            Attribute attribute,
-            double expectedAmount,
-            AttributeModifier.Operation operation,
-            String message
-    ) {
-        assertModifierAmount(helper, modifiers, attribute, EquipmentSlotGroup.OFFHAND, expectedAmount, operation, message);
-    }
-
-    static void assertModifierAmount(
-            GameTestHelper helper,
-            ItemAttributeModifiers modifiers,
-            Attribute attribute,
-            EquipmentSlotGroup slotGroup,
-            double expectedAmount,
-            AttributeModifier.Operation operation,
-            String message
-    ) {
-        var actualAmount = modifiers.modifiers().stream()
-                .filter(entry -> entry.slot().equals(slotGroup))
-                .filter(entry -> entry.attribute().value() == attribute)
-                .filter(entry -> entry.modifier().operation() == operation)
-                .mapToDouble(entry -> entry.modifier().amount())
-                .sum();
-        helper.assertTrue(Math.abs(actualAmount - expectedAmount) < 1.0e-9D,
-                message + ": expected " + expectedAmount + " but got " + actualAmount);
-    }
-
-    static @Nullable CompoundTag getCustomDataTag(ItemStack stack) {
-        var customData = stack.get(DataComponents.CUSTOM_DATA);
-        return customData == null ? null : customData.copyTag();
-    }
 
     public static ApprenticeCodexServerConfig.GameTestConfigOverride useElementalBowSpellConfig(GameTestHelper helper) {
         var previous = SpellConfigManager.INSTANCE;
@@ -400,16 +207,6 @@ public final class BowGameTestSupport {
 
     public static void setElementalBowMode(ItemStack stack, String mode) {
         setElementalBowShotSelection(stack, "magic", ResourceLocation.tryParse(normalizeElementalBowModeId(mode)));
-    }
-
-    static Multimap<Holder<Attribute>, AttributeModifier> toModifierMultimap(
-            ItemAttributeModifiers modifiers
-    ) {
-        var builder = ImmutableMultimap.<Holder<Attribute>, AttributeModifier>builder();
-        for (var entry : modifiers.modifiers()) {
-            builder.put(entry.attribute(), entry.modifier());
-        }
-        return builder.build();
     }
 
     static @Nullable String normalizeElementalBowModeId(@Nullable String mode) {
