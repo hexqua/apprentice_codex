@@ -11,6 +11,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -107,7 +108,21 @@ public final class SpellcasterAccessoryCase extends BlockItem {
             return false;
         }
 
-        openMenu(player, slot.getSlotIndex(), stack);
+        if (player instanceof ServerPlayer serverPlayer) {
+            var sourceMenu = serverPlayer.containerMenu;
+            var sourceSlot = slot.getSlotIndex();
+            var server = serverPlayer.server;
+            // clicked の途中で menu を置換すると、元の menu の同期停止が解除されない。
+            // execute は server thread 上では即時実行されるため、必ずキューへ積む tell を使う。
+            server.tell(new TickTask(server.getTickCount(), () -> {
+                if (!serverPlayer.isAlive() || serverPlayer.hasDisconnected()
+                        || serverPlayer.containerMenu != sourceMenu
+                        || slot.getItem() != stack || !sourceMenu.getCarried().isEmpty()) {
+                    return;
+                }
+                openMenu(serverPlayer, sourceSlot, stack);
+            }));
+        }
         return true;
     }
 
