@@ -413,13 +413,15 @@ public final class DragonDamageGameTests {
 
         private EnderDragon dragon() {
             var dragon = Objects.requireNonNull(EntityType.ENDER_DRAGON.create(helper.getLevel()));
-            // 本体の大きなAABBを経路から離し、露出させた部位だけへの命中を検証する。
-            dragon.setPos(origin.add(8, 20, 8));
+            // 本体が管理範囲外の chunk に入ると部位が検索へ登録されないため、水平位置は template 内に保つ。
+            // 本体と未露出部位の大きなAABBは、高さだけで攻撃経路から離す。
+            var parkedPos = origin.add(0, 20, 0);
+            dragon.setPos(parkedPos);
             dragon.setNoAi(true);
             dragon.getPhaseManager().setPhase(EnderDragonPhase.HOLDING_PATTERN);
             Objects.requireNonNull(dragon.getAttribute(AttributeRegistry.SPELL_RESIST.get())).setBaseValue(1);
             add(dragon);
-            for (var part : dragon.getSubEntities()) part.setPos(origin.add(8, 20, 8));
+            for (var part : dragon.getSubEntities()) part.setPos(parkedPos);
             return dragon;
         }
 

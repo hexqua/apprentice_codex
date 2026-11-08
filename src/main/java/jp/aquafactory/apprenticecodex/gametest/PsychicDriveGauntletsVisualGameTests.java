@@ -172,20 +172,27 @@ public final class PsychicDriveGauntletsVisualGameTests {
     }
 
     @GameTest(template = TEMPLATE)
-    public static void sparkRegistrationReusesTheExistingTexture(GameTestHelper helper) throws Exception {
+    public static void sparkRegistrationUsesLayeredGlowTextures(GameTestHelper helper) throws Exception {
         var id = ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "psychic_drive_gauntlets_spark");
         helper.assertTrue(BuiltInRegistries.PARTICLE_TYPE.get(id) == ParticleRegistry.PSYCHIC_DRIVE_GAUNTLETS_SPARK.get(),
                 "The original spark type must be registered");
-        try (var stream = Objects.requireNonNull(PsychicDriveGauntletsVisualGameTests.class.getResourceAsStream(
-                "/assets/apprenticecodex/particles/psychic_drive_gauntlets_spark.json"));
-             var reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
-            var textures = JsonParser.parseReader(reader).getAsJsonObject().getAsJsonArray("textures");
-            helper.assertTrue(textures.size() == 1 && textures.get(0).getAsString().equals("apprenticecodex:glow_square"),
-                    "The new spark must reuse the existing glow texture");
+        // 描画層は順序に意味があるため、汎用・専用の火花を同じ契約で検証する。
+        for (var name : List.of("additive_spark", "mana_force_release_spark", "psychic_drive_gauntlets_spark")) {
+            try (var stream = Objects.requireNonNull(PsychicDriveGauntletsVisualGameTests.class.getResourceAsStream(
+                    "/assets/apprenticecodex/particles/" + name + ".json"));
+                 var reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+                var textures = JsonParser.parseReader(reader).getAsJsonObject().getAsJsonArray("textures");
+                helper.assertTrue(textures.size() == 2
+                                && textures.get(0).getAsString().equals("apprenticecodex:glow_square_blur")
+                                && textures.get(1).getAsString().equals("apprenticecodex:glow_circle"),
+                        "Spark layers must contain the blurred core followed by the circular halo: " + name);
+            }
         }
-        try (var texture = PsychicDriveGauntletsVisualGameTests.class.getResourceAsStream(
-                "/assets/apprenticecodex/textures/particle/glow_square.png")) {
-            helper.assertTrue(texture != null, "The referenced particle texture must exist");
+        for (var name : List.of("glow_square_blur", "glow_circle")) {
+            try (var texture = PsychicDriveGauntletsVisualGameTests.class.getResourceAsStream(
+                    "/assets/apprenticecodex/textures/particle/" + name + ".png")) {
+                helper.assertTrue(texture != null, "The referenced particle texture must exist: " + name);
+            }
         }
         helper.succeed();
     }
