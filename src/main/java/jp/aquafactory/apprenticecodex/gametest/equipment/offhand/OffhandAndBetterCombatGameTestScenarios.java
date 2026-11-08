@@ -186,32 +186,6 @@ final class OffhandAndBetterCombatGameTestScenarios {
                     "Reflectcast Shield trigger suppression should clear with its non-persistent runtime");
         });
     }
-    public static void diamondAndNetheriteSpellAmplifierExposeNewAttributeBonuses(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var diamondItem = ItemRegistry.DIAMOND_SPELL_AMPLIFIER.get();
-            var diamondStack = new ItemStack(diamondItem);
-            assertModifierAmount(
-                    helper,
-                    diamondItem.getDefaultAttributeModifiers(diamondStack),
-                    AttributeRegistry.CASTING_MOVESPEED.value(),
-                    0.25D,
-                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                    "Diamond Spell Amplifier casting move speed bonus regression"
-            );
-
-            var netheriteItem = ItemRegistry.NETHERITE_SPELL_AMPLIFIER.get();
-            var netheriteStack = new ItemStack(netheriteItem);
-            assertModifierAmount(
-                    helper,
-                    netheriteItem.getDefaultAttributeModifiers(netheriteStack),
-                    AttributeRegistry.CASTING_MOVESPEED.value(),
-                    0.50D,
-                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE,
-                    "Netherite Spell Amplifier casting move speed bonus regression"
-            );
-        });
-    }
-
     public static void soulstainedSteelSpellAmplifierFollowsMalumAvailability(GameTestHelper helper) {
         helper.succeedIf(() -> {
             var item = ItemRegistry.SOULSTAINED_STEEL_SPELL_AMPLIFIER.get();

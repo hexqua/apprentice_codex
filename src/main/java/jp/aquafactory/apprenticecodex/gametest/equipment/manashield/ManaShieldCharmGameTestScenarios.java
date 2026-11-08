@@ -19,7 +19,6 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.neoforged.neoforge.common.NeoForge;
 
@@ -59,22 +58,6 @@ final class ManaShieldCharmGameTestScenarios {
                 ),
                 "Mana Shield Charm"
         ));
-    }
-
-    public static void manaShieldCharmExclusiveEnchantmentsStayMutuallyExclusive(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var enchantmentLookup = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-            var shell = enchantmentLookup.getOrThrow(Enchantments.SHELL);
-            var synchronization = enchantmentLookup.getOrThrow(Enchantments.SYNCHRONIZATION);
-            var neutralization = enchantmentLookup.getOrThrow(Enchantments.NEUTRALIZATION);
-
-            helper.assertFalse(Enchantment.areCompatible(shell, synchronization),
-                    "Shell and Synchronization should stay mutually exclusive");
-            helper.assertFalse(Enchantment.areCompatible(shell, neutralization),
-                    "Shell and Neutralization should stay mutually exclusive");
-            helper.assertFalse(Enchantment.areCompatible(synchronization, neutralization),
-                    "Synchronization and Neutralization should stay mutually exclusive");
-        });
     }
 
     public static void manaShieldCharmFullyNegatesDamageAndPreservesArmorDurability(GameTestHelper helper) {

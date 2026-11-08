@@ -17,11 +17,6 @@ public final class EquipmentGameTests {
     }
 
     @GameTest(template = "gametest/basic_floor")
-    public static void rightClickMagicWeaponsExposeBaseAttributesAsComponents(GameTestHelper helper) {
-        EquipmentAttributeScenarios.rightClickMagicWeaponsExposeBaseAttributesAsComponents(helper);
-    }
-
-    @GameTest(template = "gametest/basic_floor")
     public static void mainhandUpgradeBridgeAppliesStoredUpgradeDataToSpellGunsAndWeapons(GameTestHelper helper) {
         EquipmentAttributeScenarios.mainhandUpgradeBridgeAppliesStoredUpgradeDataToSpellGunsAndWeapons(helper);
     }

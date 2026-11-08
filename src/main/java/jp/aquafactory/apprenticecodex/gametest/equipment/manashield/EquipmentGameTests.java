@@ -17,11 +17,6 @@ public final class EquipmentGameTests {
     }
 
     @GameTest(template = "gametest/basic_floor")
-    public static void manaShieldCharmExclusiveEnchantmentsStayMutuallyExclusive(GameTestHelper helper) {
-        ManaShieldCharmGameTestScenarios.manaShieldCharmExclusiveEnchantmentsStayMutuallyExclusive(helper);
-    }
-
-    @GameTest(template = "gametest/basic_floor")
     public static void manaShieldCharmFullyNegatesDamageAndPreservesArmorDurability(GameTestHelper helper) {
         ManaShieldCharmGameTestScenarios.manaShieldCharmFullyNegatesDamageAndPreservesArmorDurability(helper);
     }

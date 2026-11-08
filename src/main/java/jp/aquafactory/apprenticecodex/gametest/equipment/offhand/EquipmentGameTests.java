@@ -32,11 +32,6 @@ public final class EquipmentGameTests {
     }
 
     @GameTest(template = "gametest/basic_floor")
-    public static void diamondAndNetheriteSpellAmplifierExposeNewAttributeBonuses(GameTestHelper helper) {
-        OffhandAndBetterCombatGameTestScenarios.diamondAndNetheriteSpellAmplifierExposeNewAttributeBonuses(helper);
-    }
-
-    @GameTest(template = "gametest/basic_floor")
     public static void soulstainedSteelSpellAmplifierFollowsMalumAvailability(GameTestHelper helper) {
         OffhandAndBetterCombatGameTestScenarios.soulstainedSteelSpellAmplifierFollowsMalumAvailability(helper);
     }

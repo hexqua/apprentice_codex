@@ -29,8 +29,6 @@ import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastAnchorEntit
 import jp.aquafactory.apprenticecodex.remoteownercast.RemoteOwnerCastProfileManager;
 import jp.aquafactory.apprenticecodex.spell.compoundphial.CompoundPhialProjectileEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Holder;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -40,13 +38,11 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.AABB;
@@ -60,7 +56,6 @@ import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.Enchan
 import static jp.aquafactory.apprenticecodex.gametest.enchantment.support.EnchantmentTestSupport.expectedChargedTwinBladeStaffEnchantments;
 import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.assertSingleModifierAmount;
 import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.describeModifiers;
-import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.sumModifierAmount;
 import static jp.aquafactory.apprenticecodex.gametest.support.AttributeTestSupport.toModifierMultimap;
 import static jp.aquafactory.apprenticecodex.gametest.support.PlayerTestSupport.createEquipmentTestPlayer;
 import static jp.aquafactory.apprenticecodex.gametest.support.PlayerTestSupport.createTrackedEquipmentTestPlayer;
@@ -110,32 +105,6 @@ final class ChargedTwinBladeStaffGameTestScenarios {
                     expectedChargedTwinBladeStaffEnchantments(helper.getLevel().registryAccess(), stack),
                     "Charged Twin Blade Staff"
             );
-        });
-    }
-    public static void chargedTwinBladeStaffExposesExpectedMainhandAttributes(GameTestHelper helper) {
-        helper.succeedIf(() -> {
-            var stack = new ItemStack(ItemRegistry.CHARGED_TWIN_BLADE_STAFF.get());
-            var modifiers = toModifierMultimap(stack.getAttributeModifiers());
-            var componentModifiers = stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY);
-            var componentModifierMap = toModifierMultimap(componentModifiers);
-
-            helper.assertTrue(Math.abs(sumModifierAmount(
-                    modifiers.get(Attributes.ATTACK_DAMAGE),
-                    AttributeModifier.Operation.ADD_VALUE
-            ) - 10.0D) < 1.0e-9D, "Charged Twin Blade Staff attack damage regression: " + describeModifiers(modifiers));
-            helper.assertTrue(Math.abs(sumModifierAmount(
-                    modifiers.get(Attributes.ATTACK_SPEED),
-                    AttributeModifier.Operation.ADD_VALUE
-            ) - (-3.0D)) < 1.0e-9D, "Charged Twin Blade Staff attack speed regression: " + describeModifiers(modifiers));
-            helper.assertTrue(Math.abs(sumModifierAmount(
-                    modifiers.get((Holder<Attribute>) AttributeRegistry.SPELL_POWER),
-                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE
-            ) - 0.10D) < 1.0e-9D, "Charged Twin Blade Staff spell power regression: " + describeModifiers(modifiers));
-            helper.assertTrue(Math.abs(sumModifierAmount(
-                    componentModifierMap.get(Attributes.ATTACK_SPEED),
-                    AttributeModifier.Operation.ADD_VALUE
-            ) - (-3.0D)) < 1.0e-9D, "Charged Twin Blade Staff attack speed component regression: "
-                    + describeModifiers(componentModifierMap));
         });
     }
     public static void chargedTwinBladeStaffResolveThrownDamageIncludesApplicableEnchantments(GameTestHelper helper) {

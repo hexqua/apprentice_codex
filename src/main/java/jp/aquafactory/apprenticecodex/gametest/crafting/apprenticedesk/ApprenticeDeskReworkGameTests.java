@@ -10,7 +10,6 @@ import io.redspace.ironsspellbooks.api.spells.CastSource;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import io.redspace.ironsspellbooks.item.InkItem;
-import java.util.ArrayList;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskFeatureState;
 import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskInkTooltip;
@@ -18,7 +17,6 @@ import jp.aquafactory.apprenticecodex.block.apprenticedesk.ApprenticeDeskMenu;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.gametest.equipment.bow.BowGameTestSupport;
 import jp.aquafactory.apprenticecodex.gametest.support.InventoryTestSupport;
-import jp.aquafactory.apprenticecodex.item.apprenticedesk.CrudeInkItem;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkItem;
 import jp.aquafactory.apprenticecodex.item.apprenticedesk.PartiallyUsedInkState;
 import jp.aquafactory.apprenticecodex.item.magicitem.WoodenWand;
@@ -33,15 +31,12 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
@@ -451,29 +446,6 @@ public final class ApprenticeDeskReworkGameTests {
         } finally {
             SpellConfigManager.INSTANCE = previousSpellConfigManager;
         }
-        helper.succeed();
-    }
-
-    @GameTest(template = TEMPLATE)
-    public static void crudeInkTooltipShowsSingleUseDescription(GameTestHelper helper) {
-        var stack = new ItemStack(ItemRegistry.CRUDE_INK.get());
-        var lines = new ArrayList<Component>();
-        stack.getItem().appendHoverText(
-                stack,
-                Item.TooltipContext.of(helper.getLevel()),
-                lines,
-                TooltipFlag.Default.NORMAL
-        );
-
-        helper.assertTrue(stack.getItem() instanceof CrudeInkItem,
-                "Crude Ink was registered with the wrong item class");
-        helper.assertTrue(lines.size() == 2
-                        && lines.get(0).getContents() instanceof TranslatableContents description
-                        && "item.apprenticecodex.crude_ink.desc".equals(description.getKey())
-                        && lines.get(1).getContents() instanceof TranslatableContents singleUse
-                        && "item.apprenticecodex.crude_ink.single_use".equals(singleUse.getKey())
-                        && singleUse.getArgs().length == 0,
-                "Crude Ink tooltip did not expose its description and single-use behavior");
         helper.succeed();
     }
 

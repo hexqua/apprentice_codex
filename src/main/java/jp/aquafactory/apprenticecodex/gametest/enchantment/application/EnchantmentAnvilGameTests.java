@@ -49,6 +49,8 @@ public final class EnchantmentAnvilGameTests {
                 for (boolean reverse : new boolean[]{false, true}) {
                     var existing = lookup.getOrThrow(reverse ? pair.second() : pair.first());
                     var added = lookup.getOrThrow(reverse ? pair.first() : pair.second());
+                    helper.assertFalse(Enchantment.areCompatible(existing, added),
+                            "Exclusive enchantments must be incompatible: " + existing + " / " + added);
                     var stack = new ItemStack(pair.item());
                     var book = createEnchantedBook(added);
                     var accepted = result(player, stack.copy(), book.copy());

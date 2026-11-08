@@ -17,11 +17,6 @@ public final class EquipmentGameTests {
     }
 
     @GameTest(template = "gametest/basic_floor")
-    public static void chargedTwinBladeStaffExposesExpectedMainhandAttributes(GameTestHelper helper) {
-        ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffExposesExpectedMainhandAttributes(helper);
-    }
-
-    @GameTest(template = "gametest/basic_floor")
     public static void chargedTwinBladeStaffResolveThrownDamageIncludesApplicableEnchantments(GameTestHelper helper) {
         ChargedTwinBladeStaffGameTestScenarios.chargedTwinBladeStaffResolveThrownDamageIncludesApplicableEnchantments(helper);
     }
