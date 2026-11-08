@@ -101,7 +101,9 @@ PR #1035 では、大鎌投擲時の client 側アニメーション停止で、
 | 依存 API の静的確認 | 固定した依存版の登録型と送信 API の対応、client / optional 型境界。実通信の成功は保証しない。 |
 | 人間による client 確認 | Better Combat 導入下の実操作で停止通知・投擲が成立し、クラッシュや残留モーションがないこと。 |
 
-通信の自動回帰テスト候補は、本番経路と共有する送信メッセージの選択・構築と、実登録 channel への変換までを対象とする。旧方式の直接送信へ戻した場合に失敗するかを設計の判断基準にする。既存 `ForgePacketTestSupport` は S2C の観測補助であり、その成功を C2S の証明に流用しない。wire discriminator の固定値の転記も避ける。
+通信の自動回帰テストは、本番経路と共有する送信メッセージの選択・構築と、実登録 channel への変換までを対象とする。旧方式の直接送信へ戻した場合に失敗するかを設計の判断基準にする。`support.ForgePacketTestSupport` は S2C の観測補助であり、その成功を C2S の証明に流用しない。wire discriminator の固定値の転記も避ける。
+
+現在の `integration.bettercombat.BetterCombatNetworkGameTests` は、本番 `stopSwing()` の bytecode から依存側の送信 API への接続と直接送信の禁止を確認する。Better Combat 導入構成では、その API が wrapper を構築することと、停止通知の wrapper を登録済み Forge channel で C2S payload へ変換し、ID・方向・本文を保持できることも確認する。client 型をロードせずに検査するため、実送受信やアニメーションの確認とは区別する。不在構成で省略した連携ケースは、連携成功へ数えない。
 
 ただし現状の `BetterCombatScytheThrowClientCompat.stopSwing()` は Minecraft client とアニメーション型に依存する。このメソッドを dedicated server GameTest からロードして直接呼ぶ設計にはしない。共通化できる処理があるか、依存の登録・変換を server で安全に呼べるかを実装時に確認する。必要なら小さな接続補助の抽出を別変更として判断し、モック送信先を呼んだだけで実 channel 接続まで検証済みとしない。自動化できない部分は静的確認と人間確認へ明示的に残す。
 
