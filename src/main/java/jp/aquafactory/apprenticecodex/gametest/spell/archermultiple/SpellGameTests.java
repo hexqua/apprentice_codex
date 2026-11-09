@@ -1,8 +1,10 @@
 package jp.aquafactory.apprenticecodex.gametest.spell.archermultiple;
 
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import net.minecraft.gametest.framework.AfterBatch;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
@@ -13,6 +15,11 @@ import static jp.aquafactory.apprenticecodex.gametest.spell.SpellTestBatches.TEM
 @PrefixGameTestTemplate(false)
 public final class SpellGameTests {
     private SpellGameTests() {}
+
+    @AfterBatch(batch = ARCHER_MULTIPLE_ISOLATED_BATCH)
+    public static void cleanupArcherMultipleFixtures(ServerLevel level) {
+        ArcherMultipleScenarios.cleanupFixtures();
+    }
 
     @GameTest(template = TEMPLATE, batch = ARCHER_MULTIPLE_ISOLATED_BATCH)
     public static void archerMultipleInitialCastUsesFixedDurationAndSerializableLifecycle(GameTestHelper helper) {

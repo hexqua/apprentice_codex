@@ -23,7 +23,8 @@ public final class SpellGameTests {
         DualAcrobatScenarios.dualAcrobatCompletionDiscardsImmediately(helper);
     }
 
-    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_CANCELLED_BATCH, timeoutTicks = 40)
+    // chunk準備の予算を他の射撃テストと揃える。取消後の観測期間は延長・短縮しない。
+    @GameTest(template = TEMPLATE, batch = DUAL_ACROBAT_CANCELLED_BATCH, timeoutTicks = 80)
     public static void dualAcrobatCancelledInterruptionDiscardsImmediately(GameTestHelper helper) {
         DualAcrobatScenarios.dualAcrobatCancelledInterruptionDiscardsImmediately(helper);
     }

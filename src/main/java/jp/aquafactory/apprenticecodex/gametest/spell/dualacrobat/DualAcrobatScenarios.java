@@ -153,7 +153,9 @@ final class DualAcrobatScenarios {
     }
 
     static void dualAcrobatCancelledInterruptionDiscardsImmediately(GameTestHelper helper) {
-        GameTestFixtureSupport.whenEntityChunksReady(helper, () -> {
+        // 取消前のowner・SMGと標的が使う範囲だけを待つ。隣接する未使用chunkの準備には依存しない。
+        GameTestFixtureSupport.whenEntityChunksReady(helper,
+                new BlockPos(1, 0, 0), new BlockPos(3, 0, 4), () -> {
             var level = helper.getLevel();
             prepareDualAcrobatShootingLane(helper);
             var player = createTrackedEquipmentTestPlayer(helper, new BlockPos(2, 2, 1), "dual_acrobat_cancelled_test");
