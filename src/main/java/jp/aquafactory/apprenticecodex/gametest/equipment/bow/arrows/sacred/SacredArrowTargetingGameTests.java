@@ -1,0 +1,224 @@
+package jp.aquafactory.apprenticecodex.gametest.equipment.bow.arrows.sacred;
+
+import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
+import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrow;
+import jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowCastData;
+import jp.aquafactory.apprenticecodex.spell.sacredarrow.SacredArrowEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.UUID;
+
+@GameTestHolder(ApprenticeCodex.MODID)
+@PrefixGameTestTemplate(false)
+public final class SacredArrowTargetingGameTests {
+    private SacredArrowTargetingGameTests() {}
+
+    // Forge 1.20.1 の通常地形で地下に埋まらないよう、空中検証は相対高度を220上げる。
+    static final String TEMPLATE = "gametest/basic_floor";
+
+    static final String BATCH = "apprenticecodex.sacred_arrow";
+
+    @GameTest(template = TEMPLATE, batch = BATCH)
+    public static void selectionIsNearestAndFrozenAtStart(GameTestHelper h) {
+        try (var s = new Scene(h)) {
+            var near = s.zombie(4, 0); var far = s.zombie(8, 0);
+            near.addEffect(new MobEffectInstance(MobEffectRegistry.GUIDING_BOLT.get(), 300));
+            far.addEffect(new MobEffectInstance(EffectRegistry.SACRED_SIGN.get(), 300));
+            s.owner.addEffect(new MobEffectInstance(EffectRegistry.SACRED_SIGN.get(), 300));
+            var data = s.preCast();
+            h.assertTrue(((SacredArrowCastData) data.getAdditionalCastData()).targetId().equals(near.getUUID()), "Must select the nearest valid target across both effects, excluding self");
+            near.removeEffect(MobEffectRegistry.GUIDING_BOLT.get());
+            // 射程外への移動とチャンク非表示化を混同しないよう、同じ水平チャンク内で離す。
+            near.setPos(near.position().add(0, 50, 0));
+            h.assertTrue(h.getLevel().getEntity(near.getUUID()) == near, "Relocated target must remain loaded for the lock retention test");
+            s.owner.setYRot(90);
+            s.owner.setXRot(90);
+            s.spell.onCast(h.getLevel(), 1, s.owner, CastSource.SPELLBOOK, data);
+            h.assertTrue(s.castArrow().isChasing(), "Losing the mark, leaving the search area or turning after selection must not cancel the lock");
+        }
+        h.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, batch = BATCH)
+    public static void noTargetDoesNotReselectAndCancellationClearsState(GameTestHelper h) {
+        try (var s = new Scene(h)) {
+            var target = s.zombie(5, 0);
+            var data = s.preCast();
+            target.addEffect(new MobEffectInstance(EffectRegistry.SACRED_SIGN.get(), 300));
+            s.spell.onCast(h.getLevel(), 1, s.owner, CastSource.SPELLBOOK, data);
+            h.assertTrue(!s.castArrow().isChasing(), "An empty selection must stay empty during casting");
+            data = s.preCast();
+            s.spell.onServerCastComplete(h.getLevel(), 1, s.owner, data, true);
+            h.assertTrue(!(data.getAdditionalCastData() instanceof SacredArrowCastData), "Cancellation must clear the selection");
+            data = s.preCast(); target.discard();
+            s.castArrow().discard();
+            s.spell.onCast(h.getLevel(), 1, s.owner, CastSource.SWORD, data);
+            h.assertTrue(!s.castArrow().isChasing(), "A removed target must fall back to normal mode");
+        }
+        h.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, batch = BATCH)
+    public static void searchBoundsAlliesAndDirectCast(GameTestHelper h) {
+        // 射程境界はtemplateの強制読込範囲を越える。検索対象を登録する前にchunkを準備する。
+        var addedChunks = new HashSet<Long>();
+        for (int x : new int[]{49, 51}) {
+            var pos = new ChunkPos(h.absolutePos(new BlockPos(x, 0, 2)));
+            if (!h.getLevel().getForcedChunks().contains(pos.toLong())) {
+                addedChunks.add(pos.toLong());
+                h.getLevel().setChunkForced(pos.x, pos.z, true);
+            }
+            h.getLevel().getChunk(pos.x, pos.z);
+        }
+        h.startSequence().thenWaitUntil(() -> {
+            // 通常地形のchunk生成は非同期。固定tick待機ではentityが非公開のsectionへ登録される。
+            for (int x : new int[]{49, 51}) {
+                h.assertTrue(h.getLevel().isPositionEntityTicking(h.absolutePos(new BlockPos(x, 250, 2))),
+                        "Boundary target chunks must be ready before entity registration");
+            }
+        }).thenExecute(() -> {
+            try {
+                try (var s = new Scene(h)) {
+                    var target = s.zombie(49, 0);
+                    target.addEffect(new MobEffectInstance(EffectRegistry.SACRED_SIGN.get(), 300));
+                    h.assertTrue(((SacredArrowCastData) s.preCast().getAdditionalCastData()).targetId() == null, "Outside the 48 block AABB must not lock");
+                    target.setPos(s.origin.add(47.9, 0, 0));
+                    var selected = ((SacredArrowCastData) s.preCast().getAdditionalCastData()).targetId();
+                    h.assertTrue(target.getUUID().equals(selected), "Inside the 48 block AABB must lock: selected=" + selected
+                            + ", alive=" + target.isAlive() + ", removed=" + target.isRemoved()
+                            + ", valid=" + SacredArrowEntity.isLiveTarget(target, s.owner)
+                            + ", visible=" + h.getLevel().getEntitiesOfClass(LivingEntity.class,
+                                    s.owner.getBoundingBox().inflate(48)).contains(target)
+                            + ", registered=" + (h.getLevel().getEntity(target.getUUID()) == target)
+                            + ", marked=" + target.hasEffect(EffectRegistry.SACRED_SIGN.get())
+                            + ", owner=" + s.owner.position() + ", target=" + target.position()
+                            + ", look=" + s.owner.getLookAngle());
+                    var board = h.getLevel().getScoreboard();
+                    var team = board.addPlayerTeam("sacred_" + UUID.randomUUID().toString().substring(0, 8));
+                    team.setAllowFriendlyFire(false);
+                    try {
+                        board.addPlayerToTeam(s.owner.getScoreboardName(), team);
+                        board.addPlayerToTeam(target.getScoreboardName(), team);
+                        h.assertTrue(((SacredArrowCastData) s.preCast().getAdditionalCastData()).targetId() == null, "Allies must not lock");
+                    } finally { board.removePlayerTeam(team); }
+                    var data = MagicData.getPlayerMagicData(s.owner); data.setAdditionalCastData(null);
+                    s.spell.onCast(h.getLevel(), 1, s.owner, CastSource.SWORD, data);
+                    h.assertTrue(s.castArrow().isChasing(), "A direct cast must select a target when no cast snapshot exists");
+                }
+                h.succeed();
+            } finally {
+                for (long chunk : addedChunks) {
+                    var pos = new ChunkPos(chunk);
+                    h.getLevel().setChunkForced(pos.x, pos.z, false);
+                }
+            }
+        });
+    }
+
+    static void step(Entity entity) { entity.tickCount++; entity.tick(); }
+
+    @GameTest(template = TEMPLATE, batch = BATCH)
+    public static void captureConeIncludesYawAndPitchBoundaries(GameTestHelper h) {
+        try (var s = new Scene(h)) {
+            var target = s.zombie(8, 0);
+            target.addEffect(new MobEffectInstance(EffectRegistry.SACRED_SIGN.get(), 300));
+            for (boolean vertical : List.of(false, true)) {
+                for (double degrees : new double[]{-60.1, -60, -59.9, 0, 59.9, 60, 60.1, 180}) {
+                    double angle = Math.toRadians(degrees);
+                    var offset = new Vec3(Math.cos(angle), vertical ? Math.sin(angle) : 0,
+                            vertical ? 0 : Math.sin(angle)).scale(8);
+                    target.setPos(s.owner.getEyePosition().add(offset).subtract(0, target.getBbHeight() * 0.5, 0));
+                    var data = (SacredArrowCastData) s.preCast().getAdditionalCastData();
+                    h.assertTrue((data.targetId() != null) == (Math.abs(degrees) <= 60),
+                            "Capture cone boundary mismatch: vertical=" + vertical + ", degrees=" + degrees);
+                }
+            }
+            target.setPos(s.origin.add(8, 0, 0));
+            s.owner.setXRot(90);
+            h.assertTrue(((SacredArrowCastData) s.preCast().getAdditionalCastData()).targetId() == null,
+                    "Looking down must exclude a distant ground-level target");
+            target.setPos(s.owner.getEyePosition().add(0, -8, 0).subtract(0, target.getBbHeight() * 0.5, 0));
+            h.assertTrue(((SacredArrowCastData) s.preCast().getAdditionalCastData()).targetId().equals(target.getUUID()),
+                    "Looking down must include targets below the caster");
+        }
+        h.succeed();
+    }
+
+    @GameTest(template = TEMPLATE, batch = BATCH)
+    public static void captureConeKeepsDistancePriorityAndNormalFallback(GameTestHelper h) {
+        try (var s = new Scene(h)) {
+            var near = s.zombie(3, 3);
+            var center = s.zombie(8, 0);
+            var behind = s.zombie(-2, 0);
+            near.addEffect(new MobEffectInstance(MobEffectRegistry.GUIDING_BOLT.get(), 300));
+            center.addEffect(new MobEffectInstance(EffectRegistry.SACRED_SIGN.get(), 300));
+            behind.addEffect(new MobEffectInstance(EffectRegistry.SACRED_SIGN.get(), 300));
+            h.assertTrue(((SacredArrowCastData) s.preCast().getAdditionalCastData()).targetId().equals(near.getUUID()),
+                    "Distance must win over alignment, while closer targets behind the caster are excluded");
+            near.discard(); center.discard();
+            var data = s.preCast();
+            s.spell.onCast(h.getLevel(), 1, s.owner, CastSource.SWORD, data);
+            h.assertTrue(!s.castArrow().isChasing(), "Only out-of-cone marks must produce a normal arrow");
+        }
+        h.succeed();
+    }
+
+    static final class Scene implements AutoCloseable {
+        final GameTestHelper helper;
+        final Vec3 origin;
+        final FakePlayer owner;
+        final SacredArrow spell = (SacredArrow) SpellRegistry.SACRED_ARROW.get();
+        final List<Entity> entities = new ArrayList<>();
+        Scene(GameTestHelper h) {
+            helper = h; origin = h.absoluteVec(new Vec3(2, 250, 2));
+            owner = new FakePlayer(h.getLevel(), new GameProfile(UUID.randomUUID(), "sacred_test"));
+            owner.setPos(origin); owner.setYRot(-90); owner.setXRot(0); owner.setNoGravity(true); add(owner);
+        }
+        void add(Entity e) { entities.add(e); helper.getLevel().addFreshEntity(e); }
+        Zombie zombie(double x, double z) {
+            var e = EntityType.ZOMBIE.create(helper.getLevel());
+            e.setPos(origin.add(x, 0, z)); e.setNoAi(true); e.setNoGravity(true);
+            e.getAttribute(Attributes.ARMOR).setBaseValue(0); add(e); return e;
+        }
+        SacredArrowEntity arrow(LivingEntity target, Vec3 direction) {
+            var e = new SacredArrowEntity(EntityRegistry.SACRED_ARROW.get(), helper.getLevel());
+            e.launch(owner, origin.add(0, 0.9, 0), direction, 8, 0.25f, 300, target); add(e); return e;
+        }
+        MagicData preCast() {
+            var data = MagicData.getPlayerMagicData(owner);
+            spell.onServerPreCast(helper.getLevel(), 1, owner, data); return data;
+        }
+        SacredArrowEntity castArrow() {
+            return helper.getLevel().getEntitiesOfClass(SacredArrowEntity.class, owner.getBoundingBox().inflate(3)).stream()
+                    .filter(e -> e.getOwner() == owner && !e.isRemoved()).findFirst().orElseThrow();
+        }
+        @Override public void close() {
+            helper.getLevel().getEntitiesOfClass(SacredArrowEntity.class, owner.getBoundingBox().inflate(150))
+                    .stream().filter(e -> e.getOwner() == owner).forEach(Entity::discard);
+            entities.forEach(Entity::discard);
+        }
+    }
+}

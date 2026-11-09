@@ -1,0 +1,237 @@
+package jp.aquafactory.apprenticecodex.gametest.spell.summonweapon.echo;
+
+import com.mojang.authlib.GameProfile;
+import io.redspace.ironsspellbooks.api.magic.MagicData;
+import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.spells.CastSource;
+import io.redspace.ironsspellbooks.api.spells.CastType;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.entity.SummonWeaponEntity;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifle;
+import jp.aquafactory.apprenticecodex.item.fullautorapidcastspellrifle.FullautoRapidcastSpellrifleScrollStorage;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
+import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackProfileManager;
+import jp.aquafactory.apprenticecodex.registry.ItemRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
+import jp.aquafactory.apprenticecodex.spell.AbstractSummonWeaponSpell;
+import jp.aquafactory.apprenticecodex.spell.higanbana.HiganbanaKatanaEntity;
+import jp.aquafactory.apprenticecodex.utility.RaycastTools;
+import jp.aquafactory.apprenticecodex.utility.SpellCalibrationImbueHelper;
+import net.minecraft.core.BlockPos;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.TraceableEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.UUID;
+import java.util.function.Consumer;
+
+import static jp.aquafactory.apprenticecodex.gametest.spell.senseevil.SenseEvilScenarios.spawnPositionedZombie;
+
+final class EchoWeaponTestSupport {
+    private EchoWeaponTestSupport() {}
+
+    static final String TEMPLATE = "gametest/basic_floor";
+
+    static final String BATCH = "apprenticecodex.multicast_echo_staff_isolated";
+
+    static final class EchoPlayer extends FakePlayer {
+        final List<Component> messages = new ArrayList<>();
+
+        private EchoPlayer(GameTestHelper helper, String name) {
+            super(helper.getLevel(), new GameProfile(UUID.randomUUID(), name));
+            gameMode.changeGameModeForPlayer(GameType.SURVIVAL);
+            getAttribute(AttributeRegistry.MAX_MANA.get()).setBaseValue(20000);
+        }
+
+        @Override
+        public void displayClientMessage(@NotNull Component component, boolean actionBar) {
+            messages.add(component);
+        }
+    }
+
+    static EchoPlayer createEchoPlayer(GameTestHelper helper, BlockPos pos, String name) {
+        var player = new EchoPlayer(helper, name);
+        player.setPos(helper.absoluteVec(Vec3.atBottomCenterOf(pos)));
+        return player;
+    }
+
+    static void verifySupportedWeaponAttacks(GameTestHelper helper) {
+        var spells = List.of(SpellRegistry.SHIDEN.get(), SpellRegistry.BREACHING_ENEMY.get(),
+                SpellRegistry.SLASH_BLADE.get(), SpellRegistry.MOON_LIGHT.get(), SpellRegistry.SILENT_ASSASSIN.get(),
+                SpellRegistry.ARTISAN_SMASH.get(), SpellRegistry.PRECISION_JACK.get(),
+                SpellRegistry.HIGANBANA.get(), SpellRegistry.LETHAL_ASSAULT.get());
+        try (var config = ApprenticeCodexServerConfig.useMulticastEchoStaffAttackConfigOverrideForGameTest(true, 1.0D)) {
+            for (var spell : spells) {
+                // 追跡期間は弾の寿命に合わせて調整するため固定せず、補正は下の実ダメージで検証する。
+                helper.assertTrue(MulticastEchoStaffAttackProfileManager.getProfile(spell).isPresent(),
+                        "Supported weapon must have an attack profile: " + spell.getSpellId());
+                var ids = new HashSet<UUID>();
+                float normalDamage = 0;
+                for (int cast = 0; cast < 3; cast++) {
+                    var result = castAndFinishWeapon(helper, (AbstractSummonWeaponSpell<?>) spell, cast != 0);
+                    helper.assertTrue(ids.add(result.id()), "Every cast must create a new weapon: " + spell.getSpellId());
+                    if (cast == 0) {
+                        normalDamage = result.damage();
+                    } else {
+                        helper.assertTrue(Math.abs(result.damage() - normalDamage * 0.5F) < 0.02F,
+                                "Every attack including delayed hits must be halved exactly once: " + spell.getSpellId()
+                                        + " normal=" + normalDamage + " repeated=" + result.damage());
+                    }
+                }
+            }
+        }
+        helper.succeed();
+    }
+
+    static void verifyRifleSummonWeapons(GameTestHelper helper) {
+        ForgeConfigSpec.BooleanValue enabled = ApprenticeCodexServerConfig.SPEC.getValues()
+                .get("Items.FullautoRapidcastSpellrifle.echoCastEnabled");
+        ForgeConfigSpec.DoubleValue damage = ApprenticeCodexServerConfig.SPEC.getValues()
+                .get("Items.FullautoRapidcastSpellrifle.echoCastDamageMultiplier");
+        boolean oldEnabled = enabled.get();
+        double oldDamage = damage.get();
+        try (var staffSettings = ApprenticeCodexServerConfig.useMulticastEchoStaffAttackConfigOverrideForGameTest(false, 9)) {
+            enabled.set(true);
+            damage.set(1.0);
+            for (var spell : List.of(SpellRegistry.SHIDEN.get(), SpellRegistry.BREACHING_ENEMY.get(),
+                    SpellRegistry.SLASH_BLADE.get(), SpellRegistry.MOON_LIGHT.get(), SpellRegistry.SILENT_ASSASSIN.get(),
+                    SpellRegistry.ARTISAN_SMASH.get(), SpellRegistry.PRECISION_JACK.get(),
+                    SpellRegistry.HIGANBANA.get(), SpellRegistry.LETHAL_ASSAULT.get())) {
+                var normal = castAndFinishWeapon(helper, (AbstractSummonWeaponSpell<?>) spell, false, true);
+                var echo = castAndFinishWeapon(helper, (AbstractSummonWeaponSpell<?>) spell, true, true);
+                helper.assertTrue(Math.abs(echo.damage() - normal.damage() * 0.5F) < 0.02F,
+                        "Rifle summon attacks must be halved exactly once, including delayed hits: "
+                                + spell.getSpellId() + " normal=" + normal.damage() + " echo=" + echo.damage());
+            }
+        } finally {
+            enabled.set(oldEnabled);
+            damage.set(oldDamage);
+        }
+        helper.succeed();
+    }
+
+    private record WeaponCastResult(UUID id, float damage) {
+    }
+
+    static WeaponCastResult castAndFinishWeapon(GameTestHelper helper, AbstractSummonWeaponSpell<?> spell, boolean repeated) {
+        return castAndFinishWeapon(helper, spell, repeated, false);
+    }
+
+    static WeaponCastResult castAndFinishWeapon(GameTestHelper helper, AbstractSummonWeaponSpell<?> spell,
+                                                       boolean repeated, boolean rifleCast) {
+        // 1.20.1のGameTest原点は地下にあるため、相対高度だけでは地形に射線を遮られる。
+        // 手動tickする武器の倍率検証は、地形と他テストの構造物を避けた上空で行う。
+        var player = createEchoPlayer(helper, new BlockPos(1, 30, 1), "echo_weapon_matrix");
+        player.setPos(player.getX(), helper.getLevel().getMaxBuildHeight() - 32, player.getZ());
+        player.setYRot(0);
+        player.setXRot(0);
+        helper.getLevel().addFreshEntity(player);
+        var target = spawnPositionedZombie(helper.getLevel(), player.position().add(
+                spell == SpellRegistry.ARTISAN_SMASH.get() ? 0.7 : 0, 0,
+                spell == SpellRegistry.HIGANBANA.get() || spell == SpellRegistry.ARTISAN_SMASH.get() ? 4 : 1.8));
+        target.setNoGravity(true);
+        // 横に構える銃の射出高と散弾を受けられる標的にし、命中判定の境界から倍率検証を分離する。
+        // 1.20.1にはscale属性がないため、手動tick検証中に固定する標的の当たり判定を2倍にする。
+        var targetWidth = target.getBbWidth();
+        target.setBoundingBox(new AABB(
+                target.getX() - targetWidth, target.getY(), target.getZ() - targetWidth,
+                target.getX() + targetWidth, target.getY() + target.getBbHeight() * 2, target.getZ() + targetWidth));
+        target.getAttribute(Attributes.MAX_HEALTH).setBaseValue(1000);
+        target.getAttribute(Attributes.ARMOR).setBaseValue(0);
+        target.getAttribute(Attributes.KNOCKBACK_RESISTANCE).setBaseValue(1);
+        target.setHealth(target.getMaxHealth());
+        var initialHealth = target.getHealth();
+        var magic = MagicData.getPlayerMagicData(player);
+        magic.setMana(10000);
+        var weapons = new ArrayList<SummonWeaponEntity>();
+        Consumer<EntityJoinLevelEvent> weaponObserver = event -> {
+            if (event.getEntity() instanceof SummonWeaponEntity weapon && weapon.getOwner() == player) weapons.add(weapon);
+        };
+        MinecraftForge.EVENT_BUS.addListener(weaponObserver);
+        try {
+            // 散弾の拡散を固定し、通常発動と追加発動の命中条件をそろえる。
+            helper.getLevel().getRandom().setSeed(451);
+            Runnable cast = () -> spell.castInstantWeapon(helper.getLevel(), 1, player, CastSource.SPELLBOOK, magic);
+            if (rifleCast) {
+                var stack = new ItemStack(ItemRegistry.FULLAUTO_RAPIDCAST_SPELLRIFLE.get());
+                var rifle = (FullautoRapidcastSpellrifle) stack.getItem();
+                player.setItemInHand(InteractionHand.MAIN_HAND, stack);
+                player.getInventory().add(new ItemStack(ItemRegistry.FULLAUTO_SPELL_CASTING_ROUND.get(), 2));
+                rifle.trySetCalibrationAdjustment(stack, 0,
+                        new ItemStack(io.redspace.ironsspellbooks.registries.ItemRegistry.SILVER_RING.get()), player.level().registryAccess());
+                if (repeated) {
+                    helper.assertTrue(rifle.trySetCalibrationAdjustment(stack, 1,
+                            new ItemStack(ItemRegistry.MULTICAST_ECHO_STAFF.get()), player.level().registryAccess()), "Echo adjustment must fit");
+                }
+                FullautoRapidcastSpellrifleScrollStorage.set(stack, 0,
+                        SpellCalibrationImbueHelper.createScroll(new SpellData(spell, 1)), player.level().registryAccess());
+                helper.assertTrue(rifle.tryTriggerSelectedSpell(player, false), "Rifle weapon cast must start: " + spell.getSpellId());
+                if (spell.getCastType() == CastType.INSTANT) {
+                    spell.castSpell(helper.getLevel(), magic.getCastingSpellLevel(), player, CastSource.SWORD, true);
+                    spell.onServerCastTick(helper.getLevel(), 1, player, magic);
+                    spell.onServerCastComplete(helper.getLevel(), 1, player, magic, false);
+                }
+            } else if (repeated) {
+                MulticastEchoStaffAttackHandler.runRepeatedCast(player, spell, cast);
+            } else {
+                cast.run();
+            }
+            // ライフルは完了時に上流がCastDataを解放するため、生成時に捕捉した武器で追跡する。
+            helper.assertTrue(!weapons.isEmpty(), "Cast must create a weapon: " + spell.getSpellId());
+            var weapon = weapons.get(0);
+            var id = weapon.getUUID();
+            if (magic.getAdditionalCastData() != null) magic.getAdditionalCastData().reset();
+            magic.setAdditionalCastData(null);
+            // 実際のEntity.tickを進め、一時MagicDataがなくても遅延攻撃が成立することを確認する。
+            for (int tick = 0; tick < 60; tick++) {
+                target.invulnerableTime = repeated ? 20 : 0;
+                for (var entity : ownedEntities(helper, player)) {
+                    if (!entity.isRemoved()) {
+                        ++entity.tickCount;
+                        entity.tick();
+                    }
+                }
+            }
+            helper.assertTrue(target.getHealth() < initialHealth,
+                    "Weapon must deal actual damage: " + spell.getSpellId() + " repeated=" + repeated
+                            + " target=" + target.getBoundingBox() + " weapon=" + weapon.position()
+                            + " eye=" + weapon.getEyePosition() + " look=" + weapon.getLookAngle()
+                            + " aim=" + RaycastTools.raycastFromEye(player, 8, 1, e -> e == target)
+                            + " ray=" + RaycastTools.raycast(weapon, weapon.getLookAngle(), 8, 0.25, e -> e == target));
+            helper.assertTrue(weapon.isRemoved(), "Weapon must expire after attacking: " + spell.getSpellId());
+            if (weapon instanceof HiganbanaKatanaEntity katana) {
+                helper.assertTrue(katana.getRemainingSlashCount() == 0, "Higanbana must finish all four slashes");
+            }
+            return new WeaponCastResult(id, initialHealth - target.getHealth());
+        } finally {
+            MinecraftForge.EVENT_BUS.unregister(weaponObserver);
+            ownedEntities(helper, player).forEach(Entity::discard);
+            weapons.forEach(Entity::discard);
+            target.discard();
+            magic.resetCastingState();
+            player.discard();
+        }
+    }
+
+    static List<Entity> ownedEntities(GameTestHelper helper, ServerPlayer player) {
+        return helper.getLevel().getEntitiesOfClass(Entity.class, player.getBoundingBox().inflate(64),
+                entity -> entity instanceof TraceableEntity traceable && traceable.getOwner() == player);
+    }
+}
