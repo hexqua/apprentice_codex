@@ -19,19 +19,26 @@ public final class MagitechStaffTooltip {
         var player = Minecraft.getInstance().player;
         if (player == null) return;
         if (Screen.hasShiftDown() || Screen.hasAltDown()) {
-            lines.add(Component.translatable(MagiEngineersStaff.KEY + ".detail.desc_1").withStyle(ChatFormatting.GOLD));
+            for (int i = 1; i <= 3; i++)
+                lines.add(Component.translatable(MagiEngineersStaff.KEY + ".detail.desc_" + i).withStyle(ChatFormatting.GRAY));
+            lines.add(Component.empty());
             for (Element element : MagiEngineersStaffCompat.ELEMENTS) {
                 if (element == Element.LOGOS) continue;
-                lines.add(Component.translatable(MagiEngineersStaff.KEY + ".tooltip.element",
+                lines.add(Component.translatable(MagiEngineersStaff.KEY
+                                + (element == Element.MANA ? ".tooltip.element.mana" : ".tooltip.element"),
                         element.getDisplayName().withColor(element.getTextColor().getRGB()),
                         Component.literal(percent(MagiEngineersStaffCompat.schoolPower(element, player))).withStyle(ChatFormatting.GRAY),
                         MagiEngineersStaffCompat.school(element, player).getDisplayName().copy()));
             }
             return;
         }
-        lines.add(Component.translatable(MagiEngineersStaff.KEY + ".lore").withColor(0x808080));
-        for (int i = 1; i <= 5; i++)
+        for (int i = 1; i <= 2; i++)
             lines.add(Component.translatable(MagiEngineersStaff.KEY + ".desc_" + i).withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable(MagiEngineersStaff.KEY + ".desc_3",
+                Component.literal(Integer.toString(MagiEngineersStaffCompat.conversionManaPerSecond())).withStyle(ChatFormatting.AQUA),
+                Component.literal(MagiEngineersStaffCompat.conversionKiloJoulesPerSecond() + "kJ")
+                        .withColor(Element.MANA.getTextColor().getRGB())).withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable(MagiEngineersStaff.KEY + ".detail_help").withStyle(ChatFormatting.GRAY));
         lines.add(Component.empty());
         parameter(lines, "power", Component.literal(percent(player.getAttributeValue(AttributeRegistry.SPELL_POWER)))
                 .withColor(ToolPropertyCategory.ATTACK.getColor().getRGB()));
@@ -44,7 +51,8 @@ public final class MagitechStaffTooltip {
         parameter(lines, "cooldown_speed", coloured("+0%", ToolPropertyCategory.CONTINUITY));
         parameter(lines, "launch", coloured("+50%", ToolPropertyCategory.RANGE));
         parameter(lines, "mana_efficiency", coloured("+0%", ToolPropertyCategory.UNIQUE));
-        lines.add(Component.translatable(MagiEngineersStaff.KEY + ".detail_help").withStyle(ChatFormatting.GRAY));
+        lines.add(Component.empty());
+        lines.add(Component.translatable(MagiEngineersStaff.KEY + ".lore").withColor(0x808080));
     }
 
     private static Component coloured(String value, ToolPropertyCategory category) {

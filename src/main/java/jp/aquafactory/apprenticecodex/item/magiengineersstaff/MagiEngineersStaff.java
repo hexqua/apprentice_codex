@@ -41,7 +41,7 @@ import java.util.function.Consumer;
 
 public final class MagiEngineersStaff extends Item implements GeoItem, WisdomPolicy {
     public static final String KEY = "item.apprenticecodex.magi_engineers_staff";
-    private static final int CONVERSION_INTERVAL_TICKS = 10;
+    public static final int CONVERSION_INTERVAL_TICKS = 10;
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public MagiEngineersStaff() {

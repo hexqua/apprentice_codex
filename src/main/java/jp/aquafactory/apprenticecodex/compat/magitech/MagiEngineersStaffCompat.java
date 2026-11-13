@@ -59,8 +59,25 @@ public final class MagiEngineersStaffCompat {
             case FLOW -> SchoolRegistry.NATURE.get();
             case HOLLOW -> SchoolRegistry.BLOOD.get();
             case LOGOS -> SchoolRegistry.ELDRITCH.get();
-            default -> school(highestElement(caster), caster);
+            default -> highestSchool(caster);
         };
+    }
+
+    private static SchoolType highestSchool(LivingEntity caster) {
+        var highest = SchoolRegistry.FIRE.get();
+        // マナ属性は固定の属性対応表に制限せず、アドオンが登録した系統も対象にする。
+        for (var school : SchoolRegistry.REGISTRY) {
+            if (school.getPowerFor(caster) > highest.getPowerFor(caster)) highest = school;
+        }
+        return highest;
+    }
+
+    public static int conversionManaPerSecond() {
+        return (int) (CONVERSION_COST * 20 / MagiEngineersStaff.CONVERSION_INTERVAL_TICKS);
+    }
+
+    public static long conversionKiloJoulesPerSecond() {
+        return CONVERSION_RECOVERY * 20 / MagiEngineersStaff.CONVERSION_INTERVAL_TICKS / 1000;
     }
 
     public static Element highestElement(LivingEntity caster) {
