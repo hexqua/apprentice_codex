@@ -139,6 +139,13 @@ config="mixins.apprenticecodex.mana_stabilizer.json"
     side="BOTH"
 
 [[dependencies.${mod_id}]]
+    modId="magitech"
+    type="optional"
+    versionRange="[${magitech_version},)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
     modId="jei"
     type="optional"
     versionRange="[0,)"
