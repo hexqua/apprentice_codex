@@ -100,6 +100,8 @@ Get-ChildItem build\libs\*.jar
 - `runGameTestServer...` はプロファイル間で world と実行ディレクトリを共有するため、初回から必ず直列実行する。別プロセス・別ターミナル・サブエージェントへの分担でも並列起動しない。
 - 1 回の Gradle 呼び出しにつき GameTest task は 1 つとし、先行する Gradle / server プロセスの終了を確認してから次を起動する。実行中の yield は終了ではなく、同じ実行を wait で追跡する。
 - `runGameTestServerCompat` は Farmer's Delight / Create / Lodestone / Malum / Atlas API / Iron's Gems 'n Jewelry / Iron's Arms 'n Artifice 連携の確認に使う。
+- `compat` / `compat_easy_better` は Magitech 2.4.6 と必須の Modonomicon / TerraBlender も読み込む。`-PdevRuntimeMods=magitech` は Magitech と前提一式（Lodestoneを含む）をclientへ追加する。Magitech連携は1.21.1専用でbackport対象外。
+- `runGameTestServerMagitechBetterCombat` は Magitech と Better Combat の併用、両手持ち杖のオフハンド増幅器補正を確認する。手動確認は `runClientBetterCombat -PdevRuntimeMods=magitech` を使用する。
 - `runClientIncompatibles` / `runGameTestServerIncompatibles` は、通常構成に公式非対応MODを追加し、正しく動作**しない**ことと非対応警告を確認する専用構成。互換性の保証や修正を目的とせず、通常の `compat` とは区別する。現時点では Accessories 1.1.0-beta.54 / Accessories Compatibility Layer 0.1.13 と必須の owo-lib 0.12.15.6-beta.1 を追加する。NeoForgeは21.1.228のままとする。
 - `incompatibles` に将来の非対応MODを追加するときは、runtime module・依存・必須MOD IDを同時に更新する。通常構成や `compat` には自動追加しない。`-PdevRuntimeMods=incompatibles` で通常clientへ一時追加することもできる。
 - `runGameTestServerIncompatibles` では、非対応として省略する4件と、`required = false` の上流修正検知用テストを区別する。任意テストは `AccessoriesIncompatibilityGameTests` と別シナリオクラスに配置し、正しい挙動を期待して、現在の非互換が残る間は失敗してよい。任意失敗を非互換の観測として報告し、Gradle成功や必須テスト成功を連携正常の証拠にしない。任意テストはこの構成だけで検証し、通常構成では成功として省略する。
@@ -124,6 +126,7 @@ Get-ChildItem build\libs\*.jar
 - 通常確認で `clean` は付けない。必要時のみ `./gradlew.bat clean build` を使う。
 - `runData` の出力先は `src/generated/resources` であり、`src/generated/resources/.cache` に記録された生成物だけが再生成・差分管理される前提で扱う。
 - 1.21.1 の `runData` は素材定義を上流の型・Codecで生成するため Iron's Gems 'n Jewelry / Atlas API を読み込む。素材と所属タグは `datagen/gems/GemsMaterials.java` で編集し、生成JSONは直接編集しない。今後のIron's Gems向け生成処理も `datagen/gems` に配置する。
+- Magitech の祭壇レシピは上流の型・Codecで生成し、`runData` に Magitech / Modonomicon / TerraBlender / Lodestone を追加する。定義は `datagen/recipe/MagitechInfusionRecipes.java` で編集し、生成JSONは直接編集しない。通常runtimeへの追加や1.20.1へのbackportは行わない。
 - 素材の効果は型付きビルダーへ指定し、アクションと品質係数は上流の `IAction` / `QualityScalar` を使用する。Jewelry 2.0.2 の `empty` パラメーターは上流のMap CodecがVoid値を読み込めないため、省略へ正規化する。
 - `src/generated/resources/.cache` は Git 管理外のため、branch 切替・`cherry-pick`・手動コピーで持ち込んだ古い JSON は `runData` だけでは削除されない場合がある。
 

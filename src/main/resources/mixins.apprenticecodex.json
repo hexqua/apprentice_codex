@@ -9,6 +9,9 @@
   "refmap": "mixins.apprenticecodex.refmap.json",
   "plugin": "jp.aquafactory.apprenticecodex.mixin.ApprenticeCodexMixinPlugin",
   "mixins": [
+    "MagitechMagicPerformanceMixin",
+    "MagitechStaffCastSyncMixin",
+    "MagitechStaffEndSyncMixin",
     "PlayerShootingStarMantleMixin",
     "LivingEntityMantleTravelMixin",
     "ServerMantleFloatingMixin",
@@ -99,6 +102,7 @@
     "UtilsMixin"
   ],
   "client": [
+    "MagitechStaffOverlayMixin",
     "PatchouliBookHeaderMixin",
     "EntityRenderDispatcherMantleBlinkMixin",
     "EntityRendererMantleBlinkNameMixin",

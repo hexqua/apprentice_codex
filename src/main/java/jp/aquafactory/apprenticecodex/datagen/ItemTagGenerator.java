@@ -184,6 +184,13 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         var vanillaDurabilityEnchantableTag = tag(MINECRAFT_ENCHANTABLE_DURABILITY);
         var manaDevices = new Item[]{ItemRegistry.NOVICE_MANA_FORCE_RELEASE_DEVICE.get(),
                 ItemRegistry.ADEPT_MANA_FORCE_RELEASE_DEVICE.get(), ItemRegistry.MASTER_MANA_FORCE_RELEASE_DEVICE.get()};
+        vanillaSwordEnchantableTag.add(ItemRegistry.MAGI_ENGINEERS_STAFF.get());
+        vanillaFireAspectEnchantableTag.add(ItemRegistry.MAGI_ENGINEERS_STAFF.get());
+        vanillaSharpWeaponEnchantableTag.add(ItemRegistry.MAGI_ENGINEERS_STAFF.get());
+        vanillaWeaponEnchantableTag.add(ItemRegistry.MAGI_ENGINEERS_STAFF.get());
+        malumMagicCapableWeaponTag.add(ItemRegistry.MAGI_ENGINEERS_STAFF.get());
+        malumSoulShatterCapableWeaponTag.add(ItemRegistry.MAGI_ENGINEERS_STAFF.get());
+        malumReplenishingEnchantableTag.add(ItemRegistry.MAGI_ENGINEERS_STAFF.get());
         vanillaSwordEnchantableTag.add(manaDevices);
         vanillaFireAspectEnchantableTag.add(manaDevices);
         vanillaSharpWeaponEnchantableTag.add(manaDevices);

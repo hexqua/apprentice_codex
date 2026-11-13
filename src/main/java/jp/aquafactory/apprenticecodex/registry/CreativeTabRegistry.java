@@ -215,6 +215,9 @@ public final class CreativeTabRegistry {
         output.accept(ItemRegistry.SPELL_REAPER_SCYTHE.get());
         output.accept(ItemRegistry.SPELL_SIDE_EDGE.get().getDefaultInstance());
         output.accept(ItemRegistry.ELEMENTAL_BOW.get());
+        if(isInstalledMagitech()){
+            output.accept(ItemRegistry.MAGI_ENGINEERS_STAFF.get());
+        }
     }
 
     private static void addUniqueMagicItemToTab(CreativeModeTab.Output output) {
@@ -343,6 +346,12 @@ public final class CreativeTabRegistry {
         // ID名は早々変わらないため、決め打ちで持つ.
         // 機能そのものは入っていなくても安全に無効化されるため、単に見栄え対応用.
         return ModList.get().isLoaded("malum");
+    }
+
+    private static boolean isInstalledMagitech(){
+        // ID名は早々変わらないため、決め打ちで持つ.
+        // 機能そのものは入っていなくても安全に無効化されるため、単に見栄え対応用.
+        return ModList.get().isLoaded("magitech");
     }
 
     private static void addSpellScrollsToTab(CreativeModeTab.Output output) {

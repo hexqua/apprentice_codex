@@ -48,6 +48,10 @@ public final class ApprenticeCodexMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+        if (mixinClassName.startsWith("jp.aquafactory.apprenticecodex.mixin.Magitech")) {
+            var mods = FMLLoader.getLoadingModList();
+            return mods != null && mods.getModFileById("magitech") != null;
+        }
         if (PATCHOULI_BOOK_HEADER_MIXIN.equals(mixinClassName)) {
             // Patchouliは任意依存なので、未導入時にはclientの対象クラスを解決しない。
             var loadingModList = FMLLoader.getLoadingModList();
