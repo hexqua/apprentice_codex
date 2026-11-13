@@ -24,6 +24,18 @@ public final class MagiEngineersStaffGameTests {
     }
 
     @GameTest(template = "gametest/basic_floor")
+    public static void magiStaffInfusionRecipeSelectsOnlyCompleteIngredients(GameTestHelper helper) {
+        if (MagiEngineersStaff.available()) {
+            MagiEngineersStaffRecipeScenarios.recipeSelection(helper);
+        } else {
+            helper.assertTrue(helper.getLevel().getRecipeManager()
+                            .byKey(ItemRegistry.MAGI_ENGINEERS_STAFF.getId()).isEmpty(),
+                    "Missing Magitech must skip the infusion recipe");
+            helper.succeed();
+        }
+    }
+
+    @GameTest(template = "gametest/basic_floor")
     public static void magiStaffRejectsOffhandAndDurabilityEnchantments(GameTestHelper helper) {
         var item = (MagiEngineersStaff) ItemRegistry.MAGI_ENGINEERS_STAFF.get();
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "magi_staff_test"));

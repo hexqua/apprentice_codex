@@ -1,0 +1,40 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "magitech"
+    }
+  ],
+  "type": "magitech:infusion",
+  "base": {
+    "count": 1,
+    "ingredient": {
+      "item": "irons_spellbooks:graybeard_staff"
+    }
+  },
+  "ingredients": [
+    {
+      "count": 8,
+      "ingredient": {
+        "item": "apprenticecodex:crystalline_arcane_shard"
+      }
+    },
+    {
+      "count": 8,
+      "ingredient": {
+        "item": "magitech:high_purity_fluorite"
+      }
+    },
+    {
+      "count": 8,
+      "ingredient": {
+        "item": "magitech:fluxium_ingot"
+      }
+    }
+  ],
+  "mana": 500000,
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:magi_engineers_staff"
+  }
+}

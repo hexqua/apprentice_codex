@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.datagen;
 
 import jp.aquafactory.apprenticecodex.compat.patchouli.PatchouliBookSupport;
+import jp.aquafactory.apprenticecodex.datagen.recipe.MagitechInfusionRecipes;
 import jp.aquafactory.apprenticecodex.recipe.smithing.AlchemistsFlaskSmithingRecipe;
 import jp.aquafactory.apprenticecodex.recipe.smithing.SpellbookCarryoverSmithingRecipe;
 import jp.aquafactory.apprenticecodex.utility.PotionContentsHelper;
@@ -51,6 +52,7 @@ public final class RecipeGenerator extends RecipeProvider {
 
     @Override
     protected void buildRecipes(@NotNull RecipeOutput recipeOutput) {
+        MagitechInfusionRecipes.generate(recipeOutput);
         var book = PatchouliBookSupport.createBookStack();
         if (!book.isEmpty()) {
             ShapedRecipeBuilder.shaped(RecipeCategory.MISC, book)

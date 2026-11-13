@@ -402,8 +402,8 @@ extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerMalumBetterComba
 extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerEpicFight', expandOptionalRuntimeModules(['epic_fight']))
 extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerMalumEpicFight', expandOptionalRuntimeModules(['malum_epic_fight']))
 
-// 素材の生成に上流の型とCodecを使うため、datagenだけにもJewelryを読み込む。
-extendRunJavaClasspathWithOptionalRuntimeModules('data', expandOptionalRuntimeModules(['irons_jewelry']))
+// 素材と祭壇レシピの生成に上流の型とCodecを使うため、datagenだけにも連携先と前提を読み込む。
+extendRunJavaClasspathWithOptionalRuntimeModules('data', expandOptionalRuntimeModules(['irons_jewelry', 'magitech']))
 
 def devRuntimeMods = providers.gradleProperty('devRuntimeMods').orNull
 if (devRuntimeMods != null && !devRuntimeMods.trim().isEmpty()) {
