@@ -124,4 +124,10 @@ public class ShockBoltEntity extends Entity {
     public @NotNull AABB getBoundingBoxForCulling() {
         return new AABB(position(), getEndPosition()).inflate(MAX_JITTER_RADIUS + 0.5);
     }
+
+    @Override
+    public boolean isAttackable() {
+        // 魔法の実体を攻撃対象にしない。カウンタースペルの対象判定とは独立している。
+        return false;
+    }
 }

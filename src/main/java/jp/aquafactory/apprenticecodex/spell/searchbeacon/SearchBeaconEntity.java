@@ -941,4 +941,10 @@ public class SearchBeaconEntity extends PathfinderMob implements GeoEntity {
 
     private record ParticleColors(float red, float green, float blue) {
     }
+
+    @Override
+    public boolean isAttackable() {
+        // 魔法の実体を攻撃対象にしない。カウンタースペルの対象判定とは独立している。
+        return false;
+    }
 }

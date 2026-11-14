@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.entity.spells.magic_missile.MagicMissileProje
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -37,5 +38,11 @@ public class ServantGazeProjectileEntity extends MagicMissileProjectile {
                     CombatTools.KnockbackTypes.NO_KNOCKBACK);
         }
         pierceOrDiscard();
+    }
+
+    @Override
+    public boolean isAttackable() {
+        // 通常攻撃の対象にはせず、データパックで許可された打ち返しだけを維持する。
+        return getType().is(EntityTypeTags.REDIRECTABLE_PROJECTILE);
     }
 }

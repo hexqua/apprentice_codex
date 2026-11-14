@@ -13,6 +13,7 @@ import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -270,5 +271,11 @@ public class BloodBrandKunai extends Projectile implements AntiMagicSusceptible 
     private void spawnImpactParticles(ServerLevel serverLevel) {
         // vanillaのentity event IDは型ごとの専用処理と衝突し得るため、通常のparticle packetで同期する。
         serverLevel.sendParticles(BLOOD_DUST, getX(), getY(), getZ(), 12, 0.08D, 0.08D, 0.08D, 0.02D);
+    }
+
+    @Override
+    public boolean isAttackable() {
+        // 通常攻撃の対象にはせず、データパックで許可された打ち返しだけを維持する。
+        return getType().is(EntityTypeTags.REDIRECTABLE_PROJECTILE);
     }
 }

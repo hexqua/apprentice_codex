@@ -13,6 +13,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import jp.aquafactory.apprenticecodex.utility.MagicTools;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -329,4 +330,10 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
         controllers.add(new AnimationController<>(this, "throw", 0, state -> state.setAndContinue(isNarrow() ? THROW_VERTICAL : THROW)));
     }
     @Override public AnimatableInstanceCache getAnimatableInstanceCache() { return cache; }
+
+    @Override
+    public boolean isAttackable() {
+        // 通常攻撃の対象にはせず、データパックで許可された打ち返しだけを維持する。
+        return getType().is(EntityTypeTags.REDIRECTABLE_PROJECTILE);
+    }
 }
