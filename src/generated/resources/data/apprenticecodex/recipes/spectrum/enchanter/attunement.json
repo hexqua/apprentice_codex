@@ -1,0 +1,45 @@
+{
+  "type": "spectrum:enchanter",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "spectrum"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "minecraft:book"
+    },
+    {
+      "item": "spectrum:green_pigment"
+    },
+    {
+      "item": "spectrum:green_pigment"
+    },
+    {
+      "item": "apprenticecodex:arcane_cinder"
+    },
+    {
+      "item": "spectrum:storm_stone"
+    },
+    {
+      "item": "spectrum:green_pigment"
+    },
+    {
+      "item": "spectrum:green_pigment"
+    },
+    {
+      "item": "apprenticecodex:arcane_cinder"
+    },
+    {
+      "item": "spectrum:storm_stone"
+    }
+  ],
+  "required_advancement": "spectrum:midgame/build_enchanting_structure",
+  "required_experience": 100,
+  "result": {
+    "item": "minecraft:enchanted_book",
+    "nbt": "{StoredEnchantments:[{id:\"apprenticecodex:attunement\",lvl:1s}]}"
+  },
+  "time": 300
+}

@@ -1,0 +1,45 @@
+{
+  "type": "spectrum:enchanter",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "spectrum"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "minecraft:book"
+    },
+    {
+      "item": "spectrum:light_blue_pigment"
+    },
+    {
+      "item": "spectrum:light_blue_pigment"
+    },
+    {
+      "item": "apprenticecodex:crystalline_arcane_shard"
+    },
+    {
+      "item": "spectrum:four_leaf_clover"
+    },
+    {
+      "item": "spectrum:light_blue_pigment"
+    },
+    {
+      "item": "spectrum:light_blue_pigment"
+    },
+    {
+      "item": "apprenticecodex:crystalline_arcane_shard"
+    },
+    {
+      "item": "spectrum:four_leaf_clover"
+    }
+  ],
+  "required_advancement": "spectrum:midgame/build_enchanting_structure",
+  "required_experience": 100,
+  "result": {
+    "item": "minecraft:enchanted_book",
+    "nbt": "{StoredEnchantments:[{id:\"apprenticecodex:plunder\",lvl:1s}]}"
+  },
+  "time": 300
+}

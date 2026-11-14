@@ -1,0 +1,45 @@
+{
+  "type": "spectrum:enchanter",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "spectrum"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "minecraft:book"
+    },
+    {
+      "item": "spectrum:yellow_pigment"
+    },
+    {
+      "item": "spectrum:yellow_pigment"
+    },
+    {
+      "item": "minecraft:glowstone_dust"
+    },
+    {
+      "item": "apprenticecodex:comfort_berries"
+    },
+    {
+      "item": "spectrum:yellow_pigment"
+    },
+    {
+      "item": "spectrum:yellow_pigment"
+    },
+    {
+      "item": "minecraft:glowstone_dust"
+    },
+    {
+      "item": "apprenticecodex:comfort_berries"
+    }
+  ],
+  "required_advancement": "spectrum:midgame/build_enchanting_structure",
+  "required_experience": 100,
+  "result": {
+    "item": "minecraft:enchanted_book",
+    "nbt": "{StoredEnchantments:[{id:\"apprenticecodex:glow_energy\",lvl:1s}]}"
+  },
+  "time": 300
+}

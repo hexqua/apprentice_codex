@@ -14,6 +14,11 @@ public final class AttributeEnchantmentGameTests {
     private AttributeEnchantmentGameTests() {}
 
     @GameTest(template = TEMPLATE)
+    public static void attributeEnchantmentsContinueThroughLevelEight(GameTestHelper helper) {
+        AttributeEnchantmentEffectGameTestScenarios.attributeEnchantmentsContinueThroughLevelEight(helper);
+    }
+
+    @GameTest(template = TEMPLATE)
     public static void forcedAttributeEnchantmentsCoexistAndKeepRawPositiveLevels(GameTestHelper helper) {
         AttributeEnchantmentPolicyGameTestScenarios.forcedEnchantmentsCoexistAndKeepRawPositiveLevels(helper);
     }
