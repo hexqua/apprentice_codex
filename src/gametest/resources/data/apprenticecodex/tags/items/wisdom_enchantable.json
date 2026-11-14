@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:blaze_rod",
+    "minecraft:golden_boots",
+    { "id": "apprenticecodex_test:absent_item", "required": false }
+  ]
+}

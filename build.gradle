@@ -395,8 +395,13 @@ tasks.matching { it.name in ['prepareRunClientConnector', 'prepareRunGameTestSer
     dependsOn tasks.named('prepareConnectorMods')
     dependsOn tasks.named('prepareConnectorMetadata')
 }
-tasks.matching { it.name == 'runGameTestServerConnector' }.configureEach {
+tasks.register('prepareConnectorGameTestDataPack', Copy) {
     dependsOn tasks.named('cleanConnectorGameTestServerWorld')
+    from 'src/gametest/resources'
+    into connectorWorkingDir.dir("${gameTestServerWorldName}/datapacks/apprenticecodex_tests")
+}
+tasks.matching { it.name == 'runGameTestServerConnector' }.configureEach {
+    dependsOn tasks.named('prepareConnectorGameTestDataPack')
 }
 
 afterEvaluate {
@@ -442,8 +447,13 @@ tasks.register('cleanGameTestServerWorld', Delete) {
     delete gameTestServerWorldDir
 }
 
-tasks.matching { it.name.startsWith('runGameTestServer') && it.name != 'runGameTestServerConnector' }.configureEach {
+tasks.register('prepareGameTestDataPack', Copy) {
     dependsOn tasks.named('cleanGameTestServerWorld')
+    from 'src/gametest/resources'
+    into gameTestServerWorldDir.dir('datapacks/apprenticecodex_tests')
+}
+tasks.matching { it.name.startsWith('runGameTestServer') && it.name != 'runGameTestServerConnector' }.configureEach {
+    dependsOn tasks.named('prepareGameTestDataPack')
 }
 
 def devRuntimeMods = providers.gradleProperty('devRuntimeMods').orNull

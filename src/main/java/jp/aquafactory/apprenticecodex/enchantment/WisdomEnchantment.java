@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.enchantment;
 
+import jp.aquafactory.apprenticecodex.registry.TagRegistry;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentCategory;
@@ -7,7 +8,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class WisdomEnchantment extends Enchantment {
     private static final EnchantmentCategory MAGIC_ITEM_CATEGORY =
-            EnchantmentCategory.create("apprenticecodex_wisdom_magic", WisdomPolicy::supportsDirectApplication);
+            EnchantmentCategory.create("apprenticecodex_wisdom_magic",
+                    item -> WisdomPolicy.supportsDirectApplication(item)
+                            || item.builtInRegistryHolder().is(TagRegistry.Items.WISDOM_ENCHANTABLE));
 
     public WisdomEnchantment() {
         super(Enchantment.Rarity.RARE, MAGIC_ITEM_CATEGORY,

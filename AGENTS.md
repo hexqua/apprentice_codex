@@ -84,6 +84,7 @@ Get-ChildItem build\libs\*.jar
 - `runGameTestServer` はサーバー側の登録、データ読込、レシピ、生成まわりの検証に使う。renderer / screen など client 専用の起動・挙動は、人間が対応する `runClient...` 構成で確認する。
 - テストの追加・修正・整理は [1.20.1 / Forge のテスト設計・整理方針](docs/testing-policy.md) に従う。共通の検証意図と版固有の接続を区別し、機能単位で段階的に整理する。
 - `runGameTestServer` は専用 world `run/codex_gametest_clean` を毎回初期化してから起動する。通常の手動確認用 `run/world` は削除しない。
+- `runGameTestServer...` は初期化後に `src/gametest/resources` の検証用データパックを専用 world へ配置する。このデータは配布 jar や通常 client には含めない。
 - `runGameTestServer...` はConnector以外のプロファイル間で world と実行ディレクトリを共有する。Connector構成も含め、初回から必ず直列実行する。別プロセス・別ターミナル・サブエージェントへの分担でも並列起動しない。
 - 1 回の Gradle 呼び出しにつき GameTest task は 1 つとし、先行する Gradle / server プロセスの終了を確認してから次を起動する。実行中の yield は終了ではなく、同じ実行を wait で追跡する。
 - `runGameTestServerCompat` は Farmer's Delight / Create / Botania / Lodestone / Malum / Iron's Arms 'n Artifice 連携の確認に使う。

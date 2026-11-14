@@ -78,6 +78,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
 
     @Override
     protected void addTags(@NotNull HolderLookup.Provider provider) {
+        // 効果タグは外部 MOD / データパックからの加算用。既存装備は WisdomPolicy で許可を維持する。
+        tag(TagRegistry.Items.WISDOM_HELD);
+        tag(TagRegistry.Items.WISDOM_ARMOR);
+        tag(TagRegistry.Items.WISDOM_CURIOS);
         tag(Tags.Items.INGOTS).add(
                 ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get(),
                 ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get()
@@ -211,7 +215,6 @@ public final class ItemTagGenerator extends ItemTagsProvider {
                 transcendenceEnchantableTag.add(item);
             }
             if (WisdomPolicy.supportsDirectApplication(item)) {
-                // 1.21.1 側では enchantment JSON の supported_items / primary_items からこのタグを参照する。
                 wisdomEnchantableTag.add(item);
             }
             if (PlunderTarget.supportsDirectApplication(item)) {
