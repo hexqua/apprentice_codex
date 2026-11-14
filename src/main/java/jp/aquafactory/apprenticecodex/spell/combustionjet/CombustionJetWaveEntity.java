@@ -18,6 +18,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -452,5 +453,11 @@ public class CombustionJetWaveEntity extends Projectile
                     + Math.abs(axis.dot(basis.lateral())) * halfExtents.y
                     + Math.abs(axis.dot(basis.up())) * halfExtents.z;
         }
+    }
+
+    @Override
+    public boolean isAttackable() {
+        // 通常攻撃の対象にはせず、データパックで許可された打ち返しだけを維持する。
+        return getType().is(EntityTypeTags.REDIRECTABLE_PROJECTILE);
     }
 }

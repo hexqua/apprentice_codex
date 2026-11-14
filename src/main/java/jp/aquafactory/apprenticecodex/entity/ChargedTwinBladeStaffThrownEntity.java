@@ -22,6 +22,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -462,4 +463,10 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         return false;
     }
 
+
+    @Override
+    public boolean isAttackable() {
+        // 通常攻撃の対象にはせず、データパックで許可された打ち返しだけを維持する。
+        return getType().is(EntityTypeTags.REDIRECTABLE_PROJECTILE);
+    }
 }

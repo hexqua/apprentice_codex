@@ -13,6 +13,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.*;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.projectile.Projectile;
@@ -209,4 +210,10 @@ public final class LunarAimArrowEntity extends Projectile implements AntiMagicSu
     }
     @Override protected void readAdditionalSaveData(@NotNull CompoundTag tag) { super.readAdditionalSaveData(tag); }
     @Override protected void addAdditionalSaveData(@NotNull CompoundTag tag) { super.addAdditionalSaveData(tag); }
+
+    @Override
+    public boolean isAttackable() {
+        // 通常攻撃の対象にはせず、データパックで許可された打ち返しだけを維持する。
+        return getType().is(EntityTypeTags.REDIRECTABLE_PROJECTILE);
+    }
 }

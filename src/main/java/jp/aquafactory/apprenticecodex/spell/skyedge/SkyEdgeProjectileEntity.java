@@ -19,6 +19,7 @@ import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -261,6 +262,12 @@ public class SkyEdgeProjectileEntity extends Projectile implements AntiMagicSusc
             }
 
         }
+    }
+
+    @Override
+    public boolean isAttackable() {
+        // 通常攻撃の対象にはせず、データパックで許可された打ち返しだけを維持する。
+        return getType().is(EntityTypeTags.REDIRECTABLE_PROJECTILE);
     }
 }
 

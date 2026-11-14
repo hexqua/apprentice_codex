@@ -16,6 +16,7 @@ import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
@@ -278,5 +279,11 @@ public class ManaSlashProjectileEntity extends Projectile implements AntiMagicSu
     private static boolean isHoldingCrystalBladedStaff(ServerPlayer serverPlayer) {
         return CrystalBladedStaff.isCrystalBladedStaff(serverPlayer.getMainHandItem())
                 || CrystalBladedStaff.isCrystalBladedStaff(serverPlayer.getOffhandItem());
+    }
+
+    @Override
+    public boolean isAttackable() {
+        // 通常攻撃の対象にはせず、データパックで許可された打ち返しだけを維持する。
+        return getType().is(EntityTypeTags.REDIRECTABLE_PROJECTILE);
     }
 }

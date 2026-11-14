@@ -269,4 +269,10 @@ public class DemicreatorWingsCoreEntity extends Entity implements TraceableEntit
             );
         }
     }
+
+    @Override
+    public boolean isAttackable() {
+        // 魔法の実体を攻撃対象にしない。カウンタースペルの対象判定とは独立している。
+        return false;
+    }
 }
