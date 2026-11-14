@@ -1,14 +1,17 @@
 package jp.aquafactory.apprenticecodex.item.magiengineersstaff;
 
+import jp.aquafactory.apprenticecodex.compat.magitech.MagiEngineersStaffCalibration;
 import jp.aquafactory.apprenticecodex.compat.magitech.MagiEngineersStaffCompat;
 import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
+import jp.aquafactory.apprenticecodex.item.CalibrationAdjustmentProfile;
+import jp.aquafactory.apprenticecodex.item.SpellCalibrationAdjustmentTarget;
 import jp.aquafactory.apprenticecodex.renderer.item.MagiEngineersStaffRenderer;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
@@ -17,6 +20,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -37,11 +41,13 @@ import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
-public final class MagiEngineersStaff extends Item implements GeoItem, WisdomPolicy {
+public final class MagiEngineersStaff extends Item implements GeoItem, WisdomPolicy, SpellCalibrationAdjustmentTarget {
     public static final String KEY = "item.apprenticecodex.magi_engineers_staff";
     public static final int CONVERSION_INTERVAL_TICKS = 10;
+    public static final int CALIBRATION_ADJUSTMENT_SLOT_COUNT = 3;
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public MagiEngineersStaff() {
@@ -58,16 +64,25 @@ public final class MagiEngineersStaff extends Item implements GeoItem, WisdomPol
     }
 
     @Override
+    public int getCalibrationAdjustmentSlotCount(@NotNull ItemStack stack) {
+        return CALIBRATION_ADJUSTMENT_SLOT_COUNT;
+    }
+
+    @Override
+    public @NotNull CalibrationAdjustmentProfile getCalibrationAdjustmentProfile(@NotNull ItemStack stack) {
+        return available() ? MagiEngineersStaffCalibration.PROFILE : CalibrationAdjustmentProfile.of();
+    }
+
+    @Override
+    public @NotNull Optional<TooltipComponent> getTooltipImage(@NotNull ItemStack stack) {
+        return createCalibrationAdjustmentTooltip(stack);
+    }
+
+    @Override
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player,
                                                            @NotNull InteractionHand hand) {
         var stack = player.getItemInHand(hand);
-        if (hand != InteractionHand.MAIN_HAND) {
-            if (!level.isClientSide) player.displayClientMessage(Component.translatable(
-                            "ui.apprenticecodex.mana_force_release_device.cannot_use_offhand", stack.getHoverName())
-                    .withStyle(ChatFormatting.RED), true);
-            return InteractionResultHolder.fail(stack);
-        }
-        return available() && MagiEngineersStaffCompat.begin(player, stack)
+        return available() && MagiEngineersStaffCompat.begin(player, stack, hand)
                 ? InteractionResultHolder.consume(stack) : InteractionResultHolder.fail(stack);
     }
 
@@ -89,7 +104,8 @@ public final class MagiEngineersStaff extends Item implements GeoItem, WisdomPol
     @Override
     public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity, int slot, boolean selected) {
         if (available() && !level.isClientSide && entity instanceof Player player
-                && player.getMainHandItem() == stack && player.tickCount % CONVERSION_INTERVAL_TICKS == 0) {
+                && (player.getMainHandItem() == stack || player.getOffhandItem() == stack)
+                && player.tickCount % CONVERSION_INTERVAL_TICKS == 0) {
             MagiEngineersStaffCompat.convertMana(player);
         }
     }
@@ -128,7 +144,7 @@ public final class MagiEngineersStaff extends Item implements GeoItem, WisdomPol
     public boolean supportsEnchantment(@NotNull ItemStack stack, @NotNull Holder<Enchantment> enchantment) {
         if (enchantment.is(net.minecraft.world.item.enchantment.Enchantments.UNBREAKING)
                 || enchantment.is(net.minecraft.world.item.enchantment.Enchantments.MENDING)) return false;
-        var id = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
+        var id = enchantment.unwrapKey().map(ResourceKey::location).orElse(null);
         return new ItemStack(Items.DIAMOND_SWORD).supportsEnchantment(enchantment)
                 || enchantment.is(Enchantments.WISDOM)
                 || MalumCompatibility.isSpiritPlunderSupported(stack, id)
@@ -150,7 +166,7 @@ public final class MagiEngineersStaff extends Item implements GeoItem, WisdomPol
     @Override
     public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context,
                                 @NotNull List<Component> lines, @NotNull TooltipFlag flag) {
-        if (FMLEnvironment.dist == Dist.CLIENT) MagiEngineersStaffTooltip.append(lines);
+        if (FMLEnvironment.dist == Dist.CLIENT) MagiEngineersStaffTooltip.append(stack, lines);
     }
 
     @Override

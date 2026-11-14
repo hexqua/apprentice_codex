@@ -24,6 +24,30 @@ public final class MagiEngineersStaffGameTests {
     }
 
     @GameTest(template = "gametest/basic_floor")
+    public static void magiStaffCalibrationPersistsAndReturnsRepeatedMaterials(GameTestHelper helper) {
+        if (MagiEngineersStaff.available()) MagiEngineersStaffCalibrationScenarios.storage(helper);
+        else {
+            var item = (MagiEngineersStaff) ItemRegistry.MAGI_ENGINEERS_STAFF.get();
+            var stack = new ItemStack(item);
+            helper.assertTrue(item.getCalibrationAdjustmentProfile(stack).rules().isEmpty(),
+                    "Missing Magitech must not load calibration material definitions");
+            helper.succeed();
+        }
+    }
+
+    @GameTest(template = "gametest/basic_floor")
+    public static void magiStaffCalibrationChangesOnlyHandlingAndEfficiency(GameTestHelper helper) {
+        if (MagiEngineersStaff.available()) MagiEngineersStaffCalibrationScenarios.performance(helper);
+        else helper.succeed();
+    }
+
+    @GameTest(template = "gametest/basic_floor")
+    public static void magiStaffCalibrationUsesOnlyTheCastingHand(GameTestHelper helper) {
+        if (MagiEngineersStaff.available()) MagiEngineersStaffCalibrationScenarios.casting(helper);
+        else helper.succeed();
+    }
+
+    @GameTest(template = "gametest/basic_floor")
     public static void magiStaffInfusionRecipeSelectsOnlyCompleteIngredients(GameTestHelper helper) {
         if (MagiEngineersStaff.available()) {
             MagiEngineersStaffRecipeScenarios.recipeSelection(helper);
@@ -36,14 +60,11 @@ public final class MagiEngineersStaffGameTests {
     }
 
     @GameTest(template = "gametest/basic_floor")
-    public static void magiStaffRejectsOffhandAndDurabilityEnchantments(GameTestHelper helper) {
+    public static void magiStaffKeepsEnchantmentPolicyWithoutMagitech(GameTestHelper helper) {
         var item = (MagiEngineersStaff) ItemRegistry.MAGI_ENGINEERS_STAFF.get();
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "magi_staff_test"));
         var stack = new ItemStack(item);
         player.setItemInHand(InteractionHand.OFF_HAND, stack);
-        helper.assertTrue(item.use(helper.getLevel(), player, InteractionHand.OFF_HAND).getResult().consumesAction() == false,
-                "Offhand use must not start a spell");
-        helper.assertTrue(!player.isUsingItem(), "Offhand use must not change casting state");
         var enchantments = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
         helper.assertTrue(item.supportsEnchantment(stack, enchantments.getOrThrow(Enchantments.SHARPNESS))
                         && !item.supportsEnchantment(stack, enchantments.getOrThrow(Enchantments.UNBREAKING))
@@ -51,9 +72,14 @@ public final class MagiEngineersStaffGameTests {
                 "Staff must accept sword enchantments and reject durability enchantments");
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
         if (!MagiEngineersStaff.available()) {
-            item.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-            item.inventoryTick(stack, helper.getLevel(), player, 0, true);
-            helper.assertTrue(!player.isUsingItem(), "Missing Magitech must leave the registered staff inactive");
+            for (var hand : InteractionHand.values()) {
+                player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+                player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
+                player.setItemInHand(hand, stack);
+                item.use(helper.getLevel(), player, hand);
+                item.inventoryTick(stack, helper.getLevel(), player, 0, true);
+                helper.assertTrue(!player.isUsingItem(), "Missing Magitech must leave either hand inactive");
+            }
         }
         helper.succeed();
     }
@@ -80,6 +106,22 @@ public final class MagiEngineersStaffGameTests {
     public static void magiStaffSeparatesEqualIdCasterInstances(GameTestHelper helper) {
         if (MagiEngineersStaff.available()) MagiEngineersStaffScenarios.equalIdCasters(helper);
         else helper.succeed();
+    }
+
+    @GameTest(template = "gametest/basic_floor")
+    public static void magiStaffRespectsMainHandCasterPriority(GameTestHelper helper) {
+        if (MagiEngineersStaff.available()) MagiEngineersStaffOffhandScenarios.priority(helper);
+        else helper.succeed();
+    }
+
+    @GameTest(template = "gametest/basic_floor")
+    public static void magiStaffSyncPreservesSourceAndPhase(GameTestHelper helper) {
+        MagiEngineersStaffOffhandScenarios.packet(helper);
+    }
+
+    @GameTest(template = "gametest/basic_floor")
+    public static void magiStaffLootEnchantmentsRemainMainHandOnly(GameTestHelper helper) {
+        MagiEngineersStaffOffhandScenarios.lootEnchantments(helper);
     }
 
     @GameTest(template = "gametest/basic_floor")
