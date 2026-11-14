@@ -25,6 +25,26 @@ def gameTestServerWorldName = 'codex_gametest_clean'
 def gameTestServerWorldDir = layout.projectDirectory.dir("run/${gameTestServerWorldName}")
 def requiredOptionalModsProperty = 'apprenticecodex.requiredOptionalMods'
 
+// Connectorは起動サービスも持つため、専用source setのclasspathとmodsを通常構成から分離する。
+sourceSets {
+    connector {
+        java.setSrcDirs([])
+        resources.setSrcDirs([])
+        runtimeClasspath = sourceSets.main.runtimeClasspath + configurations.connectorRuntimeClasspath
+    }
+}
+configurations {
+    connectorLoader { canBeConsumed = false }
+    connectorMods { canBeConsumed = false }
+    connectorFabricMods { canBeConsumed = false }
+    connectorRuntimeOnly.extendsFrom connectorLoader
+}
+
+def connectorWorkingDir = layout.projectDirectory.dir('run-connector')
+def connectorMetadataDir = layout.buildDirectory.dir('connector-metadata')
+def connectorMetadataPath = connectorMetadataDir.get().asFile.absolutePath.replace('\\', '/')
+def connectorRequiredMods = 'connectormod,connectorextras,fabric_api,spectrum,revelationary,modonomicon,trinkets,cloth_config,emi'
+
 def optionalRuntimeModuleConfigurations = [
         create         : 'createRuntimeOnly',
         botania        : 'botaniaRuntimeOnly',
@@ -176,6 +196,30 @@ minecraft {
             environment 'MOD_CLASSES', "{source_roots}${File.pathSeparator}{client_runtime_mod_classes}"
         }
 
+        clientConnector {
+            parent null, 'client'
+            taskName 'runClientConnector'
+            workingDirectory connectorWorkingDir.asFile
+            source sourceSets.connector
+            ideaModule "${project.name}.connector"
+            property requiredOptionalModsProperty, connectorRequiredMods
+            // ForgeGradleの子runへ親のlazyTokenは引き継がれないため、client用MODも明示する。
+            lazyToken 'client_runtime_mod_classes', clientRuntimeModClassesTokenForModules([])
+            lazyToken 'minecraft_classpath', { configurations.connectorLoader.asPath }
+            environment 'MOD_CLASSES', "${mod_id}%%${connectorMetadataPath}${File.pathSeparator}{source_roots}${File.pathSeparator}{client_runtime_mod_classes}"
+        }
+
+        gameTestServerConnector {
+            parent null, 'gameTestServer'
+            taskName 'runGameTestServerConnector'
+            workingDirectory connectorWorkingDir.asFile
+            source sourceSets.connector
+            ideaModule "${project.name}.connector"
+            property requiredOptionalModsProperty, connectorRequiredMods
+            lazyToken 'minecraft_classpath', { configurations.connectorLoader.asPath }
+            environment 'MOD_CLASSES', "${mod_id}%%${connectorMetadataPath}${File.pathSeparator}{source_roots}"
+        }
+
         clientEasyMagic {
             parent null, 'client'
             taskName 'runClientEasyMagic'
@@ -275,6 +319,106 @@ minecraft {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+// ForgeGradleで再コンパイルしたstillValidのlambdaはPlayer/Block順になるが、Extras 1.11.2は
+// Block/Player順を前提とする。このMixinはForgeが互換用に残す未使用の64.0定数だけを変更する。
+// 実際の距離判定はForgeのBLOCK_REACHを使用するため、devコピーでのみこの冗長なMixinを除く。
+def connectorExtrasDevJar = layout.buildDirectory.file('connector/connector-extras-dev.jar')
+tasks.register('prepareConnectorExtras') {
+    inputs.files configurations.connectorMods
+    outputs.file connectorExtrasDevJar
+    doLast {
+        def rewriteZip
+        rewriteZip = { byte[] bytes, Closure transform ->
+            def result = new ByteArrayOutputStream()
+            new java.util.zip.ZipInputStream(new ByteArrayInputStream(bytes)).withCloseable { input ->
+                new java.util.zip.ZipOutputStream(result).withCloseable { output ->
+                    java.util.zip.ZipEntry entry
+                    while ((entry = input.nextEntry) != null) {
+                        def contents = input.readAllBytes()
+                        output.putNextEntry(new java.util.zip.ZipEntry(entry.name))
+                        output.write(transform(entry.name, contents))
+                        output.closeEntry()
+                    }
+                }
+            }
+            result.toByteArray()
+        }
+        def source = configurations.connectorMods.files.find { it.name.startsWith('connector-extras-') }
+        int patched = 0
+        def bytes = rewriteZip(source.bytes) { name, contents ->
+            if (name == 'META-INF/jarjar/reach-entity-attributes-2.4.0.jar') {
+                return rewriteZip(contents) { nestedName, nestedContents ->
+                    if (nestedName == 'mixins.reach-entity-attributes.json') {
+                        def json = new groovy.json.JsonSlurper().parse(nestedContents)
+                        if (!json.mixins.remove('ScreenHandlerMixin')) {
+                            throw new GradleException('Unexpected Connector Extras reach mixin definition')
+                        }
+                        patched++
+                        return groovy.json.JsonOutput.toJson(json).getBytes('UTF-8')
+                    }
+                    nestedContents
+                }
+            }
+            contents
+        }
+        if (patched != 1) throw new GradleException('Expected exactly one Connector Extras development patch')
+        def target = connectorExtrasDevJar.get().asFile
+        target.parentFile.mkdirs()
+        target.bytes = bytes
+    }
+}
+
+// Fabric jarはintermediaryのままConnectorへ渡す。ForgeGradleのdeobf対象にしない。
+tasks.register('prepareConnectorMods', Sync) {
+    from configurations.connectorMods.filter { !it.name.startsWith('connector-extras-') }
+    from configurations.connectorFabricMods
+    from tasks.named('prepareConnectorExtras')
+    into connectorWorkingDir.dir('mods')
+    preserve { include '.connector/**' }
+}
+tasks.register('prepareConnectorMetadata') {
+    def manifestFile = connectorMetadataDir.map { it.file('META-INF/MANIFEST.MF') }
+    outputs.file manifestFile
+    inputs.property 'mixinConfigs', "mixins.${mod_id}.json,mixins.${mod_id}.mana_stabilizer.json"
+    doLast {
+        def target = manifestFile.get().asFile
+        target.parentFile.mkdirs()
+        target.setText("Manifest-Version: 1.0\r\nMixinConfigs: ${inputs.properties.mixinConfigs}\r\n\r\n", 'UTF-8')
+    }
+}
+tasks.register('cleanConnectorGameTestServerWorld', Delete) {
+    delete connectorWorkingDir.dir(gameTestServerWorldName)
+}
+// IDEAのBeforeRunはPrepareCompileだけを呼ぶ場合があるため、両経路で依存を準備する。
+tasks.matching { it.name in ['prepareRunClientConnector', 'prepareRunGameTestServerConnector',
+                            'prepareRunClientConnectorCompile', 'prepareRunGameTestServerConnectorCompile'] }.configureEach {
+    dependsOn tasks.named('prepareConnectorMods')
+    dependsOn tasks.named('prepareConnectorMetadata')
+}
+tasks.matching { it.name == 'runGameTestServerConnector' }.configureEach {
+    dependsOn tasks.named('cleanConnectorGameTestServerWorld')
+}
+
+afterEvaluate {
+    // Connector公式のForgeGradle手順に従い、未加工のSRG jarを専用構成だけへ渡す。
+    ['clientConnector', 'gameTestServerConnector'].each { name ->
+        minecraft.runs.named(name).configure {
+            // Connector同梱MixinはMixinGradleのCLI引数を消費しないため、専用manifestから読み込む。
+            def filteredArgs = []
+            for (int i = 0; i < args.size(); i++) {
+                if (args[i] == '--mixin.config') { i++ } else { filteredArgs.add(args[i]) }
+            }
+            getArgs().clear()
+            setArgs(filteredArgs)
+            lazyToken 'connector_clean_path', {
+                Objects.requireNonNull(net.minecraftforge.gradle.common.util.MavenArtifactDownloader.generate(
+                        project, "net.minecraft:joined:${project.MCP_VERSION}:srg", true), 'Cannot find clean Minecraft artifact').absolutePath
+            }
+            property 'connector.clean.path', '{connector_clean_path}'
+        }
+    }
+}
+
 configurations {
     optionalRuntimeModuleConfigurations.values().each { configurationName ->
         create(configurationName) {
@@ -298,7 +442,7 @@ tasks.register('cleanGameTestServerWorld', Delete) {
     delete gameTestServerWorldDir
 }
 
-tasks.matching { it.name.startsWith('runGameTestServer') }.configureEach {
+tasks.matching { it.name.startsWith('runGameTestServer') && it.name != 'runGameTestServerConnector' }.configureEach {
     dependsOn tasks.named('cleanGameTestServerWorld')
 }
 
@@ -357,6 +501,17 @@ repositories {
 // 依存解決は基本ココ.
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+    add('connectorLoader', fg.deobf("maven.modrinth:connector:${connector_modrinth_version_id}"))
+    add('connectorMods', fg.deobf("maven.modrinth:forgified-fabric-api:${forgified_fabric_api_modrinth_version_id}"))
+    add('connectorMods', fg.deobf("maven.modrinth:cloth-config:${connector_cloth_config_modrinth_version_id}"))
+    // Spectrum同梱Reach Entity AttributesのForge互換実装と、Fabric側EMIプラグインの検出に必要。
+    add('connectorMods', fg.deobf("maven.modrinth:connector-extras:${connector_extras_modrinth_version_id}"))
+    add('connectorMods', fg.deobf("maven.modrinth:emi:${connector_emi_modrinth_version_id}"))
+    add('connectorFabricMods', "maven.modrinth:spectrum:${spectrum_modrinth_version_id}")
+    add('connectorFabricMods', "maven.modrinth:revelationary:${spectrum_revelationary_modrinth_version_id}")
+    add('connectorFabricMods', "maven.modrinth:modonomicon:${spectrum_modonomicon_modrinth_version_id}")
+    add('connectorFabricMods', "maven.modrinth:trinkets:${spectrum_trinkets_modrinth_version_id}")
 
     // mixin.
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
@@ -505,6 +660,7 @@ def textEncodingHygieneExcludes = [
         'mcmodsrepo/**',
         'out/**',
         'run/**',
+        'run-connector/**',
         'run-data/**',
         // 中国語は文字化けか正しいのかチェックできなさそうなので意図的に除外.
         'src/main/resources/assets/apprenticecodex/lang/zh_cn.json',
