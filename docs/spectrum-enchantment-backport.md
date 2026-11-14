@@ -107,3 +107,20 @@ datagenは外部MODを起動せず実行できる構成を維持する。
 限界突破は所有者の保存済み許可フラグを切り替えて、上流装置のprivateなレシピ選択処理へ接続する。
 これは通常tickによるマルチブロック全体のクラフト、進捗取得操作、client描画の検証とは区別する。
 上限超過時の効果は実装備の属性、経験値イベント、Looting変換、フラスコから取り出した効果で確認する。
+
+採掘・伐採・経験値の回帰テストはmainの `e0bb72b50` から移植する。
+前提となる `MiningTestScope`（`868a7d7fd`）、`ConnectedPlayerTestSupport`（`dc7caa95d`）と
+採掘用構造も使用範囲を取り込み、Forgeのイベント・接続APIと1.20.1のNBTへ補正する。
+`MiningTestScope` は同期操作中に生成した実体を追跡し、失敗時もlistener・進捗listener・実体を解放する。
+1.20.1では操作前に対象chunkのentity-tickingを待つ。
+
+Connector構成でTouch Dig・World Flatter・Psychic Drive Gauntletsのスポナー回収、
+Tiny Lumberjackの色付き原木・葉の開示とSilk Touch、ブロック・mobのExuberanceとWisdomによるXPを検証する。
+Spectrum 1.8.15はResonanceの使用進捗を採掘時にも確認するため、mainで任意だった未解禁時の回収拒否3件も必須とする。
+Spectrum不在の構成ではこの9件の連携シナリオを省略し、通常構成の成功を連携の検証結果には数えない。
+
+Exuberanceの既定増幅率は1.8.15では1レベルにつき25%。基礎XP5に対する
+`(Exuberance, Wisdom)` の `(0,0)/(1,0)/(0,2)/(1,2)/(2,2)/(5,2)` をmainと同様に検証する。
+Forgeでは採掘のBreakEvent、mobのLivingExperienceDropEventによるWisdom切上げ後に、
+SpectrumのExuberance切捨てが入る。mob側のMixinも基礎XPの取得ではなくXP排出呼び出しの引数を変更する。
+そのためXP期待値はブロック・mobとも `5/6/6/7/9/13` となる。

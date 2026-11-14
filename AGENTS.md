@@ -90,6 +90,7 @@ Get-ChildItem build\libs\*.jar
 - `runGameTestServerConnector` / `runClientConnector` は Fabric版SpectrumをConnector経由で検証する専用構成とする。必須依存・Connector Extras・Forge版EMIをclient・GameTestの両方へ常時導入し、通常のcompatやdatagenへ追加しない。ExtrasのReach Entity Attributes互換実装とEMIのFabricプラグイン検出を使用する。
 - Connector構成は `run-connector` を使用する。`prepareConnectorMods` がその `mods` を固定依存セットへ同期するため、手動のjar追加先には使わない。GameTestでは `run-connector/codex_gametest_clean` を初期化し、手動確認用worldは削除しない。他のGameTest構成と同様に直列実行する。
 - Connectorは専用source setのclasspathを使用する。IntelliJ IDEAではGradle再読込後に `genIntellijRuns` で構成を再生成する。
+- Spectrumの採掘・伐採・経験値連携は `runGameTestServerConnector` で検証する。Spectrum 1.8.15では未解禁Resonanceの回収拒否3件も必須テストとし、Spectrum不在の構成では省略する。
 - `runGameTestServerEasyMagic` は Puzzles Lib / Easy Magic 連携の確認に使う。
 - `runGameTestServerBetterCombat` は Cloth Config / Better Combat 連携の確認に使う。
 - `runGameTestServerMalumBetterCombat` は Lodestone / Malum / Cloth Config / Better Combat の組み合わせ連携確認に使う。
