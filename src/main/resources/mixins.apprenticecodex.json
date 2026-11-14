@@ -103,6 +103,7 @@
   ],
   "client": [
     "MagitechStaffOverlayMixin",
+    "MagitechStaffRadialMenuMixin",
     "PatchouliBookHeaderMixin",
     "EntityRenderDispatcherMantleBlinkMixin",
     "EntityRendererMantleBlinkNameMixin",

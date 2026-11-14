@@ -1,16 +1,14 @@
 {
   "attributes": {
-    "range_bonus": 0.25,
-    "pose": "bettercombat:pose_two_handed_polearm",
-    "two_handed": true,
-    "category": "polearm",
+    "range_bonus": 0.5,
+    "category": "staff",
     "attacks": [
       {
         "hitbox": "HORIZONTAL_PLANE",
         "damage_multiplier": 1,
-        "angle": 180,
+        "angle": 150,
         "upswing": 0.5,
-        "animation": "bettercombat:two_handed_slash_horizontal_right",
+        "animation": "bettercombat:one_handed_slash_horizontal_right",
         "swing_sound": {
           "id": "bettercombat:staff_slash"
         }
@@ -18,9 +16,9 @@
       {
         "hitbox": "HORIZONTAL_PLANE",
         "damage_multiplier": 1,
-        "angle": 180,
+        "angle": 150,
         "upswing": 0.5,
-        "animation": "bettercombat:two_handed_slash_horizontal_left",
+        "animation": "bettercombat:one_handed_slash_horizontal_left",
         "swing_sound": {
           "id": "bettercombat:staff_slash"
         }

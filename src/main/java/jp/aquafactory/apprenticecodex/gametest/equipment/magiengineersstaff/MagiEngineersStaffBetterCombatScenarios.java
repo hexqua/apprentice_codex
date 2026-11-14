@@ -21,13 +21,15 @@ final class MagiEngineersStaffBetterCombatScenarios {
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ItemRegistry.MAGI_ENGINEERS_STAFF.get()));
         player.getInventory().offhand.set(0, new ItemStack(ItemRegistry.IRON_SPELL_AMPLIFIER.get()));
         var attributes = WeaponRegistry.getAttributes(player.getMainHandItem());
-        helper.assertTrue(attributes != null && attributes.isTwoHanded(), "Staff must resolve its two-handed weapon data");
+        helper.assertTrue(attributes != null && !attributes.isTwoHanded(), "Staff must resolve one-handed weapon data");
         try {
-            helper.assertTrue(BetterCombatOffhandAttributeRescueCompat.isRescueActive(player),
-                    "Two-handed staff must preserve the offhand amplifier rescue path");
+            helper.assertTrue(!BetterCombatOffhandAttributeRescueCompat.isRescueActive(player)
+                            && player.getOffhandItem().is(ItemRegistry.IRON_SPELL_AMPLIFIER.get()),
+                    "One-handed staff must expose the real offhand without attribute rescue");
+            player.doTick();
             BetterCombatOffhandAttributeRescueCompat.sync(player);
             helper.assertTrue(player.getAttributeValue(AttributeRegistry.SPELL_POWER) > 1,
-                    "Rescued amplifier must increase the actual player spell power");
+                    "Normally equipped offhand amplifier must increase the actual player spell power");
         } finally {
             BetterCombatOffhandAttributeRescueCompat.clear(player);
         }

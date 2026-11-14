@@ -5,7 +5,6 @@ import jp.aquafactory.apprenticecodex.compat.malum.MalumCompatibility;
 import jp.aquafactory.apprenticecodex.enchantment.Enchantments;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.renderer.item.MagiEngineersStaffRenderer;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
@@ -61,13 +60,7 @@ public final class MagiEngineersStaff extends Item implements GeoItem, WisdomPol
     public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player,
                                                            @NotNull InteractionHand hand) {
         var stack = player.getItemInHand(hand);
-        if (hand != InteractionHand.MAIN_HAND) {
-            if (!level.isClientSide) player.displayClientMessage(Component.translatable(
-                            "ui.apprenticecodex.mana_force_release_device.cannot_use_offhand", stack.getHoverName())
-                    .withStyle(ChatFormatting.RED), true);
-            return InteractionResultHolder.fail(stack);
-        }
-        return available() && MagiEngineersStaffCompat.begin(player, stack)
+        return available() && MagiEngineersStaffCompat.begin(player, stack, hand)
                 ? InteractionResultHolder.consume(stack) : InteractionResultHolder.fail(stack);
     }
 
@@ -89,7 +82,8 @@ public final class MagiEngineersStaff extends Item implements GeoItem, WisdomPol
     @Override
     public void inventoryTick(@NotNull ItemStack stack, @NotNull Level level, @NotNull Entity entity, int slot, boolean selected) {
         if (available() && !level.isClientSide && entity instanceof Player player
-                && player.getMainHandItem() == stack && player.tickCount % CONVERSION_INTERVAL_TICKS == 0) {
+                && (player.getMainHandItem() == stack || player.getOffhandItem() == stack)
+                && player.tickCount % CONVERSION_INTERVAL_TICKS == 0) {
             MagiEngineersStaffCompat.convertMana(player);
         }
     }
