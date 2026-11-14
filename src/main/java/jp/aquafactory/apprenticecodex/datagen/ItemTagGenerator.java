@@ -102,6 +102,10 @@ public final class ItemTagGenerator extends ItemTagsProvider {
 
     @Override
     protected void addTags(@NotNull HolderLookup.Provider provider) {
+        // 効果タグは外部 MOD / データパックからの加算用。既存装備は WisdomPolicy で許可を維持する。
+        tag(Enchantments.WISDOM_HELD);
+        tag(Enchantments.WISDOM_ARMOR);
+        tag(Enchantments.WISDOM_CURIOS);
         tag(Tags.Items.INGOTS).add(
                 ItemRegistry.SPELLSTAINED_ARCANE_INGOT.get(),
                 ItemRegistry.EMBERSTAINED_NETHERITE_INGOT.get()

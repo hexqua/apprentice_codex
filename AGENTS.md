@@ -98,6 +98,7 @@ Get-ChildItem build\libs\*.jar
 - テストの追加・修正・整理では [テスト設計・整理方針](docs/testing-policy.md) に従う。巨大なテストクラスは機能単位のクラス・パッケージへ段階的に分割し、処理結果・状態遷移・依存との接続を優先する。同方針は初版であり、今後のテスト修正で不都合が分かった場合は理由を示して見直す。
 - 不安定なGameTestの調査では、同方針の「安定性と後片付け」にある事例を参照し、templateの範囲、entityの登録・UUID検索・chunkのtick状態、実際の命中先、cache・共有状態を必要に応じて確認する。再実行での成功と原因の解消を区別し、距離・期限・拒否境界を維持して修正する。
 - `runGameTestServer` は専用 world `run/codex_gametest_clean` を毎回初期化してから起動する。通常の手動確認用 `run/world` は削除しない。
+- `runGameTestServer...` は初期化後に `src/gametest/resources` の検証用データパックを専用 world へ配置する。このデータは配布 jar や通常 client には含めない。
 - `runGameTestServer...` はプロファイル間で world と実行ディレクトリを共有するため、初回から必ず直列実行する。別プロセス・別ターミナル・サブエージェントへの分担でも並列起動しない。
 - 1 回の Gradle 呼び出しにつき GameTest task は 1 つとし、先行する Gradle / server プロセスの終了を確認してから次を起動する。実行中の yield は終了ではなく、同じ実行を wait で追跡する。
 - `runGameTestServerCompat` は Farmer's Delight / Spectrum / Create / Lodestone / Malum / Atlas API / Iron's Gems 'n Jewelry / Iron's Arms 'n Artifice 連携の確認に使う。
