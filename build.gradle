@@ -365,8 +365,16 @@ tasks.register('cleanGameTestServerWorld', Delete) {
     delete gameTestServerWorldDir
 }
 
-tasks.matching { it.name.startsWith('runGameTestServer') }.configureEach {
+tasks.register('prepareGameTestDataPack', Copy) {
+    group = 'verification'
+    description = 'Installs test-only data into the dedicated GameTest world.'
     dependsOn tasks.named('cleanGameTestServerWorld')
+    from 'src/gametest/resources'
+    into gameTestServerWorldDir.dir('datapacks/apprenticecodex_tests')
+}
+
+tasks.matching { it.name.startsWith('runGameTestServer') }.configureEach {
+    dependsOn tasks.named('prepareGameTestDataPack')
 }
 
 configurations {

@@ -46,6 +46,9 @@ public final class Enchantments {
     public static final TagKey<Item> FLASK_ENCHANTABLE = itemTag("flask_enchantable");
     public static final TagKey<Item> TRANSCENDENCE_ENCHANTABLE = itemTag("transcendence_enchantable");
     public static final TagKey<Item> WISDOM_ENCHANTABLE = itemTag("wisdom_enchantable");
+    public static final TagKey<Item> WISDOM_HELD = itemTag("wisdom/held");
+    public static final TagKey<Item> WISDOM_ARMOR = itemTag("wisdom/armor");
+    public static final TagKey<Item> WISDOM_CURIOS = itemTag("wisdom/curios");
     public static final TagKey<Item> PLUNDER_ENCHANTABLE = itemTag("plunder_enchantable");
     public static final TagKey<Item> SYNTHESIS_ENCHANTABLE = itemTag("synthesis_enchantable");
     public static final TagKey<Item> MANA_SHIELD_CHARM_ENCHANTABLE = itemTag("mana_shield_charm_enchantable");

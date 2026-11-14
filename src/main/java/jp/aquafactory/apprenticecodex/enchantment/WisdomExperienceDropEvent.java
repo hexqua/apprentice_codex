@@ -72,7 +72,7 @@ public final class WisdomExperienceDropEvent {
     private static int getApplicableArmorWisdomLevel(Player player) {
         var totalLevel = 0;
         for (var stack : player.getArmorSlots()) {
-            if (!stack.isEmpty() && stack.getItem() instanceof WisdomPolicy) {
+            if (WisdomResolver.isActiveAsArmor(stack)) {
                 totalLevel += Enchantments.getLevel(stack, Enchantments.WISDOM);
             }
         }
@@ -81,7 +81,7 @@ public final class WisdomExperienceDropEvent {
 
     private static int getApplicableCurioWisdomLevel(Player player) {
         return CuriosApi.getCuriosInventory(player)
-                .map(inventory -> inventory.findCurios(stack -> stack.getItem() instanceof WisdomPolicy))
+                .map(inventory -> inventory.findCurios(WisdomResolver::isActiveAsCurio))
                 .orElse(List.of())
                 .stream()
                 .mapToInt(slotResult -> Enchantments.getLevel(slotResult.stack(), Enchantments.WISDOM))
@@ -89,9 +89,7 @@ public final class WisdomExperienceDropEvent {
     }
 
     private static int getHeldWisdomLevel(ItemStack stack) {
-        if (stack.isEmpty()
-                || !(stack.getItem() instanceof WisdomPolicy policy)
-                || !policy.isWisdomActiveWhileHeld()) {
+        if (!WisdomResolver.isActiveWhileHeld(stack)) {
             return 0;
         }
 
