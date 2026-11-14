@@ -453,4 +453,9 @@ public class CombustionJetWaveEntity extends Projectile
                     + Math.abs(axis.dot(basis.up())) * halfExtents.z;
         }
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

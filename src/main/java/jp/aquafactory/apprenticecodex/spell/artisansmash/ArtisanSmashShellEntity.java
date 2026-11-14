@@ -358,4 +358,9 @@ public class ArtisanSmashShellEntity extends ThrowableProjectile implements Anti
     public void setCombatOwnerUuid(@Nullable UUID combatOwnerUuid) {
         this.combatOwnerUuid = combatOwnerUuid;
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

@@ -272,4 +272,9 @@ public class BloodBrandKunai extends Projectile implements AntiMagicSusceptible 
         // vanillaのentity event IDは型ごとの専用処理と衝突し得るため、通常のparticle packetで同期する。
         serverLevel.sendParticles(BLOOD_DUST, getX(), getY(), getZ(), 12, 0.08D, 0.08D, 0.08D, 0.02D);
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

@@ -221,4 +221,9 @@ public final class LightningArrowEntity extends Projectile implements AntiMagicS
     protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
         super.addAdditionalSaveData(tag);
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

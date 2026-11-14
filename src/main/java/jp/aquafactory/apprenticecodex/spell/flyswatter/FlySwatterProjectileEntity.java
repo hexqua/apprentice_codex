@@ -435,4 +435,9 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
     public void setCombatOwnerUuid(@Nullable UUID combatOwnerUuid) {
         this.combatOwnerUuid = combatOwnerUuid;
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

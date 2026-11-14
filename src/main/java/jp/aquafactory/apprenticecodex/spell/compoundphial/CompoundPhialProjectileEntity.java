@@ -244,4 +244,9 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile implement
                     color[0], color[1], color[2]);
         }
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

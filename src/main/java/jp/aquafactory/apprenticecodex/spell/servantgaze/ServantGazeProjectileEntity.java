@@ -38,4 +38,9 @@ public class ServantGazeProjectileEntity extends MagicMissileProjectile {
         }
         pierceOrDiscard();
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

@@ -206,4 +206,9 @@ public class FeatherRushProjectileEntity extends ThrowableProjectile {
 
         return new Vec3(0.0, 0.0, 1.0);
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

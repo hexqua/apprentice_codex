@@ -718,4 +718,9 @@ public class IlluminateStellarStarEntity extends Projectile implements AntiMagic
         }
         return right.normalize();
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

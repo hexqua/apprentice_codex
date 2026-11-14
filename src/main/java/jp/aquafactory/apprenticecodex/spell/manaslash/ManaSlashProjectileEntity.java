@@ -274,4 +274,9 @@ public class ManaSlashProjectileEntity extends Projectile implements AntiMagicSu
         return CrystalBladedStaff.isCrystalBladedStaff(serverPlayer.getMainHandItem())
                 || CrystalBladedStaff.isCrystalBladedStaff(serverPlayer.getOffhandItem());
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

@@ -350,4 +350,9 @@ public class FujinSlashProjectileEntity extends Projectile
     public void setCombatOwnerUuid(@Nullable UUID combatOwnerUuid) {
         this.combatOwnerUuid = combatOwnerUuid;
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

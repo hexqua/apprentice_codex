@@ -216,4 +216,9 @@ public final class EchoArrowEntity extends Projectile implements AntiMagicSuscep
     protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
         super.addAdditionalSaveData(tag);
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

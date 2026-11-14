@@ -484,4 +484,9 @@ public class AnchorBlinkDaggerEntity extends ThrowableProjectile implements Anti
             return dimension.equals(level.dimension()) && level.getGameTime() >= untilGameTime;
         }
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

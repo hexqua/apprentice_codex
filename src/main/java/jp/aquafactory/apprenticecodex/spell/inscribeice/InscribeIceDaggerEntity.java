@@ -404,4 +404,9 @@ public class InscribeIceDaggerEntity extends Projectile implements AntiMagicSusc
         }
         return right.normalize();
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

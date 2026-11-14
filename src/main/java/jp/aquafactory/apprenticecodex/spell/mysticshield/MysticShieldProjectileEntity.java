@@ -293,4 +293,9 @@ public class MysticShieldProjectileEntity extends Projectile implements AntiMagi
         }
         return right.normalize();
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

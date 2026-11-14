@@ -462,4 +462,9 @@ public final class ChargedTwinBladeStaffThrownEntity extends Projectile {
         // これは意図的に拾えないようにするため必要.
         return false;
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

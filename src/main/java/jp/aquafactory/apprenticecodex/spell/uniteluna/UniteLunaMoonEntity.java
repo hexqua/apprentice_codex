@@ -636,4 +636,9 @@ public class UniteLunaMoonEntity extends Projectile implements AntiMagicSuscepti
     private static float sineEaseOut(float value) {
         return Mth.sin(Mth.clamp(value, 0.0f, 1.0f) * (Mth.PI / 2.0f));
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

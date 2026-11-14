@@ -608,4 +608,9 @@ public class MagicSpearMissileEntity extends Projectile implements GeoEntity, An
     public AnimatableInstanceCache getAnimatableInstanceCache() {
         return cache;
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

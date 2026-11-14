@@ -209,4 +209,9 @@ public final class LunarAimArrowEntity extends Projectile implements AntiMagicSu
     }
     @Override protected void readAdditionalSaveData(@NotNull CompoundTag tag) { super.readAdditionalSaveData(tag); }
     @Override protected void addAdditionalSaveData(@NotNull CompoundTag tag) { super.addAdditionalSaveData(tag); }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

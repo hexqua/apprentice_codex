@@ -151,4 +151,9 @@ public final class LockOnRayLaserEntity extends Projectile implements AntiMagicS
     @Override protected void defineSynchedData() {}
     @Override protected void readAdditionalSaveData(@NotNull CompoundTag tag) { super.readAdditionalSaveData(tag); }
     @Override protected void addAdditionalSaveData(@NotNull CompoundTag tag) { super.addAdditionalSaveData(tag); }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

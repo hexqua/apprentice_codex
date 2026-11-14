@@ -267,4 +267,9 @@ public class SkyEdgeProjectileEntity extends Projectile implements AntiMagicSusc
 
         }
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }
