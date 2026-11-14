@@ -166,6 +166,10 @@ final class ScrollcasterEquipmentGameTestScenarios {
             );
             expectedTaggedEnchantments.addAll(expectedDefinitionEnchantments);
             expectedTaggedEnchantments.remove(ResourceLocation.withDefaultNamespace("sweeping_edge"));
+            if (ModList.get().isLoaded("spectrum")) {
+                // Gauntletはツルハシの付与可否も継承するため、SpectrumのResonanceが追加される。
+                expectedTaggedEnchantments.add(ResourceLocation.fromNamespaceAndPath("spectrum", "resonance"));
+            }
             addExpectedMalumMagicCapableWeaponEnchantmentsIfPresent(stack, expectedTaggedEnchantments);
             addExpectedMalumSpiritPlunderIfPresent(stack, expectedTaggedEnchantments);
             addExpectedMalumReplenishingIfPresent(stack, expectedTaggedEnchantments);

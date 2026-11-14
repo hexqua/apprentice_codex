@@ -57,14 +57,20 @@ final class AttributeEquipmentFixture implements AutoCloseable {
 
     void assertLevels(ItemStack plain, ItemStack levelOne, ItemStack levelTwo, EquipmentSlot slot,
                       Holder<Attribute> attribute, AttributeEnchantmentType type, String description) {
+        assertLevels(plain, levelOne, levelTwo, slot, attribute, type, description, 1, 2);
+    }
+
+    void assertLevels(ItemStack plain, ItemStack levelOne, ItemStack levelTwo, EquipmentSlot slot,
+                      Holder<Attribute> attribute, AttributeEnchantmentType type, String description,
+                      int firstLevel, int secondLevel) {
         equip(ItemStack.EMPTY, slot);
         var unequipped = values();
         equip(plain, slot);
         var baseline = values();
         var formula = Formula.from(player().getAttribute(attribute));
         boolean additive = type == AttributeEnchantmentType.RESERVOIR;
-        for (int level : new int[]{1, 2, 1, 0}) {
-            equip(level == 0 ? plain : level == 1 ? levelOne : levelTwo, slot);
+        for (int level : new int[]{firstLevel, secondLevel, firstLevel, 0}) {
+            equip(level == 0 ? plain : level == firstLevel ? levelOne : levelTwo, slot);
             for (var watched : attributes) {
                 double expected = watched.equals(attribute)
                         ? formula.at(type.amountPerLevel() * level, additive) : baseline.get(watched);

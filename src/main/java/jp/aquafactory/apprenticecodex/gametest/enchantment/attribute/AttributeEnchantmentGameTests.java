@@ -12,6 +12,11 @@ public final class AttributeEnchantmentGameTests {
     private AttributeEnchantmentGameTests() {}
 
     @GameTest(template = "gametest/basic_floor")
+    public static void overlevelAttributeEnchantmentsIncreaseEquippedValues(GameTestHelper helper) {
+        AttributeEnchantmentEffectGameTestScenarios.overlevelAttributesApplyOnEquipment(helper);
+    }
+
+    @GameTest(template = "gametest/basic_floor")
     public static void forcedAttributeEnchantmentsCoexistAndKeepRawPositiveLevels(GameTestHelper helper) {
         AttributeEnchantmentPolicyGameTestScenarios.forcedEnchantmentsCoexistAndKeepRawPositiveLevels(helper);
     }

@@ -1,0 +1,48 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "spectrum"
+    }
+  ],
+  "type": "spectrum:enchantment_upgrade",
+  "enchantment": "apprenticecodex:wisdom",
+  "levels": [
+    {
+      "experience": 200,
+      "ingredient": {
+        "item": "spectrum:purple_pigment"
+      },
+      "ingredient_count_per_bowl": 1
+    },
+    {
+      "experience": 400,
+      "ingredient": {
+        "item": "spectrum:purple_pigment"
+      },
+      "ingredient_count_per_bowl": 2
+    },
+    {
+      "experience": 800,
+      "ingredient": {
+        "item": "spectrum:purple_pigment"
+      },
+      "ingredient_count_per_bowl": 4
+    },
+    {
+      "experience": 1600,
+      "ingredient": {
+        "item": "spectrum:purple_pigment"
+      },
+      "ingredient_count_per_bowl": 8
+    },
+    {
+      "experience": 3200,
+      "ingredient": {
+        "item": "spectrum:purple_pigment"
+      },
+      "ingredient_count_per_bowl": 16
+    }
+  ],
+  "required_advancement": "spectrum:midgame/build_enchanting_structure"
+}
