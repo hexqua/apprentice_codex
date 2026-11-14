@@ -114,6 +114,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
 - IDEA から起動して `Unsupported major.minor version 65.0` が出る場合は、IDEA が Java 17 の Project SDK / Gradle JVM / 古い実行構成を掴んでいます。Project SDK と Gradle JVM を JDK 21 にしてから `neoForgeIdeSync` を再実行し、必要なら古い Minecraft run configuration を削除して再生成してください。
 - Gradle 同期後、通常の `runClient` に加えて次の client 構成を使えます。
   - `runClientCompat`
+  - `runClientCompatEmi`
   - `runClientCreateSableAeronautics`
   - `runClientEasyMagic`
   - `runClientBetterCombat`
@@ -121,15 +122,17 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
   - `runClientEpicFightController`
   - `runClientCompatEasyBetter`
 - `runClientEpicFightController` は Epic Fight / Controlify / YACL を入れ、実機コントローラー入力を確認する構成です。
-- `runClientCompat` は Farmer's Delight / Create / Lodestone / Malum / Atlas API / Iron's Gems 'n Jewelry / Iron's Arms 'n Artifice を入れた連携確認用の構成です。
+- `runClientCompat` / `runGameTestServerCompat` は Farmer's Delight / Spectrum / Create / Lodestone / Malum / Atlas API / Iron's Gems 'n Jewelry / Iron's Arms 'n Artifice を入れた連携確認用の構成です。Spectrum 1.12.9 と必須の Revelationary / Modonomicon も読み込みます。Spectrumのみのclient確認には `runClient -PdevRuntimeMods=spectrum` を使えます。
 - `runClientIncompatibles` / `runGameTestServerIncompatibles` は、公式非対応の組み合わせが正しく動作**しない**ことと、非対応警告を確認するための専用構成です。通常の互換性確認用 `compat` とは目的が異なり、これらの構成の成功は動作保証を意味しません。
-  - 通常の `runClient` / `runGameTestServer` をベースに、Accessories 1.1.0-beta.54、Accessories Compatibility Layer 0.1.13、必須依存の owo-lib 0.12.15.6-beta.1 を追加します。NeoForge 21.1.228は変更しません。依存IDは `gradle.properties` で固定しています。
+  - 通常の `runClient` / `runGameTestServer` をベースに、Accessories 1.1.0-beta.54、Accessories Compatibility Layer 0.1.13、必須依存の owo-lib 0.12.15.6-beta.1 を追加します。NeoForgeは通常構成と同じ21.1.249です。依存IDは `gradle.properties` で固定しています。
   - `./gradlew.bat runClientIncompatibles` は、黄色のケース警告、接続ごとの赤い警告チャット、既知の装備・枠更新の不整合を人間が確認するために使います。
   - `./gradlew.bat runGameTestServerIncompatibles` は必須MODの読込・起動時WARNと通常の必須テストを確認します。非対応として4件を省略し、別シナリオクラスの非必須テストでケースの枠更新が上流などで修正されたかを観測します。
   - 非必須テストは正しい更新を期待するため、現状では失敗が想定されます。`required = false` の失敗ではGradleは失敗しません。任意失敗が消えた場合は、不具合が修正された可能性を調べるきっかけとし、連携全体の正常性とは区別してください。
   - 今後、公式対応しなくなったMODをこの `incompatibles` プロファイルへ集約します。通常構成・`compat`・required CIには自動追加しません。
 - `runClientCreateSableAeronautics` は通常の client 環境へ Create / Sable / Create Aeronautics bundled jar を追加します。bundled jar には、物理 contraption の中核である Create Simulated、飛行部品を提供する Create Aeronautics、地上車両部品を提供する Create Offroad が含まれます。
 - `runClientCompatEasyBetter` は compat + Easy Magic + Better Combat を入れた実環境寄りの手動バランス確認用です。Epic Fight は含めず、自動テスト対象にもしていません。
+- `runClientCompatEmi` はCompat構成にEMIを追加し、Spectrumのエンチャンターなどのレシピ表示を確認するためのclient専用構成です。既存JEIも維持します。EMIを通常CompatやGameTestへ追加せず、専用のGameTest構成も設けません。
+  - IntelliJ IDEAでもGradleタスクの`runClientCompatEmi`を実行してください。optional MODは起動タスク側で追加されるため、生成されたApplication構成`ClientCompatEmi`では同じMOD構成になりません。
 - 一時的な組み合わせ確認では Gradle プロパティでも追加できます。
 
 ```powershell

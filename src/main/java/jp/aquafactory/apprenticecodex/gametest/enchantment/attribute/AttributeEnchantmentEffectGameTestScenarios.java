@@ -73,6 +73,35 @@ final class AttributeEnchantmentEffectGameTestScenarios {
         assertEffectsForTarget(helper, TargetKind.MAINHAND);
     }
 
+    public static void overlevelAttributesApplyOnEquipment(GameTestHelper helper) {
+        var watched = resolveSchoolPowerAttributes();
+        var attributes = new LinkedHashSet<>(watched);
+        attributes.addAll(Set.of(AttributeRegistry.COOLDOWN_REDUCTION, AttributeRegistry.MANA_REGEN,
+                AttributeRegistry.MAX_MANA, AttributeRegistry.SPELL_POWER, AttributeRegistry.CAST_TIME_REDUCTION));
+        var cases = createCases(helper);
+        try (var fixture = new AttributeEquipmentFixture(helper, attributes)) {
+            for (var type : AttributeEnchantmentType.values()) {
+                var equipmentCase = cases.stream()
+                        .filter(candidate -> candidate.target().kind() == TargetKind.MAINHAND
+                                && candidate.enchantments().contains(type)).findFirst().orElseThrow();
+                var plain = createInitializedStack(equipmentCase);
+                var normal = plain.copy();
+                var overlevel = plain.copy();
+                var enchantment = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                        .getOrThrow(type.enchantmentKey());
+                int normalMax = enchantment.value().getMaxLevel();
+                normal.enchant(enchantment, normalMax);
+                overlevel.enchant(enchantment, 8);
+                var stacks = new LevelStacks(plain, normal, overlevel);
+                var attribute = resolveEffectAttribute(helper, equipmentCase, type, stacks, watched);
+                // 通常最大からVIIIへの交換・戻し・解除を通し、getterだけでなく実装備の値を検証する。
+                fixture.assertLevels(plain, normal, overlevel, equipmentCase.target().slot(), attribute, type,
+                        "Overlevel " + type, normalMax, 8);
+            }
+        }
+        helper.succeed();
+    }
+
     public static void attributeEnchantmentsApplyInOffhand(GameTestHelper helper) {
         assertEffectsForTarget(helper, TargetKind.OFFHAND);
     }

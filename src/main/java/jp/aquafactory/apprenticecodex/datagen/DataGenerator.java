@@ -9,6 +9,7 @@ import jp.aquafactory.apprenticecodex.datagen.recipe.MalumSpiritInfusionRecipeDa
 import jp.aquafactory.apprenticecodex.datagen.recipe.MalumCraftingRecipeDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.recipe.SpellcasterWorkbenchRecipeDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.recipe.AlchemyBrewerRecipeDataGenerator;
+import jp.aquafactory.apprenticecodex.datagen.recipe.SpectrumEnchantmentRecipeDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.AutocastAmuletSpellProfileDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.ElementalBowModeDataGenerator;
 import jp.aquafactory.apprenticecodex.datagen.spell.ScrollcasterSchoolRuneOverrideDataGenerator;
@@ -71,6 +72,7 @@ public final class DataGenerator {
         generator.addProvider(event.includeServer(), new MalumCraftingRecipeDataGenerator(output));
         generator.addProvider(event.includeServer(), new SpellcasterWorkbenchRecipeDataGenerator(output));
         generator.addProvider(event.includeServer(), new AlchemyBrewerRecipeDataGenerator(output));
+        generator.addProvider(event.includeServer(), new SpectrumEnchantmentRecipeDataGenerator(output));
         generator.addProvider(event.includeServer(), new DamageTypeTagGenerator(output, datapackProvider.getRegistryProvider(), existing));
         generator.addProvider(event.includeServer(), new AdvancementProvider(output, lookupProvider, existing, List.of(new AdvancementGenerator())));
         generator.addProvider(event.includeServer(), new ConditionalAdvancementDataGenerator(output));

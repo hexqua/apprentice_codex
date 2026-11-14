@@ -1,0 +1,48 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "spectrum"
+    }
+  ],
+  "type": "spectrum:enchantment_upgrade",
+  "enchantment": "apprenticecodex:red_energy",
+  "levels": [
+    {
+      "experience": 400,
+      "ingredient": {
+        "item": "spectrum:red_pigment"
+      },
+      "ingredient_count_per_bowl": 2
+    },
+    {
+      "experience": 800,
+      "ingredient": {
+        "item": "spectrum:red_pigment"
+      },
+      "ingredient_count_per_bowl": 4
+    },
+    {
+      "experience": 1600,
+      "ingredient": {
+        "item": "spectrum:red_pigment"
+      },
+      "ingredient_count_per_bowl": 8
+    },
+    {
+      "experience": 3200,
+      "ingredient": {
+        "item": "spectrum:red_pigment"
+      },
+      "ingredient_count_per_bowl": 16
+    },
+    {
+      "experience": 6400,
+      "ingredient": {
+        "item": "spectrum:red_pigment"
+      },
+      "ingredient_count_per_bowl": 32
+    }
+  ],
+  "required_advancement": "spectrum:midgame/build_enchanting_structure"
+}

@@ -17,7 +17,7 @@
 
 ## 2. 開発環境
 - 開発対象: Minecraft 1.21.1
-- Mod ローダー: NeoForge 21.1.228
+- Mod ローダー: NeoForge 21.1.249
 - 言語/実行環境: Java 21
 - ビルドツール: Gradle Wrapper（Windows では `./gradlew.bat` を使用）
 - 主要依存 MOD: Iron's Spells 'n Spellbooks（1.21.1-3.16.3）, Iron's Lib（1.21.1-2.2.0）, Curios（9.5.1+1.21.1）, GeckoLib（4.9.3）
@@ -65,6 +65,7 @@
 ```powershell
 .\scripts\use-java.ps1
 ./gradlew.bat runClientCompat
+./gradlew.bat runClientCompatEmi
 ./gradlew.bat runClientIncompatibles
 ./gradlew.bat runClientCreateSableAeronautics
 ./gradlew.bat runClientEasyMagic
@@ -99,10 +100,12 @@ Get-ChildItem build\libs\*.jar
 - `runGameTestServer` は専用 world `run/codex_gametest_clean` を毎回初期化してから起動する。通常の手動確認用 `run/world` は削除しない。
 - `runGameTestServer...` はプロファイル間で world と実行ディレクトリを共有するため、初回から必ず直列実行する。別プロセス・別ターミナル・サブエージェントへの分担でも並列起動しない。
 - 1 回の Gradle 呼び出しにつき GameTest task は 1 つとし、先行する Gradle / server プロセスの終了を確認してから次を起動する。実行中の yield は終了ではなく、同じ実行を wait で追跡する。
-- `runGameTestServerCompat` は Farmer's Delight / Create / Lodestone / Malum / Atlas API / Iron's Gems 'n Jewelry / Iron's Arms 'n Artifice 連携の確認に使う。
+- `runGameTestServerCompat` は Farmer's Delight / Spectrum / Create / Lodestone / Malum / Atlas API / Iron's Gems 'n Jewelry / Iron's Arms 'n Artifice 連携の確認に使う。
+- `compat` / `compat_easy_better` は Spectrum 1.12.9 と必須の Revelationary 1.5.2 / Modonomicon 1.117.4 も読み込む。専用のSpectrum実行構成は設けず、clientでの切り分けには `-PdevRuntimeMods=spectrum` を使う。通常runtimeと `runData` にはSpectrumを読み込まない。本・強化レシピは `datagen/recipe/SpectrumEnchantmentRecipeDataGenerator.java` から生成し、生成JSONを直接編集しない。限界突破はSpectrum側の所有者進捗判定を維持し、解放条件を変更しない。1.20.1では通常compatへ追加せず、補正とConnector専用構成の注意は `docs/spectrum-enchantment-backport.md` を参照。
+- Spectrumの採掘・伐採・経験値連携は `runGameTestServerCompat` で検証する。`SpectrumResonanceUnlockGameTests` の3件は、進捗未取得時のスポナー回収を拒否する期待動作を `required = false` で検査する上流修正検知用テスト。1.12.9では失敗が見込まれるが、解放済みの回収などの必須テストと区別して結果を報告し、Gradle成功を進捗制限の正常動作の証拠にしない。Spectrum不在の構成では省略する。
 - `compat` / `compat_easy_better` は Magitech 2.4.6 と必須の Modonomicon / TerraBlender も読み込む。`-PdevRuntimeMods=magitech` は Magitech と前提一式（Lodestoneを含む）をclientへ追加する。Magitech連携は1.21.1専用でbackport対象外。
 - `runGameTestServerMagitechBetterCombat` は Magitech と Better Combat の併用、両手持ち杖のオフハンド増幅器補正を確認する。手動確認は `runClientBetterCombat -PdevRuntimeMods=magitech` を使用する。
-- `runClientIncompatibles` / `runGameTestServerIncompatibles` は、通常構成に公式非対応MODを追加し、正しく動作**しない**ことと非対応警告を確認する専用構成。互換性の保証や修正を目的とせず、通常の `compat` とは区別する。現時点では Accessories 1.1.0-beta.54 / Accessories Compatibility Layer 0.1.13 と必須の owo-lib 0.12.15.6-beta.1 を追加する。NeoForgeは21.1.228のままとする。
+- `runClientIncompatibles` / `runGameTestServerIncompatibles` は、通常構成に公式非対応MODを追加し、正しく動作**しない**ことと非対応警告を確認する専用構成。互換性の保証や修正を目的とせず、通常の `compat` とは区別する。現時点では Accessories 1.1.0-beta.54 / Accessories Compatibility Layer 0.1.13 と必須の owo-lib 0.12.15.6-beta.1 を追加する。NeoForgeは通常構成と同じ21.1.249とする。
 - `incompatibles` に将来の非対応MODを追加するときは、runtime module・依存・必須MOD IDを同時に更新する。通常構成や `compat` には自動追加しない。`-PdevRuntimeMods=incompatibles` で通常clientへ一時追加することもできる。
 - `runGameTestServerIncompatibles` では、非対応として省略する4件と、`required = false` の上流修正検知用テストを区別する。任意テストは `AccessoriesIncompatibilityGameTests` と別シナリオクラスに配置し、正しい挙動を期待して、現在の非互換が残る間は失敗してよい。任意失敗を非互換の観測として報告し、Gradle成功や必須テスト成功を連携正常の証拠にしない。任意テストはこの構成だけで検証し、通常構成では成功として省略する。
 - `runGameTestServerCreateSableAeronautics` は Create / Sable / Create Simulated / Create Aeronautics / Create Offroad の導入とサーバー起動確認に使う。
@@ -118,6 +121,8 @@ Get-ChildItem build\libs\*.jar
 - `runClientEpicFightController` は Epic Fight / Controlify / YACL を入れ、実機コントローラー入力を確認する。
 - `runClientCreateSableAeronautics` は通常の client 環境へ Create / Sable / Create Aeronautics bundled jar を追加する。bundled jar には Create Simulated / Create Aeronautics / Create Offroad が含まれる。
 - `runClientCompatEasyBetter` は compat + Easy Magic + Better Combat を入れた実環境寄りの手動バランス確認用。Epic Fight は含めず、自動テスト対象にも含めない。
+- `runClientCompatEmi` は通常のCompat client構成へEMI 1.1.24を追加し、Spectrumのエンチャンターなどのレシピ表示を人間が確認する構成。既存JEIは維持する。EMIはこのclientだけに追加し、通常Compat、GameTest、datagenには追加しない。`runGameTestServerCompatEmi` は設けない。
+- `runClientCompatEmi` はIDEAでもGradleタスクとして実行する。optional MODの追加は起動タスク側で行うため、生成されたApplication構成`ClientCompatEmi`では同じMOD構成にならない。
 - IntelliJ IDEA から client 構成を起動して `Unsupported major.minor version 65.0` が出る場合は、Project SDK / Gradle JVM / 古い実行構成が Java 17 を参照している。IDEA 側を JDK 21 にそろえ、`neoForgeIdeSync` を再実行し、必要なら古い Minecraft run configuration を削除して再生成する。
 - Botania は 1.21.1 側で API 依存を置いていないため、optional MOD profile には含めない。
 - Better Combat と Epic Fight は干渉が大きいため、通常確認では同時投入しない。
@@ -165,6 +170,7 @@ Get-ChildItem build\libs\*.jar
 7. `main` から `1.20.1-main` への backport では、1.20.1 側で `./gradlew.bat runGameTestServer` と `./gradlew.bat build` を成功させる。
 8. optional MOD 連携に影響する変更では、対象に応じて特殊 GameTest を追加実行する。client 構成は上記の分担に従い、人間の手動確認に使用する。
    - Create / Lodestone / Malum / Farmer's Delight / Atlas API / Iron's Gems 'n Jewelry / Iron's Arms 'n Artifice: `./gradlew.bat runGameTestServerCompat`
+   - Spectrum / エンチャント本作成・強化: `./gradlew.bat runGameTestServerCompat`
    - Create Aeronautics / Sable / Create Simulated / Create Offroad: `./gradlew.bat runGameTestServerCreateSableAeronautics`
    - Easy Magic / エンチャントメニュー: `./gradlew.bat runGameTestServerEasyMagic`
    - Better Combat / offhand / weapon_attributes: `./gradlew.bat runGameTestServerBetterCombat`

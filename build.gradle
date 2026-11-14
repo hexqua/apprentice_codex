@@ -91,6 +91,8 @@ def gameTestServerWorldDir = layout.projectDirectory.dir("run/${gameTestServerWo
 def requiredOptionalModsProperty = 'apprenticecodex.requiredOptionalMods'
 
 def optionalRuntimeModuleConfigurations = [
+        emi            : 'emiRuntimeOnly',
+        spectrum       : 'spectrumRuntimeOnly',
         magitech       : 'magitechRuntimeOnly',
         accessories    : 'accessoriesRuntimeOnly',
         accessories_compat_layer: 'accessoriesCompatLayerRuntimeOnly',
@@ -120,7 +122,7 @@ def clientRuntimeModuleConfigurations = [
 def optionalRuntimeProfileModules = [
         magitech_better_combat: ['magitech', 'lodestone', 'cloth_config', 'better_combat'],
         incompatibles       : ['accessories', 'accessories_compat_layer', 'owo_lib'],
-        compat              : ['magitech', 'create', 'lodestone', 'malum', 'atlas_api', 'irons_jewelry', 'irons_artifice'],
+        compat              : ['magitech', 'spectrum', 'create', 'lodestone', 'malum', 'atlas_api', 'irons_jewelry', 'irons_artifice'],
         create_sable_aeronautics: ['create', 'sable', 'create_aeronautics'],
         easy_magic          : ['puzzles_lib', 'easy_magic'],
         better_combat       : ['cloth_config', 'better_combat'],
@@ -128,10 +130,11 @@ def optionalRuntimeProfileModules = [
         malum_epic_fight    : ['lodestone', 'malum', 'epic_fight'],
         epic_fight          : ['epic_fight'],
         epic_fight_controller: ['epic_fight', 'yacl', 'controlify'],
-        compat_easy_better  : ['magitech', 'create', 'lodestone', 'malum', 'atlas_api', 'irons_jewelry', 'irons_artifice', 'puzzles_lib', 'easy_magic', 'cloth_config', 'better_combat'],
+        compat_easy_better  : ['magitech', 'spectrum', 'create', 'lodestone', 'malum', 'atlas_api', 'irons_jewelry', 'irons_artifice', 'puzzles_lib', 'easy_magic', 'cloth_config', 'better_combat'],
 ]
 
 def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
+        spectrum      : ['spectrum'],
         magitech      : ['magitech', 'lodestone'],
         puzzleslib    : ['puzzles_lib'],
         easymagic     : ['puzzles_lib', 'easy_magic'],
@@ -157,7 +160,7 @@ def optionalRuntimeSelectorModules = optionalRuntimeProfileModules + [
 def optionalRuntimeRequiredModIds = [
         magitech_better_combat: 'magitech,modonomicon,terrablender,lodestone,cloth_config,bettercombat',
         incompatibles: 'accessories,accessories_compat_layer,owo',
-        compat       : 'magitech,modonomicon,terrablender,create,lodestone,malum,atlas_api,irons_jewelry,irons_artifice',
+        compat       : 'magitech,modonomicon,terrablender,spectrum,revelationary,create,lodestone,malum,atlas_api,irons_jewelry,irons_artifice',
         create_sable_aeronautics: 'create,sable,simulated,aeronautics,offroad,aeronautics_bundled',
         easy_magic   : 'puzzleslib,easymagic',
         better_combat: 'cloth_config,bettercombat',
@@ -228,6 +231,11 @@ neoForge {
         }
 
         clientCompat {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        clientCompatEmi {
             client()
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
@@ -379,13 +387,15 @@ configurations {
     }
 }
 
-['client', 'clientIncompatibles', 'clientCompat', 'clientCreateSableAeronautics', 'clientEasyMagic', 'clientBetterCombat', 'clientEpicFight', 'clientMalumEpicFight', 'clientEpicFightController', 'clientCompatEasyBetter'].each {
+['client', 'clientIncompatibles', 'clientCompat', 'clientCompatEmi', 'clientCreateSableAeronautics', 'clientEasyMagic', 'clientBetterCombat', 'clientEpicFight', 'clientMalumEpicFight', 'clientEpicFightController', 'clientCompatEasyBetter'].each {
     extendRunJavaClasspathWithClientRuntimeModules(it)
 }
 
 extendRunJavaClasspathWithOptionalRuntimeModules('clientIncompatibles', expandOptionalRuntimeModules(['incompatibles']))
 extendRunJavaClasspathWithOptionalRuntimeModules('gameTestServerIncompatibles', expandOptionalRuntimeModules(['incompatibles']))
 extendRunJavaClasspathWithOptionalRuntimeModules('clientCompat', expandOptionalRuntimeModules(['compat']))
+// additionalRuntimeClasspathConfigurationはMODをライブラリとして探索から除外するため、既存Compatと同じ起動classpathへ追加する。
+extendRunJavaClasspathWithOptionalRuntimeModules('clientCompatEmi', expandOptionalRuntimeModules(['compat']) + ['emi'])
 extendRunJavaClasspathWithOptionalRuntimeModules('clientCreateSableAeronautics', expandOptionalRuntimeModules(['create_sable_aeronautics']))
 extendRunJavaClasspathWithOptionalRuntimeModules('clientEasyMagic', expandOptionalRuntimeModules(['easy_magic']))
 extendRunJavaClasspathWithOptionalRuntimeModules('clientBetterCombat', expandOptionalRuntimeModules(['better_combat']))
@@ -412,6 +422,15 @@ if (devRuntimeMods != null && !devRuntimeMods.trim().isEmpty()) {
 }
 
 dependencies {
+    add(optionalRuntimeModuleConfigurations.emi, "maven.modrinth:emi:${emi_modrinth_version_id}")
+
+    // Spectrumの型参照は遅延ロードする連携テストだけ。生成は自前JSONで行い、dataへは追加しない。
+    compileOnly "maven.modrinth:spectrum:${spectrum_modrinth_version_id}"
+    add(optionalRuntimeModuleConfigurations.spectrum, "maven.modrinth:spectrum:${spectrum_modrinth_version_id}")
+    add(optionalRuntimeModuleConfigurations.spectrum, "maven.modrinth:revelationary:${spectrum_revelationary_modrinth_version_id}")
+    // magitechとの同時指定でも同一jarへ解決し、同名MODの異なる版を二重に読み込まない。
+    add(optionalRuntimeModuleConfigurations.spectrum, "maven.modrinth:modonomicon:${modonomicon_modrinth_version_id}")
+
     // Magitech本体と前提は任意導入に閉じ、通常構成で未導入時の起動を確認する。
     compileOnly "maven.modrinth:magitech_mod:${magitech_modrinth_version_id}"
     add(optionalRuntimeModuleConfigurations.magitech, "maven.modrinth:magitech_mod:${magitech_modrinth_version_id}")
