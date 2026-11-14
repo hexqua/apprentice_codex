@@ -1,0 +1,48 @@
+{
+  "type": "spectrum:enchantment_upgrade",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "spectrum"
+    }
+  ],
+  "enchantment": "apprenticecodex:attunement",
+  "levels": [
+    {
+      "experience": 200,
+      "item": "spectrum:green_pigment",
+      "item_count": 8
+    },
+    {
+      "experience": 400,
+      "item": "spectrum:green_pigment",
+      "item_count": 16
+    },
+    {
+      "experience": 800,
+      "item": "spectrum:green_pigment",
+      "item_count": 32
+    },
+    {
+      "experience": 1600,
+      "item": "spectrum:green_pigment",
+      "item_count": 64
+    },
+    {
+      "experience": 3200,
+      "item": "spectrum:green_pigment",
+      "item_count": 128
+    },
+    {
+      "experience": 6400,
+      "item": "spectrum:green_pigment",
+      "item_count": 256
+    },
+    {
+      "experience": 12800,
+      "item": "spectrum:green_pigment",
+      "item_count": 512
+    }
+  ],
+  "required_advancement": "spectrum:midgame/build_enchanting_structure"
+}

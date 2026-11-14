@@ -1,0 +1,45 @@
+{
+  "type": "spectrum:enchanter",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "spectrum"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "minecraft:book"
+    },
+    {
+      "item": "spectrum:black_pigment"
+    },
+    {
+      "item": "spectrum:black_pigment"
+    },
+    {
+      "item": "apprenticecodex:arcane_cinder"
+    },
+    {
+      "item": "irons_spellbooks:arcane_essence"
+    },
+    {
+      "item": "spectrum:black_pigment"
+    },
+    {
+      "item": "spectrum:black_pigment"
+    },
+    {
+      "item": "apprenticecodex:arcane_cinder"
+    },
+    {
+      "item": "irons_spellbooks:arcane_essence"
+    }
+  ],
+  "required_advancement": "spectrum:midgame/build_enchanting_structure",
+  "required_experience": 100,
+  "result": {
+    "item": "minecraft:enchanted_book",
+    "nbt": "{StoredEnchantments:[{id:\"apprenticecodex:reflux\",lvl:1s}]}"
+  },
+  "time": 300
+}

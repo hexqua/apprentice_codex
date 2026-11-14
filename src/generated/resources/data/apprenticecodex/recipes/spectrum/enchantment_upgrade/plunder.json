@@ -1,0 +1,38 @@
+{
+  "type": "spectrum:enchantment_upgrade",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "spectrum"
+    }
+  ],
+  "enchantment": "apprenticecodex:plunder",
+  "levels": [
+    {
+      "experience": 200,
+      "item": "spectrum:light_blue_pigment",
+      "item_count": 16
+    },
+    {
+      "experience": 400,
+      "item": "spectrum:light_blue_pigment",
+      "item_count": 32
+    },
+    {
+      "experience": 800,
+      "item": "spectrum:light_blue_pigment",
+      "item_count": 64
+    },
+    {
+      "experience": 1600,
+      "item": "spectrum:light_blue_pigment",
+      "item_count": 128
+    },
+    {
+      "experience": 3200,
+      "item": "spectrum:light_blue_pigment",
+      "item_count": 256
+    }
+  ],
+  "required_advancement": "spectrum:midgame/build_enchanting_structure"
+}

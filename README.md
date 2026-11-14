@@ -69,12 +69,14 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
 
 ```powershell
 ./gradlew.bat runGameTestServerCompat
+./gradlew.bat runGameTestServerConnector
 ./gradlew.bat runGameTestServerEasyMagic
 ./gradlew.bat runGameTestServerBetterCombat
 ./gradlew.bat runGameTestServerEpicFight
 ```
 
 - `runGameTestServerCompat` は Farmer's Delight / Create / Botania / Lodestone / Malum / Iron's Arms 'n Artifice 連携を確認します。
+- `runGameTestServerConnector` は Connector 経由の Fabric 版 Spectrum 専用です。EMIも常時導入し、必須MODの読込を検査します。
 - `runGameTestServerEasyMagic` は Puzzles Lib / Easy Magic 連携を確認します。
 - `runGameTestServerBetterCombat` は Cloth Config / Better Combat 連携を確認します。
 - `runGameTestServerEpicFight` は Epic Fight 連携を確認します。
@@ -101,6 +103,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
 
 - `genIntellijRuns` 後、通常の `runClient` に加えて次の client 構成を使えます。
   - `runClientCompat`
+  - `runClientConnector`
   - `runClientEasyMagic`
   - `runClientBetterCombat`
   - `runClientEpicFight`
@@ -108,6 +111,9 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
   - `runClientCompatEasyBetter`
 - `runClientEpicFightController` は Epic Fight / Controlify Forgified / YACL を入れ、実機コントローラー入力を確認する構成です。
 - `runClientCompat` は Iron's Arms 'n Artifice（1.20.1-1.1.1）も含めた連携確認用の構成です。通常構成への導入は不要です。
+- `runClientConnector` は Spectrum / Connector / Forgified Fabric API と必須依存、Connector Extras / Forge版EMIを入れます。専用の `run-connector` を使用し、通常の `compat` とは分離します。初回はGradleを再読込してから `genIntellijRuns` を実行してください。
+- Connector構成の `mods` は `prepareConnectorMods` が固定した依存セットへ同期します。手動で追加したjarは同期時に削除されるため、このディレクトリへ追加しないでください。GameTestは `run-connector/codex_gametest_clean` のみ初期化し、手動確認用worldを保持します。
+- ForgeGradleの開発環境ではExtrasのコンテナ射程Mixinがlambda引数順に適合しないため、`prepareConnectorExtras` が開発用コピーからそのMixinだけを除きます。実際の射程判定はForgeの `BLOCK_REACH` に委ねます。依存バージョン更新時はこの補正の要否も再確認してください。
 - `runClientCompatEasyBetter` は compat + EasyMagic + Better Combat を入れた実環境寄りの手動バランス確認用です。Epic Fight は含めず、自動テスト対象にもしていません。
 - 一時的な組み合わせ確認では Gradle プロパティでも追加できます。
 

@@ -1,0 +1,45 @@
+{
+  "type": "spectrum:enchanter",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "spectrum"
+    }
+  ],
+  "ingredients": [
+    {
+      "item": "minecraft:book"
+    },
+    {
+      "item": "spectrum:red_pigment"
+    },
+    {
+      "item": "spectrum:red_pigment"
+    },
+    {
+      "item": "minecraft:redstone"
+    },
+    {
+      "item": "apprenticecodex:comfort_berries"
+    },
+    {
+      "item": "spectrum:red_pigment"
+    },
+    {
+      "item": "spectrum:red_pigment"
+    },
+    {
+      "item": "minecraft:redstone"
+    },
+    {
+      "item": "apprenticecodex:comfort_berries"
+    }
+  ],
+  "required_advancement": "spectrum:midgame/build_enchanting_structure",
+  "required_experience": 100,
+  "result": {
+    "item": "minecraft:enchanted_book",
+    "nbt": "{StoredEnchantments:[{id:\"apprenticecodex:red_energy\",lvl:1s}]}"
+  },
+  "time": 300
+}

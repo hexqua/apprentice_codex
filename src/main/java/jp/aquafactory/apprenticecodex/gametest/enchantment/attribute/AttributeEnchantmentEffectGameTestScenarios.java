@@ -90,6 +90,29 @@ public final class AttributeEnchantmentEffectGameTestScenarios {
         assertEffectsForTarget(helper, TargetKind.MAINHAND);
     }
 
+    static void attributeEnchantmentsContinueThroughLevelEight(GameTestHelper helper) {
+        var wearer = helper.spawn(EntityType.PIG, new BlockPos(0, 2, 0));
+        var schoolAttributes = resolveSchoolPowerAttributes();
+        for (var equipmentCase : createCases(helper)) {
+            for (var type : equipmentCase.enchantments()) {
+                var stacks = createLevelStacks(helper, equipmentCase, type);
+                var base = equipmentCase.target().getModifiers(wearer, stacks.levelZero());
+                var attribute = resolveEffectAttribute(helper, equipmentCase, type, stacks, base,
+                        equipmentCase.target().getModifiers(wearer, stacks.levelOne()), schoolAttributes);
+                for (int level : new int[]{4, 8}) {
+                    var enchanted = stacks.levelZero().copy();
+                    var enchantment = ForgeRegistries.ENCHANTMENTS.getValue(type.enchantmentId());
+                    helper.assertTrue(enchantment != null, "Missing attribute enchantment: " + type);
+                    enchanted.enchant(enchantment, level);
+                    assertOnlyExpectedAmountChanged(helper, equipmentCase, type, ModifierSnapshot.from(base),
+                            ModifierSnapshot.from(equipmentCase.target().getModifiers(wearer, enchanted)),
+                            attribute, type.amountPerLevel() * level, level);
+                }
+            }
+        }
+        helper.succeed();
+    }
+
     static void attributeEnchantmentsApplyInOffhand(GameTestHelper helper) {
         assertEffectsForTarget(helper, TargetKind.OFFHAND);
     }

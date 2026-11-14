@@ -43,6 +43,7 @@
 ```powershell
 .\scripts\use-java.ps1
 ./gradlew.bat runGameTestServerCompat
+./gradlew.bat runGameTestServerConnector
 ./gradlew.bat runGameTestServerEasyMagic
 ./gradlew.bat runGameTestServerBetterCombat
 ./gradlew.bat runGameTestServerMalumBetterCombat
@@ -58,6 +59,7 @@
 ```powershell
 .\scripts\use-java.ps1
 ./gradlew.bat runClientCompat
+./gradlew.bat runClientConnector
 ./gradlew.bat runClientEasyMagic
 ./gradlew.bat runClientBetterCombat
 ./gradlew.bat runClientEpicFight
@@ -82,9 +84,13 @@ Get-ChildItem build\libs\*.jar
 - `runGameTestServer` はサーバー側の登録、データ読込、レシピ、生成まわりの検証に使う。renderer / screen など client 専用の起動・挙動は、人間が対応する `runClient...` 構成で確認する。
 - テストの追加・修正・整理は [1.20.1 / Forge のテスト設計・整理方針](docs/testing-policy.md) に従う。共通の検証意図と版固有の接続を区別し、機能単位で段階的に整理する。
 - `runGameTestServer` は専用 world `run/codex_gametest_clean` を毎回初期化してから起動する。通常の手動確認用 `run/world` は削除しない。
-- `runGameTestServer...` はプロファイル間で world と実行ディレクトリを共有するため、初回から必ず直列実行する。別プロセス・別ターミナル・サブエージェントへの分担でも並列起動しない。
+- `runGameTestServer...` はConnector以外のプロファイル間で world と実行ディレクトリを共有する。Connector構成も含め、初回から必ず直列実行する。別プロセス・別ターミナル・サブエージェントへの分担でも並列起動しない。
 - 1 回の Gradle 呼び出しにつき GameTest task は 1 つとし、先行する Gradle / server プロセスの終了を確認してから次を起動する。実行中の yield は終了ではなく、同じ実行を wait で追跡する。
 - `runGameTestServerCompat` は Farmer's Delight / Create / Botania / Lodestone / Malum / Iron's Arms 'n Artifice 連携の確認に使う。
+- `runGameTestServerConnector` / `runClientConnector` は Fabric版SpectrumをConnector経由で検証する専用構成とする。必須依存・Connector Extras・Forge版EMIをclient・GameTestの両方へ常時導入し、通常のcompatやdatagenへ追加しない。ExtrasのReach Entity Attributes互換実装とEMIのFabricプラグイン検出を使用する。
+- Connector構成は `run-connector` を使用する。`prepareConnectorMods` がその `mods` を固定依存セットへ同期するため、手動のjar追加先には使わない。GameTestでは `run-connector/codex_gametest_clean` を初期化し、手動確認用worldは削除しない。他のGameTest構成と同様に直列実行する。
+- Connectorは専用source setのclasspathを使用する。IntelliJ IDEAではGradle再読込後に `genIntellijRuns` で構成を再生成する。
+- Spectrumの採掘・伐採・経験値連携は `runGameTestServerConnector` で検証する。Spectrum 1.8.15では未解禁Resonanceの回収拒否3件も必須テストとし、Spectrum不在の構成では省略する。
 - `runGameTestServerEasyMagic` は Puzzles Lib / Easy Magic 連携の確認に使う。
 - `runGameTestServerBetterCombat` は Cloth Config / Better Combat 連携の確認に使う。
 - `runGameTestServerMalumBetterCombat` は Lodestone / Malum / Cloth Config / Better Combat の組み合わせ連携確認に使う。
@@ -137,6 +143,7 @@ Get-ChildItem build\libs\*.jar
 7. `main` からの backport では、影響範囲にかかわらず Java 17 で `./gradlew.bat runGameTestServer` と `./gradlew.bat build` を成功させる。
 8. optional MOD 連携に影響する変更では、対象に応じて特殊 GameTest を追加実行する。client 構成は上記の分担に従い、人間の手動確認に使用する。
    - Create / Botania / Lodestone / Malum / Iron's Arms 'n Artifice / Farmer's Delight: `./gradlew.bat runGameTestServerCompat`
+   - Spectrum / Connector / Connector Extras / EMI: `./gradlew.bat runGameTestServerConnector`
    - EasyMagic / エンチャントメニュー: `./gradlew.bat runGameTestServerEasyMagic`
    - Better Combat / offhand / weapon_attributes: `./gradlew.bat runGameTestServerBetterCombat`
    - Malum + Better Combat / 大鎌コンボ切替: `./gradlew.bat runGameTestServerMalumBetterCombat`

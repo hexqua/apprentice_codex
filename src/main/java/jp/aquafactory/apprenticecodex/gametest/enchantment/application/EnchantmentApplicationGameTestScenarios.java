@@ -247,6 +247,10 @@ public final class EnchantmentApplicationGameTestScenarios {
         var table = expectedElementalBowEnchantments();
         var anvil = new LinkedHashSet<>(table);
         anvil.remove(CREATE_POTATO_RECOVERY);
+        // Spectrum 1.8.15は弓へInventory Insertionの金床付与を許可する。テーブルの対象は増やさない。
+        if (ModList.get().isLoaded("spectrum")) {
+            anvil.add(ResourceLocation.fromNamespaceAndPath("spectrum", "inventory_insertion"));
+        }
         assertExactEnchantmentSurfaces(helper, stack, table, expectedElementalBowBookEnchantments(), anvil,
                 "Elemental Bow");
         var potatoRecovery = ForgeRegistries.ENCHANTMENTS.getValue(CREATE_POTATO_RECOVERY);
