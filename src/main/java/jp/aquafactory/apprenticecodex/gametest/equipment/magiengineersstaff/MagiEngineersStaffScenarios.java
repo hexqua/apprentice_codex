@@ -50,6 +50,8 @@ final class MagiEngineersStaffScenarios {
         var player = player(helper);
         var item = (MagiEngineersStaff) player.getMainHandItem().getItem();
         var stack = player.getMainHandItem();
+        // マナ効率の調整は変換量・変換コストへ波及させない。
+        item.trySetCalibrationAdjustment(stack, 0, new ItemStack(ItemInit.HIGH_PURITY_FLUORITE.get()));
         var mana = Objects.requireNonNull(player.getCapability(ManaCapabilities.MANA_CAPABLE_ENTITY));
         var data = MagicData.getPlayerMagicData(player);
         mana.setMana(0);

@@ -25,13 +25,13 @@ public abstract class MagitechMagicPerformanceMixin {
     private static void apprenticecodex$divide(LivingEntity caster, ItemStack wand, float cost, float value,
                                                Holder<Attribute> attribute, CallbackInfoReturnable<Float> cir) {
         if (MagiEngineersStaffCompat.isStaff(wand))
-            cir.setReturnValue((float) (value / MagiEngineersStaffCompat.coefficient(caster, attribute)));
+            cir.setReturnValue((float) (value / MagiEngineersStaffCompat.coefficient(caster, wand, attribute)));
     }
 
     @Inject(method = "getEffectiveSpellProperty(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;FFLnet/minecraft/core/Holder;)F", at = @At("HEAD"), cancellable = true)
     private static void apprenticecodex$multiply(LivingEntity caster, ItemStack wand, float cost, float value,
                                                  Holder<Attribute> attribute, CallbackInfoReturnable<Float> cir) {
         if (MagiEngineersStaffCompat.isStaff(wand))
-            cir.setReturnValue((float) (value * MagiEngineersStaffCompat.coefficient(caster, attribute)));
+            cir.setReturnValue((float) (value * MagiEngineersStaffCompat.coefficient(caster, wand, attribute)));
     }
 }

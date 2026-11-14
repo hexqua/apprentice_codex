@@ -110,8 +110,9 @@ public final class MagiEngineersStaffCompat {
         return (float) (damage * Math.max(0, power + elemental - 1));
     }
 
-    public static double coefficient(LivingEntity caster, Holder<Attribute> attribute) {
-        double base = attribute.equals(AttributeInit.LAUNCH) ? 1.5 : 1;
+    public static double coefficient(LivingEntity caster, ItemStack stack, Holder<Attribute> attribute) {
+        // 調整は発動元の杖だけから取得し、外部の乗算補正より先に基礎値へ加える。
+        double base = MagiEngineersStaffCalibration.base(stack, attribute, caster.registryAccess());
         return Math.max(0.001, projectedAttribute(caster, attribute, base));
     }
 

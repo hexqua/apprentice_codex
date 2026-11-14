@@ -24,6 +24,30 @@ public final class MagiEngineersStaffGameTests {
     }
 
     @GameTest(template = "gametest/basic_floor")
+    public static void magiStaffCalibrationPersistsAndReturnsRepeatedMaterials(GameTestHelper helper) {
+        if (MagiEngineersStaff.available()) MagiEngineersStaffCalibrationScenarios.storage(helper);
+        else {
+            var item = (MagiEngineersStaff) ItemRegistry.MAGI_ENGINEERS_STAFF.get();
+            var stack = new ItemStack(item);
+            helper.assertTrue(item.getCalibrationAdjustmentProfile(stack).rules().isEmpty(),
+                    "Missing Magitech must not load calibration material definitions");
+            helper.succeed();
+        }
+    }
+
+    @GameTest(template = "gametest/basic_floor")
+    public static void magiStaffCalibrationChangesOnlyHandlingAndEfficiency(GameTestHelper helper) {
+        if (MagiEngineersStaff.available()) MagiEngineersStaffCalibrationScenarios.performance(helper);
+        else helper.succeed();
+    }
+
+    @GameTest(template = "gametest/basic_floor")
+    public static void magiStaffCalibrationUsesOnlyTheCastingHand(GameTestHelper helper) {
+        if (MagiEngineersStaff.available()) MagiEngineersStaffCalibrationScenarios.casting(helper);
+        else helper.succeed();
+    }
+
+    @GameTest(template = "gametest/basic_floor")
     public static void magiStaffInfusionRecipeSelectsOnlyCompleteIngredients(GameTestHelper helper) {
         if (MagiEngineersStaff.available()) {
             MagiEngineersStaffRecipeScenarios.recipeSelection(helper);
