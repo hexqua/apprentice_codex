@@ -30,6 +30,7 @@ import jp.aquafactory.apprenticecodex.event.LinearBuildConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.LuminousDeviceConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ManaForceBladeConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ManaShieldCharmConfigSyncEvents;
+import jp.aquafactory.apprenticecodex.event.ExoskeletonConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ManaSoulTransducerConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ManaThrusterConfigSyncEvents;
 import jp.aquafactory.apprenticecodex.event.ModEntityAttributeEvent;
@@ -139,6 +140,7 @@ public class ApprenticeCodex
         InstantSearchBrazierConfigSyncEvents.register(modEventBus);
         ManaForceBladeConfigSyncEvents.register(modEventBus);
         ManaShieldCharmConfigSyncEvents.register(modEventBus);
+        ExoskeletonConfigSyncEvents.register(modEventBus);
         UndyingEmblemConfigSyncEvents.register(modEventBus);
         ManaSoulTransducerConfigSyncEvents.register(modEventBus);
         ManaThrusterConfigSyncEvents.register(modEventBus);

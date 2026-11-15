@@ -221,6 +221,7 @@ public final class CreativeTabRegistry {
     }
 
     private static void addUniqueMagicItemToTab(CreativeModeTab.Output output) {
+        if (isInstalledMagitech()) output.accept(ItemRegistry.MAGI_ENGINEERS_LEG_EXOSKELETON.get());
         output.accept(ItemRegistry.ANTI_MANA_ARROW.get());
         output.accept(ItemRegistry.INSTANT_SEARCH_BRAZIER.get());
         output.accept(ItemRegistry.GRIMOIRE_MANIFEST.get());

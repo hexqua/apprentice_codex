@@ -11,7 +11,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 public final class Networks {
-    private static final String PROTOCOL_VERSION = "136";
+    private static final String PROTOCOL_VERSION = "138";
 
     private Networks() {
     }
@@ -22,6 +22,10 @@ public final class Networks {
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar(PROTOCOL_VERSION);
+        registrar.playToServer(ClientExoskeletonJumpPacket.TYPE, ClientExoskeletonJumpPacket.STREAM_CODEC, ClientExoskeletonJumpPacket::handle);
+        registrar.playToClient(ExoskeletonJumpAckPacket.TYPE, ExoskeletonJumpAckPacket.STREAM_CODEC, ExoskeletonJumpAckPacket::handle);
+        registrar.playToClient(ExoskeletonJumpEffectPacket.TYPE, ExoskeletonJumpEffectPacket.STREAM_CODEC, ExoskeletonJumpEffectPacket::handle);
+        registrar.playToClient(SyncExoskeletonConfigPacket.TYPE, SyncExoskeletonConfigPacket.STREAM_CODEC, SyncExoskeletonConfigPacket::handle);
         registrar.playToClient(SyncMagiEngineersStaffCastPacket.TYPE, SyncMagiEngineersStaffCastPacket.STREAM_CODEC,
                 SyncMagiEngineersStaffCastPacket::handle);
         registrar.playToClient(PsychicDriveGauntletsEffectPacket.TYPE, PsychicDriveGauntletsEffectPacket.STREAM_CODEC,

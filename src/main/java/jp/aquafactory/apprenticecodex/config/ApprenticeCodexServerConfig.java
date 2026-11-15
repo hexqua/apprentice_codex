@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.config;
 
 import jp.aquafactory.apprenticecodex.config.item.ManaForceReleaseDeviceServerConfig;
+import jp.aquafactory.apprenticecodex.config.item.MagiEngineersLegExoskeletonServerConfig;
 import io.redspace.ironsspellbooks.api.spells.SpellRarity;
 import java.util.List;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -43,6 +44,7 @@ public final class ApprenticeCodexServerConfig {
     private static final AttributeEnchantmentsServerConfig ATTRIBUTE_ENCHANTMENTS_CONFIG;
     private static final BlocksServerConfig BLOCKS_CONFIG;
     private static final ItemsServerConfig ITEMS_CONFIG;
+    private static final MagiEngineersLegExoskeletonServerConfig EXOSKELETON_CONFIG;
     private static final LootServerConfig LOOT_CONFIG;
     private static final SpellsServerConfig SPELLS_CONFIG;
     private static final WorldgenServerConfig WORLDGEN_CONFIG;
@@ -60,6 +62,9 @@ public final class ApprenticeCodexServerConfig {
                 AttributeEnchantmentsServerConfig.define(builder, AttributeEnchantmentType.values());
         BLOCKS_CONFIG = BlocksServerConfig.define(builder);
         ITEMS_CONFIG = ItemsServerConfig.define(builder);
+        builder.push("Items");
+        EXOSKELETON_CONFIG = MagiEngineersLegExoskeletonServerConfig.define(builder);
+        builder.pop();
         LOOT_CONFIG = LootServerConfig.define(builder);
         SPELLS_CONFIG = SpellsServerConfig.define(builder);
         WORLDGEN_CONFIG = WorldgenServerConfig.define(builder);
@@ -68,6 +73,21 @@ public final class ApprenticeCodexServerConfig {
     }
 
     private ApprenticeCodexServerConfig() {
+    }
+
+    public static int exoskeletonLifterManaCost() { return EXOSKELETON_CONFIG.lifterManaCost().get(); }
+
+    public static int exoskeletonStriderManaCost() { return EXOSKELETON_CONFIG.striderManaCost().get(); }
+
+    public static GameTestConfigOverride useExoskeletonConfigOverrideForGameTest(int lifter, int strider) {
+        int previousLifter = exoskeletonLifterManaCost();
+        int previousStrider = exoskeletonStriderManaCost();
+        EXOSKELETON_CONFIG.lifterManaCost().set(lifter);
+        EXOSKELETON_CONFIG.striderManaCost().set(strider);
+        return () -> {
+            EXOSKELETON_CONFIG.lifterManaCost().set(previousLifter);
+            EXOSKELETON_CONFIG.striderManaCost().set(previousStrider);
+        };
     }
 
     public static float shootingStarMantleRecoveryCost() {

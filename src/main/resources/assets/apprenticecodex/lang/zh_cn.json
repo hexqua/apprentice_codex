@@ -1,4 +1,11 @@
 {
+  "item.apprenticecodex.magi_engineers_leg_exoskeleton": "魔技师腿部外骨骼",
+  "item.apprenticecodex.magi_engineers_leg_exoskeleton.lore": "炼金术师真正向往的，或许并非灵药与黄金，而是无边无际的天空。",
+  "item.apprenticecodex.magi_engineers_leg_exoskeleton.desc_1": "在空中按下[%1$s]即可发动%2$s的功能",
+  "item.apprenticecodex.magi_engineers_leg_exoskeleton.desc_2": "可反复发动，每次发动消耗%s点魔力",
+  "item.apprenticecodex.magi_engineers_leg_exoskeleton.desc_3": "疾跑时按下[%1$s]即可发动%2$s的功能",
+  "item.apprenticecodex.magi_engineers_leg_exoskeleton.desc_4": "也可在空中反复发动，每次发动消耗%s点魔力",
+  "item.apprenticecodex.magi_engineers_leg_exoskeleton.desc_5": "在空中尝试同时发动时，仅发动%s的功能",
   "itemGroup.apprenticecodex.main": "学徒法典",
 
   "key.categories.apprenticecodex": "Apprentice's Codex",

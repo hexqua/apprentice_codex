@@ -1,6 +1,7 @@
 package jp.aquafactory.apprenticecodex.registry;
 
 import jp.aquafactory.apprenticecodex.item.magiengineersstaff.MagiEngineersStaff;
+import jp.aquafactory.apprenticecodex.item.curios.magiengineerslegexoskeleton.MagiEngineersLegExoskeleton;
 import jp.aquafactory.apprenticecodex.item.manaforcereleasedevice.ManaForceReleaseDevice;
 import jp.aquafactory.apprenticecodex.item.manaforcereleasedevice.ManaForceReleaseTier;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
@@ -410,6 +411,9 @@ public final class ItemRegistry {
             ITEMS.register("undying_emblem", UndyingEmblem::new);
     public static final DeferredHolder<Item, Item> MANA_SOUL_TRANSDUCER =
             ITEMS.register("mana_soul_transducer", ManaSoulTransducer::new);
+    public static final DeferredHolder<Item, Item> MAGI_ENGINEERS_LEG_EXOSKELETON =
+            ITEMS.register("magi_engineers_leg_exoskeleton", MagiEngineersLegExoskeleton::new);
+
     public static final DeferredHolder<Item, Item> MAGI_ENGINEERS_STAFF =
             ITEMS.register("magi_engineers_staff", MagiEngineersStaff::new);
     public static final DeferredHolder<Item, Item> ENDER_GRIMOIRE =
