@@ -172,11 +172,11 @@ public class ThermalSliceKatanaEntity extends SummonWeaponEntity implements GeoE
             if (hit.blockOccluded()) {
                 continue;
             }
-            var applied = CombatTools.applyDamage(
+            var applied = CombatTools.applySpellDamage(
                     hit.entity(),
                     damage,
                     source,
-                    SpellRegistry.THERMAL_SLICE.get().getSchoolType(),
+                    SpellRegistry.THERMAL_SLICE.get(),
                     CombatTools.KnockbackTypes.DEFAULT
             );
             if (applied && hit.entity() instanceof LivingEntity livingTarget) {

@@ -181,8 +181,8 @@ public class CompoundPhialProjectileEntity extends ThrowableProjectile implement
                 var scale = getSplashDamageScale(distance);
                 var source = CombatTools.getDamageSource(level(), this, owner, DamageTypes.COMPOUND_PHIAL);
                 if (damagedTargets.add(resolvedTarget)) {
-                    CombatTools.applyDamage(resolvedTarget, damage * scale, source,
-                            SpellRegistry.COMPOUND_PHIAL.get().getSchoolType(),
+                    CombatTools.applySpellDamage(resolvedTarget, damage * scale, source,
+                            SpellRegistry.COMPOUND_PHIAL.get(),
                             CombatTools.KnockbackTypes.NO_KNOCKBACK, policy);
                 }
             }

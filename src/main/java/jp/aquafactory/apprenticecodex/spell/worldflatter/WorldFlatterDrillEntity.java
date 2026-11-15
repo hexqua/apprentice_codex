@@ -214,11 +214,11 @@ public class WorldFlatterDrillEntity extends SummonWeaponEntity implements GeoEn
 
     private void performMobAttack(Entity target) {
         var source = createCombatDamageSource(DamageTypes.WORLD_FLATTER);
-        var damaged = CombatTools.applyDamage(
+        var damaged = CombatTools.applySpellDamage(
                 target,
                 damage,
                 source,
-                SpellRegistry.WORLD_FLATTER.get().getSchoolType(),
+                SpellRegistry.WORLD_FLATTER.get(),
                 CombatTools.KnockbackTypes.NO_KNOCKBACK
         );
         if (damaged && target instanceof LivingEntity livingTarget) {

@@ -302,11 +302,11 @@ public class FrostRuneTrapBlockEntity extends BlockEntity implements GeoBlockEnt
             if (!damagedIds.add(target.getId())) {
                 continue;
             }
-            var damaged = CombatTools.applyDamage(
+            var damaged = CombatTools.applySpellDamage(
                     target,
                     damage,
                     damageSource,
-                    SpellRegistry.FROST_RUNE.get().getSchoolType(),
+                    SpellRegistry.FROST_RUNE.get(),
                     CombatTools.KnockbackTypes.NO_KNOCKBACK
             );
             if (damaged && target instanceof LivingEntity livingTarget) {

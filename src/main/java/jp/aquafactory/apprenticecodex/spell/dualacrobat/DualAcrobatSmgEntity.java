@@ -196,7 +196,7 @@ public class DualAcrobatSmgEntity extends SummonWeaponEntity {
         if (aimResult.hitEntity() != null) {
             var target = CombatTools.resolutePartEntity(aimResult.hitEntity());
             var source = createCombatDamageSource(DamageTypes.DUAL_ACROBAT);
-            CombatTools.applyDamage(target, damage, source, SpellRegistry.DUAL_ACROBAT.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+            CombatTools.applySpellDamage(target, damage, source, SpellRegistry.DUAL_ACROBAT.get(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
         }
 
         if (level instanceof ServerLevel server) {

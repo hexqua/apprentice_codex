@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.gametest.equipment.multicastechostaff.profile;
 
+import io.redspace.ironsspellbooks.api.events.SpellDamageEvent;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
@@ -16,11 +17,13 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static jp.aquafactory.apprenticecodex.gametest.equipment.multicastechostaff.support.EchoStaffFixture.*;
 
@@ -42,12 +45,12 @@ public final class EchoStaffAttackGameTests {
             try (var config = ApprenticeCodexServerConfig.useMulticastEchoStaffAttackConfigOverrideForGameTest(true, 1.0D);
                  var profiles = MulticastEchoStaffAttackProfileManager.useProfilesForGameTest(Map.of(spell.getSpellResource(), profile))) {
                 var beforeNormal = normalTarget.getHealth();
-                helper.assertTrue(CombatTools.applyDamage(normalTarget, 8, source, spell.getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK),
+                helper.assertTrue(CombatTools.applySpellDamage(normalTarget, 8, source, spell, CombatTools.KnockbackTypes.NO_KNOCKBACK),
                         "Normal direct attack must deal damage");
                 var beforeRepeat = repeatedTarget.getHealth();
                 repeatedTarget.invulnerableTime = 20;
                 MulticastEchoStaffAttackHandler.runRepeatedCast(player, spell, () ->
-                        helper.assertTrue(CombatTools.applyDamage(repeatedTarget, 8, source, spell.getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK),
+                        helper.assertTrue(CombatTools.applySpellDamage(repeatedTarget, 8, source, spell, CombatTools.KnockbackTypes.NO_KNOCKBACK),
                                 "Repeated direct attack must bypass the existing i-frame"));
                 assertDamageRatio(helper, beforeNormal - normalTarget.getHealth(), beforeRepeat - repeatedTarget.getHealth(), 0.25F);
                 helper.assertTrue(repeatedTarget.invulnerableTime == 1,
@@ -75,15 +78,45 @@ public final class EchoStaffAttackGameTests {
                 var normalSource = CombatTools.getDamageSource(helper.getLevel(), normalProjectile, player, DamageTypes.MANA_SLASH);
                 var repeatedSource = CombatTools.getDamageSource(helper.getLevel(), repeatedProjectile, player, DamageTypes.MANA_SLASH);
                 var beforeNormal = normalTarget.getHealth();
-                helper.assertTrue(CombatTools.applyDamage(normalTarget, 8, normalSource, spell.getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK),
+                helper.assertTrue(CombatTools.applySpellDamage(normalTarget, 8, normalSource, spell, CombatTools.KnockbackTypes.NO_KNOCKBACK),
                         "Untracked projectile must deal normal damage");
                 var beforeRepeat = repeatedTarget.getHealth();
                 repeatedTarget.invulnerableTime = 20;
-                helper.assertTrue(CombatTools.applyDamage(repeatedTarget, 8, repeatedSource, spell.getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK),
+                helper.assertTrue(CombatTools.applySpellDamage(repeatedTarget, 8, repeatedSource, spell, CombatTools.KnockbackTypes.NO_KNOCKBACK),
                         "Tracked projectile must bypass the existing i-frame after cast context closes");
                 assertDamageRatio(helper, beforeNormal - normalTarget.getHealth(), beforeRepeat - repeatedTarget.getHealth(), 0.5F);
                 helper.assertTrue(repeatedTarget.invulnerableTime == 1,
                         "Tracked projectile must set the profile's post-hit i-frame: " + repeatedTarget.invulnerableTime);
+            }
+        });
+    }
+
+    @GameTest(template = TEMPLATE, batch = "apprenticecodex.multicast_echo_staff_isolated", timeoutTicks = 40)
+    public static void canceledRepeatedSpellRestoresIframeAndExposesAdjustedAmount(GameTestHelper helper) {
+        helper.succeedIf(() -> {
+            var player = registeredPlayer(helper, "echo_cancel_damage");
+            var target = damageTarget(helper, player, new Vec3(2, 0, 0));
+            var spell = SpellRegistry.SHOCK.get();
+            var source = CombatTools.getDamageSource(helper.getLevel(), player, DamageTypes.SHOCK);
+            var profile = new MulticastEchoStaffAttackProfile(0.25D, true, false, true, 0, 1);
+            int[] count = {0};
+            Consumer<SpellDamageEvent> listener = event -> {
+                if (event.getEntity() != target) return;
+                count[0]++;
+                helper.assertTrue(event.getAmount() == 2, "The event must expose repeat scaling exactly once");
+                event.setCanceled(true);
+            };
+            NeoForge.EVENT_BUS.addListener(listener);
+            try (var config = ApprenticeCodexServerConfig.useMulticastEchoStaffAttackConfigOverrideForGameTest(true, 1.0D);
+                 var profiles = MulticastEchoStaffAttackProfileManager.useProfilesForGameTest(Map.of(spell.getSpellResource(), profile))) {
+                target.invulnerableTime = 20;
+                MulticastEchoStaffAttackHandler.runRepeatedCast(player, spell, () ->
+                        helper.assertFalse(CombatTools.applySpellDamage(target, 8, source, spell, CombatTools.KnockbackTypes.NO_KNOCKBACK),
+                                "Canceled repeated spell damage must fail"));
+                helper.assertTrue(count[0] == 1 && target.getHealth() == 100 && target.invulnerableTime == 20,
+                        "Canceled repeated spell must preserve health and the previous iframe");
+            } finally {
+                NeoForge.EVENT_BUS.unregister(listener);
             }
         });
     }

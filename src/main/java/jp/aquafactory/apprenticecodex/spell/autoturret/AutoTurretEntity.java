@@ -367,8 +367,8 @@ public class AutoTurretEntity extends PathfinderMob implements GeoEntity, Monarc
     private void fire(Entity target, ServerLevel level, LivingEntity owner) {
         var targetPosition = RaycastTools.getEntityTargetPosition(target);
         var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.AUTO_TURRET);
-        var damaged = CombatTools.applyDamage(target, damage, source,
-                SpellRegistry.AUTO_TURRET.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+        var damaged = CombatTools.applySpellDamage(target, damage, source,
+                SpellRegistry.AUTO_TURRET.get(), CombatTools.KnockbackTypes.DEFAULT);
         AudioTools.playSoundFromEntity(level, this, SoundEvents.ARROW_SHOOT, SoundSource.PLAYERS, 0.5f);
 
         if (damaged && target instanceof Mob mob && !mob.isAlliedTo(this)) {

@@ -1,11 +1,11 @@
 package jp.aquafactory.apprenticecodex.spell.lunaraim;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.particle.LunarParticles;
 import jp.aquafactory.apprenticecodex.registry.SoundRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.AudioTools;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.ProjectileCollisionTools;
@@ -173,7 +173,7 @@ public final class LunarAimArrowEntity extends Projectile implements AntiMagicSu
         var area = new AABB(center, center).inflate(getRadius());
         var candidates = level().getEntities(this, area, entity -> CombatTools.isValidCombatTarget(entity, getOwner()));
         for (var target : CombatTools.resolveUniqueCombatTargets(candidates)) {
-            CombatTools.applyDamage(target, damage, source, SchoolRegistry.ICE.get(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+            CombatTools.applySpellDamage(target, damage, source, SpellRegistry.LUNAR_AIM.get(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
         }
         AudioTools.playSoundFromEntity(level(), this, SoundRegistry.STELLAR_EXPLODE.get(), SoundSource.PLAYERS, 1.5f, 0.92f, 0.04f);
     }

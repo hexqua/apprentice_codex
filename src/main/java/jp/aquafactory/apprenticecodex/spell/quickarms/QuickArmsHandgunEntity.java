@@ -139,7 +139,7 @@ public class QuickArmsHandgunEntity extends SummonWeaponEntity {
         if (aimResult.hitEntity() != null) {
             var target = CombatTools.resolutePartEntity(aimResult.hitEntity());
             var source = createCombatDamageSource(DamageTypes.QUICK_ARMS);
-            CombatTools.applyDamage(target, damage, source, SpellRegistry.QUICK_ARMS.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+            CombatTools.applySpellDamage(target, damage, source, SpellRegistry.QUICK_ARMS.get(), CombatTools.KnockbackTypes.DEFAULT);
         }
 
         if (level instanceof ServerLevel server) {

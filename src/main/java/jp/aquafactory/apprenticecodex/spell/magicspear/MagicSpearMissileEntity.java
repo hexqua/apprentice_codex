@@ -408,11 +408,11 @@ public class MagicSpearMissileEntity extends Projectile implements GeoEntity, An
             if (!target.isAlive() || !CombatTools.isValidCombatTarget(target, owner) || !damagedIds.add(target.getId())) {
                 continue;
             }
-            CombatTools.applyDamage(
+            CombatTools.applySpellDamage(
                     target,
                     damage,
                     source,
-                    SpellRegistry.MAGIC_SPEAR.get().getSchoolType(),
+                    SpellRegistry.MAGIC_SPEAR.get(),
                     CombatTools.KnockbackTypes.DEFAULT
             );
         }

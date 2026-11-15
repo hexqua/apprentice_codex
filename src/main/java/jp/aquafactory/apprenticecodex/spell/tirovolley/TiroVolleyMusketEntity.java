@@ -205,11 +205,11 @@ public class TiroVolleyMusketEntity extends SummonWeaponEntity implements GeoEnt
         setFireRotationByVector(hitPosition);
 
         var source = createCombatDamageSource(DamageTypes.TIRO_VOLLEY);
-        CombatTools.applyDamage(
+        CombatTools.applySpellDamage(
                 target,
                 resolveCurrentDamage(owner),
                 source,
-                SpellRegistry.TIRO_VOLLEY.get().getSchoolType(),
+                SpellRegistry.TIRO_VOLLEY.get(),
                 CombatTools.KnockbackTypes.NO_KNOCKBACK
         );
 

@@ -156,7 +156,7 @@ public class SkyEdgeProjectileEntity extends Projectile implements AntiMagicSusc
         if (CombatTools.isValidCombatTarget(hit.getEntity(), owner)) {
             var target = CombatTools.resolutePartEntity(hit.getEntity());
             var source = CombatTools.getDamageSource(level(), this, owner, DamageTypes.SKY_EDGE);
-            CombatTools.applyDamage(target, damage, source, SpellRegistry.SKY_EDGE.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+            CombatTools.applySpellDamage(target, damage, source, SpellRegistry.SKY_EDGE.get(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
             onImpact(level, 0.5 + level.random.nextDouble() * 0.25, true);
             discard();
         }
