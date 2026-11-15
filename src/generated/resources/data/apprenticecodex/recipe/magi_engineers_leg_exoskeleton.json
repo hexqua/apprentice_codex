@@ -1,0 +1,46 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "magitech"
+    }
+  ],
+  "type": "magitech:infusion",
+  "base": {
+    "count": 1,
+    "ingredient": {
+      "item": "apprenticecodex:mana_thruster"
+    }
+  },
+  "ingredients": [
+    {
+      "count": 2,
+      "ingredient": {
+        "item": "magitech:radiant_steel_ingot"
+      }
+    },
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "irons_spellbooks:divine_soulshard"
+      }
+    },
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "magitech:flamglide_strider"
+      }
+    },
+    {
+      "count": 1,
+      "ingredient": {
+        "item": "magitech:aether_lifter"
+      }
+    }
+  ],
+  "mana": 1000000,
+  "result": {
+    "count": 1,
+    "id": "apprenticecodex:magi_engineers_leg_exoskeleton"
+  }
+}

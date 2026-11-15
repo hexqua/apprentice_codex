@@ -641,6 +641,7 @@ public final class ItemTagGenerator extends ItemTagsProvider {
         tag(CURIOS_FEET).add(
                 ItemRegistry.MANA_THRUSTER.get(),
                 ItemRegistry.MANA_MANEUVER_GEAR.get(),
+                ItemRegistry.MAGI_ENGINEERS_LEG_EXOSKELETON.get(),
                 ItemRegistry.JUMPCAST_CHARM.get()
         );
 
