@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.gametest.equipment.multicastechostaff.profile;
 
+import io.redspace.ironsspellbooks.api.events.SpellDamageEvent;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
@@ -12,8 +13,10 @@ import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.MinecraftForge;
 
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static jp.aquafactory.apprenticecodex.gametest.spell.senseevil.SenseEvilScenarios.spawnPositionedZombie;
 import static jp.aquafactory.apprenticecodex.gametest.support.PlayerTestSupport.createEquipmentTestPlayer;
@@ -43,7 +46,7 @@ final class EchoStaffAttackScenarios {
                         spell,
                         () -> {
                             target.invulnerableTime = 20;
-                            CombatTools.applyDamage(target, 8.0F, source, spell.getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+                            CombatTools.applySpellDamage(target, 8.0F, source, spell, CombatTools.KnockbackTypes.NO_KNOCKBACK);
                         }
                 );
             }
@@ -81,7 +84,7 @@ final class EchoStaffAttackScenarios {
                         () -> helper.getLevel().addFreshEntity(projectile)
                 );
                 target.invulnerableTime = 20;
-                CombatTools.applyDamage(target, 8.0F, source, spell.getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+                CombatTools.applySpellDamage(target, 8.0F, source, spell, CombatTools.KnockbackTypes.NO_KNOCKBACK);
             }
 
             var damageTaken = initialHealth - target.getHealth();
@@ -92,5 +95,35 @@ final class EchoStaffAttackScenarios {
                     "Tracked projectile multicast damage should leave configured post-hit i-frame ticks: "
                             + target.invulnerableTime);
         });
+    }
+
+    static void canceledRepeatedSpellRestoresIframeAndExposesAdjustedAmount(GameTestHelper helper) {
+        var player = createEquipmentTestPlayer(helper, new BlockPos(0, 2, 0), "echo_cancel_damage");
+        var target = spawnPositionedZombie(helper.getLevel(), helper.absoluteVec(new Vec3(2.5D, 2.0D, 0.5D)));
+        var spell = SpellRegistry.SHOCK.get();
+        var source = CombatTools.getDamageSource(helper.getLevel(), player, DamageTypes.SHOCK);
+        var profile = new MulticastEchoStaffAttackProfile(0.25D, true, false, true, 0, 1);
+        var initialHealth = target.getHealth();
+        int[] eventCount = {0};
+        Consumer<SpellDamageEvent> listener = event -> {
+            if (event.getEntity() != target) return;
+            eventCount[0]++;
+            helper.assertTrue(event.getAmount() == 2, "The event must expose repeat scaling exactly once");
+            event.setCanceled(true);
+        };
+        MinecraftForge.EVENT_BUS.addListener(listener);
+        try (var config = ApprenticeCodexServerConfig.useMulticastEchoStaffAttackConfigOverrideForGameTest(true, 1.0D);
+             var profiles = MulticastEchoStaffAttackProfileManager.useProfilesForGameTest(Map.of(spell.getSpellResource(), profile))) {
+            target.invulnerableTime = 20;
+            MulticastEchoStaffAttackHandler.runRepeatedCast(player, spell, () ->
+                    helper.assertFalse(CombatTools.applySpellDamage(target, 8, source, spell, CombatTools.KnockbackTypes.NO_KNOCKBACK),
+                            "Canceled repeated spell damage must fail"));
+            helper.assertTrue(eventCount[0] == 1 && target.getHealth() == initialHealth && target.invulnerableTime == 20,
+                    "Canceled repeated spell must preserve health and the previous iframe");
+        } finally {
+            MinecraftForge.EVENT_BUS.unregister(listener);
+            target.discard();
+        }
+        helper.succeed();
     }
 }

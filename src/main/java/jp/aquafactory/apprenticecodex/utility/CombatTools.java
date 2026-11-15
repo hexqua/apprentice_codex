@@ -1,7 +1,9 @@
 package jp.aquafactory.apprenticecodex.utility;
 
+import io.redspace.ironsspellbooks.api.events.SpellDamageEvent;
 import io.redspace.ironsspellbooks.api.events.SpellHealEvent;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
+import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
 import io.redspace.ironsspellbooks.api.util.Utils;
 import io.redspace.ironsspellbooks.entity.mobs.IMagicSummon;
@@ -12,6 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 import javax.annotation.Nullable;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.damage.ApprenticeSpellDamageSource;
 import jp.aquafactory.apprenticecodex.datagen.DamageTypeTagGenerator;
 import jp.aquafactory.apprenticecodex.event.KnockbackControlEvent;
 import jp.aquafactory.apprenticecodex.item.multicastechostaff.MulticastEchoStaffAttackHandler;
@@ -211,16 +214,50 @@ public final class CombatTools {
     @SuppressWarnings("UnusedReturnValue")
     public static boolean applyDamage(Entity target, float baseAmount, DamageSource source, SchoolType magicSchool,
                                       KnockbackTypes type, CombatTargetPolicy policy) {
+        return applyDamageInternal(target, baseAmount, source, magicSchool, type, policy, null);
+    }
+
+    /** 魔法の発生元を明示して通知する。schoolを持つアイテム固有攻撃はapplyDamageを使う。 */
+    public static boolean applySpellDamage(Entity target, float baseAmount, DamageSource source, AbstractSpell spell,
+                                           KnockbackTypes type) {
+        return applySpellDamage(target, baseAmount, source, spell, type, CombatTargetPolicy.PROTECT_SELF_AND_ALLIES);
+    }
+
+    public static boolean applySpellDamage(Entity target, float baseAmount, DamageSource source, AbstractSpell spell,
+                                           KnockbackTypes type, CombatTargetPolicy policy) {
+        return applyDamageInternal(target, baseAmount, source, spell.getSchoolType(), type, policy, spell);
+    }
+
+    private static boolean applyDamageInternal(Entity target, float baseAmount, DamageSource source, SchoolType magicSchool,
+                                                KnockbackTypes type, CombatTargetPolicy policy, @Nullable AbstractSpell spell) {
         var resolvedTarget = resolutePartEntity(target);
         var combatOwner = resolveDamageOwner(source);
+        if (spell != null && (target.level().isClientSide || !Float.isFinite(baseAmount) || baseAmount <= 0)) {
+            return false;
+        }
         if (isProtectedCombatTarget(resolvedTarget, combatOwner, policy)) {
             return false;
         }
 
         target = resolvedTarget;
+        var spellSource = spell == null ? null : new ApprenticeSpellDamageSource(source, spell, target);
+        if (spellSource != null) {
+            source = spellSource;
+        }
         if (target instanceof LivingEntity livingTarget) {
+            var previousIframe = livingTarget.invulnerableTime;
             var multicastAdjustment = MulticastEchoStaffAttackHandler.adjustCombatDamage(target, baseAmount, source);
             baseAmount = multicastAdjustment.baseAmount();
+
+            if (spellSource != null) {
+                var event = new SpellDamageEvent(livingTarget, baseAmount, spellSource);
+                // 耐性適用前に通知し、集計だけでなく他MODのキャンセル・威力変更も反映する。
+                if (MinecraftForge.EVENT_BUS.post(event) || !Float.isFinite(event.getAmount()) || event.getAmount() <= 0) {
+                    livingTarget.invulnerableTime = previousIframe;
+                    return false;
+                }
+                baseAmount = event.getAmount();
+            }
 
             // Iron'sの召喚ダメージはLivingEntityのみ対象なので合わせる.
             if (source.is(DamageTypeTagGenerator.SUMMON_DAMAGE) && source.getEntity() instanceof LivingEntity caster){

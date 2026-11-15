@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.gametest.equipment.multicastechostaff.profile;
 
+import io.redspace.ironsspellbooks.api.events.SpellDamageEvent;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -22,5 +23,10 @@ public final class EchoStaffAttackGameTests {
     @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 40)
     public static void multicastEchoStaffAttackProfileTracksDelayedProjectileDamage(GameTestHelper helper) {
         EchoStaffAttackScenarios.multicastEchoStaffAttackProfileTracksDelayedProjectileDamage(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = MULTICAST_ECHO_STAFF_ISOLATED_BATCH, timeoutTicks = 40)
+    public static void canceledRepeatedSpellRestoresIframeAndExposesAdjustedAmount(GameTestHelper helper) {
+        EchoStaffAttackScenarios.canceledRepeatedSpellRestoresIframeAndExposesAdjustedAmount(helper);
     }
 }

@@ -155,7 +155,6 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity,
                 combatOwnerUuid,
                 DamageTypes.MOON_LIGHT
         );
-        var school = SpellRegistry.MOON_LIGHT.get().getSchoolType();
         var candidates = level.getEntities(
                 this,
                 getBoundingBoxForCulling(),
@@ -175,7 +174,7 @@ public class MoonLightChargeCutEntity extends Entity implements TraceableEntity,
             if (!target.isAlive() || !damagedEntityIds.add(target.getUUID())) {
                 continue;
             }
-            if (CombatTools.applyDamage(target, damage, source, school, CombatTools.KnockbackTypes.DEFAULT)) {
+            if (CombatTools.applySpellDamage(target, damage, source, SpellRegistry.MOON_LIGHT.get(), CombatTools.KnockbackTypes.DEFAULT)) {
                 MoonLightCounterspellEffect.applyAfterSuccessfulDamage(source, target, owner);
             }
         }

@@ -151,11 +151,11 @@ public class BloodBrandKunai extends Projectile implements AntiMagicSusceptible 
         }
 
         var source = CombatTools.getDamageSource(level(), this, owner, DamageTypes.BLOOD_BRAND);
-        var damaged = CombatTools.applyDamage(
+        var damaged = CombatTools.applySpellDamage(
                 target,
                 damage,
                 source,
-                SpellRegistry.BLOOD_BRAND.get().getSchoolType(),
+                SpellRegistry.BLOOD_BRAND.get(),
                 CombatTools.KnockbackTypes.NO_KNOCKBACK
         );
         if (damaged && target instanceof LivingEntity livingTarget && livingTarget.isAlive()

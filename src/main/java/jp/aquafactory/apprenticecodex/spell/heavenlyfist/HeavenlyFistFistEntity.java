@@ -143,11 +143,11 @@ public class HeavenlyFistFistEntity extends Entity implements GeoEntity, Traceab
                 level.getEntities(this, area, entity -> CombatTools.isValidCombatTarget(entity, owner))
         );
         for (var target : targets) {
-            var damaged = CombatTools.applyDamage(
+            var damaged = CombatTools.applySpellDamage(
                     target,
                     damage,
                     source,
-                    SpellRegistry.HEAVENLY_FIST.get().getSchoolType(),
+                    SpellRegistry.HEAVENLY_FIST.get(),
                     CombatTools.KnockbackTypes.NO_KNOCKBACK
             );
             if (damaged && target instanceof LivingEntity livingTarget) {

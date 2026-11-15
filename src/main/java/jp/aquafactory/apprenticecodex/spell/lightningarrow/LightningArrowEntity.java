@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.lightningarrow;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
@@ -9,6 +8,7 @@ import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.LightningArrowImpactPacket;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -141,9 +141,9 @@ public final class LightningArrowEntity extends Projectile implements AntiMagicS
         var server = (ServerLevel) level();
         for (var hit : LightningArrowCollision.contacts(level(), this, getOwner(), start, end)) {
             if (!hitTargets.add(hit.target().getUUID())) continue;
-            CombatTools.applyDamage(hit.target(), damage,
+            CombatTools.applySpellDamage(hit.target(), damage,
                     CombatTools.getDamageSource(level(), this, getOwner(), DamageTypes.LIGHTNING_ARROW),
-                    SchoolRegistry.LIGHTNING.get(), CombatTools.KnockbackTypes.DEFAULT);
+                    SpellRegistry.LIGHTNING_ARROW.get(), CombatTools.KnockbackTypes.DEFAULT);
             Networks.sendToPlayersNear(server, hit.position(), 96,
                     new LightningArrowImpactPacket(hit.position(), flight.direction(), false));
             level().playSound(null, hit.position().x, hit.position().y, hit.position().z,

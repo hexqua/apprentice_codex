@@ -205,7 +205,7 @@ public class CommenceFireRifleEntity extends SummonWeaponEntity {
         var source = createOwnerDirectCombatDamageSource(DamageTypes.COMMENCE_FIRE);
         var headshotRate = headshotPercent / 100.0f;
         var finalDamage = damage * (isHeadShot ? headshotRate : 1);
-        CombatTools.applyDamage(resoluteTarget, finalDamage, source, SpellRegistry.COMMENCE_FIRE.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+        CombatTools.applySpellDamage(resoluteTarget, finalDamage, source, SpellRegistry.COMMENCE_FIRE.get(), CombatTools.KnockbackTypes.DEFAULT);
     }
 
     public void fire(Vec3 target, Level level, HitTypes hitType, boolean isHeadShot) {

@@ -128,11 +128,11 @@ public class AnchorBlinkDaggerEntity extends ThrowableProjectile implements Anti
         var owner = getOwner();
         var target = CombatTools.resolutePartEntity(hitResult.getEntity());
         var source = CombatTools.getDamageSource(level(), this, owner, DamageTypes.ANCHOR_BLINK);
-        CombatTools.applyDamage(
+        CombatTools.applySpellDamage(
                 target,
                 damage,
                 source,
-                SpellRegistry.ANCHOR_BLINK.get().getSchoolType(),
+                SpellRegistry.ANCHOR_BLINK.get(),
                 CombatTools.KnockbackTypes.NO_KNOCKBACK
         );
 

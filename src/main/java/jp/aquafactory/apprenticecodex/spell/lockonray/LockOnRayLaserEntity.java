@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.lockonray;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
@@ -9,6 +8,7 @@ import io.redspace.ironsspellbooks.util.ParticleHelper;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.network.Networks;
 import jp.aquafactory.apprenticecodex.network.packet.LockOnRayTrailPacket;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -122,9 +122,9 @@ public final class LockOnRayLaserEntity extends Projectile implements AntiMagicS
                 var point = hit.getLocation();
                 double part = from.distanceTo(to) < 1.0e-8 ? 0 : from.distanceTo(point) / from.distanceTo(to);
                 setPos(point);
-                CombatTools.applyDamage(target, damage,
+                CombatTools.applySpellDamage(target, damage,
                         CombatTools.getDamageSource(level(), this, combatOwner(), DamageTypes.LOCK_ON_RAY),
-                        SchoolRegistry.HOLY.get(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+                        SpellRegistry.LOCK_ON_RAY.get(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
                 MagicManager.spawnParticles(level(), ParticleHelper.WISP, point.x, point.y, point.z,
                         25, 0, 0, 0, 0.18, true);
                 level().playSound(null, point.x, point.y, point.z, SoundRegistry.GUIDING_BOLT_IMPACT.get(),

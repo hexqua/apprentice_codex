@@ -158,7 +158,7 @@ public class MoonLightKatanaEntity extends SummonWeaponEntity implements GeoEnti
             AudioTools.playSoundFromEntity(level, this, SoundRegistry.KATANA_SLASH.get(), SoundSource.PLAYERS);
             AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
             for (var hit : hitResult) {
-                if (CombatTools.applyDamage(hit, damage, source, SpellRegistry.MOON_LIGHT.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT)) {
+                if (CombatTools.applySpellDamage(hit, damage, source, SpellRegistry.MOON_LIGHT.get(), CombatTools.KnockbackTypes.DEFAULT)) {
                     MoonLightCounterspellEffect.applyAfterSuccessfulDamage(source, hit, owner);
                 }
             }

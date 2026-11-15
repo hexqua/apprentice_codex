@@ -360,7 +360,7 @@ public class FlySwatterProjectileEntity extends Projectile implements AntiMagicS
             boolean multipart = candidate.isMultipartEntity();
             // 部位の接触地点から本体の目への遮蔽は、ドラゴン等の露出部位への命中まで拒否する。
             if (!multipart && candidate != directHitTarget && isBlockedByWall(center, candidate)) continue;
-            CombatTools.applyDamage(candidate, damage, source, SpellRegistry.FLY_SWATTER.get().getSchoolType(),
+            CombatTools.applySpellDamage(candidate, damage, source, SpellRegistry.FLY_SWATTER.get(),
                     multipart ? CombatTools.KnockbackTypes.NO_KNOCKBACK : CombatTools.KnockbackTypes.DEFAULT);
         }
     }

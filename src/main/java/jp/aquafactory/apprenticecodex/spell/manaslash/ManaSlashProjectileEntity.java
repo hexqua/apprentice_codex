@@ -260,8 +260,13 @@ public class ManaSlashProjectileEntity extends Projectile implements AntiMagicSu
     private void damageEntity(Entity entity) {
         var owner = getOwner();
         var source = CombatTools.getDamageSource(level(), this, owner, DamageTypes.MANA_SLASH);
-        if (!CombatTools.applyDamage(entity, damage, source, SpellRegistry.MANA_SLASH.get().getSchoolType(),
-                CombatTools.KnockbackTypes.DEFAULT)) {
+        if (!CombatTools.applySpellDamage(
+                entity,
+                damage,
+                source,
+                SpellRegistry.MANA_SLASH.get(),
+                CombatTools.KnockbackTypes.DEFAULT
+        )) {
             return;
         }
 

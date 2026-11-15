@@ -1,9 +1,9 @@
 package jp.aquafactory.apprenticecodex.spell.echoarrow;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.ProjectileCollisionTools;
 import net.minecraft.nbt.CompoundTag;
@@ -144,9 +144,9 @@ public final class EchoArrowEntity extends Projectile implements AntiMagicSuscep
         if (level().isClientSide || isRemoved()) return;
         var target = CombatTools.resolutePartEntity(hit.getEntity());
         if (CombatTools.isValidCombatTarget(target, getOwner())) {
-            CombatTools.applyDamage(target, damage,
+            CombatTools.applySpellDamage(target, damage,
                     CombatTools.getDamageSource(level(), this, getOwner(), DamageTypes.ECHO_ARROW),
-                    SchoolRegistry.ELDRITCH.get(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+                    SpellRegistry.ECHO_ARROW.get(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
         }
         impact(hit.getLocation());
     }

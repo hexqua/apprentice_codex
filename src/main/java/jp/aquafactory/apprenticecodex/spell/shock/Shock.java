@@ -99,11 +99,11 @@ public class Shock extends AbstractSpell {
 
             if (castTarget.target() != null) {
                 var source = CombatTools.getDamageSource(level, entity, DamageTypes.SHOCK);
-                CombatTools.applyDamage(
+                CombatTools.applySpellDamage(
                         castTarget.target(),
                         getDamage(spellLevel, entity),
                         source,
-                        getSchoolType(),
+                        this,
                         CombatTools.KnockbackTypes.DEFAULT
                 );
             }

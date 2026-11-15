@@ -1,12 +1,12 @@
 package jp.aquafactory.apprenticecodex.spell.bloodyarrow;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.particle.AdditiveGlowParticleOptions;
 import jp.aquafactory.apprenticecodex.registry.EntityRegistry;
 import jp.aquafactory.apprenticecodex.registry.ParticleRegistry;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.ProjectileCollisionTools;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -111,9 +111,9 @@ public final class BloodyArrowEntity extends Projectile implements AntiMagicSusc
         setPos(hit.getLocation());
         if (CombatTools.isValidCombatTarget(target, owner)) {
             var wasAlive = target.isAlive();
-            var applied = CombatTools.applyDamage(target, damage,
+            var applied = CombatTools.applySpellDamage(target, damage,
                     CombatTools.getDamageSource(level(), this, owner, DamageTypes.BLOODY_ARROW),
-                    SchoolRegistry.BLOOD.get(), CombatTools.KnockbackTypes.DEFAULT);
+                    SpellRegistry.BLOODY_ARROW.get(), CombatTools.KnockbackTypes.DEFAULT);
             // End Crystalも攻撃できるが、血の反応は体力を持つ対象だけで起こす。
             if (applied && target instanceof LivingEntity && owner instanceof LivingEntity caster) {
                 int count = orbCount * (wasAlive && !target.isAlive() ? 2 : 1);

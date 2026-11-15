@@ -97,11 +97,11 @@ public class PhalanxChargeBeamEntity extends Entity implements TraceableEntity {
 
         var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.PHALANX_CHARGE);
         for (var target : targets) {
-            CombatTools.applyDamage(
+            CombatTools.applySpellDamage(
                     target,
                     damage,
                     source,
-                    SpellRegistry.PHALANX_CHARGE.get().getSchoolType(),
+                    SpellRegistry.PHALANX_CHARGE.get(),
                     CombatTools.KnockbackTypes.DEFAULT
             );
         }
