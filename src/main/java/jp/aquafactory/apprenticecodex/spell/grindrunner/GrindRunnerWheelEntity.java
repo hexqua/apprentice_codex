@@ -1027,7 +1027,7 @@ public class GrindRunnerWheelEntity extends SummonWeaponEntity implements GeoEnt
                 ? CombatTools.CombatTargetPolicy.ALLOW_SELF_PROTECT_ALLIES
                 : CombatTools.CombatTargetPolicy.PROTECT_SELF_AND_ALLIES;
         for (var target : resolveDamageTargets(owner, includeOwner)) {
-            CombatTools.applyDamage(target, damageAmount, source, SpellRegistry.GRIND_RUNNER.get().getSchoolType(),
+            CombatTools.applySpellDamage(target, damageAmount, source, SpellRegistry.GRIND_RUNNER.get(),
                     knockbackType, policy);
         }
     }

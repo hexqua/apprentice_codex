@@ -442,7 +442,7 @@ public class UniteLunaMoonEntity extends Projectile implements AntiMagicSuscepti
             if (target == owner || !damagedIds.add(target.getId())) {
                 continue;
             }
-            CombatTools.applyDamage(target, damage * damageMultiplier, source, SpellRegistry.UNITE_LUNA.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+            CombatTools.applySpellDamage(target, damage * damageMultiplier, source, SpellRegistry.UNITE_LUNA.get(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
         }
     }
 

@@ -104,7 +104,7 @@ public class FeatherRushProjectileEntity extends ThrowableProjectile {
         if (CombatTools.isValidCombatTarget(hit.getEntity(), owner)) {
             var target = CombatTools.resolutePartEntity(hit.getEntity());
             var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.FEATHER_RUSH);
-            CombatTools.applyDamage(target, damage, source, SpellRegistry.FEATHER_RUSH.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+            CombatTools.applySpellDamage(target, damage, source, SpellRegistry.FEATHER_RUSH.get(), CombatTools.KnockbackTypes.DEFAULT);
             AudioTools.playSoundFromEntity(level, this, SoundRegistry.VANILLA_FEATHER_HIT.get(), SoundSource.PLAYERS);
         }
 

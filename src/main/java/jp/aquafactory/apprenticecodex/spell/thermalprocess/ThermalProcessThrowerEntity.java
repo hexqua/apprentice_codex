@@ -222,7 +222,6 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
                 ? blockHit.getLocation()
                 : beamStart.add(direction.scale(getEffectiveRange()));
         var source = createCombatDamageSource(DamageTypes.THERMAL_PROCESS);
-        var school = SpellRegistry.THERMAL_PROCESS.get().getSchoolType();
         var currentDamage = resolveCurrentDamage(owner);
         var hits = RaycastTools.sampleBeamHits(
                 level,
@@ -234,7 +233,7 @@ public class ThermalProcessThrowerEntity extends SummonWeaponEntity {
         );
 
         for (var target : hits) {
-            var applied = CombatTools.applyDamage(target, currentDamage, source, school, CombatTools.KnockbackTypes.NO_KNOCKBACK);
+            var applied = CombatTools.applySpellDamage(target, currentDamage, source, SpellRegistry.THERMAL_PROCESS.get(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
             if (!applied || !(target instanceof LivingEntity livingTarget)) {
                 continue;
             }

@@ -180,7 +180,7 @@ public class TotemOfPermafrostTotemEntity extends PathfinderMob implements GeoEn
             if (!RaycastTools.hasLineOfSight(level, this, target)) {
                 continue;
             }
-            if (CombatTools.applyDamage(target, damage, source, SpellRegistry.TOTEM_OF_PERMAFROST.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK)
+            if (CombatTools.applySpellDamage(target, damage, source, SpellRegistry.TOTEM_OF_PERMAFROST.get(), CombatTools.KnockbackTypes.NO_KNOCKBACK)
                     && target instanceof LivingEntity livingTarget) {
                 livingTarget.setTicksFrozen(Math.min(MAX_FREEZE_TICK, livingTarget.getTicksFrozen() + FREEZE_TICK_INCREMENT));
                 livingTarget.addEffect(new MobEffectInstance(

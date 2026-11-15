@@ -187,11 +187,11 @@ public class InscribeIceDaggerEntity extends Projectile implements AntiMagicSusc
         }
 
         var source = CombatTools.getDamageSource(level(), this, owner, DamageTypes.INSCRIBE_ICE);
-        var damaged = CombatTools.applyDamage(
+        var damaged = CombatTools.applySpellDamage(
                 target,
                 damage,
                 source,
-                SpellRegistry.INSCRIBE_ICE.get().getSchoolType(),
+                SpellRegistry.INSCRIBE_ICE.get(),
                 CombatTools.KnockbackTypes.NO_KNOCKBACK
         );
         if (damaged && target instanceof LivingEntity livingTarget) {

@@ -183,11 +183,11 @@ public class HiganbanaKatanaEntity extends SummonWeaponEntity implements GeoEnti
                 if (hit.blockOccluded()) {
                     continue;
                 }
-                var applied = CombatTools.applyDamage(
+                var applied = CombatTools.applySpellDamage(
                         hit.entity(),
                         damage,
                         source,
-                        SpellRegistry.HIGANBANA.get().getSchoolType(),
+                        SpellRegistry.HIGANBANA.get(),
                         CombatTools.KnockbackTypes.NO_KNOCKBACK
                 );
                 if (applied) {

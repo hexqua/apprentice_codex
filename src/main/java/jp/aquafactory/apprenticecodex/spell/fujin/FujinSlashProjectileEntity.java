@@ -188,11 +188,11 @@ public class FujinSlashProjectileEntity extends Projectile
         var source = CombatOwnerResolver.createDamageSourcePreservingCurrentOwner(
                 level(), this, getOwner(), combatOwnerUuid, DamageTypes.FUJIN
         );
-        CombatTools.applyDamage(
+        CombatTools.applySpellDamage(
                 entity,
                 damage,
                 source,
-                SpellRegistry.FUJIN.get().getSchoolType(),
+                SpellRegistry.FUJIN.get(),
                 CombatTools.KnockbackTypes.NO_KNOCKBACK
         );
     }

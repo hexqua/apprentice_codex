@@ -273,7 +273,6 @@ public class ArtisanSmashShellEntity extends ThrowableProjectile implements Anti
         var source = CombatOwnerResolver.createDamageSource(level(), this, getOwner(), combatOwnerUuid, DamageTypes.ARTISAN_SMASH);
         var combatOwner = CombatOwnerResolver.resolveCombatOwner(level(), getOwner(), combatOwnerUuid);
         var policy = CombatTools.CombatTargetPolicy.ALLOW_SELF_PROTECT_ALLIES;
-        var school = SpellRegistry.ARTISAN_SMASH.get().getSchoolType();
         var area = new AABB(center, center).inflate(splashRadius);
         var damagedIds = new HashSet<Integer>();
 
@@ -286,7 +285,7 @@ public class ArtisanSmashShellEntity extends ThrowableProjectile implements Anti
                 continue;
             }
 
-            CombatTools.applyDamage(target, damage, source, school, CombatTools.KnockbackTypes.DEFAULT, policy);
+            CombatTools.applySpellDamage(target, damage, source, SpellRegistry.ARTISAN_SMASH.get(), CombatTools.KnockbackTypes.DEFAULT, policy);
         }
     }
 

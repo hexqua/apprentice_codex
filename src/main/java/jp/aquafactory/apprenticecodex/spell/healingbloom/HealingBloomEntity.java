@@ -228,7 +228,7 @@ public class HealingBloomEntity extends PathfinderMob implements GeoEntity, Anti
             var source = owner != null
                     ? CombatTools.getDamageSource(level, this, owner, DamageTypes.HEALING_BLOOM)
                     : CombatTools.getDamageSource(level, this, DamageTypes.HEALING_BLOOM);
-            CombatTools.applyDamage(target, finalDamage, source, SpellRegistry.HEALING_BLOOM.get().getSchoolType(),
+            CombatTools.applySpellDamage(target, finalDamage, source, SpellRegistry.HEALING_BLOOM.get(),
                     CombatTools.KnockbackTypes.NO_KNOCKBACK,
                     CombatTools.CombatTargetPolicy.ALLOW_SELF_PROTECT_ALLIES);
         }

@@ -192,11 +192,11 @@ public class CatchFlame extends AbstractSpell {
             var source = combatActor != caster
                     ? CombatTools.getDamageSource(level, caster, combatActor, damageType)
                     : CombatTools.getDamageSource(level, caster, damageType);
-            var damaged = CombatTools.applyDamage(
+            var damaged = CombatTools.applySpellDamage(
                     target,
                     getDamage(spellLevel, caster),
                     source,
-                    getSchoolType(),
+                    this,
                     CombatTools.KnockbackTypes.DEFAULT
             );
             if (damaged && target instanceof LivingEntity livingTarget) {
