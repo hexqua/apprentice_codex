@@ -106,13 +106,15 @@ public final class ScytheNarrowGameTests {
         if (!MalumSpellReaperScytheBridge.isAvailable()) { h.succeed(); return; }
         var p = ScytheReboundGameTests.player(h, 100);
         p.setXRot(0);
-        // 周辺構造の壁で投擲先が縮まらない高さへ、射手と標的を同量移す。
-        p.setPos(p.position().add(0, 80, 0));
+        // 構造原点が地下の場合も、通常地形の上で最初の接触を検証する。
+        int arenaY = h.getLevel().getMaxBuildHeight() - 8;
+        int relativeArenaY = arenaY - h.absolutePos(BlockPos.ZERO).getY();
+        p.setPos(p.getX(), arenaY, p.getZ());
         equip(p, "necklace_of_the_narrow_edge");
         ScytheReboundGameTests.enchant(h, p.getMainHandItem(), "rebound", 1);
         // 遠い敵を先に登録し、Entity列挙順に依存せず手前で折り返すことを確認する。
-        var far = h.spawn(EntityType.HUSK, new BlockPos(2, 100, 6));
-        var near = h.spawn(EntityType.HUSK, new BlockPos(2, 100, 5));
+        var far = h.spawn(EntityType.HUSK, new BlockPos(2, relativeArenaY, 6));
+        var near = h.spawn(EntityType.HUSK, new BlockPos(2, relativeArenaY, 5));
         for (var target : new Husk[]{far, near}) {
             target.setNoAi(true); target.setNoGravity(true);
             target.getAttribute(Attributes.ARMOR).setBaseValue(0);
