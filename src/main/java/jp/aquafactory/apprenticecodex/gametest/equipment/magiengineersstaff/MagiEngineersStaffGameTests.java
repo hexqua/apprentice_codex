@@ -115,6 +115,12 @@ public final class MagiEngineersStaffGameTests {
     }
 
     @GameTest(template = "gametest/basic_floor")
+    public static void magiStaffIgnoresOnlyNativeOffhandSpellModifiers(GameTestHelper helper) {
+        if (MagiEngineersStaff.available()) MagiEngineersStaffOffhandScenarios.nativeOffhandAttributes(helper);
+        else helper.succeed();
+    }
+
+    @GameTest(template = "gametest/basic_floor")
     public static void magiStaffSyncPreservesSourceAndPhase(GameTestHelper helper) {
         MagiEngineersStaffOffhandScenarios.packet(helper);
     }

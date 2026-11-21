@@ -13,6 +13,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -31,6 +32,8 @@ import net.stln.magitech.feature.magic.spell.ISpell;
 import net.stln.magitech.helper.ComponentHelper;
 import net.stln.magitech.helper.CuriosHelper;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 
 public final class MagiEngineersStaffCompat {
@@ -119,16 +122,27 @@ public final class MagiEngineersStaffCompat {
     private static double projectedAttribute(LivingEntity caster, Holder<Attribute> attribute, double staffBase) {
         var instance = caster.getAttribute(attribute);
         if (instance == null) return staffBase;
+        Collection<AttributeModifier> modifiers = instance.getModifiers();
+        var offhand = caster.getOffhandItem();
+        if (offhand.getItem() instanceof SpellCasterItem) {
+            // Magitechは魔技師杖を主手の詠唱杖と認識しないため、オフハンドの純正杖の補正が属性に載る.
+            // 詠唱元が魔技師杖のときだけ、オフハンド枠に由来する同じ補正を計算から外す.
+            var offhandModifiers = new HashSet<AttributeModifier>();
+            offhand.forEachModifier(EquipmentSlot.OFFHAND, (type, modifier) -> {
+                if (type.value() == attribute.value()) offhandModifiers.add(modifier);
+            });
+            modifiers = modifiers.stream().filter(modifier -> !offhandModifiers.contains(modifier)).toList();
+        }
         double value = staffBase + instance.getBaseValue() - attribute.value().getDefaultValue();
-        for (var modifier : instance.getModifiers()) {
+        for (var modifier : modifiers) {
             if (modifier.operation() == AttributeModifier.Operation.ADD_VALUE) value += modifier.amount();
         }
         double added = value;
         // 杖の基礎値を置換し、外部の加算・基礎乗算・最終乗算を元の順序で適用する。
-        for (var modifier : instance.getModifiers()) {
+        for (var modifier : modifiers) {
             if (modifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE) value += added * modifier.amount();
         }
-        for (var modifier : instance.getModifiers()) {
+        for (var modifier : modifiers) {
             if (modifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL) value *= 1 + modifier.amount();
         }
         return Math.max(0, value);
