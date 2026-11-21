@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.gametest.enchantment.wisdom;
 
 import com.mojang.authlib.GameProfile;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
+import jp.aquafactory.apprenticecodex.enchantment.WisdomExperienceDropEvent;
 import jp.aquafactory.apprenticecodex.enchantment.WisdomPolicy;
 import jp.aquafactory.apprenticecodex.gametest.support.CurioTestSupport;
 import jp.aquafactory.apprenticecodex.registry.EnchantmentRegistry;
@@ -102,6 +103,12 @@ public final class WisdomTagGameTests {
         player.setItemSlot(EquipmentSlot.HEAD, enchantedStack(Items.GOLDEN_HELMET, 2));
         CurioTestSupport.equipRingCurio(player, enchantedStack(Items.GOLD_NUGGET, 3));
         assertExperience(helper, player, 21, 39, "Combined tagged equipment with rounding");
+
+        var event = new BlockEvent.BreakEvent(helper.getLevel(), helper.absolutePos(new BlockPos(1, 2, 1)),
+                Blocks.SCULK.defaultBlockState(), player);
+        event.setExpToDrop(1);
+        MinecraftForge.EVENT_BUS.post(event);
+        helper.assertTrue(event.getExpToDrop() == 2, "The Forge break event must increase sculk's fixed experience");
         helper.succeed();
     }
 
@@ -130,7 +137,8 @@ public final class WisdomTagGameTests {
         var blockEvent = new BlockEvent.BreakEvent(helper.getLevel(), helper.absolutePos(new BlockPos(1, 2, 1)),
                 Blocks.DIAMOND_ORE.defaultBlockState(), player);
         blockEvent.setExpToDrop(initial);
-        MinecraftForge.EVENT_BUS.post(blockEvent);
+        // Curios がイベント上で鉱石の経験値を再抽選するため、固定値での計算は叡智のハンドラで検証する。
+        WisdomExperienceDropEvent.onBlockBreak(blockEvent);
         helper.assertTrue(blockEvent.getExpToDrop() == expected,
                 context + " mining XP expected=" + expected + " actual=" + blockEvent.getExpToDrop());
     }
