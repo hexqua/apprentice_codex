@@ -2,6 +2,7 @@ package jp.aquafactory.apprenticecodex.gametest.equipment.magiengineersstaff;
 
 import com.mojang.authlib.GameProfile;
 import io.netty.buffer.Unpooled;
+import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.compat.magitech.MagiEngineersStaffCompat;
 import jp.aquafactory.apprenticecodex.item.magiengineersstaff.MagiEngineersStaff;
 import jp.aquafactory.apprenticecodex.network.packet.SyncMagiEngineersStaffCastPacket;
@@ -14,6 +15,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -22,13 +24,17 @@ import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.network.connection.ConnectionType;
 import net.stln.magitech.content.entity.magicentity.aetherix.AetherixEntity;
+import net.stln.magitech.content.entity.status.AttributeInit;
 import net.stln.magitech.content.item.ItemInit;
 import net.stln.magitech.content.item.component.ComponentInit;
+import net.stln.magitech.content.item.component.PartMaterialComponent;
 import net.stln.magitech.content.item.component.SpellComponent;
 import net.stln.magitech.core.api.mana.ManaCapabilities;
+import net.stln.magitech.feature.element.Element;
 import net.stln.magitech.feature.magic.MagicPerformanceHelper;
 import net.stln.magitech.feature.magic.cooldown.CooldownHelper;
 import net.stln.magitech.feature.magic.spell.SpellInit;
+import net.stln.magitech.feature.tool.material.MaterialInit;
 import top.theillusivec4.curios.api.CuriosApi;
 
 import java.util.List;
@@ -37,6 +43,53 @@ import java.util.UUID;
 
 final class MagiEngineersStaffOffhandScenarios {
     private MagiEngineersStaffOffhandScenarios() {}
+
+    static void nativeOffhandAttributes(GameTestHelper helper) {
+        var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "magi_mixed_hands"));
+        var staff = new ItemStack(ItemRegistry.MAGI_ENGINEERS_STAFF.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, staff);
+        Objects.requireNonNull(player.getAttribute(AttributeInit.SPELL_POWER)).addTransientModifier(
+                new AttributeModifier(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "test_external_power"),
+                        0.25, AttributeModifier.Operation.ADD_VALUE));
+        Objects.requireNonNull(player.getAttribute(AttributeInit.LAUNCH)).addTransientModifier(
+                new AttributeModifier(ResourceLocation.fromNamespaceAndPath(ApprenticeCodex.MODID, "test_external_launch"),
+                        0.2, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+        player.doTick();
+        var baseline = spellPerformance(player, staff);
+        helper.assertTrue(Math.abs(baseline.damage() - 12.5) < 0.001 && Math.abs(baseline.speed() - 2.7) < 0.001,
+                "External spell power and launch modifiers must apply to the main-hand staff");
+
+        var nativeStaff = new ItemStack(ItemInit.STAFF.get());
+        nativeStaff.set(ComponentInit.PART_MATERIAL_COMPONENT,
+                new PartMaterialComponent(MaterialInit.SAMPLE, MaterialInit.SAMPLE, MaterialInit.SAMPLE, MaterialInit.SAMPLE));
+        player.setItemInHand(InteractionHand.OFF_HAND, nativeStaff);
+        // 組み立てたばかりの杖は耐久値の初期化後に装備補正が生成される。
+        nativeStaff.inventoryTick(helper.getLevel(), player, 40, false);
+        nativeStaff.inventoryTick(helper.getLevel(), player, 40, false);
+        player.doTick();
+        helper.assertTrue(Math.abs(player.getAttributeValue(AttributeInit.SPELL_POWER) - 2.25) < 0.001,
+                "Native offhand spell power must remain active on the player");
+        var mixed = spellPerformance(player, staff);
+        helper.assertTrue(baseline.equals(mixed),
+                "The offhand caster must not change the main-hand staff's spell values. Expected " + baseline + ", got " + mixed);
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        player.doTick();
+        helper.assertTrue(Math.abs(spellPerformance(player, nativeStaff).damage() - 22.5) < 0.001,
+                "The native staff must still use its own offhand power exactly once when it is the only staff");
+        helper.succeed();
+    }
+
+    private static SpellPerformance spellPerformance(FakePlayer player, ItemStack staff) {
+        var shot = SpellInit.AETHERIX.get();
+        return new SpellPerformance(MagicPerformanceHelper.getOutgoingMagicDamage(player, staff, 25, 10, Element.EMBER),
+                MagicPerformanceHelper.getEffectiveCost(player, staff, shot),
+                MagicPerformanceHelper.getEffectiveChargeTime(player, staff, SpellInit.FULGENZA.get()),
+                MagicPerformanceHelper.getEffectiveCooldown(player, staff, shot),
+                MagicPerformanceHelper.getEffectiveProjectileSpeed(player, staff, shot));
+    }
+
+    private record SpellPerformance(float damage, float cost, float charge, int cooldown, float speed) {}
 
     static void priority(GameTestHelper helper) {
         var player = new FakePlayer(helper.getLevel(), new GameProfile(UUID.randomUUID(), "magi_priority"));
