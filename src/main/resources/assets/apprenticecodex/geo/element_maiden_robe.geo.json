@@ -66,7 +66,7 @@
 					"parent": "armorBody",
 					"pivot": [0, 18, 0],
 					"cubes": [
-						{"origin": [-5, 12, -2.5], "size": [10, 12, 5], "inflate": 0.1, "uv": [0, 0]},
+						{"origin": [-5, 12, -2.5], "size": [10, 12.25, 5], "inflate": 0.1, "uv": [0, 0]},
 						{
 							"origin": [5, 9, -2.75],
 							"size": [0.25, 5, 5.5],
