@@ -106,7 +106,7 @@ public class ArcaneBeamEntity extends Entity implements TraceableEntity {
 
         var source = CombatTools.getDamageSource(level, this, owner, DamageTypes.ARCANE_BEAM);
         for(var entity : entities){
-            CombatTools.applyDamage(entity, damage, source, SpellRegistry.ARCANE_BEAM.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+            CombatTools.applySpellDamage(entity, damage, source, SpellRegistry.ARCANE_BEAM.get(), CombatTools.KnockbackTypes.DEFAULT);
         }
     }
 
@@ -237,4 +237,9 @@ public class ArcaneBeamEntity extends Entity implements TraceableEntity {
         return entityData.get(RADIUS);
     }
 
+    @Override
+    public boolean isAttackable() {
+        // 魔法の実体を攻撃対象にしない。カウンタースペルの対象判定とは独立している。
+        return false;
+    }
 }

@@ -4,6 +4,7 @@ import io.redspace.ironsspellbooks.api.events.SpellDamageEvent;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import jp.aquafactory.apprenticecodex.ApprenticeCodex;
 import jp.aquafactory.apprenticecodex.config.ApprenticeCodexServerConfig;
+import jp.aquafactory.apprenticecodex.damage.ApprenticeSpellDamageSource;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -135,6 +136,10 @@ public final class MulticastEchoStaffAttackHandler {
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onSpellDamage(SpellDamageEvent event) {
         var spellDamageSource = event.getSpellDamageSource();
+        // Codexの共通経路はイベント発火前に補正済み。Iron's経路だけをここで補正する。
+        if (spellDamageSource instanceof ApprenticeSpellDamageSource) {
+            return;
+        }
         var spell = spellDamageSource.spell();
         var spellId = spell == null ? null : spell.getSpellResource();
         var profile = resolveProfileForDamage(spellDamageSource, spellId);

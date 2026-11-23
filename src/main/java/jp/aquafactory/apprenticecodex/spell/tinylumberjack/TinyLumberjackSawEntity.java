@@ -266,7 +266,7 @@ public class TinyLumberjackSawEntity extends SummonWeaponEntity implements GeoEn
                     e -> e != owner && CombatTools.isValidCombatTarget(e, owner)
             );
             for (var hit : hitResult) {
-                CombatTools.applyDamage(hit, damage, source, SpellRegistry.TINY_LUMBERJACK.get().getSchoolType(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
+                CombatTools.applySpellDamage(hit, damage, source, SpellRegistry.TINY_LUMBERJACK.get(), CombatTools.KnockbackTypes.NO_KNOCKBACK);
             }
         }
         moveToTarget(owner, ownerTargetHitPos, true);

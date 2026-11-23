@@ -218,4 +218,9 @@ public abstract class AbstractSpellThrowableCardEntity extends Projectile {
     public boolean isPickable() {
         return false;
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

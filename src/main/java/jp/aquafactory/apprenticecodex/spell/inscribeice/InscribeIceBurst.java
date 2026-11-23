@@ -95,11 +95,11 @@ public final class InscribeIceBurst {
                 continue;
             }
 
-            var damaged = CombatTools.applyDamage(
+            var damaged = CombatTools.applySpellDamage(
                     target,
                     damage,
                     damageSource,
-                    SpellRegistry.INSCRIBE_ICE.get().getSchoolType(),
+                    SpellRegistry.INSCRIBE_ICE.get(),
                     CombatTools.KnockbackTypes.NO_KNOCKBACK
             );
             if (damaged && target instanceof LivingEntity livingTarget

@@ -25,4 +25,9 @@ public class ExtractPotionProjectileEntity extends ThrownPotion implements AntiM
 
         discard();
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

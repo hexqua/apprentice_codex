@@ -303,4 +303,9 @@ public final class ScytheThrowEntity extends Projectile implements GeoEntity {
         controllers.add(new AnimationController<>(this, "throw", 0, state -> state.setAndContinue(isNarrow() ? THROW_VERTICAL : THROW)));
     }
     @Override public AnimatableInstanceCache getAnimatableInstanceCache() { return cache; }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

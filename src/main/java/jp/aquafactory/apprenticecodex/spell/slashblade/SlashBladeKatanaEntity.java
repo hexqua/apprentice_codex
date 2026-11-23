@@ -170,11 +170,11 @@ public class SlashBladeKatanaEntity extends SummonWeaponEntity implements GeoEnt
         AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
         for (var hit : hitResult){
             var isBlockPenetrationHit = hit.blockOccluded();
-            CombatTools.applyDamage(
+            CombatTools.applySpellDamage(
                     hit.entity(),
                     isBlockPenetrationHit ? damage * blockPenetrationDamageMultiplier : damage,
                     source,
-                    SpellRegistry.SLASH_BLADE.get().getSchoolType(),
+                    SpellRegistry.SLASH_BLADE.get(),
                     isBlockPenetrationHit
                             ? CombatTools.KnockbackTypes.NO_KNOCKBACK
                             : CombatTools.KnockbackTypes.DEFAULT

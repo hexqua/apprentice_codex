@@ -1,7 +1,6 @@
 package jp.aquafactory.apprenticecodex.spell.sacredarrow;
 
 import io.redspace.ironsspellbooks.api.magic.MagicData;
-import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.entity.mobs.AntiMagicSusceptible;
 import io.redspace.ironsspellbooks.capabilities.magic.MagicManager;
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
@@ -9,6 +8,7 @@ import io.redspace.ironsspellbooks.util.ParticleHelper;
 import jp.aquafactory.apprenticecodex.damage.DamageTypes;
 import jp.aquafactory.apprenticecodex.registry.EffectRegistry;
 import jp.aquafactory.apprenticecodex.particle.StellarTrailParticles;
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import jp.aquafactory.apprenticecodex.utility.ProjectileCollisionTools;
 import net.minecraft.nbt.CompoundTag;
@@ -169,9 +169,9 @@ public final class SacredArrowEntity extends Projectile implements AntiMagicSusc
         var target = CombatTools.resolutePartEntity(hit.getEntity());
         if (!CombatTools.isValidCombatTarget(target, getOwner()) || damaged.contains(target.getUUID())) return;
         boolean primary = target.getUUID().equals(targetId);
-        boolean applied = CombatTools.applyDamage(target, damage * (chasing && !primary ? penetrateMultiplier : 1),
+        boolean applied = CombatTools.applySpellDamage(target, damage * (chasing && !primary ? penetrateMultiplier : 1),
                 CombatTools.getDamageSource(level(), this, getOwner(), DamageTypes.SACRED_ARROW),
-                SchoolRegistry.HOLY.get(), CombatTools.KnockbackTypes.DEFAULT);
+                SpellRegistry.SACRED_ARROW.get(), CombatTools.KnockbackTypes.DEFAULT);
         if (applied) {
             damaged.add(target.getUUID());
             if (!chasing && target instanceof LivingEntity living && living.isAlive() && !living.isDeadOrDying()) {
@@ -205,4 +205,9 @@ public final class SacredArrowEntity extends Projectile implements AntiMagicSusc
     @Override protected void defineSynchedData() {}
     @Override protected void readAdditionalSaveData(@NotNull CompoundTag tag) { super.readAdditionalSaveData(tag); }
     @Override protected void addAdditionalSaveData(@NotNull CompoundTag tag) { super.addAdditionalSaveData(tag); }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

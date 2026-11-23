@@ -188,11 +188,11 @@ public class CombustionJetWaveEntity extends Projectile
             }
         }
 
-        CombatTools.applyDamage(
+        CombatTools.applySpellDamage(
                 target,
                 damage,
                 source,
-                SpellRegistry.COMBUSTION_JET.get().getSchoolType(),
+                SpellRegistry.COMBUSTION_JET.get(),
                 CombatTools.KnockbackTypes.NO_KNOCKBACK
         );
 
@@ -452,5 +452,10 @@ public class CombustionJetWaveEntity extends Projectile
                     + Math.abs(axis.dot(basis.lateral())) * halfExtents.y
                     + Math.abs(axis.dot(basis.up())) * halfExtents.z;
         }
+    }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
     }
 }

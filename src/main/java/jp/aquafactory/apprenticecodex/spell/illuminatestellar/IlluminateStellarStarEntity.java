@@ -254,7 +254,7 @@ public class IlluminateStellarStarEntity extends Projectile implements AntiMagic
 
         var target = CombatTools.resolutePartEntity(hit.getEntity());
         var source = CombatTools.getDamageSource(level(), this, owner, DamageTypes.ILLUMINATE_STELLAR);
-        CombatTools.applyDamage(target, damage, source, SpellRegistry.ILLUMINATE_STELLAR.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+        CombatTools.applySpellDamage(target, damage, source, SpellRegistry.ILLUMINATE_STELLAR.get(), CombatTools.KnockbackTypes.DEFAULT);
         triggerImpactAndDiscard();
     }
 
@@ -717,5 +717,10 @@ public class IlluminateStellarStarEntity extends Projectile implements AntiMagic
             right = forward.cross(new Vec3(1.0, 0.0, 0.0));
         }
         return right.normalize();
+    }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
     }
 }

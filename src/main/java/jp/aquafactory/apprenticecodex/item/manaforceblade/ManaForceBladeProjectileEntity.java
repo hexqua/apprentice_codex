@@ -203,4 +203,9 @@ public class ManaForceBladeProjectileEntity extends Projectile {
     public int getColor() {
         return entityData.get(COLOR);
     }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
+    }
 }

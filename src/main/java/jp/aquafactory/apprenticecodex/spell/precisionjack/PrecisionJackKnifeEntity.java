@@ -157,7 +157,7 @@ public class PrecisionJackKnifeEntity extends SummonWeaponEntity implements GeoE
         AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
 
         for (var hit : hitResult) {
-            CombatTools.applyDamage(hit, damage, source, SpellRegistry.PRECISION_JACK.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+            CombatTools.applySpellDamage(hit, damage, source, SpellRegistry.PRECISION_JACK.get(), CombatTools.KnockbackTypes.DEFAULT);
         }
     }
 

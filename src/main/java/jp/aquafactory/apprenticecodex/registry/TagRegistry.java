@@ -129,6 +129,9 @@ public final class TagRegistry {
                 createEnchantableItemTag("transcendence");
         public static final TagKey<Item> WISDOM_ENCHANTABLE =
                 createEnchantableItemTag("wisdom");
+        public static final TagKey<Item> WISDOM_HELD = createItemTag("wisdom/held");
+        public static final TagKey<Item> WISDOM_ARMOR = createItemTag("wisdom/armor");
+        public static final TagKey<Item> WISDOM_CURIOS = createItemTag("wisdom/curios");
         public static final TagKey<Item> PLUNDER_ENCHANTABLE =
                 createEnchantableItemTag("plunder");
     }

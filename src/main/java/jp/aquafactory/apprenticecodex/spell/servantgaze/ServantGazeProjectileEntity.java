@@ -33,9 +33,14 @@ public class ServantGazeProjectileEntity extends MagicMissileProjectile {
         var target = CombatTools.resolutePartEntity(hit.getEntity());
         if (CombatTools.isValidCombatTarget(target, getOwner())) {
             var source = CombatTools.getDamageSource(level(), this, getOwner(), DamageTypes.SERVANT_GAZE);
-            CombatTools.applyDamage(target, damage, source, SpellRegistry.SERVANT_GAZE.get().getSchoolType(),
+            CombatTools.applySpellDamage(target, damage, source, SpellRegistry.SERVANT_GAZE.get(),
                     CombatTools.KnockbackTypes.NO_KNOCKBACK);
         }
         pierceOrDiscard();
+    }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
     }
 }

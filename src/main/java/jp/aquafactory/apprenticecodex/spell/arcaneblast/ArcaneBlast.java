@@ -122,8 +122,8 @@ public class ArcaneBlast extends AbstractSpell implements ICastHighlightSpell {
         if (result.hitEntity() != null) {
             var target = CombatTools.resolutePartEntity(result.hitEntity());
             var source = CombatTools.getDamageSource(level, entity, DamageTypes.ARCANE_BLAST);
-            var damaged = CombatTools.applyDamage(target, getDamage(spellLevel, entity), source,
-                    getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+            var damaged = CombatTools.applySpellDamage(target, getDamage(spellLevel, entity), source,
+                    this, CombatTools.KnockbackTypes.DEFAULT);
             if (!damaged) {
                 super.onCast(level, spellLevel, entity, castSource, playerMagicData);
                 return;

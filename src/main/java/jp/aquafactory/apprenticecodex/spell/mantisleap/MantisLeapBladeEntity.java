@@ -134,7 +134,7 @@ public class MantisLeapBladeEntity extends SummonWeaponEntity implements GeoEnti
             AudioTools.playSoundFromEntity(level, this, SoundRegistry.KATANA_SLASH.get(), SoundSource.PLAYERS);
             AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
             for (var hit : hitResult) {
-                CombatTools.applyDamage(hit, damage, source, SpellRegistry.MANTIS_LEAP.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+                CombatTools.applySpellDamage(hit, damage, source, SpellRegistry.MANTIS_LEAP.get(), CombatTools.KnockbackTypes.DEFAULT);
             }
         }
     }

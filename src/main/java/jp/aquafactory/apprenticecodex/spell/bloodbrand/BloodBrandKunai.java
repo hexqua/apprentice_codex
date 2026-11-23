@@ -151,11 +151,11 @@ public class BloodBrandKunai extends Projectile implements AntiMagicSusceptible 
         }
 
         var source = CombatTools.getDamageSource(level(), this, owner, DamageTypes.BLOOD_BRAND);
-        var damaged = CombatTools.applyDamage(
+        var damaged = CombatTools.applySpellDamage(
                 target,
                 damage,
                 source,
-                SpellRegistry.BLOOD_BRAND.get().getSchoolType(),
+                SpellRegistry.BLOOD_BRAND.get(),
                 CombatTools.KnockbackTypes.NO_KNOCKBACK
         );
         if (damaged && target instanceof LivingEntity livingTarget && livingTarget.isAlive()
@@ -271,5 +271,10 @@ public class BloodBrandKunai extends Projectile implements AntiMagicSusceptible 
     private void spawnImpactParticles(ServerLevel serverLevel) {
         // vanillaのentity event IDは型ごとの専用処理と衝突し得るため、通常のparticle packetで同期する。
         serverLevel.sendParticles(BLOOD_DUST, getX(), getY(), getZ(), 12, 0.08D, 0.08D, 0.08D, 0.02D);
+    }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
     }
 }

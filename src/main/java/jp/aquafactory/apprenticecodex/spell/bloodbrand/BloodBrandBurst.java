@@ -60,11 +60,11 @@ public final class BloodBrandBurst {
             damagedTargets.add(target.getUUID());
             var livingTarget = target instanceof LivingEntity living ? living : null;
             var healthBefore = livingTarget != null ? livingTarget.getHealth() : 0.0F;
-            var damaged = CombatTools.applyDamage(
+            var damaged = CombatTools.applySpellDamage(
                     target,
                     damage,
                     damageSource,
-                    SpellRegistry.BLOOD_BRAND.get().getSchoolType(),
+                    SpellRegistry.BLOOD_BRAND.get(),
                     CombatTools.KnockbackTypes.NO_KNOCKBACK
             );
             if (damaged && livingTarget != null) {

@@ -143,7 +143,7 @@ public class MysticShieldProjectileEntity extends Projectile implements AntiMagi
         var target = CombatTools.resolutePartEntity(hitResult.getEntity());
         if (CombatTools.isValidCombatTarget(target, getOwner())) {
             var source = CombatTools.getDamageSource(level(), this, getOwner(), DamageTypes.MYSTIC_SHIELD);
-            CombatTools.applyDamage(target, damage, source, SpellRegistry.MYSTIC_SHIELD.get().getSchoolType(), CombatTools.KnockbackTypes.DEFAULT);
+            CombatTools.applySpellDamage(target, damage, source, SpellRegistry.MYSTIC_SHIELD.get(), CombatTools.KnockbackTypes.DEFAULT);
         }
         discard();
     }
@@ -292,5 +292,10 @@ public class MysticShieldProjectileEntity extends Projectile implements AntiMagi
             right = forward.cross(new Vec3(1.0, 0.0, 0.0));
         }
         return right.normalize();
+    }
+
+    @Override
+    public boolean isAttackable() {
+        return false;
     }
 }

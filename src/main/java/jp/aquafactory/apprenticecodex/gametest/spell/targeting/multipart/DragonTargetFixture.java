@@ -1,5 +1,6 @@
 package jp.aquafactory.apprenticecodex.gametest.spell.targeting.multipart;
 
+import jp.aquafactory.apprenticecodex.registry.SpellRegistry;
 import jp.aquafactory.apprenticecodex.utility.CombatTools;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.Entity;
@@ -19,7 +20,7 @@ final class DragonTargetFixture {
             Entity target = index < dragon.getSubEntities().length ? dragon.getSubEntities()[index] : dragon;
             var source = helper.getLevel().damageSources().playerAttack(scene.owner);
             boolean applied = spell
-                    ? CombatTools.applyDamage(target, 20, source, null, CombatTools.KnockbackTypes.NO_KNOCKBACK)
+                    ? CombatTools.applySpellDamage(target, 20, source, SpellRegistry.SHOCK.get(), CombatTools.KnockbackTypes.NO_KNOCKBACK)
                     : CombatTools.applyUnscaledDamage(target, 20, source, CombatTools.KnockbackTypes.NO_KNOCKBACK);
             helper.assertTrue(applied, "Dragon damage should be accepted for target " + index);
             assertDamage(helper, dragon, 20);

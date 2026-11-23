@@ -14,12 +14,14 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Husk;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
@@ -104,11 +106,15 @@ public final class ScytheNarrowGameTests {
         if (!MalumSpellReaperScytheBridge.isAvailable()) { h.succeed(); return; }
         var p = ScytheReboundGameTests.player(h, 100);
         p.setXRot(0);
+        // 構造原点が地下の場合も、通常地形の上で最初の接触を検証する。
+        int arenaY = h.getLevel().getMaxBuildHeight() - 8;
+        int relativeArenaY = arenaY - h.absolutePos(BlockPos.ZERO).getY();
+        p.setPos(p.getX(), arenaY, p.getZ());
         equip(p, "necklace_of_the_narrow_edge");
         ScytheReboundGameTests.enchant(h, p.getMainHandItem(), "rebound", 1);
         // 遠い敵を先に登録し、Entity列挙順に依存せず手前で折り返すことを確認する。
-        var far = h.spawn(EntityType.HUSK, new BlockPos(2, 20, 6));
-        var near = h.spawn(EntityType.HUSK, new BlockPos(2, 20, 5));
+        var far = h.spawn(EntityType.HUSK, new BlockPos(2, relativeArenaY, 6));
+        var near = h.spawn(EntityType.HUSK, new BlockPos(2, relativeArenaY, 5));
         for (var target : new Husk[]{far, near}) {
             target.setNoAi(true); target.setNoGravity(true);
             target.getAttribute(Attributes.ARMOR).setBaseValue(0);
@@ -117,14 +123,34 @@ public final class ScytheNarrowGameTests {
         }
         ScytheReboundGameTests.use(h, p);
         var entity = ScytheThrowManager.active(p);
+        h.assertTrue(entity != null && entity.isNarrow(), "The fixture must start a Narrow throw");
+        Entity[] firstContact = {null};
+        Consumer<ProjectileImpactEvent> listener = event -> {
+            if (event.getProjectile() == entity && firstContact[0] == null
+                    && event.getRayTraceResult() instanceof EntityHitResult hit) {
+                firstContact[0] = hit.getEntity();
+            }
+        };
+        MinecraftForge.EVENT_BUS.addListener(listener);
         try {
-            entity.tick();
+            // 衝突までの飛翔時間は固定せず、最初の衝突と同じ tick に帰還したかを確認する。
+            for (int tick = 0; tick < 20 && firstContact[0] == null && !entity.isRemoved(); tick++) {
+                entity.tick();
+            }
+            h.assertTrue(firstContact[0] == near, "The first contact must be the nearer enemy"
+                    + ": contact=" + firstContact[0] + ", projectile=" + entity.position()
+                    + ", near=" + near.position() + ", far=" + far.position());
             h.assertTrue(entity.isRemoved() && !entity.isHovering(), "First contact must recall in the same tick");
             h.assertTrue(Math.abs(near.getHealth() - 87) < 0.01,
                     "Narrow must apply the captured 1.3 multiplier once; health=" + near.getHealth());
             h.assertTrue(far.getHealth() == 100, "Enemies beyond the first contact must not be hit");
             h.assertTrue(entity.getZ() < near.getZ(), "Recall must originate at contact, not at the next tick endpoint");
-        } finally { entity.discard(); }
+        } finally {
+            MinecraftForge.EVENT_BUS.unregister(listener);
+            entity.discard();
+            near.discard();
+            far.discard();
+        }
         h.succeed();
     }
 

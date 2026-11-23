@@ -14,6 +14,21 @@ public final class SpellGameTests {
     private SpellGameTests() {}
 
     @GameTest(template = TEMPLATE, batch = COUNTERSPELL_COMPAT_ISOLATED_BATCH)
+    public static void counterspellRemovesNonAttackableAutoMagnet(GameTestHelper helper) {
+        NonAttackableCounterspellScenarios.autoMagnet(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = COUNTERSPELL_COMPAT_ISOLATED_BATCH)
+    public static void counterspellRemovesNonAttackableLethalAssault(GameTestHelper helper) {
+        NonAttackableCounterspellScenarios.lethalAssault(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = COUNTERSPELL_COMPAT_ISOLATED_BATCH)
+    public static void counterspellRemovesNonAttackableEchoArrowCore(GameTestHelper helper) {
+        NonAttackableCounterspellScenarios.echoArrowCore(helper);
+    }
+
+    @GameTest(template = TEMPLATE, batch = COUNTERSPELL_COMPAT_ISOLATED_BATCH)
     public static void counterspellCompatMagicMobEffectsAreMagicMobEffects(GameTestHelper helper) {
         CounterspellCompatibilityScenarios.counterspellCompatMagicMobEffectsAreMagicMobEffects(helper);
     }

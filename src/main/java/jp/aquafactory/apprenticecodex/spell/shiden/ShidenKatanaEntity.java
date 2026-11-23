@@ -168,11 +168,11 @@ public class ShidenKatanaEntity extends SummonWeaponEntity implements GeoEntity,
         AudioTools.playSoundFromEntity(level, this, SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.PLAYERS);
         for (var hit : hitResult){
             var isBlockPenetrationHit = hit.blockOccluded();
-            CombatTools.applyDamage(
+            CombatTools.applySpellDamage(
                     hit.entity(),
                     isBlockPenetrationHit ? damage * blockPenetrationDamageMultiplier : damage,
                     source,
-                    SpellRegistry.SHIDEN.get().getSchoolType(),
+                    SpellRegistry.SHIDEN.get(),
                     isBlockPenetrationHit
                             ? CombatTools.KnockbackTypes.NO_KNOCKBACK
                             : CombatTools.KnockbackTypes.DEFAULT
