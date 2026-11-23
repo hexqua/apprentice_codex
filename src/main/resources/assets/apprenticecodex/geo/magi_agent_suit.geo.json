@@ -80,7 +80,7 @@
 					"parent": "armorRightArm",
 					"pivot": [-6.35, 15.16667, 0],
 					"cubes": [
-						{"origin": [-8, 13, -2], "size": [4, 11, 4], "inflate": 0.25, "uv": [32, 0]},
+						{"origin": [-8, 13, -2], "size": [4, 11.05, 4], "inflate": 0.25, "uv": [32, 0]},
 						{"origin": [-8, 12.5, -2], "size": [4, 1, 4], "inflate": 0.2, "uv": [32, 62]}
 					]
 				},
@@ -121,7 +121,7 @@
 					"parent": "armorLeftArm",
 					"pivot": [6.35, 15.5, 0],
 					"cubes": [
-						{"origin": [4, 13, -2], "size": [4, 11, 4], "inflate": 0.25, "uv": [32, 47]},
+						{"origin": [4, 13, -2], "size": [4, 11.05, 4], "inflate": 0.25, "uv": [32, 47]},
 						{"origin": [4, 12.5, -2], "size": [4, 1, 4], "inflate": 0.2, "uv": [48, 62]}
 					]
 				},
