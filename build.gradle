@@ -210,6 +210,7 @@ neoForge {
     runs {
         client {
             client()
+            devLogin = project.findProperty('devLogin') == 'true'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
@@ -227,51 +228,61 @@ neoForge {
 
         clientIncompatibles {
             client()
+            devLogin = project.findProperty('devLogin') == 'true'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
         clientCompat {
             client()
+            devLogin = project.findProperty('devLogin') == 'true'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
         clientCompatEmi {
             client()
+            devLogin = project.findProperty('devLogin') == 'true'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
         clientCreateSableAeronautics {
             client()
+            devLogin = project.findProperty('devLogin') == 'true'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
         clientEasyMagic {
             client()
+            devLogin = project.findProperty('devLogin') == 'true'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
         clientBetterCombat {
             client()
+            devLogin = project.findProperty('devLogin') == 'true'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
         clientEpicFight {
             client()
+            devLogin = project.findProperty('devLogin') == 'true'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
         clientMalumEpicFight {
             client()
+            devLogin = project.findProperty('devLogin') == 'true'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
         clientEpicFightController {
             client()
+            devLogin = project.findProperty('devLogin') == 'true'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
         clientCompatEasyBetter {
             client()
+            devLogin = project.findProperty('devLogin') == 'true'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
