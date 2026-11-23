@@ -24,6 +24,7 @@ println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty '
 def gameTestServerWorldName = 'codex_gametest_clean'
 def gameTestServerWorldDir = layout.projectDirectory.dir("run/${gameTestServerWorldName}")
 def requiredOptionalModsProperty = 'apprenticecodex.requiredOptionalMods'
+def devLoginEnabled = providers.gradleProperty('devLogin').orNull == 'true'
 
 // Connectorは起動サービスも持つため、専用source setのclasspathとmodsを通常構成から分離する。
 sourceSets {
@@ -38,6 +39,10 @@ configurations {
     connectorMods { canBeConsumed = false }
     connectorFabricMods { canBeConsumed = false }
     connectorRuntimeOnly.extendsFrom connectorLoader
+    devLoginRuntime {
+        canBeConsumed = false
+        canBeResolved = true
+    }
 }
 
 def connectorWorkingDir = layout.projectDirectory.dir('run-connector')
@@ -465,8 +470,30 @@ if (devRuntimeMods != null && !devRuntimeMods.trim().isEmpty()) {
     }
 }
 
+if (devLoginEnabled) {
+    // ForgeGradle が afterEvaluate で登録する projectsEvaluated コールバックの後に起動タスクを設定する。
+    afterEvaluate {
+        gradle.projectsEvaluated {
+            tasks.names.findAll { it.startsWith('runClient') }.each { taskName ->
+                tasks.named(taskName, JavaExec).configure {
+                    classpath configurations.devLoginRuntime
+                    mainClass.set('net.covers1624.devlogin.DevLogin')
+                    systemProperty 'devlogin.launch_target', 'cpw.mods.bootstraplauncher.BootstrapLauncher'
+                }
+            }
+        }
+    }
+}
+
 // 依存のmavenをココに追加していく.
 repositories {
+    if (devLoginEnabled) {
+        maven {
+            url = uri('https://maven.covers1624.net/')
+            content { includeModule('net.covers1624', 'DevLogin') }
+        }
+    }
+
     // 個別のmavenが無いものはModrinthから取得.
     // CurseForgeはCDN次第ではCIがコケるため極力使用しない.
     maven {
@@ -511,6 +538,10 @@ repositories {
 // 依存解決は基本ココ.
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+    if (devLoginEnabled) {
+        devLoginRuntime "net.covers1624:DevLogin:${devlogin_version}"
+    }
 
     add('connectorLoader', fg.deobf("maven.modrinth:connector:${connector_modrinth_version_id}"))
     add('connectorMods', fg.deobf("maven.modrinth:forgified-fabric-api:${forgified_fabric_api_modrinth_version_id}"))

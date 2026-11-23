@@ -9,3 +9,5 @@ This project contains third-party assets. Each asset is used under its original 
 
 - MixinExtras (LlamaLad7, MIT): https://github.com/LlamaLad7/MixinExtras
   Bundled with the Minecraft 1.20.1 Forge JAR via Jar-in-Jar.
+- DevLogin (covers1624, MIT): https://github.com/covers1624/DevLogin
+  Used for opt-in Gradle development client authentication.
