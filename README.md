@@ -102,6 +102,19 @@ powershell -ExecutionPolicy Bypass -File .\scripts\use-java.ps1
 - 注意:
   これらはサーバー側の起動・読込・登録ミスの検知が主目的です。renderer や screen など client 専用の起動不良は別途 `runClient` で確認が必要です。
 
+### 実アカウントでの client 起動
+
+スキンや外側レイヤーの表示確認では、Gradle の起動オプション `-PdevLogin=true` を指定すると、Minecraft Java Edition を所有する Microsoft アカウントで開発クライアントにログインできます。
+
+```powershell
+.\scripts\use-java.ps1
+./gradlew.bat runClient "-PdevLogin=true"
+```
+
+`runClientCompat` などの client タスクにも同じオプションを指定できます。省略時は通常のオフライン起動になります。初回はコンソールに表示される案内に従って Microsoft のページでコードを入力してください。認証後は、そのアカウントに設定しているスキンが反映されます。
+
+DevLogin は認証トークンを既定で `%USERPROFILE%\.devlogin` に平文で保存します。[DevLogin の仕様](https://github.com/covers1624/DevLogin#how-it-works)
+
 ### optional MOD 付き client 起動
 
 - IntelliJ IDEA で実行構成を同期する場合:
